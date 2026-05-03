@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using StreamJsonRpc;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -34,9 +34,14 @@ internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandl
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLens request)
         => GetCodeLensResolveData(request).TextDocument;
 
-    public async Task<LSP.CodeLens> HandleRequestAsync(LSP.CodeLens request, RequestContext context, CancellationToken cancellationToken)
+    public Task<LSP.CodeLens> HandleRequestAsync(LSP.CodeLens request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.GetRequiredDocument();
+        return ResolveCodeLensAsync(request, document, cancellationToken);
+    }
+
+    internal static async Task<LSP.CodeLens> ResolveCodeLensAsync(LSP.CodeLens request, Document document, CancellationToken cancellationToken)
+    {
         var currentDocumentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
         var resolveData = GetCodeLensResolveData(request);
 
@@ -46,7 +51,7 @@ internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandl
             CommandIdentifier = ClientReferencesCommand,
             Arguments =
             [
-                resolveData.TextDocument.Uri,
+                resolveData.TextDocument.DocumentUri,
                 request.Range.Start
             ]
         };
@@ -74,7 +79,7 @@ internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandl
                 CommandIdentifier = ClientReferencesCommand,
                 Arguments =
                 [
-                    resolveData.TextDocument.Uri,
+                    resolveData.TextDocument.DocumentUri,
                     request.Range.Start,
                 ],
             };

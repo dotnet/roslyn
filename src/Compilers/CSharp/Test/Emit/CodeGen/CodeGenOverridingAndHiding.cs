@@ -4126,7 +4126,7 @@ class B : A
                 if (isFromMetadata)
                 {
                     VerifyParamArrayAttribute(parameterB);
-                };
+                }
             };
 
             var verifier = CompileAndVerify(source, symbolValidator: validator(true), sourceSymbolValidator: validator(false), expectedOutput: @"System.Int32[]");

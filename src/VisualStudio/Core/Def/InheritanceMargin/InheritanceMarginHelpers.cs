@@ -18,7 +18,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
 internal static class InheritanceMarginHelpers
 {
-    private static readonly ObjectPool<MultiDictionary<string, InheritanceTargetItem>> s_pool = new(() => new());
+    private static readonly ObjectPool<MultiDictionary<string, InheritanceTargetItem>> s_pool = new(() => []);
+
+    /// <summary>
+    /// Strips punctuation from a string for comparison purposes. Used to identify when two display names
+    /// are essentially the same but differ only in punctuation (e.g., "IAliasSymbol.Target" vs "IAliasSymbolTarget").
+    /// </summary>
+    private static string StripPunctuation(string text)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+        var hasPunctuation = false;
+        foreach (var c in text)
+        {
+            if (char.IsPunctuation(c))
+            {
+                hasPunctuation = true;
+            }
+            else
+            {
+                builder.Append(c);
+            }
+        }
+
+        return hasPunctuation ? builder.ToString() : text;
+    }
 
     private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Up_Arrow
         =
@@ -100,12 +123,12 @@ internal static class InheritanceMarginHelpers
         var nameToTargets = s_pool.Allocate();
         try
         {
-            // Create a mapping from display name to all targets with that name.  This will allow us to determine if
-            // there may be multiple results with the same name, so we can disambiguate them with additional
-            // information later on when we create the items.
+            // Create a mapping from display name (with punctuation stripped) to all targets with that name.
+            // This will allow us to determine if there may be multiple results with the same name (ignoring
+            // punctuation), so we can disambiguate them with additional information later on when we create the items.
             var targets = item.TargetItems;
             foreach (var target in targets)
-                nameToTargets.Add(target.DisplayName, target);
+                nameToTargets.Add(StripPunctuation(target.DisplayName), target);
 
             return [.. item.TargetItems
                 .GroupBy(t => t.RelationToMember)
@@ -167,11 +190,11 @@ internal static class InheritanceMarginHelpers
         builder.Add(new HeaderMenuItemViewModel(displayContent, GetMoniker(relationship)));
         foreach (var target in targets)
         {
-            var targetsWithSameName = nameToTargets[target.DisplayName];
+            var targetsWithSameName = nameToTargets[StripPunctuation(target.DisplayName)];
             if (targetsWithSameName.Count >= 2)
             {
-                // Two or more items with the same name.  Try to disambiguate them based on their languages if
-                // they're all distinct, or their project name if they're not.
+                // Two or more items with the same name (ignoring punctuation).  Try to disambiguate them based on their
+                // languages if they're all distinct, or their project name if they're not.
                 var distinctLanguageCount = targetsWithSameName.Select(t => t.LanguageGlyph).Distinct().Count();
                 if (distinctLanguageCount == targetsWithSameName.Count)
                 {

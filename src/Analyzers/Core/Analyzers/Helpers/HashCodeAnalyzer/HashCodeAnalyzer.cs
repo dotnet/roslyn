@@ -14,23 +14,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 /// <summary>
 /// Helper code to support analysis of HashCode methods
 /// </summary>
-internal readonly partial struct HashCodeAnalyzer
+internal readonly partial struct HashCodeAnalyzer(
+    IMethodSymbol objectGetHashCodeMethod,
+    INamedTypeSymbol? equalityComparerType,
+    INamedTypeSymbol systemHashCodeType)
 {
-    private readonly Compilation _compilation;
-    private readonly IMethodSymbol _objectGetHashCodeMethod;
-    private readonly INamedTypeSymbol? _equalityComparerType;
+    private readonly IMethodSymbol _objectGetHashCodeMethod = objectGetHashCodeMethod;
+    private readonly INamedTypeSymbol? _equalityComparerType = equalityComparerType;
 
-    public readonly INamedTypeSymbol SystemHashCodeType;
-
-    private HashCodeAnalyzer(
-        Compilation compilation, IMethodSymbol objectGetHashCodeMethod,
-        INamedTypeSymbol? equalityComparerType, INamedTypeSymbol systemHashCodeType)
-    {
-        _compilation = compilation;
-        _objectGetHashCodeMethod = objectGetHashCodeMethod;
-        _equalityComparerType = equalityComparerType;
-        SystemHashCodeType = systemHashCodeType;
-    }
+    public readonly INamedTypeSymbol SystemHashCodeType = systemHashCodeType;
 
     public static bool TryGetAnalyzer(Compilation compilation, [NotNullWhen(true)] out HashCodeAnalyzer analyzer)
     {
@@ -47,7 +39,7 @@ internal readonly partial struct HashCodeAnalyzer
         if (systemHashCodeType == null)
             return false;
 
-        analyzer = new HashCodeAnalyzer(compilation, objectGetHashCodeMethod, equalityComparerType, systemHashCodeType);
+        analyzer = new HashCodeAnalyzer(objectGetHashCodeMethod, equalityComparerType, systemHashCodeType);
         return true;
     }
 
@@ -129,31 +121,19 @@ internal readonly partial struct HashCodeAnalyzer
 
         // First statement has to be the declaration of the accumulator.
         // Last statement has to be the return of it.
-        if (statements.First() is not IVariableDeclarationGroupOperation varDeclStatement ||
-            !(statements.Last() is IReturnOperation { ReturnedValue: { } returnedValue }))
-        {
+        if (statements is not [IVariableDeclarationGroupOperation varDeclStatement, .., IReturnOperation { ReturnedValue: { } returnedValue }])
             return null;
-        }
 
         var variables = varDeclStatement.GetDeclaredVariables();
-        if (variables.Length != 1 ||
-            varDeclStatement.Declarations.Length != 1)
-        {
+        if (variables.Length != 1)
             return null;
-        }
 
-        var declaration = varDeclStatement.Declarations[0];
-        if (declaration.Declarators.Length != 1)
-        {
+        if (varDeclStatement.Declarations is not [{ Declarators: [var declarator] } declaration])
             return null;
-        }
 
-        var declarator = declaration.Declarators[0];
         var initializerValue = declaration.Initializer?.Value ?? declarator.Initializer?.Value;
         if (initializerValue == null)
-        {
             return null;
-        }
 
         var hashCodeVariable = declarator.Symbol;
         if (!(IsLocalReference(returnedValue, hashCodeVariable)))

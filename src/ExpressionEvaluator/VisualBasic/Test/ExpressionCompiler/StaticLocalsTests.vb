@@ -186,17 +186,17 @@ End Class"
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-                    Dim moduleVersionId As Guid = Nothing
+                    Dim moduleId As ModuleId = Nothing
                     Dim symReader As ISymUnmanagedReader = Nothing
                     Dim methodToken = 0
                     Dim localSignatureToken = 0
-                    GetContextState(runtime, "C.F(Boolean)", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    GetContextState(runtime, "C.F(Boolean)", blocks, moduleId, symReader, methodToken, localSignatureToken)
                     Dim context = CreateMethodContext(
                         New AppDomain(),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
@@ -233,13 +233,13 @@ End Class"
 }")
                     locals.Free()
 
-                    GetContextState(runtime, "C.F(Int32)", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    GetContextState(runtime, "C.F(Int32)", blocks, moduleId, symReader, methodToken, localSignatureToken)
                     context = CreateMethodContext(
                         New AppDomain(),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,

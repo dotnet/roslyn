@@ -1,0 +1,2 @@
+﻿x:\dir\subdir\Test\TestComponent.razor(2,1): Error RZ1045: '#define' and '#undef' cannot be used in razor markup.
+x:\dir\subdir\Test\TestComponent.razor(3,1): Error RZ1045: '#define' and '#undef' cannot be used in razor markup.

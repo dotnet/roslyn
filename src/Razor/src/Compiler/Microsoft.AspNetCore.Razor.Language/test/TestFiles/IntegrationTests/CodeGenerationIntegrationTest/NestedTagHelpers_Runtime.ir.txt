@@ -1,0 +1,51 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_NestedTagHelpers - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            PreallocatedTagHelperPropertyValue -  - __tagHelperAttribute_0 - value - Hello - HtmlAttributeValueStyle.DoubleQuotes
+            PreallocatedTagHelperHtmlAttributeValue -  - __tagHelperAttribute_1 - type - text - HtmlAttributeValueStyle.SingleQuotes
+            PreallocatedTagHelperHtmlAttributeValue -  - __tagHelperAttribute_2 - unbound - foo - HtmlAttributeValueStyle.DoubleQuotes
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::SpanTagHelper - __SpanTagHelper
+            FieldDeclaration -  - private - global::DivTagHelper - __DivTagHelper
+            FieldDeclaration -  - private - global::InputTagHelper - __InputTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                TagHelper - (31:1,0 [26] NestedTagHelpers.cshtml) - span - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (46:1,15 [4] NestedTagHelpers.cshtml)
+                            LazyIntermediateToken - (46:1,15 [4] NestedTagHelpers.cshtml) - Html - Hola
+                    DefaultTagHelperCreate -  - SpanTagHelper
+                    DefaultTagHelperHtmlAttribute -  - someattr - HtmlAttributeValueStyle.Minimized
+                    DefaultTagHelperExecute - 
+                HtmlContent - (57:1,26 [2] NestedTagHelpers.cshtml)
+                    LazyIntermediateToken - (57:1,26 [2] NestedTagHelpers.cshtml) - Html - \n
+                TagHelper - (59:2,0 [66] NestedTagHelpers.cshtml) - div - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (78:2,19 [6] NestedTagHelpers.cshtml)
+                            LazyIntermediateToken - (78:2,19 [6] NestedTagHelpers.cshtml) - Html - \n    
+                        TagHelper - (84:3,4 [33] NestedTagHelpers.cshtml) - input - TagMode.SelfClosing
+                            DefaultTagHelperBody - 
+                            DefaultTagHelperCreate -  - InputTagHelper
+                            PreallocatedTagHelperProperty - (97:3,17 [5] NestedTagHelpers.cshtml) - __tagHelperAttribute_0 - value - FooProp
+                            PreallocatedTagHelperHtmlAttribute -  - __tagHelperAttribute_1
+                            DefaultTagHelperExecute - 
+                        HtmlContent - (117:3,37 [2] NestedTagHelpers.cshtml)
+                            LazyIntermediateToken - (117:3,37 [2] NestedTagHelpers.cshtml) - Html - \n
+                    DefaultTagHelperCreate -  - DivTagHelper
+                    PreallocatedTagHelperHtmlAttribute -  - __tagHelperAttribute_2
+                    DefaultTagHelperExecute - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

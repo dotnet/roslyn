@@ -17,8 +17,6 @@ internal sealed partial class TypeRef : IEquatable<TypeRef>
 {
     private static readonly ConcurrentDictionary<(string TypeName, string AssemblyName, string? CodeBase), TypeRef> s_cache = [];
 
-    private string? _assemblyQualifiedName;
-
     private TypeRef(string typeName, string assemblyName, string? codeBase = null)
     {
         TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
@@ -44,8 +42,7 @@ internal sealed partial class TypeRef : IEquatable<TypeRef>
     /// <summary>
     /// Returns the assembly-qualified name of this type.
     /// </summary>
-    public string AssemblyQualifiedName
-        => _assemblyQualifiedName ??= $"{TypeName}, {AssemblyName}";
+    public string AssemblyQualifiedName { get => field ??= $"{TypeName}, {AssemblyName}"; private set; }
 
     public override bool Equals(object? obj)
         => Equals(obj as TypeRef);

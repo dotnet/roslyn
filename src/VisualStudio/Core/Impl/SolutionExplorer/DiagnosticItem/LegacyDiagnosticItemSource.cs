@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
@@ -16,14 +15,12 @@ internal sealed partial class LegacyDiagnosticItemSource : BaseDiagnosticAndGene
         IThreadingContext threadingContext,
         AnalyzerItem item,
         IAnalyzersCommandHandler commandHandler,
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         IAsynchronousOperationListenerProvider listenerProvider)
         : base(
             threadingContext,
             item.AnalyzersFolder.Workspace,
             item.AnalyzersFolder.ProjectId,
             commandHandler,
-            diagnosticAnalyzerService,
             listenerProvider)
     {
         _item = item;

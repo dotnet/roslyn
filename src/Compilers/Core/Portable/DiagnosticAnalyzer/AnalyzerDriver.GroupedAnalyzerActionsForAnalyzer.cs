@@ -4,8 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public AnalyzerActions AnalyzerActions { get; }
 
             [Conditional("DEBUG")]
-            private static void VerifyActions<TAnalyzerAction>(in ImmutableArray<TAnalyzerAction> actions, DiagnosticAnalyzer analyzer)
+            private static void VerifyActions<TAnalyzerAction>(ArrayBuilder<TAnalyzerAction> actions, DiagnosticAnalyzer analyzer)
                 where TAnalyzerAction : AnalyzerAction
             {
                 foreach (var action in actions)
@@ -46,22 +46,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private ImmutableArray<TAnalyzerAction> GetFilteredActions<TAnalyzerAction>(in ImmutableArray<TAnalyzerAction> actions)
+            private void AddFilteredActions<TAnalyzerAction>(
+                ImmutableArray<TAnalyzerAction> actions,
+                ArrayBuilder<TAnalyzerAction> builder)
                 where TAnalyzerAction : AnalyzerAction
-                => GetFilteredActions(actions, _analyzer, _analyzerActionsNeedFiltering);
+            {
+                AddFilteredActions(actions, _analyzer, _analyzerActionsNeedFiltering, builder);
+            }
 
-            private static ImmutableArray<TAnalyzerAction> GetFilteredActions<TAnalyzerAction>(
+            private static void AddFilteredActions<TAnalyzerAction>(
                 in ImmutableArray<TAnalyzerAction> actions,
                 DiagnosticAnalyzer analyzer,
-                bool analyzerActionsNeedFiltering)
+                bool analyzerActionsNeedFiltering,
+                ArrayBuilder<TAnalyzerAction> builder)
                 where TAnalyzerAction : AnalyzerAction
             {
                 if (!analyzerActionsNeedFiltering)
                 {
-                    return actions;
+                    builder.AddRange(actions);
                 }
-
-                return actions.WhereAsArray((action, analyzer) => action.Analyzer == analyzer, analyzer);
+                else
+                {
+                    foreach (var action in actions)
+                    {
+                        if (action.Analyzer == analyzer)
+                            builder.Add(action);
+                    }
+                }
             }
 
             public ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> NodeActionsByAnalyzerAndKind
@@ -70,14 +81,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (_lazyNodeActionsByKind == null)
                     {
-                        var nodeActions = _analyzerActionsNeedFiltering ?
-                            AnalyzerActions.GetSyntaxNodeActions<TLanguageKindEnum>(_analyzer) :
-                            AnalyzerActions.GetSyntaxNodeActions<TLanguageKindEnum>();
+                        var nodeActions = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
+                        if (_analyzerActionsNeedFiltering)
+                            AnalyzerActions.AddSyntaxNodeActions(_analyzer, nodeActions);
+                        else
+                            AnalyzerActions.AddSyntaxNodeActions(nodeActions);
+
                         VerifyActions(nodeActions, _analyzer);
-                        var analyzerActionsByKind = !nodeActions.IsEmpty ?
-                            AnalyzerExecutor.GetNodeActionsByKind(nodeActions) :
-                            ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
-                        RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyNodeActionsByKind, analyzerActionsByKind);
+                        RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyNodeActionsByKind, AnalyzerExecutor.GetNodeActionsByKind(nodeActions));
+                        nodeActions.Free();
                     }
 
                     return _lazyNodeActionsByKind;
@@ -90,12 +102,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (_lazyOperationActionsByKind == null)
                     {
-                        var operationActions = GetFilteredActions(AnalyzerActions.OperationActions);
+                        var operationActions = ArrayBuilder<OperationAnalyzerAction>.GetInstance();
+                        AddFilteredActions(AnalyzerActions.OperationActions, operationActions);
                         VerifyActions(operationActions, _analyzer);
-                        var analyzerActionsByKind = operationActions.Any() ?
-                            AnalyzerExecutor.GetOperationActionsByKind(operationActions) :
-                            ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
-                        RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyOperationActionsByKind, analyzerActionsByKind);
+                        RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyOperationActionsByKind, AnalyzerExecutor.GetOperationActionsByKind(operationActions));
+                        operationActions.Free();
                     }
 
                     return _lazyOperationActionsByKind;
@@ -108,9 +119,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (_lazyCodeBlockStartActions.IsDefault)
                     {
-                        var codeBlockActions = GetFilteredActions(AnalyzerActions.GetCodeBlockStartActions<TLanguageKindEnum>());
+                        var codeBlockActions = ArrayBuilder<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>.GetInstance();
+                        AddFilteredActions(AnalyzerActions.GetCodeBlockStartActions<TLanguageKindEnum>(), codeBlockActions);
                         VerifyActions(codeBlockActions, _analyzer);
-                        ImmutableInterlocked.InterlockedInitialize(ref _lazyCodeBlockStartActions, codeBlockActions);
+                        ImmutableInterlocked.InterlockedInitialize(ref _lazyCodeBlockStartActions, codeBlockActions.ToImmutableAndFree());
                     }
 
                     return _lazyCodeBlockStartActions;
@@ -144,9 +156,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (lazyCodeBlockActions.IsDefault)
                 {
-                    codeBlockActions = GetFilteredActions(codeBlockActions, analyzer, analyzerActionsNeedFiltering);
-                    VerifyActions(codeBlockActions, analyzer);
-                    ImmutableInterlocked.InterlockedInitialize(ref lazyCodeBlockActions, codeBlockActions);
+                    var finalActions = ArrayBuilder<ActionType>.GetInstance();
+                    AddFilteredActions(codeBlockActions, analyzer, analyzerActionsNeedFiltering, finalActions);
+                    VerifyActions(finalActions, analyzer);
+                    ImmutableInterlocked.InterlockedInitialize(ref lazyCodeBlockActions, finalActions.ToImmutableAndFree());
                 }
 
                 return lazyCodeBlockActions;

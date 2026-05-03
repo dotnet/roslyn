@@ -4,11 +4,10 @@
 
 #nullable disable
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
+
+internal interface INamingStylesInfoDialogViewModel
 {
-    internal interface INamingStylesInfoDialogViewModel
-    {
-        string ItemName { get; set; }
-        bool CanBeDeleted { get; set; }
-    }
+    string ItemName { get; set; }
+    bool CanBeDeleted { get; set; }
 }

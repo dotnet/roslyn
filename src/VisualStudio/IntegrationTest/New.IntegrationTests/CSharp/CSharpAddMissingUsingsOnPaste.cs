@@ -14,52 +14,53 @@ using Xunit;
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.AddMissingImports)]
-public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
+public sealed class CSharpAddMissingUsingsOnPaste() : AbstractEditorTest(nameof(CSharpAddMissingUsingsOnPaste))
 {
-    public CSharpAddMissingUsingsOnPaste()
-        : base(nameof(CSharpAddMissingUsingsOnPaste))
-    {
-    }
-
     protected override string LanguageName => LanguageNames.CSharp;
 
     [IdeFact]
     public async Task VerifyDisabled()
     {
         var project = ProjectName;
-        await TestServices.SolutionExplorer.AddFileAsync(project, "Example.cs", contents: @"
-public class Example
-{
-}
-");
-        await SetUpEditorAsync(@"
-using System;
+        await TestServices.SolutionExplorer.AddFileAsync(project, "Example.cs", contents: """
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
+            public class Example
+            {
+            }
 
-    $$
-}", HangMitigatingCancellationToken);
+            """);
+        await SetUpEditorAsync("""
+
+            using System;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                }
+
+                $$
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp, false);
 
         await TestServices.Editor.PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
-        AssertEx.EqualOrDiff(@"
-using System;
+        AssertEx.EqualOrDiff("""
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
+            using System;
 
-    Task DoThingAsync() => Task.CompletedTask;
-}", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                }
+
+                Task DoThingAsync() => Task.CompletedTask;
+            }
+            """, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -69,25 +70,29 @@ class Program
         await TestServices.SolutionExplorer.AddFileAsync(
             project,
             "Example.cs",
-            contents: @"
-public class Example
-{
-}
-",
+            contents: """
+
+            public class Example
+            {
+            }
+
+            """,
             cancellationToken: HangMitigatingCancellationToken);
         await SetUpEditorAsync(
-@"
-using System;
+            """
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
+            using System;
 
-    $$
-}
-",
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                }
+
+                $$
+            }
+
+            """,
             HangMitigatingCancellationToken);
 
         await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
@@ -98,19 +103,21 @@ class Program
         await TestServices.Editor.PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
         AssertEx.EqualOrDiff(
-@"
-using System;
-using System.Threading.Tasks;
+            """
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
+            using System;
+            using System.Threading.Tasks;
 
-    Task DoThingAsync() => Task.CompletedTask;
-}
-",
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                }
+
+                Task DoThingAsync() => Task.CompletedTask;
+            }
+
+            """,
             await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         await telemetry.VerifyFiredAsync(["vs/ide/vbcs/commandhandler/paste/importsonpaste"], HangMitigatingCancellationToken);
     }
@@ -119,45 +126,51 @@ class Program
     public async Task VerifyIndentation()
     {
         var project = ProjectName;
-        await TestServices.SolutionExplorer.AddFileAsync(project, "Example.cs", contents: @"
-public class Example
-{
-}
-");
-        await SetUpEditorAsync(@"
-namespace MyNs
-{
-    using System;
+        await TestServices.SolutionExplorer.AddFileAsync(project, "Example.cs", contents: """
 
-    class Program
-    {
-        static void Main(string[] args)
-        {
-        }
+            public class Example
+            {
+            }
 
-        $$
-    }
-}", HangMitigatingCancellationToken);
+            """);
+        await SetUpEditorAsync("""
+
+            namespace MyNs
+            {
+                using System;
+
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+
+                    $$
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp, true);
 
         await TestServices.Editor.PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
-        AssertEx.EqualOrDiff(@"
-namespace MyNs
-{
-    using System;
-    using System.Threading.Tasks;
+        AssertEx.EqualOrDiff("""
 
-    class Program
-    {
-        static void Main(string[] args)
-        {
-        }
+            namespace MyNs
+            {
+                using System;
+                using System.Threading.Tasks;
 
-        Task DoThingAsync() => Task.CompletedTask;
-    }
-}", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+
+                    Task DoThingAsync() => Task.CompletedTask;
+                }
+            }
+            """, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
 }

@@ -18,12 +18,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
-public class RemoveUnnecessaryDiscardDesignationTests
+public sealed class RemoveUnnecessaryDiscardDesignationTests
 {
     [Fact]
-    public async Task TestDeclarationPatternInSwitchStatement()
-    {
-        await new VerifyCS.Test
+    public Task TestDeclarationPatternInSwitchStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -53,12 +52,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInCSharp8()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp8()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -75,12 +72,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDeclarationPatternInSwitchExpression()
-    {
-        await new VerifyCS.Test
+    public Task TestDeclarationPatternInSwitchExpression()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -108,12 +103,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDeclarationPatternInIfStatement()
-    {
-        await new VerifyCS.Test
+    public Task TestDeclarationPatternInIfStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -135,12 +128,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRecursivePropertyPattern()
-    {
-        await new VerifyCS.Test
+    public Task TestRecursivePropertyPattern()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -168,12 +159,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyRecursiveParameterPattern()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyRecursiveParameterPattern()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -201,12 +190,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTwoElementRecursiveParameterPattern()
-    {
-        await new VerifyCS.Test
+    public Task TestTwoElementRecursiveParameterPattern()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -234,12 +221,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithOneElementRecursiveParameterPattern()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithOneElementRecursiveParameterPattern()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -255,12 +240,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNestedFixAll()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedFixAll()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -288,12 +271,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
-    public async Task TestPropertyWithTheSameNameAsType()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyWithTheSameNameAsType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -327,12 +308,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
-    public async Task TestNotWhenRemovingDiscardChangesMeaning1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenRemovingDiscardChangesMeaning1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -351,12 +330,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
-    public async Task TestNotWhenRemovingDiscardChangesMeaning2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenRemovingDiscardChangesMeaning2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -376,12 +353,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
-    public async Task TestNestedPropertyWithTheSameNameAsNestedType()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedPropertyWithTheSameNameAsNestedType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -429,12 +404,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
-    public async Task TestNotWhenRemovingDiscardChangesMeaning3()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenRemovingDiscardChangesMeaning3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -460,12 +433,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
-    public async Task TestNotWhenRemovingDiscardChangesMeaning4()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenRemovingDiscardChangesMeaning4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -492,12 +463,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
-    public async Task TestPropertyNamedGlobalAndAliasQualifiedName1()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyNamedGlobalAndAliasQualifiedName1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -527,12 +496,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
-    public async Task TestPropertyNamedGlobalAndAliasQualifiedName2()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyNamedGlobalAndAliasQualifiedName2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -563,12 +530,10 @@ public class RemoveUnnecessaryDiscardDesignationTests
             LanguageVersion = LanguageVersion.CSharp9,
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66841")]
-    public async Task TestPropertyNamedGlobalAndAliasQualifiedName3()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyNamedGlobalAndAliasQualifiedName3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -601,5 +566,4 @@ public class RemoveUnnecessaryDiscardDesignationTests
             LanguageVersion = LanguageVersion.CSharp9,
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 }

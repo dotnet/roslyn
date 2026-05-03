@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using static SyntaxFactory;
 
-internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
+internal sealed class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
 {
     public static readonly NameSimplifier Instance = new();
 
@@ -548,7 +548,6 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
     /// property.
     /// </summary>
     /// <param name="node"></param>
-    /// <returns></returns>
     private static bool IsPartOfNamespaceDeclarationName(SyntaxNode node)
     {
         var parent = node;

@@ -7,11 +7,11 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            conversion = GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteInfo);
+            conversion = GetImplicitUserDefinedOrUnionConversion(sourceExpression, sourceType, destination, ref useSiteInfo);
             if (conversion.Exists)
             {
                 return conversion;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return GetImplicitUserDefinedConversion(source, destination, ref useSiteInfo);
+            return GetImplicitUserDefinedOrUnionConversion(source, destination, ref useSiteInfo);
         }
 
         /// <summary>
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Conversion conversion = GetImplicitUserDefinedConversion(source, destination, ref useSiteInfo);
+            Conversion conversion = GetImplicitUserDefinedOrUnionConversion(source, destination, ref useSiteInfo);
             if (conversion.Exists)
             {
                 return conversion;
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return conversion;
             }
 
-            return GetImplicitUserDefinedConversion(source, destination, ref useSiteInfo);
+            return GetImplicitUserDefinedOrUnionConversion(source, destination, ref useSiteInfo);
         }
 
         /// <summary>
@@ -779,15 +779,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        private Conversion GetImplicitUserDefinedConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion GetImplicitUserDefinedOrUnionConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var conversionResult = AnalyzeImplicitUserDefinedConversions(sourceExpression, source, destination, ref useSiteInfo);
-            return new Conversion(conversionResult, isImplicit: true);
+            var result = new Conversion(conversionResult, isImplicit: true);
+
+            if (result.Exists)
+            {
+                return result;
+            }
+
+            Conversion unionConversion = AnalyzeImplicitUnionConversions(sourceExpression, source, destination, ref useSiteInfo);
+
+            if (unionConversion.Exists)
+            {
+                return unionConversion;
+            }
+
+            return result;
         }
 
-        private Conversion GetImplicitUserDefinedConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion GetImplicitUserDefinedOrUnionConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return GetImplicitUserDefinedConversion(sourceExpression: null, source, destination, ref useSiteInfo);
+            return GetImplicitUserDefinedOrUnionConversion(sourceExpression: null, source, destination, ref useSiteInfo);
         }
 
         private Conversion ClassifyExplicitBuiltInOnlyConversion(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
@@ -1012,6 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (implicitConversion.Kind)
             {
                 case ConversionKind.ImplicitUserDefined:
+                case ConversionKind.Union:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitTupleLiteral:
@@ -1482,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LambdaConversionResult.BadTargetType;
             }
 
-            if (anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType))
+            if (anonymousFunction.HasExplicitReturnType(out var refKind, refCustomModifiers: out _, out var returnType))
             {
                 if (invokeMethod.RefKind != refKind ||
                     !invokeMethod.ReturnType.Equals(returnType.Type, TypeCompareKind.AllIgnoreOptions))
@@ -1504,19 +1519,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return LambdaConversionResult.BadParameterCount;
                 }
 
-                // SPEC: If F has an explicitly typed parameter list, each parameter in D has the same type 
-                // SPEC: and modifiers as the corresponding parameter in F.
-                // SPEC: If F has an implicitly typed parameter list, D has no ref or out parameters.
+                // SPEC: If F has an implicitly or explicitly typed parameter list, each parameter in D has the same
+                // SPEC: type and modifiers as the corresponding parameter in F.
+
+                for (int p = 0; p < delegateParameters.Length; ++p)
+                {
+                    if (!OverloadResolution.AreRefsCompatibleForMethodConversion(
+                            candidateMethodParameterRefKind: anonymousFunction.RefKind(p),
+                            delegateParameterRefKind: delegateParameters[p].RefKind,
+                            compilation))
+                    {
+                        return LambdaConversionResult.MismatchedParameterRefKind;
+                    }
+                }
 
                 if (anonymousFunction.HasExplicitlyTypedParameterList)
                 {
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
-                        if (!OverloadResolution.AreRefsCompatibleForMethodConversion(
-                                candidateMethodParameterRefKind: anonymousFunction.RefKind(p),
-                                delegateParameterRefKind: delegateParameters[p].RefKind,
-                                compilation) ||
-                            !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
+                        if (!delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
                         }
@@ -1524,14 +1545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    for (int p = 0; p < delegateParameters.Length; ++p)
-                    {
-                        if (delegateParameters[p].RefKind != RefKind.None)
-                        {
-                            return LambdaConversionResult.RefInImplicitlyTypedLambda;
-                        }
-                    }
-
                     // In C# it is not possible to make a delegate type
                     // such that one of its parameter types is a static type. But static types are 
                     // in metadata just sealed abstract types; there is nothing stopping someone in
@@ -1892,8 +1905,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(IncludeNullability);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return HasTopLevelNullabilityImplicitConversion(source, destination) &&
-                ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedUseSiteInfo).Kind != ConversionKind.NoConversion;
+            Conversion conversion = ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedUseSiteInfo);
+            return conversion.Kind != ConversionKind.NoConversion &&
+                   (conversion.IsUnion || conversion.IsUserDefined || HasTopLevelNullabilityImplicitConversion(source, destination));
         }
 
         private static bool HasIdentityConversionToAny(NamedTypeSymbol type, ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> targetTypes)
@@ -2366,11 +2380,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionKind.ImplicitTuple,
                 (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool _, ref CompoundUseSiteInfo<AssemblySymbol> u, bool _) =>
                 {
-                    if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
+                    Conversion conversion = conversions.ClassifyImplicitConversionFromType(s.Type, d.Type, ref u);
+
+                    if (!conversion.IsUserDefined && !conversion.IsUnion && !conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {
                         return Conversion.NoConversion;
                     }
-                    return conversions.ClassifyImplicitConversionFromType(s.Type, d.Type, ref u);
+
+                    return conversion;
                 },
                 isChecked: false,
                 forCast: false);
@@ -2385,11 +2402,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionKind.ExplicitTuple,
                 (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
                 {
-                    if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
+                    Conversion conversion = conversions.ClassifyConversionFromType(s.Type, d.Type, isChecked: isChecked, ref u, forCast);
+
+                    if (!conversion.IsUserDefined && !conversion.IsUnion && !conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {
                         return Conversion.NoConversion;
                     }
-                    return conversions.ClassifyConversionFromType(s.Type, d.Type, isChecked: isChecked, ref u, forCast);
+
+                    return conversion;
                 },
                 isChecked: isChecked,
                 forCast);

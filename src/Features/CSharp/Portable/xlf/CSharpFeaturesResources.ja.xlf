@@ -17,6 +17,36 @@
         <target state="translated">単一行のコントロール ステートメントに対する必須の波かっこを追加する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_using_0">
+        <source>Add 'using {0};'</source>
+        <target state="translated">'using {0};' の追加</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_using_0_and_simplify_all_occurrences">
+        <source>Add 'using {0};' and simplify all occurrences</source>
+        <target state="translated">'using {0};' を追加し、すべての出現を簡略化します</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adds_a_NuGet_package_reference">
+        <source>Adds a NuGet package reference.</source>
+        <target state="translated">NuGet パッケージ参照を追加します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_a_file_reference">
+        <source>Adds a file reference.</source>
+        <target state="translated">ファイル参照を追加します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_a_project_reference">
+        <source>Adds a project reference.</source>
+        <target state="translated">プロジェクト参照を追加します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_an_SDK_reference">
+        <source>Adds an SDK reference.</source>
+        <target state="translated">SDK 参照を追加します。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_0">
         <source>Apply '{0}'</source>
         <target state="translated">'{0}' を適用する</target>
@@ -35,6 +65,11 @@
       <trans-unit id="Apply_blank_lines_between_consecutive_braces_preferences_experimental">
         <source>Apply blank lines between consecutive braces preferences (experimental)</source>
         <target state="translated">連続する波かっこ間の空白行の基本設定を適用する (試験段階)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_collection_expression_preferences">
+        <source>Apply collection expression preferences</source>
+        <target state="new">Apply collection expression preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
@@ -132,6 +167,16 @@
         <target state="translated">パターン変数宣言の可能性があるため、自動選択は無効になっています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_property_name">
+        <source>Name</source>
+        <target state="translated">Name</target>
+        <note>'Name' is a placeholder for a property name in a directive like '#:property Name=Value'.</note>
+      </trans-unit>
+      <trans-unit id="Build_property_value">
+        <source>Value</source>
+        <target state="translated">Value</target>
+        <note>'Value' is a placeholder for a build property value in a directive like '#:property Name=Value'.</note>
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">'as' 式に変更</target>
@@ -142,10 +187,20 @@
         <target state="translated">キャストに変更</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_extension_methods_to_extension">
+        <source>Convert '{0}' extension methods to extension</source>
+        <target state="translated">'{0}' 拡張メソッドを拡張に変換する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_0_to_record">
         <source>Convert '{0}' to record</source>
         <target state="translated">'{0}' を record に変換</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_all_extension_methods_in_0_to_extension">
+        <source>Convert all extension methods in '{0}' to extension</source>
+        <target state="translated">'{0}' のすべての拡張メソッドを拡張に変換する</target>
+        <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
@@ -182,6 +237,11 @@
         <target state="translated">逐語的文字列に変換する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Defines_a_build_property">
+        <source>Defines a build property.</source>
+        <target state="translated">ビルド プロパティを定義します。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
         <target state="translated">プロジェクトで null 許容参照型を有効にする</target>
@@ -197,10 +257,30 @@
         <target state="translated">グローバル 'using' ディレクティブ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Include_directive_file_path">
+        <source>path</source>
+        <target state="translated">path</target>
+        <note>'path' is a placeholder for a file path or glob in a directive like '#:include path'.</note>
+      </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">可能な場合、private フィールドを読み取り専用にする</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Package_name">
+        <source>Name</source>
+        <target state="translated">Name</target>
+        <note>'Name' is a placeholder for a package or sdk name in a directive like '#:package Name@Version'.</note>
+      </trans-unit>
+      <trans-unit id="Package_version">
+        <source>Version</source>
+        <target state="translated">Version</target>
+        <note>'Version' is a placeholder for a package or sdk version in a directive like '#:package Name@Version'.</note>
+      </trans-unit>
+      <trans-unit id="Project_directive_file_path">
+        <source>path</source>
+        <target state="translated">path</target>
+        <note>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</note>
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
@@ -399,7 +479,7 @@
       </trans-unit>
       <trans-unit id="required_property">
         <source>required property</source>
-        <target state="new">required property</target>
+        <target state="translated">必須プロパティ</target>
         <note />
       </trans-unit>
       <trans-unit id="reversed_for_loop">
@@ -451,6 +531,11 @@
         <source>fixed statement</source>
         <target state="translated">fixed ステートメント</target>
         <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="unsafe_block">
+        <source>unsafe block</source>
+        <target state="translated">安全でないブロック</target>
+        <note />
       </trans-unit>
       <trans-unit id="using_declaration">
         <source>using declaration</source>

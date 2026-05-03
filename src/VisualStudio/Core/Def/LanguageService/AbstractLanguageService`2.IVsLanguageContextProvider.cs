@@ -5,6 +5,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -17,7 +18,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     {
         return this.ThreadingContext.JoinableTaskFactory.Run(async () =>
         {
-            var textBuffer = EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+            var editorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var textBuffer = editorAdaptersFactoryService.GetDataBuffer(pBuffer);
             var context = (IVsUserContext)pUC;
 
             if (textBuffer == null || context == null)

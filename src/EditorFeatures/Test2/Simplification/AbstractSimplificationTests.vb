@@ -7,8 +7,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
@@ -49,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             If explicitSpanToSimplifyAnnotatedSpans.Count <> 1 OrElse explicitSpanToSimplifyAnnotatedSpans.Single().Key <> "SpanToSimplify" Then
                 For Each span In explicitSpanToSimplifyAnnotatedSpans
                     If span.Key <> "SpanToSimplify" Then
-                        Assert.True(False, "Encountered unexpected span annotation: " + span.Key)
+                        Assert.Fail("Encountered unexpected span annotation: " + span.Key)
                     End If
                 Next
             End If
@@ -131,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Function
 
         Private Shared Function GetExpressionSyntaxWithSameSpan(node As SyntaxNode, spanEnd As Integer) As SyntaxNode
-            While Not node Is Nothing And Not node.Parent Is Nothing And node.Parent.SpanStart = node.SpanStart
+            While node IsNot Nothing And node.Parent IsNot Nothing And node.Parent.SpanStart = node.SpanStart
                 node = node.Parent
                 If node.Span.End = spanEnd Then
                     Exit While

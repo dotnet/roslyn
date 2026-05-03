@@ -22,6 +22,9 @@ internal sealed partial class AsynchronousOperationListener
 
         public AsynchronousOperationListener Listener { get; }
 
+        public bool IsNull
+            => false;
+
         public void Dispose()
         {
             using (Listener._gate.DisposableWait(CancellationToken.None))

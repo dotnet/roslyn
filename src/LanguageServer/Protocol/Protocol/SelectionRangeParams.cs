@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-internal class SelectionRangeParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SelectionRange[]>
+internal sealed class SelectionRangeParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SelectionRange[]>
 {
     /// <summary>
     /// The text document.
@@ -26,7 +26,7 @@ internal class SelectionRangeParams : ITextDocumentParams, IWorkDoneProgressPara
     /// <summary>
     /// The positions inside the text document.
     /// </summary>
-    [JsonPropertyName("textDocument")]
+    [JsonPropertyName("positions")]
     [JsonRequired]
     public Position[] Positions { get; init; }
 

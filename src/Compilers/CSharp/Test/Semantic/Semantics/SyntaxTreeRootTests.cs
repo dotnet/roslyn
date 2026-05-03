@@ -4,17 +4,12 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
@@ -32,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         public void SyntaxTreeCreateWithoutCloneAcceptsAnySyntaxNode()
         {
             var node = SyntaxFactory.CatchClause(SyntaxFactory.CatchDeclaration(SyntaxFactory.ParseTypeName(typeof(InvalidOperationException).Name)), null, SyntaxFactory.Block());
-            var tree = CSharpSyntaxTree.CreateWithoutClone(node);
+            var tree = CSharpSyntaxTree.CreateWithoutClone(node, CSharpParseOptions.Default);
             CheckTree(tree);
         }
 

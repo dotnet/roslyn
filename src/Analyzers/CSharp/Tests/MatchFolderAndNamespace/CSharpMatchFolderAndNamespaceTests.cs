@@ -83,7 +83,8 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     {
         // No change namespace action because the folder name is not valid identifier
         var folder = CreateFolderPath(["3B", "C"]);
-        var code =
+        return RunTestAsync(
+            "File1.cs",
             """
             namespace A.B
             {
@@ -91,11 +92,7 @@ public sealed class CSharpMatchFolderAndNamespaceTests
                 {
                 }
             }
-            """;
-
-        return RunTestAsync(
-            "File1.cs",
-            code,
+            """,
             directory: folder);
     }
 
@@ -104,18 +101,15 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     {
         // No change namespace action because the folder name is not valid identifier
         var folder = CreateFolderPath(["3B", "C"]);
-        var code =
+        return RunTestAsync(
+            "File1.cs",
             """
             namespace A.B;
 
             class Class1
             {
             }
-            """;
-
-        return RunTestAsync(
-            "File1.cs",
-            code,
+            """,
             directory: folder);
     }
 
@@ -124,7 +118,8 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     {
         // No change namespace action because the folder name is not valid identifier
         var folder = CreateFolderPath(["B.3C", "D"]);
-        var code =
+        return RunTestAsync(
+            "File1.cs",
             """
             namespace A.B
             {
@@ -132,11 +127,7 @@ public sealed class CSharpMatchFolderAndNamespaceTests
                 {
                 }
             }
-            """;
-
-        return RunTestAsync(
-            "File1.cs",
-            code,
+            """,
             directory: folder);
     }
 
@@ -145,7 +136,8 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     {
         // No change namespace action because the folder name is not valid identifier
         var folder = CreateFolderPath([".folder", "..subfolder", "name"]);
-        var code =
+        return RunTestAsync(
+            "File1.cs",
             """
             namespace A.B
             {
@@ -153,11 +145,7 @@ public sealed class CSharpMatchFolderAndNamespaceTests
                 {
                 }
             }
-            """;
-
-        return RunTestAsync(
-            "File1.cs",
-            code,
+            """,
             directory: folder);
     }
 
@@ -165,7 +153,8 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     public Task CaseInsensitiveMatch_NoDiagnostic()
     {
         var folder = CreateFolderPath(["A", "B"]);
-        var code =
+        return RunTestAsync(
+            "File1.cs",
             $$"""
             namespace {{DefaultNamespace}}.a.b
             {
@@ -173,11 +162,7 @@ public sealed class CSharpMatchFolderAndNamespaceTests
                 {
                 }
             }
-            """;
-
-        return RunTestAsync(
-            "File1.cs",
-            code,
+            """,
             directory: folder);
     }
 
@@ -185,19 +170,16 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     public async Task CodeStyleOptionIsFalse()
     {
         var folder = CreateFolderPath("B", "C");
-        var code =
-            """
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: """
             namespace A.B
             {
                 class Class1
                 {
                 }
             }
-            """;
-
-        await RunTestAsync(
-            fileName: "Class1.cs",
-            fileContents: code,
+            """,
             directory: folder,
             editorConfig: EditorConfig + """
 
@@ -209,16 +191,6 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     public async Task SingleDocumentNoReference()
     {
         var folder = CreateFolderPath("B", "C");
-        var code =
-            """
-            namespace [|A.B|]
-            {
-                class Class1
-                {
-                }
-            }
-            """;
-
         var fixedCode =
             $$"""
             namespace {{DefaultNamespace}}.B.C
@@ -230,7 +202,14 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             """;
         await RunTestAsync(
             fileName: "Class1.cs",
-            fileContents: code,
+            fileContents: """
+            namespace [|A.B|]
+            {
+                class Class1
+                {
+                }
+            }
+            """,
             directory: folder,
             fixedCode: fixedCode);
     }
@@ -239,15 +218,6 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     public async Task SingleDocumentNoReference_FileScopedNamespace()
     {
         var folder = CreateFolderPath("B", "C");
-        var code =
-            """
-            namespace [|A.B|];
-
-            class Class1
-            {
-            }
-            """;
-
         var fixedCode =
             $$"""
             namespace {{DefaultNamespace}}.B.C;
@@ -258,7 +228,13 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             """;
         await RunTestAsync(
             fileName: "Class1.cs",
-            fileContents: code,
+            fileContents: """
+            namespace [|A.B|];
+
+            class Class1
+            {
+            }
+            """,
             directory: folder,
             fixedCode: fixedCode);
     }
@@ -272,16 +248,6 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             """;
 
         var folder = CreateFolderPath("B", "C");
-        var code =
-            """
-            namespace [|A.B|]
-            {
-                class Class1
-                {
-                }
-            }
-            """;
-
         var fixedCode =
             $$"""
             namespace B.C
@@ -293,7 +259,14 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             """;
         await RunTestAsync(
             fileName: "Class1.cs",
-            fileContents: code,
+            fileContents: """
+            namespace [|A.B|]
+            {
+                class Class1
+                {
+                }
+            }
+            """,
             directory: folder,
             fixedCode: fixedCode,
             editorConfig: editorConfig,
@@ -310,15 +283,6 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             """;
 
         var folder = CreateFolderPath("B", "C");
-        var code =
-            """
-            namespace [|A.B|];
-
-            class Class1
-            {
-            }
-            """;
-
         var fixedCode =
             """
             namespace B.C;
@@ -329,7 +293,13 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             """;
         await RunTestAsync(
             fileName: "Class1.cs",
-            fileContents: code,
+            fileContents: """
+            namespace [|A.B|];
+
+            class Class1
+            {
+            }
+            """,
             directory: folder,
             fixedCode: fixedCode,
             editorConfig: editorConfig,
@@ -341,19 +311,16 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     public async Task NamespaceWithSpaces_NoDiagnostic()
     {
         var folder = CreateFolderPath("A", "B");
-        var code =
-            $$"""
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: $$"""
             namespace {{DefaultNamespace}}.A    .     B
             {
                 class Class1
                 {
                 }
             }
-            """;
-
-        await RunTestAsync(
-            fileName: "Class1.cs",
-            fileContents: code,
+            """,
             directory: folder);
     }
 
@@ -364,8 +331,9 @@ public sealed class CSharpMatchFolderAndNamespaceTests
         // diagnostic does not report.
 
         var folder = CreateFolderPath("B", "C");
-        var code =
-            """
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: """
             namespace A.B
             {
                 namespace C.D
@@ -379,11 +347,7 @@ public sealed class CSharpMatchFolderAndNamespaceTests
                 {
                 }
             }
-            """;
-
-        await RunTestAsync(
-            fileName: "Class1.cs",
-            fileContents: code,
+            """,
             directory: folder);
     }
 
@@ -433,19 +397,16 @@ public sealed class CSharpMatchFolderAndNamespaceTests
         // diagnostic shown.
 
         var folder = Path.Combine("B", "C");
-        var code =
-            $$"""
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: $$"""
             namespace A.B
             {
                 class ABClass
                 {
                 }
             }
-            """;
-
-        await RunTestAsync(
-            fileName: "Class1.cs",
-            fileContents: code,
+            """,
             directory: folder);
     }
 
@@ -455,7 +416,8 @@ public sealed class CSharpMatchFolderAndNamespaceTests
         var @namespace = "Bar.Baz";
 
         var folder = CreateFolderPath("A", "B", "C");
-        var code =
+        await RunTestAsync(
+            "Class1.cs",
             $$"""
             namespace [|{{@namespace}}|]
             {
@@ -473,10 +435,9 @@ public sealed class CSharpMatchFolderAndNamespaceTests
                     void {{@namespace}}.Class1.M1() { }
                 }
             }
-            """;
-
-        var expected =
-            $$"""
+            """,
+            folder,
+            fixedCode: $$"""
             namespace {{DefaultNamespace}}.A.B.C
             {
                 delegate void D1();
@@ -493,13 +454,7 @@ public sealed class CSharpMatchFolderAndNamespaceTests
                     void Class1.M1() { }
                 }
             }
-            """;
-
-        await RunTestAsync(
-            "Class1.cs",
-            code,
-            folder,
-            fixedCode: expected);
+            """);
     }
 
     [Fact]
@@ -591,17 +546,14 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     public async Task DocumentAtRoot_NoDiagnostic()
     {
         var folder = CreateFolderPath();
-
-        var code = $$"""
+        await RunTestAsync(
+            "File1.cs",
+            $$"""
             namespace {{DefaultNamespace}}
             {
                 class C { }
             }
-            """;
-
-        await RunTestAsync(
-            "File1.cs",
-            code,
+            """,
             folder);
     }
 
@@ -609,15 +561,6 @@ public sealed class CSharpMatchFolderAndNamespaceTests
     public async Task DocumentAtRoot_ChangeNamespace()
     {
         var folder = CreateFolderPath();
-
-        var code =
-            $$"""
-            namespace [|{{DefaultNamespace}}.Test|]
-            {
-                class C { }
-            }
-            """;
-
         var fixedCode =
             $$"""
             namespace {{DefaultNamespace}}
@@ -628,7 +571,12 @@ public sealed class CSharpMatchFolderAndNamespaceTests
 
         await RunTestAsync(
             "File1.cs",
-            code,
+            $$"""
+            namespace [|{{DefaultNamespace}}.Test|]
+            {
+                class C { }
+            }
+            """,
             folder,
             fixedCode: fixedCode);
     }
@@ -1008,15 +956,6 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             """;
 
         var folder = CreateFolderPath(["B", "C"]);
-        var code =
-            """
-            namespace [|A.B|]
-            {
-                class Class1
-                {
-                }
-            }
-            """;
 
         // The project name is invalid so the default namespace is not prepended
         var fixedCode =
@@ -1031,7 +970,14 @@ public sealed class CSharpMatchFolderAndNamespaceTests
 
         await RunTestAsync(
             "Class1.cs",
-            fileContents: code,
+            fileContents: """
+            namespace [|A.B|]
+            {
+                class Class1
+                {
+                }
+            }
+            """,
             fixedCode: fixedCode,
             directory: folder,
             editorConfig: editorConfig,
@@ -1049,18 +995,14 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             """;
 
         var folder = CreateFolderPath();
-
-        var code =
-            $$"""
+        await RunTestAsync(
+            "Class1.cs",
+            fileContents: $$"""
             namespace Test.Code
             {
                 class C { }
             }
-            """;
-
-        await RunTestAsync(
-            "Class1.cs",
-            fileContents: code,
+            """,
             directory: folder,
             editorConfig: editorConfig,
             defaultNamespace: defaultNamespace);
@@ -1076,18 +1018,14 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             """;
 
         var folder = CreateFolderPath();
-
-        var code =
-            $$"""
+        await RunTestAsync(
+            "Class1.cs",
+            fileContents: $$"""
             namespace Test.Code
             {
                 class C { }
             }
-            """;
-
-        await RunTestAsync(
-            "Class1.cs",
-            fileContents: code,
+            """,
             directory: folder,
             editorConfig: editorConfig,
             defaultNamespace: "Invalid-Namespace");

@@ -7,10 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
@@ -263,45 +265,95 @@ namespace Roslyn.Test.Utilities
             });
         }
 
-        public static unsafe string GetMethodIL(this ImmutableArray<byte> ilArray)
+        public static unsafe string DumpEncDeltaMethodBodies(ImmutableArray<byte> il, ImmutableArray<MetadataReader> readers)
         {
+            var reader = readers[^1];
+
+            var rvasAndNames = from handle in reader.MethodDefinitions
+                               let method = reader.GetMethodDefinition(handle)
+                               // filter out runtime-implemented methods that do not have IL:
+                               where (method.ImplAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.IL
+                               orderby method.RelativeVirtualAddress
+                               group method.Name by method.RelativeVirtualAddress into g
+                               // Legacy test support: name can only be resolved when readers for all generations are given.
+                               select (g.Key, readers.Length > 1 ? string.Join(", ", g.Select(readers.GetString)) : null);
+
             var result = new StringBuilder();
-            fixed (byte* ilPtr = ilArray.ToArray())
+
+            fixed (byte* ilPtr = il.ToArray())
             {
-                int offset = 0;
-                while (true)
+                var bodyReader = new BlobReader(ilPtr, il.Length);
+
+                foreach (var (rva, name) in rvasAndNames)
                 {
-                    // skip padding:
-                    while (offset < ilArray.Length && ilArray[offset] == 0)
+                    if (name != null)
                     {
-                        offset++;
+                        result.AppendLine(name);
                     }
 
-                    if (offset == ilArray.Length)
+                    bodyReader.Offset = rva;
+
+                    MethodBodyBlock body;
+                    try
                     {
-                        break;
+                        body = MethodBodyBlock.Create(bodyReader);
+                    }
+                    catch (BadImageFormatException)
+                    {
+                        result.AppendFormat("<invalid byte 0x{0:X2} at offset {1}>", il[rva], rva);
+                        continue;
                     }
 
-                    var reader = new BlobReader(ilPtr + offset, ilArray.Length - offset);
-                    var methodIL = MethodBodyBlock.Create(reader);
-
-                    if (methodIL == null)
-                    {
-                        result.AppendFormat("<invalid byte 0x{0:X2} at offset {1}>", ilArray[offset], offset);
-                        offset++;
-                    }
-                    else
-                    {
-                        ILVisualizer.Default.DumpMethod(
-                            result,
-                            methodIL.MaxStack,
-                            methodIL.GetILContent(),
-                            ImmutableArray.Create<ILVisualizer.LocalInfo>(),
-                            ImmutableArray.Create<ILVisualizer.HandlerSpan>());
-
-                        offset += methodIL.Size;
-                    }
+                    ILVisualizer.Default.DumpMethod(
+                        result,
+                        body.MaxStack,
+                        body.GetILContent(),
+                        locals: [],
+                        exceptionHandlers: []);
                 }
+            }
+
+            return result.ToString();
+        }
+
+        public static unsafe string DumpEncDeltaFieldData(ImmutableArray<byte> il, ImmutableArray<MetadataReader> readers)
+        {
+            var reader = readers[^1];
+            var aggregator = new MetadataAggregator(readers[0], readers[1..]);
+
+            var fieldRvaTablePtr = reader.MetadataPointer + reader.GetTableMetadataOffset(TableIndex.FieldRva);
+            var rowCount = reader.GetTableRowCount(TableIndex.FieldRva);
+            var rowSize = reader.GetTableRowSize(TableIndex.FieldRva);
+            var tableReader = new BlobReader(fieldRvaTablePtr, rowCount * rowSize);
+
+            var rvasAndNames = new List<(int rva, string name)>();
+            for (var i = 0; i < rowCount; i++)
+            {
+                var rva = tableReader.ReadInt32();
+
+                // RowIds are 4 bytes in EnC deltas 
+                var fieldRowId = tableReader.ReadInt32();
+
+                if (rva > 0)
+                {
+                    var fieldHandle = MetadataTokens.FieldDefinitionHandle(fieldRowId);
+                    var genFieldHandle = (FieldDefinitionHandle)aggregator.GetGenerationHandle(fieldHandle, out var fieldGen);
+                    var fieldDef = readers[fieldGen].GetFieldDefinition(genFieldHandle);
+                    var genNameHandle = (StringHandle)aggregator.GetGenerationHandle(fieldDef.Name, out var nameGen);
+                    var fieldName = readers[nameGen].GetString(genNameHandle);
+
+                    rvasAndNames.Add((rva, fieldName));
+                }
+            }
+
+            var result = new StringBuilder();
+
+            for (var i = 0; i < rvasAndNames.Count; i++)
+            {
+                var (startRva, name) = rvasAndNames[i];
+                var endRva = i + 1 < rvasAndNames.Count ? rvasAndNames[i + 1].rva : il.Length;
+
+                result.AppendLine($"{name}: {BitConverter.ToString(il[startRva..endRva].ToArray())}");
             }
 
             return result.ToString();

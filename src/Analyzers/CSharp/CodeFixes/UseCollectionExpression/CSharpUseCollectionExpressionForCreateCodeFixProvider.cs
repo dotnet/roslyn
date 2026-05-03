@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -64,7 +63,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateCodeFixProvi
             semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
         dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
         var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
-        var matches = expressions.SelectAsArray(e => new CollectionMatch<ExpressionSyntax>(e, useSpread));
+        var matches = expressions.SelectAsArray(e => new CollectionMatch<ExpressionSyntax>(e, useSpread, UseKeyValue: false));
 
         var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,

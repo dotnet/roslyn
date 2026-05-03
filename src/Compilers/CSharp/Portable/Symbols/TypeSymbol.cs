@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         /// <summary>
-        /// Is this type a managed type (false for everything but enum, pointer, and
+        /// Is this type a managed type (true for everything but enum, pointer, and
         /// some struct types).
         /// </summary>
         /// <remarks>
@@ -659,6 +659,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the type is a readonly struct
         /// </summary>
         public abstract bool IsReadOnly { get; }
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         public string ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
         {
@@ -940,10 +942,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool tryDefaultInterfaceImplementation = true;
 
+            if (implementingTypeIsFromSomeCompilation && implicitImpl is MethodSymbol implicitImplMethod && implicitImplMethod.IsOperator() != ((MethodSymbol)interfaceMember).IsOperator())
+            {
+                closestMismatch = implicitImpl;
+                implicitImpl = null;
+                tryDefaultInterfaceImplementation = false;
+            }
             // Dev10 has some extra restrictions and extra wiggle room when finding implicit
             // implementations for interface accessors.  Perform some extra checks and possibly
             // update the result (i.e. implicitImpl).
-            if (interfaceMember.IsAccessor())
+            else if (interfaceMember.IsAccessor())
             {
                 Symbol originalImplicitImpl = implicitImpl;
                 CheckForImplementationOfCorrespondingPropertyOrEvent((MethodSymbol)interfaceMember, implementingType, implementingTypeIsFromSomeCompilation, ref implicitImpl);
@@ -1788,6 +1796,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                         }
                                                                                     },
                                                                                     (implementingType, isExplicit));
+
+                    SourceMemberContainerTypeSymbol.CheckCallerUnsafeMismatch(
+                        implementedEvent,
+                        implementingEvent,
+                        isExplicit ? ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe : ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe,
+                        (implementedEvent, implementingType, implementingEvent),
+                        static arg => GetImplicitImplementationDiagnosticLocation(arg.implementedEvent, arg.implementingType, arg.implementingEvent),
+                        diagnostics);
                 }
                 else
                 {
@@ -1855,7 +1871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             reportMismatchInParameterType,
                             (implementingType, isExplicit));
 
-                        if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod))
+                        if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod, implementingMethod.TryGetThisParameter(out var thisParameter) ? thisParameter : null))
                         {
                             SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                                 implementedMethod,
@@ -1874,6 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 allowVariance: true,
                                 invokedAsExtensionMethod: false);
                         }
+
                         SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
                             implementedMethod, implementingMethod, diagnostics,
                             static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
@@ -1885,6 +1902,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             },
                             implementingType,
                             invokedAsExtensionMethod: false);
+
+                        SourceMemberContainerTypeSymbol.CheckCallerUnsafeMismatch(
+                            implementedMethod,
+                            implementingMethod,
+                            isExplicit ? ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe : ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe,
+                            (implementedMethod, implementingType, implementingMethod),
+                            static arg => GetImplicitImplementationDiagnosticLocation(arg.implementedMethod, arg.implementingType, arg.implementingMethod),
+                            diagnostics);
 
                         if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())
                         {
@@ -2043,6 +2068,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch);
                 }
+                else if (interfaceMember is MethodSymbol interfaceMethod &&
+                         interfaceMethod.IsOperator() != ((MethodSymbol)closestMismatch).IsOperator())
+                {
+                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, interfaceLocation, implementingType, interfaceMember, closestMismatch);
+                }
                 else
                 {
                     diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, interfaceLocation, implementingType, interfaceMember, closestMismatch, interfaceMemberReturnType);
@@ -2099,12 +2129,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 
                 // Report any mismatched method constraints.
+                const TypeCompareKind compareKind = TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
                 for (int i = 0; i < arity; i++)
                 {
                     var typeParameter1 = typeParameters1[i];
                     var typeParameter2 = typeParameters2[i];
 
-                    if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                    if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, compareKind))
                     {
                         // If the matching method for the interface member is defined on the implementing type,
                         // the matching method location is used for the error. Otherwise, the location of the
@@ -2168,7 +2199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool? isOperator = null;
 
-            if (interfaceMember is MethodSymbol interfaceMethod)
+            if (interfaceMember is MethodSymbol { IsStatic: true } interfaceMethod)
             {
                 isOperator = interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
             }
@@ -2495,6 +2526,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         TypeKind ITypeSymbolInternal.TypeKind => this.TypeKind;
 
         SpecialType ITypeSymbolInternal.SpecialType => this.SpecialType;
+
+        ExtendedSpecialType ITypeSymbolInternal.ExtendedSpecialType => this.ExtendedSpecialType;
 
         bool ITypeSymbolInternal.IsReferenceType => this.IsReferenceType;
 

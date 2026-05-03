@@ -53,11 +53,13 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
     protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
     {
         // Having a property with `set` accessor in a readonly struct leads to a compiler error.
-        // So if user executes snippet inside a readonly struct the right thing to do is to not generate `set` accessor at all
+        // At the same time having a required property with no setter at all is also illegal.
+        // Thus out best guess here is to generate an `init` accessor. We can assume they are available
+        // as a language feature since `required` keyword has a higher minimal language version to use
         if (syntaxContext.ContainingTypeDeclaration is StructDeclarationSyntax structDeclaration &&
             syntaxContext.SemanticModel.GetDeclaredSymbol(structDeclaration, cancellationToken) is { IsReadOnly: true })
         {
-            return null;
+            return SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SemicolonToken);
         }
 
         return base.GenerateSetAccessorDeclaration(syntaxContext, generator, cancellationToken);

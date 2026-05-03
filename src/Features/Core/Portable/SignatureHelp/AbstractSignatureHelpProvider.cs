@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,12 +28,8 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(
             SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions & ~SymbolDisplayGenericsOptions.IncludeTypeParameters);
 
-    protected AbstractSignatureHelpProvider()
-    {
-    }
-
-    public abstract bool IsTriggerCharacter(char ch);
-    public abstract bool IsRetriggerCharacter(char ch);
+    public abstract ImmutableArray<char> TriggerCharacters { get; }
+    public abstract ImmutableArray<char> RetriggerCharacters { get; }
 
     protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken);
 
@@ -175,7 +172,8 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         IList<SymbolDisplayPart> separatorParts,
         IList<SymbolDisplayPart> suffixParts,
         IList<SignatureHelpSymbolParameter> parameters,
-        IList<SymbolDisplayPart>? descriptionParts)
+        IList<SymbolDisplayPart>? descriptionParts,
+        Func<ISymbol?, string?>? getNavigationHint = null)
     {
         descriptionParts = descriptionParts == null
             ? SpecializedCollections.EmptyList<SymbolDisplayPart>()
@@ -198,7 +196,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         {
             var structuralTypeParts = new List<SymbolDisplayPart>
             {
-                new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, "\r\n\r\n")
+                new(SymbolDisplayPartKind.Space, null, "\r\n\r\n")
             };
 
             structuralTypeParts.AddRange(info.TypesParts);
@@ -218,11 +216,11 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
             orderSymbol,
             isVariadic,
             documentationFactory,
-            prefixParts.ToTaggedText(),
-            separatorParts.ToTaggedText(),
-            suffixParts.ToTaggedText(),
+            prefixParts.ToTaggedText(getNavigationHint: getNavigationHint),
+            separatorParts.ToTaggedText(getNavigationHint: getNavigationHint),
+            suffixParts.ToTaggedText(getNavigationHint: getNavigationHint),
             parameters.Select(p => (SignatureHelpParameter)p),
-            descriptionParts.ToTaggedText());
+            descriptionParts.ToTaggedText(getNavigationHint: getNavigationHint));
     }
 
     private static SignatureHelpSymbolParameter ReplaceStructuralTypes(
@@ -254,7 +252,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
             return itemsForCurrentDocument;
         }
 
-        var totalProjects = relatedDocuments.Select(d => d.Project.Id).Concat(document.Project.Id);
+        var totalProjects = relatedDocuments.Concat(document).SelectAsArray(d => d.Project.Id);
 
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
         var compilation = semanticModel.Compilation;
@@ -277,7 +275,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
                 symbolKey = SymbolKey.Create(methodSymbol.OriginalDefinition, cancellationToken);
             }
 
-            var invalidProjectsForCurrentSymbol = new List<ProjectId>();
+            using var _ = ArrayBuilder<ProjectId>.GetInstance(out var invalidProjectsForCurrentSymbol);
             foreach (var relatedDocument in relatedDocuments)
             {
                 // Try to resolve symbolKey in each related compilation,
@@ -289,7 +287,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
                 }
             }
 
-            var platformData = new SupportedPlatformData(document.Project.Solution, invalidProjectsForCurrentSymbol, totalProjects);
+            var platformData = new SupportedPlatformData(document.Project.Solution, invalidProjectsForCurrentSymbol.ToImmutableAndClear(), totalProjects);
             finalItems.Add(UpdateItem(item, platformData));
         }
 

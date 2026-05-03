@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 
-internal class ProjectDebugConfiguration
+internal sealed class ProjectDebugConfiguration
 {
     public ProjectDebugConfiguration(string projectPath, string outputPath, string projectName, bool targetsDotnetCore, bool isExe, string? solutionPath)
     {

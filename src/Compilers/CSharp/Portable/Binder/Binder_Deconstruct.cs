@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDeconstructionAssignmentOperator(
                             node,
                             DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: true),
-                            new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false, conversionGroupOpt: null,
-                                constantValueOpt: null, type: type, hasErrors: true),
+                            new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false,
+                                conversionGroupOpt: null, InConversionGroupFlags.Unspecified, constantValueOpt: null, type: type, hasErrors: true),
                             resultIsUsed,
                             voidType,
                             hasErrors: true);
@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked: false,
                 explicitCastInCode: false,
                 conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
                 constantValueOpt: null,
                 type: returnType,
                 hasErrors: hasErrors)
@@ -309,7 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var operandPlaceholder = new BoundValuePlaceholder(syntax, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated();
                     nestedConversions.Add((operandPlaceholder, new BoundConversion(syntax, operandPlaceholder, nestedConversion,
                                                                                    @checked: false, explicitCastInCode: false,
-                                                                                   conversionGroupOpt: null, constantValueOpt: null,
+                                                                                   conversionGroupOpt: null, InConversionGroupFlags.Unspecified,
+                                                                                   constantValueOpt: null,
 #pragma warning disable format
                                                                                    type: ErrorTypeSymbol.UnknownResultType) { WasCompilerGenerated = true }));
 #pragma warning restore format
@@ -333,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var operandPlaceholder = new BoundValuePlaceholder(syntax, tupleOrDeconstructedTypes[i]).MakeCompilerGenerated();
                         nestedConversions.Add((operandPlaceholder, CreateConversion(syntax, operandPlaceholder,
-                                                                                    nestedConversion, isCast: false, conversionGroupOpt: null, single.Type, diagnostics)));
+                                                                                    nestedConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, single.Type, diagnostics)));
                     }
                 }
             }
@@ -669,7 +671,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
                 BoundExpression result = BindMethodGroupInvocation(
                     rightSyntax, rightSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
-                    ignoreNormalFormIfHasValidParamsParameter: false, anyApplicableCandidates: out anyApplicableCandidates);
+                    ignoreNormalFormIfHasValidParamsParameter: false, anyApplicableCandidates: out anyApplicableCandidates,
+                    disallowExpandedNonArrayParams: false, acceptOnlyMethods: true);
 
                 result.WasCompilerGenerated = true;
 
@@ -716,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver.Type?.IsErrorType() == false)
             {
-                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type!, numParameters);
+                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type, numParameters);
             }
 
             outPlaceholders = default;
@@ -872,6 +875,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is this a local?
             if ((object)localSymbol != null)
             {
+                ReportFieldContextualKeywordConflictIfAny(localSymbol, designation, designation.Identifier, diagnostics);
+
                 if (designation.Parent is DeclarationExpressionSyntax declExpr && declExpr.Designation == designation)
                 {
                     TypeSyntax typeSyntax = declExpr.Type;

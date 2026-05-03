@@ -4415,30 +4415,29 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a && b;')
-          Expression: 
+          Expression:
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: 'result = a && b')
-              Left: 
+              Left:
                 IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
-              Right: 
+              Right:
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'a && b')
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
-                  Operand: 
+                  Operand:
                     IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a && b')
-                      Left: 
-                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C.B3, IsInvalid) (Syntax: 'a')
-                      Right: 
-                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C.B2, IsInvalid) (Syntax: 'b')
-
+                      Left:
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C.B3) (Syntax: 'a')
+                      Right:
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C.B2) (Syntax: 'b')
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS0034: Operator '&&' is ambiguous on operands of type 'C.B3' and 'C.B2'
+                // (6,20): error CS9342: Operator resolution is ambiguous between the following members: 'C.B3.operator &(C.B3, C.B2)' and 'C.B2.operator &(C.B3, C.B2)'
                 //         result = a && b;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a && b").WithArguments("&&", "C.B3", "C.B2").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "&&").WithArguments("C.B3.operator &(C.B3, C.B2)", "C.B2.operator &(C.B3, C.B2)").WithLocation(6, 20)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
@@ -6350,7 +6349,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C", "false").WithLocation(6, 18)
             };
@@ -6862,7 +6861,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -7583,7 +7582,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -7692,7 +7691,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -8014,7 +8013,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'bool?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'bool?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("bool?", "false").WithLocation(6, 18)
             };
@@ -8279,6 +8278,337 @@ IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '
 
             var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
             Assert.Equal(RangeStartAtSignature, operation.Method.ToTestDisplayString());
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Extensions_01()
+        {
+            var source = @"
+struct C
+{
+    void F(C x, C y)
+    {
+        var z = /*<bind>*/x + y/*</bind>*/;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(C c1, C c2) { }
+    }
+}
+";
+
+            string expectedOperationTree =
+@"
+IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: C Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: C) (Syntax: 'x + y')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C) (Syntax: 'y')
+";
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Extensions_02_Logical()
+        {
+            var source = @"
+struct C
+{
+    void F(C x, C y)
+    {
+        var z = /*<bind>*/x || y/*</bind>*/;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator &(C x, C y) => throw null;
+        public static C operator |(C x, C y) => throw null;
+        public static bool operator true(C c) => throw null;
+        public static bool operator false(C c) => throw null;
+    }
+}
+";
+
+            string expectedOperationTree =
+@"
+IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: C Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'x || y')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C) (Syntax: 'y')
+";
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void Extensions_03_Flow()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(C a, C b)
+    /*<bind>*/{
+        GetArray()[0] = (a ?? b) + (a ?? b);
+    }/*</bind>*/
+
+    static int[] GetArray() => null;
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static int operator +(C c1, C c2) => 0;
+    }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    CaptureIds: [0] [2] [4]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()[0]')
+              Value:
+                IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()[0]')
+                  Array reference:
+                    IInvocationOperation (System.Int32[] C.GetArray()) (OperationKind.Invocation, Type: System.Int32[]) (Syntax: 'GetArray()')
+                      Instance Receiver:
+                        null
+                      Arguments(0)
+                  Indices(1):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        Next (Regular) Block[B2]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value:
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
+
+            Jump if True (Regular) to Block[B4]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+                Leaving: {R2}
+
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+                Entering: {R3}
+    }
+
+    Block[B4] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+              Value:
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
+
+        Next (Regular) Block[B5]
+            Entering: {R3}
+
+    .locals {R3}
+    {
+        CaptureIds: [3]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (1)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value:
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
+
+            Jump if True (Regular) to Block[B7]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+                Leaving: {R3}
+
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B5]
+            Statements (1)
+                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value:
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+            Next (Regular) Block[B8]
+                Leaving: {R3}
+    }
+
+    Block[B7] - Block
+        Predecessors: [B5]
+        Statements (1)
+            IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+              Value:
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
+
+        Next (Regular) Block[B8]
+    Block[B8] - Block
+        Predecessors: [B6] [B7]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... + (a ?? b);')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'GetArray()[ ...  + (a ?? b)')
+                  Left:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
+                  Right:
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
+                      Left:
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a ?? b')
+                      Right:
+                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a ?? b')
+
+        Next (Regular) Block[B9]
+            Leaving: {R1}
+}
+
+Block[B9] - Exit
+    Predecessors: [B8]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void Extensions_04_Logical_Flow()
+        {
+            string source = @"
+class C
+{
+    void M(C a, C b, C result)
+/*<bind>*/{
+        result = a || b;
+    }/*</bind>*/
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator &(C x, C y) => throw null;
+        public static C operator |(C x, C y) => throw null;
+        public static bool operator true(C c) => throw null;
+        public static bool operator false(C c) => throw null;
+    }
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    CaptureIds: [0] [2]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+              Value:
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+        Next (Regular) Block[B2]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value:
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
+
+            Jump if False (Regular) to Block[B4]
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_True(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
+                  Value:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
+                  Value:
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'a || b')
+                      Left:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+                      Right:
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
+
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
+
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a || b;')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: 'result = a || b')
+                  Left:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+                  Right:
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a || b')
+
+        Next (Regular) Block[B6]
+            Leaving: {R1}
+}
+
+Block[B6] - Exit
+    Predecessors: [B5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
     }
 }

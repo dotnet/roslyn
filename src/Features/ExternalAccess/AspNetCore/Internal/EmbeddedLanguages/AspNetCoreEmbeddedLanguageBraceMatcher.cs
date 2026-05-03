@@ -6,45 +6,41 @@ using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.BraceMatching;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages;
+
+[ExportEmbeddedLanguageBraceMatcher(
+    nameof(AspNetCoreEmbeddedLanguageBraceMatcher),
+    [LanguageNames.CSharp],
+    supportsUnannotatedAPIs: false,
+    // Add more syntax names here in the future if there are additional cases ASP.Net would like to light up on.
+    identifiers: ["Route"]), Shared]
+internal class AspNetCoreEmbeddedLanguageBraceMatcher : IEmbeddedLanguageBraceMatcher
 {
-    [ExportEmbeddedLanguageBraceMatcher(
-        nameof(AspNetCoreEmbeddedLanguageBraceMatcher),
-        [LanguageNames.CSharp],
-        supportsUnannotatedAPIs: false,
-        // Add more syntax names here in the future if there are additional cases ASP.Net would like to light up on.
-        identifiers: ["Route"]), Shared]
-    internal class AspNetCoreEmbeddedLanguageBraceMatcher : IEmbeddedLanguageBraceMatcher
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public AspNetCoreEmbeddedLanguageBraceMatcher()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AspNetCoreEmbeddedLanguageBraceMatcher()
+    }
+
+    public BraceMatchingResult? FindBraces(
+        Project project,
+        SemanticModel semanticModel,
+        SyntaxToken token,
+        int position,
+        BraceMatchingOptions options,
+        CancellationToken cancellationToken)
+    {
+        var braceMatchers = AspNetCoreBraceMatcherExtensionProvider.GetExtensions(project);
+
+        foreach (var braceMatcher in braceMatchers)
         {
+            var result = braceMatcher.FindBraces(semanticModel, token, position, cancellationToken)?.ToBraceMatchingResult();
+            if (result != null)
+                return result;
         }
 
-        public BraceMatchingResult? FindBraces(
-            Project project,
-            SemanticModel semanticModel,
-            SyntaxToken token,
-            int position,
-            BraceMatchingOptions options,
-            CancellationToken cancellationToken)
-        {
-            var braceMatchers = AspNetCoreBraceMatcherExtensionProvider.GetExtensions(project);
-
-            foreach (var braceMatcher in braceMatchers)
-            {
-                var result = braceMatcher.FindBraces(semanticModel, token, position, cancellationToken)?.ToBraceMatchingResult();
-                if (result != null)
-                    return result;
-            }
-
-            return null;
-        }
+        return null;
     }
 }

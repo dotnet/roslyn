@@ -21,7 +21,7 @@ internal abstract class BlockStructureServiceWithProviders : BlockStructureServi
     protected BlockStructureServiceWithProviders(SolutionServices services)
     {
         _services = services;
-        _providers = GetBuiltInProviders().Concat(GetImportedProviders());
+        _providers = [.. GetBuiltInProviders(), .. GetImportedProviders()];
     }
 
     /// <summary>

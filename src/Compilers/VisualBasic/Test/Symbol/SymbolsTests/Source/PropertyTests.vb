@@ -2,15 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -8277,6 +8277,53 @@ BC32066: Type arguments are not valid because attributes cannot be generic.
     <Preserve3(Of Integer)>
      ~~~~~~~~~
 ]]></expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/82122")>
+        Public Sub PropertyIsReadOnly_WithTypeArgumentFromUnrelatedAssembly()
+            Dim source1 = <compilation>
+                              <file name="a.vb">
+                                  <![CDATA[
+Public Class C0(Of T)
+    Public Overridable Property P As Integer
+End Class
+
+Public Class C1(Of T)
+    Inherits C0(Of T)
+    Public Overrides Property P As Integer
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim comp1 = CreateCompilation(source1)
+            comp1.AssertNoDiagnostics()
+
+            Dim source2 = <compilation>
+                              <file name="a.vb">
+                                  <![CDATA[
+Friend Class C2
+End Class
+
+Friend Class C3
+    Inherits C1(Of C2)
+    Public Overrides Property P As Integer
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim comp2 = CreateCompilation(source2, references:={comp1.ToMetadataReference()})
+            comp2.AssertNoDiagnostics()
+
+            ' Get the property symbol and check IsReadOnly
+            Dim c3 = comp2.GlobalNamespace.GetTypeMember("C3")
+            Dim [property] = c3.BaseTypeNoUseSiteDiagnostics.GetMember(Of PropertySymbol)("P")
+
+            ' These should not throw an assertion
+            Assert.False([property].IsReadOnly)
+            Assert.False([property].IsWriteOnly)
         End Sub
 
 #Region "Helpers"

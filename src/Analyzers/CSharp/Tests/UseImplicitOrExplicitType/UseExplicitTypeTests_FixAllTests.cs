@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitOrExplicitType;
 
 public partial class UseExplicitTypeTests
 {
@@ -17,9 +17,8 @@ public partial class UseExplicitTypeTests
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocumentScope_PreferExplicitTypeEverywhere()
-    {
-        var input = """
+    public Task TestFixAllInDocumentScope_PreferExplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -71,9 +70,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -84,8 +81,8 @@ public partial class UseExplicitTypeTests
                 static int F(int x, int y)
                 {
                     int i1 = 0;
-                    Program p = new Program();
-                    Tuple&lt;bool, int&gt; tuple = Tuple.Create(true, 1);
+                    var p = new Program();
+                    var tuple = Tuple.Create(true, 1);
 
                     return i1;
                 }
@@ -125,17 +122,13 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
-    }
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject_PreferExplicitTypeEverywhere()
-    {
-        var input = """
+    public Task TestFixAllInProject_PreferExplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -187,9 +180,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -200,8 +191,8 @@ public partial class UseExplicitTypeTests
                 static int F(int x, int y)
                 {
                     int i1 = 0;
-                    Program p = new Program();
-                    Tuple&lt;bool, int&gt; tuple = Tuple.Create(true, 1);
+                    var p = new Program();
+                    var tuple = Tuple.Create(true, 1);
 
                     return i1;
                 }
@@ -215,8 +206,8 @@ public partial class UseExplicitTypeTests
                 static int F(int x, int y)
                 {
                     int i2 = 0;
-                    Program2 p2 = new Program2();
-                    Tuple&lt;bool, int&gt; tuple2 = Tuple.Create(true, 1);
+                    var p2 = new Program2();
+                    var tuple2 = Tuple.Create(true, 1);
 
                     return i2;
                 }
@@ -241,17 +232,13 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
-    }
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_PreferExplicitTypeEverywhere()
-    {
-        var input = """
+    public Task TestFixAllInSolution_PreferExplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -303,9 +290,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -316,8 +301,8 @@ public partial class UseExplicitTypeTests
                 static int F(int x, int y)
                 {
                     int i1 = 0;
-                    Program p = new Program();
-                    Tuple&lt;bool, int&gt; tuple = Tuple.Create(true, 1);
+                    var p = new Program();
+                    var tuple = Tuple.Create(true, 1);
 
                     return i1;
                 }
@@ -331,8 +316,8 @@ public partial class UseExplicitTypeTests
                 static int F(int x, int y)
                 {
                     int i2 = 0;
-                    Program2 p2 = new Program2();
-                    Tuple&lt;bool, int&gt; tuple2 = Tuple.Create(true, 1);
+                    var p2 = new Program2();
+                    var tuple2 = Tuple.Create(true, 1);
 
                     return i2;
                 }
@@ -348,8 +333,8 @@ public partial class UseExplicitTypeTests
                 static int F(int x, int y)
                 {
                     int i3 = 0;
-                    Program2 p3 = new Program2();
-                    Tuple&lt;bool, int&gt; tuple3 = Tuple.Create(true, 1);
+                    var p3 = new Program2();
+                    var tuple3 = Tuple.Create(true, 1);
 
                     return i3;
                 }
@@ -357,17 +342,13 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
-    }
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocumentScope_PreferExplicitTypeExceptWhereApparent()
-    {
-        var input = """
+    public Task TestFixAllInDocumentScope_PreferExplicitTypeExceptWhereApparent()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -378,6 +359,7 @@ public partial class UseExplicitTypeTests
                 static int F(int x, int y)
                 {
                     {|FixAllInDocument:var|} p = this;
+                    var p2 = this;
                     var i1 = 0;
                     var tuple = Tuple.Create(true, 1);
 
@@ -387,9 +369,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -400,7 +380,8 @@ public partial class UseExplicitTypeTests
                 static int F(int x, int y)
                 {
                     Program p = this;
-                    int i1 = 0;
+                    Program p2 = this;
+                    var i1 = 0;
                     var tuple = Tuple.Create(true, 1);
 
                     return i1;
@@ -409,10 +390,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeExceptWhereApparent());
-    }
+            """, new(options: ExplicitTypeExceptWhereApparent()));
 
     #endregion
 }

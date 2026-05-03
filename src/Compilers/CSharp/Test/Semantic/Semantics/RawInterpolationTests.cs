@@ -124,13 +124,12 @@ class Program {
 }";
         // too many diagnostics perhaps, but it starts the right way.
         CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-            // (5,70): error CS8997: Unterminated raw string literal
+            // (5,70): error CS8997: Unterminated raw string literal.
             //         Console.WriteLine($"""Jenny don\'t change your number { """);
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, @"
-").WithLocation(5, 70),
-            // (6,5): error CS8997: Unterminated raw string literal
+            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(5, 70),
+            // (6,6): error CS8997: Unterminated raw string literal.
             //     }
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "}").WithLocation(6, 5),
+            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(6, 6),
             // (6,6): error CS1026: ) expected
             //     }
             Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -155,9 +154,9 @@ class Program {
 }";
         // too many diagnostics perhaps, but it starts the right way.
         CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-            // (6,5): error CS8997: Unterminated raw string literal
+            // (6,6): error CS8997: Unterminated raw string literal.
             //     }
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "}").WithLocation(6, 5),
+            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(6, 6),
             // (6,6): error CS1026: ) expected
             //     }
             Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -409,13 +408,12 @@ class Program
     }
 }";
         CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-            // (6,39): error CS8997: Unterminated raw string literal
+            // (6,39): error CS8997: Unterminated raw string literal.
             //         Console.WriteLine( $"""{""" );
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, @"
-").WithLocation(6, 39),
-            // (7,5): error CS8997: Unterminated raw string literal
+            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(6, 39),
+            // (7,6): error CS8997: Unterminated raw string literal.
             //     }
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "}").WithLocation(7, 5),
+            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(7, 6),
             // (7,6): error CS1026: ) expected
             //     }
             Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
@@ -438,18 +436,18 @@ class Program
         var x = $"""""";";
         // The precise error messages are not important, but this must be an error.
         CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (5,21): error CS8997: Unterminated raw string literal
-                //         var x = $""";
-                Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(5, 21),
-                // (5,22): error CS1002: ; expected
-                //         var x = $""";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 22),
-                // (5,22): error CS1513: } expected
-                //         var x = $""";
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 22),
-                // (5,22): error CS1513: } expected
-                //         var x = $""";
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 22));
+            // (5,22): error CS8997: Unterminated raw string literal.
+            //         var x = $""";
+            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(5, 22),
+            // (5,22): error CS1002: ; expected
+            //         var x = $""";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 22),
+            // (5,22): error CS1513: } expected
+            //         var x = $""";
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 22),
+            // (5,22): error CS1513: } expected
+            //         var x = $""";
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 22));
     }
 
     [Fact]

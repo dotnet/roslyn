@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Emit.UnitTests;
 
-public class CompilationOutputFilesTests : TestBase
+public sealed class CompilationOutputFilesTests : TestBase
 {
     [Fact]
     public void OpenStream_Errors()
@@ -41,7 +41,7 @@ public class CompilationOutputFilesTests : TestBase
 
         using (var pdb = outputs.OpenPdb())
         {
-            var encReader = pdb.CreateEditAndContinueMethodDebugInfoReader();
+            var encReader = pdb.CreateEditAndContinueDebugInfoReader();
             Assert.True(encReader.IsPortable);
             var localSig = encReader.GetLocalSignature(MetadataTokens.MethodDefinitionHandle(1));
             Assert.Equal(MetadataTokens.StandaloneSignatureHandle(1), localSig);

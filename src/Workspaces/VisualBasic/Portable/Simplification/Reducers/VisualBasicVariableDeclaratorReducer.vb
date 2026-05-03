@@ -5,7 +5,6 @@
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
@@ -146,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Dim declaredSymbol = semanticModel.GetDeclaredSymbol(modifiedIdentifier)
             If declaredSymbol Is Nothing OrElse
-               (Not TypeOf declaredSymbol Is ILocalSymbol AndAlso Not TypeOf declaredSymbol Is IFieldSymbol) Then
+               (TypeOf declaredSymbol IsNot ILocalSymbol AndAlso TypeOf declaredSymbol IsNot IFieldSymbol) Then
                 Return False
             End If
 

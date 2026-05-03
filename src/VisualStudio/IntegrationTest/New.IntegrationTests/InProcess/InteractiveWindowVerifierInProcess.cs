@@ -11,7 +11,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class InteractiveWindowVerifierInProcess : ITextViewWindowVerifierInProcess
+internal sealed partial class InteractiveWindowVerifierInProcess : ITextViewWindowVerifierInProcess
 {
     private static readonly char[] s_lineSeparators = ['\r', '\n'];
 

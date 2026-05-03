@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 
-internal partial class XmlSnippetParser
+internal sealed partial class XmlSnippetParser
 {
-    internal class ParsedXmlSnippet
+    internal sealed class ParsedXmlSnippet
     {
         public ImmutableArray<SnippetPart> Parts { get; }
         public string DefaultText { get; }
@@ -38,7 +38,7 @@ internal partial class XmlSnippetParser
 
     internal record SnippetFieldPart(string FieldName, string DefaultText, int? EditIndex) : SnippetPart(DefaultText);
 
-    internal record SnippetFunctionPart(string FieldName, string DefaultText, int? EditIndex, string FunctionName, string? FunctionParam)
+    internal sealed record SnippetFunctionPart(string FieldName, string DefaultText, int? EditIndex, string FunctionName, string? FunctionParam)
         : SnippetFieldPart(FieldName, DefaultText, EditIndex)
     {
         public async Task<SnippetFunctionPart> WithSnippetFunctionResultAsync(Document documentWithSnippet, TextSpan fieldSpan, SimplifierOptions simplifierOptions, CancellationToken cancellationToken)
@@ -82,7 +82,7 @@ internal partial class XmlSnippetParser
     /// To indicate cursor location we put in a multi-line comment so that we can
     /// find it after formatting.
     /// </summary>
-    internal record SnippetCursorPart() : SnippetPart("/*$0*/");
+    internal sealed record SnippetCursorPart() : SnippetPart("/*$0*/");
 
-    internal record SnippetStringPart(string Text) : SnippetPart(Text);
+    internal sealed record SnippetStringPart(string Text) : SnippetPart(Text);
 }

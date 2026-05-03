@@ -64,20 +64,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// Create a context for evaluating expressions at a type scope.
         /// </summary>
         /// <param name="compilation">Compilation.</param>
-        /// <param name="moduleVersionId">Module containing type</param>
+        /// <param name="moduleId">Module containing type</param>
         /// <param name="typeToken">Type metadata token</param>
         /// <returns>Evaluation context</returns>
         /// <remarks>
         /// No locals since locals are associated with methods, not types.
         /// </remarks>
+        /// <exception cref="BadMetadataModuleException">Module wasn't included in the compilation due to bad metadata.</exception>
         internal static EvaluationContext CreateTypeContext(
             CSharpCompilation compilation,
-            Guid moduleVersionId,
+            ModuleId moduleId,
             int typeToken)
         {
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind == HandleKind.TypeDefinition);
 
-            var currentType = compilation.GetType(moduleVersionId, typeToken);
+            var currentType = compilation.GetType(moduleId, typeToken);
             RoslynDebug.Assert(currentType is object);
             var currentFrame = new SynthesizedContextMethodSymbol(currentType);
             return new EvaluationContext(
@@ -90,13 +91,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 methodDebugInfo: MethodDebugInfo<TypeSymbol, LocalSymbol>.None);
         }
 
+        // Used by VS debugger (/src/debugger/ProductionDebug/CodeAnalysis/CodeAnalysis/ExpressionEvaluator.cs)
+        internal static EvaluationContext CreateMethodContext(
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            object symReader,
+            Guid moduleId,
+            int methodToken,
+            int methodVersion,
+            uint ilOffset,
+            int localSignatureToken)
+            => CreateMethodContext(metadataBlocks, symReader, new ModuleId(moduleId, "<unknown>"), methodToken, methodVersion, ilOffset, localSignatureToken);
+
         /// <summary>
         /// Create a context for evaluating expressions within a method scope.
         /// </summary>
         /// <param name="metadataBlocks">Module metadata</param>
-        /// <param name="symReader"><see cref="ISymUnmanagedReader"/> for PDB associated with <paramref name="moduleVersionId"/></param>
-        /// <param name="moduleVersionId">Module containing method</param>
-        /// <param name="methodToken">Method metadata token</param>
+        /// <param name="symReader"><see cref="ISymUnmanagedReader"/> for PDB associated with <paramref name="moduleId"/></param>
+        /// <param name="moduleId">Module containing method</param>
         /// <param name="methodVersion">Method version.</param>
         /// <param name="ilOffset">IL offset of instruction pointer in method</param>
         /// <param name="localSignatureToken">Method local signature token</param>
@@ -104,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static EvaluationContext CreateMethodContext(
             ImmutableArray<MetadataBlock> metadataBlocks,
             object symReader,
-            Guid moduleVersionId,
+            ModuleId moduleId,
             int methodToken,
             int methodVersion,
             uint ilOffset,
@@ -112,12 +123,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var offset = NormalizeILOffset(ilOffset);
 
-            var compilation = metadataBlocks.ToCompilation(moduleVersionId: default, MakeAssemblyReferencesKind.AllAssemblies);
+            var compilation = metadataBlocks.ToCompilation(moduleId: default, MakeAssemblyReferencesKind.AllAssemblies);
 
             return CreateMethodContext(
                 compilation,
                 symReader,
-                moduleVersionId,
+                moduleId,
                 methodToken,
                 methodVersion,
                 offset,
@@ -128,8 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// Create a context for evaluating expressions within a method scope.
         /// </summary>
         /// <param name="compilation">Compilation.</param>
-        /// <param name="symReader"><see cref="ISymUnmanagedReader"/> for PDB associated with <paramref name="moduleVersionId"/></param>
-        /// <param name="moduleVersionId">Module containing method</param>
+        /// <param name="symReader"><see cref="ISymUnmanagedReader"/> for PDB associated with <paramref name="moduleId"/></param>
+        /// <param name="moduleId">Module containing method</param>
         /// <param name="methodToken">Method metadata token</param>
         /// <param name="methodVersion">Method version.</param>
         /// <param name="ilOffset">IL offset of instruction pointer in method</param>
@@ -138,17 +149,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static EvaluationContext CreateMethodContext(
             CSharpCompilation compilation,
             object? symReader,
-            Guid moduleVersionId,
+            ModuleId moduleId,
             int methodToken,
             int methodVersion,
             int ilOffset,
             int localSignatureToken)
         {
             var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
-            var currentSourceMethod = compilation.GetSourceMethod(moduleVersionId, methodHandle);
+            var currentSourceMethod = compilation.GetSourceMethod(moduleId, methodHandle);
             var localSignatureHandle = (localSignatureToken != 0) ? (StandaloneSignatureHandle)MetadataTokens.Handle(localSignatureToken) : default;
 
-            var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
+            var currentFrame = compilation.GetMethod(moduleId, methodHandle);
             RoslynDebug.AssertNotNull(currentFrame);
             var symbolProvider = new CSharpEESymbolProvider(compilation.SourceAssembly, (PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
 
@@ -174,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             localsBuilder.AddRange(debugInfo.LocalConstants);
 
             return new EvaluationContext(
-                new MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion, reuseSpan),
+                new MethodContextReuseConstraints(moduleId, methodToken, methodVersion, reuseSpan),
                 compilation,
                 currentFrame,
                 currentSourceMethod,
@@ -211,14 +222,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             out ImmutableArray<int> methodTokens,
             out ImmutableArray<string> errorMessages)
         {
+            var context = CreateCompilationContext();
+            bool isInFieldKeywordContext = context.IsInFieldKeywordContext();
             var diagnostics = DiagnosticBag.GetInstance();
-            var syntaxNodes = expressions.SelectAsArray(expr => Parse(expr, treatAsExpression: true, diagnostics, out var formatSpecifiers));
+            var syntaxNodes = expressions.SelectAsArray(expr => Parse(expr, isInFieldKeywordContext, treatAsExpression: true, diagnostics, out var formatSpecifiers));
             byte[]? assembly = null;
             if (!diagnostics.HasAnyErrors())
             {
                 RoslynDebug.Assert(syntaxNodes.All(s => s != null));
 
-                var context = CreateCompilationContext();
                 if (context.TryCompileExpressions(syntaxNodes!, TypeName, MethodName, diagnostics, out var moduleBuilder))
                 {
                     using var stream = new MemoryStream();
@@ -269,14 +281,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             out ResultProperties resultProperties,
             CompilationTestData? testData)
         {
-            var syntax = Parse(expr, (compilationFlags & DkmEvaluationFlags.TreatAsExpression) != 0, diagnostics, out var formatSpecifiers);
+            var context = CreateCompilationContext();
+
+            var syntax = Parse(expr, context.IsInFieldKeywordContext(), (compilationFlags & DkmEvaluationFlags.TreatAsExpression) != 0, diagnostics, out var formatSpecifiers);
             if (syntax == null)
             {
                 resultProperties = default;
                 return null;
             }
 
-            var context = CreateCompilationContext();
             if (!context.TryCompileExpression(syntax, TypeName, MethodName, aliases, testData, diagnostics, out var moduleBuilder, out var synthesizedMethod))
             {
                 resultProperties = default;
@@ -314,8 +327,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 formatSpecifiers: formatSpecifiers);
         }
 
-        private static CSharpSyntaxNode? Parse(
+        private CSharpSyntaxNode? Parse(
             string expr,
+            bool isInFieldKeywordContext,
             bool treatAsExpression,
             DiagnosticBag diagnostics,
             out ReadOnlyCollection<string>? formatSpecifiers)
@@ -324,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 // Try to parse as a statement. If that fails, parse as an expression.
                 var statementDiagnostics = DiagnosticBag.GetInstance();
-                var statementSyntax = expr.ParseStatement(statementDiagnostics);
+                var statementSyntax = expr.ParseStatement(isInFieldKeywordContext, statementDiagnostics);
                 Debug.Assert((statementSyntax == null) || !statementDiagnostics.HasAnyErrors());
                 statementDiagnostics.Free();
                 var isExpressionStatement = statementSyntax.IsKind(SyntaxKind.ExpressionStatement);
@@ -342,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            return expr.ParseExpression(diagnostics, allowFormatSpecifiers: true, out formatSpecifiers);
+            return expr.ParseExpression(isInFieldKeywordContext, diagnostics, allowFormatSpecifiers: true, out formatSpecifiers);
         }
 
         internal override CompileResult? CompileAssignment(
@@ -353,14 +367,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             out ResultProperties resultProperties,
             CompilationTestData? testData)
         {
-            var assignment = target.ParseAssignment(expr, diagnostics);
+            var context = CreateCompilationContext();
+            var assignment = target.ParseAssignment(expr, context.IsInFieldKeywordContext(), diagnostics);
             if (assignment == null)
             {
                 resultProperties = default;
                 return null;
             }
 
-            var context = CreateCompilationContext();
             if (!context.TryCompileAssignment(assignment, TypeName, MethodName, aliases, testData, diagnostics, out var moduleBuilder, out var synthesizedMethod))
             {
                 resultProperties = default;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CS0419 // Ambiguous reference in cref attribute
+
 using System;
 using System.Diagnostics;
 using System.IO;

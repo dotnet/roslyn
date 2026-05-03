@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -24,7 +25,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         return GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, symbol.Arity, cancellationToken);
     }
 
-    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         INamedTypeSymbol symbol,
         Solution solution,
         FindReferencesSearchOptions options,
@@ -41,7 +42,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         // cascade to destructor
         Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
 
-        return new(result.ToImmutable());
+        return result.ToImmutable();
     }
 
     private static void Add<TSymbol>(ArrayBuilder<ISymbol> result, ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol

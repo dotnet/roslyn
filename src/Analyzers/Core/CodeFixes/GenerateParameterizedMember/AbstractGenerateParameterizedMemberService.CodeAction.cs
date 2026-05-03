@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
@@ -89,13 +87,13 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 var result = await CodeGenerator.AddMethodDeclarationAsync(
                    new CodeGenerationSolutionContext(
                        _document.Project.Solution,
-                       new CodeGenerationContext(
-                           afterThisLocation: _state.Location,
-                           generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface)),
+                        new CodeGenerationContext(
+                            afterThisLocation: _state.Location,
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface,
+                            allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument())),
                     _state.TypeToGenerateIn,
                     method,
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
 
                 return result;
             }

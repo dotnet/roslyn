@@ -18,7 +18,7 @@ using static SyntaxFactory;
 
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseNamedArguments), Shared]
-internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamedArgumentsCodeRefactoringProvider
+internal sealed class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamedArgumentsCodeRefactoringProvider
 {
     private abstract class BaseAnalyzer<TSyntax, TSyntaxList> : Analyzer<TSyntax, TSyntax, TSyntaxList>
         where TSyntax : SyntaxNode
@@ -81,7 +81,7 @@ internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamed
         BaseAnalyzer<AttributeArgumentSyntax, AttributeArgumentListSyntax>
     {
         protected override bool IsPositionalArgument(AttributeArgumentSyntax argument)
-            => argument.NameColon == null && argument.NameEquals == null;
+            => argument is { NameColon: null, NameEquals: null };
 
         protected override SeparatedSyntaxList<AttributeArgumentSyntax> GetArguments(AttributeArgumentListSyntax argumentList)
             => argumentList.Arguments;

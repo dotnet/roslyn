@@ -172,7 +172,7 @@ internal sealed class CompleteStatementCommandHandler(
 
         startingNode = tokenOnLeft.GetRequiredParent();
 
-        // If the caret is before an opening delimiter or after a closing delimeter,
+        // If the caret is before an opening delimiter or after a closing delimiter,
         // start analysis with node outside of delimiters.
         //
         // Examples, 
@@ -333,11 +333,12 @@ internal sealed class CompleteStatementCommandHandler(
             // actually move it.
             if (!speculative)
             {
-                Logger.Log(FunctionId.CommandHandler_CompleteStatement, KeyValueLogMessage.Create(LogType.UserAction, m =>
+                Logger.Log(FunctionId.CommandHandler_CompleteStatement, KeyValueLogMessage.Create(LogType.UserAction, static (m, args) =>
                 {
+                    var (isInsideDelimiters, statementNode) = args;
                     m[nameof(isInsideDelimiters)] = isInsideDelimiters;
                     m[nameof(statementNode)] = statementNode.Kind();
-                }));
+                }, (isInsideDelimiters, statementNode)));
 
                 if (!args.TextView.TryMoveCaretToAndEnsureVisible(targetPosition))
                     return SemicolonBehavior.None;
@@ -349,8 +350,14 @@ internal sealed class CompleteStatementCommandHandler(
         return SemicolonBehavior.None;
     }
 
+    /// <param name="statementNode">The statement that may already be followed by a semicolon</param>
+    /// <returns>Whether we need to actively move the caret to `targetPosition` (overtype)</returns>
     private static bool AdjustPositionForExistingSemicolon(SyntaxNode statementNode, ref SnapshotPoint targetPosition)
     {
+        // Short-circuit if we are at the position in the file
+        if (targetPosition.Position >= targetPosition.Snapshot.Length)
+            return false;
+
         var existingSemicolon = statementNode.FindTokenOnRightOfPosition(targetPosition, includeSkipped: true);
         if (existingSemicolon.IsKind(SyntaxKind.SemicolonToken) && !existingSemicolon.IsMissing)
         {

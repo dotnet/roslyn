@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class CSharpTriviaFormatter
+internal sealed partial class CSharpTriviaFormatter
 {
-    private class DocumentationCommentExteriorCommentRewriter : CSharpSyntaxRewriter
+    private sealed class DocumentationCommentExteriorCommentRewriter : CSharpSyntaxRewriter
     {
         private readonly bool _forceIndentation;
         private readonly int _indentation;

@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -97,22 +97,10 @@ internal sealed partial class ProjectSystemProjectFactory
     public FileTextLoader CreateFileTextLoader(string fullPath)
         => new WorkspaceFileTextLoader(this.SolutionServices, fullPath, defaultEncoding: null);
 
-    public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, ProjectSystemProjectCreationInfo creationInfo, ProjectSystemHostInfo hostInfo)
+    public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, ProjectSystemProjectCreationInfo creationInfo, ProjectSystemHostInfo hostInfo, CancellationToken cancellationToken = default)
     {
         var projectId = ProjectId.CreateNewId(projectSystemName);
         var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
-
-        // We will use the project system name as the default display name of the project
-        var project = new ProjectSystemProject(
-            this,
-            hostInfo,
-            projectId,
-            displayName: projectSystemName,
-            language,
-            assemblyName,
-            creationInfo.CompilationOptions,
-            creationInfo.FilePath,
-            creationInfo.ParseOptions);
 
         var versionStamp = creationInfo.FilePath != null
             ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
@@ -131,7 +119,8 @@ internal sealed partial class ProjectSystemProjectFactory
                 outputFilePath: creationInfo.CompilationOutputAssemblyFilePath,
                 filePath: creationInfo.FilePath,
                 telemetryId: creationInfo.TelemetryId,
-                hasSdkCodeStyleAnalyzers: project.HasSdkCodeStyleAnalyzers),
+                // Since we don't have any analyzers at this point, we can just set to false.
+                hasSdkCodeStyleAnalyzers: false),
             compilationOptions: creationInfo.CompilationOptions,
             parseOptions: creationInfo.ParseOptions);
 
@@ -174,7 +163,30 @@ internal sealed partial class ProjectSystemProjectFactory
                 },
                 onBeforeUpdate: null,
                 onAfterUpdate: null);
-        }).ConfigureAwait(false);
+
+            // We have now created the project and added it to the solution -- we are committed at this point
+            // to returning a project or else we would never have a way to remove this project we created.
+            cancellationToken = CancellationToken.None;
+
+            _projectUpdateState = _projectUpdateState with
+            {
+                ProjectReferenceInfos = _projectUpdateState.ProjectReferenceInfos.Add(projectId, new ProjectReferenceInformation([], []))
+            };
+        }, cancellationToken).ConfigureAwait(false);
+
+        CodeAnalysisEventSource.Log.ProjectCreated(projectSystemName, creationInfo.FilePath);
+
+        // We will use the project system name as the default display name of the project
+        var project = new ProjectSystemProject(
+            this,
+            hostInfo,
+            projectId,
+            displayName: projectSystemName,
+            language,
+            assemblyName,
+            creationInfo.CompilationOptions,
+            creationInfo.FilePath,
+            creationInfo.ParseOptions);
 
         // Set this value early after solution is created so it is available to Razor.  This will get updated
         // when the command line is set, but we want a non-null value to be available as soon as possible.
@@ -357,21 +369,15 @@ internal sealed partial class ProjectSystemProjectFactory
         ApplyBatchChangeToWorkspaceMaybe_NoLockAsync(useAsync: false, mutation, onAfterUpdateAlways).VerifyCompleted();
     }
 
-    private static ProjectUpdateState GetReferenceInformation(ProjectId projectId, ProjectUpdateState projectUpdateState, out ProjectReferenceInformation projectReference)
+    private static bool TryGetReferenceInformation(ProjectId projectId, ProjectUpdateState projectUpdateState, out ProjectReferenceInformation projectReference)
     {
-        if (projectUpdateState.ProjectReferenceInfos.TryGetValue(projectId, out var referenceInfo))
-        {
-            projectReference = referenceInfo;
-            return projectUpdateState;
-        }
-        else
-        {
-            projectReference = new ProjectReferenceInformation([], []);
-            return projectUpdateState with
-            {
-                ProjectReferenceInfos = projectUpdateState.ProjectReferenceInfos.Add(projectId, projectReference)
-            };
-        }
+        return projectUpdateState.ProjectReferenceInfos.TryGetValue(projectId, out projectReference);
+    }
+
+    private static ProjectReferenceInformation GetRequiredReferenceInformation(ProjectId projectId, ProjectUpdateState projectUpdateState)
+    {
+        Contract.ThrowIfFalse(projectUpdateState.ProjectReferenceInfos.TryGetValue(projectId, out var referenceInfo), $"Expected ProjectReferenceInfos entry for project '{projectId}'");
+        return referenceInfo;
     }
 
     /// <summary>
@@ -421,21 +427,26 @@ internal sealed partial class ProjectSystemProjectFactory
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-        // Remove file watchers for any references we're no longer watching.
-        foreach (var reference in projectUpdateState.RemovedMetadataReferences)
-            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
+        // WARNING: the lists in projectUpdateState.RemovedMetadataReference and AddedMetadataReferences may have duplicates across them;
+        // if a number of output paths change in a single batch for example, we might convert metadata references to project references and back
+        // within a single batch. To keep things simple, we should call StartWatchingReference before Stop, so that way we don't accidentally run the
+        // reference counts those maintain below zero.
 
         // Add file watchers for any references we are now watching.
         foreach (var reference in projectUpdateState.AddedMetadataReferences)
             FileWatchedPortableExecutableReferenceFactory.StartWatchingReference(reference.FilePath!);
 
         // Remove file watchers for any references we're no longer watching.
-        foreach (var referenceFullPath in projectUpdateState.RemovedAnalyzerReferences)
-            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(referenceFullPath, referenceToTrack: null);
+        foreach (var reference in projectUpdateState.RemovedMetadataReferences)
+            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
 
-        // Add file watchers for any references we are now watching.
+        // Add file watchers for any analyzers we are now watching.
         foreach (var referenceFullPath in projectUpdateState.AddedAnalyzerReferences)
             FileWatchedAnalyzerReferenceFactory.StartWatchingReference(referenceFullPath);
+
+        // Remove file watchers for any analyzers we're no longer watching.
+        foreach (var referenceFullPath in projectUpdateState.RemovedAnalyzerReferences)
+            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(referenceFullPath, referenceToTrack: null);
 
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();
@@ -494,7 +505,7 @@ internal sealed partial class ProjectSystemProjectFactory
         ProjectUpdateState projectUpdateState,
         SolutionServices solutionServices)
     {
-        projectUpdateState = GetReferenceInformation(projectId, projectUpdateState, out var projectReferenceInformation);
+        var projectReferenceInformation = GetRequiredReferenceInformation(projectId, projectUpdateState);
         projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectId, projectReferenceInformation with
         {
             OutputPaths = projectReferenceInformation.OutputPaths.Add(outputPath)
@@ -506,7 +517,7 @@ internal sealed partial class ProjectSystemProjectFactory
         var distinctProjectsForOutputPath = projectsForOutputPath.Distinct().ToList();
 
         // If we have exactly one, then we're definitely good to convert
-        if (projectsForOutputPath.Count() == 1)
+        if (projectsForOutputPath.Length == 1)
         {
             projectUpdateState = ConvertMetadataReferencesToProjectReferences_NoLock(solutionChanges, projectId, outputPath, projectUpdateState);
         }
@@ -549,14 +560,21 @@ internal sealed partial class ProjectSystemProjectFactory
         string outputPath,
         ProjectUpdateState projectUpdateState)
     {
-        foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
+        // PERF: call GetRequiredProjectState instead of GetRequiredProject, otherwise creating a new project
+        // might force all Project instances to get created.
+        var candidateProjectState = solutionChanges.Solution.GetRequiredProjectState(projectIdToReference);
+
+        foreach (var projectToRetarget in solutionChanges.Solution.SortedProjectStates)
         {
-            if (CanConvertMetadataReferenceToProjectReference(solutionChanges.Solution, projectIdToRetarget, referencedProjectId: projectIdToReference))
+            // PERF: If we don't even have any metadata references yet, then don't even call CanConvertMetadataReferenceToProjectReference.
+            // This optimizes the early parts of solution load, where projects may be created with their output paths right away,
+            // but metadata references come in later. CanConvertMetadataReferenceToProjectReference isn't terribly expensive
+            // but when called enough times things can start to add up.
+            if (projectToRetarget.MetadataReferences.Count > 0 &&
+                TryGetReferenceInformation(projectToRetarget.Id, projectUpdateState, out var projectReferenceInfo) &&
+                CanConvertMetadataReferenceToProjectReference(solutionChanges.Solution, projectToRetarget, candidateProjectState))
             {
-                // PERF: call GetRequiredProjectState instead of GetRequiredProject, otherwise creating a new project
-                // might force all Project instances to get created.
-                var projectState = solutionChanges.Solution.GetRequiredProjectState(projectIdToRetarget);
-                foreach (var reference in projectState.MetadataReferences)
+                foreach (var reference in projectToRetarget.MetadataReferences)
                 {
                     if (reference is PortableExecutableReference peReference
                         && string.Equals(peReference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
@@ -565,14 +583,13 @@ internal sealed partial class ProjectSystemProjectFactory
 
                         var projectReference = new ProjectReference(projectIdToReference, peReference.Properties.Aliases, peReference.Properties.EmbedInteropTypes);
                         var newSolution = solutionChanges.Solution
-                            .RemoveMetadataReference(projectIdToRetarget, peReference)
-                            .AddProjectReference(projectIdToRetarget, projectReference);
+                            .RemoveMetadataReference(projectToRetarget.Id, peReference)
+                            .AddProjectReference(projectToRetarget.Id, projectReference);
 
-                        solutionChanges.UpdateSolutionForProjectAction(projectIdToRetarget, newSolution);
+                        solutionChanges.UpdateSolutionForProjectAction(projectToRetarget.Id, newSolution);
 
-                        projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var projectInfo);
-                        projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectIdToRetarget,
-                            projectInfo.WithConvertedProjectReference(peReference.FilePath!, projectReference));
+                        projectReferenceInfo = projectReferenceInfo.WithConvertedProjectReference(peReference.FilePath!, projectReference);
+                        projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectToRetarget.Id, projectReferenceInfo);
 
                         // We have converted one, but you could have more than one reference with different aliases that
                         // we need to convert, so we'll keep going
@@ -586,40 +603,39 @@ internal sealed partial class ProjectSystemProjectFactory
 
     [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
         Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
-    private static bool CanConvertMetadataReferenceToProjectReference(Solution solution, ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
+    private static bool CanConvertMetadataReferenceToProjectReference(Solution solution, ProjectState projectWithMetadataReference, ProjectState candidateProjectToReference)
     {
         // We can never make a project reference ourselves. This isn't a meaningful scenario, but if somebody does this by accident
         // we do want to throw exceptions.
-        if (projectIdWithMetadataReference == referencedProjectId)
+        if (projectWithMetadataReference.Id == candidateProjectToReference.Id)
         {
             return false;
         }
 
-        // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
-        // Project instances to get created.
-        var projectWithMetadataReference = solution.GetProjectState(projectIdWithMetadataReference);
-        var referencedProject = solution.GetProjectState(referencedProjectId);
-
-        Contract.ThrowIfNull(projectWithMetadataReference);
-        Contract.ThrowIfNull(referencedProject);
-
-        // We don't want to convert a metadata reference to a project reference if the project being referenced isn't something
-        // we can create a Compilation for. For example, if we have a C# project, and it's referencing a F# project via a metadata reference
-        // everything would be fine if we left it a metadata reference. Converting it to a project reference means we couldn't create a Compilation
-        // anymore in the IDE, since the C# compilation would need to reference an F# compilation. F# projects referencing other F# projects though
-        // do expect this to work, and so we'll always allow references through of the same language.
-        if (projectWithMetadataReference.Language != referencedProject.Language)
+        // We don't want to convert a metadata reference to a project reference if the project being referenced isn't
+        // something we can create a Compilation for. For example, if we have a C# project, and it's referencing a F#
+        // project via a metadata reference everything would be fine if we left it a metadata reference. Converting it
+        // to a project reference means we couldn't create a Compilation anymore in the IDE, since the C# compilation
+        // would need to reference an F# compilation. F# projects referencing other F# projects though do expect this to
+        // work, and so we'll always allow references through of the same language.
+        if (projectWithMetadataReference.Language != candidateProjectToReference.Language)
         {
             if (projectWithMetadataReference.LanguageServices.GetService<ICompilationFactoryService>() != null &&
-                referencedProject.LanguageServices.GetService<ICompilationFactoryService>() == null)
+                candidateProjectToReference.LanguageServices.GetService<ICompilationFactoryService>() == null)
             {
                 // We're referencing something that we can't create a compilation from something that can, so keep the metadata reference
                 return false;
             }
         }
 
+        // Getting a metadata reference from a 'module' is not supported from the compilation layer.  Nor is emitting a
+        // 'metadata-only' stream for it (a 'skeleton' reference).  So converting a NetModule reference to a project
+        // reference won't actually help us out.  Best to keep this as a plain metadata reference.
+        if (candidateProjectToReference.CompilationOptions?.OutputKind == OutputKind.NetModule)
+            return false;
+
         // If this is going to cause a circular reference, also disallow it
-        if (solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(referencedProjectId).Contains(projectIdWithMetadataReference))
+        if (solution.GetProjectDependencyGraph().DoesProjectTransitivelyDependOnProject(candidateProjectToReference.Id, projectWithMetadataReference.Id))
         {
             return false;
         }
@@ -644,10 +660,11 @@ internal sealed partial class ProjectSystemProjectFactory
     {
         foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
         {
-            projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var referenceInfo);
+            if (!TryGetReferenceInformation(projectIdToRetarget, projectUpdateState, out var referenceInfo))
+                continue;
 
             // Update ConvertedProjectReferences in place to avoid duplicate list allocations
-            for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Count(); i++)
+            for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Length; i++)
             {
                 var convertedReference = referenceInfo.ConvertedProjectReferences[i];
 
@@ -690,26 +707,26 @@ internal sealed partial class ProjectSystemProjectFactory
     /// during a workspace update (which will attempt to apply the update multiple times).
     /// </summary>
     public static ProjectUpdateState TryCreateConvertedProjectReference_NoLock(
-        ProjectId referencingProject,
+        ProjectState referencingProjectState,
         string path,
         MetadataReferenceProperties properties,
         ProjectUpdateState projectUpdateState,
         Solution currentSolution,
         out ProjectReference? projectReference)
     {
-        if (projectUpdateState.ProjectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
+        if (projectUpdateState.ProjectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Length == 1)
         {
             var projectIdToReference = ids.First();
 
-            if (CanConvertMetadataReferenceToProjectReference(currentSolution, referencingProject, projectIdToReference))
+            if (CanConvertMetadataReferenceToProjectReference(currentSolution, referencingProjectState, currentSolution.GetRequiredProjectState(projectIdToReference)))
             {
                 projectReference = new ProjectReference(
                     projectIdToReference,
                     aliases: properties.Aliases,
                     embedInteropTypes: properties.EmbedInteropTypes);
 
-                projectUpdateState = GetReferenceInformation(referencingProject, projectUpdateState, out var projectReferenceInfo);
-                projectUpdateState = projectUpdateState.WithProjectReferenceInfo(referencingProject, projectReferenceInfo.WithConvertedProjectReference(path, projectReference));
+                var projectReferenceInfo = GetRequiredReferenceInformation(referencingProjectState.Id, projectUpdateState);
+                projectUpdateState = projectUpdateState.WithProjectReferenceInfo(referencingProjectState.Id, projectReferenceInfo.WithConvertedProjectReference(path, projectReference));
                 return projectUpdateState;
             }
             else
@@ -735,7 +752,7 @@ internal sealed partial class ProjectSystemProjectFactory
         ProjectUpdateState projectUpdateState,
         out ProjectReference? projectReference)
     {
-        projectUpdateState = GetReferenceInformation(referencingProject, projectUpdateState, out var projectReferenceInformation);
+        var projectReferenceInformation = GetRequiredReferenceInformation(referencingProject, projectUpdateState);
         foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)
         {
             if (convertedProject.path == path &&
@@ -763,7 +780,7 @@ internal sealed partial class ProjectSystemProjectFactory
         bool solutionClosing,
         SolutionServices solutionServices)
     {
-        projectUpdateState = GetReferenceInformation(projectId, projectUpdateState, out var projectReferenceInformation);
+        var projectReferenceInformation = GetRequiredReferenceInformation(projectId, projectUpdateState);
         if (!projectReferenceInformation.OutputPaths.Contains(outputPath))
         {
             throw new ArgumentException($"Project does not contain output path '{outputPath}'", nameof(outputPath));
@@ -833,6 +850,7 @@ internal sealed partial class ProjectSystemProjectFactory
 
                 return (newSolution, newProjectUpdateState);
             },
+            onAfterUpdateAlways: null,
             cancellationToken);
 
     private Task StartRefreshingAnalyzerReferenceForFileAsync(string fullFilePath, CancellationToken cancellationToken)
@@ -853,6 +871,30 @@ internal sealed partial class ProjectSystemProjectFactory
                     solution, projectId, projectUpdateState, [oldAnalyzerFilePath], [newAnalyzerFilePath]);
                 return (newSolution, newProjectUpdateState);
             },
+            onAfterUpdateAlways: state =>
+            {
+                // Okay, an analyzer changed on disk, and we've now ensured the workspace is updated to point at the
+                // latest version of it.  We need to explicitly treat this as something that should force analyzer
+                // to rerun so that all generated documents from it are accurate.
+                //
+                // If we do not do this, we can end up in a situation where we have an observable race for clients
+                // trying to retrieve SG docs.  If the retrieve after a build, but before we've heard about this change
+                // on disk, we will produce documents based on the versions of the references we were pointing at. When
+                // we then hear about the changes on disk, we'll fork the workspace, but keep the SG version map the
+                // same, meaning clients will not get updated results.  If, however, they had waited a little before
+                // asking for SG docs, then we would have updated the version map *and* incorporated the new analyzer
+                // references, so they would see the updated documents.
+                //
+                // This violates our goal that 'build' or adding/removing/changing analyzer references should result
+                // in correct SG documents for the next client that requests them.
+                //
+                // Note: we could technically attempt to smarter here and try to determine precisely which projects were
+                // impacted by the changed analyzer and only update those.  However, that would involve flowing more
+                // state/snapshots around here, and it's just much clearer and easier to set everything to be
+                // regenerated unconditionally.  Given that analyzer changes should be relatively infrequent, this
+                // should hopefully be ok.
+                this.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
+            },
             cancellationToken);
 
     /// <summary>
@@ -865,6 +907,7 @@ internal sealed partial class ProjectSystemProjectFactory
         Func<TReference, string> getFilePath,
         Func<SolutionServices, TReference, TReference> createNewReference,
         Func<Solution, ProjectId, ProjectUpdateState, TReference, TReference, (Solution newSolution, ProjectUpdateState newProjectUpdateState)> update,
+        Action<ProjectUpdateState>? onAfterUpdateAlways,
         CancellationToken cancellationToken)
         where TReference : class
     {
@@ -895,7 +938,7 @@ internal sealed partial class ProjectSystemProjectFactory
             }
 
             return projectUpdateState;
-        }, onAfterUpdateAlways: null).ConfigureAwait(false);
+        }, onAfterUpdateAlways).ConfigureAwait(false);
     }
 
     internal Task RaiseOnDocumentsAddedMaybeAsync(bool useAsync, ImmutableArray<string> filePaths)

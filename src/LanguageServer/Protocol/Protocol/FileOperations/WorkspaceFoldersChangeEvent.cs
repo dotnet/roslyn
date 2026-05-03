@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal class WorkspaceFoldersChangeEvent
+internal sealed class WorkspaceFoldersChangeEvent
 {
     /// <summary>
     /// The array of added workspace folders

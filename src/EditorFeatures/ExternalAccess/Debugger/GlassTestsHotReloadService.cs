@@ -2,90 +2,95 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
+using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger;
+
+internal sealed class GlassTestsHotReloadService(HostWorkspaceServices services, IManagedHotReloadService debuggerService)
 {
-    internal sealed class GlassTestsHotReloadService
+    internal sealed class ServiceWrapper(IManagedHotReloadService service) : InternalContracts.IManagedHotReloadService
     {
-        private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
-           (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+        public async ValueTask<ImmutableArray<InternalContracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellation)
+            => (await service.GetActiveStatementsAsync(cancellation).ConfigureAwait(false)).SelectAsArray(a => a.ToContract());
 
-        private readonly IManagedHotReloadService _debuggerService;
+        public async ValueTask<InternalContracts.ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellation)
+            => (await service.GetAvailabilityAsync(module, cancellation).ConfigureAwait(false)).ToContract();
 
-        private readonly IEditAndContinueService _encService;
-        private DebuggingSessionId _sessionId;
+        public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellation)
+            => service.GetCapabilitiesAsync(cancellation);
 
-        public GlassTestsHotReloadService(HostWorkspaceServices services, IManagedHotReloadService debuggerService)
-        {
-            _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
-            _debuggerService = debuggerService;
-        }
+        public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellation)
+            => service.PrepareModuleForUpdateAsync(module, cancellation);
+    }
 
-        public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            var newSessionId = await _encService.StartDebuggingSessionAsync(
-                solution,
-                new ManagedHotReloadServiceBridge(_debuggerService),
-                NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: [],
-                captureAllMatchingDocuments: true,
-                reportDiagnostics: false,
-                cancellationToken).ConfigureAwait(false);
+    private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider = async (_, _, _) => [];
+    private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
+    private DebuggingSessionId _sessionId;
 
-            Contract.ThrowIfFalse(_sessionId == default, "Session already started");
-            _sessionId = newSessionId;
-        }
+#pragma warning disable IDE0060 // Remove unused parameter
+    public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
+#pragma warning restore IDE0060
+    {
+        var newSessionId = _encService.StartDebuggingSession(
+            solution,
+            new ServiceWrapper(debuggerService),
+            NullPdbMatchingSourceTextProvider.Instance,
+            reportDiagnostics: false);
 
-        private DebuggingSessionId GetSessionId()
-        {
-            var sessionId = _sessionId;
-            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
+        Contract.ThrowIfFalse(_sessionId == default, "Session already started");
+        _sessionId = newSessionId;
+    }
 
-            return sessionId;
-        }
+    private DebuggingSessionId GetSessionId()
+    {
+        var sessionId = _sessionId;
+        Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
-        public void EnterBreakState()
-        {
-            _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: true);
-        }
+        return sessionId;
+    }
 
-        public void ExitBreakState()
-        {
-            _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: false);
-        }
+    public void EnterBreakState()
+    {
+        _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: true);
+    }
 
-        public void OnCapabilitiesChanged()
-        {
-            _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: null);
-        }
+    public void ExitBreakState()
+    {
+        _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: false);
+    }
 
-        public void CommitSolutionUpdate()
-        {
-            _encService.CommitSolutionUpdate(GetSessionId());
-        }
+    public void OnCapabilitiesChanged()
+    {
+        _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: null);
+    }
 
-        public void DiscardSolutionUpdate()
-        {
-            _encService.DiscardSolutionUpdate(GetSessionId());
-        }
+    public void CommitSolutionUpdate()
+    {
+        _encService.CommitSolutionUpdate(GetSessionId());
+    }
 
-        public void EndDebuggingSession()
-        {
-            _encService.EndDebuggingSession(GetSessionId());
-            _sessionId = default;
-        }
+    public void DiscardSolutionUpdate()
+    {
+        _encService.DiscardSolutionUpdate(GetSessionId());
+    }
 
-        public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            var results = (await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, runningProjects: [], s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
-            return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates.FromContract(), results.GetAllDiagnostics().FromContract(), [], []);
-        }
+    public void EndDebuggingSession()
+    {
+        _encService.EndDebuggingSession(GetSessionId());
+        _sessionId = default;
+    }
+
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(Solution solution, CancellationToken cancellationToken)
+    {
+        var results = (await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
+        return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates.FromContract(), results.GetAllDiagnostics().FromContract(), projectInstancesToRebuild: [], projectInstancesToRestart: []);
     }
 }

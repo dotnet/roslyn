@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
         public static explicit operator SpecialType(ExtendedSpecialType value) => value._value < (int)InternalSpecialType.First ? (SpecialType)value._value : SpecialType.None;
 
         public static implicit operator ExtendedSpecialType(InternalSpecialType value) => new ExtendedSpecialType((int)value);
+        public static explicit operator InternalSpecialType(ExtendedSpecialType value) => value._value is < (int)InternalSpecialType.First or >= (int)InternalSpecialType.NextAvailable ? InternalSpecialType.Unknown : (InternalSpecialType)value._value;
 
         public static explicit operator ExtendedSpecialType(int value) => new ExtendedSpecialType(value);
         public static explicit operator int(ExtendedSpecialType value) => value._value;
@@ -56,6 +57,9 @@ namespace Microsoft.CodeAnalysis
             return _value.GetHashCode();
         }
 
+        /// <summary>
+        /// Returns a string representation of the ExtendedSpecialType. This exists only for debugging purposes.
+        /// </summary>
         public override string ToString()
         {
             if (_value > (int)SpecialType.None && _value <= (int)SpecialType.Count)
@@ -63,12 +67,20 @@ namespace Microsoft.CodeAnalysis
                 return ((SpecialType)_value).ToString();
             }
 
-            if (_value >= (int)InternalSpecialType.First && _value < (int)InternalSpecialType.NextAvailable)
+            // When there are overlapping labels for a value in an enum, it is undefined which label is returned.
+            // ReadOnlySpan is the one we care about most from a debugging perspective.
+            Debug.Assert(InternalSpecialType.First == InternalSpecialType.System_ReadOnlySpan_T);
+            if (_value == (int)InternalSpecialType.System_ReadOnlySpan_T)
+            {
+                return nameof(InternalSpecialType.System_ReadOnlySpan_T);
+            }
+
+            if (_value > (int)InternalSpecialType.First && _value < (int)InternalSpecialType.NextAvailable)
             {
                 return ((InternalSpecialType)_value).ToString();
             }
 
-            return _value.ToString();
+            return _value.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -56,11 +57,12 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         /// <remarks>
         /// Note that this is initially unset until we find a non-constant expression.
         /// </remarks>
-        private SyntaxNode _switchTargetExpression = null!;
+        private TExpressionSyntax _switchTargetExpression = null!;
+
         /// <summary>
         /// Holds the type of the <see cref="_switchTargetExpression"/>
         /// </summary>
-        private ITypeSymbol? _switchTargetType = null!;
+        private ITypeSymbol? _switchTargetType = null;
         private readonly ISyntaxFacts _syntaxFacts = syntaxFacts;
 
         public Feature Features { get; } = features;
@@ -68,7 +70,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         public bool Supports(Feature feature)
             => (Features & feature) != 0;
 
-        public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
+        public (ImmutableArray<AnalyzedSwitchSection>, TExpressionSyntax TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
         {
             using var _ = ArrayBuilder<AnalyzedSwitchSection>.GetInstance(out var sections);
             if (!ParseIfStatementSequence(operations, sections, topLevel: true, out var defaultBodyOpt))
@@ -254,8 +256,8 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         {
             return (op.LeftOperand, op.RightOperand) switch
             {
-                var (e, v) when IsConstant(v) && CheckTargetExpression(e) && CheckConstantType(v) => ConstantResult.Right,
-                var (v, e) when IsConstant(v) && CheckTargetExpression(e) && CheckConstantType(v) => ConstantResult.Left,
+                var (e, v) when IsConstant(v) && CheckTargetExpression(e, out var switchTargetType) && CheckConstantType(v, switchTargetType) => ConstantResult.Right,
+                var (v, e) when IsConstant(v) && CheckTargetExpression(e, out var switchTargetType) && CheckConstantType(v, switchTargetType) => ConstantResult.Left,
                 _ => ConstantResult.None,
             };
         }
@@ -329,11 +331,11 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
                     }
 
                 case IIsTypeOperation op
-                    when Supports(Feature.IsTypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
+                    when Supports(Feature.IsTypePattern) && CheckTargetExpression(op.ValueOperand, out _) && op.Syntax is TIsExpressionSyntax node:
                     return new AnalyzedPattern.Type(node);
 
                 case IIsPatternOperation op
-                    when Supports(Feature.SourcePattern) && CheckTargetExpression(op.Value) && op.Pattern.Syntax is TPatternSyntax pattern:
+                    when Supports(Feature.SourcePattern) && CheckTargetExpression(op.Value, out _) && op.Pattern.Syntax is TPatternSyntax pattern:
                     return new AnalyzedPattern.Source(pattern);
 
                 case IParenthesizedOperation op:
@@ -389,7 +391,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
             };
 
             bool CheckTargetExpression(IOperation left, IOperation right)
-                => _syntaxFacts.AreEquivalent(left.Syntax, right.Syntax) && this.CheckTargetExpression(left);
+                => _syntaxFacts.AreEquivalent(left.Syntax, right.Syntax) && this.CheckTargetExpression(left, out _);
         }
 
         private static (BoundKind Kind, IOperation Expression, IOperation Value) GetRangeBound(IBinaryOperation op)
@@ -446,31 +448,34 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
                 : operation.ConstantValue.HasValue;
         }
 
-        private bool CheckTargetExpression(IOperation operation)
+        private bool CheckTargetExpression(IOperation operation, [NotNullWhen(true)] out ITypeSymbol? switchTargetType)
         {
             operation = operation.WalkDownConversion();
 
-            var expression = operation.Syntax;
-            // If we have not figured the switch expression yet,
-            // we will assume that the first expression is the one.
+            if (operation.Syntax is not TExpressionSyntax expression)
+            {
+                switchTargetType = null;
+                return false;
+            }
+
+            // If we have not figured the switch expression yet, we will assume that the first expression is the one.
             if (_switchTargetExpression is null)
             {
                 RoslynDebug.Assert(_switchTargetType is null);
 
                 _switchTargetExpression = expression;
                 _switchTargetType = operation.Type;
-                return true;
             }
 
-            return _syntaxFacts.AreEquivalent(expression, _switchTargetExpression);
+            switchTargetType = _switchTargetType;
+            return switchTargetType != null && _syntaxFacts.AreEquivalent(expression, _switchTargetExpression);
         }
 
-        private bool CheckConstantType(IOperation operation)
+        private bool CheckConstantType(IOperation operation, ITypeSymbol switchTargetType)
         {
             RoslynDebug.AssertNotNull(operation.SemanticModel);
-            RoslynDebug.AssertNotNull(_switchTargetType);
 
-            return CanImplicitlyConvert(operation.SemanticModel, operation.Syntax, _switchTargetType);
+            return CanImplicitlyConvert(operation.SemanticModel, operation.Syntax, switchTargetType);
         }
     }
 

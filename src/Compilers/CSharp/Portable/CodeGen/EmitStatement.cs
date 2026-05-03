@@ -701,6 +701,16 @@ oneMoreTime:
 
             if (instrumentation.Epilogue != null)
             {
+                // Check if we're emitting instrumentation try/finally in a catch filter, which produces invalid IL
+                if (_inCatchFilterLevel > 0)
+                {
+                    // Try/finallys are not allowed in catch filters by spec, an error should be reported for this in initial binding.
+                    Debug.Fail("Exception handling constructs should be blocked at the binding layer, not here at emit time");
+
+                    // Report an error as this would produce invalid IL
+                    _diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, block.Syntax.Location, ((Cci.INamedEntity)_module).Name, "Exception handling is not allowed in exception filters");
+                }
+
                 _builder.OpenLocalScope(ScopeType.TryCatchFinally);
 
                 _builder.OpenLocalScope(ScopeType.Try);
@@ -921,6 +931,15 @@ oneMoreTime:
 
         private void EmitTryStatement(BoundTryStatement statement, bool emitCatchesOnly = false)
         {
+            if (_inCatchFilterLevel > 0)
+            {
+                // Try/finallys are not allowed in catch filters by spec, an error should be reported for this in initial binding.
+                Debug.Fail("Exception handling constructs should be blocked at the binding layer, not here at emit time");
+
+                // Report an error as this would produce invalid IL
+                _diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, statement.Syntax.Location, ((Cci.INamedEntity)_module).Name, "Exception handling is not allowed in exception filters");
+            }
+
             Debug.Assert(!statement.CatchBlocks.IsDefault);
 
             // Stack must be empty at beginning of try block.
@@ -1037,6 +1056,9 @@ oneMoreTime:
         private void EmitCatchBlock(BoundCatchBlock catchBlock)
         {
             object typeCheckFailedLabel = null;
+#if DEBUG
+            int currentCatchFilterLevel = _inCatchFilterLevel;
+#endif
 
             _builder.AdjustStack(1); // Account for exception on the stack.
 
@@ -1083,6 +1105,7 @@ oneMoreTime:
             else
             {
                 _builder.OpenLocalScope(ScopeType.Filter);
+                _inCatchFilterLevel++;
 
                 RecordAsyncCatchHandlerOffset(catchBlock);
 
@@ -1096,7 +1119,7 @@ oneMoreTime:
                     var exceptionType = _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics.DiagnosticBag);
 
                     _builder.EmitOpCode(ILOpCode.Isinst);
-                    _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitToken(exceptionType, catchBlock.Syntax);
                     _builder.EmitOpCode(ILOpCode.Dup);
                     _builder.EmitBranch(ILOpCode.Brtrue, typeCheckPassedLabel);
                     _builder.EmitOpCode(ILOpCode.Pop);
@@ -1206,12 +1229,16 @@ oneMoreTime:
 
                 // Now we are starting the actual handler
                 _builder.MarkFilterConditionEnd();
+                _inCatchFilterLevel--;
 
                 // Pop the exception; it should have already been stored to the
                 // variable by the filter.
                 _builder.EmitOpCode(ILOpCode.Pop);
             }
 
+#if DEBUG
+            Debug.Assert(currentCatchFilterLevel == _inCatchFilterLevel);
+#endif
             EmitBlock(catchBlock.Body);
 
             _builder.CloseLocalScope();
@@ -1321,7 +1348,7 @@ oneMoreTime:
             }
             else
             {
-                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingTypeOrSelf().PrimitiveTypeCode);
+                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingTypeOrSelf().PrimitiveTypeCode, expression.Syntax);
             }
 
             if (temp != null)
@@ -1408,7 +1435,10 @@ oneMoreTime:
                 //   lengthConstant -> corresponding label
                 _builder.EmitIntegerSwitchJumpTable(
                     lengthBasedSwitchInfo.LengthBasedJumpTable.LengthCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
-                    fallThroughLabel, stringLength, int32Type.PrimitiveTypeCode);
+                    fallThroughLabel,
+                    stringLength,
+                    int32Type.PrimitiveTypeCode,
+                    syntaxNode);
 
                 FreeTemp(stringLength);
             }
@@ -1445,7 +1475,10 @@ oneMoreTime:
                     //   charConstant -> corresponding label
                     _builder.EmitIntegerSwitchJumpTable(
                         charJumpTable.CharCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
-                        fallThroughLabel, charTemp, charType.PrimitiveTypeCode);
+                        fallThroughLabel,
+                        charTemp,
+                        charType.PrimitiveTypeCode,
+                        syntaxNode);
                 }
 
                 FreeTemp(charTemp);
@@ -1469,7 +1502,7 @@ oneMoreTime:
             void emitMethodRef(Microsoft.Cci.IMethodReference lengthMethodRef)
             {
                 var diag = DiagnosticBag.GetInstance();
-                _builder.EmitToken(lengthMethodRef, syntaxNode: null, diag);
+                _builder.EmitToken(lengthMethodRef, syntaxNode: null);
                 Debug.Assert(diag.IsEmptyWithoutResolution);
                 diag.Free();
             }
@@ -1513,7 +1546,7 @@ oneMoreTime:
 
                     _builder.EmitLoad(key);
                     _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-                    _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics.DiagnosticBag);
+                    _builder.EmitToken(stringHashMethodRef, syntaxNode);
 
                     var UInt32Type = Binder.GetSpecialType(_module.Compilation, SpecialType.System_UInt32, syntaxNode, _diagnostics);
                     keyHash = AllocateTemp(UInt32Type, syntaxNode);
@@ -1586,7 +1619,7 @@ oneMoreTime:
                         // Stack: key --> length
                         _builder.EmitOpCode(ILOpCode.Call, 0);
                         var diag = DiagnosticBag.GetInstance();
-                        _builder.EmitToken(lengthMethodRef, null, diag);
+                        _builder.EmitToken(lengthMethodRef, null);
                         Debug.Assert(diag.IsEmptyWithoutResolution);
                         diag.Free();
 
@@ -1607,6 +1640,7 @@ oneMoreTime:
                 };
 
             _builder.EmitStringSwitchJumpTable(
+                syntaxNode,
                 caseLabels: switchCaseLabels,
                 fallThroughLabel: fallThroughLabel,
                 key: key,
@@ -1702,9 +1736,9 @@ oneMoreTime:
             // stackAdjustment = (pushCount - popCount) = -1
 
             _builder.EmitLoad(key);
-            _builder.EmitConstantValue(stringConstant);
+            _builder.EmitConstantValue(stringConstant, syntaxNode);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
-            _builder.EmitToken(stringEqualityMethodRef, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(stringEqualityMethodRef, syntaxNode);
 
             // Branch to targetLabel if String.Equals returned true.
             _builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);
@@ -1729,11 +1763,11 @@ oneMoreTime:
             Debug.Assert(asSpanRef != null);
 
             _builder.EmitLoad(key);
-            _builder.EmitConstantValue(stringConstant);
+            _builder.EmitConstantValue(stringConstant, syntaxNode);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-            _builder.EmitToken(asSpanRef, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(asSpanRef, syntaxNode);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
-            _builder.EmitToken(sequenceEqualsRef, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(sequenceEqualsRef, syntaxNode);
 
             // Branch to targetLabel if SequenceEquals returned true.
             _builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);

@@ -8,6 +8,7 @@ Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -1627,7 +1628,7 @@ lReportErrorOnTwoTokens:
                     diagnostics.Add(ERRID.ERR_ExtensionMethodNotInModule, arguments.AttributeSyntaxOpt.GetLocation())
 
                 ElseIf Me.ParameterCount = 0 Then
-                    diagnostics.Add(ERRID.ERR_ExtensionMethodNoParams, Me.Locations(0))
+                    diagnostics.Add(ERRID.ERR_ExtensionMethodNoParams, Me.GetFirstLocation())
 
                 Else
                     Debug.Assert(Me.IsShared)
@@ -1635,13 +1636,13 @@ lReportErrorOnTwoTokens:
                     Dim firstParam As ParameterSymbol = Me.Parameters(0)
 
                     If firstParam.IsOptional Then
-                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOptionalFirstArg), firstParam.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOptionalFirstArg), firstParam.GetFirstLocation())
 
                     ElseIf firstParam.IsParamArray Then
-                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodParamArrayFirstArg), firstParam.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodParamArrayFirstArg), firstParam.GetFirstLocation())
 
                     ElseIf Not Me.ValidateGenericConstraintsOnExtensionMethodDefinition() Then
-                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodUncallable1, Me.Name), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodUncallable1, Me.Name), Me.GetFirstLocation())
 
                     End If
                 End If
@@ -1651,7 +1652,7 @@ lReportErrorOnTwoTokens:
                 ' Check for optional parameters
                 For Each parameter In Me.Parameters
                     If parameter.IsOptional Then
-                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidOptionalParameterUsage1, "WebMethod"), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidOptionalParameterUsage1, "WebMethod"), Me.GetFirstLocation())
                     End If
                 Next
 
@@ -1659,7 +1660,7 @@ lReportErrorOnTwoTokens:
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().SetPreserveSignature(arguments.Index)
 
             ElseIf attrData.IsTargetAttribute(AttributeDescription.MethodImplAttribute) Then
-                AttributeData.DecodeMethodImplAttribute(Of MethodWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(arguments, MessageProvider.Instance)
+                AttributeData.DecodeMethodImplAttribute(Of MethodWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(arguments, MessageProvider.Instance, Me.ContainingType)
             ElseIf attrData.IsTargetAttribute(AttributeDescription.DllImportAttribute) Then
                 If Not IsDllImportAttributeAllowed(arguments.AttributeSyntaxOpt, diagnostics) Then
                     Return
@@ -1743,7 +1744,7 @@ lReportErrorOnTwoTokens:
             ElseIf attrData.IsTargetAttribute(AttributeDescription.ConditionalAttribute) Then
                 If Not Me.IsSub Then
                     ' BC41007: Attribute 'Conditional' is only valid on 'Sub' declarations.
-                    diagnostics.Add(ERRID.WRN_ConditionalNotValidOnFunction, Me.Locations(0))
+                    diagnostics.Add(ERRID.WRN_ConditionalNotValidOnFunction, Me.GetFirstLocation())
                 End If
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.ObsoleteAttribute) Then
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.DeprecatedAttribute) Then
@@ -1784,7 +1785,7 @@ lReportErrorOnTwoTokens:
             If arguments.Attribute.IsTargetAttribute(description) Then
                 ' Obsolete Attribute is not allowed on event accessors.
                 If Me.IsAccessor() AndAlso Me.AssociatedSymbol.Kind = SymbolKind.Event Then
-                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ObsoleteInvalidOnEventMember, Me.Locations(0), description.FullName)
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ObsoleteInvalidOnEventMember, Me.GetFirstLocation(), description.FullName)
                 End If
 
                 Return True
@@ -2191,7 +2192,7 @@ lReportErrorOnTwoTokens:
                         ' match Dev10 and report errors on the parameter type syntax instead.
                         param.Type.CheckAllConstraints(
                             DeclaringCompilation.LanguageVersion,
-                            param.Locations(0), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
+                            param.GetFirstLocation(), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
                     End If
                 Next
 

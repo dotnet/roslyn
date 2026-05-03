@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -26,22 +25,21 @@ internal sealed class RemoteAsynchronousOperationListenerService : BrokeredServi
 
     public ValueTask EnableAsync(bool enable, bool diagnostics, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(cancellationToken =>
+        return RunServiceAsync(async cancellationToken =>
         {
             AsynchronousOperationListenerProvider.Enable(enable, diagnostics);
-            return default;
         }, cancellationToken);
     }
 
     public ValueTask<bool> IsCompletedAsync(ImmutableArray<string> featureNames, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(cancellationToken =>
+        return RunServiceAsync(async cancellationToken =>
         {
             var workspace = GetWorkspace();
             var exportProvider = workspace.Services.SolutionServices.ExportProvider;
             var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
 
-            return new ValueTask<bool>(!listenerProvider.HasPendingWaiter([.. featureNames]));
+            return !listenerProvider.HasPendingWaiter([.. featureNames]);
         }, cancellationToken);
     }
 

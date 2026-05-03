@@ -35,7 +35,7 @@ public class C
 ***Introduced in Visual Studio 2022 version 17.10***
 
 *Conversion* of a collection expression to a `struct` or `class` that implements `System.Collections.IEnumerable` and *does not* have a strongly-typed `GetEnumerator()`
-requires the elements in the collection expression are implicitly convertible to the `object`.
+requires that the elements in the collection expression are implicitly convertible to `object`.
 Previously, the elements of a collection expression targeting an `IEnumerable` implementation were assumed to be convertible to `object`, and converted only when binding to the applicable `Add` method.
 
 This additional requirement means that collection expression conversions to `IEnumerable` implementations are treated consistently with other target types where the elements in the collection expression must be implicitly convertible to the *iteration type* of the target type.

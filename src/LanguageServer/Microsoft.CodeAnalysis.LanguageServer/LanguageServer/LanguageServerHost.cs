@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -27,7 +26,7 @@ internal sealed class LanguageServerHost
     private readonly AbstractLanguageServer<RequestContext> _roslynLanguageServer;
     private readonly JsonRpc _jsonRpc;
 
-    public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILogger logger, AbstractTypeRefResolver typeRefResolver)
+    public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILoggerFactory loggerFactory, AbstractTypeRefResolver typeRefResolver)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
@@ -40,16 +39,14 @@ internal sealed class LanguageServerHost
         };
 
         var roslynLspFactory = exportProvider.GetExportedValue<ILanguageServerFactory>();
-        var capabilitiesProvider = new ServerCapabilitiesProvider(exportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>());
 
-        _logger = logger;
+        _logger = loggerFactory.CreateLogger("LSP");
         var lspLogger = new LspServiceLogger(_logger);
 
         var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
         _roslynLanguageServer = roslynLspFactory.Create(
             _jsonRpc,
             messageFormatter.JsonSerializerOptions,
-            capabilitiesProvider,
             WellKnownLspServerKinds.CSharpVisualBasicLspServer,
             lspLogger,
             hostServices,
@@ -66,7 +63,18 @@ internal sealed class LanguageServerHost
 
     public async Task WaitForExitAsync()
     {
-        await _jsonRpc.Completion;
+        try
+        {
+            await _jsonRpc.Completion;
+        }
+        catch (Exception)
+        {
+            // The JsonRpc connection threw an exception.  This usually means the client disconnected unexpectedly while
+            // the server was reading from it.  We don't need this to cause the process to crash and trigger watsons,
+            // so we handle it and let the process exit.  The server handles the JSON RPC disconnect event and will
+            // propagate unexpected errors through WaitForExitAsync.
+        }
+
         await _roslynLanguageServer.WaitForExitAsync();
     }
 

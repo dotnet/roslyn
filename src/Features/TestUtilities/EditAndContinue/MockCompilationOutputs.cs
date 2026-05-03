@@ -6,28 +6,27 @@ using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+
+internal sealed class MockCompilationOutputs : CompilationOutputs
 {
-    internal class MockCompilationOutputs : CompilationOutputs
-    {
-        private readonly Guid _mvid;
+    private readonly Guid _mvid;
 
-        public Func<Stream?>? OpenAssemblyStreamImpl { get; set; }
-        public Func<Stream?>? OpenPdbStreamImpl { get; set; }
+    public Func<Stream?>? OpenAssemblyStreamImpl { get; set; }
+    public Func<Stream?>? OpenPdbStreamImpl { get; set; }
 
-        public MockCompilationOutputs(Guid mvid)
-            => _mvid = mvid;
+    public MockCompilationOutputs(Guid mvid)
+        => _mvid = mvid;
 
-        public override string AssemblyDisplayPath => "test-assembly";
-        public override string PdbDisplayPath => "test-pdb";
+    public override string AssemblyDisplayPath => "test-assembly";
+    public override string PdbDisplayPath => "test-pdb";
 
-        protected override Stream? OpenAssemblyStream()
-            => (OpenAssemblyStreamImpl ?? throw new NotImplementedException())();
+    protected override Stream? OpenAssemblyStream()
+        => (OpenAssemblyStreamImpl ?? throw new NotImplementedException())();
 
-        protected override Stream? OpenPdbStream()
-            => (OpenPdbStreamImpl ?? throw new NotImplementedException())();
+    protected override Stream? OpenPdbStream()
+        => (OpenPdbStreamImpl ?? throw new NotImplementedException())();
 
-        internal override Guid ReadAssemblyModuleVersionId()
-            => _mvid;
-    }
+    internal override Guid ReadAssemblyModuleVersionId()
+        => _mvid;
 }

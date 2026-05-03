@@ -21,13 +21,11 @@ public sealed class EntryPointFinderTests
         [CombinatorialValues("public", "private", "")] string accessibility,
         [CombinatorialValues("void", "int", "System.Int32", "Int32", "ValueTask", "Task", "ValueTask<int>", "Task<int>")] string returnType,
         [CombinatorialValues("string[] args", "string[] args1", "")] string parameters)
-    {
-        Validate($"static {accessibility} {returnType} Main({parameters})", entryPoints =>
+        => Validate($"static {accessibility} {returnType} Main({parameters})", entryPoints =>
         {
             Assert.Single(entryPoints);
             Assert.Equal("C", entryPoints.Single().Name);
         });
-    }
 
     private static void NegativeTest(string signature)
         => Validate(signature, Assert.Empty);
@@ -55,34 +53,26 @@ public sealed class EntryPointFinderTests
         [CombinatorialValues("public", "private", "")] string accessibility,
         [CombinatorialValues("void", "int", "System.Int32", "Int32", "ValueTask", "Task", "ValueTask<int>", "Task<int>")] string returnType,
         [CombinatorialValues("string[] args", "string[] args1", "")] string parameters)
-    {
-        NegativeTest($"static {accessibility} {returnType} main({parameters})");
-    }
+        => NegativeTest($"static {accessibility} {returnType} main({parameters})");
 
     [Theory, CombinatorialData]
     public void TestNotStatic(
         [CombinatorialValues("public", "private", "")] string accessibility,
         [CombinatorialValues("void", "int", "System.Int32", "Int32", "ValueTask", "Task", "ValueTask<int>", "Task<int>")] string returnType,
         [CombinatorialValues("string[] args", "string[] args1", "")] string parameters)
-    {
-        NegativeTest($"{accessibility} {returnType} Main({parameters})");
-    }
+        => NegativeTest($"{accessibility} {returnType} Main({parameters})");
 
     [Theory, CombinatorialData]
     public void TestInvalidReturnType(
         [CombinatorialValues("public", "private", "")] string accessibility,
         [CombinatorialValues("string", "Task<string>", "ValueTask<string>")] string returnType,
         [CombinatorialValues("string[] args", "string[] args1", "")] string parameters)
-    {
-        NegativeTest($"static {accessibility} {returnType} Main({parameters})");
-    }
+        => NegativeTest($"static {accessibility} {returnType} Main({parameters})");
 
     [Theory, CombinatorialData]
     public void TestInvalidParameterTypes(
         [CombinatorialValues("public", "private", "")] string accessibility,
         [CombinatorialValues("void", "int", "System.Int32", "Int32", "ValueTask", "Task", "ValueTask<int>", "Task<int>")] string returnType,
         [CombinatorialValues("string args", "string* args", "int[] args", "string[] args1, string[] args2")] string parameters)
-    {
-        NegativeTest($"static {accessibility} {returnType} Main({parameters})");
-    }
+        => NegativeTest($"static {accessibility} {returnType} Main({parameters})");
 }

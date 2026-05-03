@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,7 +115,7 @@ internal abstract class AbstractMergeIfStatementsCodeRefactoringProvider : CodeR
                blockFacts.IsScopeBlock(parent) &&
                blockFacts.GetExecutableBlockStatements(parent).Count == statements.Count)
         {
-            statements = ImmutableArray.Create(parent);
+            statements = [parent];
         }
 
         return statements;

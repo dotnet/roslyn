@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -27,7 +28,7 @@ internal sealed class DateAndTimeLanguageDetector(
         public ImmutableArray<string> LanguageIdentifiers => ["Date", "Time", "DateTime", "DateTimeFormat"];
 
         public DateAndTimeLanguageDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
-            => new DateAndTimeLanguageDetector(info, compilation);
+            => new(info, compilation);
     }
 
     private const string FormatName = "format";
@@ -127,7 +128,7 @@ internal sealed class DateAndTimeLanguageDetector(
 
     private static bool IsMethodArgument(SyntaxToken token, ISyntaxFacts syntaxFacts)
         => syntaxFacts.IsLiteralExpression(token.Parent) &&
-           syntaxFacts.IsArgument(token.Parent!.Parent);
+           syntaxFacts.IsArgument(token.Parent.Parent);
 
     private (string? name, int? index) GetArgumentNameOrIndex(SyntaxNode argument)
     {

@@ -4,10 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -19,27 +20,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
 [ExportLanguageService(typeof(IDocumentationCommentSnippetService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpDocumentationCommentSnippetService() : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
 {
     public override string DocumentationCommentCharacter => "/";
 
     protected override bool AddIndent => true;
     protected override string ExteriorTriviaText => "///";
-
-    private static readonly SymbolDisplayFormat s_format =
-        new(
-            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions:
-                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpDocumentationCommentSnippetService()
-    {
-    }
 
     protected override MemberDeclarationSyntax? GetContainingMember(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
     {
@@ -68,6 +56,7 @@ internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumen
             case SyntaxKind.EventFieldDeclaration:
             case SyntaxKind.OperatorDeclaration:
             case SyntaxKind.ConversionOperatorDeclaration:
+            case SyntaxKind.ExtensionBlockDeclaration:
                 return true;
 
             default:
@@ -93,14 +82,32 @@ internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumen
         return count;
     }
 
-    protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText)
+    protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText, DocumentationCommentOptions options)
     {
-        var list = new List<string>
+        // When collapsed mode is enabled, generate single-line summary tags
+        var useSingleLine = options.GenerateSummaryTagOnSingleLine;
+        var onlySummary = options.GenerateOnlySummaryTag;
+
+        var list = new List<string>();
+
+        if (useSingleLine)
         {
-            "/// <summary>",
-            "///" + (existingCommentText.StartsWith(" ") ? existingCommentText : $" {existingCommentText}"),
-            "/// </summary>"
-        };
+            // Single-line: /// <summary></summary>
+            list.Add($"/// <summary>{existingCommentText.Trim()}</summary>");
+        }
+        else
+        {
+            // Multi-line (original behavior)
+            list.Add("/// <summary>");
+            list.Add("///" + (existingCommentText.StartsWith(" ") ? existingCommentText : $" {existingCommentText}"));
+            list.Add("/// </summary>");
+        }
+
+        // If onlySummary is true, skip generating other tags
+        if (onlySummary)
+        {
+            return list;
+        }
 
         var typeParameterList = member.GetTypeParameterList();
         if (typeParameterList != null)
@@ -246,7 +253,7 @@ internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumen
         }
 
         return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-            position - 1, includeDirectives: true, includeDocumentationComments: true, includeSkipped: true);
+            position, includeDirectives: true, includeDocumentationComments: true, includeSkipped: true);
     }
 
     protected override bool IsDocCommentNewLine(SyntaxToken token)

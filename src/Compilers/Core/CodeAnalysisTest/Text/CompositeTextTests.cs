@@ -63,6 +63,8 @@ public sealed class CompositeTextTests
                 sourceTextsBuilder.AddRange(sourceTexts);
 
                 var compositeText = (CompositeText)CompositeText.ToSourceText(sourceTextsBuilder, sourceText, adjustSegments: false);
+                sourceTextsBuilder.Free();
+
                 yield return (sourceText, compositeText);
             }
         }

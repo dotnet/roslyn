@@ -249,7 +249,7 @@ End Class
 </compilation>
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
@@ -830,7 +830,7 @@ End Module
   IL_0066:  nop
  -IL_0067:  ret
 }
-", sequencePoints:="M1.Main")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             v.VerifyPdb("M1.Main",
 <symbols>
@@ -985,7 +985,7 @@ End Module
   }
  -IL_0066:  ret
 }
-", sequencePoints:="M1.Main")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
@@ -1180,7 +1180,7 @@ End Class
   IL_0024:  nop
  -IL_0025:  ret
 }
-", sequencePoints:="C.F")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             v.VerifyPdb("C.F",
 <symbols>
@@ -1259,7 +1259,7 @@ End Class
   IL_0013:  brtrue.s   IL_0003
  -IL_0015:  ret
 }
-", sequencePoints:="C.F")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             v.VerifyPdb("C.F",
 <symbols>
@@ -1335,7 +1335,7 @@ End Class
   IL_0012:  brtrue.s   IL_0001
  -IL_0014:  ret
 }
-", sequencePoints:="C.F")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             v.VerifyPdb("C.F",
 <symbols>
@@ -1435,7 +1435,7 @@ End Class
   IL_0033:  xor
   IL_0034:  ble.s      IL_001d
  -IL_0036:  ret
-}", sequencePoints:="C.F")
+}", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             v.VerifyPdb("C.F",
 <symbols>
@@ -1540,7 +1540,7 @@ End Class
   IL_0043:  brtrue.s   IL_0029
  -IL_0045:  ret
 }
-", sequencePoints:="MyClass1.Main")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             v.VerifyPdb("MyClass1.Main",
 <symbols>
@@ -1650,7 +1650,7 @@ End Class
  -IL_0036:  nop
  -IL_0037:  ret
 }
-", sequencePoints:="C.F")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             v.VerifyPdb("C.F",
 <symbols>
@@ -2216,7 +2216,7 @@ End Module
   IL_0020:  nop
  -IL_0021:  ret
 }
-", sequencePoints:="MyMod.Main")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             compilation.VerifyPdb("MyMod.Main",
 <symbols>
@@ -2788,7 +2788,7 @@ End Module
  -IL_0035:  nop
  -IL_0036:  ret
 }
-", sequencePoints:="Module1.Main")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -4039,7 +4039,7 @@ End Class
 </compilation>
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
@@ -4060,7 +4060,7 @@ End Class
   IL_0010:  nop
  -IL_0011:  ret
 }
-", sequencePoints:="IntervalUpdate.Update")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             compilation.VerifyPdb(
 <symbols>
@@ -4352,11 +4352,11 @@ End Class
 </compilation>
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(
                 OutputKind.WindowsApplication,
-                KeyValuePairUtil.Create(Of String, Object)("_MyType", "WindowsForms"),
-                KeyValuePairUtil.Create(Of String, Object)("Config", "Debug"),
-                KeyValuePairUtil.Create(Of String, Object)("DEBUG", -1),
-                KeyValuePairUtil.Create(Of String, Object)("TRACE", -1),
-                KeyValuePairUtil.Create(Of String, Object)("PLATFORM", "AnyCPU"))
+                KeyValuePair.Create(Of String, Object)("_MyType", "WindowsForms"),
+                KeyValuePair.Create(Of String, Object)("Config", "Debug"),
+                KeyValuePair.Create(Of String, Object)("DEBUG", -1),
+                KeyValuePair.Create(Of String, Object)("TRACE", -1),
+                KeyValuePair.Create(Of String, Object)("PLATFORM", "AnyCPU"))
 
             Dim parseOptions As VisualBasicParseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compOptions As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(

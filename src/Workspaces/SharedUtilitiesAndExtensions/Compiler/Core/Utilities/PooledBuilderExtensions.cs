@@ -42,12 +42,23 @@ internal static class PooledBuilderExtensions
 
     public static ImmutableDictionary<K, ImmutableArray<V>> ToImmutableMultiDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
         where K : notnull
+         => ToImmutableMultiDictionaryAndFree(builders, where: null, whereArg: 0);
+
+    public static ImmutableDictionary<K, ImmutableArray<V>> ToImmutableMultiDictionaryAndFree<K, V, TArg>(this PooledDictionary<K, ArrayBuilder<V>> builders, Func<K, TArg, bool>? where, TArg whereArg)
+        where K : notnull
     {
         var result = ImmutableDictionary.CreateBuilder<K, ImmutableArray<V>>();
 
         foreach (var (key, items) in builders)
         {
-            result.Add(key, items.ToImmutableAndFree());
+            if (where == null || where(key, whereArg))
+            {
+                result.Add(key, items.ToImmutableAndFree());
+            }
+            else
+            {
+                items.Free();
+            }
         }
 
         builders.Free();
@@ -90,35 +101,6 @@ internal static class PooledBuilderExtensions
         finally
         {
             builders.Free();
-        }
-    }
-
-    public static bool HasDuplicates<T>(this ArrayBuilder<T> builder)
-        => builder.HasDuplicates(static x => x);
-
-    public static bool HasDuplicates<T, U>(this ArrayBuilder<T> builder, Func<T, U> selector)
-    {
-        switch (builder.Count)
-        {
-            case 0:
-            case 1:
-                return false;
-
-            case 2:
-                return EqualityComparer<U>.Default.Equals(selector(builder[0]), selector(builder[1]));
-
-            default:
-                {
-                    using var _ = PooledHashSet<U>.GetInstance(out var set);
-
-                    foreach (var element in builder)
-                    {
-                        if (!set.Add(selector(element)))
-                            return true;
-                    }
-
-                    return false;
-                }
         }
     }
 }

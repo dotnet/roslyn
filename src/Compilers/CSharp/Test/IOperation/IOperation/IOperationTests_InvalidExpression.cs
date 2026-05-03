@@ -33,9 +33,7 @@ class Program
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2()')
   Children(1):
-      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2')
-        Children(1):
-            IOperation:  (OperationKind.None, Type: System.Console) (Syntax: 'Console')
+      IOperation:  (OperationKind.None, Type: System.Console) (Syntax: 'Console')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0117: 'Console' does not contain a definition for 'WriteLine2'

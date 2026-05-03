@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
-using Roslyn.Utilities;
 using MethodAttributes = System.Reflection.MethodAttributes;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
@@ -277,6 +276,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return (property.GetIndexParameters().Length == 0)
                 ? property.GetGetMethod(nonPublic: true)
                 : null;
+        }
+
+        internal static bool IsInt32(this Type type)
+        {
+            return Type.GetTypeCode(type) == TypeCode.Int32;
         }
 
         internal static bool IsBoolean(this Type type)
@@ -572,7 +576,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
-                result ??= new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
+                result ??= [];
 
                 // There can be multiple same attributes for derived classes.
                 // Debugger provides attributes starting from derived classes and then up to base ones.

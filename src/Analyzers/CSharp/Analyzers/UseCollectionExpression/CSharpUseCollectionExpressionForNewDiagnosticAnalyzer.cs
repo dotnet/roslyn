@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -51,13 +52,13 @@ internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnaly
             return;
 
         var symbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
-        if (symbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, Parameters: [var parameter] } ||
-            parameter.Type.Name != nameof(IEnumerable<int>))
+        if (symbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, Parameters: [var constructorParameter] } ||
+            constructorParameter.Type.Name != nameof(IEnumerable<>))
         {
             return;
         }
 
-        if (!Equals(compilation.IEnumerableOfTType(), parameter.Type.OriginalDefinition))
+        if (!Equals(compilation.IEnumerableOfTType(), constructorParameter.Type.OriginalDefinition))
             return;
 
         if (!IsArgumentCompatibleWithIEnumerableOfT(semanticModel, argument, out var unwrapArgument, out var useSpread, cancellationToken))
@@ -67,6 +68,21 @@ internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnaly
         var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!CanReplaceWithCollectionExpression(
                 semanticModel, objectCreationExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+        {
+            return;
+        }
+
+        // Because we want to replace `new X(enumerable)` with `[.. enumerable]` we need to make sure that the final
+        // type supports the collection initialization pattern (specifically that it exposes an Add method that takes
+        // the element type).  This prevents us from working on certain types that do allow the former form but not the
+        // latter.
+        // If the constructor took an IEnumerable<T>, ensure we find a `public Add(T)` method on the type.
+        var constructorParameterTypeArg = constructorParameter.Type.GetTypeArguments().Single();
+        if (!symbol.ContainingType
+                .GetMembers(nameof(IList.Add))
+                .OfType<IMethodSymbol>()
+                .Any(m => m is { DeclaredAccessibility: Accessibility.Public, IsStatic: false, Parameters: [var addParameter] } &&
+                        addParameter.Type.Equals(constructorParameterTypeArg)))
         {
             return;
         }

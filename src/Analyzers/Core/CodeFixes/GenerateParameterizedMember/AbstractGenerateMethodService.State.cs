@@ -14,14 +14,13 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
 internal abstract partial class AbstractGenerateMethodService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
-    internal new class State : AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>.State
+    internal new sealed class State : AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>.State
     {
         public static async Task<State> GenerateMethodStateAsync(
             TService service,
@@ -38,7 +37,7 @@ internal abstract partial class AbstractGenerateMethodService<TService, TSimpleN
             return state;
         }
 
-        private Task<bool> TryInitializeMethodAsync(
+        private async Task<bool> TryInitializeMethodAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
@@ -63,18 +62,18 @@ internal abstract partial class AbstractGenerateMethodService<TService, TSimpleN
             {
                 if (!TryInitializeExplicitInterface(service, document, node, cancellationToken))
                 {
-                    return SpecializedTasks.False;
+                    return false;
                 }
             }
             else if (service.IsSimpleNameGeneration(node))
             {
                 if (!TryInitializeSimpleName(service, document, (TSimpleNameSyntax)node, cancellationToken))
                 {
-                    return SpecializedTasks.False;
+                    return false;
                 }
             }
 
-            return TryFinishInitializingStateAsync(service, document, cancellationToken);
+            return await TryFinishInitializingStateAsync(service, document, cancellationToken).ConfigureAwait(false);
         }
 
         private bool TryInitializeExplicitInterface(
@@ -168,7 +167,7 @@ internal abstract partial class AbstractGenerateMethodService<TService, TSimpleN
                 {
                     // If we inferred Func/Action here, attempt to create better parameter names than the default
                     // 'arg1/arg2/arg3' form that the delegate specifies.
-                    var parameterNames = delegateInvokeMethod.ContainingType is { Name: nameof(Action) or nameof(Func<int>), ContainingNamespace.Name: nameof(System) }
+                    var parameterNames = delegateInvokeMethod.ContainingType is { Name: nameof(Action) or nameof(Func<>), ContainingNamespace.Name: nameof(System) }
                         ? GenerateParameterNamesBasedOnParameterTypes(delegateInvokeMethod.Parameters)
                         : delegateInvokeMethod.Parameters.SelectAsArray(p => p.Name);
 

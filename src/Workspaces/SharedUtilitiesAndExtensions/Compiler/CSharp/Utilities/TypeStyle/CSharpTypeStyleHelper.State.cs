@@ -5,7 +5,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
@@ -16,6 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 
 internal partial class CSharpTypeStyleHelper
 {
+    public enum Context
+    {
+        BuiltInType,
+        TypeIsApparent,
+        Elsewhere
+    }
+
     protected readonly struct State
     {
         public readonly UseVarPreference TypeStylePreference;
@@ -24,16 +30,13 @@ internal partial class CSharpTypeStyleHelper
         private readonly NotificationOption2 _whenTypeIsApparent;
         private readonly NotificationOption2 _elsewhere;
 
-        public readonly bool IsInIntrinsicTypeContext;
-        public readonly bool IsTypeApparentInContext;
+        public readonly Context Context;
 
         public State(
             SyntaxNode declaration, SemanticModel semanticModel,
             CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             TypeStylePreference = default;
-            IsInIntrinsicTypeContext = default;
-            IsTypeApparentInContext = default;
 
             var styleForIntrinsicTypes = options.VarForBuiltInTypes;
             var styleForApparent = options.VarWhenTypeIsApparent;
@@ -45,18 +48,30 @@ internal partial class CSharpTypeStyleHelper
 
             this.TypeStylePreference = options.GetUseVarPreference();
 
-            IsTypeApparentInContext =
-                    declaration is VariableDeclarationSyntax varDecl
-                 && IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken);
-
-            IsInIntrinsicTypeContext =
-                    IsPredefinedTypeInDeclaration(declaration, semanticModel)
-                 || IsInferredPredefinedType(declaration, semanticModel);
+            if (IsPredefinedTypeInDeclaration(declaration, semanticModel) ||
+                IsInferredPredefinedType(declaration, semanticModel))
+            {
+                this.Context = Context.BuiltInType;
+            }
+            else if (declaration is VariableDeclarationSyntax varDecl &&
+                IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken))
+            {
+                this.Context = Context.TypeIsApparent;
+            }
+            else
+            {
+                this.Context = Context.Elsewhere;
+            }
         }
 
         public NotificationOption2 GetDiagnosticSeverityPreference()
-            => IsInIntrinsicTypeContext ? _forBuiltInTypes :
-               IsTypeApparentInContext ? _whenTypeIsApparent : _elsewhere;
+            => Context switch
+            {
+                Context.BuiltInType => _forBuiltInTypes,
+                Context.TypeIsApparent => _whenTypeIsApparent,
+                Context.Elsewhere => _elsewhere,
+                _ => throw ExceptionUtilities.UnexpectedValue(Context),
+            };
 
         /// <summary>
         /// Returns true if type information could be gleaned by simply looking at the given statement.

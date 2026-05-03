@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Roslyn.Utilities;
 
@@ -16,7 +17,7 @@ internal static class IReadOnlyDictionaryExtensions
             return value;
         }
 
-        return default!;
+        return default;
     }
 
     public static IEnumerable<T> GetEnumerableMetadata<T>(this IReadOnlyDictionary<string, object> metadata, string name)

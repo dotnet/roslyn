@@ -6,8 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
@@ -72,7 +72,7 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
         foreach (var (key, flag) in storages)
         {
             var defaultFlagValue = defaultValue & flag;
-            var value = read(key, typeof(bool), Boxes.Box(defaultFlagValue != 0));
+            var value = read(key, typeof(bool));
             if (value.HasValue)
             {
                 if ((bool)value.Value!)

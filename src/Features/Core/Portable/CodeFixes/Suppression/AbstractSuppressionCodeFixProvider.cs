@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -28,12 +26,14 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
     public const string SuppressMessageAttributeName = "System.Diagnostics.CodeAnalysis.SuppressMessage";
     private const string s_globalSuppressionsFileName = "GlobalSuppressions";
     private const string s_suppressionsFileCommentTemplate =
-@"{0} This file is used by Code Analysis to maintain SuppressMessage
-{0} attributes that are applied to this project.
-{0} Project-level suppressions either have no target or are given
-{0} a specific target and scoped to a namespace, type, member, etc.
+        """
+        {0} This file is used by Code Analysis to maintain SuppressMessage
+        {0} attributes that are applied to this project.
+        {0} Project-level suppressions either have no target or are given
+        {0} a specific target and scoped to a namespace, type, member, etc.
 
-";
+
+        """;
     protected AbstractSuppressionCodeFixProvider()
     {
     }
@@ -174,8 +174,8 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             return [];
         }
 
-        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-        var suppressionTargetInfo = new SuppressionTargetInfo() { TargetSymbol = compilation.Assembly };
+        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var suppressionTargetInfo = new SuppressionTargetInfo(compilation.Assembly);
         return await GetSuppressionsAsync(
             documentOpt: null, project, diagnostics, suppressionTargetInfo,
             skipSuppressMessage: false, skipUnsuppress: false,
@@ -183,7 +183,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
     }
 
     private async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
-        Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+        Document? documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
     {
         // We only care about diagnostics that can be suppressed/unsuppressed.
         diagnostics = diagnostics.Where(IsFixableDiagnostic);
@@ -192,21 +192,21 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             return [];
         }
 
-        INamedTypeSymbol suppressMessageAttribute = null;
+        INamedTypeSymbol? suppressMessageAttribute = null;
         if (!skipSuppressMessage)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             suppressMessageAttribute = compilation.SuppressMessageAttributeType();
             skipSuppressMessage = suppressMessageAttribute == null || !suppressMessageAttribute.IsAttribute();
         }
 
-        var lazyFormattingOptions = (SyntaxFormattingOptions)null;
-        var result = ArrayBuilder<CodeFix>.GetInstance();
+        var lazyFormattingOptions = (SyntaxFormattingOptions?)null;
+        using var result = TemporaryArray<CodeFix>.Empty;
         foreach (var diagnostic in diagnostics)
         {
             if (!diagnostic.IsSuppressed)
             {
-                var nestedActions = ArrayBuilder<NestedSuppressionCodeAction>.GetInstance();
+                using var nestedActions = TemporaryArray<NestedSuppressionCodeAction>.Empty;
                 if (diagnostic.Location.IsInSource && documentOpt != null)
                 {
                     // pragma warning disable.
@@ -219,7 +219,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 {
                     // global assembly-level suppress message attribute.
                     nestedActions.Add(new GlobalSuppressMessageCodeAction(
-                        suppressionTargetInfo.TargetSymbol, suppressMessageAttribute, project, diagnostic, this));
+                        suppressionTargetInfo.TargetSymbol, suppressMessageAttribute!, project, diagnostic, this));
 
                     // local suppress message attribute
                     // please note that in order to avoid issues with existing unit tests referencing the code fix
@@ -234,39 +234,35 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 if (nestedActions.Count > 0)
                 {
                     var codeAction = new TopLevelSuppressionCodeAction(
-                        diagnostic, nestedActions.ToImmutableAndFree());
-                    result.Add(new CodeFix(project, codeAction, diagnostic));
+                        diagnostic, nestedActions.ToImmutableAndClear());
+                    result.Add(new CodeFix(codeAction, [diagnostic]));
                 }
             }
             else if (!skipUnsuppress)
             {
                 var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, cancellationToken).ConfigureAwait(false);
                 if (codeAction != null)
-                {
-                    result.Add(new CodeFix(project, codeAction, diagnostic));
-                }
+                    result.Add(new CodeFix(codeAction, [diagnostic]));
             }
         }
 
-        return result.ToImmutableAndFree();
+        return result.ToImmutableAndClear();
     }
 
-    internal sealed class SuppressionTargetInfo
+    internal sealed class SuppressionTargetInfo(ISymbol targetSymbol)
     {
-        public ISymbol TargetSymbol { get; set; }
+        public ISymbol TargetSymbol { get; } = targetSymbol;
         public SyntaxToken StartToken { get; set; }
         public SyntaxToken EndToken { get; set; }
-        public SyntaxNode NodeWithTokens { get; set; }
-        public SyntaxNode TargetMemberNode { get; set; }
+        public SyntaxNode? NodeWithTokens { get; set; }
+        public SyntaxNode? TargetMemberNode { get; set; }
     }
 
-    private async Task<SuppressionTargetInfo> GetSuppressionTargetInfoAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+    private async Task<SuppressionTargetInfo?> GetSuppressionTargetInfoAsync(Document document, TextSpan span, CancellationToken cancellationToken)
     {
-        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         if (syntaxTree.GetLineVisibility(span.Start, cancellationToken) == LineVisibility.Hidden)
-        {
             return null;
-        }
 
         // Find the start token to attach leading pragma disable warning directive.
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -285,25 +281,30 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
 
         var nodeWithTokens = GetNodeWithTokens(startToken, endToken, root);
 
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        ISymbol targetSymbol = null;
+        ISymbol? targetSymbol = null;
         var targetMemberNode = syntaxFacts.GetContainingMemberDeclaration(root, nodeWithTokens.SpanStart);
         if (targetMemberNode != null)
         {
             targetSymbol = semanticModel.GetDeclaredSymbol(targetMemberNode, cancellationToken);
 
+            // Can't suppress an extension block.  So attempt to place the suppression on the containing static class.
+            if (targetSymbol is INamedTypeSymbol { IsExtension: true })
+            {
+                targetMemberNode = targetMemberNode.GetRequiredParent();
+                targetSymbol = semanticModel.GetDeclaredSymbol(targetMemberNode, cancellationToken);
+            }
+
             if (targetSymbol == null)
             {
-                var analyzerDriverService = document.GetLanguageService<IAnalyzerDriverService>();
+                var analyzerDriverService = document.GetRequiredLanguageService<IAnalyzerDriverService>();
 
-                // targetMemberNode could be a declaration node with multiple decls (e.g. field declaration defining multiple variables).
-                // Let us compute all the declarations intersecting the span.
-                var declsBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
-                analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, true, declsBuilder, cancellationToken);
-                var decls = declsBuilder.ToImmutableAndFree();
+                // targetMemberNode could be a declaration node with multiple decls (e.g. field declaration defining multiple
+                // variables). Let us compute all the declarations intersecting the span.
+                var decls = analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, cancellationToken);
 
                 if (!decls.IsEmpty)
                 {
@@ -336,7 +337,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         // Outside of a member declaration, suppress diagnostic for the entire assembly.
         targetSymbol ??= semanticModel.Compilation.Assembly;
 
-        return new SuppressionTargetInfo() { TargetSymbol = targetSymbol, NodeWithTokens = nodeWithTokens, StartToken = startToken, EndToken = endToken, TargetMemberNode = targetMemberNode };
+        return new SuppressionTargetInfo(targetSymbol) { NodeWithTokens = nodeWithTokens, StartToken = startToken, EndToken = endToken, TargetMemberNode = targetMemberNode };
     }
 
     internal SyntaxNode GetNodeWithTokens(SyntaxToken startToken, SyntaxToken endToken, SyntaxNode root)
@@ -351,7 +352,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         }
     }
 
-    protected static string GetScopeString(SymbolKind targetSymbolKind)
+    protected static string? GetScopeString(SymbolKind targetSymbolKind)
     {
         switch (targetSymbolKind)
         {

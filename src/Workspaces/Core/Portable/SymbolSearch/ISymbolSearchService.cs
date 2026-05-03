@@ -155,12 +155,12 @@ internal sealed class ReferenceAssemblyResult(
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultSymbolSearchService() : ISymbolSearchService
 {
-    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(ImmutableArray<PackageResult>.Empty);
+    public async ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
+        => ImmutableArray<PackageResult>.Empty;
 
-    public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
+    public async ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
+        => ImmutableArray<PackageWithAssemblyResult>.Empty;
 
-    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty);
+    public async ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
+        => ImmutableArray<ReferenceAssemblyResult>.Empty;
 }

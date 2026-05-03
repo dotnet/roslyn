@@ -27,11 +27,10 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
-internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
+internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
 {
     private static readonly SyntaxAnnotation s_plusEqualsTokenAnnotation = new();
 
@@ -145,11 +144,8 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            var factory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-            using var waitContext = factory.Create(
-                textView,
-                applicableToSpan,
-                CSharpEditorResources.Generating_event);
+            var factory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            using var waitContext = factory.Create(textView, applicableToSpan, CSharpEditorResources.Generating_event);
 
             var cancellationToken = waitContext.UserCancellationToken;
 
@@ -168,7 +164,8 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             }
 
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-            waitContext.CancelOnEdit = false;
+            var disposable = await waitContext.SuppressAutoCancelAsync().ConfigureAwait(true);
+            await using var _2 = disposable.ConfigureAwait(true);
 
             var workspace = document.Project.Solution.Workspace;
             if (!workspace.TryApplyChanges(solutionAndRenameSpan.Value.solution))

@@ -9,17 +9,16 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
-internal partial class TestDiscoverer
+internal sealed partial class TestDiscoverer
 {
     /// <summary>
     /// Implementation of <see cref="ITestDiscoveryEventsHandler"/>
     /// Calls to implementation methods will be synchronous.
     /// </summary>
-    private class DiscoveryHandler(BufferedProgress<RunTestsPartialResult> progress) : ITestDiscoveryEventsHandler
+    private sealed class DiscoveryHandler(BufferedProgress<RunTestsPartialResult> progress) : ITestDiscoveryEventsHandler
     {
         private readonly BufferedProgress<RunTestsPartialResult> _progress = progress;
         private readonly ConcurrentBag<TestCase> _testCases = [];

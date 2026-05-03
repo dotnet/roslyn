@@ -9,25 +9,24 @@ using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PickMembers;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.PickMembers
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.PickMembers;
+
+[Shared]
+[ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host)]
+internal class OmniSharpPickMembersService : IPickMembersService
 {
-    [Shared]
-    [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host)]
-    internal class OmniSharpPickMembersService : IPickMembersService
+    private readonly IOmniSharpPickMembersService _omniSharpPickMembersService;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public OmniSharpPickMembersService(IOmniSharpPickMembersService omniSharpPickMembersService)
     {
-        private readonly IOmniSharpPickMembersService _omniSharpPickMembersService;
+        _omniSharpPickMembersService = omniSharpPickMembersService;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OmniSharpPickMembersService(IOmniSharpPickMembersService omniSharpPickMembersService)
-        {
-            _omniSharpPickMembersService = omniSharpPickMembersService;
-        }
-
-        public PickMembersResult PickMembers(string title, ImmutableArray<ISymbol> members, ImmutableArray<PickMembersOption> options = default, bool selectAll = true)
-        {
-            var result = _omniSharpPickMembersService.PickMembers(title, members, options.IsDefault ? default : options.SelectAsArray(o => new OmniSharpPickMembersOption(o)), selectAll: true);
-            return new(result.Members, result.Options.SelectAsArray(o => o.PickMembersOptionInternal), result.SelectedAll);
-        }
+    public PickMembersResult PickMembers(string title, ImmutableArray<ISymbol> members, ImmutableArray<PickMembersOption> options = default, bool selectAll = true)
+    {
+        var result = _omniSharpPickMembersService.PickMembers(title, members, options.IsDefault ? default : options.SelectAsArray(o => new OmniSharpPickMembersOption(o)), selectAll: true);
+        return new(result.Members, result.Options.SelectAsArray(o => o.PickMembersOptionInternal), result.SelectedAll);
     }
 }

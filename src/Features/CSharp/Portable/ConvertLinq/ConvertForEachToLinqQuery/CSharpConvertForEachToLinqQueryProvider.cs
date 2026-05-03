@@ -4,7 +4,6 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -21,15 +20,11 @@ using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.Syn
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertForEachToLinqQuery), Shared]
-internal sealed class CSharpConvertForEachToLinqQueryProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpConvertForEachToLinqQueryProvider()
     : AbstractConvertForEachToLinqQueryProvider<ForEachStatementSyntax, StatementSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpConvertForEachToLinqQueryProvider()
-    {
-    }
-
     protected override IConverter<ForEachStatementSyntax, StatementSyntax> CreateDefaultConverter(
         ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo)
         => new DefaultConverter(forEachInfo);
@@ -39,12 +34,13 @@ internal sealed class CSharpConvertForEachToLinqQueryProvider
         SemanticModel semanticModel,
         bool convertLocalDeclarations)
     {
-        var identifiersBuilder = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _1 = ArrayBuilder<SyntaxToken>.GetInstance(out var identifiersBuilder);
+        using var _2 = ArrayBuilder<ExtendedSyntaxNode>.GetInstance(out var convertingNodesBuilder);
+        using var _3 = ArrayBuilder<SyntaxToken>.GetInstance(out var trailingTokensBuilder);
+        using var _4 = ArrayBuilder<SyntaxToken>.GetInstance(out var currentLeadingTokens);
+
         identifiersBuilder.Add(forEachStatement.Identifier);
-        var convertingNodesBuilder = ArrayBuilder<ExtendedSyntaxNode>.GetInstance();
         IEnumerable<StatementSyntax>? statementsCannotBeConverted = null;
-        var trailingTokensBuilder = ArrayBuilder<SyntaxToken>.GetInstance();
-        var currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
         var current = forEachStatement.Statement;
         // Traverse descendants of the forEachStatement.
@@ -76,7 +72,7 @@ internal sealed class CSharpConvertForEachToLinqQueryProvider
                         {
                             var statement = array[i];
                             if (!(statement is LocalDeclarationStatementSyntax localDeclarationStatement &&
-                                TryProcessLocalDeclarationStatement(localDeclarationStatement)))
+                                  TryProcessLocalDeclarationStatement(localDeclarationStatement)))
                             {
                                 // If this one is a local function declaration or has an empty initializer, stop processing.
                                 statementsCannotBeConverted = array.Skip(i).ToArray();
@@ -162,11 +158,11 @@ internal sealed class CSharpConvertForEachToLinqQueryProvider
         return new ForEachInfo<ForEachStatementSyntax, StatementSyntax>(
             forEachStatement,
             semanticModel,
-            convertingNodesBuilder.ToImmutableAndFree(),
-            identifiersBuilder.ToImmutableAndFree(),
+            convertingNodesBuilder.ToImmutable(),
+            identifiersBuilder.ToImmutable(),
             [.. statementsCannotBeConverted],
-            currentLeadingTokens.ToImmutableAndFree(),
-            trailingTokensBuilder.ToImmutableAndFree());
+            currentLeadingTokens.ToImmutable(),
+            trailingTokensBuilder.ToImmutable());
 
         // Try to prepare variable declarations to be converted into separate let clauses.
         bool TryProcessLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement)
@@ -216,8 +212,8 @@ internal sealed class CSharpConvertForEachToLinqQueryProvider
         switch (statementCannotBeConverted.Kind())
         {
             case SyntaxKind.ExpressionStatement:
-                var expresisonStatement = (ExpressionStatementSyntax)statementCannotBeConverted;
-                var expression = expresisonStatement.Expression;
+                var expressionStatement = (ExpressionStatementSyntax)statementCannotBeConverted;
+                var expression = expressionStatement.Expression;
                 switch (expression.Kind())
                 {
                     case SyntaxKind.PostIncrementExpression:
@@ -238,7 +234,7 @@ internal sealed class CSharpConvertForEachToLinqQueryProvider
                             selectExpression: SyntaxFactory.IdentifierName(forEachInfo.ForEachStatement.Identifier),
                             modifyingExpression: operand,
                             trivia: SyntaxNodeOrTokenExtensions.GetTrivia(
-                                operand, postfixUnaryExpression.OperatorToken, expresisonStatement.SemicolonToken));
+                                operand, postfixUnaryExpression.OperatorToken, expressionStatement.SemicolonToken));
                         return true;
 
                     case SyntaxKind.InvocationExpression:
@@ -268,7 +264,7 @@ internal sealed class CSharpConvertForEachToLinqQueryProvider
                                     memberAccessExpression,
                                     invocationExpression.ArgumentList.OpenParenToken,
                                     invocationExpression.ArgumentList.CloseParenToken,
-                                    expresisonStatement.SemicolonToken));
+                                    expressionStatement.SemicolonToken));
                             return true;
                         }
 

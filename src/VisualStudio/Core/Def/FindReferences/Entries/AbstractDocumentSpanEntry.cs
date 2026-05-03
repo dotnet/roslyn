@@ -80,23 +80,15 @@ internal partial class StreamingFindUsagesPresenter
 
         public static async Task<MappedSpanResult?> TryMapAndGetFirstAsync(DocumentSpan documentSpan, SourceText sourceText, CancellationToken cancellationToken)
         {
-            var service = documentSpan.Document.DocumentServiceProvider.GetService<ISpanMappingService>();
-            if (service == null)
+            var results = await SpanMappingHelper.TryGetMappedSpanResultAsync(documentSpan.Document, [documentSpan.SourceSpan], cancellationToken).ConfigureAwait(false);
+            if (results is not { } mappedSpans || mappedSpans.IsDefaultOrEmpty)
             {
-                return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
-            }
-
-            var results = await service.MapSpansAsync(
-                documentSpan.Document, [documentSpan.SourceSpan], cancellationToken).ConfigureAwait(false);
-
-            if (results.IsDefaultOrEmpty)
-            {
-                return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
+                return new MappedSpanResult(documentSpan.Document.FilePath!, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
             }
 
             // if span mapping service filtered out the span, make sure
             // to return null so that we remove the span from the result
-            return results.FirstOrNull(r => !r.IsDefault);
+            return mappedSpans.FirstOrNull(r => !r.IsDefault);
         }
 
         public static SourceText GetLineContainingPosition(SourceText text, int position)

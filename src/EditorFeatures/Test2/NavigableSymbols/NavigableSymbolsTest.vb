@@ -111,7 +111,7 @@ End Class"
         Private Shared Function ExtractSymbol(workspace As EditorTestWorkspace, position As Integer) As Task(Of INavigableSymbol)
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
-            Dim service = New NavigableSymbolService(workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)(), threadingContext, listenerProvider)
+            Dim service = New NavigableSymbolService(threadingContext, listenerProvider)
             Dim view = workspace.Documents.First().GetTextView()
             Dim buffer = workspace.Documents.First().GetTextBuffer()
             Dim triggerSpan = New SnapshotSpan(buffer.CurrentSnapshot, New Span(position, 0))

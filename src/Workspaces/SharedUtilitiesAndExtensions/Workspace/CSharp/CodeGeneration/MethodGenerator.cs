@@ -220,16 +220,11 @@ internal static class MethodGenerator
         IMethodSymbol method, bool isExplicit, CSharpCodeGenerationContextInfo info)
     {
         if (isExplicit)
-        {
             return default;
-        }
 
-        var attributes = new List<AttributeListSyntax>();
-
-        attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
-        attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword));
-
-        return [.. attributes];
+        return [
+            .. AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
+            .. AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword)];
     }
 
     private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
@@ -319,8 +314,11 @@ internal static class MethodGenerator
         return TypeParameterGenerator.GenerateTypeParameterList(method.TypeParameters, info);
     }
 
-    private static SyntaxTokenList GenerateModifiers(
-        IMethodSymbol method, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info)
+    public static SyntaxTokenList GenerateModifiers(
+        IMethodSymbol method,
+        CodeGenerationDestination destination,
+        CSharpCodeGenerationContextInfo info,
+        bool includeAccessibility = true)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
@@ -350,7 +348,8 @@ internal static class MethodGenerator
             else if (destination is not CodeGenerationDestination.CompilationUnit and
                 not CodeGenerationDestination.Namespace)
             {
-                AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                if (includeAccessibility)
+                    AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (method.IsStatic)
                     tokens.Add(StaticKeyword);
@@ -371,9 +370,6 @@ internal static class MethodGenerator
 
                 if (method.IsVirtual)
                     tokens.Add(VirtualKeyword);
-
-                if (CodeGenerationMethodInfo.GetIsPartial(method) && !method.IsAsync)
-                    tokens.Add(PartialKeyword);
             }
             else if (destination is CodeGenerationDestination.CompilationUnit)
             {
@@ -394,7 +390,7 @@ internal static class MethodGenerator
                 tokens.Add(AsyncKeyword);
         }
 
-        if (CodeGenerationMethodInfo.GetIsPartial(method) && method.IsAsync)
+        if (CodeGenerationMethodInfo.GetIsPartial(method))
             tokens.Add(PartialKeyword);
 
         return [.. tokens];

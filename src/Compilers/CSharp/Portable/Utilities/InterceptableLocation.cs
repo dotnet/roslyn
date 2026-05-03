@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// <summary>Denotes an interceptable call. Used by source generators to generate '[InterceptsLocation]' attributes.</summary>
 /// <seealso href="https://github.com/dotnet/roslyn/issues/72133" />
 /// <seealso href="https://github.com/dotnet/csharplang/issues/7009" />
-public abstract class InterceptableLocation
+public abstract class InterceptableLocation : IEquatable<InterceptableLocation>
 {
     private protected InterceptableLocation() { }
 
@@ -40,6 +40,8 @@ public abstract class InterceptableLocation
 
     public abstract override bool Equals(object? obj);
     public abstract override int GetHashCode();
+
+    public abstract bool Equals(InterceptableLocation? other);
 }
 
 #pragma warning disable RSEXPERIMENTAL002 // internal usage of experimental API
@@ -167,12 +169,7 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
         if ((object)this == obj)
             return true;
 
-        return obj is InterceptableLocation1 other
-            && _checksum.SequenceEqual(other._checksum)
-            && _path == other._path
-            && _position == other._position
-            && _lineNumberOneIndexed == other._lineNumberOneIndexed
-            && _characterNumberOneIndexed == other._characterNumberOneIndexed;
+        return obj is InterceptableLocation other && Equals(other);
     }
 
     public override int GetHashCode()
@@ -182,5 +179,15 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
         return Hash.Combine(
             BinaryPrimitives.ReadInt32LittleEndian(_checksum.AsSpan()),
             _position);
+    }
+
+    public override bool Equals(InterceptableLocation? obj)
+    {
+        return obj is InterceptableLocation1 other
+            && _checksum.SequenceEqual(other._checksum)
+            && _path == other._path
+            && _position == other._position
+            && _lineNumberOneIndexed == other._lineNumberOneIndexed
+            && _characterNumberOneIndexed == other._characterNumberOneIndexed;
     }
 }

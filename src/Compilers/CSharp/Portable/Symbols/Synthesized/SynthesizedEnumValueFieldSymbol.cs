@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedEnumValueFieldSymbol : SynthesizedFieldSymbolBase
     {
         public SynthesizedEnumValueFieldSymbol(SourceNamedTypeSymbol containingEnum)
-            : base(containingEnum, WellKnownMemberNames.EnumBackingFieldName, isPublic: true, isReadOnly: false, isStatic: false)
+            : base(containingEnum, WellKnownMemberNames.EnumBackingFieldName, DeclarationModifiers.Public, isReadOnly: false, isStatic: false)
         {
         }
 

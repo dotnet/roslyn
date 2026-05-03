@@ -24,32 +24,38 @@ public class BasicCodeActions : AbstractEditorTest
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
     public async Task GenerateMethodInClosedFile()
     {
-        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Goo.vb", @"
-Class Goo
-End Class
-", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Goo.vb", """
 
-        await SetUpEditorAsync(@"
-Imports System;
+            Class Goo
+            End Class
 
-Class Program
-    Sub Main(args As String())
-        Dim f as Goo = new Goo()
-        f.Bar()$$
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+            """, cancellationToken: HangMitigatingCancellationToken);
+
+        await SetUpEditorAsync("""
+
+            Imports System;
+
+            Class Program
+                Sub Main(args As String())
+                    Dim f as Goo = new Goo()
+                    f.Bar()$$
+                End Sub
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate method 'Bar'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
         AssertEx.EqualOrDiff(
-            @"
-Class Goo
-    Friend Sub Bar()
-        Throw New NotImplementedException()
-    End Sub
-End Class
-",
+            """
+
+            Class Goo
+                Friend Sub Bar()
+                    Throw New NotImplementedException()
+                End Sub
+            End Class
+
+            """,
             await TestServices.SolutionExplorer.GetFileContentsAsync(ProjectName, "Goo.vb", HangMitigatingCancellationToken));
     }
 }

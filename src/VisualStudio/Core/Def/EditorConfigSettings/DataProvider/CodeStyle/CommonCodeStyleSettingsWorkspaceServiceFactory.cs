@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -12,17 +13,12 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeStyle;
 
 [ExportWorkspaceServiceFactory(typeof(IWorkspaceSettingsProviderFactory<CodeStyleSetting>)), Shared]
-internal sealed class CommonCodeStyleSettingsWorkspaceServiceFactory : IWorkspaceServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CommonCodeStyleSettingsWorkspaceServiceFactory(
+    IThreadingContext threadingContext,
+    IGlobalOptionService globalOptions) : IWorkspaceServiceFactory
 {
-    private readonly IGlobalOptionService _globalOptions;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CommonCodeStyleSettingsWorkspaceServiceFactory(IGlobalOptionService globalOptions)
-    {
-        _globalOptions = globalOptions;
-    }
-
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new CommonCodeStyleSettingsProviderFactory(workspaceServices.Workspace, _globalOptions);
+        => new CommonCodeStyleSettingsProviderFactory(threadingContext, workspaceServices.Workspace, globalOptions);
 }

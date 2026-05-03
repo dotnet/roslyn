@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -13,6 +14,15 @@ namespace Microsoft.CodeAnalysis.Completion;
 internal static class CommonCompletionItem
 {
     public const string DescriptionProperty = nameof(DescriptionProperty);
+
+    /// <summary>
+    /// Mark CompletionItem with this property to indicate the intention of keeping otherwise similar items separated in the completion list.
+    /// By default, when two items with identical texts are added to the completion list, unless both are marked with this property, 
+    /// only one of them will be shown (the one with this property will win, if exist). 
+    /// For example, when there are two items, a property `MyClass.MyMember` and an exntension method `ExtensionClass.MyMember(this MyClass c)`
+    /// they have same display text `MyMember` but we want to show both of them in the completion list.
+    /// </summary>
+    public const string DoNotMergeProperty = nameof(DoNotMergeProperty);
 
     public static CompletionItem Create(
         string displayText,
@@ -44,7 +54,7 @@ internal static class CommonCompletionItem
 
         if (!description.IsDefault && description.Length > 0)
         {
-            properties = properties.NullToEmpty().Add(KeyValuePairUtil.Create(DescriptionProperty, EncodeDescription(description.ToTaggedText())));
+            properties = properties.NullToEmpty().Add(KeyValuePair.Create(DescriptionProperty, EncodeDescription(description.ToTagsAndText())));
         }
 
         return CompletionItem.CreateInternal(
@@ -77,8 +87,25 @@ internal static class CommonCompletionItem
 
     private static readonly char[] s_descriptionSeparators = ['|'];
 
-    private static string EncodeDescription(ImmutableArray<TaggedText> description)
-        => string.Join("|", description.SelectMany(d => new[] { d.Tag, d.Text }).Select(t => t.Escape('\\', s_descriptionSeparators)));
+    private static string EncodeDescription(ImmutableArray<(string tag, string text)> description)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+        foreach (var (tag, text) in description)
+        {
+            var escapedTag = tag.Escape('\\', s_descriptionSeparators);
+            var escapedText = text.Escape('\\', s_descriptionSeparators);
+
+            if (builder.Length > 0)
+                builder.Append('|');
+
+            builder.Append(escapedTag);
+            builder.Append('|');
+            builder.Append(escapedText);
+        }
+
+        return builder.ToString();
+    }
 
     private static CompletionDescription DecodeDescription(string encoded)
     {

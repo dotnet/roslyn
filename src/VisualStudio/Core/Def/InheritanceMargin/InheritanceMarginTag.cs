@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
 
-internal class InheritanceMarginTag : IGlyphTag, IEquatable<InheritanceMarginTag>
+internal sealed class InheritanceMarginTag : IGlyphTag, IEquatable<InheritanceMarginTag>
 {
     /// <summary>
     /// Margin moniker.

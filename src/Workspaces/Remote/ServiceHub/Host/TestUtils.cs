@@ -104,7 +104,7 @@ internal static class TestUtils
 
             foreach (var checksum in checksums)
             {
-                items.Add(KeyValuePairUtil.Create(checksum, await assetService.GetAssetAsync<object>(
+                items.Add(KeyValuePair.Create(checksum, await assetService.GetAssetAsync<object>(
                     AssetPath.FullLookupForTesting, checksum, CancellationToken.None).ConfigureAwait(false)));
             }
 
@@ -192,7 +192,7 @@ internal static class TestUtils
             var compilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             await compilationChecksums.FindAsync(solution.CompilationState, projectCone: null, AssetPath.FullLookupForTesting, Flatten(compilationChecksums), callback, map, cancellationToken).ConfigureAwait(false);
 
-            foreach (var frozenSourceGeneratedDocumentState in solution.CompilationState.FrozenSourceGeneratedDocumentStates?.States.Values ?? [])
+            foreach (var frozenSourceGeneratedDocumentState in solution.CompilationState.FrozenSourceGeneratedDocumentStates.States.Values)
             {
                 var documentChecksums = await frozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 await compilationChecksums.FindAsync(solution.CompilationState, projectCone: null, AssetPath.FullLookupForTesting, Flatten(documentChecksums), callback, map, cancellationToken).ConfigureAwait(false);

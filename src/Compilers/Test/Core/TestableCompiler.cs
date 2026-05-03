@@ -118,7 +118,7 @@ namespace Roslyn.Test.Utilities
 
             fileSystem ??= TestableFileSystem.CreateForMap();
             var args = new List<string>();
-            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory!, args, includeVisualBasicRuntime: false);
+            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory, args, includeVisualBasicRuntime: false);
             args.AddRange(commandLineArguments);
 
             var compiler = new CSharpCompilerImpl(args.ToArray(), buildPaths, fileSystem);
@@ -137,7 +137,7 @@ namespace Roslyn.Test.Utilities
         private sealed class CSharpCompilerImpl : CSharpCompiler
         {
             internal CSharpCompilerImpl(string[] args, BuildPaths buildPaths, TestableFileSystem? fileSystem)
-                : base(CSharpCommandLineParser.Default, responseFile: null, args, buildPaths, additionalReferenceDirectories: null, new DefaultAnalyzerAssemblyLoader(), fileSystem: fileSystem)
+                : base(CSharpCommandLineParser.Default, responseFile: null, args, buildPaths, additionalReferenceDirectories: null, new AnalyzerAssemblyLoader(), fileSystem: fileSystem)
             {
             }
         }
@@ -185,7 +185,7 @@ namespace Roslyn.Test.Utilities
                     throw new Exception("invalid value");
             }
 
-            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory!, args, includeVisualBasicRuntime: false);
+            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory, args, includeVisualBasicRuntime: false);
             args.AddRange(commandLineArguments);
 
             var compiler = new BasicCompilerImpl(args.ToArray(), buildPaths, fileSystem);
@@ -204,7 +204,7 @@ namespace Roslyn.Test.Utilities
         private sealed class BasicCompilerImpl : VisualBasicCompiler
         {
             internal BasicCompilerImpl(string[] args, BuildPaths buildPaths, TestableFileSystem? fileSystem)
-                : base(VisualBasicCommandLineParser.Default, responseFile: null, args, buildPaths, additionalReferenceDirectories: null, new DefaultAnalyzerAssemblyLoader(), fileSystem: fileSystem)
+                : base(VisualBasicCommandLineParser.Default, responseFile: null, args, buildPaths, additionalReferenceDirectories: null, new AnalyzerAssemblyLoader(), fileSystem: fileSystem)
             {
             }
         }

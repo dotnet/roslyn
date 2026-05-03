@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.QuickInfo.Presentation;
@@ -18,7 +19,7 @@ internal static class QuickInfoContentBuilder
 
     private static FrozenDictionary<Glyph, QuickInfoGlyphElement> CreateGlyphToElementMap()
     {
-        var glyphs = (Glyph[])Enum.GetValues(typeof(Glyph));
+        var glyphs = Enum.GetValues<Glyph>();
         var result = new Dictionary<Glyph, QuickInfoGlyphElement>(capacity: glyphs.Length);
 
         foreach (var glyph in glyphs)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -13,39 +11,22 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.VisualStudio.LanguageServices.Xaml;
 
-namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports
+namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports;
+
+[ExportLanguageService(typeof(IOrganizeImportsService), StringConstants.XamlLanguageName), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class XamlOrganizeImportsService(IXamlOrganizeNamespacesService organizeService) : IOrganizeImportsService
 {
-    [ExportLanguageService(typeof(IOrganizeImportsService), StringConstants.XamlLanguageName), Shared]
-    internal partial class XamlOrganizeImportsService : IOrganizeImportsService
+    private readonly IXamlOrganizeNamespacesService _organizeService = organizeService;
+
+    public async Task<Document> OrganizeImportsAsync(Document document, OrganizeImportsOptions options, CancellationToken cancellationToken)
     {
-        private readonly IXamlOrganizeNamespacesService _organizeService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlOrganizeImportsService(IXamlOrganizeNamespacesService organizeService)
-        {
-            _organizeService = organizeService;
-        }
-
-        public async Task<Document> OrganizeImportsAsync(Document document, OrganizeImportsOptions options, CancellationToken cancellationToken)
-        {
-            return await _organizeService.OrganizeNamespacesAsync(document, options.PlaceSystemNamespaceFirst, cancellationToken).ConfigureAwait(false) ?? document;
-        }
-
-        public string SortImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return Resources.Sort_Namespaces;
-            }
-        }
-
-        public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return Resources.RemoveAndSortNamespacesWithAccelerator;
-            }
-        }
+        return await _organizeService.OrganizeNamespacesAsync(document, options.PlaceSystemNamespaceFirst, cancellationToken).ConfigureAwait(false) ?? document;
     }
+
+    public string SortImportsDisplayStringWithAccelerator => Resources.Sort_Namespaces_with_accelerator;
+    public string SortImportsDisplayStringWithoutAccelerator => Resources.Sort_Namespaces;
+
+    public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator => Resources.RemoveAndSortNamespacesWithAccelerator;
 }

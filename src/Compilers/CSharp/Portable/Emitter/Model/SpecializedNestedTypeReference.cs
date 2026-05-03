@@ -62,5 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get { return this; }
         }
+
+        bool Cci.INestedTypeReference.InheritsEnclosingTypeTypeParameters => true;
     }
 }

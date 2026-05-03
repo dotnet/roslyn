@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 
@@ -24,12 +23,6 @@ internal sealed partial class CSharpExtractMethodService
             protected override bool IsInPrimaryConstructorBaseType()
                 => this.SelectionResult.GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>() != null;
 
-            protected override VariableInfo CreateFromSymbol(
-                ISymbol symbol, ITypeSymbol type, VariableStyle style, bool variableDeclared)
-            {
-                return CreateFromSymbolCommon(symbol, type, style);
-            }
-
             protected override ITypeSymbol? GetRangeVariableType(IRangeVariableSymbol symbol)
             {
                 var info = this.SemanticModel.GetSpeculativeTypeInfo(SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
@@ -41,8 +34,17 @@ internal sealed partial class CSharpExtractMethodService
                     : info.ConvertedType;
             }
 
-            protected override bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints)
-                => exitPoints.Any(n => n is ReturnStatementSyntax);
+            protected override ExtractMethodFlowControlInformation GetStatementFlowControlInformation(
+                ControlFlowAnalysis controlFlowAnalysis)
+            {
+                return ExtractMethodFlowControlInformation.Create(
+                    this.SemanticModel.Compilation,
+                    supportsComplexFlowControl: true,
+                    breakStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is BreakStatementSyntax),
+                    continueStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is ContinueStatementSyntax),
+                    returnStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is ReturnStatementSyntax),
+                    endPointIsReachable: controlFlowAnalysis.EndPointIsReachable);
+            }
 
             protected override bool ReadOnlyFieldAllowed()
             {

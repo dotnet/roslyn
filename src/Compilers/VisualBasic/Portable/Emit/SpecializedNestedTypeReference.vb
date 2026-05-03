@@ -60,5 +60,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return Me
             End Get
         End Property
+
+        Private ReadOnly Property INestedTypeReferenceInheritsEnclosingTypeTypeParameters As Boolean Implements Cci.INestedTypeReference.InheritsEnclosingTypeTypeParameters
+            Get
+                Return True
+            End Get
+        End Property
     End Class
 End Namespace

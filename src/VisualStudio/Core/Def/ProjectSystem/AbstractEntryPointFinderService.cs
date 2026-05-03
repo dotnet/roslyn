@@ -9,10 +9,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal abstract class AbstractEntryPointFinderService : IEntryPointFinderService
 {
-    protected abstract IEnumerable<INamedTypeSymbol> FindEntryPoints(Compilation compilation, bool findFormsOnly);
-
-    public IEnumerable<INamedTypeSymbol> FindEntryPoints(INamespaceSymbol symbol, bool findFormsOnly)
-        => symbol is not { ContainingAssembly: ISourceAssemblySymbol sourceAssembly }
-            ? []
-            : FindEntryPoints(sourceAssembly.Compilation, findFormsOnly);
+    public abstract IEnumerable<INamedTypeSymbol> FindEntryPoints(Compilation compilation, bool findFormsOnly);
 }

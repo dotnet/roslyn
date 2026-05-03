@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If aliasImportsOpt IsNot Nothing Then
                 For Each aliasImport In aliasImportsOpt.Values
                     ValidateImportsClause(compilation, clauseDiagnostics, aliasImport.Alias.Target,
-                                          aliasImport.Dependencies, aliasImport.Alias.Locations(0),
+                                          aliasImport.Dependencies, aliasImport.Alias.GetFirstLocation(),
                                           aliasImport.ImportsClausePosition, diagnostics)
                 Next
             End If

@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 @checked: conversion.Checked,
                                 explicitCastInCode: conversion.ExplicitCastInCode,
                                 conversionGroupOpt: null,
+                                InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
                                 constantValueOpt: null,
                                 type: elementType,
                                 hasErrors: conversion.HasErrors);
@@ -118,7 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var fieldAccess = MakeTupleFieldAccessAndReportUseSiteDiagnostics(savedTuple, syntax, srcElementFields[i]);
                     var convertedFieldAccess = new BoundConversion(
-                        syntax, fieldAccess, elementConversions[i], boundConversion.Checked, boundConversion.ExplicitCastInCode, null, null, destElementTypes[i].Type, boundConversion.HasErrors);
+                        syntax, fieldAccess, elementConversions[i], boundConversion.Checked, boundConversion.ExplicitCastInCode,
+                        conversionGroupOpt: null, InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
+                        constantValueOpt: null, destElementTypes[i].Type, boundConversion.HasErrors);
                     fieldAccessorsBuilder.Add(convertedFieldAccess);
                 }
 
@@ -193,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundConversion { Conversion: { Kind: var conversionKind } conversion } when conversionMustBePerformedOnOriginalExpression(conversionKind):
                     // Some conversions cannot be performed on a copy of the argument and must be done early.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
-                case BoundConversion { Conversion: { IsUserDefined: true } } conv when conv.ExplicitCastInCode || enclosingConversionWasExplicit:
+                case BoundConversion { Conversion: { IsUserDefined: true } or { IsUnion: true } } conv when conv.ExplicitCastInCode || enclosingConversionWasExplicit: // https://github.com/dotnet/roslyn/issues/82636: Add coverage
                     // A user-defined conversion triggered by a cast must be performed early.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
                 case BoundConversion conv:
@@ -213,7 +216,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new BoundConversion(
                             syntax: expr.Syntax, operand: deferredOperand,
                             conversion: conversion,
-                            @checked: false, explicitCastInCode: true, conversionGroupOpt: null, constantValueOpt: null,
+                            @checked: false, explicitCastInCode: true,
+                            conversionGroupOpt: null, InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
+                            constantValueOpt: null,
                             type: eType, hasErrors: expr.HasErrors);
                     }
                 default:
@@ -401,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundConversion { Conversion: { IsIdentity: true }, Operand: var o }:
                         return makeNullableHasValue(o);
                     case BoundConversion { Conversion: { IsNullable: true, UnderlyingConversions: var underlying } conversion, Operand: var o }
-                            when expr.Type.IsNullableType() && o.Type is { } && o.Type.IsNullableType() && !underlying[0].IsUserDefined:
+                            when expr.Type.IsNullableType() && o.Type is { } && o.Type.IsNullableType() && !underlying[0].IsUserDefined: // https://github.com/dotnet/roslyn/issues/82636: Confirm union conversions don't need special handling here
                         // Note that a user-defined conversion from K to Nullable<R> which may translate
                         // a non-null K to a null value gives rise to a lifted conversion from Nullable<K> to Nullable<R> with the same property.
                         // We therefore do not attempt to optimize nullable conversions with an underlying user-defined conversion.
@@ -473,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundConversion(
                     expr.Syntax, expr, conversion, enclosing.Checked, enclosing.ExplicitCastInCode,
-                    conversionGroupOpt: null, constantValueOpt: null, type: type.Type);
+                    conversionGroupOpt: null, InConversionGroupFlags.TupleBinaryOperatorPendingLowering, constantValueOpt: null, type: type.Type);
             }
 
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -616,8 +618,11 @@ namespace Microsoft.CodeAnalysis.Collections
         public static ImmutableArray<T> VolatileRead<T>(ref readonly ImmutableArray<T> location)
         {
             var value = location;
-            // When Volatile.ReadBarrier() is available in .NET 10, it can be used here.
+#if NET10_0_OR_GREATER
+            Volatile.ReadBarrier();
+#else
             Interlocked.MemoryBarrier();
+#endif
             return value;
         }
 

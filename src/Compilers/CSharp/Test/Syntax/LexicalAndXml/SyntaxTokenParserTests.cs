@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -10,7 +10,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml;
 
-#pragma warning disable RSEXPERIMENTAL003 // SyntaxTokenParser
 public class SyntaxTokenParserTests
 {
     [Fact]
@@ -193,7 +192,7 @@ public class SyntaxTokenParserTests
         var sourceText = SourceText.From("class C { }");
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
         parser.SkipForwardTo(100);
-        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(100, 0), "", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(11, 0), "", parser.ParseNextToken());
     }
 
     [Fact]

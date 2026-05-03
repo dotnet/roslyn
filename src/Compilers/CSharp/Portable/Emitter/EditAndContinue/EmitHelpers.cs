@@ -4,17 +4,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -28,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
+            EmitDifferenceOptions options,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -65,14 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var metadataAssembly = (PEAssemblySymbol)metadataDecoder.ModuleSymbol.ContainingAssembly;
 
                 var sourceToMetadata = new CSharpSymbolMatcher(
-                    metadataSymbols.SynthesizedTypes,
-                    sourceAssembly,
-                    metadataAssembly);
+                    sourceAssembly: sourceAssembly,
+                    otherAssembly: metadataAssembly,
+                    otherSynthesizedTypes: metadataSymbols.SynthesizedTypes);
 
                 var previousSourceToMetadata = new CSharpSymbolMatcher(
-                    metadataSymbols.SynthesizedTypes,
-                    previousSourceAssembly,
-                    metadataAssembly);
+                    sourceAssembly: previousSourceAssembly,
+                    otherAssembly: metadataAssembly,
+                    otherSynthesizedTypes: metadataSymbols.SynthesizedTypes);
 
                 CSharpSymbolMatcher? currentSourceToPreviousSource = null;
                 if (baseline.Ordinal > 0)
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     currentSourceToPreviousSource = new CSharpSymbolMatcher(
                         sourceAssembly: sourceAssembly,
                         otherAssembly: previousSourceAssembly,
-                        baseline.SynthesizedTypes,
+                        otherSynthesizedTypes: baseline.SynthesizedTypes,
                         otherSynthesizedMembers: baseline.SynthesizedMembers,
                         otherDeletedMembers: baseline.DeletedMembers);
                 }
@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     compilation.SourceAssembly,
                     changes,
                     emitOptions: emitOptions,
+                    options: options,
                     outputKind: compilation.Options.OutputKind,
                     serializationProperties: serializationProperties,
                     manifestResources: manifestResources,
@@ -130,7 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 newBaseline = compilation.SerializeToDeltaStreams(
                     moduleBeingBuilt,
                     definitionMap,
-                    changes,
                     metadataStream,
                     ilStream,
                     pdbStream,
@@ -175,67 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 string.Format(CodeAnalysisResources.Type0DoesNotHaveExpectedConstructor, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
 
             return false;
-        }
-
-        /// <summary>
-        /// Return a version of the baseline with all definitions mapped to this compilation.
-        /// Definitions from the initial generation, from metadata, are not mapped since
-        /// the initial generation is always included as metadata. That is, the symbols from
-        /// types, methods, ... in the TypesAdded, MethodsAdded, ... collections are replaced
-        /// by the corresponding symbols from the current compilation.
-        /// </summary>
-        internal static EmitBaseline MapToCompilation(
-            CSharpCompilation compilation,
-            PEDeltaAssemblyBuilder moduleBeingBuilt)
-        {
-            var previousGeneration = moduleBeingBuilt.PreviousGeneration;
-            RoslynDebug.Assert(previousGeneration.Compilation != compilation);
-
-            if (previousGeneration.Ordinal == 0)
-            {
-                // Initial generation, nothing to map. (Since the initial generation
-                // is always loaded from metadata in the context of the current
-                // compilation, there's no separate mapping step.)
-                return previousGeneration;
-            }
-
-            RoslynDebug.AssertNotNull(previousGeneration.Compilation);
-            RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
-            RoslynDebug.AssertNotNull(moduleBeingBuilt.EncSymbolChanges);
-
-            var synthesizedTypes = moduleBeingBuilt.GetSynthesizedTypes();
-            var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
-            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers;
-
-            // Mapping from previous compilation to the current.
-            var previousSourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-
-            var matcher = new CSharpSymbolMatcher(
-                previousSourceAssembly,
-                compilation.SourceAssembly,
-                synthesizedTypes,
-                currentSynthesizedMembers,
-                currentDeletedMembers);
-
-            var mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping: false);
-
-            // Deleted members are mapped the same way as synthesized members, so we can just call the same method.
-            var mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping: true);
-
-            // TODO: can we reuse some data from the previous matcher?
-            var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
-                previousSourceAssembly,
-                compilation.SourceAssembly,
-                synthesizedTypes,
-                mappedSynthesizedMembers,
-                mappedDeletedMembers);
-
-            return matcherWithAllSynthesizedMembers.MapBaselineToCompilation(
-                previousGeneration,
-                compilation,
-                moduleBeingBuilt,
-                mappedSynthesizedMembers,
-                mappedDeletedMembers);
         }
     }
 }

@@ -34,7 +34,7 @@ internal sealed class AnalyzerItemsTracker(IThreadingContext threadingContext) :
 
     public async Task RegisterAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        _vsMonitorSelection ??= await serviceProvider.GetServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        _vsMonitorSelection ??= await serviceProvider.GetServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         _vsMonitorSelection?.AdviseSelectionEvents(this, out _selectionEventsCookie);
     }

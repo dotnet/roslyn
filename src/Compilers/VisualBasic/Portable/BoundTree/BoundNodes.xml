@@ -256,7 +256,7 @@
 
     <!-- Represents the raw metadata token index value for a method definition.
          Used by dynamic instrumentation to index into tables or arrays of per-method information. -->
-    <Node Name="BoundMethodDefIndex" Base="BoundExpression">
+    <Node Name="BoundMethodDefIndex" Base="BoundExpression" HasValidate="true">
         <!-- Non-null type is required for this node kind -->
         <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
         <Field Name="Method" Type="MethodSymbol"/>
@@ -1890,9 +1890,13 @@
     <Field Name="Capture" Type="Boolean" Null="NotApplicable"/>
   </Node>
 
+  <!-- 
+       When receiver is of Nullable(Of T) type, the creator of this node is responsible for 
+       checking availability and good-ness of the Nullable(Of T).get_HasValue method
+  -->
   <Node Name="BoundLoweredConditionalAccess" Base="BoundExpression" HasValidate="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="ReceiverOrCondition" Type="BoundExpression"/>
+    <Field Name="Receiver" Type="BoundExpression"/>
     <Field Name="CaptureReceiver" Type="Boolean" Null="NotApplicable"/>
     <Field Name="PlaceholderId" Type="Integer"/>
     <Field Name="WhenNotNull" Type="BoundExpression"/>

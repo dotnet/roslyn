@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = syntax.OperatorToken.GetLocation();
 
             string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
+            bool isCompoundAssignmentOrIncrementAssignment = OperatorFacts.IsCompoundAssignmentOperatorName(name);
 
             if (SyntaxFacts.IsCheckedOperator(name))
             {
@@ -42,14 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
 
             TypeSymbol explicitInterfaceType;
-            name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+            name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, syntax.Modifiers, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
 
             var methodKind = interfaceSpecifier == null
                 ? MethodKind.UserDefinedOperator
                 : MethodKind.ExplicitInterfaceImplementation;
 
             return new SourceUserDefinedOperatorSymbol(
-                methodKind, containingType, explicitInterfaceType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
+                methodKind, containingType, explicitInterfaceType, name, isCompoundAssignmentOrIncrementAssignment, location, syntax, isNullableAnalysisEnabled, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             TypeSymbol explicitInterfaceType,
             string name,
+            bool isCompoundAssignmentOrIncrementAssignment,
             Location location,
             OperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
@@ -68,10 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 methodKind,
                 explicitInterfaceType,
                 name,
+                isCompoundAssignmentOrIncrementAssignment,
                 containingType,
                 location,
                 syntax,
-                MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
+                MakeDeclarationModifiers(isCompoundAssignmentOrIncrementAssignment, methodKind, containingType, syntax, location, diagnostics),
                 hasAnyBody: syntax.HasAnyBody(),
                 isExpressionBodied: syntax.IsExpressionBodied(),
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),

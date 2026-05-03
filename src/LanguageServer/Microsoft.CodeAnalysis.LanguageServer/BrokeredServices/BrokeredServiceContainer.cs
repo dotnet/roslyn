@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
@@ -12,7 +13,8 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-internal class BrokeredServiceContainer : GlobalBrokeredServiceContainer
+
+internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 {
     public BrokeredServiceContainer(TraceSource traceSource)
         : base(ImmutableDictionary<ServiceMoniker, ServiceRegistration>.Empty, isClientOfExclusiveServer: false, joinableTaskFactory: null, traceSource)
@@ -33,7 +35,7 @@ internal class BrokeredServiceContainer : GlobalBrokeredServiceContainer
     internal ImmutableDictionary<ServiceMoniker, ServiceRegistration> GetRegisteredServices()
         => RegisteredServices;
 
-    internal static async Task<BrokeredServiceContainer> CreateAsync(ExportProvider exportProvider, CancellationToken cancellationToken)
+    internal static async Task<BrokeredServiceContainer> CreateAsync(ExportProvider exportProvider, ImmutableArray<IServiceBrokerInitializer> serviceBrokerInitializers, CancellationToken cancellationToken)
     {
         var traceListener = exportProvider.GetExportedValue<BrokeredServiceTraceListener>();
         var container = new BrokeredServiceContainer(traceListener.Source);
@@ -41,13 +43,19 @@ internal class BrokeredServiceContainer : GlobalBrokeredServiceContainer
         container.ProfferIntrinsicService(
             FrameworkServices.Authorization,
             new ServiceRegistration(VisualStudio.Shell.ServiceBroker.ServiceAudience.Local, null, allowGuestClients: true),
-            (moniker, options, serviceBroker, cancellationToken) => new(new NoOpAuthorizationService()));
+            async (moniker, options, serviceBroker, cancellationToken) => new NoOpAuthorizationService());
 
         var mefServiceBroker = exportProvider.GetExportedValue<MefServiceBrokerOfExportedServices>();
         mefServiceBroker.SetContainer(container);
 
         // Register local mef services.
         await mefServiceBroker.RegisterAndProfferServicesAsync(cancellationToken);
+
+        // Register and proffer all services that come from service broker manual initialization
+        var servicesToRegister = serviceBrokerInitializers.SelectMany(s => s.ServicesToRegister).ToDictionary(a => a.Key, a => a.Value);
+        container.RegisterServices(servicesToRegister);
+        foreach (var onInitialized in serviceBrokerInitializers)
+            onInitialized.Proffer(container);
 
         // Register the desired remote services
         container.RegisterServices(Descriptors.RemoteServicesToRegister);
@@ -61,14 +69,14 @@ internal class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 
         public event EventHandler? AuthorizationChanged;
 
-        public ValueTask<bool> CheckAuthorizationAsync(ProtectedOperation operation, CancellationToken cancellationToken = default)
+        public async ValueTask<bool> CheckAuthorizationAsync(ProtectedOperation operation, CancellationToken cancellationToken = default)
         {
-            return new(true);
+            return true;
         }
 
-        public ValueTask<IReadOnlyDictionary<string, string>> GetCredentialsAsync(CancellationToken cancellationToken = default)
+        public async ValueTask<IReadOnlyDictionary<string, string>> GetCredentialsAsync(CancellationToken cancellationToken = default)
         {
-            return new(ImmutableDictionary<string, string>.Empty);
+            return ImmutableDictionary<string, string>.Empty;
         }
 
         protected virtual void OnCredentialsChanged(EventArgs args) => this.CredentialsChanged?.Invoke(this, args);

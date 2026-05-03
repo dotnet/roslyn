@@ -21,7 +21,7 @@ internal static class PythiaSymbolExtensions
         => Shared.Extensions.SymbolInfoExtensions.GetAnySymbol(info);
 
     public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
-        => Shared.Extensions.ISymbolExtensions.FilterToVisibleAndBrowsableSymbols(symbols, hideAdvancedMembers, compilation);
+        => Shared.Extensions.ISymbolExtensions.FilterToVisibleAndBrowsableSymbols(symbols, hideAdvancedMembers, compilation, inclusionFilter: static s => true);
 
     public static bool IsAccessibleWithin(this ISymbol symbol, ISymbol within, ITypeSymbol? throughType = null)
         => Shared.Extensions.ISymbolExtensions.IsAccessibleWithin(symbol, within, throughType);

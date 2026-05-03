@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
@@ -68,7 +67,7 @@ internal abstract class AbstractEditorNavigationBarItemService : INavigationBarI
         }
     }
 
-    internal virtual Task<(DocumentId documentId, int position, int virtualSpace)> GetNavigationLocationAsync(
+    internal virtual async Task<(DocumentId documentId, int position, int virtualSpace)> GetNavigationLocationAsync(
         Document document,
         NavigationBarItem item,
         SymbolItem symbolItem,
@@ -80,7 +79,7 @@ internal abstract class AbstractEditorNavigationBarItemService : INavigationBarI
             // If the item points to a location in this document, then just determine the where that span currently
             // is (in case recent edits have moved it) and navigate there.
             var navigationSpan = item.GetCurrentItemSpan(textVersion, symbolItem.Location.InDocumentInfo.Value.navigationSpan);
-            return Task.FromResult((document.Id, navigationSpan.Start, 0));
+            return (document.Id, navigationSpan.Start, 0);
         }
         else
         {
@@ -88,7 +87,7 @@ internal abstract class AbstractEditorNavigationBarItemService : INavigationBarI
             // computed and stored for it.
             Contract.ThrowIfNull(symbolItem.Location.OtherDocumentInfo);
             var (documentId, span) = symbolItem.Location.OtherDocumentInfo.Value;
-            return Task.FromResult((documentId, span.Start, 0));
+            return (documentId, span.Start, 0);
         }
     }
 

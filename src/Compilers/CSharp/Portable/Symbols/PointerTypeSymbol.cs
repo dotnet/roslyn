@@ -5,9 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {

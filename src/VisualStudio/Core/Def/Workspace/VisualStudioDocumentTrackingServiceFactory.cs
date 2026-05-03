@@ -19,7 +19,7 @@ internal sealed class VisualStudioDocumentTrackingServiceFactory(VisualStudioAct
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new VisualStudioDocumentTrackingService(activeDocumentTracker, workspaceServices.Workspace);
 
-    private class VisualStudioDocumentTrackingService(VisualStudioActiveDocumentTracker activeDocumentTracker, Workspace workspace) : IDocumentTrackingService
+    private sealed class VisualStudioDocumentTrackingService(VisualStudioActiveDocumentTracker activeDocumentTracker, Workspace workspace) : IDocumentTrackingService
     {
         private readonly VisualStudioActiveDocumentTracker _activeDocumentTracker = activeDocumentTracker;
         private readonly Workspace _workspace = workspace;

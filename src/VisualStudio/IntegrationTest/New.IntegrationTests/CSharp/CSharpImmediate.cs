@@ -32,27 +32,30 @@ public class CSharpImmediate : AbstractEditorTest
     [IdeFact]
     public async Task DumpLocalVariableValue()
     {
-        await TestServices.Editor.SetTextAsync(@"
-class Program
-{
-    static void Main(string[] args)
-    {
-        int n1Var = 42;
-        int n2Var = 43;
-    }
-}
-", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int n1Var = 42;
+                    int n2Var = 43;
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, "Program.cs", "}", HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
         await TestServices.ImmediateWindow.ShowAsync(HangMitigatingCancellationToken);
-        await TestServices.ImmediateWindow.ClearAllAsync(HangMitigatingCancellationToken);
-        await TestServices.Input.SendWithoutActivateAsync("?n", HangMitigatingCancellationToken);
+        var existingText = await TestServices.ImmediateWindow.GetTextAsync(HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, HangMitigatingCancellationToken);
-        await TestServices.Input.SendWithoutActivateAsync(["1", VirtualKeyCode.TAB, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync("?", HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync(["n1", VirtualKeyCode.TAB, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        var immediateText = await TestServices.ImmediateWindow.GetTextAsync(HangMitigatingCancellationToken);
         // Skip checking the EE result "42" (see https://github.com/dotnet/roslyn/issues/75456), without
         // skipping the test completely (see https://github.com/dotnet/roslyn/issues/75478).
-        Assert.Contains("?n1Var\r\n", await TestServices.ImmediateWindow.GetTextAsync(HangMitigatingCancellationToken));
+        Assert.Contains("?n1Var\r\n", immediateText.Substring(existingText.Length));
     }
 }

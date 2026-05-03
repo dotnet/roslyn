@@ -22,13 +22,15 @@ public class BasicEncapsulateField : AbstractEditorTest
 
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    private const string TestSource = @"
-Module Module1
-        Public $$name As Integer? = 0
-    Sub Main()
-        name = 90
-    End Sub
-End Module";
+    private const string TestSource = """
+
+        Module Module1
+                Public $$name As Integer? = 0
+            Sub Main()
+                name = 90
+            End Sub
+        End Module
+        """;
 
     [IdeFact]
     public async Task EncapsulateThroughCommand()
@@ -44,16 +46,18 @@ End Module";
         await encapsulateField.InvokeAsync(HangMitigatingCancellationToken);
         await dialog.VerifyOpenAsync(encapsulateField.DialogName, HangMitigatingCancellationToken);
         await dialog.ClickApplyAndWaitForFeatureAsync(encapsulateField.DialogName, FeatureAttribute.EncapsulateField, HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"    Private _name As Integer? = 0
+        await TestServices.EditorVerifier.TextContainsAsync("""
+                Private _name As Integer? = 0
 
-    Public Property Name As Integer?
-        Get
-            Return _name
-        End Get
-        Set(value As Integer?)
-            _name = value
-        End Set
-    End Property", cancellationToken: HangMitigatingCancellationToken);
+                Public Property Name As Integer?
+                    Get
+                        Return _name
+                    End Get
+                    Set(value As Integer?)
+                        _name = value
+                    End Set
+                End Property
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -69,23 +73,25 @@ End Module";
             await TestServices.EditorVerifier.CodeActionAsync("Encapsulate field: 'name' (and use property)", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
         }
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Private _name As Integer? = 0
+        await TestServices.EditorVerifier.TextContainsAsync("""
 
-    Public Property Name As Integer?
-        Get
-            Return _name
-        End Get
-        Set(value As Integer?)
-            _name = value
-        End Set
-    End Property
+            Module Module1
+                Private _name As Integer? = 0
 
-    Sub Main()
-        Name = 90
-    End Sub
-End Module", cancellationToken: HangMitigatingCancellationToken);
+                Public Property Name As Integer?
+                    Get
+                        Return _name
+                    End Get
+                    Set(value As Integer?)
+                        _name = value
+                    End Set
+                End Property
+
+                Sub Main()
+                    Name = 90
+                End Sub
+            End Module
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -101,22 +107,24 @@ End Module", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync("Encapsulate field: 'name' (but still use field)", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
         }
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Private _name As Integer? = 0
+        await TestServices.EditorVerifier.TextContainsAsync("""
 
-    Public Property Name As Integer?
-        Get
-            Return _name
-        End Get
-        Set(value As Integer?)
-            _name = value
-        End Set
-    End Property
+            Module Module1
+                Private _name As Integer? = 0
 
-    Sub Main()
-        name = 90
-    End Sub
-End Module", cancellationToken: HangMitigatingCancellationToken);
+                Public Property Name As Integer?
+                    Get
+                        Return _name
+                    End Get
+                    Set(value As Integer?)
+                        _name = value
+                    End Set
+                End Property
+
+                Sub Main()
+                    name = 90
+                End Sub
+            End Module
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
 /// clipboard, avoiding complexity of interacting with that during testing.
 /// </summary>
 [ExportWorkspaceService(typeof(IStringCopyPasteService), ServiceLayer.Test), Shared, PartNotDiscoverable]
-public class TestStringCopyPasteService : IStringCopyPasteService
+public sealed class TestStringCopyPasteService : IStringCopyPasteService
 {
     private string? _key;
     private string? _data;

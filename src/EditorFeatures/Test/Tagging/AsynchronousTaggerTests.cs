@@ -99,7 +99,7 @@ public sealed class AsynchronousTaggerTests
             class Program {
 
             }
-            """, composition: EditorTestCompositions.EditorFeaturesWpf);
+            """, composition: EditorTestCompositions.EditorFeatures);
         WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestNotSynchronousOutlining)} creates asynchronous taggers");
 
         var tagProvider = workspace.ExportProvider.GetExportedValue<AbstractStructureTaggerProvider>();
@@ -125,7 +125,7 @@ public sealed class AsynchronousTaggerTests
             }
 
             #endregion
-            """, composition: EditorTestCompositions.EditorFeaturesWpf);
+            """, composition: EditorTestCompositions.EditorFeatures);
         WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
 
         var tagProvider = workspace.ExportProvider.GetExportedValue<AbstractStructureTaggerProvider>();
@@ -259,13 +259,11 @@ public sealed class AsynchronousTaggerTests
         protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
             => eventSource;
 
-        protected override Task ProduceTagsAsync(
+        protected override async Task ProduceTagsAsync(
             TaggerContext<TextMarkerTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             foreach (var tag in callback(context, snapshotSpan))
                 context.AddTag(tag);
-
-            return Task.CompletedTask;
         }
 
         protected override bool TagEquals(TextMarkerTag tag1, TextMarkerTag tag2)

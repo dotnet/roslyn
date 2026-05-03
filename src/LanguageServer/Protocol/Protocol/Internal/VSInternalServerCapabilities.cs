@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Extension class for ServerCapabilities with fields specific to Visual Studio.
 /// </summary>
-internal class VSInternalServerCapabilities : VSServerCapabilities
+internal sealed class VSInternalServerCapabilities : VSServerCapabilities
 {
     /// <summary>
     /// Gets or sets a value indicating whether or not GoTo's integration with

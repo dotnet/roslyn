@@ -927,13 +927,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            ' Do not return any type information for a ObjectCreationExpressionSyntax.Type node.
-            If boundNodes.LowestBoundNodeOfSyntacticParent IsNot Nothing AndAlso
-               boundNodes.LowestBoundNodeOfSyntacticParent.Syntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso
-               DirectCast(boundNodes.LowestBoundNodeOfSyntacticParent.Syntax, ObjectCreationExpressionSyntax).Type Is lowestExpr.Syntax Then
-                Return Nothing
-            End If
-
             Dim type As TypeSymbol
 
             ' Similar to a lambda expression, array literal doesn't have a type.
@@ -981,7 +974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If useOfLocalBeforeDeclaration AndAlso Not type.IsErrorType() Then
                                 conversion = New Conversion(Conversions.ClassifyConversion(type, convertedType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
                             Else
-                                conversion = New Conversion(KeyValuePairUtil.Create(conversionNode.ConversionKind,
+                                conversion = New Conversion(KeyValuePair.Create(conversionNode.ConversionKind,
                                                                                 TryCast(conversionNode.ExpressionSymbol, MethodSymbol)))
                             End If
                         End If

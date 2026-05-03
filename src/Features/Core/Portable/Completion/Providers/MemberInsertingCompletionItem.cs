@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -28,9 +28,9 @@ internal sealed class MemberInsertionCompletionItem
             symbols: [symbol],
             contextPosition: descriptionPosition,
             properties: [
-                KeyValuePairUtil.Create("Line", line.ToString()),
-                KeyValuePairUtil.Create("Modifiers", modifiers.ToString()),
-                KeyValuePairUtil.Create("TokenSpanEnd", token.Span.End.ToString())],
+                KeyValuePair.Create("Line", line.ToString()),
+                KeyValuePair.Create("Modifiers", modifiers.ToString()),
+                KeyValuePair.Create("TokenSpanEnd", token.Span.End.ToString())],
             rules: rules,
             isComplexTextEdit: true);
     }

@@ -841,16 +841,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
-                If Not node.ReceiverOrCondition.Type.IsBooleanType() Then
-                    ' We may need to load a reference to the receiver, or may need to  
-                    ' reload it after the null check. This won't work well 
-                    ' with a stack local.
-                    EnsureOnlyEvalStack()
-                End If
+                ' We may need to load a reference to the receiver, or may need to  
+                ' reload it after the null check. This won't work well 
+                ' with a stack local.
+                EnsureOnlyEvalStack()
 
                 Dim origStack = StackDepth()
 
-                Dim receiverOrCondition = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
+                Dim receiver = DirectCast(Me.Visit(node.Receiver), BoundExpression)
 
                 Dim cookie = GetStackStateCookie()     ' implicit branch here
 
@@ -870,7 +868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EnsureStackState(cookie) ' implicit label here
                 End If
 
-                Return node.Update(receiverOrCondition, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNull, node.Type)
+                Return node.Update(receiver, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNull, node.Type)
             End Function
 
             Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode

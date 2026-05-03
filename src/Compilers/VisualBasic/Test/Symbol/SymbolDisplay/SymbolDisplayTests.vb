@@ -5,15 +5,13 @@
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
-Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -5898,7 +5896,7 @@ class Program
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword)
-        End sub
+        End Sub
 
         <Fact>
         Public Sub UseLongHandValueTuple()
@@ -6030,6 +6028,193 @@ end class"
             Assert.Equal(
                 expected:=expectedDisplayParts,
                 actual:=displayParts)
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub TestExtensionBlockCSharp_01(useMetadata As Boolean)
+            Dim text =
+<text>
+static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+</text>.Value
+
+            Dim format = New SymbolDisplayFormat(
+                                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or
+                                               SymbolDisplayMemberOptions.IncludeModifiers Or
+                                               SymbolDisplayMemberOptions.IncludeAccessibility Or
+                                               SymbolDisplayMemberOptions.IncludeType Or
+                                               SymbolDisplayMemberOptions.IncludeContainingType,
+                                kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
+                                parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or
+                                                  SymbolDisplayParameterOptions.IncludeName Or
+                                                  SymbolDisplayParameterOptions.IncludeDefaultValue,
+                                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview)
+            Dim comp As Compilation
+            If useMetadata Then
+                Dim libComp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+                comp = CreateCSharpCompilation("d", code:="", parseOptions:=parseOptions, referencedAssemblies:=libComp.References.Concat(libComp.EmitToImageReference()))
+            Else
+                comp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+            End If
+
+            Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
+            Dim extension = e.GetMembers().OfType(Of INamedTypeSymbol).Single()
+
+            Assert.True(extension.IsExtension)
+            AssertEx.Equal("E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$119AA281C143547563250CAF89B48A76", SymbolDisplay.ToDisplayString(extension, format))
+
+            Dim parts = SymbolDisplay.ToDisplayParts(extension, format)
+            Verify(parts,
+                   "E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$119AA281C143547563250CAF89B48A76",
+                   SymbolDisplayPartKind.ClassName,
+                   SymbolDisplayPartKind.Operator,
+                   SymbolDisplayPartKind.ClassName,
+                   SymbolDisplayPartKind.Operator,
+                   SymbolDisplayPartKind.ClassName)
+
+            Dim skeletonM = extension.GetMembers("M").Single()
+            AssertEx.Equal("Public Sub E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub TestExtensionBlockCSharp_02(useMetadata As Boolean)
+            Dim text =
+<text>
+    <![CDATA[
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { }
+    }
+}
+    ]]>
+</text>.Value
+
+            Dim format = New SymbolDisplayFormat(
+                                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or
+                                               SymbolDisplayMemberOptions.IncludeModifiers Or
+                                               SymbolDisplayMemberOptions.IncludeAccessibility Or
+                                               SymbolDisplayMemberOptions.IncludeType Or
+                                               SymbolDisplayMemberOptions.IncludeContainingType,
+                                kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
+                                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                                parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or
+                                                  SymbolDisplayParameterOptions.IncludeName Or
+                                                  SymbolDisplayParameterOptions.IncludeDefaultValue,
+                                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview)
+            Dim comp As Compilation
+            If useMetadata Then
+                Dim libComp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+                comp = CreateCSharpCompilation("d", code:="", parseOptions:=parseOptions, referencedAssemblies:=libComp.References.Concat(libComp.EmitToImageReference()))
+            Else
+                comp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+            End If
+
+            Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
+            Dim extension = e.GetMembers().OfType(Of INamedTypeSymbol).Single()
+
+            Assert.True(extension.IsExtension)
+            AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB(Of T).<M>$D1693D81A12E8DED4ED68FE22D9E856F", SymbolDisplay.ToDisplayString(extension, format))
+
+            Dim parts = SymbolDisplay.ToDisplayParts(extension, format)
+            Verify(parts,
+               "E.<G>$8048A6C8BE30A622530249B904B537EB(Of T).<M>$D1693D81A12E8DED4ED68FE22D9E856F",
+               SymbolDisplayPartKind.ClassName,
+               SymbolDisplayPartKind.Operator,
+               SymbolDisplayPartKind.ClassName,
+               SymbolDisplayPartKind.Punctuation,
+               SymbolDisplayPartKind.Keyword,
+               SymbolDisplayPartKind.Space,
+               SymbolDisplayPartKind.TypeParameterName,
+               SymbolDisplayPartKind.Punctuation,
+               SymbolDisplayPartKind.Operator,
+               SymbolDisplayPartKind.ClassName)
+
+            Dim skeletonM = extension.GetMembers("M").Single()
+            AssertEx.Equal("Public Sub E.<G>$8048A6C8BE30A622530249B904B537EB(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/80165")>
+        Public Sub UseArityForGenericTypes_CSharpSymbol(useMetadata As Boolean)
+            Dim text =
+"
+class A
+{
+    class B<T1> { }
+}
+
+class C<T2>
+{
+    class D<T3> { }
+    class E { }
+}
+"
+            Dim format = SymbolDisplayFormat.VisualBasicErrorMessageFormat.
+                WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes)
+
+            Dim comp As Compilation
+            If useMetadata Then
+                Dim libComp = CreateCSharpCompilation("c", text)
+                comp = CreateCSharpCompilation("d", code:="", referencedAssemblies:=libComp.References.Concat(libComp.EmitToImageReference()))
+            Else
+                comp = CreateCSharpCompilation("c", text)
+            End If
+
+            AssertEx.Equal("A", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A"), format))
+            AssertEx.Equal("A.B`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A+B`1"), format))
+            AssertEx.Equal("C`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1"), format))
+            AssertEx.Equal("C`1.D`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+D`1"), format))
+            AssertEx.Equal("C`1.E", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+E"), format))
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/80165")>
+        Public Sub UseArityForGenericTypes_VBSymbol(useMetadata As Boolean)
+            Dim source =
+"
+Class A
+    Class B(Of T1)
+    End Class
+End Class
+
+Class C(Of T2) 
+    Class D(Of T3)
+    End Class
+    Class E
+    End Class
+End Class
+"
+            Dim format = SymbolDisplayFormat.VisualBasicErrorMessageFormat.
+                WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes)
+
+            Dim comp As Compilation
+            If useMetadata Then
+                Dim libComp = CreateCompilation(source)
+                comp = CreateCompilation("", references:={libComp.EmitToImageReference()})
+            Else
+                comp = CreateCompilation(source)
+            End If
+
+            Dim c = DirectCast(comp.GlobalNamespace.GetMembers("C").Single(), ITypeSymbol)
+
+            AssertEx.Equal("A", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A"), format))
+            AssertEx.Equal("A.B`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A+B`1"), format))
+            AssertEx.Equal("C`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1"), format))
+            AssertEx.Equal("C`1.D`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+D`1"), format))
+            AssertEx.Equal("C`1.E", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+E"), format))
         End Sub
 
 #Region "Helpers"

@@ -298,42 +298,6 @@ Wstaw spację przed operatorami binarnymi i po nich;</target>
         <target state="translated">Zmień opcje formatowania dla zawijania;pozostaw blok w pojedynczym wierszu;pozostaw instrukcje i deklaracje składowych w tym samym wierszu</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
-Show completion list after a character is typed;
-Show completion list after a character is deleted;
-Automatically show completion list in argument lists (experimental);
-Highlight matching portions of completion list items;
-Show completion item filters;
-Automatically complete statement on semicolon;
-Snippets behavior;
-Never include snippets;
-Always include snippets;
-Include snippets when ?-Tab is typed after an identifier;
-Enter key behavior;
-Never add new line on enter;
-Only add new line on enter after end of fully typed word;
-Always add new line on enter;
-Show name suggestions;
-Show items from unimported namespaces (experimental);</source>
-        <target state="translated">Zmień ustawienia listy uzupełniania;Wybierz wstępnie ostatnio używaną składową; Listy uzupełniania;
-Pokaż listę uzupełniania po wpisaniu znaku;
-Pokaż listę uzupełniania po usunięciu znaku;
-Automatycznie pokazuj listę uzupełniania na liście argumentów (funkcja eksperymentalna);
-Wyróżnij pasujące fragmenty elementów listy uzupełniania;
-Pokaż filtry elementów uzupełniania;
-Zachowanie fragmentów kodu;
-Nigdy nie dołączaj fragmentów kodu;
-Zawsze dołączaj fragmenty kodu;
-Dołącz fragmenty kodu po wpisaniu znaku ? po identyfikatorze i naciśnięciu klawisza Tab;
-Zachowanie klawisza Enter;
-Nigdy nie dodawaj nowego wiersza po naciśnięciu klawisza Enter;
-Dodaj nowy wiersz po naciśnięciu klawisza Enter tylko po zakończeniu pełnego wpisanego wyrazu;
-Zawsze dodawaj nowy wiersz po naciśnięciu klawisza Enter;
-Pokaż sugestie dotyczące nazwy;
-Pokaż elementy z niezaimportowanych przestrzeni nazw (funkcja eksperymentalna);</target>
-        <note>C# IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
         <target state="translated">Formatowanie</target>

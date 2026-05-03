@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Humanizer;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 
 internal sealed partial class DeclarationNameRecommender
 {
-    internal class NameGenerator
+    internal sealed class NameGenerator
     {
         private const char DefaultInterfacePrefix = 'I';
         private const char DefaultGenericParameterPrefix = 'T';

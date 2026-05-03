@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record EnumIntegerToString
+internal sealed record EnumIntegerToString
 {
     [JsonPropertyName("input")]
     public required Input Input { get; init; }
@@ -16,7 +16,7 @@ internal record EnumIntegerToString
     [JsonPropertyName("map")]
     public required Map[] Map { get; init; }
 
-    public virtual bool Equals(EnumIntegerToString? other)
+    public bool Equals(EnumIntegerToString? other)
     {
         if (other is null)
             return false;

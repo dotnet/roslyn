@@ -1,0 +1,25 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [7] x:\dir\subdir\Test\TestComponent.cshtml) - N
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TParam
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (212:11,0 [137] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    ComponentChildContent - (248:12,4 [83] x:\dir\subdir\Test\TestComponent.cshtml) - Template - context
+                        CSharpExpression - (269:13,9 [20] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (269:13,9 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.I1.MyClassId
+                        HtmlContent - (289:13,29 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (289:13,29 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \-
+                        CSharpExpression - (293:13,33 [21] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (293:13,33 [21] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.I2.MyStructId
+                    ComponentAttribute - (239:11,27 [1] x:\dir\subdir\Test\TestComponent.cshtml) - InferParam - InferParam - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (239:11,27 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 1
+            CSharpCode - (38:3,7 [169] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (38:3,7 [169] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public TParam InferParam { get; set; }\n\n    [Parameter]\n    public RenderFragment<(MyClass I1, MyStruct I2, TParam P)> Template { get; set; }\n
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_0

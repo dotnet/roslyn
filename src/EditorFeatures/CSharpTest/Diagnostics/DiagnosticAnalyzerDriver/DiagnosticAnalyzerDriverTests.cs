@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -26,7 +26,7 @@ using static Roslyn.Test.Utilities.TestBase;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnosticProviderEngine;
 
 [UseExportProvider]
-public class DiagnosticAnalyzerDriverTests
+public sealed class DiagnosticAnalyzerDriverTests
 {
     private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
@@ -42,16 +42,6 @@ public class DiagnosticAnalyzerDriverTests
             SymbolKind.NamedType
         };
 
-        var missingSyntaxNodes = new HashSet<SyntaxKind>
-        {
-            // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
-            SyntaxKind.WithExpression,
-            SyntaxKind.RecordDeclaration,
-            SyntaxKind.CollectionExpression,
-            SyntaxKind.ExpressionElement,
-            SyntaxKind.SpreadElement
-        };
-
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();
         using var workspace = EditorTestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
@@ -65,7 +55,7 @@ public class DiagnosticAnalyzerDriverTests
         await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, new TextSpan(0, document.GetTextAsync().Result.Length));
         analyzer.VerifyAllAnalyzerMembersWereCalled();
         analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-        analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxNodes);
+        analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds([]);
         analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
     }
 
@@ -179,10 +169,10 @@ public class DiagnosticAnalyzerDriverTests
     private static void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
     {
         var diagnosticService = new HostDiagnosticAnalyzers([new AnalyzerImageReference([analyzer])]);
-        diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache());
+        diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache(), project: null);
     }
 
-    private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
+    private sealed class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
     {
         public bool IsHighPriority => false;
 
@@ -209,12 +199,12 @@ public class DiagnosticAnalyzerDriverTests
         Assert.Equal(1, diagnosticsFromAnalyzer.Count());
     }
 
-    private class CompilationAnalyzerWithSyntaxTreeAnalyzer : DiagnosticAnalyzer
+    private sealed class CompilationAnalyzerWithSyntaxTreeAnalyzer : DiagnosticAnalyzer
     {
         private const string ID = "SyntaxDiagnostic";
 
         private static readonly DiagnosticDescriptor s_syntaxDiagnosticDescriptor =
-            new DiagnosticDescriptor(ID, title: "Syntax", messageFormat: "Syntax", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            new(ID, title: "Syntax", messageFormat: "Syntax", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -230,7 +220,7 @@ public class DiagnosticAnalyzerDriverTests
         public void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
             => context.RegisterSyntaxTreeAction(SyntaxTreeAnalyzer.AnalyzeSyntaxTree);
 
-        private class SyntaxTreeAnalyzer
+        private sealed class SyntaxTreeAnalyzer
         {
             public static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
                 => context.ReportDiagnostic(Diagnostic.Create(s_syntaxDiagnosticDescriptor, context.Tree.GetRoot().GetFirstToken().GetLocation()));
@@ -283,7 +273,7 @@ public class DiagnosticAnalyzerDriverTests
         }
     }
 
-    private class CodeBlockAnalyzerFactory : DiagnosticAnalyzer
+    private sealed class CodeBlockAnalyzerFactory : DiagnosticAnalyzer
     {
         public static DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
 
@@ -305,7 +295,7 @@ public class DiagnosticAnalyzerDriverTests
             context.RegisterSyntaxNodeAction(CodeBlockAnalyzer.AnalyzeNode, CodeBlockAnalyzer.SyntaxKindsOfInterest.ToArray());
         }
 
-        private class CodeBlockAnalyzer
+        private sealed class CodeBlockAnalyzer
         {
             public static ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
             {
@@ -338,10 +328,10 @@ public class DiagnosticAnalyzerDriverTests
         var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None));
 
         var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics([analyzer]);
-        AssertEx.Any(diagnostics, d => d.Id == DocumentAnalysisExecutor.AnalyzerExceptionDiagnosticId);
+        AssertEx.Any(diagnostics, d => d.Id == DiagnosticAnalyzerService.AnalyzerExceptionDiagnosticId);
     }
 
-    private class InvalidSpanAnalyzer : DiagnosticAnalyzer
+    private sealed class InvalidSpanAnalyzer : DiagnosticAnalyzer
     {
         public static DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
 
@@ -775,6 +765,7 @@ public class DiagnosticAnalyzerDriverTests
         if (nugetAnalyzerReferences.Count > 0)
         {
             project = project.WithAnalyzerReferences([new AnalyzerImageReference([.. nugetAnalyzerReferences])]);
+            SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences);
         }
 
         var document = project.Documents.Single();

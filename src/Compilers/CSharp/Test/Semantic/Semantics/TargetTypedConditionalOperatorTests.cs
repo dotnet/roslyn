@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -712,6 +713,230 @@ class C
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81021")]
+        public void ErrorRecovery_Return()
+        {
+            var source = """
+                class C
+                {
+                    C M(bool b)
+                    {
+                        return b ? new(a) : default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,24): error CS0103: The name 'a' does not exist in the current context
+                //         return b ? new(a) : default;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(5, 24));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var conditionalExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(conditionalExpression);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var trueBranch = conditionalExpression.WhenTrue;
+            var trueBranchTypeInfo = model.GetTypeInfo(trueBranch);
+            Assert.Equal("C", trueBranchTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", trueBranchTypeInfo.ConvertedType.ToTestDisplayString());
+            var trueBranchSymbolInfo = model.GetSymbolInfo(trueBranch);
+            Assert.Null(trueBranchSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, trueBranchSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], trueBranchSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var trueBranchSymbolGroup = model.GetMemberGroup(trueBranch);
+            AssertEx.SetEqual(["C..ctor()"], trueBranchSymbolGroup.ToTestDisplayStrings());
+
+            var falseBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenFalse);
+            Assert.Equal("C", falseBranchTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", falseBranchTypeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81021")]
+        public void ErrorRecovery_VariableDeclaration()
+        {
+            var source = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        C c = b ? new(a) : default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0103: The name 'a' does not exist in the current context
+                //         C c = b ? new(a) : default;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(5, 23));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var conditionalExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(conditionalExpression);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var trueBranch = conditionalExpression.WhenTrue;
+            var trueBranchTypeInfo = model.GetTypeInfo(trueBranch);
+            Assert.Equal("C", trueBranchTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", trueBranchTypeInfo.ConvertedType.ToTestDisplayString());
+            var trueBranchSymbolInfo = model.GetSymbolInfo(trueBranch);
+            Assert.Null(trueBranchSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, trueBranchSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], trueBranchSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var trueBranchSymbolGroup = model.GetMemberGroup(trueBranch);
+            AssertEx.SetEqual(["C..ctor()"], trueBranchSymbolGroup.ToTestDisplayStrings());
+
+            var falseBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenFalse);
+            Assert.Equal("C", falseBranchTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", falseBranchTypeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81021")]
+        public void ErrorRecovery_Assignment()
+        {
+            var source = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        C c;
+                        c = b ? new(a) : default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS0103: The name 'a' does not exist in the current context
+                //         c = b ? new(a) : default;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 21));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var conditionalExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(conditionalExpression);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var trueBranch = conditionalExpression.WhenTrue;
+            var trueBranchTypeInfo = model.GetTypeInfo(trueBranch);
+            Assert.Equal("C", trueBranchTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", trueBranchTypeInfo.ConvertedType.ToTestDisplayString());
+            var trueBranchSymbolInfo = model.GetSymbolInfo(trueBranch);
+            Assert.Null(trueBranchSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, trueBranchSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], trueBranchSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var trueBranchSymbolGroup = model.GetMemberGroup(trueBranch);
+            AssertEx.SetEqual(["C..ctor()"], trueBranchSymbolGroup.ToTestDisplayStrings());
+
+            var falseBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenFalse);
+            Assert.Equal("C", falseBranchTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", falseBranchTypeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81021")]
+        public void ErrorRecovery_Call()
+        {
+            var source = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        N(b ? new(a) : default);
+                    }
+
+                    void N(C c) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,15): error CS1729: 'C' does not contain a constructor that takes 1 arguments
+                //         N(b ? new(a) : default);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new(a)").WithArguments("C", "1").WithLocation(5, 15),
+                // (5,19): error CS0103: The name 'a' does not exist in the current context
+                //         N(b ? new(a) : default);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(5, 19));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var conditionalExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(conditionalExpression);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var trueBranch = conditionalExpression.WhenTrue;
+            var trueBranchTypeInfo = model.GetTypeInfo(trueBranch);
+            Assert.Equal("C", trueBranchTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", trueBranchTypeInfo.ConvertedType.ToTestDisplayString());
+            var trueBranchSymbolInfo = model.GetSymbolInfo(trueBranch);
+            Assert.Null(trueBranchSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, trueBranchSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], trueBranchSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var trueBranchSymbolGroup = model.GetMemberGroup(trueBranch);
+            AssertEx.SetEqual(["C..ctor()"], trueBranchSymbolGroup.ToTestDisplayStrings());
+
+            var falseBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenFalse);
+            Assert.Equal("C", falseBranchTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", falseBranchTypeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81021")]
+        public void ErrorRecovery_Cast()
+        {
+            var source = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = (C)(b ? new(a) : default);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,25): error CS1729: 'C' does not contain a constructor that takes 1 arguments
+                //         var c = (C)(b ? new(a) : default);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new(a)").WithArguments("C", "1").WithLocation(5, 25),
+                // (5,29): error CS0103: The name 'a' does not exist in the current context
+                //         var c = (C)(b ? new(a) : default);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(5, 29));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var conditionalExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(conditionalExpression);
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
+
+            var trueBranch = conditionalExpression.WhenTrue;
+            var trueBranchTypeInfo = model.GetTypeInfo(trueBranch);
+            Assert.Equal("C", trueBranchTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", trueBranchTypeInfo.ConvertedType.ToTestDisplayString());
+            var trueBranchSymbolInfo = model.GetSymbolInfo(trueBranch);
+            Assert.Null(trueBranchSymbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, trueBranchSymbolInfo.CandidateReason);
+            AssertEx.SetEqual(["C..ctor()"], trueBranchSymbolInfo.CandidateSymbols.ToTestDisplayStrings());
+            var trueBranchSymbolGroup = model.GetMemberGroup(trueBranch);
+            AssertEx.SetEqual(["C..ctor()"], trueBranchSymbolGroup.ToTestDisplayStrings());
+
+            var falseBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenFalse);
+            Assert.Equal("C", falseBranchTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", falseBranchTypeInfo.ConvertedType.ToTestDisplayString());
         }
     }
 }

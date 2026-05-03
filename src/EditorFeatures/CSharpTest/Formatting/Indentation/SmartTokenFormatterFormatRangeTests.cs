@@ -31,2168 +31,1978 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation;
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Formatting)]
 [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-public class SmartTokenFormatterFormatRangeTests
+public sealed class SmartTokenFormatterFormatRangeTests
 {
     [Fact]
     public async Task BeginningOfFile()
     {
-        var code = @"        using System;$$";
-        var expected = @"        using System;";
-
-        Assert.NotNull(await Record.ExceptionAsync(() => AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.None)));
+        Assert.NotNull(await Record.ExceptionAsync(() => AutoFormatOnSemicolonAsync(@"        using System;$$", @"        using System;", SyntaxKind.None)));
     }
 
     [WpfFact]
-    public async Task Namespace1()
-    {
-        var code = @"using System;
-namespace NS
-{
+    public Task Namespace1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            namespace NS
+            {
 
-    }$$";
+                }$$
+            """, """
+            using System;
+            namespace NS
+            {
 
-        var expected = @"using System;
-namespace NS
-{
-
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
+            }
+            """, SyntaxKind.SemicolonToken);
 
     [WpfFact]
-    public async Task Namespace2()
-    {
-        var code = @"using System;
-namespace NS
-{
-        class Class
+    public Task Namespace2()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            namespace NS
+            {
+                    class Class
+                            {
+                    }
+                }$$
+            """, """
+            using System;
+            namespace NS
+            {
+                class Class
                 {
-        }
-    }$$";
-
-        var expected = @"using System;
-namespace NS
-{
-    class Class
-    {
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task Namespace3()
-    {
-        var code = @"using System;
-namespace NS { }$$";
-
-        var expected = @"using System;
-namespace NS { }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task Namespace4()
-    {
-        var code = @"using System;
-namespace NS { 
-}$$";
-
-        var expected = @"using System;
-namespace NS
-{
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task Namespace5()
-    {
-        var code = @"using System;
-namespace NS
-{
-    class Class { } 
-}$$";
-
-        var expected = @"using System;
-namespace NS
-{
-    class Class { }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task Namespace6()
-    {
-        var code = @"using System;
-namespace NS
-{
-    class Class { 
-} 
-}$$";
-
-        var expected = @"using System;
-namespace NS
-{
-    class Class
-    {
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task Namespace7()
-    {
-        var code = @"using System;
-namespace NS
-{
-    class Class { 
-} 
-            namespace NS2
-{}
-}$$";
-
-        var expected = @"using System;
-namespace NS
-{
-    class Class
-    {
-    }
-    namespace NS2
-    { }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task Namespace8()
-    {
-        var code = @"using System;
-namespace NS { class Class { } namespace NS2 { } }$$";
-
-        var expected = @"using System;
-namespace NS { class Class { } namespace NS2 { } }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task Class1()
-    {
-        var code = @"using System;
-    class Class { 
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task Class2()
-    {
-        var code = @"using System;
-    class Class
-{
-    void Method(int i) {
                 }
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method(int i)
-    {
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
+            }
+            """, SyntaxKind.SemicolonToken);
 
     [WpfFact]
-    public async Task Class3()
-    {
-        var code = @"using System;
-    class Class
-{
-    void Method(int i) { }
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method(int i) { }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
+    public Task Namespace3()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            namespace NS { }$$
+            """, """
+            using System;
+            namespace NS { }
+            """, SyntaxKind.SemicolonToken);
 
     [WpfFact]
-    public async Task Class4()
-    {
-        var code = @"using System;
-    class Class
-{
-            delegate void Test(int i);
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-    delegate void Test(int i);
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
+    public Task Namespace4()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            namespace NS { 
+            }$$
+            """, """
+            using System;
+            namespace NS
+            {
+            }
+            """, SyntaxKind.SemicolonToken);
 
     [WpfFact]
-    public async Task Class5()
-    {
-        var code = @"using System;
-    class Class
-{
-            delegate void Test(int i);
-    void Method()
-        {
+    public Task Namespace5()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            namespace NS
+            {
+                class Class { } 
+            }$$
+            """, """
+            using System;
+            namespace NS
+            {
+                class Class { }
+            }
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task Namespace6()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            namespace NS
+            {
+                class Class { 
+            } 
+            }$$
+            """, """
+            using System;
+            namespace NS
+            {
+                class Class
+                {
                 }
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-    delegate void Test(int i);
-    void Method()
-    {
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
+            }
+            """, SyntaxKind.SemicolonToken);
 
     [WpfFact]
-    public async Task Interface1()
-    {
-        var code = @"using System;
-    interface II
-{
-            delegate void Test(int i);
-int Prop { get; set; }
-}$$";
-
-        var expected = @"using System;
-interface II
-{
-    delegate void Test(int i);
-    int Prop { get; set; }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task Struct1()
-    {
-        var code = @"using System;
-    struct Struct
-{
-            Struct(int i)
-    {
+    public Task Namespace7()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            namespace NS
+            {
+                class Class { 
+            } 
+                        namespace NS2
+            {}
+            }$$
+            """, """
+            using System;
+            namespace NS
+            {
+                class Class
+                {
                 }
-}$$";
-
-        var expected = @"using System;
-struct Struct
-{
-    Struct(int i)
-    {
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
+                namespace NS2
+                { }
+            }
+            """, SyntaxKind.SemicolonToken);
 
     [WpfFact]
-    public async Task Enum1()
-    {
-        var code = @"using System;
-    enum Enum
-{
+    public Task Namespace8()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            namespace NS { class Class { } namespace NS2 { } }$$
+            """, """
+            using System;
+            namespace NS { class Class { } namespace NS2 { } }
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task Class1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+                class Class { 
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+            }
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task Class2()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+                class Class
+            {
+                void Method(int i) {
+                            }
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method(int i)
+                {
+                }
+            }
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task Class3()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+                class Class
+            {
+                void Method(int i) { }
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method(int i) { }
+            }
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task Class4()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+                class Class
+            {
+                        delegate void Test(int i);
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                delegate void Test(int i);
+            }
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task Class5()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+                class Class
+            {
+                        delegate void Test(int i);
+                void Method()
+                    {
+                            }
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                delegate void Test(int i);
+                void Method()
+                {
+                }
+            }
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task Interface1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+                interface II
+            {
+                        delegate void Test(int i);
+            int Prop { get; set; }
+            }$$
+            """, """
+            using System;
+            interface II
+            {
+                delegate void Test(int i);
+                int Prop { get; set; }
+            }
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task Struct1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+                struct Struct
+            {
+                        Struct(int i)
+                {
+                            }
+            }$$
+            """, """
+            using System;
+            struct Struct
+            {
+                Struct(int i)
+                {
+                }
+            }
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task Enum1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+                enum Enum
+            {
+                            A = 1, B = 2,
+                C = 3
+                        }$$
+            """, """
+            using System;
+            enum Enum
+            {
                 A = 1, B = 2,
-    C = 3
-            }$$";
-
-        var expected = @"using System;
-enum Enum
-{
-    A = 1, B = 2,
-    C = 3
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
+                C = 3
+            }
+            """, SyntaxKind.SemicolonToken);
 
     [WpfFact]
-    public async Task AccessorList1()
-    {
-        var code = @"using System;
-class Class
-{
-    int Prop { get { return 1; }$$";
-
-        var expected = @"using System;
-class Class
-{
-    int Prop { get { return 1; }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task AccessorList1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                int Prop { get { return 1; }$$
+            """, """
+            using System;
+            class Class
+            {
+                int Prop { get { return 1; }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact]
-    public async Task AccessorList2()
-    {
-        var code = @"using System;
-class Class
-{
-    int Prop { get { return 1; } }$$";
-
-        var expected = @"using System;
-class Class
-{
-    int Prop { get { return 1; } }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.IntKeyword);
-    }
+    public Task AccessorList2()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                int Prop { get { return 1; } }$$
+            """, """
+            using System;
+            class Class
+            {
+                int Prop { get { return 1; } }
+            """, SyntaxKind.IntKeyword);
 
     [WpfFact]
-    public async Task AccessorList3()
-    {
-        var code = @"using System;
-class Class
-{
-    int Prop { get { return 1; }  
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-    int Prop
-    {
-        get { return 1; }
-    }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.IntKeyword);
-    }
+    public Task AccessorList3()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                int Prop { get { return 1; }  
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                int Prop
+                {
+                    get { return 1; }
+                }
+            """, SyntaxKind.IntKeyword);
 
     [WpfFact]
-    public async Task AccessorList4()
-    {
-        var code = @"using System;
-class Class
-{
-    int Prop { get { return 1;   
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-    int Prop { get
-        {
-            return 1;
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.GetKeyword);
-    }
+    public Task AccessorList4()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                int Prop { get { return 1;   
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                int Prop { get
+                    {
+                        return 1;
+                    }
+            """, SyntaxKind.GetKeyword);
 
     [WpfFact]
-    public async Task AccessorList5()
-    {
-        var code = @"using System;
-class Class
-{
-    int Prop {
-        get { return 1;   
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-    int Prop {
-        get { return 1;
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task AccessorList5()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                int Prop {
+                    get { return 1;   
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                int Prop {
+                    get { return 1;
+                    }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
-    public async Task AccessorList5b()
-    {
-        var code = @"using System;
-class Class
-{
-    int Prop {
-        get { return 1;   
-}$$
-}
-}";
-
-        var expected = @"using System;
-class Class
-{
-    int Prop {
-        get
-        {
-            return 1;
-        }
-}
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task AccessorList5b()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                int Prop {
+                    get { return 1;   
+            }$$
+            }
+            }
+            """, """
+            using System;
+            class Class
+            {
+                int Prop {
+                    get
+                    {
+                        return 1;
+                    }
+            }
+            }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact]
-    public async Task AccessorList6()
-    {
-        var code = @"using System;
-class Class
-{
-    int Prop 
-        { 
-get { return 1;   
-} }$$";
-
-        var expected = @"using System;
-class Class
-{
-    int Prop
-    {
-        get
-        {
-            return 1;
-        }
-    }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.IntKeyword);
-    }
+    public Task AccessorList6()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                int Prop 
+                    { 
+            get { return 1;   
+            } }$$
+            """, """
+            using System;
+            class Class
+            {
+                int Prop
+                {
+                    get
+                    {
+                        return 1;
+                    }
+                }
+            """, SyntaxKind.IntKeyword);
 
     [WpfFact]
-    public async Task AccessorList7()
-    {
-        var code = @"using System;
-class Class
-{
-    int Prop
-    {
-        get
-        {
-return 1;$$
-        }
-    }";
-
-        var expected = @"using System;
-class Class
-{
-    int Prop
-    {
-        get
-        {
-            return 1;
-        }
-    }";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task AccessorList7()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                int Prop
+                {
+                    get
+                    {
+            return 1;$$
+                    }
+                }
+            """, """
+            using System;
+            class Class
+            {
+                int Prop
+                {
+                    get
+                    {
+                        return 1;
+                    }
+                }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
-    public async Task AccessorList8()
-    {
-        var code = @"class C
-{
-    int Prop
-    {
-get
-        {
-            return 0;
-        }$$
-    }
-}";
-
-        var expected = @"class C
-{
-    int Prop
-    {
-        get
-        {
-            return 0;
-        }
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task AccessorList8()
+        => AutoFormatOnCloseBraceAsync("""
+            class C
+            {
+                int Prop
+                {
+            get
+                    {
+                        return 0;
+                    }$$
+                }
+            }
+            """, """
+            class C
+            {
+                int Prop
+                {
+                    get
+                    {
+                        return 0;
+                    }
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
     [InlineData("get")]
     [InlineData("set")]
     [InlineData("init")]
-    public async Task AccessorList9(string accessor)
-    {
-        var code = $@"class C
-{{
-    int Prop
-    {{
-{accessor}
-        {{
-            ;
-        }}$$
-    }}
-}}";
-
-        var expected = $@"class C
-{{
-    int Prop
-    {{
-        {accessor}
-        {{
-            ;
-        }}
-    }}
-}}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
-    public async Task AccessorList10()
-    {
-        var code = @"class C
-{
-    event EventHandler E
-    {
-add
-        {
-        }$$
-        remove
-        {
-        }
-    }
-
-}";
-
-        var expected = @"class C
-{
-    event EventHandler E
-    {
-        add
-        {
-        }
-        remove
-        {
-        }
-    }
-
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
-    public async Task AccessorList11()
-    {
-        var code = @"class C
-{
-    event EventHandler E
-    {
-        add
-        {
-        }
-remove
-        {
-        }$$
-    }
-
-}";
-
-        var expected = @"class C
-{
-    event EventHandler E
-    {
-        add
-        {
-        }
-        remove
-        {
-        }
-    }
-
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.CloseBraceToken);
-    }
-
-    [WpfFact]
-    public async Task Block1()
-    {
-        var code = @"using System;
-class Class
-{
-    public int Method()
-    { }$$";
-
-        var expected = @"using System;
-class Class
-{
-    public int Method()
-    { }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task Block2()
-    {
-        var code = @"using System;
-class Class
-{
-    public int Method() { }$$";
-
-        var expected = @"using System;
-class Class
-{
-    public int Method() { }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task Block3()
-    {
-        var code = @"using System;
-class Class
-{
-    public int Method() { 
-}$$
-}";
-
-        var expected = @"using System;
-class Class
-{
-    public int Method()
-    {
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task Block4()
-    {
-        var code = @"using System;
-class Class
-{
-    public static Class operator +(Class c1, Class c2) {
-            }$$
-}";
-
-        var expected = @"using System;
-class Class
-{
-    public static Class operator +(Class c1, Class c2)
-    {
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task Block5()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        { }$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        { }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task Block6()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        { 
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        {
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task Block7()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        { { }$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        { { }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task Block8()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        { { 
-}$$
-        }";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        {
+    public Task AccessorList9(string accessor)
+        => AutoFormatOnCloseBraceAsync($$"""
+            class C
             {
-            }
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task SwitchStatement1()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        switch (a) {
-            case 1:
-                break;
-}$$
-    }
-}";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        switch (a)
-        {
-            case 1:
-                break;
-        }
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task SwitchStatement2()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        switch (true) { }$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        switch (true) { }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task SwitchStatement3()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        switch (true)
-        {
-            case 1: { }$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        switch (true)
-        {
-            case 1: { }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.ColonToken);
-    }
-
-    [WpfFact]
-    public async Task SwitchStatement4()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        switch (true)
-        {
-            case 1: { 
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        switch (true)
-        {
-            case 1:
+                int Prop
                 {
-                }";
+            {{accessor}}
+                    {
+                        ;
+                    }$$
+                }
+            }
+            """, $$"""
+            class C
+            {
+                int Prop
+                {
+                    {{accessor}}
+                    {
+                        ;
+                    }
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
 
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.ColonToken);
-    }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
+    public Task AccessorList10()
+        => AutoFormatOnCloseBraceAsync("""
+            class C
+            {
+                event EventHandler E
+                {
+            add
+                    {
+                    }$$
+                    remove
+                    {
+                    }
+                }
 
-    [WpfFact]
-    public async Task Initializer1()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new int[] { }$$";
+            }
+            """, """
+            class C
+            {
+                event EventHandler E
+                {
+                    add
+                    {
+                    }
+                    remove
+                    {
+                    }
+                }
 
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new int[] { }";
+            }
+            """, SyntaxKind.OpenBraceToken);
 
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.NewKeyword);
-    }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
+    public Task AccessorList11()
+        => AutoFormatOnCloseBraceAsync("""
+            class C
+            {
+                event EventHandler E
+                {
+                    add
+                    {
+                    }
+            remove
+                    {
+                    }$$
+                }
 
-    [WpfFact]
-    public async Task Initializer2()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new int[] { 
-}$$";
+            }
+            """, """
+            class C
+            {
+                event EventHandler E
+                {
+                    add
+                    {
+                    }
+                    remove
+                    {
+                    }
+                }
 
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new int[] {
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.NewKeyword);
-    }
-
-    [WpfFact]
-    public async Task Initializer3()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new { A = 1, B = 2
-}$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new
-        {
-            A = 1,
-            B = 2
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.NewKeyword);
-    }
-
-    [WpfFact]
-    public async Task Initializer4()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new { A = 1, B = 2 }$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new { A = 1, B = 2 }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.NewKeyword);
-    }
+            }
+            """, SyntaxKind.CloseBraceToken);
 
     [WpfFact]
-    public async Task Initializer5()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new[] { 
-            1, 2, 3, 4,
-            5 }$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new[] {
-            1, 2, 3, 4,
-            5 }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.NewKeyword);
-    }
+    public Task Block1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                public int Method()
+                { }$$
+            """, """
+            using System;
+            class Class
+            {
+                public int Method()
+                { }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact]
-    public async Task Initializer6()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new int[] { 
-            1, 2, 3, 4,
-            5 }$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        var arr = new int[] {
-            1, 2, 3, 4,
-            5 }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.NewKeyword);
-    }
+    public Task Block2()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                public int Method() { }$$
+            """, """
+            using System;
+            class Class
+            {
+                public int Method() { }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact]
-    public async Task EmbeddedStatement1()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        if (true) { }$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        if (true) { }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement2()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        if (true) { 
-        }$$
-    }";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        if (true)
-        {
-        }
-    }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task Block3()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                public int Method() { 
+            }$$
+            }
+            """, """
+            using System;
+            class Class
+            {
+                public int Method()
+                {
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact]
-    public async Task EmbeddedStatement3()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        if (true)
-        { }$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        if (true)
-        { }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task Block4()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                public static Class operator +(Class c1, Class c2) {
+                        }$$
+            }
+            """, """
+            using System;
+            class Class
+            {
+                public static Class operator +(Class c1, Class c2)
+                {
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact]
-    public async Task EmbeddedStatement4()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        while (true) {
-}$$
-    }";
+    public Task Block5()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    { }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    { }
+            """, SyntaxKind.OpenBraceToken);
 
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        while (true)
-        {
-        }
-    }";
+    [WpfFact]
+    public Task Block6()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    { 
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    {
+                    }
+            """, SyntaxKind.OpenBraceToken);
 
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    [WpfFact]
+    public Task Block7()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    { { }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    { { }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task Block8()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    { { 
+            }$$
+                    }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    {
+                        {
+                        }
+                    }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task SwitchStatement1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    switch (a) {
+                        case 1:
+                            break;
+            }$$
+                }
+            }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    switch (a)
+                    {
+                        case 1:
+                            break;
+                    }
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task SwitchStatement2()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    switch (true) { }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    switch (true) { }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task SwitchStatement3()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    switch (true)
+                    {
+                        case 1: { }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    switch (true)
+                    {
+                        case 1: { }
+            """, SyntaxKind.ColonToken);
+
+    [WpfFact]
+    public Task SwitchStatement4()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    switch (true)
+                    {
+                        case 1: { 
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    switch (true)
+                    {
+                        case 1:
+                            {
+                            }
+            """, SyntaxKind.ColonToken);
+
+    [WpfFact]
+    public Task Initializer1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new int[] { }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new int[] { }
+            """, SyntaxKind.NewKeyword);
+
+    [WpfFact]
+    public Task Initializer2()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new int[] { 
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new int[] {
+            }
+            """, SyntaxKind.NewKeyword);
+
+    [WpfFact]
+    public Task Initializer3()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new { A = 1, B = 2
+            }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new
+                    {
+                        A = 1,
+                        B = 2
+                    }
+            """, SyntaxKind.NewKeyword);
+
+    [WpfFact]
+    public Task Initializer4()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new { A = 1, B = 2 }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new { A = 1, B = 2 }
+            """, SyntaxKind.NewKeyword);
+
+    [WpfFact]
+    public Task Initializer5()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new[] { 
+                        1, 2, 3, 4,
+                        5 }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new[] {
+                        1, 2, 3, 4,
+                        5 }
+            """, SyntaxKind.NewKeyword);
+
+    [WpfFact]
+    public Task Initializer6()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new int[] { 
+                        1, 2, 3, 4,
+                        5 }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    var arr = new int[] {
+                        1, 2, 3, 4,
+                        5 }
+            """, SyntaxKind.NewKeyword);
+
+    [WpfFact]
+    public Task EmbeddedStatement1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true) { }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true) { }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement2()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true) { 
+                    }$$
+                }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true)
+                    {
+                    }
+                }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement3()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true)
+                    { }$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true)
+                    { }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement4()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    while (true) {
+            }$$
+                }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    while (true)
+                    {
+                    }
+                }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8413")]
-    public async Task EmbeddedStatementDoBlockAlone()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        do {
-}$$
-    }
-}";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        do
-        {
-        }
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement5()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        do {
-} while(true);$$
-    }
-}";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        do
-        {
-        } while (true);
-    }
-}";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement6()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        for (int i = 0; i < 10; i++)             {
-}$$
-    }";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        for (int i = 0; i < 10; i++)
-        {
-        }
-    }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement7()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        foreach (var i in collection)            {
-}$$
-    }";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        foreach (var i in collection)
-        {
-        }
-    }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement8()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        using (var resource = GetResource())           {
-}$$
-    }";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        using (var resource = GetResource())
-        {
-        }
-    }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement9()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        if (true)
-                int i = 10;$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        if (true)
-            int i = 10;";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task FieldlInitializer()
-    {
-        var code = @"using System;
-class Class
-{
-          string str =              Console.Title;$$
-";
-
-        var expected = @"using System;
-class Class
-{
-    string str = Console.Title;
-";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task ArrayFieldlInitializer()
-    {
-        var code = @"using System;
-namespace NS
-{
-    class Class
-    {
-                    string[] strArr = {           ""1"",                       ""2"" };$$
-";
-
-        var expected = @"using System;
-namespace NS
-{
-    class Class
-    {
-        string[] strArr = { ""1"", ""2"" };
-";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task ExpressionValuedPropertyInitializer()
-    {
-        var code = @"using System;
-class Class
-{
-          public int  Three =>   1+2;$$
-";
-
-        var expected = @"using System;
-class Class
-{
-    public int Three => 1 + 2;
-";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement10()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-        if (true)
-                int i = 10;$$
-    }";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        if (true)
-            int i = 10;
-    }";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement11()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-                using (var resource = GetResource()) resource.Do();$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        using (var resource = GetResource()) resource.Do();";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement12()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-                using (var resource = GetResource()) 
-    resource.Do();$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        using (var resource = GetResource())
-            resource.Do();";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement13()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-                using (var resource = GetResource()) 
-    resource.Do();$$
-    }";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        using (var resource = GetResource())
-            resource.Do();
-    }";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement14()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-                do i = 10;$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        do i = 10;";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement15()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-                do
-    i = 10;$$";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        do
-            i = 10;";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement16()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-                do
-    i = 10;$$
-    }";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        do
-            i = 10;
-    }";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task EmbeddedStatement17()
-    {
-        var code = @"using System;
-class Class
-{
-    void Method()
-    {
-                do
-    i = 10;
-while (true);$$
-    }";
-
-        var expected = @"using System;
-class Class
-{
-    void Method()
-    {
-        do
-            i = 10;
-        while (true);
-    }";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task FollowPreviousElement1()
-    {
-        var code = @"using System;
-class Class
-{
-                    int i = 10;
-                    int i2 = 10;$$";
-
-        var expected = @"using System;
-class Class
-{
-                    int i = 10;
-    int i2 = 10;";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task FollowPreviousElement2()
-    {
-        var code = @"using System;
-class Class
-{
-            void Method(int i)
+    public Task EmbeddedStatementDoBlockAlone()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
             {
-            }
-
-            void Method2()
-            {
+                void Method()
+                {
+                    do {
             }$$
-}";
+                }
+            }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    do
+                    {
+                    }
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
 
-        var expected = @"using System;
-class Class
-{
-            void Method(int i)
+    [WpfFact]
+    public Task EmbeddedStatement5()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    do {
+            } while(true);$$
+                }
+            }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    do
+                    {
+                    } while (true);
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement6()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    for (int i = 0; i < 10; i++)             {
+            }$$
+                }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                    }
+                }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement7()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    foreach (var i in collection)            {
+            }$$
+                }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    foreach (var i in collection)
+                    {
+                    }
+                }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement8()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    using (var resource = GetResource())           {
+            }$$
+                }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    using (var resource = GetResource())
+                    {
+                    }
+                }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement9()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true)
+                            int i = 10;$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true)
+                        int i = 10;
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task FieldlInitializer()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                      string str =              Console.Title;$$
+
+            """, """
+            using System;
+            class Class
+            {
+                string str = Console.Title;
+
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task ArrayFieldlInitializer()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            namespace NS
+            {
+                class Class
+                {
+                                string[] strArr = {           "1",                       "2" };$$
+
+            """, """
+            using System;
+            namespace NS
+            {
+                class Class
+                {
+                    string[] strArr = { "1", "2" };
+
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task ExpressionValuedPropertyInitializer()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                      public int  Three =>   1+2;$$
+
+            """, """
+            using System;
+            class Class
+            {
+                public int Three => 1 + 2;
+
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement10()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true)
+                            int i = 10;$$
+                }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true)
+                        int i = 10;
+                }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement11()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                            using (var resource = GetResource()) resource.Do();$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    using (var resource = GetResource()) resource.Do();
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement12()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                            using (var resource = GetResource()) 
+                resource.Do();$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    using (var resource = GetResource())
+                        resource.Do();
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement13()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                            using (var resource = GetResource()) 
+                resource.Do();$$
+                }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    using (var resource = GetResource())
+                        resource.Do();
+                }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement14()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                            do i = 10;$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    do i = 10;
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement15()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                            do
+                i = 10;$$
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    do
+                        i = 10;
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement16()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                            do
+                i = 10;$$
+                }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    do
+                        i = 10;
+                }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task EmbeddedStatement17()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                            do
+                i = 10;
+            while (true);$$
+                }
+            """, """
+            using System;
+            class Class
+            {
+                void Method()
+                {
+                    do
+                        i = 10;
+                    while (true);
+                }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task FollowPreviousElement1()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                                int i = 10;
+                                int i2 = 10;$$
+            """, """
+            using System;
+            class Class
+            {
+                                int i = 10;
+                int i2 = 10;
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task FollowPreviousElement2()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+            class Class
+            {
+                        void Method(int i)
+                        {
+                        }
+
+                        void Method2()
+                        {
+                        }$$
+            }
+            """, """
+            using System;
+            class Class
+            {
+                        void Method(int i)
+                        {
+                        }
+
+                void Method2()
+                {
+                }
+            }
+            """, SyntaxKind.CloseBraceToken);
+
+    [WpfFact]
+    public Task FollowPreviousElement3()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                        void Method(int i)
+                        {
+                        }
+
+                        A a = new A 
+                        {
+                            Prop = 1,
+                            Prop2 = 2
+                        };$$
+            }
+            """, """
+            using System;
+            class Class
+            {
+                        void Method(int i)
+                        {
+                        }
+
+                A a = new A
+                {
+                    Prop = 1,
+                    Prop2 = 2
+                };
+            }
+            """, SyntaxKind.CloseBraceToken);
+
+    [WpfFact]
+    public Task FollowPreviousElement4()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                        void Method(int i)
+                        {
+                                    int i = 10;
+                         int i2 = 10;$$
+            """, """
+            using System;
+            class Class
+            {
+                        void Method(int i)
+                        {
+                                    int i = 10;
+                    int i2 = 10;
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task FollowPreviousElement5()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
+            class Class
+            {
+                        void Method(int i)
+                        {
+                                    int i = 10;
+                            if (true)
+            i = 50;$$
+            """, """
+            using System;
+            class Class
+            {
+                        void Method(int i)
+                        {
+                                    int i = 10;
+                    if (true)
+                        i = 50;
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task FollowPreviousElement6()
+        => AutoFormatOnSemicolonAsync("""
+                    using System;
+                    using System.Linq;$$
+            """, """
+                    using System;
+            using System.Linq;
+            """, SyntaxKind.SemicolonToken);
+
+    [WpfFact]
+    public Task FollowPreviousElement7()
+        => AutoFormatOnCloseBraceAsync("""
+                        using System;
+
+                        namespace NS
+                        {
+                        }
+
+                    namespace NS2
+                    {
+                    }$$
+            """, """
+                        using System;
+
+                        namespace NS
+                        {
+                        }
+
+            namespace NS2
             {
             }
-
-    void Method2()
-    {
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.CloseBraceToken);
-    }
+            """, SyntaxKind.CloseBraceToken);
 
     [WpfFact]
-    public async Task FollowPreviousElement3()
-    {
-        var code = @"using System;
-class Class
-{
-            void Method(int i)
-            {
-            }
-
-            A a = new A 
-            {
-                Prop = 1,
-                Prop2 = 2
-            };$$
-}";
-
-        var expected = @"using System;
-class Class
-{
-            void Method(int i)
-            {
-            }
-
-    A a = new A
-    {
-        Prop = 1,
-        Prop2 = 2
-    };
-}";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.CloseBraceToken);
-    }
-
-    [WpfFact]
-    public async Task FollowPreviousElement4()
-    {
-        var code = @"using System;
-class Class
-{
-            void Method(int i)
-            {
-                        int i = 10;
-             int i2 = 10;$$";
-
-        var expected = @"using System;
-class Class
-{
-            void Method(int i)
-            {
-                        int i = 10;
-        int i2 = 10;";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task FollowPreviousElement5()
-    {
-        var code = @"using System;
-class Class
-{
-            void Method(int i)
-            {
-                        int i = 10;
-                if (true)
-i = 50;$$";
-
-        var expected = @"using System;
-class Class
-{
-            void Method(int i)
-            {
-                        int i = 10;
-        if (true)
-            i = 50;";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task FollowPreviousElement6()
-    {
-        var code = @"        using System;
-        using System.Linq;$$";
-
-        var expected = @"        using System;
-using System.Linq;";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
-
-    [WpfFact]
-    public async Task FollowPreviousElement7()
-    {
-        var code = @"            using System;
+    public Task FollowPreviousElement8()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
 
             namespace NS
             {
+                        class Class
+                        {
+                        }
+
+                    class Class1
+                    {
+                    }$$
             }
-
-        namespace NS2
-        {
-        }$$";
-
-        var expected = @"            using System;
+            """, """
+            using System;
 
             namespace NS
             {
+                        class Class
+                        {
+                        }
+
+                class Class1
+                {
+                }
             }
-
-namespace NS2
-{
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.CloseBraceToken);
-    }
+            """, SyntaxKind.CloseBraceToken);
 
     [WpfFact]
-    public async Task FollowPreviousElement8()
-    {
-        var code = @"using System;
+    public Task IfStatement1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
 
-namespace NS
-{
             class Class
             {
-            }
+                void Method()
+                {
+                        if (true)
+                    {
+                }$$
+            """, """
+            using System;
 
-        class Class1
-        {
-        }$$
-}";
-
-        var expected = @"using System;
-
-namespace NS
-{
             class Class
             {
-            }
-
-    class Class1
-    {
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.CloseBraceToken);
-    }
-
-    [WpfFact]
-    public async Task IfStatement1()
-    {
-        var code = @"using System;
-
-class Class
-{
-    void Method()
-    {
-            if (true)
-        {
-    }$$";
-
-        var expected = @"using System;
-
-class Class
-{
-    void Method()
-    {
-        if (true)
-        {
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task IfStatement2()
-    {
-        var code = @"using System;
-
-class Class
-{
-    void Method()
-    {
-            if (true)
-        {
-    }
-else
-        {
-                }$$";
-
-        var expected = @"using System;
-
-class Class
-{
-    void Method()
-    {
-        if (true)
-        {
-        }
-        else
-        {
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task IfStatement3()
-    {
-        var code = @"using System;
-
-class Class
-{
-    void Method()
-    {
-            if (true)
-        {
-    }
-else    if (false)
-        {
-                }$$";
-
-        var expected = @"using System;
-
-class Class
-{
-    void Method()
-    {
-        if (true)
-        {
-        }
-        else if (false)
-        {
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task IfStatement4()
-    {
-        var code = @"using System;
-
-class Class
-{
-    void Method()
-    {
-            if (true)
-        return          ;
-else    if (false)
-                    return          ;$$";
-
-        var expected = @"using System;
-
-class Class
-{
-    void Method()
-    {
-        if (true)
-            return;
-        else if (false)
-            return;";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task TryStatement1()
-    {
-        var code = @"using System;
-
-class Class
-{
-    void Method()
-    {
-                try
-    {
-        }$$";
-
-        var expected = @"using System;
-
-class Class
-{
-    void Method()
-    {
-        try
-        {
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
-
-    [WpfFact]
-    public async Task TryStatement2()
-    {
-        var code = @"using System;
-
-class Class
-{
-    void Method()
-    {
-                try
-    {
-        }
-catch    (  Exception       ex)
+                void Method()
                 {
-    }$$";
-
-        var expected = @"using System;
-
-class Class
-{
-    void Method()
-    {
-        try
-        {
-        }
-        catch (Exception ex)
-        {
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+                    if (true)
+                    {
+                    }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact]
-    public async Task TryStatement3()
-    {
-        var code = @"using System;
+    public Task IfStatement2()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
 
-class Class
-{
-    void Method()
-    {
-                try
-    {
-        }
-catch    (  Exception       ex)
+            class Class
+            {
+                void Method()
                 {
-    }
-            catch               (Exception          ex2)
-                      {
-   }$$";
+                        if (true)
+                    {
+                }
+            else
+                    {
+                            }$$
+            """, """
+            using System;
 
-        var expected = @"using System;
-
-class Class
-{
-    void Method()
-    {
-        try
-        {
-        }
-        catch (Exception ex)
-        {
-        }
-        catch (Exception ex2)
-        {
-        }";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+            class Class
+            {
+                void Method()
+                {
+                    if (true)
+                    {
+                    }
+                    else
+                    {
+                    }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact]
-    public async Task TryStatement4()
-    {
-        var code = @"using System;
+    public Task IfStatement3()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
 
-class Class
-{
-    void Method()
-    {
-                try
-    {
-        }
-                                finally
-                      {
-   }$$";
+            class Class
+            {
+                void Method()
+                {
+                        if (true)
+                    {
+                }
+            else    if (false)
+                    {
+                            }$$
+            """, """
+            using System;
 
-        var expected = @"using System;
+            class Class
+            {
+                void Method()
+                {
+                    if (true)
+                    {
+                    }
+                    else if (false)
+                    {
+                    }
+            """, SyntaxKind.OpenBraceToken);
 
-class Class
-{
-    void Method()
-    {
-        try
-        {
-        }
-        finally
-        {
-        }";
+    [WpfFact]
+    public Task IfStatement4()
+        => AutoFormatOnSemicolonAsync("""
+            using System;
 
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+            class Class
+            {
+                void Method()
+                {
+                        if (true)
+                    return          ;
+            else    if (false)
+                                return          ;$$
+            """, """
+            using System;
+
+            class Class
+            {
+                void Method()
+                {
+                    if (true)
+                        return;
+                    else if (false)
+                        return;
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task TryStatement1()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+
+            class Class
+            {
+                void Method()
+                {
+                            try
+                {
+                    }$$
+            """, """
+            using System;
+
+            class Class
+            {
+                void Method()
+                {
+                    try
+                    {
+                    }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task TryStatement2()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+
+            class Class
+            {
+                void Method()
+                {
+                            try
+                {
+                    }
+            catch    (  Exception       ex)
+                            {
+                }$$
+            """, """
+            using System;
+
+            class Class
+            {
+                void Method()
+                {
+                    try
+                    {
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task TryStatement3()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+
+            class Class
+            {
+                void Method()
+                {
+                            try
+                {
+                    }
+            catch    (  Exception       ex)
+                            {
+                }
+                        catch               (Exception          ex2)
+                                  {
+               }$$
+            """, """
+            using System;
+
+            class Class
+            {
+                void Method()
+                {
+                    try
+                    {
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                    catch (Exception ex2)
+                    {
+                    }
+            """, SyntaxKind.OpenBraceToken);
+
+    [WpfFact]
+    public Task TryStatement4()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
+
+            class Class
+            {
+                void Method()
+                {
+                            try
+                {
+                    }
+                                            finally
+                                  {
+               }$$
+            """, """
+            using System;
+
+            class Class
+            {
+                void Method()
+                {
+                    try
+                    {
+                    }
+                    finally
+                    {
+                    }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/6645")]
-    public async Task TryStatement5()
-    {
-        var code = @"using System;
+    public Task TryStatement5()
+        => AutoFormatOnCloseBraceAsync("""
+            using System;
 
-class Class
-{
-    void Method()
-    {
-        try {
-        }$$
-    }
-}";
+            class Class
+            {
+                void Method()
+                {
+                    try {
+                    }$$
+                }
+            }
+            """, """
+            using System;
 
-        var expected = @"using System;
-
-class Class
-{
-    void Method()
-    {
-        try
-        {
-        }
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+            class Class
+            {
+                void Method()
+                {
+                    try
+                    {
+                    }
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537555")]
-    public async Task SingleLine()
-    {
-        var code = @"class C { void M() { C.M(    );$$ } }";
-
-        var expected = @"class C { void M() { C.M(); } }";
-
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task SingleLine()
+        => AutoFormatOnSemicolonAsync(@"class C { void M() { C.M(    );$$ } }", @"class C { void M() { C.M(); } }", SyntaxKind.OpenBraceToken);
 
     [Fact]
     public async Task StringLiterals()
     {
-        var code = @"class C { void M() { C.M(""Test {0}$$";
-
         var expected = string.Empty;
-        await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.StringLiteralToken, SyntaxKind.None);
+        await AutoFormatOnMarkerAsync(@"class C { void M() { C.M(""Test {0}$$", expected, SyntaxKind.StringLiteralToken, SyntaxKind.None);
     }
 
     [Fact]
     public async Task CharLiterals()
     {
-        var code = @"class C { void M() { C.M('}$$";
-
         var expected = string.Empty;
-        await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
+        await AutoFormatOnMarkerAsync(@"class C { void M() { C.M('}$$", expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     public async Task CharLiterals1()
     {
-        var code = @"';$$";
-
         var expected = string.Empty;
-        await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
+        await AutoFormatOnMarkerAsync(@"';$$", expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
     }
 
     [Fact]
     public async Task Comments()
     {
-        var code = @"class C { void M() { // { }$$";
-
         var expected = string.Empty;
-        await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.OpenBraceToken, SyntaxKind.OpenBraceToken);
+        await AutoFormatOnMarkerAsync(@"class C { void M() { // { }$$", expected, SyntaxKind.OpenBraceToken, SyntaxKind.OpenBraceToken);
     }
 
     [WpfFact]
-    public async Task FirstLineInFile()
-    {
-        var code = @"using System;$$";
-
-        await AutoFormatOnSemicolonAsync(code, "using System;", SyntaxKind.UsingKeyword);
-    }
+    public Task FirstLineInFile()
+        => AutoFormatOnSemicolonAsync(@"using System;$$", "using System;", SyntaxKind.UsingKeyword);
 
     [WpfFact]
-    public async Task Label1()
-    {
-        var code = @"class C
-{
-    void Method()
-    {
-                L           :               int             i               =               20;$$
-    }
-}";
-        var expected = @"class C
-{
-    void Method()
-    {
-    L: int i = 20;
-    }
-}";
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task Label1()
+        => AutoFormatOnSemicolonAsync("""
+            class C
+            {
+                void Method()
+                {
+                            L           :               int             i               =               20;$$
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                L: int i = 20;
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact]
-    public async Task Label2()
-    {
-        var code = @"class C
-{
-    void Method()
-    {
-                L           :               
-int             i               =               20;$$
-    }
-}";
-        var expected = @"class C
-{
-    void Method()
-    {
-    L:
-        int i = 20;
-    }
-}";
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task Label2()
+        => AutoFormatOnSemicolonAsync("""
+            class C
+            {
+                void Method()
+                {
+                            L           :               
+            int             i               =               20;$$
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                L:
+                    int i = 20;
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact]
-    public async Task Label3()
-    {
-        var code = @"class C
-{
-    void Method()
-    {
-        int base = 10;
-                L           :               
-int             i               =               20;$$
-    }
-}";
-        var expected = @"class C
-{
-    void Method()
-    {
-        int base = 10;
-    L:
-        int i = 20;
-    }
-}";
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
+    public Task Label3()
+        => AutoFormatOnSemicolonAsync("""
+            class C
+            {
+                void Method()
+                {
+                    int base = 10;
+                            L           :               
+            int             i               =               20;$$
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                    int base = 10;
+                L:
+                    int i = 20;
+                }
+            }
+            """, SyntaxKind.SemicolonToken);
 
     [WpfFact]
-    public async Task Label4()
-    {
-        var code = @"class C
-{
-    void Method()
-    {
-        int base = 10;
-    L:
-        int i = 20;
-int         nextLine            =           30          ;$$
-    }
-}";
-        var expected = @"class C
-{
-    void Method()
-    {
-        int base = 10;
-    L:
-        int i = 20;
-        int nextLine = 30;
-    }
-}";
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.SemicolonToken);
-    }
+    public Task Label4()
+        => AutoFormatOnSemicolonAsync("""
+            class C
+            {
+                void Method()
+                {
+                    int base = 10;
+                L:
+                    int i = 20;
+            int         nextLine            =           30          ;$$
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                    int base = 10;
+                L:
+                    int i = 20;
+                    int nextLine = 30;
+                }
+            }
+            """, SyntaxKind.SemicolonToken);
 
     [WpfFact]
-    public async Task Label6()
-    {
-        var code = @"class C
-{
-    void Method()
-    {
-    L:
-        int i = 20;
-int         nextLine            =           30          ;$$
-    }
-}";
-        var expected = @"class C
-{
-    void Method()
-    {
-    L:
-        int i = 20;
-        int nextLine = 30;
-    }
-}";
-        await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
-    }
+    public Task Label6()
+        => AutoFormatOnSemicolonAsync("""
+            class C
+            {
+                void Method()
+                {
+                L:
+                    int i = 20;
+            int         nextLine            =           30          ;$$
+                }
+            }
+            """, """
+            class C
+            {
+                void Method()
+                {
+                L:
+                    int i = 20;
+                    int nextLine = 30;
+                }
+            }
+            """, SyntaxKind.OpenBraceToken);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537776")]
-    public async Task DisappearedTokens()
-    {
-        var code = @"class Class1
-{
-    int goo()
-        return 0;
-        }$$
-}";
-
-        var expected = @"class Class1
-{
-    int goo()
-        return 0;
-        }
-}";
-        await AutoFormatOnCloseBraceAsync(
-            code,
-            expected,
+    public Task DisappearedTokens()
+        => AutoFormatOnCloseBraceAsync(
+            """
+            class Class1
+            {
+                int goo()
+                    return 0;
+                    }$$
+            }
+            """,
+            """
+            class Class1
+            {
+                int goo()
+                    return 0;
+                    }
+            }
+            """,
             SyntaxKind.ClassKeyword);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537779")]
-    public async Task DisappearedTokens2()
-    {
-        var code = """
+    public Task DisappearedTokens2()
+        => AutoFormatOnSemicolonAsync(
+            """
             class Class1
             {
                 void Goo()
@@ -2200,9 +2010,8 @@ int         nextLine            =           30          ;$$
                     Object o=new Object);$$
                 }
             }
-            """;
-
-        var expected = """
+            """,
+            """
             class Class1
             {
                 void Goo()
@@ -2210,269 +2019,242 @@ int         nextLine            =           30          ;$$
                     Object o = new Object);
                 }
             }
-            """;
-
-        await AutoFormatOnSemicolonAsync(
-            code,
-            expected,
+            """,
             SyntaxKind.OpenBraceToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537793")]
-    public async Task Delegate1()
-    {
-        var code = @"delegate void MyDelegate(int a,int b);$$";
-
-        var expected = @"delegate void MyDelegate(int a, int b);";
-
-        await AutoFormatOnSemicolonAsync(
-            code,
-            expected,
+    public Task Delegate1()
+        => AutoFormatOnSemicolonAsync(
+            @"delegate void MyDelegate(int a,int b);$$",
+            @"delegate void MyDelegate(int a, int b);",
             SyntaxKind.DelegateKeyword);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
-    public async Task DoubleInitializer()
-    {
-        var code = @"class C
-{
-    void Method()
-    {
-        int[,] a ={{ 1 , 1 }$$
-    }
-}";
-
-        var expected = @"class C
-{
-    void Method()
-    {
-        int[,] a ={{ 1 , 1 }
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(
-            code,
-            expected,
+    public Task DoubleInitializer()
+        => AutoFormatOnCloseBraceAsync(
+            """
+            class C
+            {
+                void Method()
+                {
+                    int[,] a ={{ 1 , 1 }$$
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Method()
+                {
+                    int[,] a ={{ 1 , 1 }
+                }
+            }
+            """,
             SyntaxKind.OpenBraceToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
-    public async Task MissingToken1()
-    {
-        var code = @"public class Class1
-{
-    int a = 1}$$;
-}";
-
-        var expected = @"public class Class1
-{
-    int a = 1};
-}";
-
-        await AutoFormatOnCloseBraceAsync(
-            code,
-            expected,
+    public Task MissingToken1()
+        => AutoFormatOnCloseBraceAsync(
+            """
+            public class Class1
+            {
+                int a = 1}$$;
+            }
+            """,
+            """
+            public class Class1
+            {
+                int a = 1};
+            }
+            """,
             SyntaxKind.PublicKeyword);
-    }
 
     [WpfFact]
-    public async Task ArrayInitializer1()
-    {
-        var code = @"public class Class1
-{
-    var a = new [] 
-    {
-        1, 2, 3, 4
-        }$$
-}";
-
-        var expected = @"public class Class1
-{
-    var a = new[]
-    {
-        1, 2, 3, 4
-        }
-}";
-
-        await AutoFormatOnCloseBraceAsync(
-            code,
-            expected,
+    public Task ArrayInitializer1()
+        => AutoFormatOnCloseBraceAsync(
+            """
+            public class Class1
+            {
+                var a = new [] 
+                {
+                    1, 2, 3, 4
+                    }$$
+            }
+            """,
+            """
+            public class Class1
+            {
+                var a = new[]
+                {
+                    1, 2, 3, 4
+                    }
+            }
+            """,
             SyntaxKind.NewKeyword);
-    }
 
     [WpfFact]
-    public async Task ArrayInitializer2()
-    {
-        var code = @"public class Class1
-{
-    var a = new [] 
-    {
-        1, 2, 3, 4
-        }   ;$$
-}";
-
-        var expected = @"public class Class1
-{
-    var a = new[]
-    {
-        1, 2, 3, 4
-        };
-}";
-
-        await AutoFormatOnSemicolonAsync(
-            code,
-            expected,
+    public Task ArrayInitializer2()
+        => AutoFormatOnSemicolonAsync(
+            """
+            public class Class1
+            {
+                var a = new [] 
+                {
+                    1, 2, 3, 4
+                    }   ;$$
+            }
+            """,
+            """
+            public class Class1
+            {
+                var a = new[]
+                {
+                    1, 2, 3, 4
+                    };
+            }
+            """,
             SyntaxKind.OpenBraceToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
-    public async Task MalformedCode()
-    {
-        var code = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        int a}$$;
-    }
-}";
-
-        var expected = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        int a};
-    }
-}";
-
-        await AutoFormatOnCloseBraceAsync(
-            code,
-            expected,
+    public Task MalformedCode()
+        => AutoFormatOnCloseBraceAsync(
+            """
+            namespace ClassLibrary1
+            {
+                public class Class1
+                {
+                    int a}$$;
+                }
+            }
+            """,
+            """
+            namespace ClassLibrary1
+            {
+                public class Class1
+                {
+                    int a};
+                }
+            }
+            """,
             SyntaxKind.OpenBraceToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
-    public async Task Colon_SwitchLabel()
-    {
-        var code = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        void Test()
-        {
-            switch(E.Type)
+    public Task Colon_SwitchLabel()
+        => AutoFormatOnColonAsync(
+            """
+            namespace ClassLibrary1
             {
-                    case 1 :$$
+                public class Class1
+                {
+                    void Test()
+                    {
+                        switch(E.Type)
+                        {
+                                case 1 :$$
+                        }
+                    }
+                }
             }
-        }
-    }
-}";
-
-        var expected = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        void Test()
-        {
-            switch(E.Type)
+            """,
+            """
+            namespace ClassLibrary1
             {
-                case 1:
+                public class Class1
+                {
+                    void Test()
+                    {
+                        switch(E.Type)
+                        {
+                            case 1:
+                        }
+                    }
+                }
             }
-        }
-    }
-}";
-
-        await AutoFormatOnColonAsync(
-            code,
-            expected,
+            """,
             SyntaxKind.OpenBraceToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
-    public async Task Colon_SwitchLabel_Comment()
-    {
-        var code = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        void Test()
-        {
-            switch(E.Type)
+    public Task Colon_SwitchLabel_Comment()
+        => AutoFormatOnColonAsync(
+            """
+            namespace ClassLibrary1
             {
-                        // test
-                    case 1 :$$
+                public class Class1
+                {
+                    void Test()
+                    {
+                        switch(E.Type)
+                        {
+                                    // test
+                                case 1 :$$
+                        }
+                    }
+                }
             }
-        }
-    }
-}";
-
-        var expected = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        void Test()
-        {
-            switch(E.Type)
+            """,
+            """
+            namespace ClassLibrary1
             {
-                // test
-                case 1:
+                public class Class1
+                {
+                    void Test()
+                    {
+                        switch(E.Type)
+                        {
+                            // test
+                            case 1:
+                        }
+                    }
+                }
             }
-        }
-    }
-}";
-
-        await AutoFormatOnColonAsync(
-            code,
-            expected,
+            """,
             SyntaxKind.OpenBraceToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
-    public async Task Colon_SwitchLabel_Comment2()
-    {
-        var code = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        void Test()
-        {
-            switch(E.Type)
+    public Task Colon_SwitchLabel_Comment2()
+        => AutoFormatOnColonAsync(
+            """
+            namespace ClassLibrary1
             {
-                case 2:
-                    // test
-                    case 1 :$$
+                public class Class1
+                {
+                    void Test()
+                    {
+                        switch(E.Type)
+                        {
+                            case 2:
+                                // test
+                                case 1 :$$
+                        }
+                    }
+                }
             }
-        }
-    }
-}";
-
-        var expected = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        void Test()
-        {
-            switch(E.Type)
+            """,
+            """
+            namespace ClassLibrary1
             {
-                case 2:
-                // test
-                case 1:
+                public class Class1
+                {
+                    void Test()
+                    {
+                        switch(E.Type)
+                        {
+                            case 2:
+                            // test
+                            case 1:
+                        }
+                    }
+                }
             }
-        }
-    }
-}";
-
-        await AutoFormatOnColonAsync(
-            code,
-            expected,
+            """,
             SyntaxKind.ColonToken);
-    }
 
     [Fact]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13981")]
-    public async Task Colon_Label()
-    {
-        var code = """
+    public Task Colon_Label()
+        => AutoFormatOnColonAsync(
+            """
             namespace ClassLibrary1
             {
                 public class Class1
@@ -2483,9 +2265,8 @@ int         nextLine            =           30          ;$$
                     }
                 }
             }
-            """;
-
-        var expected = """
+            """,
+            """
             namespace ClassLibrary1
             {
                 public class Class1
@@ -2496,876 +2277,788 @@ int         nextLine            =           30          ;$$
                     }
                 }
             }
-            """;
-
-        await AutoFormatOnColonAsync(
-            code,
-            expected,
+            """,
             SyntaxKind.OpenBraceToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538793")]
-    public async Task Colon_Label2()
-    {
-        var code = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        void Test()
-        {
-                    label   :   Console.WriteLine(10) ;$$
-        }
-    }
-}";
-
-        var expected = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        void Test()
-        {
-        label: Console.WriteLine(10);
-        }
-    }
-}";
-
-        await AutoFormatOnSemicolonAsync(
-            code,
-            expected,
+    public Task Colon_Label2()
+        => AutoFormatOnSemicolonAsync(
+            """
+            namespace ClassLibrary1
+            {
+                public class Class1
+                {
+                    void Test()
+                    {
+                                label   :   Console.WriteLine(10) ;$$
+                    }
+                }
+            }
+            """,
+            """
+            namespace ClassLibrary1
+            {
+                public class Class1
+                {
+                    void Test()
+                    {
+                    label: Console.WriteLine(10);
+                    }
+                }
+            }
+            """,
             SyntaxKind.OpenBraceToken);
-    }
 
     [WpfFact, WorkItem(3186, "DevDiv_Projects/Roslyn")]
-    public async Task SemicolonInElseIfStatement()
-    {
-        var code = @"using System;
-using System.Collections.Generic;
-using System.Linq;
+    public Task SemicolonInElseIfStatement()
+        => AutoFormatOnSemicolonAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        int a = 0;
-        if (a == 0)
-            a = 1;
-        else if (a == 1)
-            a=2;$$
-        else
-            a = 3;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int a = 0;
+                    if (a == 0)
+                        a = 1;
+                    else if (a == 1)
+                        a=2;$$
+                    else
+                        a = 3;
 
-    }
-}";
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
 
-        var expected = @"using System;
-using System.Collections.Generic;
-using System.Linq;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int a = 0;
+                    if (a == 0)
+                        a = 1;
+                    else if (a == 1)
+                        a = 2;
+                    else
+                        a = 3;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        int a = 0;
-        if (a == 0)
-            a = 1;
-        else if (a == 1)
-            a = 2;
-        else
-            a = 3;
-
-    }
-}";
-
-        await AutoFormatOnSemicolonAsync(
-            code,
-            expected,
+                }
+            }
+            """,
             SyntaxKind.SemicolonToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538391")]
-    public async Task SemicolonInElseIfStatement2()
-    {
-        var code = @"public class Class1
-{
-    void Method()
-    {
-        int a = 1;
-        if (a == 0)
-            a = 8;$$
+    public Task SemicolonInElseIfStatement2()
+        => AutoFormatOnSemicolonAsync(
+            """
+            public class Class1
+            {
+                void Method()
+                {
+                    int a = 1;
+                    if (a == 0)
+                        a = 8;$$
+                                else
+                                    a = 10;
+                }
+            }
+            """,
+            """
+            public class Class1
+            {
+                void Method()
+                {
+                    int a = 1;
+                    if (a == 0)
+                        a = 8;
                     else
                         a = 10;
-    }
-}";
-
-        var expected = @"public class Class1
-{
-    void Method()
-    {
-        int a = 1;
-        if (a == 0)
-            a = 8;
-        else
-            a = 10;
-    }
-}";
-
-        await AutoFormatOnSemicolonAsync(
-            code,
-            expected,
+                }
+            }
+            """,
             SyntaxKind.SemicolonToken);
-    }
 
     [WpfFact, WorkItem(8385, "DevDiv_Projects/Roslyn")]
-    public async Task NullCoalescingOperator()
-    {
-        var code = @"class C
-{
-    void M()
-    {
-        object o2 = null??null;$$
-    }
-}";
-
-        var expected = @"class C
-{
-    void M()
-    {
-        object o2 = null ?? null;
-    }
-}";
-
-        await AutoFormatOnSemicolonAsync(
-            code,
-            expected,
+    public Task NullCoalescingOperator()
+        => AutoFormatOnSemicolonAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    object o2 = null??null;$$
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    object o2 = null ?? null;
+                }
+            }
+            """,
             SyntaxKind.OpenBraceToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541517")]
-    public async Task SwitchDefault()
-    {
-        var code = @"using System;
-class Program
-{
-    static void Main()
-    {
-        switch (DayOfWeek.Monday)
-        {
-            case DayOfWeek.Monday:
-            case DayOfWeek.Tuesday:
-                break;
-            case DayOfWeek.Wednesday:
-                break;
-                default:$$
-        }
-    }
-}";
-
-        var expected = @"using System;
-class Program
-{
-    static void Main()
-    {
-        switch (DayOfWeek.Monday)
-        {
-            case DayOfWeek.Monday:
-            case DayOfWeek.Tuesday:
-                break;
-            case DayOfWeek.Wednesday:
-                break;
-            default:
-        }
-    }
-}";
-
-        await AutoFormatOnColonAsync(
-            code,
-            expected,
+    public Task SwitchDefault()
+        => AutoFormatOnColonAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    switch (DayOfWeek.Monday)
+                    {
+                        case DayOfWeek.Monday:
+                        case DayOfWeek.Tuesday:
+                            break;
+                        case DayOfWeek.Wednesday:
+                            break;
+                            default:$$
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    switch (DayOfWeek.Monday)
+                    {
+                        case DayOfWeek.Monday:
+                        case DayOfWeek.Tuesday:
+                            break;
+                        case DayOfWeek.Wednesday:
+                            break;
+                        default:
+                    }
+                }
+            }
+            """,
             SyntaxKind.SemicolonToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
-    public async Task MissingTokens1()
-    {
-        var code = @"class Program
-{
-    static void Main(string[] args)
-    {
-        gl::$$
-    }
-}";
-
-        var expected = @"class Program
-{
-    static void Main(string[] args)
-    {
-        gl::
-    }
-}";
-
-        await AutoFormatOnMarkerAsync(
-            code,
-            expected,
+    public Task MissingTokens1()
+        => AutoFormatOnMarkerAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    gl::$$
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    gl::
+                }
+            }
+            """,
             SyntaxKind.ColonColonToken,
             SyntaxKind.OpenBraceToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
-    public async Task MissingTokens2()
-    {
-        var code = @"class C { void M() { M(() => { }$$ } }";
-
-        var expected = @"class C { void M() { M(() => { } } }";
-
-        await AutoFormatOnCloseBraceAsync(
-            code,
-            expected,
+    public Task MissingTokens2()
+        => AutoFormatOnCloseBraceAsync(
+            @"class C { void M() { M(() => { }$$ } }",
+            @"class C { void M() { M(() => { } } }",
             SyntaxKind.EqualsGreaterThanToken);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
-    public async Task UsingAlias()
-    {
-        var code = @"using Alias=System;$$";
-
-        var expected = @"using Alias = System;";
-
-        await AutoFormatOnSemicolonAsync(
-            code,
-            expected,
+    public Task UsingAlias()
+        => AutoFormatOnSemicolonAsync(
+            @"using Alias=System;$$",
+            @"using Alias = System;",
             SyntaxKind.UsingKeyword);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
-    public async Task NoLineChangeWithSyntaxError()
-    {
-        var code = @"struct Goo { public int member; }
-class Program{
-    void Main()
-    {
-        var f = new Goo { member;$$ }
-    }
-}";
-
-        var expected = @"struct Goo { public int member; }
-class Program{
-    void Main()
-    {
-        var f = new Goo { member; }
-    }
-}";
-
-        await AutoFormatOnSemicolonAsync(
-            code,
-            expected,
+    public Task NoLineChangeWithSyntaxError()
+        => AutoFormatOnSemicolonAsync(
+            """
+            struct Goo { public int member; }
+            class Program{
+                void Main()
+                {
+                    var f = new Goo { member;$$ }
+                }
+            }
+            """,
+            """
+            struct Goo { public int member; }
+            class Program{
+                void Main()
+                {
+                    var f = new Goo { member; }
+                }
+            }
+            """,
             SyntaxKind.None);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620568")]
     public void SkippedTokens1(bool useTabs)
-    {
-        var code = @";$$*";
-
-        var expected = @";*";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken(@";$$*", @";*", useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
     public void AutoPropertyAccessor(bool useTabs)
-    {
-        var code = @"class C
-{
-    int Prop {          get             ;$$
-}";
-
-        var expected = @"class C
-{
-    int Prop {          get;
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                int Prop {          get             ;$$
+            }
+            """, """
+            class C
+            {
+                int Prop {          get;
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
     public void AutoPropertyAccessor2(bool useTabs)
-    {
-        var code = @"class C
-{
-    int Prop {          get;                set             ;$$
-}";
-
-        var expected = @"class C
-{
-    int Prop {          get;                set;
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                int Prop {          get;                set             ;$$
+            }
+            """, """
+            class C
+            {
+                int Prop {          get;                set;
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
     public void AutoPropertyAccessor3(bool useTabs)
-    {
-        var code = @"class C
-{
-    int Prop {          get;                set             ;           }$$
-}";
-
-        var expected = @"class C
-{
-    int Prop { get; set; }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                int Prop {          get;                set             ;           }$$
+            }
+            """, """
+            class C
+            {
+                int Prop { get; set; }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784674")]
     public void AutoPropertyAccessor4(bool useTabs)
-    {
-        var code = @"class C
-{
-    int Prop {          get;$$             }
-}";
-
-        var expected = @"class C
-{
-    int Prop { get; }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                int Prop {          get;$$             }
+            }
+            """, """
+            class C
+            {
+                int Prop { get; }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
     public void AutoPropertyAccessor5(bool useTabs)
-    {
-        var code = @"class C
-{
-    int Prop {          get;                set             ;$$           }
-}";
-
-        var expected = @"class C
-{
-    int Prop { get; set; }
-}";
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                int Prop {          get;                set             ;$$           }
+            }
+            """, """
+            class C
+            {
+                int Prop { get; set; }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
     public void AutoPropertyAccessor6(bool useTabs)
-    {
-        var code = @"class C
-{
-    int Prop { get;set;$$}
-}";
-
-        var expected = @"class C
-{
-    int Prop { get; set; }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                int Prop { get;set;$$}
+            }
+            """, """
+            class C
+            {
+                int Prop { get; set; }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
     public void AutoPropertyAccessor7(bool useTabs)
-    {
-        var code = @"class C
-{
-    int Prop     { get;set;$$}    
-}";
-
-        var expected = @"class C
-{
-    int Prop     { get; set; }    
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                int Prop     { get;set;$$}    
+            }
+            """, """
+            class C
+            {
+                int Prop     { get; set; }    
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void NestedUsingStatement(bool useTabs)
-    {
-        var code = @"class C
-{
-    public void M()
-    {
-        using (null)
-            using(null)$$
-    }
-}";
-
-        var expected = @"class C
-{
-    public void M()
-    {
-        using (null)
-        using (null)
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                public void M()
+                {
+                    using (null)
+                        using(null)$$
+                }
+            }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    using (null)
+                    using (null)
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void NestedNotUsingStatement(bool useTabs)
-    {
-        var code = @"class C
-{
-    public void M()
-    {
-        using (null)
-            for(;;)$$
-    }
-}";
-
-        var expected = @"class C
-{
-    public void M()
-    {
-        using (null)
-            for(;;)
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                public void M()
+                {
+                    using (null)
+                        for(;;)$$
+                }
+            }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    using (null)
+                        for(;;)
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     public void UsingStatementWithNestedFixedStatement(bool useTabs)
-    {
-        var code = @"class C
-{
-    public void M()
-    {
-        using (null)
-        fixed (void* ptr = &i)
-        {
-        }$$
-    }
-}";
-
-        var expected = @"class C
-{
-    public void M()
-    {
-        using (null)
-            fixed (void* ptr = &i)
+        => AutoFormatToken("""
+            class C
             {
+                public void M()
+                {
+                    using (null)
+                    fixed (void* ptr = &i)
+                    {
+                    }$$
+                }
             }
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    using (null)
+                        fixed (void* ptr = &i)
+                        {
+                        }
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     public void UsingStatementWithNestedCheckedStatement(bool useTabs)
-    {
-        var code = @"class C
-{
-    public void M()
-    {
-        using (null)
-        checked
-        {
-        }$$
-    }
-}";
-
-        var expected = @"class C
-{
-    public void M()
-    {
-        using (null)
-            checked
+        => AutoFormatToken("""
+            class C
             {
+                public void M()
+                {
+                    using (null)
+                    checked
+                    {
+                    }$$
+                }
             }
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    using (null)
+                        checked
+                        {
+                        }
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     public void UsingStatementWithNestedUncheckedStatement(bool useTabs)
-    {
-        var code = @"class C
-{
-    public void M()
-    {
-        using (null)
-        unchecked
-        {
-        }$$
-    }
-}";
-
-        var expected = @"class C
-{
-    public void M()
-    {
-        using (null)
-            unchecked
+        => AutoFormatToken("""
+            class C
             {
+                public void M()
+                {
+                    using (null)
+                    unchecked
+                    {
+                    }$$
+                }
             }
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    using (null)
+                        unchecked
+                        {
+                        }
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     public void FixedStatementWithNestedUsingStatement(bool useTabs)
-    {
-        var code = @"class C
-{
-    public void M()
-    {
-        fixed (void* ptr = &i)
-        using (null)$$
-    }
-}";
-
-        var expected = @"class C
-{
-    public void M()
-    {
-        fixed (void* ptr = &i)
-            using (null)
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                public void M()
+                {
+                    fixed (void* ptr = &i)
+                    using (null)$$
+                }
+            }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    fixed (void* ptr = &i)
+                        using (null)
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     public void FixedStatementWithNestedFixedStatement(bool useTabs)
-    {
-        var code = @"class C
-{
-    public void M()
-    {
-        fixed (void* ptr1 = &i)
-            fixed (void* ptr2 = &i)
+        => AutoFormatToken("""
+            class C
             {
-            }$$
-    }
-}";
-
-        var expected = @"class C
-{
-    public void M()
-    {
-        fixed (void* ptr1 = &i)
-        fixed (void* ptr2 = &i)
-        {
-        }
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+                public void M()
+                {
+                    fixed (void* ptr1 = &i)
+                        fixed (void* ptr2 = &i)
+                        {
+                        }$$
+                }
+            }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    fixed (void* ptr1 = &i)
+                    fixed (void* ptr2 = &i)
+                    {
+                    }
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     public void FixedStatementWithNestedNotFixedStatement(bool useTabs)
-    {
-        var code = @"class C
-{
-    public void M()
-    {
-        fixed (void* ptr = &i)
-        if (false)
-        {
-        }$$
-    }
-}";
-
-        var expected = @"class C
-{
-    public void M()
-    {
-        fixed (void* ptr = &i)
-            if (false)
+        => AutoFormatToken("""
+            class C
             {
+                public void M()
+                {
+                    fixed (void* ptr = &i)
+                    if (false)
+                    {
+                    }$$
+                }
             }
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    fixed (void* ptr = &i)
+                        if (false)
+                        {
+                        }
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     public void NotFixedStatementWithNestedFixedStatement(bool useTabs)
-    {
-        var code = @"class C
-{
-    public void M()
-    {
-        if (false)
-        fixed (void* ptr = &i)
-        {
-        }$$
-    }
-}";
-
-        var expected = @"class C
-{
-    public void M()
-    {
-        if (false)
-            fixed (void* ptr = &i)
+        => AutoFormatToken("""
+            class C
             {
+                public void M()
+                {
+                    if (false)
+                    fixed (void* ptr = &i)
+                    {
+                    }$$
+                }
             }
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    if (false)
+                        fixed (void* ptr = &i)
+                        {
+                        }
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
     public void FormattingRangeForFirstStatementOfBlock(bool useTabs)
-    {
-        var code = @"class C
-{
-    public void M()
-    {int s;$$
-    }
-}";
-
-        var expected = @"class C
-{
-    public void M()
-    {
-        int s;
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {
+                public void M()
+                {int s;$$
+                }
+            }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    int s;
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
     public void FormattingRangeForFirstMemberofType(bool useTabs)
-    {
-        var code = @"class C
-{int s;$$
-    public void M()
-    {
-    }
-}";
-
-        var expected = @"class C
-{
-    int s;
-    public void M()
-    {
-    }
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {int s;$$
+                public void M()
+                {
+                }
+            }
+            """, """
+            class C
+            {
+                int s;
+                public void M()
+                {
+                }
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
     public void FormattingRangeForFirstMethodMemberofType(bool useTabs)
-    {
-        var code = @"interface C
-{void s();$$
-}";
-
-        var expected = @"interface C
-{
-    void s();
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            interface C
+            {void s();$$
+            }
+            """, """
+            interface C
+            {
+                void s();
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/17257")]
     public void FormattingRangeForConstructor(bool useTabs)
-    {
-        var code = @"class C
-{public C()=>f=1;$$
-}";
-
-        var expected = @"class C
-{
-    public C() => f = 1;
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {public C()=>f=1;$$
+            }
+            """, """
+            class C
+            {
+                public C() => f = 1;
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/17257")]
     public void FormattingRangeForDestructor(bool useTabs)
-    {
-        var code = @"class C
-{~C()=>f=1;$$
-}";
-
-        var expected = @"class C
-{
-    ~C() => f = 1;
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {~C()=>f=1;$$
+            }
+            """, """
+            class C
+            {
+                ~C() => f = 1;
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/17257")]
     public void FormattingRangeForOperator(bool useTabs)
-    {
-        var code = @"class C
-{public static C operator +(C left, C right)=>field=1;$$
-    static int field;
-}";
-
-        var expected = @"class C
-{
-    public static C operator +(C left, C right) => field = 1;
-    static int field;
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            class C
+            {public static C operator +(C left, C right)=>field=1;$$
+                static int field;
+            }
+            """, """
+            class C
+            {
+                public static C operator +(C left, C right) => field = 1;
+                static int field;
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
     public void FormattingRangeForFirstMemberOfNamespace(bool useTabs)
-    {
-        var code = @"namespace C
-{delegate void s();$$
-}";
-
-        var expected = @"namespace C
-{
-    delegate void s();
-}";
-
-        AutoFormatToken(code, expected, useTabs);
-    }
+        => AutoFormatToken("""
+            namespace C
+            {delegate void s();$$
+            }
+            """, """
+            namespace C
+            {
+                delegate void s();
+            }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
     public void FormatDirectiveTriviaAlwaysToColumnZero(bool useTabs)
-    {
-        var code = @"class Program
-{
-    static void Main(string[] args)
-    {
-#if
-        #$$
-    }
-}
-";
+        => AutoFormatToken("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #if
+                    #$$
+                }
+            }
 
-        var expected = @"class Program
-{
-    static void Main(string[] args)
-    {
-#if
-#
-    }
-}
-";
+            """, """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #if
+            #
+                }
+            }
 
-        AutoFormatToken(code, expected, useTabs);
-    }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
     public void FormatDirectiveTriviaAlwaysToColumnZeroWithCode(bool useTabs)
-    {
-        var code = @"class Program
-{
-    static void Main(string[] args)
-    {
-#if
-        int s = 10;
-        #$$
-    }
-}
-";
+        => AutoFormatToken("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #if
+                    int s = 10;
+                    #$$
+                }
+            }
 
-        var expected = @"class Program
-{
-    static void Main(string[] args)
-    {
-#if
-        int s = 10;
-#
-    }
-}
-";
+            """, """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #if
+                    int s = 10;
+            #
+                }
+            }
 
-        AutoFormatToken(code, expected, useTabs);
-    }
+            """, useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
     public void FormatDirectiveTriviaAlwaysToColumnZeroWithBrokenElseDirective(bool useTabs)
-    {
-        var code = @"class Program
-{
-    static void Main(string[] args)
-    {
-#else
-        #$$
-    }
-}
-";
+        => AutoFormatToken("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #else
+                    #$$
+                }
+            }
 
-        var expected = @"class Program
-{
-    static void Main(string[] args)
-    {
-#else
-#
-    }
-}
-";
+            """, """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #else
+            #
+                }
+            }
 
-        AutoFormatToken(code, expected, useTabs);
-    }
+            """, useTabs);
 
     internal static void AutoFormatToken(string markup, string expected, bool useTabs)
     {
@@ -3440,13 +3133,11 @@ class Program{
             return;
         }
 
-        Assert.Equal(startTokenKind, tokenRange.Value.Item1.Kind());
-        if (tokenRange.Value.Item1.Equals(tokenRange.Value.Item2))
-        {
+        Assert.Equal(startTokenKind, tokenRange.Value.startToken.Kind());
+        if (tokenRange.Value.startToken.Equals(tokenRange.Value.endToken))
             return;
-        }
 
-        var changes = formatter.FormatRange(tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
+        var changes = formatter.FormatRange(tokenRange.Value.startToken, tokenRange.Value.endToken, CancellationToken.None);
         var actual = GetFormattedText(buffer, changes);
         Assert.Equal(expected, actual);
     }

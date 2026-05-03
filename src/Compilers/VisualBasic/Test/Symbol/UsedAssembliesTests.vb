@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -3661,7 +3662,7 @@ public class C3
 End Class
 ",
                         TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse({"C2.C1"})).
-                            WithSpecificDiagnosticOptions({KeyValuePairUtil.Create("BC40057", ReportDiagnostic.Suppress)}),
+                            WithSpecificDiagnosticOptions({KeyValuePair.Create("BC40057", ReportDiagnostic.Suppress)}),
                         comp0Ref, comp1Ref)
             Assert.DoesNotContain(comp0Ref, used)
             Assert.DoesNotContain(comp1Ref, used)
@@ -3673,7 +3674,7 @@ public class C3
 End Class
 ",
                        TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse({"alias1 = C2.C1"})).
-                            WithSpecificDiagnosticOptions({KeyValuePairUtil.Create("BC40057", ReportDiagnostic.Suppress)}),
+                            WithSpecificDiagnosticOptions({KeyValuePair.Create("BC40057", ReportDiagnostic.Suppress)}),
                        comp0Ref, comp1Ref)
             Assert.DoesNotContain(comp0Ref, used)
             Assert.DoesNotContain(comp1Ref, used)
@@ -4784,6 +4785,101 @@ End Interface
             lib1_comp.AssertNoDiagnostics()
             CompileWithUsedAssemblyReferences(lib1_comp, specificReferencesToAssert:=lib1_refs)
 
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73558")>
+        Public Sub AnonymousTypes_01()
+            Dim source =
+    <compilation>
+        <file>
+Class Program
+    Shared Sub Main()
+        Dim anon = New With {key .X = 1, key .Y = 2}
+    End Sub
+End Class
+        </file>
+    </compilation>
+
+            Dim comp1 = CreateCompilation(source, targetFramework:=TargetFramework.Net90)
+            Dim used = comp1.GetUsedAssemblyReferences()
+            AssertEx.Equal("System.Collections", comp1.GetWellKnownType(WellKnownType.System_Collections_Generic_EqualityComparer_T).ContainingAssembly.Name)
+
+            CompileAndVerify(comp1, verify:=Verification.FailsPEVerify).VerifyDiagnostics()
+
+            Dim comp2 = comp1.RemoveAllReferences().AddReferences(used)
+            CompileAndVerify(comp2, verify:=Verification.FailsPEVerify).VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73558")>
+        Public Sub AnonymousTypes_02()
+            Dim source =
+    <compilation>
+        <file>
+Class Program
+    Shared Sub Main()
+        Dim anon = New With {.X = 1, .Y = 2}
+    End Sub
+End Class
+        </file>
+    </compilation>
+
+            Dim comp1 = CreateCompilation(source, targetFramework:=TargetFramework.Net90)
+            Dim used = comp1.GetUsedAssemblyReferences()
+
+            CompileAndVerify(comp1, verify:=Verification.FailsPEVerify).VerifyDiagnostics()
+
+            Dim comp2 = comp1.RemoveAllReferences().AddReferences(used)
+            CompileAndVerify(comp2, verify:=Verification.FailsPEVerify).VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73558")>
+        Public Sub AnonymousTypes_03()
+            Dim source =
+    <compilation>
+        <file>
+Class Program
+    Shared Sub Main()
+        Dim anon = Sub (x as Integer, y as Integer) 
+                   End Sub
+    End Sub
+End Class
+        </file>
+    </compilation>
+
+            Dim comp1 = CreateCompilation(source, targetFramework:=TargetFramework.Net90)
+            Dim used = comp1.GetUsedAssemblyReferences()
+
+            CompileAndVerify(comp1, verify:=Verification.FailsPEVerify).VerifyDiagnostics()
+
+            Dim comp2 = comp1.RemoveAllReferences().AddReferences(used)
+            CompileAndVerify(comp2, verify:=Verification.FailsPEVerify).VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73558")>
+        Public Sub AnonymousTypes_04()
+            Dim source =
+    <compilation name="Lib1">
+        <file>
+Class Program
+    Shared Sub Main()
+        Dim anon1 = New With {key .X = 1, key .Y = 2}
+        Dim anon2 = New With {key .U = 1, key .V = 2}
+    End Sub
+End Class
+        </file>
+    </compilation>
+
+            Dim comp1 = CreateCompilation(source, targetFramework:=TargetFramework.Net90)
+            comp1.MakeTypeMissing(WellKnownType.System_IEquatable_T)
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC31091: Import of type 'IEquatable(Of )' from assembly or module 'Lib1.dll' failed.
+</expected>
+            )
         End Sub
 
     End Class

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
 [LanguageServerEndpoint("initialize", LanguageServerConstants.DefaultLanguageName)]
-internal class InitializeHandler<TRequest, TResponse, TRequestContext>
+internal sealed class InitializeHandler<TRequest, TResponse, TRequestContext>
     : IRequestHandler<TRequest, TResponse, TRequestContext>
 {
     private readonly IInitializeManager<TRequest, TResponse> _capabilitiesManager;
@@ -23,12 +23,12 @@ internal class InitializeHandler<TRequest, TResponse, TRequestContext>
 
     public bool MutatesSolutionState => true;
 
-    public Task<TResponse> HandleRequestAsync(TRequest request, TRequestContext context, CancellationToken cancellationToken)
+    public async Task<TResponse> HandleRequestAsync(TRequest request, TRequestContext context, CancellationToken cancellationToken)
     {
         _capabilitiesManager.SetInitializeParams(request);
 
         var serverCapabilities = _capabilitiesManager.GetInitializeResult();
 
-        return Task.FromResult(serverCapabilities);
+        return serverCapabilities;
     }
 }

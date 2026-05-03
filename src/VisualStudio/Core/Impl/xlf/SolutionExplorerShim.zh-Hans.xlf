@@ -102,11 +102,6 @@
         <target state="translated">已禁止</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rule_Set">
-        <source>Rule Set</source>
-        <target state="translated">规则集</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Checking_out_0_for_editing">
         <source>Checking out {0} for editing...</source>
         <target state="translated">正在签出 {0} 以便编辑...</target>

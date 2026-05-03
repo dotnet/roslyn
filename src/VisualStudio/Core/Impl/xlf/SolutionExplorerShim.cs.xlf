@@ -102,11 +102,6 @@
         <target state="translated">Potlačeno</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rule_Set">
-        <source>Rule Set</source>
-        <target state="translated">Sada pravidel</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Checking_out_0_for_editing">
         <source>Checking out {0} for editing...</source>
         <target state="translated">Rezervuje se {0} pro úpravy...</target>

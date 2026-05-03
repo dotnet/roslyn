@@ -10,13 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class BreakKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class BreakKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.BreakKeyword)
 {
-    public BreakKeywordRecommender()
-        : base(SyntaxKind.BreakKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return

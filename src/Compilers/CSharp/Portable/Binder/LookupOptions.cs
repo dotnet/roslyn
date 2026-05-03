@@ -75,11 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         UseBaseReferenceAccessibility = 1 << 9,
 
         /// <summary>
-        /// Include extension methods.
-        /// </summary>
-        IncludeExtensionMethods = 1 << 10,
-
-        /// <summary>
         /// Consider only attribute types.
         /// </summary>
         AttributeTypeOnly = (1 << 11) | NamespacesOrTypesOnly,
@@ -110,6 +105,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Do not consider symbols that are parameters.
         /// </summary>
         MustNotBeParameter = 1 << 16,
+
+        /// <summary>
+        /// Consider only symbols that are user-defined operators.
+        /// </summary>
+        MustBeOperator = 1 << 17,
+
+        // Available 1 << 10,
     }
 
     internal static class LookupOptionExtensions

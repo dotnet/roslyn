@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -29,11 +30,9 @@ internal sealed partial class ConstructorInitializerSignatureHelpProvider : Abst
     {
     }
 
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     private async Task<ConstructorInitializerSyntax?> TryGetConstructorInitializerAsync(
         Document document,
@@ -41,23 +40,14 @@ internal sealed partial class ConstructorInitializerSignatureHelpProvider : Abst
         SignatureHelpTriggerReason triggerReason,
         CancellationToken cancellationToken)
     {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var initializer = await CommonSignatureHelpUtilities.TryGetSyntaxAsync<ConstructorInitializerSyntax>(
+            document, position, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken).ConfigureAwait(false);
 
-        if (!CommonSignatureHelpUtilities.TryGetSyntax(
-                root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out ConstructorInitializerSyntax? initializer))
-        {
-            return null;
-        }
-
-        if (initializer.ArgumentList is null)
-            return null;
-
-        return initializer;
+        return initializer?.ArgumentList is null ? null : initializer;
     }
 
     private bool IsTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<ConstructorInitializerSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<ConstructorInitializerSyntax>(token, TriggerCharacters);
 
     private static bool IsArgumentListToken(ConstructorInitializerSyntax expression, SyntaxToken token)
     {
@@ -99,7 +89,7 @@ internal sealed partial class ConstructorInitializerSignatureHelpProvider : Abst
         if (!constructors.Any())
             return null;
 
-        var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, constructorInitializer.ArgumentList.Arguments)
+        var (currentSymbol, parameterIndexOverride) = new CSharpLightweightOverloadResolution(semanticModel, constructorInitializer.ArgumentList.Arguments, position)
             .RefineOverloadAndPickParameter(semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken), constructors);
 
         // present items and select

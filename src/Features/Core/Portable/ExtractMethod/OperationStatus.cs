@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
-using Roslyn.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal sealed partial class OperationStatus
 {
-    public OperationStatus(bool succeeded, string reason)
+    public OperationStatus(bool succeeded, string? reason)
     {
         Succeeded = succeeded;
         Reasons = reason == null ? [] : [reason];
@@ -34,12 +32,9 @@ internal sealed partial class OperationStatus
     }
 
     public OperationStatus With(OperationStatus operationStatus)
-    {
-        var newSucceeded = Succeeded && operationStatus.Succeeded;
-
-        var reasons = Reasons.Concat(operationStatus.Reasons);
-        return new OperationStatus(newSucceeded, reasons);
-    }
+        => new(
+            Succeeded && operationStatus.Succeeded,
+            [.. Reasons, .. operationStatus.Reasons]);
 
     public OperationStatus MakeFail()
         => new(succeeded: false, Reasons);

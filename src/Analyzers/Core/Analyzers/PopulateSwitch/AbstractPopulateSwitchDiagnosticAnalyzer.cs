@@ -2,36 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch;
 
-internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperation, TSwitchSyntax> :
-    AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperation, TSwitchSyntax>(
+    string diagnosticId,
+    EnforceOnBuild enforceOnBuild)
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(diagnosticId,
+        enforceOnBuild,
+        option: null,
+        s_localizableTitle, s_localizableMessage)
     where TSwitchOperation : IOperation
     where TSwitchSyntax : SyntaxNode
 {
     private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(AnalyzersResources.Add_missing_cases), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
     private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(AnalyzersResources.Populate_switch), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-    protected AbstractPopulateSwitchDiagnosticAnalyzer(string diagnosticId, EnforceOnBuild enforceOnBuild)
-        : base(diagnosticId,
-               enforceOnBuild,
-               option: null,
-               s_localizableTitle, s_localizableMessage)
-    {
-    }
-
     protected abstract OperationKind OperationKind { get; }
 
     protected abstract bool IsSwitchTypeUnknown(TSwitchOperation operation);
     protected abstract IOperation GetValueOfSwitchOperation(TSwitchOperation operation);
+
+    protected abstract bool IsKnownToBeExhaustive(TSwitchOperation switchOperation);
 
     protected abstract bool HasConstantCase(TSwitchOperation operation, object? value);
     protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation operation);
@@ -39,7 +36,8 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
     protected abstract bool HasExhaustiveNullAndTypeCheckCases(TSwitchOperation operation);
     protected abstract Location GetDiagnosticLocation(TSwitchSyntax switchBlock);
 
-    public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+    public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
     protected sealed override void InitializeWorker(AnalysisContext context)
         => context.RegisterOperationAction(AnalyzeOperation, OperationKind);
@@ -83,18 +81,23 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
     {
         var typeWithoutNullable = type.RemoveNullableIfPresent();
 
-        if (typeWithoutNullable.SpecialType == SpecialType.System_Boolean)
-        {
-            return AnalyzeBooleanSwitch(switchOperation, type);
-        }
-        else if (typeWithoutNullable.TypeKind == TypeKind.Enum)
-        {
+        // We treat enum switches specially.  Specifically, even if exhaustive (because of a 'default' case),
+        // we still want to let users use the feature to fill in missing enum members.  That way if they add
+        // new enum members, they can quickly find and fix the switches that aren't explicitly handling those cases.
+        //
+        // Note: this should likely be a refactoring instead of an analyzer.  However, for historical reasons,
+        // we shipped in this fashion.
+        if (typeWithoutNullable.TypeKind == TypeKind.Enum)
             return AnalyzeEnumSwitch(switchOperation, type);
-        }
-        else
-        {
-            return (missingCases: false, missingDefaultCase: !HasDefaultCase(switchOperation));
-        }
+
+        // For all other types, we don't want to offer the user anything if the switch is already exhaustive.
+        if (this.IsKnownToBeExhaustive(switchOperation))
+            return default;
+
+        if (typeWithoutNullable.SpecialType == SpecialType.System_Boolean)
+            return AnalyzeBooleanSwitch(switchOperation, type);
+
+        return (missingCases: false, missingDefaultCase: !HasDefaultCase(switchOperation));
     }
 
     private (bool missingCases, bool missingDefaultCase) AnalyzeBooleanSwitch(TSwitchOperation operation, ITypeSymbol type)

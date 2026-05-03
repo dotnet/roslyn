@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeTypeAbstract
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50003")>
         Public Async Function TestMethod_CodeFix() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Public Class [|Foo|]
     Public MustOverride Sub M()
 End Class",

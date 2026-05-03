@@ -3,13 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -31,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Conditional("DEBUG")>
         Private Sub CheckSourceLocationSeen(anonymous As AnonymousTypeOrDelegatePublicSymbol)
 #If DEBUG Then
-            Dim location As Location = anonymous.Locations(0)
+            Dim location As Location = anonymous.GetFirstLocation()
             If location.IsInSource Then
                 If Me.AreTemplatesSealed Then
                     Debug.Assert(Me._sourceLocationsSeen.ContainsKey(location))
@@ -162,28 +161,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Shared Function CreatePlaceholderTypeDescriptor(key As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey) As AnonymousTypeDescriptor
-            Dim names = key.Fields.SelectAsArray(Function(f) New AnonymousTypeField(f.Name, Location.None, f.IsKey))
-            Return New AnonymousTypeDescriptor(names, Location.None, True)
-        End Function
-
         ''' <summary>
         ''' Resets numbering in anonymous type names and compiles the
         ''' anonymous type methods. Also seals the collection of templates.
         ''' </summary>
         Public Sub AssignTemplatesNamesAndCompile(compiler As MethodCompiler, moduleBeingBuilt As Emit.PEModuleBuilder, diagnostics As BindingDiagnosticBag)
-
-            ' Ensure all previous anonymous type templates are included so the
-            ' types are available for subsequent edit and continue generations.
-            For Each key In moduleBeingBuilt.GetPreviousAnonymousTypes()
-                Dim templateKey = AnonymousTypeDescriptor.ComputeKey(key.Fields, Function(f) f.Name, Function(f) f.IsKey)
-                If key.IsDelegate Then
-                    AnonymousDelegateTemplates.GetOrAdd(templateKey, Function(k) AnonymousDelegateTemplateSymbol.Create(Me, CreatePlaceholderTypeDescriptor(key)))
-                Else
-                    AnonymousTypeTemplates.GetOrAdd(templateKey, Function(k) New AnonymousTypeTemplateSymbol(Me, CreatePlaceholderTypeDescriptor(key)))
-                End If
-            Next
-
             ' Get all anonymous types owned by this manager
             Dim builder = ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol).GetInstance()
             GetAllCreatedTemplates(builder)
@@ -192,23 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' to the created anonymous type and delegate templates
             If Not Me.AreTemplatesSealed Then
 
-                ' If we are emitting .NET module, include module's name into type's name to ensure
-                ' uniqueness across added modules.
-                Dim moduleId As String
-
-                If moduleBeingBuilt.OutputKind = OutputKind.NetModule Then
-                    moduleId = moduleBeingBuilt.Name
-                    Dim extension As String = OutputKind.NetModule.GetDefaultExtension()
-
-                    If moduleId.EndsWith(extension, StringComparison.OrdinalIgnoreCase) Then
-                        moduleId = moduleId.Substring(0, moduleId.Length - extension.Length)
-                    End If
-
-                    moduleId = "<" & MetadataHelpers.MangleForTypeNameIfNeeded(moduleId) & ">"
-                Else
-                    moduleId = String.Empty
-                End If
-
+                Dim moduleId = GetModuleId(moduleBeingBuilt)
                 Dim typeIndex = moduleBeingBuilt.GetNextAnonymousTypeIndex(fromDelegates:=False)
                 Dim delegateIndex = moduleBeingBuilt.GetNextAnonymousTypeIndex(fromDelegates:=True)
                 For Each template In builder
@@ -247,6 +213,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             builder.Free()
         End Sub
+
+        Function GetModuleId(moduleBeingBuilt As Emit.PEModuleBuilder) As String
+            ' If we are emitting .NET module, include module's name into type's name to ensure
+            ' uniqueness across added modules.
+
+            If moduleBeingBuilt.OutputKind = OutputKind.NetModule Then
+                Dim moduleId = moduleBeingBuilt.Name
+                Dim extension As String = OutputKind.NetModule.GetDefaultExtension()
+
+                If moduleId.EndsWith(extension, StringComparison.OrdinalIgnoreCase) Then
+                    moduleId = moduleId.Substring(0, moduleId.Length - extension.Length)
+                End If
+
+                Return "<" & MetadataHelpers.MangleForTypeNameIfNeeded(moduleId) & ">"
+            Else
+                Return String.Empty
+            End If
+        End Function
 
         Friend Function GetAnonymousTypeMap() As ImmutableSegmentedDictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
             Dim templates = ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol).GetInstance()
@@ -303,6 +287,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 builder.Sort(New AnonymousTypeComparer(Me.Compilation))
             End If
         End Sub
+
+        Friend Overrides Function GetSynthesizedTypeMaps() As SynthesizedTypeMaps
+            ' VB anonymous delegates are handled as anonymous types
+            Return New SynthesizedTypeMaps(
+                GetAnonymousTypeMap(),
+                anonymousDelegates:=Nothing,
+                anonymousDelegatesWithIndexedNames:=Nothing)
+        End Function
 
         Private NotInheritable Class AnonymousTypeComparer
             Implements IComparer(Of AnonymousTypeOrDelegateTemplateSymbol)

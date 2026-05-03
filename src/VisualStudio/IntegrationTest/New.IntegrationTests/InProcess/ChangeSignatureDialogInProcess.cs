@@ -8,18 +8,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using WindowsInput.Native;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class ChangeSignatureDialogInProcess
+internal sealed partial class ChangeSignatureDialogInProcess
 {
     private async Task<ChangeSignatureDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {
@@ -32,7 +33,7 @@ internal partial class ChangeSignatureDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await buttonAccessor(dialog).SimulateClickAsync(JoinableTaskFactory));
     }
@@ -91,37 +92,27 @@ internal partial class ChangeSignatureDialogInProcess
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
     }
 
-    public async Task ClickDownButtonAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().DownButton, cancellationToken);
-    }
+    public Task ClickDownButtonAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().DownButton, cancellationToken);
 
-    public async Task ClickUpButtonAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().UpButton, cancellationToken);
-    }
+    public Task ClickUpButtonAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().UpButton, cancellationToken);
 
-    public async Task ClickAddButtonAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().AddButton, cancellationToken);
-    }
+    public Task ClickAddButtonAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().AddButton, cancellationToken);
 
-    public async Task ClickRemoveButtonAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().RemoveButton, cancellationToken);
-    }
+    public Task ClickRemoveButtonAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().RemoveButton, cancellationToken);
 
-    public async Task ClickRestoreButtonAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().RestoreButton, cancellationToken);
-    }
+    public Task ClickRestoreButtonAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().RestoreButton, cancellationToken);
 
     public async Task SelectParameterAsync(string parameterName, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         var members = dialog.GetTestAccessor().Members;
         members.SelectedItem = dialog.GetTestAccessor().ViewModel.AllParameters.Single(p => p.ShortAutomationText == parameterName);

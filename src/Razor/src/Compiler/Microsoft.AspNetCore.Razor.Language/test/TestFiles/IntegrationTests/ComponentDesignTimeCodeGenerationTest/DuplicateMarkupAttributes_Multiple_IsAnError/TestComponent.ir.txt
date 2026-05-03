@@ -1,0 +1,33 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupElement - (0:0,0 [145] x:\dir\subdir\Test\TestComponent.cshtml) - div
+                    HtmlContent - (5:0,5 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (5:0,5 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n  
+                    MarkupElement - (9:1,2 [128] x:\dir\subdir\Test\TestComponent.cshtml) - a
+                        HtmlAttribute - (11:1,4 [17] x:\dir\subdir\Test\TestComponent.cshtml) -  href=" - "
+                            HtmlAttributeValue - (18:1,11 [9] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                                LazyIntermediateToken - (18:1,11 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Html - /cool-url
+                        HtmlAttribute - (28:1,21 [9] x:\dir\subdir\Test\TestComponent.cshtml) -  style=" - "
+                        HtmlAttribute - (37:1,30 [9] x:\dir\subdir\Test\TestComponent.cshtml) -  disabled - 
+                        HtmlAttribute - (46:1,39 [24] x:\dir\subdir\Test\TestComponent.cshtml) -  href=" - "
+                            HtmlAttributeValue - (53:1,46 [16] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                                LazyIntermediateToken - (53:1,46 [16] x:\dir\subdir\Test\TestComponent.cshtml) - Html - /even-cooler-url
+                        HtmlAttribute - (70:1,63 [5] x:\dir\subdir\Test\TestComponent.cshtml) -  href - 
+                        HtmlContent - (76:1,69 [57] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (76:1,69 [57] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Learn the ten cool tricks your compiler author will hate!
+                    HtmlContent - (137:1,130 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (137:1,130 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -36,7 +37,6 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
     public readonly bool IsLocalFunctionDeclarationContext;
     public readonly bool IsLocalVariableDeclarationContext;
     public readonly bool IsNonAttributeExpressionContext;
-    public readonly bool IsObjectCreationTypeContext;
     public readonly bool IsParameterTypeContext;
     public readonly bool IsPossibleLambdaOrAnonymousMethodParameterTypeContext;
     public readonly bool IsPreProcessorKeywordContext;
@@ -60,6 +60,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         bool isAtStartOfPattern,
         bool isAttributeNameContext,
         bool isAwaitKeywordContext,
+        bool isBaseListContext,
         bool isCatchFilterContext,
         bool isConstantExpressionContext,
         bool isCrefContext,
@@ -120,6 +121,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
               isAtStartOfPattern: isAtStartOfPattern,
               isAttributeNameContext: isAttributeNameContext,
               isAwaitKeywordContext: isAwaitKeywordContext,
+              isBaseListContext: isBaseListContext,
               isEnumBaseListContext: isEnumBaseListContext,
               isEnumTypeMemberAccessContext: isEnumTypeMemberAccessContext,
               isGenericConstraintContext: isGenericConstraintContext,
@@ -130,6 +132,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
               isNameOfContext: isNameOfContext,
               isNamespaceContext: isNamespaceContext,
               isNamespaceDeclarationNameContext: isNamespaceDeclarationNameContext,
+              isObjectCreationTypeContext: isObjectCreationTypeContext,
               isOnArgumentListBracketOrComma: isOnArgumentListBracketOrComma,
               isPossibleTupleContext: isPossibleTupleContext,
               isPreProcessorDirectiveContext: isPreProcessorDirectiveContext,
@@ -164,7 +167,6 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         this.IsLocalFunctionDeclarationContext = isLocalFunctionDeclarationContext;
         this.IsLocalVariableDeclarationContext = isLocalVariableDeclarationContext;
         this.IsNonAttributeExpressionContext = isNonAttributeExpressionContext;
-        this.IsObjectCreationTypeContext = isObjectCreationTypeContext;
         this.IsParameterTypeContext = isParameterTypeContext;
         this.IsPossibleLambdaOrAnonymousMethodParameterTypeContext = isPossibleLambdaOrAnonymousMethodParameterTypeContext;
         this.IsPreProcessorKeywordContext = isPreProcessorKeywordContext;
@@ -195,40 +197,22 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
 
         var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-        var isPreProcessorKeywordContext = isPreProcessorDirectiveContext
-            ? syntaxTree.IsPreProcessorKeywordContext(position, leftToken)
-            : false;
+        var isPreProcessorKeywordContext = isPreProcessorDirectiveContext && syntaxTree.IsPreProcessorKeywordContext(position, leftToken);
+        var isPreProcessorExpressionContext = isPreProcessorDirectiveContext && targetToken.IsPreProcessorExpressionContext();
 
-        var isPreProcessorExpressionContext = isPreProcessorDirectiveContext
-            ? targetToken.IsPreProcessorExpressionContext()
-            : false;
-
-        var isStatementContext = !isPreProcessorDirectiveContext
-            ? targetToken.IsBeginningOfStatementContext()
-            : false;
-
-        var isGlobalStatementContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsGlobalStatementContext(position, cancellationToken)
-            : false;
-
-        var isAnyExpressionContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel)
-            : false;
-
-        var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModel: semanticModel)
-            : false;
-
-        var isConstantExpressionContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsConstantExpressionContext(position, leftToken)
-            : false;
+        var isStatementContext = !isPreProcessorDirectiveContext && targetToken.IsBeginningOfStatementContext();
+        var isGlobalStatementContext = !isPreProcessorDirectiveContext && syntaxTree.IsGlobalStatementContext(position, cancellationToken);
+        var isAnyExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel);
+        var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModel: semanticModel);
+        var isConstantExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsConstantExpressionContext(position, leftToken);
 
         var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
         var containingTypeOrEnumDeclaration = syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
 
-        var isDestructorTypeContext = targetToken.IsKind(SyntaxKind.TildeToken) &&
-                                        targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
-                                        targetToken.Parent.Parent is (kind: SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration);
+        var isDestructorTypeContext =
+            targetToken.IsKind(SyntaxKind.TildeToken) &&
+            targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
+            targetToken.Parent.Parent is (kind: SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration);
 
         // Typing a dot after a numeric expression (numericExpression.) 
         // - maybe a start of MemberAccessExpression like numericExpression.Member.
@@ -256,6 +240,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
             isAtStartOfPattern: syntaxTree.IsAtStartOfPattern(leftToken, position),
             isAttributeNameContext: syntaxTree.IsAttributeNameContext(position, cancellationToken),
             isAwaitKeywordContext: ComputeIsAwaitKeywordContext(position, leftToken, targetToken, isGlobalStatementContext, isAnyExpressionContext, isStatementContext),
+            isBaseListContext: syntaxTree.IsBaseListContext(targetToken),
             isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
             isConstantExpressionContext: isConstantExpressionContext,
             isCrefContext: syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
@@ -527,5 +512,64 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         }
 
         return false;
+    }
+
+    public override AttributeTargets? ValidAttributeTargets => field ??= ComputeValidAttributeTargets();
+
+    private AttributeTargets ComputeValidAttributeTargets()
+    {
+        return ComputeWorker() ?? AttributeTargets.All;
+
+        AttributeTargets? ComputeWorker()
+        {
+            if (IsAttributeNameContext)
+            {
+                var attributeList = this.TargetToken.Parent?.FirstAncestorOrSelf<AttributeListSyntax>();
+
+                // Check if there's an explicit target specifier (e.g., "assembly:", "return:", etc.)
+                if (attributeList is { Target.Identifier: var identifier })
+                {
+                    return identifier.Kind() switch
+                    {
+                        SyntaxKind.AssemblyKeyword or SyntaxKind.ModuleKeyword => AttributeTargets.Assembly | AttributeTargets.Module,
+                        SyntaxKind.TypeKeyword => AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Interface | AttributeTargets.Delegate,
+                        SyntaxKind.MethodKeyword => AttributeTargets.Method,
+                        SyntaxKind.FieldKeyword => AttributeTargets.Field,
+                        SyntaxKind.PropertyKeyword => AttributeTargets.Property,
+                        SyntaxKind.EventKeyword => AttributeTargets.Event,
+                        SyntaxKind.ParamKeyword => AttributeTargets.Parameter,
+                        SyntaxKind.ReturnKeyword => AttributeTargets.ReturnValue,
+                        SyntaxKind.TypeVarKeyword => AttributeTargets.GenericParameter,
+                        _ => null,
+                    };
+                }
+
+                // No explicit target. Walk up to find what the attribute is attached to.
+                return attributeList?.Parent switch
+                {
+                    ClassDeclarationSyntax => AttributeTargets.Class,
+                    StructDeclarationSyntax => AttributeTargets.Struct,
+                    InterfaceDeclarationSyntax => AttributeTargets.Interface,
+                    EnumDeclarationSyntax => AttributeTargets.Enum,
+                    DelegateDeclarationSyntax => AttributeTargets.Delegate,
+                    RecordDeclarationSyntax record => record.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)
+                        ? AttributeTargets.Struct
+                        : AttributeTargets.Class,
+
+                    MethodDeclarationSyntax => AttributeTargets.Method,
+                    ConstructorDeclarationSyntax => AttributeTargets.Constructor,
+                    PropertyDeclarationSyntax or IndexerDeclarationSyntax => AttributeTargets.Property,
+                    EventDeclarationSyntax or EventFieldDeclarationSyntax => AttributeTargets.Event,
+                    FieldDeclarationSyntax => AttributeTargets.Field,
+                    ParameterSyntax => AttributeTargets.Parameter,
+                    TypeParameterSyntax => AttributeTargets.GenericParameter,
+                    CompilationUnitSyntax => AttributeTargets.Assembly | AttributeTargets.Module,
+
+                    _ => null,
+                };
+            }
+
+            return null;
+        }
     }
 }

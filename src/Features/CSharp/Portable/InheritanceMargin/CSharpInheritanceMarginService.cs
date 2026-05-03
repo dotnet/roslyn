@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.InheritanceMargin;
 
 [ExportLanguageService(typeof(IInheritanceMarginService), LanguageNames.CSharp), Shared]
-internal class CSharpInheritanceMarginService : AbstractInheritanceMarginService
+internal sealed class CSharpInheritanceMarginService : AbstractInheritanceMarginService
 {
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     [ImportingConstructor]

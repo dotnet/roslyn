@@ -1,0 +1,5 @@
+﻿Source Location: (30:0,30 [78] x:\dir\subdir\Test\TestComponent.cshtml)
+|true ? Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer : null|
+Generated Location: (1096:29,28 [78] )
+|true ? Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer : null|
+

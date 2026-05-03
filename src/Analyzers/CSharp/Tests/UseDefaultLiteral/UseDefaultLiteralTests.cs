@@ -17,31 +17,26 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseDefaultLiteralCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-public class UseDefaultLiteralTests
+public sealed class UseDefaultLiteralTests
 {
     [Fact]
-    public async Task TestNotInCSharp7()
-    {
-        var code = """
+    public Task TestNotInCSharp7()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void Goo(string s = default(string))
                 {
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInParameterList()
-    {
-        await new VerifyCS.Test
+    public Task TestInParameterList()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -61,12 +56,10 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInIfCheck()
-    {
-        await new VerifyCS.Test
+    public Task TestInIfCheck()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -88,12 +81,10 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInReturnStatement()
-    {
-        await new VerifyCS.Test
+    public Task TestInReturnStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -115,12 +106,12 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInReturnStatement2()
-    {
-        var code = """
+    public Task TestInReturnStatement2()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 string Goo()
@@ -128,19 +119,13 @@ public class UseDefaultLiteralTests
                     return {|CS0029:default(int)|};
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInLambda1()
-    {
-        await new VerifyCS.Test
+    public Task TestInLambda1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -166,12 +151,12 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInLambda2()
-    {
-        var code = """
+    public Task TestInLambda2()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             using System;
 
             class C
@@ -181,19 +166,13 @@ public class UseDefaultLiteralTests
                     Func<string> f = () => {|CS1662:{|CS0029:default(int)|}|};
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInLocalInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestInLocalInitializer()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -215,12 +194,12 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInLocalInitializer2()
-    {
-        var code = """
+    public Task TestInLocalInitializer2()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void Goo()
@@ -228,19 +207,15 @@ public class UseDefaultLiteralTests
                     string s = {|CS0029:default(int)|};
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotForVar()
-    {
-        var code = """
+    public Task TestNotForVar()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void Goo()
@@ -248,19 +223,13 @@ public class UseDefaultLiteralTests
                     var s = default(string);
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInInvocationExpression()
-    {
-        await new VerifyCS.Test
+    public Task TestInInvocationExpression()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -286,12 +255,12 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithMultipleOverloads()
-    {
-        var code = """
+    public Task TestNotWithMultipleOverloads()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void Goo()
@@ -302,19 +271,13 @@ public class UseDefaultLiteralTests
                 void Bar(string s) { }
                 void Bar(int i) { }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestLeftSideOfTernary()
-    {
-        await new VerifyCS.Test
+    public Task TestLeftSideOfTernary()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -338,12 +301,10 @@ public class UseDefaultLiteralTests
             DiagnosticSelector = d => d[0],
             CodeFixTestBehaviors = Testing.CodeFixTestBehaviors.FixOne | Testing.CodeFixTestBehaviors.SkipFixAllCheck
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRightSideOfTernary()
-    {
-        await new VerifyCS.Test
+    public Task TestRightSideOfTernary()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -367,12 +328,10 @@ public class UseDefaultLiteralTests
             DiagnosticSelector = d => d[1],
             CodeFixTestBehaviors = Testing.CodeFixTestBehaviors.FixOne | Testing.CodeFixTestBehaviors.SkipFixAllCheck
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -396,12 +355,10 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -423,12 +380,10 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -452,12 +407,12 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDoNotOfferIfTypeWouldChange()
-    {
-        var code = """
+    public Task TestDoNotOfferIfTypeWouldChange()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             struct S
             {
                 void M()
@@ -471,19 +426,15 @@ public class UseDefaultLiteralTests
                     return base.Equals(obj);
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDoNotOfferIfTypeWouldChange2()
-    {
-        var code = """
+    public Task TestDoNotOfferIfTypeWouldChange2()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             struct S<T>
             {
                 void M()
@@ -497,19 +448,13 @@ public class UseDefaultLiteralTests
                     return base.Equals(obj);
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOnShadowedMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestOnShadowedMethod()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct S
@@ -537,12 +482,12 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25456")]
-    public async Task TestNotInSwitchCase()
-    {
-        var code = """
+    public Task TestNotInSwitchCase()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -553,19 +498,15 @@ public class UseDefaultLiteralTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInSwitchCase_InsideParentheses()
-    {
-        var code = """
+    public Task TestNotInSwitchCase_InsideParentheses()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -576,19 +517,13 @@ public class UseDefaultLiteralTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInSwitchCase_InsideCast()
-    {
-        await new VerifyCS.Test
+    public Task TestInSwitchCase_InsideCast()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -616,12 +551,12 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInPatternSwitchCase()
-    {
-        var code = """
+    public Task TestNotInPatternSwitchCase()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -632,19 +567,15 @@ public class UseDefaultLiteralTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInPatternSwitchCase_InsideParentheses()
-    {
-        var code = """
+    public Task TestNotInPatternSwitchCase_InsideParentheses()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -655,19 +586,13 @@ public class UseDefaultLiteralTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInPatternSwitchCase_InsideCast()
-    {
-        await new VerifyCS.Test
+    public Task TestInPatternSwitchCase_InsideCast()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -695,12 +620,10 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInPatternSwitchCase_InsideWhenClause()
-    {
-        await new VerifyCS.Test
+    public Task TestInPatternSwitchCase_InsideWhenClause()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -728,12 +651,12 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInPatternIs()
-    {
-        var code = """
+    public Task TestNotInPatternIs()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -741,19 +664,15 @@ public class UseDefaultLiteralTests
                     if (true is default(bool));
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInPatternIs_InsideParentheses()
-    {
-        var code = """
+    public Task TestNotInPatternIs_InsideParentheses()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -761,19 +680,13 @@ public class UseDefaultLiteralTests
                     if (true is (default(bool)));
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInPatternIs_InsideCast()
-    {
-        await new VerifyCS.Test
+    public Task TestInPatternIs_InsideCast()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -795,5 +708,4 @@ public class UseDefaultLiteralTests
                 """,
             LanguageVersion = LanguageVersion.CSharp7_1
         }.RunAsync();
-    }
 }

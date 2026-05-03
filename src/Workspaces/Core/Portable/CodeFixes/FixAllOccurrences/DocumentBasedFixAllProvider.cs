@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -82,7 +81,7 @@ public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> su
 
         // Second, get the fixes for each document+diagnostics pair in parallel, and apply them to determine the new
         // root/text for each doc.
-        await RoslynParallel.ForEachAsync(
+        await Parallel.ForEachAsync(
             source: documentToDiagnostics,
             cancellationToken,
             async (kvp, cancellationToken) =>

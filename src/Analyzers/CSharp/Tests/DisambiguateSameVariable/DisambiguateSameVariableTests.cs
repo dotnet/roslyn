@@ -15,7 +15,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
     CSharpDisambiguateSameVariableCodeFixProvider>;
 
-public class DisambiguateSameVariableTests
+public sealed class DisambiguateSameVariableTests
 {
     [Fact]
     public async Task TestParamToParamWithNoMatch()
@@ -68,9 +68,8 @@ public class DisambiguateSameVariableTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestParamToParamWithSameNamedField()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestParamToParamWithSameNamedField()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int a;
@@ -89,7 +88,6 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestFieldToFieldWithNonMatchingField()
@@ -109,9 +107,8 @@ public class DisambiguateSameVariableTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestParamToParamWithUnderscoreNamedField()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestParamToParamWithUnderscoreNamedField()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int _a;
@@ -130,12 +127,10 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestParamToParamWithCapitalizedField()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestParamToParamWithCapitalizedField()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int A;
@@ -154,12 +149,10 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestParamToParamWithProperty()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestParamToParamWithProperty()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int A { get; set; }
@@ -178,12 +171,10 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestParamToParamWithReadOnlyFieldInConstructor()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestParamToParamWithReadOnlyFieldInConstructor()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 readonly int a;
@@ -202,13 +193,10 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestParamToParamWithReadOnlyFieldOutsideOfConstructor()
-    {
-        // Not legal, but is at least something they might want.
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestParamToParamWithReadOnlyFieldOutsideOfConstructor()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 readonly int a;
@@ -227,12 +215,10 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestParamToParamWithAccessibleFieldInBaseType()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestParamToParamWithAccessibleFieldInBaseType()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Base
             {
                 protected int a;
@@ -259,7 +245,6 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
     public async Task TestParamToParamNotWithInaccessibleFieldInBaseType()
@@ -300,9 +285,8 @@ public class DisambiguateSameVariableTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestParamToParamCompareWithSameNamedField()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestParamToParamCompareWithSameNamedField()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int a;
@@ -325,12 +309,10 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestFixAll1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int a;
@@ -351,12 +333,10 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestFieldToFieldWithPropAvailableOffOfThis()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFieldToFieldWithPropAvailableOffOfThis()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int a;
@@ -377,12 +357,10 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28290")]
-    public async Task TestFieldToFieldWithPropAvailableOffOfOtherInstance()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFieldToFieldWithPropAvailableOffOfOtherInstance()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int a;
@@ -403,5 +381,4 @@ public class DisambiguateSameVariableTests
                 }
             }
             """);
-    }
 }

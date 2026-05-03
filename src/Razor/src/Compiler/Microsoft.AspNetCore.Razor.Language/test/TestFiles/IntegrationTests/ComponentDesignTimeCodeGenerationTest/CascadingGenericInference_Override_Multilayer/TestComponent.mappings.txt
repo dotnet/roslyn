@@ -1,0 +1,20 @@
+﻿Source Location: (17:0,17 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|DateTime.Now|
+Generated Location: (1120:30,17 [12] )
+|DateTime.Now|
+
+Source Location: (54:1,21 [37] x:\dir\subdir\Test\TestComponent.cshtml)
+|System.Threading.Thread.CurrentThread|
+Generated Location: (1659:41,21 [37] )
+|System.Threading.Thread.CurrentThread|
+
+Source Location: (47:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Item|
+Generated Location: (3613:78,14 [4] )
+|Item|
+
+Source Location: (10:0,10 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Item|
+Generated Location: (4741:110,10 [4] )
+|Item|
+

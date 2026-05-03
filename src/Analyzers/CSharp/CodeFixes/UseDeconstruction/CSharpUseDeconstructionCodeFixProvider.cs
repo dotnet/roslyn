@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -30,17 +28,16 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider() : SyntaxEditorBas
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseDeconstructionDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Deconstruct_variable_declaration, nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration));
-        return Task.CompletedTask;
     }
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var nodesToProcess = diagnostics.SelectAsArray(d => d.Location.FindToken(cancellationToken).Parent);
+        var nodesToProcess = diagnostics.SelectAsArray(d => d.Location.FindToken(cancellationToken).GetRequiredParent());
 
         // When doing a fix all, we have to avoid introducing the same name multiple times
         // into the same scope.  However, checking results after each change would be very
@@ -71,14 +68,14 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider() : SyntaxEditorBas
         ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions = default;
         if (node is VariableDeclaratorSyntax variableDeclarator)
         {
-            var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
+            var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.GetRequiredParent();
             if (CSharpUseDeconstructionDiagnosticAnalyzer.TryAnalyzeVariableDeclaration(
                     semanticModel, variableDeclaration,
                     out var tupleType, out memberAccessExpressions,
                     cancellationToken))
             {
                 editor.ReplaceNode(
-                    variableDeclaration.Parent,
+                    variableDeclaration.GetRequiredParent(),
                     (current, _) =>
                     {
                         var currentDeclarationStatement = (LocalDeclarationStatementSyntax)current;
@@ -140,7 +137,7 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider() : SyntaxEditorBas
             AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 CreateTupleOrDeclarationExpression(tupleType, declarationStatement.Declaration.Type),
-                variableDeclarator.Initializer.EqualsToken,
+                variableDeclarator.Initializer!.EqualsToken,
                 variableDeclarator.Initializer.Value),
             declarationStatement.SemicolonToken);
     }
@@ -165,7 +162,7 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider() : SyntaxEditorBas
     private TupleExpressionSyntax CreateTupleExpression(TupleTypeSyntax typeNode)
         => TupleExpression(
             typeNode.OpenParenToken,
-            SeparatedList<ArgumentSyntax>(new SyntaxNodeOrTokenList(typeNode.Elements.GetWithSeparators().Select(ConvertTupleTypeElementComponent))),
+            SeparatedList<ArgumentSyntax>([.. typeNode.Elements.GetWithSeparators().Select(ConvertTupleTypeElementComponent)]),
             typeNode.CloseParenToken);
 
     private SyntaxNodeOrToken ConvertTupleTypeElementComponent(SyntaxNodeOrToken nodeOrToken)
@@ -178,7 +175,7 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider() : SyntaxEditorBas
 
         // "int x" as a tuple element directly translates to "int x" (a declaration expression
         // with a variable designation 'x').
-        var node = (TupleElementSyntax)nodeOrToken.AsNode();
+        var node = (TupleElementSyntax)nodeOrToken.AsNode()!;
         return Argument(
             DeclarationExpression(
                 node.Type,

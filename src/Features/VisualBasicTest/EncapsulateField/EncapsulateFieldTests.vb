@@ -5,7 +5,6 @@
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.EncapsulateField
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
@@ -52,7 +51,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -84,7 +83,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
 
         End Function
 
@@ -117,7 +116,7 @@ Class C(Of T)
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
 
         End Function
 
@@ -150,7 +149,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, index:=1, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -182,7 +181,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -225,7 +224,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -270,7 +269,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, index:=1, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -291,7 +290,7 @@ Class Program
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
 
         End Function
 
@@ -316,7 +315,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
 
         End Function
 
@@ -343,9 +342,9 @@ End Class</File>.ConvertTestSourceTag()
 
             Await TestInRegularAndScriptAsync(
                 text, expected,
-                options:=New OptionsCollection(GetLanguage()) From {
+                New TestParameters(options:=New OptionsCollection(GetLanguage()) From {
                     {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error}
-                }, testHost:=host)
+                }, testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -369,7 +368,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
 
         End Function
 
@@ -396,7 +395,7 @@ Class D
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -423,7 +422,7 @@ Class AA
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -466,7 +465,7 @@ Class AA
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -502,7 +501,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -536,7 +535,7 @@ Public Class Class1
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -590,7 +589,7 @@ Class D
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
+            Await TestInRegularAndScriptAsync(text, expected, New TestParameters(testHost:=host))
         End Function
 
         <Theory, CombinatorialData>
@@ -638,9 +637,9 @@ Class C
     End Property
 End Class
 ",
-options:=New OptionsCollection(GetLanguage()) From {
+New TestParameters(options:=New OptionsCollection(GetLanguage()) From {
     {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error}
-}, testHost:=host)
+}, testHost:=host))
         End Function
     End Class
 End Namespace

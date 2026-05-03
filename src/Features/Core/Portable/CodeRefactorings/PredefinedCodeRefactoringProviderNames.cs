@@ -10,6 +10,7 @@ internal static class PredefinedCodeRefactoringProviderNames
     public const string AddConstructorParametersFromMembers = "Add Parameters From Members Code Action Provider";
     public const string AddDebuggerDisplay = nameof(AddDebuggerDisplay);
     public const string AddFileBanner = "Add Banner To File Code Action Provider";
+    public const string AddImport = "Add Import Code Action Provider";
     public const string AddMissingImports = "Add Missing Imports On Paste Code Action Provider";
     public const string AddParameterCheck = nameof(AddParameterCheck);
     public const string ChangeSignature = "Change Signature Code Action Provider";
@@ -30,6 +31,7 @@ internal static class PredefinedCodeRefactoringProviderNames
     public const string ConvertNumericLiteral = nameof(ConvertNumericLiteral);
     public const string ConvertPlaceholderToInterpolatedString = nameof(ConvertPlaceholderToInterpolatedString);
     public const string ConvertPrimaryToRegularConstructor = nameof(ConvertPrimaryToRegularConstructor);
+    public const string ConvertToExtension = nameof(ConvertToExtension);
     public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
     public const string ConvertToProgramMain = "Convert To Program.Main";
     public const string ConvertToRawString = nameof(ConvertToRawString);
@@ -46,6 +48,7 @@ internal static class PredefinedCodeRefactoringProviderNames
     public const string GenerateConstructorFromMembers = "Generate Constructor From Members Code Action Provider";
     public const string GenerateEqualsAndGetHashCodeFromMembers = "Generate Equals and GetHashCode Code Action Provider";
     public const string GenerateOverrides = "Generate Overrides Code Action Provider";
+    public const string ImplementInterface = nameof(ImplementInterface);
     public const string ImplementInterfaceExplicitly = nameof(ImplementInterfaceExplicitly);
     public const string ImplementInterfaceImplicitly = nameof(ImplementInterfaceImplicitly);
     public const string InitializeMemberFromParameter = nameof(InitializeMemberFromParameter);
@@ -68,6 +71,7 @@ internal static class PredefinedCodeRefactoringProviderNames
     public const string MoveToNamespace = "Move To Namespace Code Action Provider";
     public const string MoveTypeToFile = "Move Type To File Code Action Provider";
     public const string NameTupleElement = nameof(NameTupleElement);
+    public const string OrganizeImports = nameof(OrganizeImports);
     public const string PullMemberUp = "Pull Member Up Code Action Provider";
     public const string RenameTracking = nameof(RenameTracking);
     public const string ReplaceConditionalWithStatements = nameof(ReplaceConditionalWithStatements);

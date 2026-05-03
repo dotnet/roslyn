@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
@@ -20,7 +18,7 @@ internal static class FindBaseHelpers
                 TypeKind: TypeKind.Class or TypeKind.Interface or TypeKind.Struct,
             } namedTypeSymbol)
         {
-            var result = BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol).CastArray<ISymbol>();
+            var result = BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol, transitive: true).CastArray<ISymbol>();
             return result;
         }
 

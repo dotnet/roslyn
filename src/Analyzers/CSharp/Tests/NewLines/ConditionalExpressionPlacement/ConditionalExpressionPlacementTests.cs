@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement;
-using Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Xunit;
 
@@ -16,13 +15,13 @@ using Verify = CSharpCodeFixVerifier<
     ConditionalExpressionPlacementDiagnosticAnalyzer,
     ConditionalExpressionPlacementCodeFixProvider>;
 
-public class ConditionalExpressionPlacementTests
+public sealed class ConditionalExpressionPlacementTests
 {
     [Fact]
-    public async Task TestNotWithOptionOff()
-    {
-        var code =
-            """
+    public Task TestNotWithOptionOff()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -32,20 +31,15 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestBaseCase()
-    {
-        var code =
-            """
+    public Task TestBaseCase()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -55,10 +49,8 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -68,21 +60,15 @@ public class ConditionalExpressionPlacementTests
                         : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithDiagnosticsInCondition()
-    {
-        var code =
-            """
+    public Task TestNotWithDiagnosticsInCondition()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -92,20 +78,15 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithDiagnosticsInTrue()
-    {
-        var code =
-            """
+    public Task TestNotWithDiagnosticsInTrue()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -115,20 +96,15 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithDiagnosticsInFalse()
-    {
-        var code =
-            """
+    public Task TestNotWithDiagnosticsInFalse()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -138,20 +114,15 @@ public class ConditionalExpressionPlacementTests
                         1 +{|CS1525:;|}
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithMissingColon()
-    {
-        var code =
-            """
+    public Task TestNotWithMissingColon()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -160,20 +131,15 @@ public class ConditionalExpressionPlacementTests
                         0{|CS1003:{|CS1525:;|}|}
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithQuestionNotAtEndOfLine()
-    {
-        var code =
-            """
+    public Task TestNotWithQuestionNotAtEndOfLine()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -182,20 +148,15 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithColonNotAtEndOfLine()
-    {
-        var code =
-            """
+    public Task TestNotWithColonNotAtEndOfLine()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -204,20 +165,15 @@ public class ConditionalExpressionPlacementTests
                         1 : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithFirstExprWithPPTrivia1()
-    {
-        var code =
-            """
+    public Task TestNotWithFirstExprWithPPTrivia1()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -229,20 +185,15 @@ public class ConditionalExpressionPlacementTests
             #endif
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithFirstExprWithPPTrivia2()
-    {
-        var code =
-            """
+    public Task TestNotWithFirstExprWithPPTrivia2()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -254,20 +205,15 @@ public class ConditionalExpressionPlacementTests
             #endif
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithFirstExprWithPPTrivia3()
-    {
-        var code =
-            """
+    public Task TestNotWithFirstExprWithPPTrivia3()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -279,20 +225,15 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithFirstExprWithPPTrivia4()
-    {
-        var code =
-            """
+    public Task TestNotWithFirstExprWithPPTrivia4()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -304,20 +245,15 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithFirstExprWithPPTrivia5()
-    {
-        var code =
-            """
+    public Task TestNotWithFirstExprWithPPTrivia5()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -329,20 +265,15 @@ public class ConditionalExpressionPlacementTests
             #endif
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithRegion1()
-    {
-        var code =
-            """
+    public Task TestWithRegion1()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -354,10 +285,8 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -369,21 +298,15 @@ public class ConditionalExpressionPlacementTests
                         : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithRegion2()
-    {
-        var code =
-            """
+    public Task TestWithRegion2()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -395,10 +318,8 @@ public class ConditionalExpressionPlacementTests
             #endregion
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -410,21 +331,15 @@ public class ConditionalExpressionPlacementTests
             #endregion
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithNullableDirective1()
-    {
-        var code =
-            """
+    public Task TestWithNullableDirective1()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -435,10 +350,8 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -449,21 +362,15 @@ public class ConditionalExpressionPlacementTests
                         : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithNullableDirective2()
-    {
-        var code =
-            """
+    public Task TestWithNullableDirective2()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -474,10 +381,8 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -488,21 +393,15 @@ public class ConditionalExpressionPlacementTests
                         : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNested1()
-    {
-        var code =
-            """
+    public Task TestNested1()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -514,10 +413,8 @@ public class ConditionalExpressionPlacementTests
                         2;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -529,21 +426,15 @@ public class ConditionalExpressionPlacementTests
                         : 2;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNested2()
-    {
-        var code =
-            """
+    public Task TestNested2()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -554,10 +445,8 @@ public class ConditionalExpressionPlacementTests
                         2;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -568,21 +457,15 @@ public class ConditionalExpressionPlacementTests
                         : 2;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNested3()
-    {
-        var code =
-            """
+    public Task TestNested3()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -593,10 +476,8 @@ public class ConditionalExpressionPlacementTests
                             1 : 2;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -607,21 +488,15 @@ public class ConditionalExpressionPlacementTests
                             : 1 : 2;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        var code =
-            """
+    public Task TestTrivia1()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -631,10 +506,8 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -644,21 +517,15 @@ public class ConditionalExpressionPlacementTests
                         : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        var code =
-            """
+    public Task TestTrivia2()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -668,10 +535,8 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -681,21 +546,15 @@ public class ConditionalExpressionPlacementTests
                         : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia3()
-    {
-        var code =
-            """
+    public Task TestTrivia3()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -705,10 +564,8 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -718,21 +575,15 @@ public class ConditionalExpressionPlacementTests
                         : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia4()
-    {
-        var code =
-            """
+    public Task TestTrivia4()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -742,10 +593,8 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -755,21 +604,15 @@ public class ConditionalExpressionPlacementTests
                         : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia5()
-    {
-        var code =
-            """
+    public Task TestTrivia5()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C()
@@ -779,10 +622,8 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C()
@@ -792,21 +633,15 @@ public class ConditionalExpressionPlacementTests
                         : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithDiagnosticsElsewhere()
-    {
-        var code =
-            """
+    public Task TestWithDiagnosticsElsewhere()
+        => new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C(int{|CS1001:)|}
@@ -816,10 +651,8 @@ public class ConditionalExpressionPlacementTests
                         1;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C(int{|CS1001:)|}
@@ -829,13 +662,7 @@ public class ConditionalExpressionPlacementTests
                         : 1;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 }

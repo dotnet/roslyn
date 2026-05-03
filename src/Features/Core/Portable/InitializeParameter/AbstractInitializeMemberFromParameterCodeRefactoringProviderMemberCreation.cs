@@ -337,7 +337,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                 return CodeGenerationSymbolFactory.CreatePropertySymbol(
                     default,
                     accessibilityLevel,
-                    new DeclarationModifiers(),
+                    DeclarationModifiers.None,
                     parameter.Type,
                     RefKind.None,
                     explicitInterfaceImplementations: default,

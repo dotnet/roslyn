@@ -17,8 +17,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -51,16 +51,16 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.StringCopyPaste;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 
-public class UnifiedSettingsTests
+public sealed class UnifiedSettingsTests
 {
     #region CSharpTest
     /// <summary>
@@ -86,7 +86,6 @@ public class UnifiedSettingsTests
         Add(InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics, "textEditor.csharp.advanced.analysis.enableInlineDiagnostics").
         Add(InlineDiagnosticsOptionsStorage.Location, "textEditor.csharp.advanced.analysis.inlineDiagnosticsLocation").
         Add(RemoteHostOptionsStorage.OOP64Bit, "textEditor.csharpAndVisualBasic.analysis.codeAnalysisInSeparateProcess").
-        Add(WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferences, "textEditor.csharpAndVisualBasic.analysis.reloadChangedAnalyzerReferences").
         Add(FeatureOnOffOptions.OfferRemoveUnusedReferences, "textEditor.csharpAndVisualBasic.analysis.offerRemoveUnusedReferences").
         Add(VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics, "textEditor.csharpAndVisualBasic.analysis.enableFileLoggingForDiagnostics").
         Add(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds, "textEditor.csharpAndVisualBasic.analysis.skipAnalyzersForImplicitlyTriggeredBuilds").
@@ -94,9 +93,6 @@ public class UnifiedSettingsTests
         Add(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, "textEditor.csharpAndVisualBasic.goToDefinition.skipAnalyzersForImplicitlyTriggeredBuilds").
         Add(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, "textEditor.csharpAndVisualBasic.goToDefinition.navigateToDecompiledSources").
         Add(MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers, "textEditor.csharpAndVisualBasic.goToDefinition.alwaysUseDefaultSymbolServer").
-        Add(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, "textEditor.csharpAndVisualBasic.sourceGenerators.enableDiagnosticsInSourceGeneratedFiles").
-        Add(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, "textEditor.csharpAndVisualBasic.rename.commitRenameAsynchronously").
-        Add(InlineRenameUIOptionsStorage.UseInlineAdornment, "textEditor.csharpAndVisualBasic.rename.useInlineAdornment").
         Add(GenerationOptions.PlaceSystemNamespaceFirst, "textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst").
         Add(GenerationOptions.SeparateImportDirectiveGroups, "textEditor.csharp.advanced.usingDirectives.separateImportDirectiveGroups").
         Add(SymbolSearchOptionsStorage.SearchReferenceAssemblies, "textEditor.csharp.advanced.usingDirectives.searchReferenceAssemblies").
@@ -137,7 +133,6 @@ public class UnifiedSettingsTests
         Add(ClassificationOptionsStorage.ColorizeJsonPatterns, "textEditor.csharp.advanced.jsonStrings.colorizeJsonPatterns").
         Add(JsonDetectionOptionsStorage.ReportInvalidJsonPatterns, "textEditor.csharp.advanced.jsonStrings.unsupportedReportInvalidJsonPatterns").
         Add(HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor, "textEditor.csharp.advanced.jsonStrings.highlightRelatedJsonComponents").
-        Add(ColorSchemeOptionsStorage.ColorScheme, "textEditor.csharpAndVisualBasic.advanced.editorColorScheme.visualStudioColorSchemeName").
         Add(ImplementTypeOptionsStorage.InsertionBehavior, "textEditor.csharp.advanced.implementInterfaceOrAbstractClass.memberInsertionLocation").
         Add(ImplementTypeOptionsStorage.PropertyGenerationBehavior, "textEditor.csharp.advanced.implementInterfaceOrAbstractClass.propertyGenerationBehavior").
         Add(InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1, "textEditor.csharpAndVisualBasic.advanced.inlineHints.displayInlineHintsWhilePressingAltF1").
@@ -158,8 +153,7 @@ public class UnifiedSettingsTests
         Add(InheritanceMarginOptionsStorage.ShowInheritanceMargin, "textEditor.csharp.advanced.inheritanceMargin.showInheritanceMargin").
         Add(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin, "textEditor.csharpAndVisualBasic.advanced.inheritanceMargin.combineInheritanceAndIndicatorMargins").
         Add(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, "InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports").
-        Add(StackTraceExplorerOptionsStorage.OpenOnFocus, "textEditor.csharp.advanced.stackTraceExplorer.openStackTraceExplorerOnFocus").
-        Add(DocumentOutlineOptionsStorage.EnableDocumentOutline, "textEditor.csharpAndVisualBasic.advanced.documentOutline.enableDocumentOutline");
+        Add(StackTraceExplorerOptionsStorage.OpenOnFocus, "textEditor.csharp.advanced.stackTraceExplorer.openStackTraceExplorerOnFocus");
 
     // TODO: add test data
     private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_csharpAdvancedExpectedSettings = [
@@ -234,23 +228,30 @@ public class UnifiedSettingsTests
         (CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, CreateBooleanOption(
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             title: "Show items from unimported namespaces",
-            order: 80,
+            order: 80, languageName: LanguageNames.CSharp)),
+        (CompletionOptionsStorage.ImportCompletionCommitBehavior, CreateEnumOption(
+            CompletionOptionsStorage.ImportCompletionCommitBehavior,
+            title: "Completion behavior for items from unimported namespaces",
+            order: 81,
+            enableWhenOptionAndValue: (enableWhenOption: CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, whenValue: true),
+            customDefaultValue: ImportCompletionCommitBehavior.AlwaysAddImport,
+            enumLabels: ["Always add using", "Never add using", "Only add using if explicitly completed (via TAB or double-click)"],
+            enumValues: [ImportCompletionCommitBehavior.AlwaysAddImport, ImportCompletionCommitBehavior.NeverAddImport, ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted],
+            customMaps: [new Map { Result = "alwaysAddImport", Match = 0 }, new Map { Result = "neverAddImport", Match = 1 }, new Map { Result = "onlyAddImportIfExplicitlyCompleted", Match = 2}],
             languageName: LanguageNames.CSharp)),
         (CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, CreateBooleanOption(
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
             title: "Tab twice to insert arguments",
             customDefaultValue: false,
             order: 90,
-            languageName: LanguageNames.CSharp,
-            message: "Experimental feature")),
+            languageName: LanguageNames.CSharp)),
         (CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, CreateBooleanOption(
             CompletionOptionsStorage.ShowNewSnippetExperienceUserOption,
             title: "Show new snippet experience",
             customDefaultValue: false,
             order: 100,
             languageName: LanguageNames.CSharp,
-            featureFlagAndExperimentValue: (CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag, true),
-            message: "Experimental feature")),
+            featureFlagAndExperimentValue: (CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag, true))),
     ];
 
     [Fact]
@@ -260,10 +261,9 @@ public class UnifiedSettingsTests
         var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
         var categories = jsonDocument!.Root["categories"]!.AsObject();
         var propertyToCategory = categories.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Deserialize<Category>());
-        Assert.Equal(22, propertyToCategory.Count);
+        Assert.Equal(18, propertyToCategory.Count);
         Assert.Equal("C#", propertyToCategory["textEditor.csharp"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["textEditor.csharp.intellisense"]!.Title);
-        Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, propertyToCategory["textEditor.csharp.intellisense"]!.LegacyOptionPageId);
 
         Assert.Equal("Advanced", propertyToCategory["textEditor.csharp.advanced"]!.Title);
         Assert.Equal(Guids.CSharpOptionPageAdvancedIdString, propertyToCategory["textEditor.csharp.advanced"]!.LegacyOptionPageId);
@@ -271,7 +271,6 @@ public class UnifiedSettingsTests
         Assert.Equal("Analysis", propertyToCategory["textEditor.csharp.advanced.analysis"]!.Title);
         Assert.Equal("Source Generators", propertyToCategory["textEditor.csharp.advanced.sourceGenerators"]!.Title);
         Assert.Equal("Go To Definition", propertyToCategory["textEditor.csharp.advanced.goToDefinition"]!.Title);
-        Assert.Equal("Rename", propertyToCategory["textEditor.csharp.advanced.rename"]!.Title);
         Assert.Equal("Using Directives", propertyToCategory["textEditor.csharp.advanced.usingDirectives"]!.Title);
         Assert.Equal("Highlighting", propertyToCategory["textEditor.csharp.advanced.highlighting"]!.Title);
         Assert.Equal("Outlining", propertyToCategory["textEditor.csharp.advanced.outlining"]!.Title);
@@ -281,12 +280,10 @@ public class UnifiedSettingsTests
         Assert.Equal("Editor Help", propertyToCategory["textEditor.csharp.advanced.editorHelp"]!.Title);
         Assert.Equal("Regular Expressions", propertyToCategory["textEditor.csharp.advanced.regularExpressions"]!.Title);
         Assert.Equal("JSON strings", propertyToCategory["textEditor.csharp.advanced.jsonStrings"]!.Title);
-        Assert.Equal("Editor Color Scheme", propertyToCategory["textEditor.csharp.advanced.editorColorScheme"]!.Title);
         Assert.Equal("Implement Interface or Abstract Class", propertyToCategory["textEditor.csharp.advanced.implementInterfaceOrAbstractClass"]!.Title);
         Assert.Equal("Inline Hints", propertyToCategory["textEditor.csharp.advanced.inlineHints"]!.Title);
         Assert.Equal("Inheritance Margin", propertyToCategory["textEditor.csharp.advanced.inheritanceMargin"]!.Title);
         Assert.Equal("Stack Trace Explorer", propertyToCategory["textEditor.csharp.advanced.stackTraceExplorer"]!.Title);
-        Assert.Equal("Document Outline", propertyToCategory["textEditor.csharp.advanced.documentOutline"]!.Title);
 
         await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
@@ -326,14 +323,15 @@ public class UnifiedSettingsTests
     /// Dictionary containing the option to unified setting path for VB.
     /// </summary>
     private static readonly ImmutableDictionary<IOption2, string> s_visualBasicUnifiedSettingsStorage = ImmutableDictionary<IOption2, string>.Empty.
-        Add(CompletionOptionsStorage.TriggerOnTypingLetters, "textEditor.basic.intellisense.triggerCompletionOnTypingLetters").
-        Add(CompletionOptionsStorage.TriggerOnDeletion, "textEditor.basic.intellisense.triggerCompletionOnDeletion").
-        Add(CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, "textEditor.basic.intellisense.highlightMatchingPortionsOfCompletionListItems").
-        Add(CompletionViewOptionsStorage.ShowCompletionItemFilters, "textEditor.basic.intellisense.showCompletionItemFilters").
-        Add(CompletionOptionsStorage.SnippetsBehavior, "textEditor.basic.intellisense.snippetsBehavior").
-        Add(CompletionOptionsStorage.EnterKeyBehavior, "textEditor.basic.intellisense.returnKeyCompletionBehavior").
-        Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "textEditor.basic.intellisense.showCompletionItemsFromUnimportedNamespaces").
-        Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "textEditor.basic.intellisense.enableArgumentCompletionSnippets");
+        Add(CompletionOptionsStorage.TriggerOnTypingLetters, "languages.basic.intellisense.triggerCompletionOnTypingLetters").
+        Add(CompletionOptionsStorage.TriggerOnDeletion, "languages.basic.intellisense.triggerCompletionOnDeletion").
+        Add(CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, "languages.basic.intellisense.highlightMatchingPortionsOfCompletionListItems").
+        Add(CompletionViewOptionsStorage.ShowCompletionItemFilters, "languages.basic.intellisense.showCompletionItemFilters").
+        Add(CompletionOptionsStorage.SnippetsBehavior, "languages.basic.intellisense.snippetsBehavior").
+        Add(CompletionOptionsStorage.EnterKeyBehavior, "languages.basic.intellisense.returnKeyCompletionBehavior").
+        Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "languages.basic.intellisense.showCompletionItemsFromUnimportedNamespaces").
+        Add(CompletionOptionsStorage.ImportCompletionCommitBehavior, "languages.basic.intellisense.importCompletionCommitBehavior").
+        Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "languages.basic.intellisense.enableArgumentCompletionSnippets");
 
     /// <summary>
     /// Array containing the option to expected unified settings for VB intellisense page.
@@ -382,15 +380,23 @@ public class UnifiedSettingsTests
         (CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, CreateBooleanOption(
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             title: "Show items from unimported namespaces",
-            order: 50,
+            order: 50, languageName: LanguageNames.VisualBasic)),
+        (CompletionOptionsStorage.ImportCompletionCommitBehavior, CreateEnumOption(
+            CompletionOptionsStorage.ImportCompletionCommitBehavior,
+            title: "Completion behavior for items from unimported namespaces",
+            order: 51,
+            enableWhenOptionAndValue: (enableWhenOption: CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, whenValue: true),
+            customDefaultValue: ImportCompletionCommitBehavior.AlwaysAddImport,
+            enumLabels: ["Always add import", "Never add import", "Only add import if explicitly completed (via TAB or double-click)"],
+            enumValues: [ImportCompletionCommitBehavior.AlwaysAddImport, ImportCompletionCommitBehavior.NeverAddImport, ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted],
+            customMaps: [new Map { Result = "alwaysAddImport", Match = 0 }, new Map { Result = "neverAddImport", Match = 1 }, new Map { Result = "onlyAddImportIfExplicitlyCompleted", Match = 2}],
             languageName: LanguageNames.VisualBasic)),
         (CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, CreateBooleanOption(
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
             title: "Tab twice to insert arguments",
             customDefaultValue: false,
             order: 60,
-            languageName: LanguageNames.VisualBasic,
-            message: "Experimental feature")),
+            languageName: LanguageNames.VisualBasic)),
     ];
 
     [Fact]
@@ -401,9 +407,8 @@ public class UnifiedSettingsTests
         var categories = jsonDocument!.Root["categories"]!.AsObject();
         var propertyToCategory = categories.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Deserialize<Category>());
         Assert.Equal(2, propertyToCategory.Count);
-        Assert.Equal("Visual Basic", propertyToCategory["textEditor.basic"]!.Title);
-        Assert.Equal("IntelliSense", propertyToCategory["textEditor.basic.intellisense"]!.Title);
-        Assert.Equal(Guids.VisualBasicOptionPageIntelliSenseIdString, propertyToCategory["textEditor.basic.intellisense"]!.LegacyOptionPageId);
+        Assert.Equal("Visual Basic", propertyToCategory["languages.basic"]!.Title);
+        Assert.Equal("IntelliSense", propertyToCategory["languages.basic.intellisense"]!.Title);
         await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
@@ -439,12 +444,20 @@ public class UnifiedSettingsTests
 
     #endregion
 
+    [Fact]
+    public async Task VerifyRoslynSettings()
+    {
+        using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.roslynSettings.registration.json");
+        using var streamReader = new StreamReader(registrationFileStream);
+        await VerifyTagAsync(streamReader.ReadToEnd(), "Roslyn.VisualStudio.Next.UnitTests.roslynPackageRegistration.pkgdef");
+    }
+
     #region Helpers
 
     private static async Task VerifyTagAsync(string registrationFile, string pkgdefFileName)
     {
         using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream(pkgdefFileName);
-        using var streamReader = new StreamReader(pkgDefFileStream!);
+        using var streamReader = new StreamReader(pkgDefFileStream);
         var pkgdefFile = await streamReader.ReadToEndAsync();
 
         var fileBytes = Encoding.ASCII.GetBytes(registrationFile);
@@ -486,7 +499,7 @@ public class UnifiedSettingsTests
         // If the option default value is null, it means the option is in experiment mode and is hidden by a feature flag.
         // In Unified Settings it is not allowed and should be replaced by using the alternative default.
         // Like:
-        //     "textEditor.csharp.intellisense.showNewSnippetExperience": {
+        //     "languages.csharp.intellisense.showNewSnippetExperience": {
         //         "type": "boolean",
         //         "default": false,
         //         "alternateDefault": {

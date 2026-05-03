@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 
-using TaggerUIData = (bool isVisible, Microsoft.VisualStudio.Text.SnapshotPoint? caretPosition, Roslyn.Utilities.OneOrMany<Microsoft.VisualStudio.Text.SnapshotSpan> spansToTag);
+using TaggerUIData = (bool isVisible, Microsoft.VisualStudio.Text.SnapshotPoint? caretPosition, Microsoft.CodeAnalysis.Collections.OneOrMany<Microsoft.VisualStudio.Text.SnapshotSpan> spansToTag);
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
@@ -84,7 +84,7 @@ internal sealed class TaggerMainThreadManager
         {
             // Ensure that if the host is closing and hte queue stops running that we transition this task to the canceled state.
             var registration = _threadingContext.DisposalToken.Register(
-                static taskSourceObj => ((TaskCompletionSource<TaggerUIData?>)taskSourceObj!).TrySetCanceled(), taskSource);
+                static taskSourceObj => ((TaskCompletionSource<TaggerUIData?>)taskSourceObj).TrySetCanceled(), taskSource);
 
             _workQueue.AddWork((action, taskSource, cancellationToken));
 

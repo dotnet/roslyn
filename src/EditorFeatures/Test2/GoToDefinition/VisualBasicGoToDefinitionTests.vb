@@ -216,7 +216,7 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
             Partial Class Customer
-                Private Sub [|OnNameChanged|]()
+                Private Sub OnNameChanged()
 
                 End Sub
             End Class
@@ -227,7 +227,7 @@ End Class
                     Dim x As New Customer()
                     x.OnNameChanged$$()
                 End Sub
-                Partial Private Sub OnNameChanged()
+                Partial Private Sub [|OnNameChanged|]()
 
                 End Sub
             End Class

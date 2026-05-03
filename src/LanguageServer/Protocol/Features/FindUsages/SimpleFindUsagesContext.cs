@@ -9,71 +9,66 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.FindUsages;
+
+/// <summary>
+/// Simple implementation of a <see cref="FindUsagesContext"/> that just aggregates the results
+/// for consumers that just want the data once it is finally computed.
+/// </summary>
+internal sealed class SimpleFindUsagesContext : FindUsagesContext
 {
-    /// <summary>
-    /// Simple implementation of a <see cref="FindUsagesContext"/> that just aggregates the results
-    /// for consumers that just want the data once it is finally computed.
-    /// </summary>
-    internal sealed class SimpleFindUsagesContext : FindUsagesContext
+    private readonly object _gate = new();
+
+    private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
+        ImmutableArray.CreateBuilder<DefinitionItem>();
+
+    private readonly ImmutableArray<SourceReferenceItem>.Builder _referenceItems =
+        ImmutableArray.CreateBuilder<SourceReferenceItem>();
+
+    public string Message { get; private set; }
+    public string SearchTitle { get; private set; }
+
+    public override async ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
     {
-        private readonly object _gate = new();
+        Message = message;
+    }
 
-        private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
-            ImmutableArray.CreateBuilder<DefinitionItem>();
+    public override async ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
+    {
+        SearchTitle = title;
+    }
 
-        private readonly ImmutableArray<SourceReferenceItem>.Builder _referenceItems =
-            ImmutableArray.CreateBuilder<SourceReferenceItem>();
-
-        public string Message { get; private set; }
-        public string SearchTitle { get; private set; }
-
-        public override ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
+    public ImmutableArray<DefinitionItem> GetDefinitions()
+    {
+        lock (_gate)
         {
-            Message = message;
-            return default;
+            return _definitionItems.ToImmutable();
         }
+    }
 
-        public override ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
+    public ImmutableArray<SourceReferenceItem> GetReferences()
+    {
+        lock (_gate)
         {
-            SearchTitle = title;
-            return default;
+            return _referenceItems.ToImmutable();
         }
+    }
 
-        public ImmutableArray<DefinitionItem> GetDefinitions()
+    public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+    {
+        lock (_gate)
+        {
+            _definitionItems.Add(definition);
+        }
+    }
+
+    public override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
+    {
+        await foreach (var reference in references.ConfigureAwait(false))
         {
             lock (_gate)
             {
-                return _definitionItems.ToImmutable();
-            }
-        }
-
-        public ImmutableArray<SourceReferenceItem> GetReferences()
-        {
-            lock (_gate)
-            {
-                return _referenceItems.ToImmutable();
-            }
-        }
-
-        public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
-        {
-            lock (_gate)
-            {
-                _definitionItems.Add(definition);
-            }
-
-            return default;
-        }
-
-        public override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
-        {
-            await foreach (var reference in references)
-            {
-                lock (_gate)
-                {
-                    _referenceItems.Add(reference);
-                }
+                _referenceItems.Add(reference);
             }
         }
     }

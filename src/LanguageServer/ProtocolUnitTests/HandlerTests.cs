@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,477 +18,501 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
+
+[UseExportProvider]
+public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 {
-    [UseExportProvider]
-    public class HandlerTests : AbstractLanguageServerProtocolTests
+    public HandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
-        public HandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    }
+
+    protected override TestComposition Composition => base.Composition.AddParts(
+        typeof(TestDocumentHandler),
+        typeof(TestNonMutatingDocumentHandler),
+        typeof(TestRequestHandlerWithNoParams),
+        typeof(TestNotificationHandlerFactory),
+        typeof(TestNotificationWithoutParamsHandlerFactory),
+        typeof(TestLanguageSpecificHandler),
+        typeof(TestLanguageSpecificHandlerWithDifferentParams),
+        typeof(TestConfigurableDocumentHandler));
+
+    [Theory, CombinatorialData]
+    public async Task CanExecuteRequestHandler(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-        }
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
+        var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
+        Assert.Equal(typeof(TestDocumentHandler).Name, response);
+    }
 
-        protected override TestComposition Composition => base.Composition.AddParts(
-            typeof(TestDocumentHandler),
-            typeof(TestNonMutatingDocumentHandler),
-            typeof(TestRequestHandlerWithNoParams),
-            typeof(TestNotificationHandlerFactory),
-            typeof(TestNotificationWithoutParamsHandlerFactory),
-            typeof(TestLanguageSpecificHandler),
-            typeof(TestLanguageSpecificHandlerWithDifferentParams),
-            typeof(TestConfigurableDocumentHandler));
+    [Theory, CombinatorialData]
+    public async Task CanExecuteRequestHandlerWithNoParams(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
-        [Theory, CombinatorialData]
-        public async Task CanExecuteRequestHandler(bool mutatingLspWorkspace)
+        var response = await server.ExecuteRequest0Async<string>(TestRequestHandlerWithNoParams.MethodName, CancellationToken.None);
+        Assert.Equal(typeof(TestRequestHandlerWithNoParams).Name, response);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task CanExecuteNotificationHandler(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
 
-            var request = new TestRequestTypeOne(new TextDocumentIdentifier
-            {
-                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
-            });
-            var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
-            Assert.Equal(typeof(TestDocumentHandler).Name, response);
-        }
+        await server.ExecuteNotificationAsync(TestNotificationHandler.MethodName, request);
+        var response = await server.GetRequiredLspService<TestNotificationHandler>().ResultSource.Task;
+        Assert.Equal(typeof(TestNotificationHandler).Name, response);
+    }
 
-        [Theory, CombinatorialData]
-        public async Task CanExecuteRequestHandlerWithNoParams(bool mutatingLspWorkspace)
+    [Theory, CombinatorialData]
+    public async Task CanExecuteNotificationHandlerWithNoParams(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        await server.ExecuteNotification0Async(TestNotificationWithoutParamsHandler.MethodName);
+        var response = await server.GetRequiredLspService<TestNotificationWithoutParamsHandler>().ResultSource.Task;
+        Assert.Equal(typeof(TestNotificationWithoutParamsHandler).Name, response);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task CanExecuteLanguageSpecificHandler(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.fs")
+        });
+        var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
+        Assert.Equal(typeof(TestLanguageSpecificHandler).Name, response);
+    }
 
-            var response = await server.ExecuteRequest0Async<string>(TestRequestHandlerWithNoParams.MethodName, CancellationToken.None);
-            Assert.Equal(typeof(TestRequestHandlerWithNoParams).Name, response);
-        }
+    [Theory, CombinatorialData]
+    public async Task CanExecuteLanguageSpecificHandlerWithDifferentRequestTypes(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
-        [Theory, CombinatorialData]
-        public async Task CanExecuteNotificationHandler(bool mutatingLspWorkspace)
+        var request = new TestRequestTypeTwo(new TextDocumentIdentifier
         {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.vb")
+        });
+        var response = await server.ExecuteRequestAsync<TestRequestTypeTwo, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
+        Assert.Equal(typeof(TestLanguageSpecificHandlerWithDifferentParams).Name, response);
+    }
 
-            var request = new TestRequestTypeOne(new TextDocumentIdentifier
-            {
-                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
-            });
+    [Theory, CombinatorialData]
+    public Task ThrowsOnInvalidLanguageSpecificHandler(bool mutatingLspWorkspace)
+        => Assert.ThrowsAsync<InvalidOperationException>(async () => await CreateTestLspServerAsync("", mutatingLspWorkspace,
+            composition: Composition.AddParts(typeof(TestDuplicateLanguageSpecificHandler))));
 
-            await server.ExecuteNotificationAsync(TestNotificationHandler.MethodName, request);
-            var response = await server.GetRequiredLspService<TestNotificationHandler>().ResultSource.Task;
-            Assert.Equal(typeof(TestNotificationHandler).Name, response);
-        }
+    [Theory, CombinatorialData]
+    public async Task ThrowsIfDeserializationFails(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
-        [Theory, CombinatorialData]
-        public async Task CanExecuteNotificationHandlerWithNoParams(bool mutatingLspWorkspace)
+        var request = new TestRequestTypeThree("value");
+        await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await server.ExecuteRequestAsync<TestRequestTypeThree, string>(TestNonMutatingDocumentHandler.MethodName, request, CancellationToken.None));
+        Assert.False(server.GetServerAccessor().HasShutdownStarted());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task ShutsdownIfDeserializationFailsOnMutatingRequest(bool mutatingLspWorkspace)
+    {
+        var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        try
         {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
-            await server.ExecuteNotification0Async(TestNotificationWithoutParamsHandler.MethodName);
-            var response = await server.GetRequiredLspService<TestNotificationWithoutParamsHandler>().ResultSource.Task;
-            Assert.Equal(typeof(TestNotificationWithoutParamsHandler).Name, response);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task CanExecuteLanguageSpecificHandler(bool mutatingLspWorkspace)
-        {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
-            var request = new TestRequestTypeOne(new TextDocumentIdentifier
-            {
-                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.fs")
-            });
-            var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
-            Assert.Equal(typeof(TestLanguageSpecificHandler).Name, response);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task CanExecuteLanguageSpecificHandlerWithDifferentRequestTypes(bool mutatingLspWorkspace)
-        {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
-            var request = new TestRequestTypeTwo(new TextDocumentIdentifier
-            {
-                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.vb")
-            });
-            var response = await server.ExecuteRequestAsync<TestRequestTypeTwo, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
-            Assert.Equal(typeof(TestLanguageSpecificHandlerWithDifferentParams).Name, response);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task ThrowsOnInvalidLanguageSpecificHandler(bool mutatingLspWorkspace)
-        {
-            // Arrange
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await CreateTestLspServerAsync("", mutatingLspWorkspace,
-                composition: Composition.AddParts(typeof(TestDuplicateLanguageSpecificHandler))));
-        }
-
-        [Theory, CombinatorialData]
-        public async Task ThrowsIfDeserializationFails(bool mutatingLspWorkspace)
-        {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
-            var request = new TestRequestTypeThree("value");
-            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await server.ExecuteRequestAsync<TestRequestTypeThree, string>(TestNonMutatingDocumentHandler.MethodName, request, CancellationToken.None));
-            Assert.False(server.GetServerAccessor().HasShutdownStarted());
-        }
-
-        [Theory, CombinatorialData]
-        public async Task ShutsdownIfDeserializationFailsOnMutatingRequest(bool mutatingLspWorkspace)
-        {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
             var request = new TestRequestTypeThree("value");
             await Assert.ThrowsAnyAsync<Exception>(async () => await server.ExecuteRequestAsync<TestRequestTypeThree, string>(TestDocumentHandler.MethodName, request, CancellationToken.None));
             await server.AssertServerShuttingDownAsync();
         }
-
-        [Theory, CombinatorialData]
-        public async Task NonMutatingHandlerExceptionNFWIsReported(bool mutatingLspWorkspace)
+        finally
         {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
-            var request = new TestRequestWithDocument(new TextDocumentIdentifier
-            {
-                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
-            });
-
-            var didReport = false;
-            FatalError.OverwriteHandler((exception, severity, dumps) =>
-            {
-                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
-                {
-                    didReport = true;
-                }
-            });
-
-            var response = Task.FromException<TestConfigurableResponse>(new InvalidOperationException(nameof(HandlerTests)));
-            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
-
-            await Assert.ThrowsAnyAsync<Exception>(async ()
-                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
-
-            Assert.True(didReport);
+            await Assert.ThrowsAsync<JsonException>(async () => await server.DisposeAsync());
         }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task NonMutatingHandlerExceptionNFWIsNotReportedForLocalRpcException(bool mutatingLspWorkspace)
+    [Theory, CombinatorialData]
+    public async Task NonMutatingHandlerExceptionNFWIsReported(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier
         {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
 
-            var request = new TestRequestWithDocument(new TextDocumentIdentifier
-            {
-                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
-            });
-
-            var didReport = false;
-            FatalError.OverwriteHandler((exception, severity, dumps) =>
-            {
-                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
-                {
-                    didReport = true;
-                }
-            });
-
-            var response = Task.FromException<TestConfigurableResponse>(new StreamJsonRpc.LocalRpcException(nameof(HandlerTests)) { ErrorCode = LspErrorCodes.ContentModified });
-            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
-
-            await Assert.ThrowsAnyAsync<Exception>(async ()
-                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
-
-            Assert.False(didReport);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task MutatingHandlerExceptionNFWIsReported(bool mutatingLspWorkspace)
+        var didReport = false;
+        FatalError.OverwriteHandler((exception, severity, dumps) =>
         {
-            var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
-            var request = new TestRequestWithDocument(new TextDocumentIdentifier
+            if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
             {
-                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
-            });
+                didReport = true;
+            }
+        });
 
-            var didReport = false;
-            FatalError.OverwriteHandler((exception, severity, dumps) =>
-            {
-                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
-                {
-                    didReport = true;
-                }
-            });
+        var response = Task.FromException<TestConfigurableResponse>(new InvalidOperationException(nameof(HandlerTests)));
+        TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
 
-            var response = Task.FromException<TestConfigurableResponse>(new InvalidOperationException(nameof(HandlerTests)));
-            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: true, requiresLspSolution: true, response);
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
 
-            await Assert.ThrowsAnyAsync<Exception>(async ()
-                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+        Assert.True(didReport);
+    }
 
-            await server.AssertServerShuttingDownAsync();
+    [Theory, CombinatorialData]
+    public async Task NonMutatingHandlerExceptionNFWIsNotReportedForLocalRpcException(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
-            Assert.True(didReport);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task NonMutatingHandlerCancellationExceptionNFWIsNotReported(bool mutatingLspWorkspace)
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier
         {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
 
-            var request = new TestRequestWithDocument(new TextDocumentIdentifier
-            {
-                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
-            });
-
-            var didReport = false;
-            FatalError.OverwriteHandler((exception, severity, dumps) =>
-            {
-                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
-                {
-                    didReport = true;
-                }
-            });
-
-            var response = Task.FromException<TestConfigurableResponse>(new OperationCanceledException(nameof(HandlerTests)));
-            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
-
-            await Assert.ThrowsAnyAsync<Exception>(async ()
-                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
-
-            Assert.False(didReport);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task MutatingHandlerCancellationExceptionNFWIsNotReported(bool mutatingLspWorkspace)
+        var didReport = false;
+        FatalError.OverwriteHandler((exception, severity, dumps) =>
         {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
-            var request = new TestRequestWithDocument(new TextDocumentIdentifier
+            if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
             {
-                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
-            });
+                didReport = true;
+            }
+        });
 
-            var didReport = false;
-            FatalError.OverwriteHandler((exception, severity, dumps) =>
-            {
-                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
-                {
-                    didReport = true;
-                }
-            });
+        var response = Task.FromException<TestConfigurableResponse>(new StreamJsonRpc.LocalRpcException(nameof(HandlerTests)) { ErrorCode = LspErrorCodes.ContentModified });
+        TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
 
-            var response = Task.FromException<TestConfigurableResponse>(new OperationCanceledException(nameof(HandlerTests)));
-            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: true, requiresLspSolution: true, response);
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
 
-            await Assert.ThrowsAnyAsync<Exception>(async ()
-                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+        Assert.False(didReport);
+    }
 
-            Assert.False(didReport);
-        }
+    [Theory, CombinatorialData]
+    public async Task MutatingHandlerExceptionNFWIsReported(bool mutatingLspWorkspace)
+    {
+        var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
-        [Theory, CombinatorialData]
-        public async Task TestMutatingHandlerCrashesIfUnableToDetermineLanguage(bool mutatingLspWorkspace)
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier
         {
-            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
 
+        var didReport = false;
+        FatalError.OverwriteHandler((exception, severity, dumps) =>
+        {
+            if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
+            {
+                didReport = true;
+            }
+        });
+
+        var response = Task.FromException<TestConfigurableResponse>(new InvalidOperationException(nameof(HandlerTests)));
+        TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: true, requiresLspSolution: true, response);
+
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+
+        await server.AssertServerShuttingDownAsync();
+
+        Assert.True(didReport);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task NonMutatingHandlerCancellationExceptionNFWIsNotReported(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier
+        {
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
+
+        var didReport = false;
+        FatalError.OverwriteHandler((exception, severity, dumps) =>
+        {
+            if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
+            {
+                didReport = true;
+            }
+        });
+
+        var response = Task.FromException<TestConfigurableResponse>(new OperationCanceledException(nameof(HandlerTests)));
+        TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
+
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+
+        Assert.False(didReport);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task MutatingHandlerCancellationExceptionNFWIsNotReported(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier
+        {
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
+
+        var didReport = false;
+        FatalError.OverwriteHandler((exception, severity, dumps) =>
+        {
+            if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
+            {
+                didReport = true;
+            }
+        });
+
+        var response = Task.FromException<TestConfigurableResponse>(new OperationCanceledException(nameof(HandlerTests)));
+        TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: true, requiresLspSolution: true, response);
+
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+
+        Assert.False(didReport);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestMutatingHandlerCrashesIfUnableToDetermineLanguage(bool mutatingLspWorkspace)
+    {
+        var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        try
+        {
             // Run a mutating request against a file which we have no saved languageId for
             // and where the language cannot be determined from the URI.
             // This should crash the server.
-            var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"untitled:untitledFile");
+            var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"untitled:untitledFile");
             var request = new TestRequestTypeOne(new TextDocumentIdentifier
             {
-                Uri = looseFileUri
+                DocumentUri = looseFileUri
             });
 
             await Assert.ThrowsAnyAsync<Exception>(async () => await testLspServer.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None)).ConfigureAwait(false);
             await testLspServer.AssertServerShuttingDownAsync();
         }
-
-        internal record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
-
-        internal record TestRequestTypeTwo([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
-
-        internal record TestRequestTypeThree([property: JsonPropertyName("someValue")] string SomeValue);
-
-        [ExportCSharpVisualBasicStatelessLspService(typeof(TestDocumentHandler)), PartNotDiscoverable, Shared]
-        [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal sealed class TestDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+        finally
         {
-            public const string MethodName = nameof(TestDocumentHandler);
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await testLspServer.DisposeAsync());
+        }
+    }
 
-            public bool MutatesSolutionState => true;
-            public bool RequiresLSPSolution => true;
+    [Theory, CombinatorialData]
+    public async Task DoesNotCrashOnRequestForMissingHandler(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
-            public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
-            {
-                return request.TextDocumentIdentifier;
-            }
+        var request = new TestRequestTypeOne(new TextDocumentIdentifier
+        {
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
 
-            public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(this.GetType().Name);
-            }
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await server.ExecuteRequestAsync<TestRequestTypeOne, string>("nonExistentMethod", request, CancellationToken.None));
+        Assert.False(server.GetServerAccessor().HasShutdownStarted());
+        Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
+    }
+
+    internal sealed record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
+
+    internal sealed record TestRequestTypeTwo([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
+
+    internal sealed record TestRequestTypeThree([property: JsonPropertyName("someValue")] string SomeValue);
+
+    [ExportCSharpVisualBasicStatelessLspService(typeof(TestDocumentHandler)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+    {
+        public const string MethodName = nameof(TestDocumentHandler);
+
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => true;
+
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
+        {
+            return request.TextDocumentIdentifier;
         }
 
-        [ExportCSharpVisualBasicStatelessLspService(typeof(TestNonMutatingDocumentHandler)), PartNotDiscoverable, Shared]
-        [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal sealed class TestNonMutatingDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+        public async Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
-            public const string MethodName = nameof(TestNonMutatingDocumentHandler);
+            return this.GetType().Name;
+        }
+    }
 
-            public bool MutatesSolutionState => false;
-            public bool RequiresLSPSolution => true;
+    [ExportCSharpVisualBasicStatelessLspService(typeof(TestNonMutatingDocumentHandler)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestNonMutatingDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+    {
+        public const string MethodName = nameof(TestNonMutatingDocumentHandler);
 
-            public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
-            {
-                return request.TextDocumentIdentifier;
-            }
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-            public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(this.GetType().Name);
-            }
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
+        {
+            return request.TextDocumentIdentifier;
         }
 
-        [ExportCSharpVisualBasicStatelessLspService(typeof(TestRequestHandlerWithNoParams)), PartNotDiscoverable, Shared]
-        [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal sealed class TestRequestHandlerWithNoParams() : ILspServiceRequestHandler<string>
+        public async Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
-            public const string MethodName = nameof(TestRequestHandlerWithNoParams);
+            return this.GetType().Name;
+        }
+    }
 
-            public bool MutatesSolutionState => true;
-            public bool RequiresLSPSolution => true;
+    [ExportCSharpVisualBasicStatelessLspService(typeof(TestRequestHandlerWithNoParams)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestRequestHandlerWithNoParams() : ILspServiceRequestHandler<string>
+    {
+        public const string MethodName = nameof(TestRequestHandlerWithNoParams);
 
-            public Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(this.GetType().Name);
-            }
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => true;
+
+        public async Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
+        {
+            return this.GetType().Name;
+        }
+    }
+
+    [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
+    internal sealed class TestNotificationHandler() : ILspServiceNotificationHandler<TestRequestTypeOne>
+    {
+        public const string MethodName = nameof(TestNotificationHandler);
+        public readonly TaskCompletionSource<string> ResultSource = new();
+
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => true;
+
+        public async Task HandleNotificationAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        {
+            ResultSource.SetResult(this.GetType().Name);
+        }
+    }
+
+    /// <summary>
+    /// Exported via a factory as we need a new instance for each server (the task completion result should be unique per server).
+    /// </summary>
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(TestNotificationHandler)), PartNotDiscoverable, Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestNotificationHandlerFactory() : ILspServiceFactory
+    {
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        {
+            return new TestNotificationHandler();
+        }
+    }
+
+    [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
+    internal sealed class TestNotificationWithoutParamsHandler() : ILspServiceNotificationHandler
+    {
+        public const string MethodName = nameof(TestNotificationWithoutParamsHandler);
+        public readonly TaskCompletionSource<string> ResultSource = new();
+
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => true;
+
+        public async Task HandleNotificationAsync(RequestContext context, CancellationToken cancellationToken)
+        {
+            ResultSource.SetResult(this.GetType().Name);
+        }
+    }
+
+    /// <summary>
+    /// Exported via a factory as we need a new instance for each server (the task completion result should be unique per server).
+    /// </summary>
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(TestNotificationWithoutParamsHandler)), PartNotDiscoverable, Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestNotificationWithoutParamsHandlerFactory() : ILspServiceFactory
+    {
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        {
+            return new TestNotificationWithoutParamsHandler();
+        }
+    }
+
+    /// <summary>
+    /// Defines a language specific handler with the same method as <see cref="TestDocumentHandler"/>
+    /// </summary>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(TestLanguageSpecificHandler)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.FSharp)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestLanguageSpecificHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+    {
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => true;
+
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
+        {
+            return request.TextDocumentIdentifier;
         }
 
-        [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-        internal sealed class TestNotificationHandler() : ILspServiceNotificationHandler<TestRequestTypeOne>
+        public async Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
-            public const string MethodName = nameof(TestNotificationHandler);
-            public readonly TaskCompletionSource<string> ResultSource = new();
+            return this.GetType().Name;
+        }
+    }
 
-            public bool MutatesSolutionState => true;
-            public bool RequiresLSPSolution => true;
+    /// <summary>
+    /// Defines a language specific handler with the same method as <see cref="TestDocumentHandler"/>
+    /// but using different request and response types.
+    /// </summary>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(TestLanguageSpecificHandlerWithDifferentParams)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.VisualBasic)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestLanguageSpecificHandlerWithDifferentParams() : ILspServiceDocumentRequestHandler<TestRequestTypeTwo, string>
+    {
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => true;
 
-            public Task HandleNotificationAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
-            {
-                ResultSource.SetResult(this.GetType().Name);
-                return Task.CompletedTask;
-            }
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeTwo request)
+        {
+            return request.TextDocumentIdentifier;
         }
 
-        /// <summary>
-        /// Exported via a factory as we need a new instance for each server (the task completion result should be unique per server).
-        /// </summary>
-        [ExportCSharpVisualBasicLspServiceFactory(typeof(TestNotificationHandler)), PartNotDiscoverable, Shared]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal sealed class TestNotificationHandlerFactory() : ILspServiceFactory
+        public async Task<string> HandleRequestAsync(TestRequestTypeTwo request, RequestContext context, CancellationToken cancellationToken)
         {
-            public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            {
-                return new TestNotificationHandler();
-            }
+            return this.GetType().Name;
         }
+    }
 
-        [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-        internal sealed class TestNotificationWithoutParamsHandler() : ILspServiceNotificationHandler
+    /// <summary>
+    /// Defines a language specific handler with the same method and language as <see cref="TestLanguageSpecificHandler"/>
+    /// but with different params (an error)
+    /// </summary>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(TestDuplicateLanguageSpecificHandler)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.FSharp)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestDuplicateLanguageSpecificHandler() : ILspServiceRequestHandler<string>
+    {
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => true;
+
+        public async Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            public const string MethodName = nameof(TestNotificationWithoutParamsHandler);
-            public readonly TaskCompletionSource<string> ResultSource = new();
-
-            public bool MutatesSolutionState => true;
-            public bool RequiresLSPSolution => true;
-
-            public Task HandleNotificationAsync(RequestContext context, CancellationToken cancellationToken)
-            {
-                ResultSource.SetResult(this.GetType().Name);
-                return Task.CompletedTask;
-            }
-        }
-
-        /// <summary>
-        /// Exported via a factory as we need a new instance for each server (the task completion result should be unique per server).
-        /// </summary>
-        [ExportCSharpVisualBasicLspServiceFactory(typeof(TestNotificationWithoutParamsHandler)), PartNotDiscoverable, Shared]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal sealed class TestNotificationWithoutParamsHandlerFactory() : ILspServiceFactory
-        {
-            public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            {
-                return new TestNotificationWithoutParamsHandler();
-            }
-        }
-
-        /// <summary>
-        /// Defines a language specific handler with the same method as <see cref="TestDocumentHandler"/>
-        /// </summary>
-        [ExportCSharpVisualBasicStatelessLspService(typeof(TestLanguageSpecificHandler)), PartNotDiscoverable, Shared]
-        [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.FSharp)]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal sealed class TestLanguageSpecificHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
-        {
-            public bool MutatesSolutionState => true;
-            public bool RequiresLSPSolution => true;
-
-            public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
-            {
-                return request.TextDocumentIdentifier;
-            }
-
-            public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(this.GetType().Name);
-            }
-        }
-
-        /// <summary>
-        /// Defines a language specific handler with the same method as <see cref="TestDocumentHandler"/>
-        /// but using different request and response types.
-        /// </summary>
-        [ExportCSharpVisualBasicStatelessLspService(typeof(TestLanguageSpecificHandlerWithDifferentParams)), PartNotDiscoverable, Shared]
-        [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.VisualBasic)]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal sealed class TestLanguageSpecificHandlerWithDifferentParams() : ILspServiceDocumentRequestHandler<TestRequestTypeTwo, string>
-        {
-            public bool MutatesSolutionState => true;
-            public bool RequiresLSPSolution => true;
-
-            public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeTwo request)
-            {
-                return request.TextDocumentIdentifier;
-            }
-
-            public Task<string> HandleRequestAsync(TestRequestTypeTwo request, RequestContext context, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(this.GetType().Name);
-            }
-        }
-
-        /// <summary>
-        /// Defines a language specific handler with the same method and language as <see cref="TestLanguageSpecificHandler"/>
-        /// but with different params (an error)
-        /// </summary>
-        [ExportCSharpVisualBasicStatelessLspService(typeof(TestDuplicateLanguageSpecificHandler)), PartNotDiscoverable, Shared]
-        [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.FSharp)]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal sealed class TestDuplicateLanguageSpecificHandler() : ILspServiceRequestHandler<string>
-        {
-            public bool MutatesSolutionState => true;
-            public bool RequiresLSPSolution => true;
-
-            public Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(this.GetType().Name);
-            }
+            return this.GetType().Name;
         }
     }
 }

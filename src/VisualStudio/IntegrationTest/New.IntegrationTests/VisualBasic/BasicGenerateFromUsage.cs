@@ -23,36 +23,44 @@ public class BasicGenerateFromUsage : AbstractEditorTest
     public async Task GenerateLocal()
     {
         await SetUpEditorAsync(
-@"Module Program
-    Sub Main(args As String())
-        Dim x As String = $$xyz
-    End Sub
-End Module", HangMitigatingCancellationToken);
+            """
+            Module Program
+                Sub Main(args As String())
+                    Dim x As String = $$xyz
+                End Sub
+            End Module
+            """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate local 'xyz'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync(
-@"Module Program
-    Sub Main(args As String())
-        Dim xyz As String = Nothing
-        Dim x As String = xyz
-    End Sub
-End Module", cancellationToken: HangMitigatingCancellationToken);
+            """
+            Module Program
+                Sub Main(args As String())
+                    Dim xyz As String = Nothing
+                    Dim x As String = xyz
+                End Sub
+            End Module
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
     public async Task GenerateTypeInNewFile()
     {
         await SetUpEditorAsync(
-@"Module Program
-    Sub Main(args As String())
-        Dim x As New $$ClassInNewFile()
-    End Sub
-End Module", HangMitigatingCancellationToken);
+            """
+            Module Program
+                Sub Main(args As String())
+                    Dim x As New $$ClassInNewFile()
+                End Sub
+            End Module
+            """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate class 'ClassInNewFile' in new file", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "ClassInNewFile.vb", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextContainsAsync(
-@"Friend Class ClassInNewFile
-    Public Sub New()
-    End Sub
-End Class", cancellationToken: HangMitigatingCancellationToken);
+            """
+            Friend Class ClassInNewFile
+                Public Sub New()
+                End Sub
+            End Class
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 }

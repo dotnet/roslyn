@@ -17,5 +17,5 @@ internal sealed class InlayHintCache : ResolveCache<InlayHintCacheEntry>
     /// <summary>
     /// Cached data need to resolve a specific inlay hint item.
     /// </summary>
-    internal record InlayHintCacheEntry(ImmutableArray<InlineHint> InlayHintMembers);
+    internal sealed record InlayHintCacheEntry(ImmutableArray<InlineHint> InlayHintMembers);
 }

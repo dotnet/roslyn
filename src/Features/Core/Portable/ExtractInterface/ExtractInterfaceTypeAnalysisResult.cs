@@ -4,7 +4,7 @@
 
 #nullable disable
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface;
@@ -15,7 +15,7 @@ internal sealed class ExtractInterfaceTypeAnalysisResult
     public readonly Document DocumentToExtractFrom;
     public readonly SyntaxNode TypeNode;
     public readonly INamedTypeSymbol TypeToExtractFrom;
-    public readonly IEnumerable<ISymbol> ExtractableMembers;
+    public readonly ImmutableArray<ISymbol> ExtractableMembers;
     public readonly SyntaxFormattingOptions FormattingOptions;
     public readonly string ErrorMessage;
 
@@ -23,7 +23,7 @@ internal sealed class ExtractInterfaceTypeAnalysisResult
         Document documentToExtractFrom,
         SyntaxNode typeNode,
         INamedTypeSymbol typeToExtractFrom,
-        IEnumerable<ISymbol> extractableMembers,
+        ImmutableArray<ISymbol> extractableMembers,
         SyntaxFormattingOptions formattingOptions)
     {
         CanExtractInterface = true;

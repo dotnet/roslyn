@@ -11,7 +11,7 @@ about: Report a bug in Roslyn
 2. 
 3. 
 
-A minimal repro, with source-code provided, is ideal.  Most compiler/language issues can be distilled into a snippet that can be pasted into [sharplab](https://sharplab.io/).
+A minimal repro, with source-code provided, is ideal.  Most compiler/language issues can be distilled into a snippet that can be pasted into [.NET Lab](https://lab.razor.fyi/#csharp).
 
 **Diagnostic Id**:
 

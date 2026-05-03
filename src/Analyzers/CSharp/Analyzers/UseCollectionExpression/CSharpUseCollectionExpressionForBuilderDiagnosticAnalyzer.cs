@@ -27,7 +27,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         EnforceOnBuildValues.UseCollectionExpressionForBuilder)
 {
     private const string CreateBuilderName = nameof(ImmutableArray.CreateBuilder);
-    private const string GetInstanceName = nameof(ArrayBuilder<int>.GetInstance);
+    private const string GetInstanceName = nameof(ArrayBuilder<>.GetInstance);
 
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
@@ -117,7 +117,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             return null;
 
         if (memberAccessExpression.Name.Identifier.ValueText == GetInstanceName &&
-            memberAccessExpression.Expression is not GenericNameSyntax { Identifier.ValueText: nameof(ArrayBuilder<int>) })
+            memberAccessExpression.Expression is not GenericNameSyntax { Identifier.ValueText: nameof(ArrayBuilder<>) })
         {
             return null;
         }
@@ -126,8 +126,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         if (createSymbol is not IMethodSymbol { IsStatic: true } createMethod)
             return null;
 
-        var factoryType = semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol as INamedTypeSymbol;
-        if (factoryType is null)
+        if (semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol is not INamedTypeSymbol factoryType)
             return null;
 
         // has to be the form:
@@ -218,12 +217,12 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
                     memberAccess.Expression == identifierName &&
                     memberAccess.Parent is InvocationExpressionSyntax { ArgumentList.Arguments.Count: 0 } invocationExpression &&
                     memberAccess.Name.Identifier.ValueText
-                        is nameof(ImmutableArray<int>.Builder.ToImmutable)
-                        or nameof(ImmutableArray<int>.Builder.MoveToImmutable)
-                        or nameof(ImmutableArray<int>.Builder.ToArray)
-                        or nameof(ArrayBuilder<int>.ToImmutableAndClear)
-                        or nameof(ArrayBuilder<int>.ToImmutableAndFree)
-                        or nameof(ArrayBuilder<int>.ToArrayAndFree)
+                        is nameof(ImmutableArray<>.Builder.ToImmutable)
+                        or nameof(ImmutableArray<>.Builder.MoveToImmutable)
+                        or nameof(ImmutableArray<>.Builder.ToArray)
+                        or nameof(ArrayBuilder<>.ToImmutableAndClear)
+                        or nameof(ArrayBuilder<>.ToImmutableAndFree)
+                        or nameof(ArrayBuilder<>.ToArrayAndFree)
                         or nameof(Enumerable.ToList))
                 {
                     return invocationExpression;

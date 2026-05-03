@@ -174,7 +174,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                 }
             }
             """,
-                expectedMarkup: """
+            expectedMarkup: """
             namespace {|Warning:B|}
             {
                 class MyClass
@@ -730,7 +730,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                 }
             }
             """,
-                expectedMarkup: $$"""
+            expectedMarkup: $$"""
             namespace A
             {
                 {{typeKeyword}} MyType
@@ -1101,7 +1101,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                }
            }
            """,
-            targetNamespace: "My.New.Namespace",
+           targetNamespace: "My.New.Namespace",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
             {"A.MyClass3", "My.New.Namespace.MyClass3" }
@@ -1158,7 +1158,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                }
            }
            """,
-            targetNamespace: "B",
+           targetNamespace: "B",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
             {"A.B.C.MyClass3", "B.MyClass3" }
@@ -1175,7 +1175,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                }
            }
            """,
-expectedNamespaceName: "A.Complex.Namespace");
+           expectedNamespaceName: "A.Complex.Namespace");
 
     [Fact]
     public Task MoveToNamespace_Analysis_MoveType_ComplexNamespace()
@@ -1295,7 +1295,7 @@ expectedNamespaceName: "A.Complex.Namespace");
             {
             }
             """,
-                expectedMarkup: $$"""
+            expectedMarkup: $$"""
             namespace {|Warning:A|}
             {
                 {{typeKeyword}} MyType
@@ -1311,11 +1311,8 @@ expectedNamespaceName: "A.Complex.Namespace");
 
     [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
     [MemberData(nameof(SupportedKeywords))]
-    public async Task MoveToNamespace_MoveOnlyTypeToGlobalNamespace(string typeKeyword)
-    {
-        // We will not get "" as target namespace in VS, but the refactoring should be able
-        // to handle it w/o crashing.
-        await TestMoveToNamespaceAsync(
+    public Task MoveToNamespace_MoveOnlyTypeToGlobalNamespace(string typeKeyword)
+        => TestMoveToNamespaceAsync(
             $$"""
             namespace A
             {
@@ -1333,7 +1330,6 @@ expectedNamespaceName: "A.Complex.Namespace");
             }
             """,
             targetNamespace: "");
-    }
 
     [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
     [MemberData(nameof(SupportedKeywords))]
@@ -1422,23 +1418,6 @@ expectedNamespaceName: "A.Complex.Namespace");
                 </Project>
             </Workspace>
             """;
-
-        var expected =
-            """
-            namespace A
-            {
-                public class Class1
-                {
-                }
-            }
-
-            namespace B
-            {
-                public class Class2
-                {
-                }
-            }
-            """;
         using var workspace = EditorTestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), composition: s_composition, openDocuments: false);
 
         // Set the target namespace to "B"
@@ -1458,7 +1437,21 @@ expectedNamespaceName: "A.Complex.Namespace");
             var changedDocument = result.Item2.GetRequiredDocument(id);
             var changedRoot = await changedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var actualText = changedRoot.ToFullString();
-            AssertEx.Equal(expected, actualText);
+            AssertEx.Equal("""
+            namespace A
+            {
+                public class Class1
+                {
+                }
+            }
+
+            namespace B
+            {
+                public class Class2
+                {
+                }
+            }
+            """, actualText);
         }
     }
 
@@ -1531,5 +1524,35 @@ expectedNamespaceName: "A.Complex.Namespace");
             expectedSymbolChanges: new Dictionary<string, string>()
             {
                 {"A.MyType", "B.MyType" }
+            });
+
+    [Theory]
+    [InlineData("class MyClass[||](int x, int y)")]
+    [InlineData("class [||]MyClass(int x, int y)")]
+    [InlineData("class MyC[||]lass(int x, int y)")]
+    public Task MoveToNamespace_PrimaryConstructor(string decl)
+        => TestMoveToNamespaceAsync(
+            $$"""
+            namespace A;
+
+            {{decl}}
+            {
+                public int X => x;
+                public int Y => y;
+            }
+            """,
+            expectedMarkup: """
+            namespace {|Warning:B|};
+            
+            class MyClass(int x, int y)
+            {
+                public int X => x;
+                public int Y => y;
+            }
+            """,
+            targetNamespace: "B",
+            expectedSymbolChanges: new Dictionary<string, string>()
+            {
+                {"A.MyClass", "B.MyClass" }
             });
 }

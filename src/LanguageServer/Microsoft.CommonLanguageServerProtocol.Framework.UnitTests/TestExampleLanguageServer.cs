@@ -16,7 +16,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-internal class TestExampleLanguageServer : ExampleLanguageServer
+internal sealed class TestExampleLanguageServer : ExampleLanguageServer
 {
     private readonly JsonRpc _clientRpc;
 
@@ -41,17 +41,15 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         return result;
     }
 
-    internal async Task ExecuteNotificationAsync(string methodName, CancellationToken _)
-    {
-        await _clientRpc.NotifyAsync(methodName);
-    }
+    internal Task ExecuteNotificationAsync(string methodName, CancellationToken _)
+        => _clientRpc.NotifyAsync(methodName);
 
     protected override ILifeCycleManager GetLifeCycleManager()
     {
         return new TestLifeCycleManager(_shuttingDown, _exiting);
     }
 
-    private class TestLifeCycleManager : ILifeCycleManager
+    private sealed class TestLifeCycleManager : ILifeCycleManager
     {
         private readonly TaskCompletionSource<int> _shuttingDownSource;
         private readonly TaskCompletionSource<int> _exitingSource;
@@ -62,28 +60,26 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
             _exitingSource = exitingSource;
         }
 
-        public Task ExitAsync()
+        public async Task ExitAsync()
         {
             _exitingSource.SetResult(0);
-            return Task.CompletedTask;
         }
 
-        public Task ShutdownAsync(string message = "Shutting down")
+        public async Task ShutdownAsync()
         {
             _shuttingDownSource.SetResult(0);
-            return Task.CompletedTask;
         }
     }
 
-    private readonly TaskCompletionSource<int> _shuttingDown = new TaskCompletionSource<int>();
-    private readonly TaskCompletionSource<int> _exiting = new TaskCompletionSource<int>();
+    private readonly TaskCompletionSource<int> _shuttingDown = new();
+    private readonly TaskCompletionSource<int> _exiting = new();
 
     protected override ILspServices ConstructLspServices()
     {
         return base.ConstructLspServices();
     }
 
-    private void _clientRpc_Disconnected(object sender, JsonRpcDisconnectedEventArgs e)
+    private void _clientRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
     {
         throw new NotImplementedException();
     }
@@ -143,10 +139,8 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         return server;
     }
 
-    internal async Task ShutdownServerAsync()
-    {
-        await ExecuteNotificationAsync(Methods.ShutdownName, CancellationToken.None);
-    }
+    internal Task ShutdownServerAsync()
+        => ExecuteNotificationAsync(Methods.ShutdownName, CancellationToken.None);
 
     internal async Task<InitializeResult> InitializeServerAsync()
     {

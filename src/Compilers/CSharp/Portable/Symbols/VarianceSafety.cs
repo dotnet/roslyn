@@ -76,6 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Struct:
                 case TypeKind.Enum:
                     break;
+                case TypeKind.Extension:
+                    //this is always an error case - we do not want to emit further variance diagnostics for this case
+                    return;
                 case TypeKind.Interface:
                 case TypeKind.Delegate:
                     return;

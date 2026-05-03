@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
@@ -22,7 +21,7 @@ internal interface IVisualStudioDiagnosticAnalyzerService
     /// <remarks>
     /// This is used by the Ruleset Editor from ManagedSourceCodeAnalysis.dll in VisualStudio.
     /// </remarks>
-    IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy);
+    Task<IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>>> GetAllDiagnosticDescriptorsAsync(IVsHierarchy? hierarchy, CancellationToken cancellationToken);
 
     /// <summary>
     /// Runs all the applicable NuGet and VSIX diagnostic analyzers for the given project OR current solution in background and updates the error list.
@@ -32,9 +31,4 @@ internal interface IVisualStudioDiagnosticAnalyzerService
     /// Otherwise, analyzers are run on the current solution.
     /// </param>
     void RunAnalyzers(IVsHierarchy? hierarchy);
-
-    /// <summary>
-    /// Initializes the service.
-    /// </summary>
-    Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken);
 }

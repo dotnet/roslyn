@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 
@@ -29,7 +28,7 @@ internal sealed class ConvertNamespaceCodeFixProvider() : SyntaxEditorBasedCodeF
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId, IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
 
@@ -41,11 +40,7 @@ internal sealed class ConvertNamespaceCodeFixProvider() : SyntaxEditorBasedCodeF
                 _ => throw ExceptionUtilities.UnexpectedValue(diagnostic.Id),
             });
 
-        context.RegisterCodeFix(
-            CodeAction.Create(title, GetDocumentUpdater(context), equivalenceKey),
-            context.Diagnostics);
-
-        return Task.CompletedTask;
+        RegisterCodeFix(context, title, equivalenceKey);
     }
 
     protected override async Task FixAllAsync(

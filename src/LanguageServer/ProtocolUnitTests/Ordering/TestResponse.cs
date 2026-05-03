@@ -4,13 +4,12 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
-{
-    internal class TestResponse
-    {
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering;
 
-        public bool ContextHasSolution { get; set; }
-    }
+internal sealed class TestResponse
+{
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+
+    public bool ContextHasSolution { get; set; }
 }

@@ -23,14 +23,9 @@ internal sealed class DocumentTaskDiagnosticSourceProvider([Import] IGlobalOptio
 
     public bool IsEnabled(ClientCapabilities capabilities) => capabilities.HasVisualStudioLspCapability();
 
-    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (context.GetTrackedDocument<Document>() is { } document)
-        {
-            return new([new TaskListDiagnosticSource(document, globalOptions)]);
-        }
-
-        return new([]);
+        return [new TaskListDiagnosticSource(context.GetRequiredDocument(), globalOptions)];
     }
 }
 

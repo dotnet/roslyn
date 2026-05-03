@@ -11,20 +11,19 @@ using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
-{
-    [ExportCSharpVisualBasicStatelessLspService(typeof(GoToTypeDefinitionHandler)), Shared]
-    [Method(LSP.Methods.TextDocumentTypeDefinitionName)]
-    internal class GoToTypeDefinitionHandler : AbstractGoToDefinitionHandler
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToTypeDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions)
-            : base(metadataAsSourceFileService, globalOptions)
-        {
-        }
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-        public override Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
-            => GetDefinitionAsync(request, forSymbolType: true, context, cancellationToken);
+[ExportCSharpVisualBasicStatelessLspService(typeof(GoToTypeDefinitionHandler)), Shared]
+[Method(LSP.Methods.TextDocumentTypeDefinitionName)]
+internal sealed class GoToTypeDefinitionHandler : AbstractGoToDefinitionHandler
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public GoToTypeDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions)
+        : base(metadataAsSourceFileService, globalOptions)
+    {
     }
+
+    public override Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        => GetDefinitionAsync(request, forSymbolType: true, context, cancellationToken);
 }

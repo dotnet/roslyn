@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -13,7 +11,7 @@ using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionServi
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion;
 
 [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionTests
+public sealed class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionTests
 {
     [WpfFact]
     public void Creation()
@@ -293,7 +291,9 @@ public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionT
                 }
             }
             """;
-        var expectedBeforeReturn = """
+        using var session = CreateSession(code);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M(object o)
@@ -301,8 +301,8 @@ public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionT
                     _ = o is []
                 }
             }
-            """;
-        var expected = """
+            """);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 void M(object o)
@@ -313,11 +313,71 @@ public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionT
                     ]
                 }
             }
-            """;
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69993")]
+    public void IndexerInSwitchSection1()
+    {
+        var code = """
+        class Program
+        {
+            private void M()
+            {
+                switch (variable.Name)
+                {
+                    case "v": myarray$$
+                }
+            }
+        }
+        """;
         using var session = CreateSession(code);
         CheckStart(session.Session);
-        CheckText(session.Session, expectedBeforeReturn);
-        CheckReturn(session.Session, 12, expected);
+        CheckText(session.Session, """
+        class Program
+        {
+            private void M()
+            {
+                switch (variable.Name)
+                {
+                    case "v": myarray[]
+                }
+            }
+        }
+        """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69993")]
+    public void IndexerInSwitchSection2()
+    {
+        var code = """
+        class Program
+        {
+            private void M()
+            {
+                switch (variable.Name)
+                {
+                    case "w":
+                    case "v": myarray$$
+                }
+            }
+        }
+        """;
+        using var session = CreateSession(code);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
+        class Program
+        {
+            private void M()
+            {
+                switch (variable.Name)
+                {
+                    case "w":
+                    case "v": myarray[]
+                }
+            }
+        }
+        """);
     }
 
     internal static Holder CreateSession(string code)

@@ -298,43 +298,6 @@ for deyiminde noktalı virgülden önce boşluk ekle;
         <target state="translated">Sarmalama için biçimlendirme seçeneklerini değiştir;bloğu tek satırda bırak;ifadeleri ve üye bildirimlerini aynı satırda bırak</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
-Show completion list after a character is typed;
-Show completion list after a character is deleted;
-Automatically show completion list in argument lists (experimental);
-Highlight matching portions of completion list items;
-Show completion item filters;
-Automatically complete statement on semicolon;
-Snippets behavior;
-Never include snippets;
-Always include snippets;
-Include snippets when ?-Tab is typed after an identifier;
-Enter key behavior;
-Never add new line on enter;
-Only add new line on enter after end of fully typed word;
-Always add new line on enter;
-Show name suggestions;
-Show items from unimported namespaces (experimental);</source>
-        <target state="translated">Tamamlama listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlama Listeleri;
-Bir karakter yazıldıktan sonra tamamlama listesini göster;
-Bir karakter silindikten sonra tamamlama listesini göster;
-Bağımsız değişken listelerinde tamamlama listelerini otomatik olarak göster (deneysel);
-Tamamlama listesi öğelerinin eşleşen kısımlarını vurgula;
-Tamamlama öğesi filtrelerini göster;
-Deyimi noktalı virgülle otomatik olarak tamamla;
-Kod parçacığı davranışı;
-Kod parçacıklarını hiçbir zaman dahil etme;
-Kod parçacıklarını her zaman dahil et;
-Bir tanımlayıcıdan sonra ?- yazılıp Sekme tuşuna basılırsa kod parçacıklarını dahil et;
-Enter tuşu davranışı;
-Enter tuşuna basıldığında hiçbir zaman yeni satır ekleme;
-Enter tuşuna basıldığında yalnızca tam bir kelime yazılmışsa sonuna yeni satır ekle;
-Enter tuşuna basıldığında her zaman yeni satır ekle;
-Ad önerilerini göster;
-İçeri aktarılmamış ad alanlarındaki öğeleri göster (deneysel);</target>
-        <note>C# IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
         <target state="translated">Biçimlendirme</target>

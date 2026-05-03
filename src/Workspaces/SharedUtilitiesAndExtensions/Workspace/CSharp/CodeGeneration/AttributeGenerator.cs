@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -71,15 +69,14 @@ internal static class AttributeGenerator
         if (attribute.AttributeClass == null)
             return null;
 
-        var attributeArguments = GenerateAttributeArgumentList(
-            info.Generator, attribute, reusableSyntax);
+        var attributeArguments = GenerateAttributeArgumentList(attribute, reusableSyntax);
         return attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax
             ? Attribute(nameSyntax, attributeArguments)
             : null;
     }
 
     private static AttributeArgumentListSyntax? GenerateAttributeArgumentList(
-        SyntaxGenerator generator, AttributeData attribute, AttributeSyntax? existingSyntax)
+        AttributeData attribute, AttributeSyntax? existingSyntax)
     {
         if (attribute.ConstructorArguments.Length == 0 && attribute.NamedArguments.Length == 0)
             return null;
@@ -103,7 +100,7 @@ internal static class AttributeGenerator
         {
             // In the case of a string constant with value "x", see if the originating syntax was a `nameof(x)`
             // expression and attempt to preserve that.
-            if (existingSyntax?.ArgumentList != null && constant.Value is string stringValue)
+            if (existingSyntax?.ArgumentList != null && constant is { Kind: not TypedConstantKind.Array, Value: string stringValue })
             {
                 foreach (var existingArgument in existingSyntax.ArgumentList.Arguments)
                 {
@@ -117,7 +114,7 @@ internal static class AttributeGenerator
                 }
             }
 
-            return ExpressionGenerator.GenerateExpression(generator, constant);
+            return ExpressionGenerator.GenerateExpression(constant);
         }
     }
 }

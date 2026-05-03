@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -123,6 +124,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 propertyModifiers,
                 location,
                 syntax,
+                diagnostics);
+        }
+
+        public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
+            NamedTypeSymbol containingType,
+            SynthesizedUnionValuePropertySymbol property,
+            DeclarationModifiers propertyModifiers,
+            Location location,
+            CSharpSyntaxNode syntax,
+            BindingDiagnosticBag diagnostics)
+        {
+            return new SourcePropertyAccessorSymbol(
+                containingType,
+                property,
+                propertyModifiers,
+                location,
+                syntax,
+                hasBlockBody: false,
+                hasExpressionBody: false,
+                isIterator: false,
+                modifiers: default,
+                MethodKind.PropertyGet,
+                usesInit: false,
+                isAutoPropertyAccessor: true,
+                isNullableAnalysisEnabled: false,
                 diagnostics);
         }
 #nullable disable
@@ -249,10 +275,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
         private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
-            propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
+            propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe);
 
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
+            if (_property is SynthesizedUnionValuePropertySymbol or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPropertySymbol)
+            {
+                return null;
+            }
+
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
@@ -432,6 +463,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool LocalDeclaredReadOnly => (DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
 
         /// <summary>
+        /// Indicates whether this accessor itself has an 'unsafe' modifier.
+        /// </summary>
+        internal bool LocalDeclaredUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+
+        /// <summary>
+        /// Whether this accessor or its containing property has an 'unsafe' modifier.
+        /// </summary>
+        internal sealed override bool IsUnsafe => LocalDeclaredUnsafe || _property.HasUnsafeModifier;
+        internal sealed override bool CanBeCallerUnsafe => true;
+
+        /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
         internal sealed override bool IsDeclaredReadOnly
@@ -498,6 +540,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
+            allowedModifiers |= DeclarationModifiers.Unsafe;
+
             if (containingType.IsStructType())
             {
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
@@ -512,7 +556,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
-                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out _);
+
+            if ((mods & DeclarationModifiers.Unsafe) != 0)
+            {
+                var syntax = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword);
+                modifierErrors |= !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, syntax);
+            }
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -553,6 +603,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Static member '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
+            }
+            else if (ContainingType.IsExtension && IsInitOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_InitInExtension, location, _property);
             }
             else if (LocalDeclaredReadOnly && IsInitOnly)
             {
@@ -654,13 +708,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var syntax = this.GetSyntax();
-                switch (syntax.Kind())
+                if (this._property.ContainingType is SourceMemberContainerTypeSymbol { AnyMemberHasAttributes: true })
                 {
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.InitAccessorDeclaration:
-                        return ((AccessorDeclarationSyntax)syntax).AttributeLists;
+                    var syntax = this.GetSyntax();
+                    switch (syntax.Kind())
+                    {
+                        case SyntaxKind.GetAccessorDeclaration:
+                        case SyntaxKind.SetAccessorDeclaration:
+                        case SyntaxKind.InitAccessorDeclaration:
+                            return ((AccessorDeclarationSyntax)syntax).AttributeLists;
+                    }
                 }
 
                 return default;
@@ -721,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        public sealed override bool IsImplicitlyDeclared
+        public override bool IsImplicitlyDeclared
         {
             get
             {
@@ -734,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InitAccessorDeclaration:
                     case SyntaxKind.ArrowExpressionClause:
                         return false;
-                };
+                }
 
                 return true;
             }
@@ -789,7 +846,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
+            AddSynthesizedReturnTypeFlowAnalysisAttributes(ref attributes);
+        }
 
+        internal void AddSynthesizedReturnTypeFlowAnalysisAttributes(ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
             var annotations = ReturnTypeFlowAnalysisAnnotations;
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
@@ -798,33 +859,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
             {
                 AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(_property.NotNullAttributeIfExists));
-            }
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (_isAutoPropertyAccessor)
-            {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            }
-
-            if (!NotNullMembers.IsEmpty)
-            {
-                foreach (var attributeData in _property.MemberNotNullAttributeIfExists)
-                {
-                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(attributeData));
-                }
-            }
-
-            if (!NotNullWhenTrueMembers.IsEmpty || !NotNullWhenFalseMembers.IsEmpty)
-            {
-                foreach (var attributeData in _property.MemberNotNullWhenAttributeIfExists)
-                {
-                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(attributeData));
-                }
             }
         }
 
@@ -856,6 +890,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (LocalDeclaredReadOnly != implementationAccessor.LocalDeclaredReadOnly)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementationAccessor.GetFirstLocation());
+            }
+
+            if (LocalDeclaredUnsafe != implementationAccessor.LocalDeclaredUnsafe)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementationAccessor.GetFirstLocation());
             }
 
             if (_usesInit != implementationAccessor._usesInit)

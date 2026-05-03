@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -20,7 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
         }
 
-        public void UnaryOperatorOverloadResolution(UnaryOperatorKind kind, bool isChecked, BoundExpression operand, UnaryOperatorOverloadResolutionResult result, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public void UnaryOperatorOverloadResolution(
+            UnaryOperatorKind kind,
+            bool isChecked,
+            string name1,
+            string name2Opt,
+            BoundExpression operand,
+            UnaryOperatorOverloadResolutionResult result,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(operand != null);
             Debug.Assert(result.Results.Count == 0);
@@ -38,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The set of candidate user-defined operators provided by X for the operation operator 
             // SPEC: op(x) is determined using the rules of 7.3.5.
 
-            bool hadUserDefinedCandidate = GetUserDefinedOperators(kind, isChecked, operand, result.Results, ref useSiteInfo);
+            bool hadUserDefinedCandidate = GetUserDefinedOperators(kind, isChecked, name1, name2Opt, operand, result.Results, ref useSiteInfo);
 
             // SPEC: If the set of candidate user-defined operators is not empty, then this becomes the 
             // SPEC: set of candidate operators for the operation. Otherwise, the predefined unary operator 
@@ -59,9 +67,245 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorOverloadResolution(operand, result, ref useSiteInfo);
         }
 
+#nullable enable 
+
+        public bool UnaryOperatorExtensionOverloadResolutionInSingleScope(
+            ArrayBuilder<Symbol> extensionCandidatesInSingleScope,
+            UnaryOperatorKind kind,
+            bool isChecked,
+            string name1,
+            string? name2Opt,
+            BoundExpression operand,
+            UnaryOperatorOverloadResolutionResult result,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(isChecked || name2Opt is null);
+            Debug.Assert(operand.Type is not null);
+
+            var operators = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
+
+            getDeclaredUserDefinedUnaryOperatorsInScope(extensionCandidatesInSingleScope, kind, name1, name2Opt, operators);
+
+            if (operand.Type.IsNullableType()) // Wouldn't be applicable to the receiver type otherwise
+            {
+                AddLiftedUserDefinedUnaryOperators(constrainedToTypeOpt: null, kind, operators);
+            }
+
+            inferTypeArgumentsAndRemoveInapplicableToReceiverType(kind, operand, operators, ref useSiteInfo);
+
+            bool hadApplicableCandidates = false;
+
+            if (!operators.IsEmpty)
+            {
+                var results = result.Results;
+                results.Clear();
+                if (CandidateOperators(isChecked, operators, operand, results, ref useSiteInfo))
+                {
+                    UnaryOperatorOverloadResolution(operand, result, ref useSiteInfo);
+                    hadApplicableCandidates = true;
+                }
+            }
+
+            operators.Free();
+
+            return hadApplicableCandidates;
+
+            static void getDeclaredUserDefinedUnaryOperatorsInScope(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, UnaryOperatorKind kind, string name1, string? name2Opt, ArrayBuilder<UnaryOperatorSignature> operators)
+            {
+                getDeclaredUserDefinedUnaryOperators(extensionCandidatesInSingleScope, kind, name1, operators);
+
+                if (name2Opt is not null)
+                {
+                    if (!operators.IsEmpty)
+                    {
+                        var existing = new HashSet<MethodSymbol>(PairedExtensionOperatorSignatureComparer.Instance);
+                        existing.AddRange(operators.Select(static (op) => op.Method));
+
+                        var operators2 = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
+                        getDeclaredUserDefinedUnaryOperators(extensionCandidatesInSingleScope, kind, name2Opt, operators2);
+
+                        foreach (var op in operators2)
+                        {
+                            if (!existing.Contains(op.Method))
+                            {
+                                operators.Add(op);
+                            }
+                        }
+
+                        operators2.Free();
+                    }
+                    else
+                    {
+                        getDeclaredUserDefinedUnaryOperators(extensionCandidatesInSingleScope, kind, name2Opt, operators);
+                    }
+                }
+            }
+
+            static void getDeclaredUserDefinedUnaryOperators(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
+            {
+                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.ContainingType.ExtensionParameter is not null));
+                var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
+                NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
+                GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt: null, typeOperators, kind, name, operators);
+                typeOperators.Free();
+            }
+
+            void inferTypeArgumentsAndRemoveInapplicableToReceiverType(UnaryOperatorKind kind, BoundExpression operand, ArrayBuilder<UnaryOperatorSignature> operators, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                for (int i = operators.Count - 1; i >= 0; i--)
+                {
+                    var candidate = operators[i];
+                    MethodSymbol method = candidate.Method;
+                    NamedTypeSymbol extension = method.ContainingType;
+
+                    if (extension.Arity == 0)
+                    {
+                        if (isApplicableToReceiver(in candidate, operand, ref useSiteInfo))
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        // Infer type arguments 
+                        var inferenceResult = MethodTypeInferrer.Infer(
+                            _binder,
+                            this.Conversions,
+                            extension.TypeParameters,
+                            extension,
+                            [TypeWithAnnotations.Create(candidate.OperandType)],
+                            method.ParameterRefKinds,
+                            [operand],
+                            ref useSiteInfo,
+                            ordinals: null);
+
+                        if (inferenceResult.Success)
+                        {
+                            extension = extension.Construct(inferenceResult.InferredTypeArguments);
+                            method = method.AsMember(extension);
+
+                            if (!FailsConstraintChecks(method, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded))
+                            {
+                                TypeSymbol operandType = method.GetParameterType(0);
+                                TypeSymbol resultType = method.ReturnType;
+
+                                UnaryOperatorSignature inferredCandidate;
+
+                                if (candidate.Kind.IsLifted())
+                                {
+                                    inferredCandidate = new UnaryOperatorSignature(UnaryOperatorKind.Lifted | UnaryOperatorKind.UserDefined | kind, MakeNullable(operandType), MakeNullable(resultType), method, constrainedToTypeOpt: null);
+                                }
+                                else
+                                {
+                                    inferredCandidate = new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, method, constrainedToTypeOpt: null);
+                                }
+
+                                if (isApplicableToReceiver(in inferredCandidate, operand, ref useSiteInfo))
+                                {
+                                    operators[i] = inferredCandidate;
+                                    continue;
+                                }
+                            }
+
+                            constraintFailureDiagnosticsOpt?.Free();
+                        }
+                    }
+
+                    operators.RemoveAt(i);
+                }
+            }
+
+            bool isApplicableToReceiver(in UnaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(operand.Type is not null);
+                Debug.Assert(candidate.Method.ContainingType.ExtensionParameter is not null);
+
+                if (candidate.Kind.IsLifted())
+                {
+                    Debug.Assert(operand.Type.IsNullableType());
+
+                    if (!candidate.Method.ContainingType.ExtensionParameter.Type.IsValidNullableTypeArgument() ||
+                        !Conversions.ConvertExtensionMethodThisArg(MakeNullable(candidate.Method.ContainingType.ExtensionParameter.Type), operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
+                    {
+                        return false;
+                    }
+                }
+                else if (!Conversions.ConvertExtensionMethodThisArg(candidate.Method.ContainingType.ExtensionParameter.Type, operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
+                {
+                    return false; // Conversion to 'this' parameter failed
+                }
+
+                return true;
+            }
+        }
+
+        internal class PairedExtensionOperatorSignatureComparer : IEqualityComparer<MethodSymbol>
+        {
+            public static readonly PairedExtensionOperatorSignatureComparer Instance = new PairedExtensionOperatorSignatureComparer();
+
+            private PairedExtensionOperatorSignatureComparer() { }
+
+            public bool Equals(MethodSymbol? x, MethodSymbol? y)
+            {
+                Debug.Assert(x is { });
+                Debug.Assert(y is { });
+
+                if (x.OriginalDefinition.ContainingType.ContainingType != (object)x.OriginalDefinition.ContainingType.ContainingType)
+                {
+                    return false;
+                }
+
+                var xExtension = x.OriginalDefinition.ContainingType;
+                var xGroupingKey = ((SourceNamedTypeSymbol)xExtension).ExtensionGroupingName;
+                Debug.Assert(xGroupingKey is not null);
+                var yExtension = y.OriginalDefinition.ContainingType;
+                var yGroupingKey = ((SourceNamedTypeSymbol)yExtension).ExtensionGroupingName;
+
+                if (!xGroupingKey.Equals(yGroupingKey))
+                {
+                    return false;
+                }
+
+                return SourceMemberContainerTypeSymbol.DoOperatorsPair(
+                           x.OriginalDefinition.AsMember(Normalize(xExtension)),
+                           y.OriginalDefinition.AsMember(Normalize(yExtension)));
+            }
+
+            private static NamedTypeSymbol Normalize(NamedTypeSymbol extension)
+            {
+                if (extension.Arity != 0)
+                {
+                    extension = extension.Construct(IndexedTypeParameterSymbol.Take(extension.Arity));
+                }
+
+                return extension;
+            }
+
+            public int GetHashCode(MethodSymbol op)
+            {
+                var typeComparer = Symbols.SymbolEqualityComparer.AllIgnoreOptions;
+
+                int result = typeComparer.GetHashCode(op.OriginalDefinition.ContainingType.ContainingType);
+
+                var extension = op.OriginalDefinition.ContainingType;
+                var groupingKey = ((SourceNamedTypeSymbol)extension).ExtensionGroupingName;
+                Debug.Assert(groupingKey is not null);
+                result = Hash.Combine(result, groupingKey.GetHashCode());
+
+                foreach (var parameter in op.OriginalDefinition.AsMember(Normalize(extension)).Parameters)
+                {
+                    result = Hash.Combine(result, typeComparer.GetHashCode(parameter.Type));
+                }
+
+                return result;
+            }
+        }
+
+#nullable disable
+
         // Takes a list of candidates and mutates the list to throw out the ones that are worse than
         // another applicable candidate.
-        private void UnaryOperatorOverloadResolution(
+        internal void UnaryOperatorOverloadResolution(
             BoundExpression operand,
             UnaryOperatorOverloadResolutionResult result,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -200,6 +444,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Conversions.HasIdentityConversion(op1.OperandType, op2.OperandType))
             {
+                // SPEC: If Mp is a non-generic method and Mq is a generic method, then Mp is better than Mq.
+                if (op1.Method?.GetMemberArityIncludingExtension() is null or 0)
+                {
+                    if (op2.Method?.GetMemberArityIncludingExtension() > 0)
+                    {
+                        return BetterResult.Left;
+                    }
+                }
+                else if (op2.Method?.GetMemberArityIncludingExtension() is null or 0)
+                {
+                    return BetterResult.Right;
+                }
+
                 // SPEC: If Mp has more specific parameter types than Mq then Mp is better than Mq.
 
                 // Under what circumstances can two unary operators with identical signatures be "more specific"
@@ -344,7 +601,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns true if there were any applicable candidates.
-        private bool GetUserDefinedOperators(UnaryOperatorKind kind, bool isChecked, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool GetUserDefinedOperators(
+            UnaryOperatorKind kind,
+            bool isChecked,
+            string name1,
+            string name2Opt,
+            BoundExpression operand,
+            ArrayBuilder<UnaryOperatorAnalysisResult> results,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(operand != null);
 
@@ -376,11 +640,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - If we find an applicable candidate in an interface, that candidate shadows all applicable operators in base interfaces:
             // we stop looking.
 
-            TypeSymbol type0 = operand.Type.StrippedType();
-            TypeSymbol constrainedToTypeOpt = type0 as TypeParameterSymbol;
+            return GetUserDefinedOperators(operand.Type.StrippedType(), kind, isChecked, name1, name2Opt, operand, results, ref useSiteInfo);
+        }
+
+        /// <summary>
+        /// Returns true if there were any applicable candidates.
+        /// </summary>
+        internal bool GetUserDefinedOperators(
+            TypeSymbol declaringTypeOrTypeParameter,
+            UnaryOperatorKind kind,
+            bool isChecked,
+            string name1,
+            string name2Opt,
+            BoundExpression operand,
+            ArrayBuilder<UnaryOperatorAnalysisResult> results,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            TypeSymbol constrainedToTypeOpt = declaringTypeOrTypeParameter as TypeParameterSymbol;
 
             // Searching for user-defined operators is expensive; let's take an early out if we can.
-            if (OperatorFacts.DefinitelyHasNoUserDefinedOperators(type0))
+            if (OperatorFacts.DefinitelyHasNoUserDefinedOperators(declaringTypeOrTypeParameter))
             {
                 return false;
             }
@@ -388,22 +667,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operators = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
             bool hadApplicableCandidates = false;
 
-            NamedTypeSymbol current = type0 as NamedTypeSymbol;
+            NamedTypeSymbol current = declaringTypeOrTypeParameter as NamedTypeSymbol;
             if ((object)current == null)
             {
-                current = type0.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                current = declaringTypeOrTypeParameter.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             }
 
-            if ((object)current == null && type0.IsTypeParameter())
+            if ((object)current == null && declaringTypeOrTypeParameter.IsTypeParameter())
             {
-                current = ((TypeParameterSymbol)type0).EffectiveBaseClass(ref useSiteInfo);
+                current = ((TypeParameterSymbol)declaringTypeOrTypeParameter).EffectiveBaseClass(ref useSiteInfo);
             }
 
             for (; (object)current != null; current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 operators.Clear();
 
-                GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, current, kind, isChecked, operators);
+                GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, current, kind, name1, name2Opt, operators);
 
                 results.Clear();
                 if (CandidateOperators(isChecked, operators, operand, results, ref useSiteInfo))
@@ -417,13 +696,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!hadApplicableCandidates)
             {
                 ImmutableArray<NamedTypeSymbol> interfaces = default;
-                if (type0.IsInterfaceType())
+                if (declaringTypeOrTypeParameter.IsInterfaceType())
                 {
-                    interfaces = type0.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                    interfaces = declaringTypeOrTypeParameter.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
                 }
-                else if (type0.IsTypeParameter())
+                else if (declaringTypeOrTypeParameter.IsTypeParameter())
                 {
-                    interfaces = ((TypeParameterSymbol)type0).AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                    interfaces = ((TypeParameterSymbol)declaringTypeOrTypeParameter).AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
                 }
 
                 if (!interfaces.IsDefaultOrEmpty)
@@ -448,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         operators.Clear();
                         resultsFromInterface.Clear();
-                        GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, @interface, kind, isChecked, operators);
+                        GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, @interface, kind, name1, name2Opt, operators);
                         if (CandidateOperators(isChecked, operators, operand, resultsFromInterface, ref useSiteInfo))
                         {
                             hadApplicableCandidates = true;
@@ -469,26 +748,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             return hadApplicableCandidates;
         }
 
+#nullable enable
+
+        internal static void GetStaticUserDefinedUnaryOperatorMethodNames(UnaryOperatorKind kind, bool isChecked, out string name1, out string? name2Opt)
+        {
+            name1 = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked);
+
+            if (isChecked && SyntaxFacts.IsCheckedOperator(name1))
+            {
+                name2Opt = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked: false);
+            }
+            else
+            {
+                name2Opt = null;
+            }
+        }
+
         private void GetUserDefinedUnaryOperatorsFromType(
             TypeSymbol constrainedToTypeOpt,
             NamedTypeSymbol type,
             UnaryOperatorKind kind,
-            bool isChecked,
+            string name1,
+            string? name2Opt,
             ArrayBuilder<UnaryOperatorSignature> operators)
         {
             Debug.Assert(operators.Count == 0);
 
-            string name1 = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked);
+            GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt, type, kind, name1, operators);
 
-            getDeclaredOperators(constrainedToTypeOpt, type, kind, name1, operators);
-
-            if (isChecked && SyntaxFacts.IsCheckedOperator(name1))
+            if (name2Opt is not null)
             {
-                string name2 = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked: false);
                 var operators2 = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
 
                 // Add regular operators as well.
-                getDeclaredOperators(constrainedToTypeOpt, type, kind, name2, operators2);
+                GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt, type, kind, name2Opt, operators2);
 
                 // Drop operators that have a match among the checked ones.
                 if (operators.Count != 0)
@@ -510,63 +803,71 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operators2.Free();
             }
 
-            addLiftedOperators(constrainedToTypeOpt, kind, operators);
+            AddLiftedUserDefinedUnaryOperators(constrainedToTypeOpt, kind, operators);
+        }
 
-            static void getDeclaredOperators(TypeSymbol constrainedToTypeOpt, NamedTypeSymbol type, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
+        private static void GetDeclaredUserDefinedUnaryOperators(TypeSymbol? constrainedToTypeOpt, NamedTypeSymbol type, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
+        {
+            var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
+            type.AddOperators(name, typeOperators);
+            GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt, typeOperators, kind, name, operators);
+            typeOperators.Free();
+        }
+
+        private static void GetDeclaredUserDefinedUnaryOperators(TypeSymbol? constrainedToTypeOpt, IEnumerable<MethodSymbol> typeOperators, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
+        {
+            foreach (MethodSymbol op in typeOperators)
             {
-                var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
-                type.AddOperators(name, typeOperators);
-
-                foreach (MethodSymbol op in typeOperators)
+                if (op.Name != name)
                 {
-                    // If we're in error recovery, we might have bad operators. Just ignore it.
-                    if (op.ParameterCount != 1 || op.ReturnsVoid)
-                    {
-                        continue;
-                    }
-
-                    TypeSymbol operandType = op.GetParameterType(0);
-                    TypeSymbol resultType = op.ReturnType;
-
-                    operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op, constrainedToTypeOpt));
+                    continue;
                 }
 
-                typeOperators.Free();
+                // If we're in error recovery, we might have bad operators. Just ignore it.
+                if (!op.IsStatic || op.ParameterCount != 1 || op.ReturnsVoid)
+                {
+                    continue;
+                }
+
+                TypeSymbol operandType = op.GetParameterType(0);
+                TypeSymbol resultType = op.ReturnType;
+
+                operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op, constrainedToTypeOpt));
             }
+        }
 
-            void addLiftedOperators(TypeSymbol constrainedToTypeOpt, UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)
+        private void AddLiftedUserDefinedUnaryOperators(TypeSymbol? constrainedToTypeOpt, UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)
+        {
+            // SPEC: For the unary operators + ++ - -- ! ~ a lifted form of an operator exists
+            // SPEC: if the operand and its result types are both non-nullable value types.
+            // SPEC: The lifted form is constructed by adding a single ? modifier to the
+            // SPEC: operator and result types. 
+            switch (kind)
             {
-                // SPEC: For the unary operators + ++ - -- ! ~ a lifted form of an operator exists
-                // SPEC: if the operand and its result types are both non-nullable value types.
-                // SPEC: The lifted form is constructed by adding a single ? modifier to the
-                // SPEC: operator and result types. 
-                switch (kind)
-                {
-                    case UnaryOperatorKind.UnaryPlus:
-                    case UnaryOperatorKind.PrefixDecrement:
-                    case UnaryOperatorKind.PrefixIncrement:
-                    case UnaryOperatorKind.UnaryMinus:
-                    case UnaryOperatorKind.PostfixDecrement:
-                    case UnaryOperatorKind.PostfixIncrement:
-                    case UnaryOperatorKind.LogicalNegation:
-                    case UnaryOperatorKind.BitwiseComplement:
+                case UnaryOperatorKind.UnaryPlus:
+                case UnaryOperatorKind.PrefixDecrement:
+                case UnaryOperatorKind.PrefixIncrement:
+                case UnaryOperatorKind.UnaryMinus:
+                case UnaryOperatorKind.PostfixDecrement:
+                case UnaryOperatorKind.PostfixIncrement:
+                case UnaryOperatorKind.LogicalNegation:
+                case UnaryOperatorKind.BitwiseComplement:
 
-                        for (int i = operators.Count - 1; i >= 0; i--)
+                    for (int i = operators.Count - 1; i >= 0; i--)
+                    {
+                        MethodSymbol op = operators[i].Method;
+                        TypeSymbol operandType = op.GetParameterType(0);
+                        TypeSymbol resultType = op.ReturnType;
+
+                        if (operandType.IsValidNullableTypeArgument() &&
+                            resultType.IsValidNullableTypeArgument())
                         {
-                            MethodSymbol op = operators[i].Method;
-                            TypeSymbol operandType = op.GetParameterType(0);
-                            TypeSymbol resultType = op.ReturnType;
-
-                            if (operandType.IsValidNullableTypeArgument() &&
-                                resultType.IsValidNullableTypeArgument())
-                            {
-                                operators.Add(new UnaryOperatorSignature(
-                                    UnaryOperatorKind.Lifted | UnaryOperatorKind.UserDefined | kind,
-                                    MakeNullable(operandType), MakeNullable(resultType), op, constrainedToTypeOpt));
-                            }
+                            operators.Add(new UnaryOperatorSignature(
+                                UnaryOperatorKind.Lifted | UnaryOperatorKind.UserDefined | kind,
+                                MakeNullable(operandType), MakeNullable(resultType), op, constrainedToTypeOpt));
                         }
-                        break;
-                }
+                    }
+                    break;
             }
         }
     }

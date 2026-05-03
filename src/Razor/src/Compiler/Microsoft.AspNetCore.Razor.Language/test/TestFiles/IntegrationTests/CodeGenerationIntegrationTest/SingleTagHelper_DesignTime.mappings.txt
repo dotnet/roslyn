@@ -1,0 +1,10 @@
+﻿Source Location: (14:0,14 [17] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleTagHelper.cshtml)
+|"*, TestAssembly"|
+Generated Location: (1747:32,37 [17] )
+|"*, TestAssembly"|
+
+Source Location: (63:2,28 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleTagHelper.cshtml)
+|1337|
+Generated Location: (2379:50,33 [4] )
+|1337|
+

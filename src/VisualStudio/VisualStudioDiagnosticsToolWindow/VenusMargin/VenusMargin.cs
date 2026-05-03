@@ -9,121 +9,120 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 
-namespace Roslyn.Hosting.Diagnostics.VenusMargin
+namespace Roslyn.Hosting.Diagnostics.VenusMargin;
+
+internal sealed class VenusMargin : IWpfTextViewMargin
 {
-    internal class VenusMargin : IWpfTextViewMargin
+    public const string MarginName = "VenusMargin";
+
+    private readonly IProjectionBuffer _projectionBuffer;
+    private readonly ProjectionBufferViewModel _viewModel = new();
+    private readonly ProjectionBufferMargin _control;
+
+    private bool _isDisposed = false;
+
+    public VenusMargin(IWpfTextView textView, ITextEditorFactoryService textEditorFactory)
     {
-        public const string MarginName = "VenusMargin";
+        _projectionBuffer = (IProjectionBuffer)textView.TextBuffer;
 
-        private readonly IProjectionBuffer _projectionBuffer;
-        private readonly ProjectionBufferViewModel _viewModel = new ProjectionBufferViewModel();
-        private readonly ProjectionBufferMargin _control;
-
-        private bool _isDisposed = false;
-
-        public VenusMargin(IWpfTextView textView, ITextEditorFactoryService textEditorFactory)
+        _control = new ProjectionBufferMargin
         {
-            _projectionBuffer = (IProjectionBuffer)textView.TextBuffer;
+            DataContext = _viewModel,
+            TextEditorFactory = textEditorFactory,
+            TextView = textView,
+        };
 
-            _control = new ProjectionBufferMargin
-            {
-                DataContext = _viewModel,
-                TextEditorFactory = textEditorFactory,
-                TextView = textView,
-            };
+        _projectionBuffer.Changed += OnProjectionBufferChanged;
+        _projectionBuffer.SourceSpansChanged += this.OnProjectionBufferSourceSpansChanged;
+        _projectionBuffer.SourceBuffersChanged += OnProjectionBufferSourceBuffersChanged;
 
-            _projectionBuffer.Changed += OnProjectionBufferChanged;
-            _projectionBuffer.SourceSpansChanged += this.OnProjectionBufferSourceSpansChanged;
-            _projectionBuffer.SourceBuffersChanged += OnProjectionBufferSourceBuffersChanged;
+        foreach (var b in _projectionBuffer.SourceBuffers)
+        {
+            _viewModel.SourceBuffers.Add(b);
+        }
+    }
 
-            foreach (var b in _projectionBuffer.SourceBuffers)
-            {
-                _viewModel.SourceBuffers.Add(b);
-            }
+    private void OnProjectionBufferSourceBuffersChanged(object sender, ProjectionSourceBuffersChangedEventArgs e)
+    {
+        foreach (var b in e.RemovedBuffers)
+        {
+            _viewModel.SourceBuffers.Remove(b);
         }
 
-        private void OnProjectionBufferSourceBuffersChanged(object sender, ProjectionSourceBuffersChangedEventArgs e)
+        foreach (var b in e.AddedBuffers)
         {
-            foreach (var b in e.RemovedBuffers)
-            {
-                _viewModel.SourceBuffers.Remove(b);
-            }
-
-            foreach (var b in e.AddedBuffers)
-            {
-                _viewModel.SourceBuffers.Add(b);
-            }
-
-            UpdateSourceSpans();
+            _viewModel.SourceBuffers.Add(b);
         }
 
-        private void OnProjectionBufferSourceSpansChanged(object sender, ProjectionSourceSpansChangedEventArgs e)
+        UpdateSourceSpans();
+    }
+
+    private void OnProjectionBufferSourceSpansChanged(object sender, ProjectionSourceSpansChangedEventArgs e)
+    {
+        UpdateSourceSpans();
+    }
+
+    private void OnProjectionBufferChanged(object sender, TextContentChangedEventArgs e)
+    {
+        UpdateSourceSpans();
+    }
+
+    private void UpdateSourceSpans()
+    {
+        _viewModel.SourceSpans.Clear();
+        foreach (var ss in _projectionBuffer.CurrentSnapshot.GetSourceSpans())
         {
-            UpdateSourceSpans();
+            _viewModel.SourceSpans.Add(ss);
         }
 
-        private void OnProjectionBufferChanged(object sender, TextContentChangedEventArgs e)
+        _viewModel.SourceSpans.Add(new SnapshotSpan(_projectionBuffer.CurrentSnapshot, 0, 0));
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (_isDisposed)
         {
-            UpdateSourceSpans();
+            throw new ObjectDisposedException(MarginName);
         }
+    }
 
-        private void UpdateSourceSpans()
+    public System.Windows.FrameworkElement VisualElement
+    {
+        get
         {
-            _viewModel.SourceSpans.Clear();
-            foreach (var ss in _projectionBuffer.CurrentSnapshot.GetSourceSpans())
-            {
-                _viewModel.SourceSpans.Add(ss);
-            }
-
-            _viewModel.SourceSpans.Add(new SnapshotSpan(_projectionBuffer.CurrentSnapshot, 0, 0));
+            ThrowIfDisposed();
+            return _control;
         }
+    }
 
-        private void ThrowIfDisposed()
+    public double MarginSize
+    {
+        get
         {
-            if (_isDisposed)
-            {
-                throw new ObjectDisposedException(MarginName);
-            }
+            ThrowIfDisposed();
+            return _control.ActualHeight;
         }
+    }
 
-        public System.Windows.FrameworkElement VisualElement
+    public bool Enabled
+    {
+        get
         {
-            get
-            {
-                ThrowIfDisposed();
-                return _control;
-            }
+            ThrowIfDisposed();
+            return true;
         }
+    }
 
-        public double MarginSize
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _control.ActualHeight;
-            }
-        }
+    public ITextViewMargin GetTextViewMargin(string marginName)
+    {
+        return marginName == MarginName ? this : null;
+    }
 
-        public bool Enabled
+    public void Dispose()
+    {
+        if (!_isDisposed)
         {
-            get
-            {
-                ThrowIfDisposed();
-                return true;
-            }
-        }
-
-        public ITextViewMargin GetTextViewMargin(string marginName)
-        {
-            return marginName == MarginName ? this : null;
-        }
-
-        public void Dispose()
-        {
-            if (!_isDisposed)
-            {
-                _isDisposed = true;
-            }
+            _isDisposed = true;
         }
     }
 }

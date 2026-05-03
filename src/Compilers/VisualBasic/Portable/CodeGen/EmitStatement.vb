@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 'Determine if the exception object is or inherits from System.Exception
                 _builder.EmitOpCode(ILOpCode.Isinst)
-                _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics)
+                _builder.EmitToken(exceptionType, catchBlock.Syntax)
                 _builder.EmitOpCode(ILOpCode.Ldnull)
                 _builder.EmitOpCode(ILOpCode.Cgt_un)
 
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.MarkFilterConditionEnd()
 
                 _builder.EmitOpCode(ILOpCode.Castclass)
-                _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics)
+                _builder.EmitToken(exceptionType, catchBlock.Syntax)
 
                 If ShouldNoteProjectErrors() Then
                     EmitSetProjectError(catchBlock.Syntax, catchBlock.ErrorLineNumberOpt)
@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     typeCheckFailedLabel = New Object
 
                     _builder.EmitOpCode(ILOpCode.Isinst)
-                    _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics)
+                    _builder.EmitToken(exceptionType, catchBlock.Syntax)
                     _builder.EmitOpCode(ILOpCode.Dup)
                     _builder.EmitBranch(ILOpCode.Brtrue, typeCheckPassedLabel)
                     _builder.EmitOpCode(ILOpCode.Pop)
@@ -957,7 +957,7 @@ OtherExpressions:
 
             For Each caseBlock In caseBlocks
                 cur = cur + 1
-                caseBlockLabels.Add(New GeneratedLabelSymbol("Case Block " + cur.ToString()))
+                caseBlockLabels.Add(New GeneratedLabelSymbol("Case Block " + cur.ToString(Globalization.CultureInfo.InvariantCulture)))
             Next
 
             Return caseBlockLabels.ToImmutableAndFree()
@@ -1048,32 +1048,33 @@ OtherExpressions:
             Else
 
                 Dim exprType = selectExpression.Type
+                Dim syntax As SyntaxNode = selectExpression.Syntax
                 Dim temp As LocalDefinition = Nothing
 
                 If exprType.SpecialType <> SpecialType.System_String Then
                     If selectExpression.Kind = BoundKind.Local AndAlso Not DirectCast(selectExpression, BoundLocal).LocalSymbol.IsByRef Then
-                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, GetLocal(DirectCast(selectExpression, BoundLocal)), keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode)
+                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, GetLocal(DirectCast(selectExpression, BoundLocal)), keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode, syntax)
 
                     ElseIf selectExpression.Kind = BoundKind.Parameter AndAlso Not DirectCast(selectExpression, BoundParameter).ParameterSymbol.IsByRef Then
-                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, ParameterSlot(DirectCast(selectExpression, BoundParameter)), keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode)
+                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, ParameterSlot(DirectCast(selectExpression, BoundParameter)), keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode, syntax)
 
                     Else
                         EmitExpression(selectExpression, True)
-                        temp = AllocateTemp(exprType, selectExpression.Syntax)
+                        temp = AllocateTemp(exprType, syntax)
                         _builder.EmitLocalStore(temp)
 
-                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, temp, keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode)
+                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, temp, keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode, syntax)
                     End If
                 Else
                     If selectExpression.Kind = BoundKind.Local AndAlso Not DirectCast(selectExpression, BoundLocal).LocalSymbol.IsByRef Then
-                        EmitStringSwitchJumpTable(caseLabels, fallThroughLabel, GetLocal(DirectCast(selectExpression, BoundLocal)), selectExpression.Syntax)
+                        EmitStringSwitchJumpTable(caseLabels, fallThroughLabel, GetLocal(DirectCast(selectExpression, BoundLocal)), syntax)
 
                     Else
                         EmitExpression(selectExpression, True)
-                        temp = AllocateTemp(exprType, selectExpression.Syntax)
+                        temp = AllocateTemp(exprType, syntax)
                         _builder.EmitLocalStore(temp)
 
-                        EmitStringSwitchJumpTable(caseLabels, fallThroughLabel, temp, selectExpression.Syntax)
+                        EmitStringSwitchJumpTable(caseLabels, fallThroughLabel, temp, syntax)
                     End If
                 End If
 
@@ -1099,7 +1100,7 @@ OtherExpressions:
 
                 _builder.EmitLocalLoad(key)
                 _builder.EmitOpCode(ILOpCode.[Call], stackAdjustment:=0)
-                _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics)
+                _builder.EmitToken(stringHashMethodRef, syntaxNode)
 
                 Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics).GetInternalSymbol(), TypeSymbol)
                 keyHash = AllocateTemp(UInt32Type, syntaxNode)
@@ -1123,6 +1124,7 @@ OtherExpressions:
                 End Sub
 
             _builder.EmitStringSwitchJumpTable(
+                            syntaxNode,
                             caseLabels,
                             fallThroughLabel,
                             key,
@@ -1171,10 +1173,10 @@ OtherExpressions:
             ' NOTE: We generate string switch table only for Option Compare Binary, i.e. TextCompare = False
 
             _builder.EmitLoad(key)
-            _builder.EmitConstantValue(stringConstant)
-            _builder.EmitConstantValue(ConstantValue.False)
+            _builder.EmitConstantValue(stringConstant, syntaxNode)
+            _builder.EmitConstantValue(ConstantValue.False, syntaxNode)
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-2)
-            _builder.EmitToken(stringCompareMethodRef, syntaxNode, _diagnostics)
+            _builder.EmitToken(stringCompareMethodRef, syntaxNode)
 
             ' CompareString returns 0 if Left and Right strings are equal.
             ' Branch to targetLabel if CompareString returned 0.

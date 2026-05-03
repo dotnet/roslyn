@@ -240,13 +240,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // Workaround of issue https://github.com/dotnet/corefx/issues/1815: 
-            if (peStream.Length == 0 && (options & PEStreamOptions.PrefetchEntireImage) != 0 && (options & PEStreamOptions.PrefetchMetadata) != 0)
-            {
-                // throws BadImageFormatException:
-                new PEHeaders(peStream);
-            }
-
             // ownership of the stream is passed on PEReader:
             return new ModuleMetadata(new PEReader(peStream, options), onDispose: null);
         }

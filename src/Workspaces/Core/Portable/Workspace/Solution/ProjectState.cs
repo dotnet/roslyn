@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
@@ -22,7 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed partial class ProjectState
+internal sealed partial class ProjectState : IComparable<ProjectState>
 {
     public readonly LanguageServices LanguageServices;
 
@@ -47,22 +48,10 @@ internal sealed partial class ProjectState
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
 
-    // Checksums for this solution state (access via LazyChecksums)
-    private AsyncLazy<ProjectStateChecksums>? _lazyChecksums;
-
-    // Mapping from content has to document id (access via LazyContentHashToDocumentId)
-    private AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>>? _lazyContentHashToDocumentId;
-
     /// <summary>
     /// Analyzer config options to be used for specific trees.
     /// </summary>
     private readonly AnalyzerConfigOptionsCache _analyzerConfigOptionsCache;
-
-    private ImmutableArray<AdditionalText> _lazyAdditionalFiles;
-
-    private AnalyzerOptions? _lazyProjectAnalyzerOptions;
-
-    private AnalyzerOptions? _lazyHostAnalyzerOptions;
 
     private ProjectState(
         ProjectInfo projectInfo,
@@ -116,7 +105,7 @@ internal sealed partial class ProjectState
         DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions, loadTextOptions));
         AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
-        _lazyLatestDocumentVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
+        _lazyLatestDocumentVersion = AsyncLazy.Create(static async (self, c) => await ComputeLatestDocumentVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c).ConfigureAwait(false), arg: this);
         _lazyLatestDocumentTopLevelChangeVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentTopLevelChangeVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
 
         // ownership of information on document has moved to project state. clear out documentInfo the state is
@@ -155,31 +144,32 @@ internal sealed partial class ProjectState
     {
         get
         {
-            if (_lazyChecksums is null)
+            if (field is null)
             {
                 Interlocked.CompareExchange(
-                    ref _lazyChecksums,
+                    ref field,
                     AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this),
                     null);
             }
 
-            return _lazyChecksums;
+            return field;
         }
     }
 
+    // Mapping from content has to document id (access via LazyContentHashToDocumentId)
     private AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>> LazyContentHashToDocumentId
     {
         get
         {
-            if (_lazyContentHashToDocumentId is null)
+            if (field is null)
             {
                 Interlocked.CompareExchange(
-                    ref _lazyContentHashToDocumentId,
+                    ref field,
                     AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this),
                     null);
             }
 
-            return _lazyContentHashToDocumentId;
+            return field;
         }
     }
 
@@ -220,7 +210,7 @@ internal sealed partial class ProjectState
         return projectInfo;
     }
 
-    private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
+    private static async ValueTask<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
     {
         // this may produce a version that is out of sync with the actual Document versions.
         var latestVersion = VersionStamp.Default;
@@ -326,7 +316,7 @@ internal sealed partial class ProjectState
         get
         {
             return InterlockedOperations.Initialize(
-                ref _lazyAdditionalFiles,
+                ref field,
                 static self => self.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
                 this);
         }
@@ -334,19 +324,21 @@ internal sealed partial class ProjectState
 
     public AnalyzerOptions ProjectAnalyzerOptions
         => InterlockedOperations.Initialize(
-            ref _lazyProjectAnalyzerOptions,
+            ref field,
             static self => new AnalyzerOptions(
                 additionalFiles: self.AdditionalFiles,
                 optionsProvider: new ProjectAnalyzerConfigOptionsProvider(self)),
             this);
 
     public AnalyzerOptions HostAnalyzerOptions
-        => InterlockedOperations.Initialize(
-            ref _lazyHostAnalyzerOptions,
+    {
+        get => InterlockedOperations.Initialize(
+            ref field,
             static self => new AnalyzerOptions(
                 additionalFiles: self.AdditionalFiles,
                 optionsProvider: new ProjectHostAnalyzerConfigOptionsProvider(self)),
-            this);
+            this); private set;
+    }
 
     public AnalyzerConfigData GetAnalyzerOptionsForPath(string path, CancellationToken cancellationToken)
         => _analyzerConfigOptionsCache.Lazy.GetValue(cancellationToken).GetOptionsForSourcePath(path);
@@ -384,6 +376,39 @@ internal sealed partial class ProjectState
         return GetAnalyzerOptionsForPath(sourceFilePath, CancellationToken.None);
     }
 
+    private static string? GetEffectiveFilePath(DocumentState documentState, ProjectState projectState)
+    {
+        if (documentState.Id.IsSourceGenerated)
+        {
+            // Source generated document file paths should not be used to lookup
+            // analyzer config options as they do not actually exist on disk.
+            return null;
+        }
+
+        if (!string.IsNullOrEmpty(documentState.FilePath))
+        {
+            return documentState.FilePath;
+        }
+
+        // We need to work out path to this document. Documents may not have a "real" file path if they're something created
+        // as a part of a code action, but haven't been written to disk yet.
+
+        var projectFilePath = projectState.FilePath;
+
+        if (documentState.Name != null && projectFilePath != null)
+        {
+            var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+            if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                PathUtilities.GetDirectoryName(projectFilePath) is string directory)
+            {
+                return PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
+            }
+        }
+
+        return null;
+    }
+
     internal sealed class ProjectAnalyzerConfigOptionsProvider(ProjectState projectState) : AnalyzerConfigOptionsProvider
     {
         private AnalyzerConfigOptionsCache.Value GetCache()
@@ -412,7 +437,7 @@ internal sealed partial class ProjectState
 
         private StructuredAnalyzerConfigOptions GetOptions(in AnalyzerConfigOptionsCache.Value cache, DocumentState documentState)
         {
-            var filePath = GetEffectiveFilePath(documentState);
+            var filePath = GetEffectiveFilePath(documentState, projectState);
             return filePath == null
                 ? StructuredAnalyzerConfigOptions.Empty
                 : GetOptionsForSourcePath(cache, filePath);
@@ -426,32 +451,6 @@ internal sealed partial class ProjectState
 
         private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache.Value cache, string path)
             => cache.GetOptionsForSourcePath(path).ConfigOptionsWithoutFallback;
-
-        private string? GetEffectiveFilePath(DocumentState documentState)
-        {
-            if (!string.IsNullOrEmpty(documentState.FilePath))
-            {
-                return documentState.FilePath;
-            }
-
-            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
-            // as a part of a code action, but haven't been written to disk yet.
-
-            var projectFilePath = projectState.FilePath;
-
-            if (documentState.Name != null && projectFilePath != null)
-            {
-                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
-
-                if (!RoslynString.IsNullOrEmpty(projectPath) &&
-                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
-                {
-                    return PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
-                }
-            }
-
-            return null;
-        }
     }
 
     internal sealed class ProjectHostAnalyzerConfigOptionsProvider(ProjectState projectState) : AnalyzerConfigOptionsProvider
@@ -491,7 +490,7 @@ internal sealed partial class ProjectState
                 return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(services);
             }
 
-            var filePath = GetEffectiveFilePath(documentState);
+            var filePath = GetEffectiveFilePath(documentState, projectState);
             return filePath == null
                 ? StructuredAnalyzerConfigOptions.Empty
                 : GetOptionsForSourcePath(cache, filePath);
@@ -505,32 +504,6 @@ internal sealed partial class ProjectState
 
         private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache.Value cache, string path)
             => cache.GetOptionsForSourcePath(path).ConfigOptionsWithFallback;
-
-        private string? GetEffectiveFilePath(DocumentState documentState)
-        {
-            if (!string.IsNullOrEmpty(documentState.FilePath))
-            {
-                return documentState.FilePath;
-            }
-
-            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
-            // as a part of a code action, but haven't been written to disk yet.
-
-            var projectFilePath = projectState.FilePath;
-
-            if (documentState.Name != null && projectFilePath != null)
-            {
-                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
-
-                if (!RoslynString.IsNullOrEmpty(projectPath) &&
-                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
-                {
-                    return PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
-                }
-            }
-
-            return null;
-        }
     }
 
     /// <summary>
@@ -594,6 +567,15 @@ internal sealed partial class ProjectState
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
         {
+            var state = DocumentState.GetDocumentIdForTree(tree);
+            if (state?.IsSourceGenerated == true)
+            {
+                // While source generated files have file paths, they do not exist on disk
+                // and .editorconfig files should not apply to them based on that path.
+                severity = ReportDiagnostic.Default;
+                return false;
+            }
+
             var options = _lazyAnalyzerConfigSet.Lazy
                 .GetValue(cancellationToken).GetOptionsForSourcePath(tree.FilePath);
             return options.TreeOptions.TryGetValue(diagnosticId, out severity);
@@ -1090,8 +1072,8 @@ internal sealed partial class ProjectState
 
         if (recalculateDocumentVersion)
         {
-            dependentDocumentVersion = AsyncLazy.Create(static (arg, cancellationToken) =>
-                ComputeLatestDocumentVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, cancellationToken),
+            dependentDocumentVersion = AsyncLazy.Create(static async (arg, cancellationToken) =>
+                await ComputeLatestDocumentVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, cancellationToken).ConfigureAwait(false),
                 arg: (newDocumentStates, newAdditionalDocumentStates));
         }
         else if (contentChanged)
@@ -1135,10 +1117,20 @@ internal sealed partial class ProjectState
         this.AnalyzerConfigDocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
     }
 
-    public DocumentId? GetFirstDocumentIdWithFilePath(string filePath)
+    /// <summary>
+    /// Returns the first <see cref="DocumentId"/> from this project that matches this path. This only checks for regular documents,
+    /// and does not check for additional documents or .editorconfig documents.
+    /// </summary>
+    public DocumentId? GetFirstSourceDocumentIdWithFilePath(string filePath)
     {
-        return this.DocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
-            this.AdditionalDocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
-            this.AnalyzerConfigDocumentStates.GetFirstDocumentIdWithFilePath(filePath);
+        return this.DocumentStates.GetFirstDocumentIdWithFilePath(filePath);
+    }
+
+    public int CompareTo(ProjectState? other)
+    {
+        if (other is null)
+            return 1;
+
+        return this.Id.CompareTo(other.Id);
     }
 }

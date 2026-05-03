@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enable some experimental language features for testing.
         /// </summary>
+        // Note: use Feature entry for known feature flags.
         public ParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
         {
             return CommonWithFeatures(features);
@@ -119,9 +120,16 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the experimental features.
         /// </summary>
+        // Note: use Feature entry for known feature flags.
         public abstract IReadOnlyDictionary<string, string> Features
         {
             get;
+        }
+
+        internal bool HasFeature(string feature)
+        {
+            Feature.AssertValidFeature(feature);
+            return Features.TryGetValue(feature, out var value) && value is not null;
         }
 
         /// <summary>
@@ -141,7 +149,7 @@ namespace Microsoft.CodeAnalysis
             return
                 this.SpecifiedKind == other.SpecifiedKind &&
                 this.DocumentationMode == other.DocumentationMode &&
-                this.Features.SequenceEqual(other.Features) &&
+                FeaturesEqual(Features, other.Features) &&
                 (this.PreprocessorSymbolNames == null ? other.PreprocessorSymbolNames == null : this.PreprocessorSymbolNames.SequenceEqual(other.PreprocessorSymbolNames, StringComparer.Ordinal));
         }
 
@@ -154,6 +162,29 @@ namespace Microsoft.CodeAnalysis
                 Hash.Combine((int)this.DocumentationMode,
                 Hash.Combine(HashFeatures(this.Features),
                 Hash.Combine(Hash.CombineValues(this.PreprocessorSymbolNames, StringComparer.Ordinal), 0))));
+        }
+
+        private static bool FeaturesEqual(IReadOnlyDictionary<string, string> features, IReadOnlyDictionary<string, string> other)
+        {
+            if (ReferenceEquals(features, other))
+            {
+                return true;
+            }
+
+            if (features.Count != other.Count)
+            {
+                return false;
+            }
+
+            foreach (var (key, value) in features)
+            {
+                if (!other.TryGetValue(key, out var otherValue) || value != otherValue)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static int HashFeatures(IReadOnlyDictionary<string, string> features)

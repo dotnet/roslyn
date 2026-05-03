@@ -4,11 +4,11 @@
 
 #nullable disable
 
-using Microsoft.VisualStudio.Debugger.Clr;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using Microsoft.VisualStudio.Debugger.Clr;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {

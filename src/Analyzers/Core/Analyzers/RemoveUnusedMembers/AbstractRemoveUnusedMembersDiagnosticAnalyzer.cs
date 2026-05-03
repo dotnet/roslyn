@@ -27,8 +27,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     TTypeDeclarationSyntax,
     TMemberDeclarationSyntax>()
     : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
-        [s_removeUnusedMembersRule, s_removeUnreadMembersRule],
-        FadingOptions.FadeOutUnusedMembers)
+        [s_removeUnusedMembersRule, s_removeUnreadMembersRule])
     where TDocumentationCommentTriviaSyntax : SyntaxNode
     where TIdentifierNameSyntax : SyntaxNode
     where TTypeDeclarationSyntax : TMemberDeclarationSyntax
@@ -63,7 +62,9 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     protected abstract ISemanticFacts SemanticFacts { get; }
 
     protected abstract IEnumerable<TTypeDeclarationSyntax> GetTypeDeclarations(INamedTypeSymbol namedType, CancellationToken cancellationToken);
-    protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
+
+    // We analyze extension block members as part of the enclosing static class.
+    protected abstract IEnumerable<TMemberDeclarationSyntax> GetMembersIncludingExtensionBlockMembers(TTypeDeclarationSyntax typeDeclaration);
     protected abstract SyntaxNode GetParentIfSoleDeclarator(SyntaxNode declaration);
 
     /// <summary>
@@ -90,14 +91,38 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     {
     }
 
+    /// <summary>
+    /// We always want to do our processing, considering the original symbol corresponding to the user's declared
+    /// symbols.  As such, we use an instance of this comparer with all the dictionaries and sets we create while
+    /// processing so that reference to non-original definitions (like references to members from an instantiate generic
+    /// type) still count as a use of the original user definition.
+    /// </summary>
+    internal sealed class OriginalDefinitionSymbolEqualityComparer : IEqualityComparer<ISymbol>
+    {
+        public static readonly OriginalDefinitionSymbolEqualityComparer Instance = new();
+
+        private OriginalDefinitionSymbolEqualityComparer()
+        {
+        }
+
+        bool IEqualityComparer<ISymbol>.Equals(ISymbol? x, ISymbol? y)
+            => Equals(x?.OriginalDefinition, y?.OriginalDefinition);
+
+        int IEqualityComparer<ISymbol>.GetHashCode(ISymbol obj)
+            => obj is null ? 0 : obj.OriginalDefinition.GetHashCode();
+    }
+
     private sealed class CompilationAnalyzer
     {
         private readonly object _gate = new();
 
+        private static readonly ObjectPool<HashSet<ISymbol>> s_originalDefinitionSymbolHashSetPool = new(() => new(OriginalDefinitionSymbolEqualityComparer.Instance));
+
         /// <summary>
         /// State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
         /// </summary>
-        private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = [];
+        private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap_doNotAccessDirectly = new(OriginalDefinitionSymbolEqualityComparer.Instance);
+
         /// <summary>
         /// List of properties that have a 'get' accessor usage, while the value itself is not used, e.g.:
         /// <code>
@@ -109,7 +134,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         /// </code>
         /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
         /// </summary>
-        private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = [];
+        private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new(OriginalDefinitionSymbolEqualityComparer.Instance);
         private readonly INamedTypeSymbol? _taskType;
         private readonly INamedTypeSymbol? _genericTaskType;
         private readonly INamedTypeSymbol? _debuggerDisplayAttributeType;
@@ -214,6 +239,8 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
                 symbolStartContext.RegisterOperationAction(AnalyzeLoopOperation, OperationKind.Loop);
                 symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
+                symbolStartContext.RegisterOperationAction(AnalyzeParameterInitializerOperation, OperationKind.ParameterInitializer);
+                symbolStartContext.RegisterOperationAction(AnalyzeFunctionParameterDefaults, OperationKind.AnonymousFunction, OperationKind.LocalFunction);
                 symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                 symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
 
@@ -247,7 +274,11 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     OperationKind.DynamicMemberReference,
                     OperationKind.DynamicObjectCreation);
 
-                symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
+                // We analyze extension block members as part of the enclosing static class.
+                if (symbolStartContext.Symbol is not INamedTypeSymbol { IsExtension: true })
+                {
+                    symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
+                }
 
                 // Register custom language-specific actions, if any.
                 _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
@@ -256,16 +287,16 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
             {
                 // Check if we have at least one candidate symbol in analysis scope.
-                foreach (var member in namedType.GetMembers())
+                foreach (var member in GetMembersIncludingExtensionBlockMembers(namedType))
                 {
-                    if (IsCandidateSymbol(member.OriginalDefinition)
+                    if (IsCandidateSymbol(member)
                         && context.ShouldAnalyzeLocation(GetDiagnosticLocation(member)))
                     {
                         return true;
                     }
                 }
 
-                // We have to analyze nested types if containing type contains a candidate field in analysis scope.
+                // We have to analyze nested types and extension blocks if containing type contains a candidate field in analysis scope.
                 if (namedType.ContainingType is { } containingType)
                     return ShouldAnalyze(context, containingType);
 
@@ -275,19 +306,55 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
         private void AnalyzeSymbolDeclaration(SymbolAnalysisContext symbolContext)
         {
-            var symbol = symbolContext.Symbol.OriginalDefinition;
+            var symbol = symbolContext.Symbol;
             if (IsCandidateSymbol(symbol)
                 && symbolContext.ShouldAnalyzeLocation(GetDiagnosticLocation(symbol)))
             {
-                lock (_gate)
+                // Initialize unused state to 'ValueUsageInfo.None' to indicate that
+                // no read/write references have been encountered yet for this symbol.
+                // Note that we might receive a symbol reference (AnalyzeMemberOperation) callback before
+                // this symbol declaration callback, so even though we cannot receive duplicate callbacks for a symbol,
+                // an entry might already be present of the declared symbol here.
+                AddSymbolUsage(symbol, ValueUsageInfo.None);
+            }
+        }
+
+        private void AddSymbolUsage(ISymbol? symbol, ValueUsageInfo info)
+        {
+            if (symbol is null)
+                return;
+
+            lock (_gate)
+            {
+                _symbolValueUsageStateMap_doNotAccessDirectly.TryAdd(symbol, info);
+            }
+        }
+
+        private void UpdateSymbolUsage(ISymbol? symbol, ValueUsageInfo info)
+        {
+            if (symbol is null)
+                return;
+
+            lock (_gate)
+            {
+                if (_symbolValueUsageStateMap_doNotAccessDirectly.TryGetValue(symbol, out var currentUsageInfo))
+                    info = currentUsageInfo | info;
+
+                _symbolValueUsageStateMap_doNotAccessDirectly[symbol] = info;
+            }
+        }
+
+        private bool TryGetAndRemoveSymbolUsage(ISymbol memberSymbol, out ValueUsageInfo valueUsageInfo)
+        {
+            lock (_gate)
+            {
+                if (_symbolValueUsageStateMap_doNotAccessDirectly.TryGetValue(memberSymbol, out valueUsageInfo))
                 {
-                    // Initialize unused state to 'ValueUsageInfo.None' to indicate that
-                    // no read/write references have been encountered yet for this symbol.
-                    // Note that we might receive a symbol reference (AnalyzeMemberOperation) callback before
-                    // this symbol declaration callback, so even though we cannot receive duplicate callbacks for a symbol,
-                    // an entry might already be present of the declared symbol here.
-                    _symbolValueUsageStateMap.TryAdd(symbol, ValueUsageInfo.None);
+                    _symbolValueUsageStateMap_doNotAccessDirectly.Remove(memberSymbol);
+                    return true;
                 }
+
+                return false;
             }
         }
 
@@ -320,40 +387,15 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         private void OnSymbolUsage(ISymbol? memberSymbol, ValueUsageInfo usageInfo)
         {
             if (!IsCandidateSymbol(memberSymbol))
-            {
                 return;
-            }
 
-            lock (_gate)
-            {
-                // Update the usage info for the memberSymbol
-                if (_symbolValueUsageStateMap.TryGetValue(memberSymbol, out var currentUsageInfo))
-                {
-                    usageInfo = currentUsageInfo | usageInfo;
-                }
-
-                _symbolValueUsageStateMap[memberSymbol] = usageInfo;
-            }
-        }
-
-        private bool TryRemove(ISymbol memberSymbol, out ValueUsageInfo valueUsageInfo)
-        {
-            lock (_gate)
-            {
-                if (_symbolValueUsageStateMap.TryGetValue(memberSymbol, out valueUsageInfo))
-                {
-                    _symbolValueUsageStateMap.Remove(memberSymbol);
-                    return true;
-                }
-
-                return false;
-            }
+            UpdateSymbolUsage(memberSymbol, usageInfo);
         }
 
         private void AnalyzeMemberReferenceOperation(OperationAnalysisContext operationContext)
         {
             var memberReference = (IMemberReferenceOperation)operationContext.Operation;
-            var memberSymbol = memberReference.Member.OriginalDefinition;
+            var memberSymbol = memberReference.Member;
             if (IsCandidateSymbol(memberSymbol))
             {
                 // Get the value usage info.
@@ -407,6 +449,87 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             }
         }
 
+        private void AnalyzeParameterInitializerOperation(OperationAnalysisContext operationContext)
+        {
+            var parameterInitializer = (IParameterInitializerOperation)operationContext.Operation;
+            var value = parameterInitializer.Value;
+
+            if (value is null || value.Syntax is null)
+                return;
+
+            var semanticModel = parameterInitializer.SemanticModel;
+
+            if (semanticModel is null)
+                return;
+
+            AnalyzeDefaultValueSyntax(semanticModel, value.Syntax, operationContext.CancellationToken);
+        }
+
+        private void AnalyzeFunctionParameterDefaults(OperationAnalysisContext operationContext)
+        {
+            var semanticModel = operationContext.Operation.SemanticModel;
+
+            if (semanticModel is null)
+                return;
+
+            var parameters = operationContext.Operation switch
+            {
+                IAnonymousFunctionOperation anonymousFunction => anonymousFunction.Symbol.Parameters,
+                ILocalFunctionOperation localFunction => localFunction.Symbol.Parameters,
+                _ => default,
+            };
+
+            if (parameters.IsDefaultOrEmpty)
+                return;
+
+            var syntaxFacts = _analyzer.SemanticFacts.SyntaxFacts;
+            var cancellationToken = operationContext.CancellationToken;
+
+            foreach (var parameter in parameters)
+            {
+                if (!parameter.HasExplicitDefaultValue)
+                    continue;
+
+                foreach (var reference in parameter.DeclaringSyntaxReferences)
+                {
+                    var parameterSyntax = reference.GetSyntax(cancellationToken);
+                    var equalsValueSyntax = syntaxFacts.GetDefaultOfParameter(parameterSyntax);
+
+                    if (equalsValueSyntax is null)
+                        continue;
+
+                    var valueSyntax = syntaxFacts.GetValueOfEqualsValueClause(equalsValueSyntax);
+
+                    if (valueSyntax is null)
+                        continue;
+
+                    AnalyzeDefaultValueSyntax(semanticModel, valueSyntax, cancellationToken);
+                }
+            }
+        }
+
+        private void AnalyzeDefaultValueSyntax(
+            SemanticModel semanticModel,
+            SyntaxNode valueSyntax,
+            CancellationToken cancellationToken)
+        {
+            var syntaxFacts = _analyzer.SemanticFacts.SyntaxFacts;
+
+            foreach (var node in valueSyntax.DescendantNodesAndSelf())
+            {
+                if (!syntaxFacts.IsSimpleName(node))
+                    continue;
+
+                var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+
+                foreach (var symbol in symbolInfo.GetAllSymbols())
+                {
+                    if (IsCandidateSymbol(symbol))
+                        OnSymbolUsage(symbol, ValueUsageInfo.Read);
+                }
+            }
+        }
+
         private void AnalyzeLoopOperation(OperationAnalysisContext operationContext)
         {
             var operation = operationContext.Operation;
@@ -421,7 +544,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
         private void AnalyzeInvocationOperation(OperationAnalysisContext operationContext)
         {
-            var targetMethod = ((IInvocationOperation)operationContext.Operation).TargetMethod.OriginalDefinition;
+            var targetMethod = ((IInvocationOperation)operationContext.Operation).TargetMethod;
 
             // A method invocation is considered as a read reference to the symbol
             // to ensure that we consider the method as "used".
@@ -429,8 +552,14 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
             // If the invoked method is a reduced extension method, also mark the original
             // method from which it was reduced as "used".
-            if (targetMethod.ReducedFrom != null)
-                OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
+            OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
+
+            // If the invoked method is an implementation method for an extension member,
+            // also mark that extension member as "used".
+            // If the extension member is an accessor, also mark its associated property as "used".
+            var extensionBlockMethod = targetMethod.TryGetCorrespondingExtensionBlockMethod();
+            OnSymbolUsage(extensionBlockMethod, ValueUsageInfo.Read);
+            OnSymbolUsage(extensionBlockMethod?.AssociatedSymbol, ValueUsageInfo.Read);
         }
 
         private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)
@@ -444,7 +573,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
             if (nameofArgument is IMemberReferenceOperation memberReference)
             {
-                OnSymbolUsage(memberReference.Member.OriginalDefinition, ValueUsageInfo.ReadWrite);
+                OnSymbolUsage(memberReference.Member, ValueUsageInfo.ReadWrite);
                 return;
             }
 
@@ -453,12 +582,12 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             // a bound method group/property group.
             var symbolInfo = nameofArgument.SemanticModel!.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
             foreach (var symbol in symbolInfo.GetAllSymbols())
-                OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
+                OnSymbolUsage(symbol, ValueUsageInfo.ReadWrite);
         }
 
         private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
         {
-            var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor?.OriginalDefinition;
+            var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor;
 
             // An object creation is considered as a read reference to the constructor
             // to ensure that we consider the constructor as "used".
@@ -481,14 +610,14 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             // Report diagnostics for unused candidate members.
             var first = true;
 
-            using var _1 = PooledHashSet<ISymbol>.GetInstance(out var symbolsReferencedInDocComments);
+            using var _1 = s_originalDefinitionSymbolHashSetPool.GetPooledObject(out var symbolsReferencedInDocComments);
             using var _2 = ArrayBuilder<string>.GetInstance(out var debuggerDisplayAttributeArguments);
 
             var entryPoint = symbolEndContext.Compilation.GetEntryPoint(cancellationToken);
 
             var isInlineArray = namedType.HasAttribute(_inlineArrayAttributeType);
 
-            foreach (var member in namedType.GetMembers())
+            foreach (var member in GetMembersIncludingExtensionBlockMembers(namedType))
             {
                 if (SymbolEqualityComparer.Default.Equals(entryPoint, member))
                     continue;
@@ -499,7 +628,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
                 // Check if the underlying member is neither read nor a readable reference to the member is taken.
                 // If so, we flag the member as either unused (never written) or unread (written but not read).
-                if (TryRemove(member, out var valueUsageInfo) && !valueUsageInfo.IsReadFrom())
+                if (TryGetAndRemoveSymbolUsage(member, out var valueUsageInfo) && !valueUsageInfo.IsReadFrom())
                 {
                     Debug.Assert(IsCandidateSymbol(member));
                     Debug.Assert(!member.IsImplicitlyDeclared);
@@ -548,8 +677,16 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                             continue;
 
                         // Do not flag ref-fields that are not read.  A ref-field can exist to have side effects by
-                        // writing into some other location when a write happens to it.
-                        if (member is IFieldSymbol { IsReadOnly: false, RefKind: RefKind.Ref })
+                        // writing into some other location when a write happens to it.  Note: this includes `readonly
+                        // ref` fields as well.  It's still legal to assign a normal value into a `readonly ref` field.
+                        // It's just not allowed to overwrite it *with another ref*.  In other words:
+                        //
+                        //      _readonlyRefField = value;     // is fine.
+                        //      _readonlyRefField = ref value; // is not.
+                        //
+                        // So as long as it is a ref-field, we don't care if it is unread, but is written to.  We must
+                        // continue allowing it.
+                        if (member is IFieldSymbol { RefKind: RefKind.Ref })
                             continue;
                     }
 
@@ -581,6 +718,23 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         additionalLocations: [],
                         additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                         properties: null));
+                }
+            }
+        }
+
+        // We analyze extension block members as part of the enclosing static class.
+        private static IEnumerable<ISymbol> GetMembersIncludingExtensionBlockMembers(INamedTypeSymbol namedType)
+        {
+            foreach (var member in namedType.GetMembers())
+            {
+                if (member is INamedTypeSymbol { IsExtension: true } extensionBlock)
+                {
+                    foreach (var extensionMember in extensionBlock.GetMembers())
+                        yield return extensionMember;
+                }
+                else
+                {
+                    yield return member;
                 }
             }
         }
@@ -649,10 +803,16 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     foreach (var node in docComment.DescendantNodes().OfType<TIdentifierNameSyntax>())
                     {
                         lazyModel ??= compilation.GetSemanticModel(syntaxTree);
-                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol?.OriginalDefinition;
+                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
-                        if (IsCandidateSymbol(symbol))
-                            builder.Add(symbol);
+                        AddIfCandidateSymbol(builder, symbol);
+
+                        if (symbol is IMethodSymbol methodSymbol)
+                        {
+                            var extensionBlockMethod = methodSymbol.TryGetCorrespondingExtensionBlockMethod();
+                            AddIfCandidateSymbol(builder, extensionBlockMethod);
+                            AddIfCandidateSymbol(builder, extensionBlockMethod?.AssociatedSymbol);
+                        }
                     }
                 }
             }
@@ -675,7 +835,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         AddDocumentationComments(currentType, documentationComments);
 
                         // Walk each member
-                        foreach (var member in _analyzer.GetMembers(currentType))
+                        foreach (var member in _analyzer.GetMembersIncludingExtensionBlockMembers(currentType))
                         {
                             if (member is TTypeDeclarationSyntax childType)
                             {
@@ -705,13 +865,19 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         documentationComments.AddIfNotNull(trivia.GetStructure() as TDocumentationCommentTriviaSyntax);
                 }
             }
+
+            void AddIfCandidateSymbol(HashSet<ISymbol> builder, ISymbol? symbol)
+            {
+                if (IsCandidateSymbol(symbol))
+                    builder.Add(symbol);
+            }
         }
 
         private void AddDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol, ArrayBuilder<string> builder)
         {
             AddDebuggerDisplayAttributeArgumentsCore(namedTypeSymbol, builder);
 
-            foreach (var member in namedTypeSymbol.GetMembers())
+            foreach (var member in GetMembersIncludingExtensionBlockMembers(namedTypeSymbol))
             {
                 switch (member)
                 {
@@ -730,10 +896,26 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         {
             foreach (var attribute in symbol.GetAttributes())
             {
-                if (attribute.AttributeClass == _debuggerDisplayAttributeType &&
-                    attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
+                if (attribute.AttributeClass == _debuggerDisplayAttributeType)
                 {
-                    builder.Add(value);
+                    // Add the constructor argument (Value parameter)
+                    if (attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
+                    {
+                        builder.Add(value);
+                    }
+
+                    // Add the Name and Type named parameters
+                    foreach (var namedArgument in attribute.NamedArguments)
+                    {
+                        if (namedArgument is
+                            {
+                                Key: "Name" or "Type",
+                                Value: { Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string namedValue },
+                            })
+                        {
+                            builder.Add(namedValue);
+                        }
+                    }
                 }
             }
         }
@@ -756,8 +938,6 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         {
             if (memberSymbol is null)
                 return false;
-
-            Debug.Assert(memberSymbol == memberSymbol.OriginalDefinition);
 
             if (memberSymbol.DeclaredAccessibility == Accessibility.Private &&
                 !memberSymbol.IsImplicitlyDeclared)

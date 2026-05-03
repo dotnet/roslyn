@@ -137,10 +137,7 @@ public static partial class SymbolFinder
     /// Returns null if no such symbol can be found in the specified solution.
     /// </summary>
     public static Task<ISymbol?> FindSourceDefinitionAsync(ISymbol? symbol, Solution solution, CancellationToken cancellationToken = default)
-        => Task.FromResult(SymbolFinderInternal.FindSourceDefinition(symbol, solution, cancellationToken));
-
-    internal static ISymbol? FindSourceDefinition(ISymbol? symbol, Solution solution, CancellationToken cancellationToken)
-        => SymbolFinderInternal.FindSourceDefinition(symbol, solution, cancellationToken);
+        => SymbolFinderInternal.FindSourceDefinitionAsync(symbol, solution, cancellationToken).AsTask();
 
     /// <summary>
     /// Finds symbols in the given compilation that are similar to the specified symbol.
@@ -154,7 +151,6 @@ public static partial class SymbolFinder
     /// <param name="symbol">The symbol to find corresponding matches for.</param>
     /// <param name="compilation">A compilation to find the corresponding symbol within. The compilation may or may not be the origin of the symbol.</param>
     /// <param name="cancellationToken">A CancellationToken.</param>
-    /// <returns></returns>
     public static IEnumerable<TSymbol> FindSimilarSymbols<TSymbol>(TSymbol symbol, Compilation compilation, CancellationToken cancellationToken = default)
         where TSymbol : ISymbol
     {

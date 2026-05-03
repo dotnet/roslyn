@@ -1,0 +1,3 @@
+﻿(7,2): Error RZ1006: The code block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+(7,4): Error RZ1043: C# preprocessor directives must be at the start of the line, except for whitespace.
+(11,2): Error RZ1010: Unexpected "{" after "@" character. Once inside the body of a code block (@if {}, @{}, etc.) you do not need to use "@{" to switch to code.

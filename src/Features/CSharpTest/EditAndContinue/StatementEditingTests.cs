@@ -17,33 +17,39 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class StatementEditingTests : EditingTestBase
+public sealed class StatementEditingTests : EditingTestBase
 {
-    private readonly string s_asyncIteratorStateMachineAttributeSource = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public sealed class AsyncIteratorStateMachineAttribute : StateMachineAttribute
-    {
-        public AsyncIteratorStateMachineAttribute(Type stateMachineType)
-            : base(stateMachineType)
+    private readonly string s_asyncIteratorStateMachineAttributeSource = """
+
+        namespace System.Runtime.CompilerServices
         {
+            [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+            public sealed class AsyncIteratorStateMachineAttribute : StateMachineAttribute
+            {
+                public AsyncIteratorStateMachineAttribute(Type stateMachineType)
+                    : base(stateMachineType)
+                {
+                }
+            }
         }
-    }
-}
-";
+
+        """;
 
     #region Strings
 
     [Fact]
     public void StringLiteral_update()
     {
-        var src1 = @"
-var x = ""Hello1"";
-";
-        var src2 = @"
-var x = ""Hello2"";
-";
+        var src1 = """
+
+            var x = "Hello1";
+
+            """;
+        var src2 = """
+
+            var x = "Hello2";
+
+            """;
         var edits = GetMethodEdits(src1, src2);
 
         edits.VerifyEdits("Update [x = \"Hello1\"]@8 -> [x = \"Hello2\"]@8");
@@ -52,12 +58,16 @@ var x = ""Hello2"";
     [Fact]
     public void InterpolatedStringText_update()
     {
-        var src1 = @"
-var x = $""Hello1"";
-";
-        var src2 = @"
-var x = $""Hello2"";
-";
+        var src1 = """
+
+            var x = $"Hello1";
+
+            """;
+        var src2 = """
+
+            var x = $"Hello2";
+
+            """;
         var edits = GetMethodEdits(src1, src2);
 
         edits.VerifyEdits("Update [x = $\"Hello1\"]@8 -> [x = $\"Hello2\"]@8");
@@ -66,12 +76,16 @@ var x = $""Hello2"";
     [Fact]
     public void Interpolation_update()
     {
-        var src1 = @"
-var x = $""Hello{123}"";
-";
-        var src2 = @"
-var x = $""Hello{124}"";
-";
+        var src1 = """
+
+            var x = $"Hello{123}";
+
+            """;
+        var src2 = """
+
+            var x = $"Hello{124}";
+
+            """;
         var edits = GetMethodEdits(src1, src2);
 
         edits.VerifyEdits("Update [x = $\"Hello{123}\"]@8 -> [x = $\"Hello{124}\"]@8");
@@ -80,12 +94,16 @@ var x = $""Hello{124}"";
     [Fact]
     public void InterpolationFormatClause_update()
     {
-        var src1 = @"
-var x = $""Hello{123:N1}"";
-";
-        var src2 = @"
-var x = $""Hello{123:N2}"";
-";
+        var src1 = """
+
+            var x = $"Hello{123:N1}";
+
+            """;
+        var src2 = """
+
+            var x = $"Hello{123:N2}";
+
+            """;
         var edits = GetMethodEdits(src1, src2);
 
         edits.VerifyEdits("Update [x = $\"Hello{123:N1}\"]@8 -> [x = $\"Hello{123:N2}\"]@8");
@@ -125,14 +143,18 @@ var x = $""Hello{123:N2}"";
     [Fact]
     public void ParenthesizedVariableDeclaration_Update()
     {
-        var src1 = @"
-var (x1, (x2, x3)) = (1, (2, true));
-var (a1, a2) = (1, () => { return 7; });
-";
-        var src2 = @"
-var (x1, (x2, x4)) = (1, (2, true));
-var (a1, a3) = (1, () => { return 8; });
-";
+        var src1 = """
+
+            var (x1, (x2, x3)) = (1, (2, true));
+            var (a1, a2) = (1, () => { return 7; });
+
+            """;
+        var src2 = """
+
+            var (x1, (x2, x4)) = (1, (2, true));
+            var (a1, a3) = (1, () => { return 8; });
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -368,20 +390,24 @@ var (a1, a3) = (1, () => { return 8; });
     [Fact]
     public void CasePatternLabel_UpdateDelete()
     {
-        var src1 = @"
-switch(shape)
-{
-    case Point p: return 0;
-    case Circle c: return 1;
-}
-";
+        var src1 = """
 
-        var src2 = @"
-switch(shape)
-{
-    case Circle circle: return 1;
-}
-";
+            switch(shape)
+            {
+                case Point p: return 0;
+                case Circle c: return 1;
+            }
+
+            """;
+
+        var src2 = """
+
+            switch(shape)
+            {
+                case Circle circle: return 1;
+            }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -401,16 +427,20 @@ switch(shape)
     [Fact]
     public void MethodUpdate_UpdateSwitchExpression1()
     {
-        var src1 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 1 };
-}";
-        var src2 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 2 };
-}";
+        var src1 = """
+
+            class C
+            {
+                static int F(int a) => a switch { 0 => 0, _ => 1 };
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static int F(int a) => a switch { 0 => 0, _ => 2 };
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 0 => 0, _ => 2 };]@18");
@@ -421,16 +451,20 @@ class C
     [Fact]
     public void MethodUpdate_UpdateSwitchExpression2()
     {
-        var src1 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 1 };
-}";
-        var src2 = @"
-class C
-{
-    static int F(int a) => a switch { 1 => 0, _ => 2 };
-}";
+        var src1 = """
+
+            class C
+            {
+                static int F(int a) => a switch { 0 => 0, _ => 1 };
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static int F(int a) => a switch { 1 => 0, _ => 2 };
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 1 => 0, _ => 2 };]@18");
@@ -441,16 +475,20 @@ class C
     [Fact]
     public void MethodUpdate_UpdateSwitchExpression3()
     {
-        var src1 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 1 };
-}";
-        var src2 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };
-}";
+        var src1 = """
+
+            class C
+            {
+                static int F(int a) => a switch { 0 => 0, _ => 1 };
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };]@18");
@@ -657,13 +695,17 @@ class C
     [Fact]
     public void CatchInsertDelete()
     {
-        var src1 = @"
-try { x++; } catch (E e) { /*1*/ } catch (Exception e) { /*2*/ } 
-try { Console.WriteLine(); } finally { /*3*/ }";
+        var src1 = """
 
-        var src2 = @"
-try { x++; } catch (Exception e) { /*2*/ }  
-try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
+            try { x++; } catch (E e) { /*1*/ } catch (Exception e) { /*2*/ } 
+            try { Console.WriteLine(); } finally { /*3*/ }
+            """;
+
+        var src2 = """
+
+            try { x++; } catch (Exception e) { /*2*/ }  
+            try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -914,8 +956,10 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
     public void Block_AddLine()
     {
         var src1 = "{ x++; }";
-        var src2 = @"{ //
-                            x++; }";
+        var src2 = """
+            { //
+                                        x++; }
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -1238,17 +1282,21 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
     [Fact]
     public void ForeachVariable_Update1()
     {
-        var src1 = @"
-foreach (var (a1, a2) in e) { }
-foreach ((var b1, var b2) in e) { }
-foreach (var a in e1) { }
-";
+        var src1 = """
 
-        var src2 = @"
-foreach (var (a1, a3) in e) { }
-foreach ((var b3, int b2) in e) { }
-foreach (_ in e1) { }
-";
+            foreach (var (a1, a2) in e) { }
+            foreach ((var b1, var b2) in e) { }
+            foreach (var a in e1) { }
+
+            """;
+
+        var src2 = """
+
+            foreach (var (a1, a3) in e) { }
+            foreach ((var b3, int b2) in e) { }
+            foreach (_ in e1) { }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -1262,15 +1310,19 @@ foreach (_ in e1) { }
     [Fact]
     public void ForeachVariable_Update2()
     {
-        var src1 = @"
-foreach (_ in e2) { }
-foreach (_ in e3) {  A(); }
-";
+        var src1 = """
 
-        var src2 = @"
-foreach (var b in e2) { }
-foreach (_ in e4) { A(); }
-";
+            foreach (_ in e2) { }
+            foreach (_ in e3) {  A(); }
+
+            """;
+
+        var src2 = """
+
+            foreach (var b in e2) { }
+            foreach (_ in e4) { A(); }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -1282,15 +1334,19 @@ foreach (_ in e4) { A(); }
     [Fact]
     public void ForeachVariable_Insert()
     {
-        var src1 = @"
-foreach (var (a3, a4) in e) { }
-foreach ((var b4, var b5) in e) { }
-";
+        var src1 = """
 
-        var src2 = @"
-foreach (var (a3, a5, a4) in e) { }
-foreach ((var b6, var b4, var b5) in e) { }
-";
+            foreach (var (a3, a4) in e) { }
+            foreach ((var b4, var b5) in e) { }
+
+            """;
+
+        var src2 = """
+
+            foreach (var (a3, a5, a4) in e) { }
+            foreach ((var b6, var b4, var b5) in e) { }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -1304,15 +1360,19 @@ foreach ((var b6, var b4, var b5) in e) { }
     [Fact]
     public void ForeachVariable_Delete()
     {
-        var src1 = @"
-foreach (var (a11, a12, a13) in e) { F(); }
-foreach ((var b7, var b8, var b9) in e) { G(); }
-";
+        var src1 = """
 
-        var src2 = @"
-foreach (var (a12, a13) in e1) { F(); }
-foreach ((var b7, var b9) in e) { G(); }
-";
+            foreach (var (a11, a12, a13) in e) { F(); }
+            foreach ((var b7, var b8, var b9) in e) { G(); }
+
+            """;
+
+        var src2 = """
+
+            foreach (var (a12, a13) in e1) { F(); }
+            foreach ((var b7, var b9) in e) { G(); }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -1326,15 +1386,19 @@ foreach ((var b7, var b9) in e) { G(); }
     [Fact]
     public void ForeachVariable_Reorder()
     {
-        var src1 = @"
-foreach (var (a, b) in e1) { }
-foreach ((var x, var y) in e2) { }
-";
+        var src1 = """
 
-        var src2 = @"
-foreach ((var x, var y) in e2) { }
-foreach (var (a, b) in e1) { }
-";
+            foreach (var (a, b) in e1) { }
+            foreach ((var x, var y) in e2) { }
+
+            """;
+
+        var src2 = """
+
+            foreach ((var x, var y) in e2) { }
+            foreach (var (a, b) in e1) { }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -1345,16 +1409,20 @@ foreach (var (a, b) in e1) { }
     [Fact]
     public void ForeachVariableEmbedded_Reorder()
     {
-        var src1 = @"
-foreach (var (a, b) in e1) { 
-    foreach ((var x, var y) in e2) { }
-}
-";
+        var src1 = """
 
-        var src2 = @"
-foreach ((var x, var y) in e2) { }
-foreach (var (a, b) in e1) { }
-";
+            foreach (var (a, b) in e1) { 
+                foreach ((var x, var y) in e2) { }
+            }
+
+            """;
+
+        var src2 = """
+
+            foreach ((var x, var y) in e2) { }
+            foreach (var (a, b) in e1) { }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -2097,27 +2165,31 @@ foreach (var (a, b) in e1) { }
     [Fact]
     public void Lambdas_Insert_First_Static()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        var f = new Func<int, int>(a => a);
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    var f = new Func<int, int>(a => a);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -2131,23 +2203,27 @@ class C
     [Fact]
     public void Lambdas_Insert_First_Static_InGenericContext_Method()
     {
-        var src1 = @"
-using System;
-class C
-{
-    void F<T>()
-    {
-    }
-}";
-        var src2 = @"
-using System;
-class C
-{
-    void F<T>()
-    {
-        var f = new Func<int, int>(a => a);
-    }
-}";
+        var src1 = """
+
+            using System;
+            class C
+            {
+                void F<T>()
+                {
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+            class C
+            {
+                void F<T>()
+                {
+                    var f = new Func<int, int>(a => a);
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -2168,23 +2244,27 @@ class C
     [Fact]
     public void Lambdas_Insert_First_Static_InGenericContext_Type()
     {
-        var src1 = @"
-using System;
-class C<T>
-{
-    void F()
-    {
-    }
-}";
-        var src2 = @"
-using System;
-class C<T>
-{
-    void F()
-    {
-        var f = new Func<int, int>(a => a);
-    }
-}";
+        var src1 = """
+
+            using System;
+            class C<T>
+            {
+                void F()
+                {
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+            class C<T>
+            {
+                void F()
+                {
+                    var f = new Func<int, int>(a => a);
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -2205,29 +2285,33 @@ class C<T>
     [Fact]
     public void Lambdas_Insert_First_Static_InGenericContext_LocalFunction()
     {
-        var src1 = @"
-using System;
-class C
-{
-    void F()
-    {
-        void L<T>()
-        {
-        }
-    }
-}";
-        var src2 = @"
-using System;
-class C
-{
-    void F()
-    {
-        void L<T>()
-        {
-            var f = new Func<int, int>(a => a);
-        }
-    }
-}";
+        var src1 = """
+
+            using System;
+            class C
+            {
+                void F()
+                {
+                    void L<T>()
+                    {
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+            class C
+            {
+                void F()
+                {
+                    void L<T>()
+                    {
+                        var f = new Func<int, int>(a => a);
+                    }
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -2246,32 +2330,36 @@ class C
     [Fact]
     public void Lambdas_Insert_Static_Nested()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int G(Func<int, int> f) => 0;
+            using System;
 
-    void F()
-    {
-        G(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                static int G(Func<int, int> f) => 0;
 
-class C
-{
-    static int G(Func<int, int> f) => 0;
-   
-    void F()
-    {
-        G(a => G(b => b) + a);
-    }
-}
-";
+                void F()
+                {
+                    G(a => a);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static int G(Func<int, int> f) => 0;
+               
+                void F()
+                {
+                    G(a => G(b => b) + a);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -2285,34 +2373,38 @@ class C
     [Fact]
     public void Lambdas_Insert_ThisOnly_Top1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 0;
-    int G(Func<int, int> f) => 0;
+            using System;
 
-    void F()
-    {
+            class C
+            {
+                int x = 0;
+                int G(Func<int, int> f) => 0;
 
-    }
-}
-";
-        var src2 = @"
-using System;
+                void F()
+                {
 
-class C
-{
-    int x = 0;
-    int G(Func<int, int> f) => 0;
-   
-    void F()
-    {
-        G(a => x);
-    }
-}
-";
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 0;
+                int G(Func<int, int> f) => 0;
+               
+                void F()
+                {
+                    G(a => x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -2323,39 +2415,43 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1291")]
     public void Lambdas_Insert_ThisOnly_Top2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        {
-            int x = 2;
-            var f1 = new Func<int, int>(a => y);
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            using System;
+            using System.Linq;
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        {
-            int x = 2;
-            var f2 = from a in new[] { 1 } select a + y;
-            var f3 = from a in new[] { 1 } where x > 0 select a;
-        }
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    {
+                        int x = 2;
+                        var f1 = new Func<int, int>(a => y);
+                    }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    {
+                        int x = 2;
+                        var f2 = from a in new[] { 1 } select a + y;
+                        var f3 = from a in new[] { 1 } where x > 0 select a;
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -2366,34 +2462,38 @@ class C
     [Fact]
     public void Lambdas_Insert_ThisOnly_Nested1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 0;
-    int G(Func<int, int> f) => 0;
+            using System;
 
-    void F()
-    {
-        G(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 0;
+                int G(Func<int, int> f) => 0;
 
-class C
-{
-    int x = 0;
-    int G(Func<int, int> f) => 0;
-   
-    void F()
-    {
-        G(a => G(b => x));
-    }
-}
-";
+                void F()
+                {
+                    G(a => a);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 0;
+                int G(Func<int, int> f) => 0;
+               
+                void F()
+                {
+                    G(a => G(b => x));
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -2404,53 +2504,57 @@ class C
     [Fact]
     public void Lambdas_Insert_ThisOnly_Nested2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 0;
+            using System;
 
-    void F()
-    {
-        var f1 = new Func<int, int>(a => 
-        {
-            var f2 = new Func<int, int>(b => 
+            class C
             {
-                return b;
-            });
+                int x = 0;
 
-            return a;
-        });
-    }
-}
-";
-        var src2 = @"
-using System;
+                void F()
+                {
+                    var f1 = new Func<int, int>(a => 
+                    {
+                        var f2 = new Func<int, int>(b => 
+                        {
+                            return b;
+                        });
 
-class C
-{
-    int x = 0;
-   
-    void F()
-    {
-        var f1 = new Func<int, int>(a => 
-        {
-            var f2 = new Func<int, int>(b => 
+                        return a;
+                    });
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
             {
-                return b;
-            });
+                int x = 0;
+               
+                void F()
+                {
+                    var f1 = new Func<int, int>(a => 
+                    {
+                        var f2 = new Func<int, int>(b => 
+                        {
+                            return b;
+                        });
 
-            var f3 = new Func<int, int>(c => 
-            {
-                return c + x;
-            });
+                        var f3 = new Func<int, int>(c => 
+                        {
+                            return c + x;
+                        });
 
-            return a;
-        });
-    }
-}
-";
+                        return a;
+                    });
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -2461,32 +2565,36 @@ class C
     [Fact]
     public void Lambdas_Insert_PrimaryParameterOnly_Top()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C(int x)
-{
-    int G(Func<int, int> f) => 0;
+            using System;
 
-    void F()
-    {
-        
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C(int x)
+            {
+                int G(Func<int, int> f) => 0;
 
-class C(int x)
-{
-    int G(Func<int, int> f) => 0;
-   
-    void F()
-    {
-        G(a => x);
-    }
-}
-";
+                void F()
+                {
+                    
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C(int x)
+            {
+                int G(Func<int, int> f) => 0;
+               
+                void F()
+                {
+                    G(a => x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -2497,49 +2605,53 @@ class C(int x)
     [Fact]
     public void Lambdas_Insert_PrimaryParameterOnly_Nested()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C(int x)
-{
-    void F()
-    {
-        var f1 = new Func<int, int>(a => 
-        {
-            var f2 = new Func<int, int>(b => 
+            using System;
+
+            class C(int x)
             {
-                return b;
-            });
+                void F()
+                {
+                    var f1 = new Func<int, int>(a => 
+                    {
+                        var f2 = new Func<int, int>(b => 
+                        {
+                            return b;
+                        });
 
-            return a;
-        });
-    }
-}
-";
-        var src2 = @"
-using System;
+                        return a;
+                    });
+                }
+            }
 
-class C(int x)
-{
-    void F()
-    {
-        var f1 = new Func<int, int>(a => 
-        {
-            var f2 = new Func<int, int>(b => 
+            """;
+        var src2 = """
+
+            using System;
+
+            class C(int x)
             {
-                return b;
-            });
+                void F()
+                {
+                    var f1 = new Func<int, int>(a => 
+                    {
+                        var f2 = new Func<int, int>(b => 
+                        {
+                            return b;
+                        });
 
-            var f3 = new Func<int, int>(c => 
-            {
-                return c + x;
-            });
+                        var f3 = new Func<int, int>(c => 
+                        {
+                            return c + x;
+                        });
 
-            return a;
-        });
-    }
-}
-";
+                        return a;
+                    });
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -2550,33 +2662,37 @@ class C(int x)
     [Fact]
     public void Lambdas_Insert_ThisOnly_Second()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 0;
+            using System;
 
-    void F()
-    {
-        var f1 = new Func<int, int>(a => x);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 0;
 
-class C
-{
-    int x = 0;
-   
-    void F()
-    {
-        var f1 = new Func<int, int>(a => x);
-        var f2 = new Func<int, int>(b => x);
-    }
-}
-";
+                void F()
+                {
+                    var f1 = new Func<int, int>(a => x);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 0;
+               
+                void F()
+                {
+                    var f1 = new Func<int, int>(a => x);
+                    var f2 = new Func<int, int>(b => x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -2590,33 +2706,37 @@ class C
     [Fact]
     public void Lambdas_Insert_ThisAndPrimaryParameter()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C(int y)
-{
-    int x = 0;
+            using System;
 
-    void F()
-    {
-        var f1 = new Func<int, int>(a => x);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C(int y)
+            {
+                int x = 0;
 
-class C(int y)
-{
-    int x = 0;
-   
-    void F()
-    {
-        var f1 = new Func<int, int>(a => x);
-        var f2 = new Func<int, int>(b => y);
-    }
-}
-";
+                void F()
+                {
+                    var f1 = new Func<int, int>(a => x);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C(int y)
+            {
+                int x = 0;
+               
+                void F()
+                {
+                    var f1 = new Func<int, int>(a => x);
+                    var f2 = new Func<int, int>(b => y);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -2630,31 +2750,35 @@ class C(int y)
     [Fact]
     public void Lambdas_Insert_Closure_Second()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int x = 1;
-        var f1 = new Func<int, int>(a => x);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int x = 1;
-        var f1 = new Func<int, int>(a => x);
-        var f2 = new Func<int, int>(b => x);
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int x = 1;
+                    var f1 = new Func<int, int>(a => x);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int x = 1;
+                    var f1 = new Func<int, int>(a => x);
+                    var f2 = new Func<int, int>(b => x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -2668,69 +2792,73 @@ class C
     [Fact]
     public void Lambdas_InsertAndDelete_Scopes1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<int, int> f) {}
+            using System;
 
-    int x = 0, y = 0;                      // Group #0
+            class C
+            {
+                void G(Func<int, int> f) {}
 
-    void F()
-    {
-        int x0 = 0, y0 = 0;                // Group #1 
-                                         
-        { int x1 = 0, y1 = 0;              // Group #2 
-                                           
-            { int x2 = 0, y2 = 0;          // Group #1 
-                                            
-                { int x3 = 0, y3 = 0;      // Group #2 
-                                           
-                    G(a => x3 + x1);       
-                    G(b => x0 + y0 + x2);
-                    G(c => x);
+                int x = 0, y = 0;                      // Group #0
+
+                void F()
+                {
+                    int x0 = 0, y0 = 0;                // Group #1 
+                                                     
+                    { int x1 = 0, y1 = 0;              // Group #2 
+                                                       
+                        { int x2 = 0, y2 = 0;          // Group #1 
+                                                        
+                            { int x3 = 0, y3 = 0;      // Group #2 
+                                                       
+                                G(a => x3 + x1);       
+                                G(b => x0 + y0 + x2);
+                                G(c => x);
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
 
-class C
-{
-    void G(Func<int, int> f) {}
+            """;
+        var src2 = """
 
-    int x = 0, y = 0;                       // Group #0
+            using System;
 
-    void F()
-    {
-        int x0 = 0, y0 = 0;                 // Group #1
-                                           
-        { int x1 = 0, y1 = 0;               // Group #2 
-                                           
-            { int x2 = 0, y2 = 0;           // Group #1
-                                           
-                { int x3 = 0, y3 = 0;       // Group #2 
-                                            
-                    G(a => x3 + x1);        
-                    G(b => x0 + y0 + x2);
-                    G(c => x);
+            class C
+            {
+                void G(Func<int, int> f) {}
 
-                    G(d => x);              // OK
-                    G(e => x0 + y0);        // OK
-                    G(f => x1 + y0);        // runtime rude edit - connecting Group #1 and Group #2
-                    G(g => x3 + x1);        // runtime rude edit - multi-scope (conservative)
-                    G(h => x + y0);         // runtime rude edit - connecting Group #0 and Group #1
-                    G(i => x + x3);         // runtime rude edit - connecting Group #0 and Group #2
+                int x = 0, y = 0;                       // Group #0
+
+                void F()
+                {
+                    int x0 = 0, y0 = 0;                 // Group #1
+                                                       
+                    { int x1 = 0, y1 = 0;               // Group #2 
+                                                       
+                        { int x2 = 0, y2 = 0;           // Group #1
+                                                       
+                            { int x3 = 0, y3 = 0;       // Group #2 
+                                                        
+                                G(a => x3 + x1);        
+                                G(b => x0 + y0 + x2);
+                                G(c => x);
+
+                                G(d => x);              // OK
+                                G(e => x0 + y0);        // OK
+                                G(f => x1 + y0);        // runtime rude edit - connecting Group #1 and Group #2
+                                G(g => x3 + x1);        // runtime rude edit - multi-scope (conservative)
+                                G(h => x + y0);         // runtime rude edit - connecting Group #0 and Group #1
+                                G(i => x + x3);         // runtime rude edit - connecting Group #0 and Group #2
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-";
+
+            """;
         var insert = GetTopEdits(src1, src2);
 
         insert.VerifySemantics(
@@ -2747,46 +2875,50 @@ class C
     [Fact]
     public void Lambdas_Insert_ForEach1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<int, int> f) {}
+            using System;
 
-    void F()                       
-    {                              
-        foreach (int x0 in new[] { 1 })  // Group #0             
-        {                                // Group #1
-            int x1 = 0;                  
-                                         
-            G(a => x0);   
-            G(a => x1);
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G(Func<int, int> f) {}
 
-class C
-{
-    void G(Func<int, int> f) {}
+                void F()                       
+                {                              
+                    foreach (int x0 in new[] { 1 })  // Group #0             
+                    {                                // Group #1
+                        int x1 = 0;                  
+                                                     
+                        G(a => x0);   
+                        G(a => x1);
+                    }
+                }
+            }
 
-    void F()                       
-    {                              
-        foreach (int x0 in new[] { 1 })  // Group #0             
-        {                                // Group #1
-            int x1 = 0;                  
-                                         
-            G(a => x0);   
-            G(a => x1);
+            """;
+        var src2 = """
 
-            G(a => x0 + x1);             // runtime rude edit: connecting previously disconnected closures
-        }
-    }
-}
-";
+            using System;
+
+            class C
+            {
+                void G(Func<int, int> f) {}
+
+                void F()                       
+                {                              
+                    foreach (int x0 in new[] { 1 })  // Group #0             
+                    {                                // Group #1
+                        int x1 = 0;                  
+                                                     
+                        G(a => x0);   
+                        G(a => x1);
+
+                        G(a => x0 + x1);             // runtime rude edit: connecting previously disconnected closures
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -2797,36 +2929,40 @@ class C
     [Fact]
     public void Lambdas_Insert_ForEach2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<int, int> f1, Func<int, int> f2, Func<int, int> f3) {}
+            using System;
 
-    void F()                       
-    {               
-        int x0 = 0;                              // Group #0  
-        foreach (int x1 in new[] { 1 })          // Group #1                   
-            G(a => x0, a => x1, null);                     
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G(Func<int, int> f1, Func<int, int> f2, Func<int, int> f3) {}
 
-class C
-{
-    void G(Func<int, int> f1, Func<int, int> f2, Func<int, int> f3) {}
+                void F()                       
+                {               
+                    int x0 = 0;                              // Group #0  
+                    foreach (int x1 in new[] { 1 })          // Group #1                   
+                        G(a => x0, a => x1, null);                     
+                }
+            }
 
-    void F()                       
-    {               
-        int x0 = 0;                              // Group #0  
-        foreach (int x1 in new[] { 1 })          // Group #1            
-            G(a => x0, a => x1, a => x0 + x1);   // runtime rude edit: connecting previously disconnected closures            
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G(Func<int, int> f1, Func<int, int> f2, Func<int, int> f3) {}
+
+                void F()                       
+                {               
+                    int x0 = 0;                              // Group #0  
+                    foreach (int x1 in new[] { 1 })          // Group #1            
+                        G(a => x0, a => x1, a => x0 + x1);   // runtime rude edit: connecting previously disconnected closures            
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -2837,43 +2973,47 @@ class C
     [Fact]
     public void Lambdas_Insert_For1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    bool G(Func<int, int> f) => true;
+            using System;
 
-    void F()                       
-    {                              
-        for (int x0 = 0, x1 = 0; G(a => x0) && G(a => x1);)
-        {
-            int x2 = 0;
-            G(a => x2); 
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                bool G(Func<int, int> f) => true;
 
-class C
-{
-    bool G(Func<int, int> f) => true;
+                void F()                       
+                {                              
+                    for (int x0 = 0, x1 = 0; G(a => x0) && G(a => x1);)
+                    {
+                        int x2 = 0;
+                        G(a => x2); 
+                    }
+                }
+            }
 
-    void F()                       
-    {                              
-        for (int x0 = 0, x1 = 0; G(a => x0) && G(a => x1);)
-        {
-            int x2 = 0;
-            G(a => x2); 
+            """;
+        var src2 = """
 
-            G(a => x0 + x1);  // ok
-            G(a => x0 + x2);  // runtime rude edit: connecting previously disconnected closures
-        }
-    }
-}
-";
+            using System;
+
+            class C
+            {
+                bool G(Func<int, int> f) => true;
+
+                void F()                       
+                {                              
+                    for (int x0 = 0, x1 = 0; G(a => x0) && G(a => x1);)
+                    {
+                        int x2 = 0;
+                        G(a => x2); 
+
+                        G(a => x0 + x1);  // ok
+                        G(a => x0 + x2);  // runtime rude edit: connecting previously disconnected closures
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -2883,71 +3023,75 @@ class C
     [Fact]
     public void Lambdas_Insert_Switch1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    bool G(Func<int> f) => true;
+            using System;
 
-    int a = 1;
+            class C
+            {
+                bool G(Func<int> f) => true;
 
-    void F()                       
-    {        
-        int x2 = 1;
-        G(() => x2);
-                      
-        switch (a)
-        {
-            case 1:
-                int x0 = 1;
-                G(() => x0);
-                break;
+                int a = 1;
 
-            case 2:
-                int x1 = 1;
-                G(() => x1);
-                break;
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
+                void F()                       
+                {        
+                    int x2 = 1;
+                    G(() => x2);
+                                  
+                    switch (a)
+                    {
+                        case 1:
+                            int x0 = 1;
+                            G(() => x0);
+                            break;
 
-class C
-{
-    bool G(Func<int> f) => true;
+                        case 2:
+                            int x1 = 1;
+                            G(() => x1);
+                            break;
+                    }
+                }
+            }
 
-    int a = 1;
+            """;
+        var src2 = """
 
-    void F()                       
-    {                
-        int x2 = 1;
-        G(() => x2);
- 
-        switch (a)
-        {
-            case 1:
-                int x0 = 1;
-                G(() => x0);
-                goto case 2;
+            using System;
 
-            case 2:
-                int x1 = 1;
-                G(() => x1);
-                goto default;
+            class C
+            {
+                bool G(Func<int> f) => true;
 
-            default:
-                x0 = 1;
-                x1 = 2;
-                G(() => x0 + x1);       // ok
-                G(() => x0 + x2);       // runtime rude edit
-                break;
-        }
-    }
-}
-";
+                int a = 1;
+
+                void F()                       
+                {                
+                    int x2 = 1;
+                    G(() => x2);
+             
+                    switch (a)
+                    {
+                        case 1:
+                            int x0 = 1;
+                            G(() => x0);
+                            goto case 2;
+
+                        case 2:
+                            int x1 = 1;
+                            G(() => x1);
+                            goto default;
+
+                        default:
+                            x0 = 1;
+                            x1 = 2;
+                            G(() => x0 + x1);       // ok
+                            G(() => x0 + x2);       // runtime rude edit
+                            break;
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -2957,55 +3101,59 @@ class C
     [Fact]
     public void Lambdas_Insert_Using1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static bool G<T>(Func<T> f) => true;
-    static int H(object a, object b) => 1;
+            using System;
 
-    static IDisposable D() => null;
-    
-    static void F()                       
-    {                              
-        using (IDisposable x0 = D(), y0 = D())
-        {
-            int x1 = 1;
-        
-            G(() => x0);
-            G(() => y0);
-            G(() => x1);
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                static bool G<T>(Func<T> f) => true;
+                static int H(object a, object b) => 1;
 
-class C
-{
-    static bool G<T>(Func<T> f) => true;
-    static int H(object a, object b) => 1;
+                static IDisposable D() => null;
+                
+                static void F()                       
+                {                              
+                    using (IDisposable x0 = D(), y0 = D())
+                    {
+                        int x1 = 1;
+                    
+                        G(() => x0);
+                        G(() => y0);
+                        G(() => x1);
+                    }
+                }
+            }
 
-    static IDisposable D() => null;
-    
-    static void F()                       
-    {                              
-        using (IDisposable x0 = D(), y0 = D())
-        {
-            int x1 = 1;
-        
-            G(() => x0);
-            G(() => y0);
-            G(() => x1);
+            """;
+        var src2 = """
 
-            G(() => H(x0, y0)); // ok
-            G(() => H(x0, x1)); // runtime rude edit
-        }
-    }
-}
-";
+            using System;
+
+            class C
+            {
+                static bool G<T>(Func<T> f) => true;
+                static int H(object a, object b) => 1;
+
+                static IDisposable D() => null;
+                
+                static void F()                       
+                {                              
+                    using (IDisposable x0 = D(), y0 = D())
+                    {
+                        int x1 = 1;
+                    
+                        G(() => x0);
+                        G(() => y0);
+                        G(() => x1);
+
+                        G(() => H(x0, y0)); // ok
+                        G(() => H(x0, x1)); // runtime rude edit
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -3015,53 +3163,57 @@ class C
     [Fact]
     public void Lambdas_Insert_Catch1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static bool G<T>(Func<T> f) => true;
-    static int H(object a, object b) => 1;
-    
-    static void F()                       
-    {                              
-        try
-        {
-        }
-        catch (Exception x0)
-        {
-            int x1 = 1;
-            G(() => x0);
-            G(() => x1);
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static bool G<T>(Func<T> f) => true;
-    static int H(object a, object b) => 1;
-    
-    static void F()                       
-    {                              
-        try
-        {
-        }
-        catch (Exception x0)
-        {
-            int x1 = 1;
-            G(() => x0);
-            G(() => x1);
+            class C
+            {
+                static bool G<T>(Func<T> f) => true;
+                static int H(object a, object b) => 1;
+                
+                static void F()                       
+                {                              
+                    try
+                    {
+                    }
+                    catch (Exception x0)
+                    {
+                        int x1 = 1;
+                        G(() => x0);
+                        G(() => x1);
+                    }
+                }
+            }
 
-            G(() => x0); //ok
-            G(() => H(x0, x1)); // runtime rude edit
-        }
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static bool G<T>(Func<T> f) => true;
+                static int H(object a, object b) => 1;
+                
+                static void F()                       
+                {                              
+                    try
+                    {
+                    }
+                    catch (Exception x0)
+                    {
+                        int x1 = 1;
+                        G(() => x0);
+                        G(() => x1);
+
+                        G(() => x0); //ok
+                        G(() => H(x0, x1)); // runtime rude edit
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -3071,51 +3223,55 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1504")]
     public void Lambdas_Insert_CatchFilter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static bool G<T>(Func<T> f) => true;
-    
-    static void F()                       
-    {                              
-        Exception x1 = null;
-    
-        try
-        {
-            G(() => x1);
-        }
-        catch (Exception x0) when (G(() => x0))
-        {
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static bool G<T>(Func<T> f) => true;
-    
-    static void F()                       
-    {                 
-        Exception x1 = null;
-             
-        try
-        {
-            G(() => x1);
-        }
-        catch (Exception x0) when (G(() => x0) && 
-                                   G(() => x0) &&    // ok
-                                   G(() => x0 != x1)) // runtime rude edit
-        {
-            G(() => x0); // ok
-        }
-    }
-}
-";
+            class C
+            {
+                static bool G<T>(Func<T> f) => true;
+                
+                static void F()                       
+                {                              
+                    Exception x1 = null;
+                
+                    try
+                    {
+                        G(() => x1);
+                    }
+                    catch (Exception x0) when (G(() => x0))
+                    {
+                    }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static bool G<T>(Func<T> f) => true;
+                
+                static void F()                       
+                {                 
+                    Exception x1 = null;
+                         
+                    try
+                    {
+                        G(() => x1);
+                    }
+                    catch (Exception x0) when (G(() => x0) && 
+                                               G(() => x0) &&    // ok
+                                               G(() => x0 != x1)) // runtime rude edit
+                    {
+                        G(() => x0); // ok
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -3125,29 +3281,33 @@ class C
     [Fact]
     public void Lambdas_Insert_Static_Second()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var f = new Func<int, int>(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        var f = new Func<int, int>(a => a);
-        var g = new Func<int, int>(b => b);
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var f = new Func<int, int>(a => a);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    var f = new Func<int, int>(a => a);
+                    var g = new Func<int, int>(b => b);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -3173,34 +3333,38 @@ class C
     [Fact]
     public void Lambdas_Update_Signature1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<long, long> f) {}
+            using System;
 
-    void F()
-    {
-        G1(<N:0>a => a</N:0>);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<long, long> f) {}
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<long, long> f) {}
+                void F()
+                {
+                    G1(<N:0>a => a</N:0>);
+                }
+            }
 
-    void F()
-    {
-        G2(<N:0>a => a</N:0>);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<long, long> f) {}
+
+                void F()
+                {
+                    G2(<N:0>a => a</N:0>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -3214,34 +3378,38 @@ class C
     [Fact]
     public void Lambdas_Update_Signature2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, int, int> f) {}
+            using System;
 
-    void F()
-    {
-        G1(<N:0>a => a</N:0>);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, int, int> f) {}
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, int, int> f) {}
+                void F()
+                {
+                    G1(<N:0>a => a</N:0>);
+                }
+            }
 
-    void F()
-    {
-        G2(<N:0>(a, b) => a + b</N:0>);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, int, int> f) {}
+
+                void F()
+                {
+                    G2(<N:0>(a, b) => a + b</N:0>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -3255,34 +3423,38 @@ class C
     [Fact]
     public void Lambdas_Update_Signature3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, long> f) {}
+            using System;
 
-    void F()
-    {
-        G1(<N:0>a => a</N:0>);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, long> f) {}
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, long> f) {}
+                void F()
+                {
+                    G1(<N:0>a => a</N:0>);
+                }
+            }
 
-    void F()
-    {
-        G2(<N:0>a => a</N:0>);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, long> f) {}
+
+                void F()
+                {
+                    G2(<N:0>a => a</N:0>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -3296,34 +3468,38 @@ class C
     [Fact]
     public void Lambdas_Update_Signature_Nullable()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G1(Func<string, string> f) {}
-    void G2(Func<string?, string?> f) {}
+            using System;
 
-    void F()
-    {
-        G1(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(Func<string, string> f) {}
+                void G2(Func<string?, string?> f) {}
 
-class C
-{
-    void G1(Func<string, string> f) {}
-    void G2(Func<string?, string?> f) {}
+                void F()
+                {
+                    G1(a => a);
+                }
+            }
 
-    void F()
-    {
-        G2(a => a);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<string, string> f) {}
+                void G2(Func<string?, string?> f) {}
+
+                void F()
+                {
+                    G2(a => a);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -3332,34 +3508,38 @@ class C
     [Fact]
     public void Lambdas_Update_Signature_SyntaxOnly1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, int> f) {}
+            using System;
 
-    void F()
-    {
-        G1(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, int> f) {}
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, int> f) {}
+                void F()
+                {
+                    G1(a => a);
+                }
+            }
 
-    void F()
-    {
-        G2((a) => a);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, int> f) {}
+
+                void F()
+                {
+                    G2((a) => a);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -3368,34 +3548,38 @@ class C
     [Fact]
     public void Lambdas_Update_Signature_ReturnType1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Action<int> f) {}
+            using System;
 
-    void F()
-    {
-        G1(<N:0>a => { return 1; }</N:0>);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Action<int> f) {}
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Action<int> f) {}
+                void F()
+                {
+                    G1(<N:0>a => { return 1; }</N:0>);
+                }
+            }
 
-    void F()
-    {
-        G2(<N:0>a => { }</N:0>);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Action<int> f) {}
+
+                void F()
+                {
+                    G2(<N:0>a => { }</N:0>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -3409,34 +3593,38 @@ class C
     [Fact]
     public void Lambdas_Update_Signature_ReturnType2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Action<int> f) {}
+            using System;
 
-    void F()
-    {
-        var x = <N:0>int (int a) => a</N:0>;
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Action<int> f) {}
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Action<int> f) {}
+                void F()
+                {
+                    var x = <N:0>int (int a) => a</N:0>;
+                }
+            }
 
-    void F()
-    {
-        var x = <N:0>long (int a) => a</N:0>;
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Action<int> f) {}
+
+                void F()
+                {
+                    var x = <N:0>long (int a) => a</N:0>;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -3450,28 +3638,32 @@ class C
     [Fact]
     public void Lambdas_Update_Signature_ReturnType_Anonymous()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var x = <N:0>(int* a, int b) => a</N:0>;
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        var x = <N:0>(int* a, int b) => b</N:0>;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var x = <N:0>(int* a, int b) => a</N:0>;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    var x = <N:0>(int* a, int b) => b</N:0>;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -3485,34 +3677,38 @@ class C
     [Fact]
     public void Lambdas_Update_Signature_BodySyntaxOnly()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, int> f) {}
+            using System;
 
-    void F()
-    {
-        G1(a => { return 1; });
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, int> f) {}
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, int> f) {}
+                void F()
+                {
+                    G1(a => { return 1; });
+                }
+            }
 
-    void F()
-    {
-        G2(a => 2);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, int> f) {}
+
+                void F()
+                {
+                    G2(a => 2);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -3521,76 +3717,154 @@ class C
     [Fact]
     public void Lambdas_Update_Signature_ParameterName1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, int> f) {}
+            using System;
 
-    void F()
-    {
-        G1(a => 1);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, int> f) {}
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, int> f) {}
+                void F()
+                {
+                    G1(a => 1);
+                }
+            }
 
-    void F()
-    {
-        G2(b => 2);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, int> f) {}
+
+                void F()
+                {
+                    G2(b => 2);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79783")]
+    public void Lambdas_Update_Signature_ParameterDefaultValue()
+    {
+        var src1 = """
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    var f = <N:0>(int a = 1) => 1</N:0>;
+                }
+            }
+            """;
+        var src2 = """
+            using System;
+            
+            class C
+            {
+                void F()
+                {
+                    var f = <N:0>(int a = 2) => 1</N:0>;
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
+    }
+
+    [Fact]
+    public void Lambdas_Update_Signature_ParamsArray()
+    {
+        var src1 = """
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    var f = <N:0>(int[] a) => 1</N:0>;
+                }
+            }
+            """;
+        var src2 = """
+            using System;
+            
+            class C
+            {
+                void F()
+                {
+                    var f = <N:0>(params int[] a) => 1</N:0>;
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
+    }
+
+    [Fact]
     public void Lambdas_Update_Signature_ParameterRefness1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
+            using System;
 
-delegate int D1(ref int a);
-delegate int D2(int a);
+            delegate int D1(ref int a);
+            delegate int D2(int a);
 
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+            class C
+            {
+                void G1(D1 f) {}
+                void G2(D2 f) {}
 
-    void F()
-    {
-        G1(<N:0>(ref int a) => 1</N:0>);
-    }
-}
-";
-        var src2 = @"
-using System;
+                void F()
+                {
+                    G1(<N:0>(ref int a) => 1</N:0>);
+                }
+            }
+            """;
+        var src2 = """
+            using System;
 
-delegate int D1(ref int a);
-delegate int D2(int a);
+            delegate int D1(ref int a);
+            delegate int D2(int a);
 
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+            class C
+            {
+                void G1(D1 f) {}
+                void G2(D2 f) {}
 
-    void F()
-    {
-        G2(<N:0>(int a) => 2</N:0>);
-    }
-}
-";
+                void F()
+                {
+                    G2(<N:0>(int a) => 2</N:0>);
+                }
+            }
+            """;
+
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -3604,40 +3878,44 @@ class C
     [Fact]
     public void Lambdas_Update_Signature_ParameterRefness2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-delegate int D1(ref int a);
-delegate int D2(out int a);
+            using System;
 
-class C
-{
-    void G(D1 f) {}
-    void G(D2 f) {}
+            delegate int D1(ref int a);
+            delegate int D2(out int a);
 
-    void F()
-    {
-        G((ref int a) => a = 1);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G(D1 f) {}
+                void G(D2 f) {}
 
-delegate int D1(ref int a);
-delegate int D2(out int a);
+                void F()
+                {
+                    G((ref int a) => a = 1);
+                }
+            }
 
-class C
-{
-    void G(D1 f) {}
-    void G(D2 f) {}
+            """;
+        var src2 = """
 
-    void F()
-    {
-        G((out int a) => a = 1);
-    }
-}
-";
+            using System;
+
+            delegate int D1(ref int a);
+            delegate int D2(out int a);
+
+            class C
+            {
+                void G(D1 f) {}
+                void G(D2 f) {}
+
+                void F()
+                {
+                    G((out int a) => a = 1);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -3647,79 +3925,83 @@ class C
     [Fact(Skip = "TODO")]
     public void Lambdas_Update_Signature_CustomModifiers1()
     {
-        var delegateSource = @"
-.class public auto ansi sealed D1
-       extends [mscorlib]System.MulticastDelegate
-{
-  .method public specialname rtspecialname instance void .ctor(object 'object', native int 'method') runtime managed
-  {
-  }
+        var src1 = """
 
-  .method public newslot virtual instance int32 [] modopt([mscorlib]System.Int64) Invoke(
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) a, 
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b) runtime managed
-  {
-  }
-}
+            using System;
 
-.class public auto ansi sealed D2
-       extends [mscorlib]System.MulticastDelegate
-{
-  .method public specialname rtspecialname instance void .ctor(object 'object', native int 'method') runtime managed
-  {
-  }
+            class C
+            {
+                void G1(D1 f) {}
+                void G2(D2 f) {}
 
-  .method public newslot virtual instance int32 [] modopt([mscorlib]System.Boolean) Invoke(
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) a, 
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b) runtime managed
-  {
-  }
-}
+                void F()
+                {
+                    G1(a => a);
+                }
+            }
 
-.class public auto ansi sealed D3
-       extends [mscorlib]System.MulticastDelegate
-{
-  .method public specialname rtspecialname instance void .ctor(object 'object', native int 'method') runtime managed
-  {
-  }
+            """;
+        var src2 = """
 
-  .method public newslot virtual instance int32 [] modopt([mscorlib]System.Boolean) Invoke(
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) a, 
-      int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b) runtime managed
-  {
-  }
-}";
+            using System;
 
-        var src1 = @"
-using System;
+            class C
+            {
+                void G1(D1 f) {}
+                void G2(D2 f) {}
 
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+                void F()
+                {
+                    G2(a => a);
+                }
+            }
 
-    void F()
-    {
-        G1(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
-
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
-
-    void F()
-    {
-        G2(a => a);
-    }
-}
-";
+            """;
         MetadataReference delegateDefs;
-        using (var tempAssembly = IlasmUtilities.CreateTempAssembly(delegateSource))
+        using (var tempAssembly = IlasmUtilities.CreateTempAssembly("""
+
+            .class public auto ansi sealed D1
+                   extends [mscorlib]System.MulticastDelegate
+            {
+              .method public specialname rtspecialname instance void .ctor(object 'object', native int 'method') runtime managed
+              {
+              }
+
+              .method public newslot virtual instance int32 [] modopt([mscorlib]System.Int64) Invoke(
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) a, 
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b) runtime managed
+              {
+              }
+            }
+
+            .class public auto ansi sealed D2
+                   extends [mscorlib]System.MulticastDelegate
+            {
+              .method public specialname rtspecialname instance void .ctor(object 'object', native int 'method') runtime managed
+              {
+              }
+
+              .method public newslot virtual instance int32 [] modopt([mscorlib]System.Boolean) Invoke(
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) a, 
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b) runtime managed
+              {
+              }
+            }
+
+            .class public auto ansi sealed D3
+                   extends [mscorlib]System.MulticastDelegate
+            {
+              .method public specialname rtspecialname instance void .ctor(object 'object', native int 'method') runtime managed
+              {
+              }
+
+              .method public newslot virtual instance int32 [] modopt([mscorlib]System.Boolean) Invoke(
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) a, 
+                  int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b) runtime managed
+              {
+              }
+            }
+            """))
         {
             delegateDefs = MetadataReference.CreateFromImage(File.ReadAllBytes(tempAssembly.Path));
         }
@@ -3733,32 +4015,36 @@ class C
     [Fact]
     public void Lambdas_Update_Signature_MatchingErrorType()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<Unknown, Unknown> f) {}
+            using System;
 
-    void F()
-    {
-        G(a => 1);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G(Func<Unknown, Unknown> f) {}
 
-class C
-{
-    void G(Func<Unknown, Unknown> f) {}
+                void F()
+                {
+                    G(a => 1);
+                }
+            }
 
-    void F()
-    {
-        G(a => 2);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G(Func<Unknown, Unknown> f) {}
+
+                void F()
+                {
+                    G(a => 2);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -3772,34 +4058,38 @@ class C
     [Fact]
     public void Lambdas_Update_Signature_NonMatchingErrorType()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G1(Func<Unknown1, Unknown1> f) {}
-    void G2(Func<Unknown2, Unknown2> f) {}
+            using System;
 
-    void F()
-    {
-        G1(<N:0>a => 1</N:0>);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(Func<Unknown1, Unknown1> f) {}
+                void G2(Func<Unknown2, Unknown2> f) {}
 
-class C
-{
-    void G1(Func<Unknown1, Unknown1> f) {}
-    void G2(Func<Unknown2, Unknown2> f) {}
+                void F()
+                {
+                    G1(<N:0>a => 1</N:0>);
+                }
+            }
 
-    void F()
-    {
-        G2(<N:0>a => 2</N:0>);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<Unknown1, Unknown1> f) {}
+                void G2(Func<Unknown2, Unknown2> f) {}
+
+                void F()
+                {
+                    G2(<N:0>a => 2</N:0>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -3813,40 +4103,44 @@ class C
     [Fact]
     public void Lambdas_Update_DelegateType1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-delegate int D1(int a);
-delegate int D2(int a);
+            using System;
 
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+            delegate int D1(int a);
+            delegate int D2(int a);
 
-    void F()
-    {
-        G1(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(D1 f) {}
+                void G2(D2 f) {}
 
-delegate int D1(int a);
-delegate int D2(int a);
+                void F()
+                {
+                    G1(a => a);
+                }
+            }
 
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+            """;
+        var src2 = """
 
-    void F()
-    {
-        G2(a => a);
-    }
-}
-";
+            using System;
+
+            delegate int D1(int a);
+            delegate int D2(int a);
+
+            class C
+            {
+                void G1(D1 f) {}
+                void G2(D2 f) {}
+
+                void F()
+                {
+                    G2(a => a);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -3854,40 +4148,44 @@ class C
     [Fact]
     public void Lambdas_Update_SourceType1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-delegate C D1(C a);
-delegate C D2(C a);
+            using System;
 
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+            delegate C D1(C a);
+            delegate C D2(C a);
 
-    void F()
-    {
-        G1(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(D1 f) {}
+                void G2(D2 f) {}
 
-delegate C D1(C a);
-delegate C D2(C a);
+                void F()
+                {
+                    G1(a => a);
+                }
+            }
 
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+            """;
+        var src2 = """
 
-    void F()
-    {
-        G2(a => a);
-    }
-}
-";
+            using System;
+
+            delegate C D1(C a);
+            delegate C D2(C a);
+
+            class C
+            {
+                void G1(D1 f) {}
+                void G2(D2 f) {}
+
+                void F()
+                {
+                    G2(a => a);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -3895,44 +4193,48 @@ class C
     [Fact]
     public void Lambdas_Update_SourceType2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-delegate C D1(C a);
-delegate B D2(B a);
+            using System;
 
-class B { }
+            delegate C D1(C a);
+            delegate B D2(B a);
 
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+            class B { }
 
-    void F()
-    {
-        G1(<N:0>a => a</N:0>);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G1(D1 f) {}
+                void G2(D2 f) {}
 
-delegate C D1(C a);
-delegate B D2(B a);
+                void F()
+                {
+                    G1(<N:0>a => a</N:0>);
+                }
+            }
 
-class B { }
+            """;
+        var src2 = """
 
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+            using System;
 
-    void F()
-    {
-        G2(<N:0>a => a</N:0>);
-    }
-}
-";
+            delegate C D1(C a);
+            delegate B D2(B a);
+
+            class B { }
+
+            class C
+            {
+                void G1(D1 f) {}
+                void G2(D2 f) {}
+
+                void F()
+                {
+                    G2(<N:0>a => a</N:0>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -3946,46 +4248,50 @@ class C
     [Fact]
     public void Lambdas_Update_SourceTypeAndMetadataType1()
     {
-        var src1 = @"
-namespace System
-{
-    delegate string D1(string a);
-    delegate String D2(String a);
+        var src1 = """
 
-    class String { }
+            namespace System
+            {
+                delegate string D1(string a);
+                delegate String D2(String a);
 
-    class C
-    {
-        void G1(D1 f) {}
-        void G2(D2 f) {}
+                class String { }
 
-        void F()
-        {
-            G1(<N:0>a => a</N:0>);
-        }
-    }
-}
-";
-        var src2 = @"
-namespace System
-{
-    delegate string D1(string a);
-    delegate String D2(String a);
+                class C
+                {
+                    void G1(D1 f) {}
+                    void G2(D2 f) {}
 
-    class String { }
+                    void F()
+                    {
+                        G1(<N:0>a => a</N:0>);
+                    }
+                }
+            }
 
-    class C
-    {
-        void G1(D1 f) {}
-        void G2(D2 f) {}
+            """;
+        var src2 = """
 
-        void F()
-        {
-            G2(<N:0>a => a</N:0>);
-        }
-    }
-}
-";
+            namespace System
+            {
+                delegate string D1(string a);
+                delegate String D2(String a);
+
+                class String { }
+
+                class C
+                {
+                    void G1(D1 f) {}
+                    void G2(D2 f) {}
+
+                    void F()
+                    {
+                        G2(<N:0>a => a</N:0>);
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -3999,36 +4305,40 @@ namespace System
     [Fact]
     public void Lambdas_Update_Generic1()
     {
-        var src1 = @"
-delegate T D1<S, T>(S a, T b);
-delegate T D2<S, T>(T a, S b);
+        var src1 = """
 
-class C
-{
-    void G1(D1<int, int> f) {}
-    void G2(D2<int, int> f) {}
+            delegate T D1<S, T>(S a, T b);
+            delegate T D2<S, T>(T a, S b);
 
-    void F()
-    {
-        G1((a, b) => a + b);
-    }
-}
-";
-        var src2 = @"
-delegate T D1<S, T>(S a, T b);
-delegate T D2<S, T>(T a, S b);
+            class C
+            {
+                void G1(D1<int, int> f) {}
+                void G2(D2<int, int> f) {}
 
-class C
-{
-    void G1(D1<int, int> f) {}
-    void G2(D2<int, int> f) {}
+                void F()
+                {
+                    G1((a, b) => a + b);
+                }
+            }
 
-    void F()
-    {
-        G2((a, b) => a + b);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            delegate T D1<S, T>(S a, T b);
+            delegate T D2<S, T>(T a, S b);
+
+            class C
+            {
+                void G1(D1<int, int> f) {}
+                void G2(D2<int, int> f) {}
+
+                void F()
+                {
+                    G2((a, b) => a + b);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -4036,36 +4346,40 @@ class C
     [Fact]
     public void Lambdas_Update_Generic2()
     {
-        var src1 = @"
-delegate int D1<S, T>(S a, T b);
-delegate int D2<S, T>(T a, S b);
+        var src1 = """
 
-class C
-{
-    void G1(D1<int, int> f) {}
-    void G2(D2<int, string> f) {}
+            delegate int D1<S, T>(S a, T b);
+            delegate int D2<S, T>(T a, S b);
 
-    void F()
-    {
-        G1(<N:0>(a, b) => 1</N:0>);
-    }
-}
-";
-        var src2 = @"
-delegate int D1<S, T>(S a, T b);
-delegate int D2<S, T>(T a, S b);
+            class C
+            {
+                void G1(D1<int, int> f) {}
+                void G2(D2<int, string> f) {}
 
-class C
-{
-    void G1(D1<int, int> f) {}
-    void G2(D2<int, string> f) {}
+                void F()
+                {
+                    G1(<N:0>(a, b) => 1</N:0>);
+                }
+            }
 
-    void F()
-    {
-        G2(<N:0>(a, b) => 1</N:0>);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            delegate int D1<S, T>(S a, T b);
+            delegate int D2<S, T>(T a, S b);
+
+            class C
+            {
+                void G1(D1<int, int> f) {}
+                void G2(D2<int, string> f) {}
+
+                void F()
+                {
+                    G2(<N:0>(a, b) => 1</N:0>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -4079,36 +4393,40 @@ class C
     [Fact]
     public void Lambdas_Update_CapturedParameters1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F(int x1)
-    {
-        var f1 = new Func<int, int, int>((a1, a2) => 
-        {
-            var f2 = new Func<int, int>(a3 => x1 + a2);
-            return a1;
-        });
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F(int x1)
-    {
-        var f1 = new Func<int, int, int>((a1, a2) => 
-        {
-            var f2 = new Func<int, int>(a3 => x1 + a2 + 1);
-            return a1;
-        });
-    }
-}
-";
+            class C
+            {
+                void F(int x1)
+                {
+                    var f1 = new Func<int, int, int>((a1, a2) => 
+                    {
+                        var f2 = new Func<int, int>(a3 => x1 + a2);
+                        return a1;
+                    });
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F(int x1)
+                {
+                    var f1 = new Func<int, int, int>((a1, a2) => 
+                    {
+                        var f2 = new Func<int, int>(a3 => x1 + a2 + 1);
+                        return a1;
+                    });
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -4117,48 +4435,52 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2223")]
     public void Lambdas_Update_CapturedParameters2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F(int x1)
-    {
-        var f1 = new Func<int, int, int>((a1, a2) => 
-        {
-            var f2 = new Func<int, int>(a3 => x1 + a2);
-            return a1;
-        });
+            using System;
 
-        var f3 = new Func<int, int, int>((a1, a2) => 
-        {
-            var f4 = new Func<int, int>(a3 => x1 + a2);
-            return a1;
-        });
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void F(int x1)
+                {
+                    var f1 = new Func<int, int, int>((a1, a2) => 
+                    {
+                        var f2 = new Func<int, int>(a3 => x1 + a2);
+                        return a1;
+                    });
 
-class C
-{
-    void F(int x1)
-    {
-        var f1 = new Func<int, int, int>((a1, a2) => 
-        {
-            var f2 = new Func<int, int>(a3 => x1 + a2 + 1);
-            return a1;
-        });
+                    var f3 = new Func<int, int, int>((a1, a2) => 
+                    {
+                        var f4 = new Func<int, int>(a3 => x1 + a2);
+                        return a1;
+                    });
+                }
+            }
 
-        var f3 = new Func<int, int, int>((a1, a2) => 
-        {
-            var f4 = new Func<int, int>(a3 => x1 + a2 + 1);
-            return a1;
-        });
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F(int x1)
+                {
+                    var f1 = new Func<int, int, int>((a1, a2) => 
+                    {
+                        var f2 = new Func<int, int>(a3 => x1 + a2 + 1);
+                        return a1;
+                    });
+
+                    var f3 = new Func<int, int, int>((a1, a2) => 
+                    {
+                        var f4 = new Func<int, int>(a3 => x1 + a2 + 1);
+                        return a1;
+                    });
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -4167,32 +4489,36 @@ class C
     [Fact]
     public void Lambdas_Update_CeaseCapture_This()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 1;
+            using System;
 
-    void F()
-    {
-        var f = new Func<int, int>(<N:0>a => a + x</N:0>);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 1;
 
-class C
-{
-    int x = 1;
-   
-    void F()
-    {
-        var f = new Func<int, int>(<N:0>a => a</N:0>);
-    }
-}
-";
+                void F()
+                {
+                    var f = new Func<int, int>(<N:0>a => a + x</N:0>);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 1;
+               
+                void F()
+                {
+                    var f = new Func<int, int>(<N:0>a => a</N:0>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -4203,38 +4529,42 @@ class C
     [Fact]
     public void Lambdas_Update_CeaseCapture_Closure1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        var f1 = new Func<int, int>(a1 => 
-        {
-            var f2 = new Func<int, int>(a2 => y + a2);
-            return a1;
-        });
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        var f1 = new Func<int, int>(a1 => 
-        {
-            var f2 = new Func<int, int>(a2 => a2);
-            return a1 + y;
-        });
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    var f1 = new Func<int, int>(a1 => 
+                    {
+                        var f2 = new Func<int, int>(a2 => y + a2);
+                        return a1;
+                    });
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    var f1 = new Func<int, int>(a1 => 
+                    {
+                        var f2 = new Func<int, int>(a2 => a2);
+                        return a1 + y;
+                    });
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // y is no longer captured in f2
@@ -4245,22 +4575,26 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
     public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a1 + a2);
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a2);
-}
-";
+            class C
+            {
+                Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a1 + a2);
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a2);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [
@@ -4273,21 +4607,25 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
     public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody_LambdaBlock()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int this[int a] => new Func<int>(() => { return a + 1; })();
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int this[int a] => new Func<int>(() => { return 2; })();   // not capturing a anymore
-}";
+            class C
+            {
+                int this[int a] => new Func<int>(() => { return a + 1; })();
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int this[int a] => new Func<int>(() => { return 2; })();   // not capturing a anymore
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -4306,21 +4644,25 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
     public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody_Delegate()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int this[int a] => new Func<int>(delegate { return a + 1; })();
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int this[int a] => new Func<int>(delegate { return 2; })();   // not capturing a anymore
-}";
+            class C
+            {
+                int this[int a] => new Func<int>(delegate { return a + 1; })();
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int this[int a] => new Func<int>(delegate { return 2; })();   // not capturing a anymore
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -4339,22 +4681,26 @@ class C
     [Fact]
     public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody_Getter()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get => new(a3 => a1 + a2); }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a2); } }
-}
-";
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get => new(a3 => a1 + a2); }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a2); } }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true));
@@ -4362,29 +4708,30 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
     public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody_Partial()
-    {
-        var srcA1 = @"
-partial class C
-{
-}";
-        var srcB1 = @"
-partial class C
-{
-    int this[int a] => new System.Func<int>(() => a + 1);
-}";
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("""
 
-        var srcA2 = @"
-partial class C
-{
-    int this[int a] => new System.Func<int>(() => 2); // no capture
-}";
-        var srcB2 = @"
-partial class C
-{
-}";
+                partial class C
+                {
+                }
+                """, """
 
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+                partial class C
+                {
+                    int this[int a] => new System.Func<int>(() => 2); // no capture
+                }
+                """), GetTopEdits("""
+
+                         partial class C
+                         {
+                             int this[int a] => new System.Func<int>(() => a + 1);
+                         }
+                         """, """
+
+                         partial class C
+                         {
+                         }
+                         """)],
             [
                 DocumentResults(
                     semanticEdits: [
@@ -4394,27 +4741,30 @@ partial class C
                 DocumentResults(),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Lambdas_Update_CeaseCapture_IndexerParameter_ParameterDelete()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a1 + a2); } }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> this[int a2] { get { return new Func<int, int>(a3 => a2); } }
-}
-";
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a1 + a2); } }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> this[int a2] { get { return new Func<int, int>(a3 => a2); } }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -4430,28 +4780,32 @@ class C
     [Fact]
     public void Lambdas_Update_CeaseCapture_MethodParameter()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F(int a1, int a2)
-    {
-        var f2 = new Func<int, int>(a3 => a1 + a2);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F(int a1, int a2)
-    {
-        var f2 = new Func<int, int>(a3 => a1);
-    }
-}
-";
+            class C
+            {
+                void F(int a1, int a2)
+                {
+                    var f2 = new Func<int, int>(a3 => a1 + a2);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F(int a1, int a2)
+                {
+                    var f2 = new Func<int, int>(a3 => a1);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -4461,22 +4815,26 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
     public void Lambdas_Update_CeaseCapture_MethodParameter_WithExpressionBody()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1);
-}
-";
+            class C
+            {
+                Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -4485,22 +4843,26 @@ class C
     [Fact]
     public void Lambdas_Update_CeaseCapture_MethodParameter_ParameterDelete()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> F(int a1) => new Func<int, int>(a3 => a1);
-}
-";
+            class C
+            {
+                Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> F(int a1) => new Func<int, int>(a3 => a1);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [
@@ -4513,22 +4875,26 @@ class C
     [Fact]
     public void Lambdas_Update_CeaseCapture_MethodParameter_ParameterTypeChange()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> F(byte a1) => new Func<int, int>(a3 => a1);
-}
-";
+            class C
+            {
+                Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> F(byte a1) => new Func<int, int>(a3 => a1);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -4542,22 +4908,26 @@ class C
     [Fact]
     public void Lambdas_Update_CeaseCapture_MethodParameter_LocalToParameter()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> F(int a1) { int a2 = 1; return new Func<int, int>(a3 => a1 + a2); }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> F(int a1, int a2) { return new Func<int, int>(a3 => a1 + a2); }
-}
-";
+            class C
+            {
+                Func<int, int> F(int a1) { int a2 = 1; return new Func<int, int>(a3 => a1 + a2); }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> F(int a1, int a2) { return new Func<int, int>(a3 => a1 + a2); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -4571,22 +4941,26 @@ class C
     [Fact]
     public void Lambdas_Update_CeaseCapture_MethodParameter_ParameterToLocal()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> F(int a1, int a2) { return new Func<int, int>(a3 => a1 + a2); }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> F(int a1) { int a2 = 1; return new Func<int, int>(a3 => a1 + a2); }
-}
-";
+            class C
+            {
+                Func<int, int> F(int a1, int a2) { return new Func<int, int>(a3 => a1 + a2); }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> F(int a1) { int a2 = 1; return new Func<int, int>(a3 => a1 + a2); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -4600,44 +4974,48 @@ class C
     [Fact]
     public void Lambdas_Update_CeaseCapture_LambdaParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var f1 = new Func<int, int, int>((a1, a2) => 
-        {
-            var f2 = new Func<int, int>(a3 => 
-            {
-                var f3 = new Func<int, int>(a4 => a1 + a2 + a3);
-                return 1;
-            });
-            return a1;
-        });
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        var f1 = new Func<int, int, int>((a1, a2) => 
-        {
-            var f2 = new Func<int, int>(a3 => 
+            class C
             {
-                var f3 = new Func<int, int>(a4 => a2);
-                return 1;
-            });
-            return a1;
-        });
-    }
-}
-";
+                void F()
+                {
+                    var f1 = new Func<int, int, int>((a1, a2) => 
+                    {
+                        var f2 = new Func<int, int>(a3 => 
+                        {
+                            var f3 = new Func<int, int>(a4 => a1 + a2 + a3);
+                            return 1;
+                        });
+                        return a1;
+                    });
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    var f1 = new Func<int, int, int>((a1, a2) => 
+                    {
+                        var f2 = new Func<int, int>(a3 => 
+                        {
+                            var f3 = new Func<int, int>(a4 => a2);
+                            return 1;
+                        });
+                        return a1;
+                    });
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -4646,30 +5024,34 @@ class C
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
     public void Lambdas_Update_CeaseCapture_SetterValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int D
-    {
-        get { return 0; }
-        set { new Action(() => { Console.Write(value); }).Invoke(); }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int D
-    {
-        get { return 0; }
-        set { }
-    }
-}
-";
+            class C
+            {
+                int D
+                {
+                    get { return 0; }
+                    set { new Action(() => { Console.Write(value); }).Invoke(); }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int D
+                {
+                    get { return 0; }
+                    set { }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_D")));
@@ -4678,30 +5060,34 @@ class C
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
     public void Lambdas_Update_CeaseCapture_IndexerSetterValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int this[int a1, int a2]
-    {
-        get { return 0; }
-        set { new Action(() => { Console.Write(value); }).Invoke(); }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int this[int a1, int a2]
-    {
-        get { return 0; }
-        set { }
-    }
-}
-";
+            class C
+            {
+                int this[int a1, int a2]
+                {
+                    get { return 0; }
+                    set { new Action(() => { Console.Write(value); }).Invoke(); }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int this[int a1, int a2]
+                {
+                    get { return 0; }
+                    set { }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item")));
@@ -4710,30 +5096,34 @@ class C
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
     public void Lambdas_Update_CeaseCapture_EventAdderValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    event Action D
-    {
-        add { new Action(() => { Console.Write(value); }).Invoke(); }
-        remove { }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    event Action D
-    {
-        add {  }
-        remove { }
-    }
-}
-";
+            class C
+            {
+                event Action D
+                {
+                    add { new Action(() => { Console.Write(value); }).Invoke(); }
+                    remove { }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                event Action D
+                {
+                    add {  }
+                    remove { }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.add_D")));
@@ -4742,30 +5132,34 @@ class C
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
     public void Lambdas_Update_CeaseCapture_EventRemoverValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    event Action D
-    {
-        add { }
-        remove { new Action(() => { Console.Write(value); }).Invoke(); }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    event Action D
-    {
-        add { }
-        remove { }
-    }
-}
-";
+            class C
+            {
+                event Action D
+                {
+                    add { }
+                    remove { new Action(() => { Console.Write(value); }).Invoke(); }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                event Action D
+                {
+                    add { }
+                    remove { }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D")));
@@ -4885,37 +5279,41 @@ class C
     [Fact]
     public void Lambdas_Update_DeleteCapture1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        var f1 = new Func<int, int>(a1 => 
-        {
-            var f2 = new Func<int, int>(a2 => y + a2);
-            return y;
-        });
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    { // error
-        var f1 = new Func<int, int>(a1 => 
-        {
-            var f2 = new Func<int, int>(a2 => a2);
-            return a1;
-        });
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    var f1 = new Func<int, int>(a1 => 
+                    {
+                        var f2 = new Func<int, int>(a2 => y + a2);
+                        return y;
+                    });
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                { // error
+                    var f1 = new Func<int, int>(a1 => 
+                    {
+                        var f2 = new Func<int, int>(a2 => a2);
+                        return a1;
+                    });
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // y is no longer captured in f2
@@ -4926,22 +5324,26 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_IndexerGetterParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a2);
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a1 + a2);
-}
-";
+            class C
+            {
+                Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a2);
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a1 + a2);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -4954,22 +5356,26 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_IndexerGetterParameter2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a2); } }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a1 + a2); } }
-}
-";
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a2); } }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a1 + a2); } }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -4979,22 +5385,26 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_IndexerGetterParameter_ParameterInsert()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> this[int a1] => new(a3 => a1);
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> this[int a1, int a2] => new(a3 => a1 + a2);
-}
-";
+            class C
+            {
+                Func<int, int> this[int a1] => new(a3 => a1);
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> this[int a1, int a2] => new(a3 => a1 + a2);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [
@@ -5009,22 +5419,26 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_IndexerSetterParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { return null; } set { var f = new Func<int, int>(a3 => a2); } }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { return null; } set { var f = new Func<int, int>(a3 => a1 + a2); } }
-}
-";
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { return null; } set { var f = new Func<int, int>(a3 => a2); } }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { return null; } set { var f = new Func<int, int>(a3 => a1 + a2); } }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -5034,30 +5448,34 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_IndexerSetterValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int this[int a1, int a2]
-    {
-        get { return 0; }
-        set {  }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int this[int a1, int a2]
-    {
-        get { return 0; }
-        set { new Action(() => { Console.Write(value); }).Invoke(); }
-    }
-}
-";
+            class C
+            {
+                int this[int a1, int a2]
+                {
+                    get { return 0; }
+                    set {  }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int this[int a1, int a2]
+                {
+                    get { return 0; }
+                    set { new Action(() => { Console.Write(value); }).Invoke(); }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true)],
@@ -5067,30 +5485,34 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_EventAdderValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    event Action D
-    {
-        add {  }
-        remove { }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    event Action D
-    {
-        add {  }
-        remove { new Action(() => { Console.Write(value); }).Invoke(); }
-    }
-}
-";
+            class C
+            {
+                event Action D
+                {
+                    add {  }
+                    remove { }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                event Action D
+                {
+                    add {  }
+                    remove { new Action(() => { Console.Write(value); }).Invoke(); }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D"), preserveLocalVariables: true)],
@@ -5100,30 +5522,34 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_EventRemoverValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    event Action D
-    {
-        add { }
-        remove {  }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    event Action D
-    {
-        add { }
-        remove { new Action(() => { Console.Write(value); }).Invoke(); }
-    }
-}
-";
+            class C
+            {
+                event Action D
+                {
+                    add { }
+                    remove {  }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                event Action D
+                {
+                    add { }
+                    remove { new Action(() => { Console.Write(value); }).Invoke(); }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -5134,28 +5560,32 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_MethodParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F(int a1, int a2)
-    {
-        var f2 = new Func<int, int>(a3 => a1);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F(int a1, int a2)
-    {
-        var f2 = new Func<int, int>(a3 => a1 + a2);
-    }
-}
-";
+            class C
+            {
+                void F(int a1, int a2)
+                {
+                    var f2 = new Func<int, int>(a3 => a1);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F(int a1, int a2)
+                {
+                    var f2 = new Func<int, int>(a3 => a1 + a2);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -5164,22 +5594,26 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_MethodParameter2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1);
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
-}
-";
+            class C
+            {
+                Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1);
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -5188,22 +5622,26 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_MethodParameter_ParameterInsert()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> F(int a1) => new Func<int, int>(a3 => a1);
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
-}
-";
+            class C
+            {
+                Func<int, int> F(int a1) => new Func<int, int>(a3 => a1);
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [
@@ -5216,32 +5654,36 @@ class C
     [Fact]
     public void Lambdas_Update_Capturing_MethodParameter_ParameterInsert_Partial()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-partial class C
-{
-    public partial Func<int, int> F(int a1);
-}
+            using System;
 
-partial class C
-{
-    public partial Func<int, int> F(int a1) => new Func<int, int>(a3 => a1);
-}
-";
-        var src2 = @"
-using System;
+            partial class C
+            {
+                public partial Func<int, int> F(int a1);
+            }
 
-partial class C
-{
-    public partial Func<int, int> F(int a1, int a2);
-}
+            partial class C
+            {
+                public partial Func<int, int> F(int a1) => new Func<int, int>(a3 => a1);
+            }
 
-partial class C
-{
-    public partial Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            partial class C
+            {
+                public partial Func<int, int> F(int a1, int a2);
+            }
+
+            partial class C
+            {
+                public partial Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [
@@ -5254,36 +5696,40 @@ partial class C
     [Fact]
     public void Lambdas_Update_Capturing_LambdaParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var f1 = new Func<int, int, int>((a1, a2) => 
-        {
-            var f2 = new Func<int, int>(a3 => a2);
-            return a1;
-        });
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        var f1 = new Func<int, int, int>((a1, a2) => 
-        {
-            var f2 = new Func<int, int>(a3 => a1 + a2);
-            return a1;
-        });
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var f1 = new Func<int, int, int>((a1, a2) => 
+                    {
+                        var f2 = new Func<int, int>(a3 => a2);
+                        return a1;
+                    });
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    var f1 = new Func<int, int, int>((a1, a2) => 
+                    {
+                        var f2 = new Func<int, int>(a3 => a1 + a2);
+                        return a1;
+                    });
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -5403,29 +5849,33 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
     public void Lambdas_Update_PrimaryParameterOutsideOfLambda()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C(int x)
-{
-    void F()
-    {
-        var f = new Func<int, int>(a => 1);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C(int x)
-{
-    void F()
-    {
-        var f = new Func<int, int>(a => 2);
-        var y = x;
-    }
-}
-";
+            class C(int x)
+            {
+                void F()
+                {
+                    var f = new Func<int, int>(a => 1);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C(int x)
+            {
+                void F()
+                {
+                    var f = new Func<int, int>(a => 2);
+                    var y = x;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -5433,32 +5883,36 @@ class C(int x)
     [Fact]
     public void Lambdas_Update_StaticToThisOnly1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 1;
+            using System;
 
-    void F()
-    {
-        var f = new Func<int, int>(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 1;
 
-class C
-{
-    int x = 1;
-   
-    void F()
-    {
-        var f = new Func<int, int>(a => a + x);
-    }
-}
-";
+                void F()
+                {
+                    var f = new Func<int, int>(a => a);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 1;
+               
+                void F()
+                {
+                    var f = new Func<int, int>(a => a + x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -5467,40 +5921,44 @@ class C
     [Fact]
     public void Lambdas_Update_StaticToThisOnly_Partial()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-partial class C
-{
-    int x = 1;
-    partial void F(); // def
-}
+            using System;
 
-partial class C
-{
-    partial void F()  // impl
-    {
-        var f = new Func<int, int>(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            partial class C
+            {
+                int x = 1;
+                partial void F(); // def
+            }
 
-partial class C
-{
-    int x = 1;
-    partial void F(); // def
-}
+            partial class C
+            {
+                partial void F()  // impl
+                {
+                    var f = new Func<int, int>(a => a);
+                }
+            }
 
-partial class C
-{
-    partial void F()  // impl
-    {
-        var f = new Func<int, int>(a => a + x);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            partial class C
+            {
+                int x = 1;
+                partial void F(); // def
+            }
+
+            partial class C
+            {
+                partial void F()  // impl
+                {
+                    var f = new Func<int, int>(a => a + x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, preserveLocalVariables: true, partialType: "C"));
@@ -5509,38 +5967,42 @@ partial class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
     public void Lambdas_Update_StaticToPrimaryParameterOnly_Partial()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-partial class C(int x)
-{
-    partial void F(); // def
-}
+            using System;
 
-partial class C
-{
-    partial void F()  // impl
-    {
-        var f = new Func<int, int>(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            partial class C(int x)
+            {
+                partial void F(); // def
+            }
 
-partial class C(int x)
-{
-    partial void F(); // def
-}
+            partial class C
+            {
+                partial void F()  // impl
+                {
+                    var f = new Func<int, int>(a => a);
+                }
+            }
 
-partial class C
-{
-    partial void F()  // impl
-    {
-        var f = new Func<int, int>(a => a + x);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            partial class C(int x)
+            {
+                partial void F(); // def
+            }
+
+            partial class C
+            {
+                partial void F()  // impl
+                {
+                    var f = new Func<int, int>(a => a + x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -5550,34 +6012,38 @@ partial class C
     [Fact]
     public void Lambdas_Update_StaticToThisOnly3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 1;
+            using System;
 
-    void F()
-    {
-        var f1 = new Func<int, int>(a1 => a1);
-        var f2 = new Func<int, int>(a2 => a2 + x);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 1;
 
-class C
-{
-    int x = 1;
-   
-    void F()
-    {
-        var f1 = new Func<int, int>(a1 => a1 + x);
-        var f2 = new Func<int, int>(a2 => a2 + x);
-    }
-}
-";
+                void F()
+                {
+                    var f1 = new Func<int, int>(a1 => a1);
+                    var f2 = new Func<int, int>(a2 => a2 + x);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 1;
+               
+                void F()
+                {
+                    var f1 = new Func<int, int>(a1 => a1 + x);
+                    var f2 = new Func<int, int>(a2 => a2 + x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -5587,30 +6053,34 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
     public void Lambdas_Update_StaticToPrimaryParameterOnly3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C(int x)
-{
-    void F()
-    {
-        var f1 = new Func<int, int>(a1 => a1);
-        var f2 = new Func<int, int>(a2 => a2 + x);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C(int x)
-{
-    void F()
-    {
-        var f1 = new Func<int, int>(a1 => a1 + x);
-        var f2 = new Func<int, int>(a2 => a2 + x);
-    }
-}
-";
+            class C(int x)
+            {
+                void F()
+                {
+                    var f1 = new Func<int, int>(a1 => a1);
+                    var f2 = new Func<int, int>(a2 => a2 + x);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C(int x)
+            {
+                void F()
+                {
+                    var f1 = new Func<int, int>(a1 => a1 + x);
+                    var f2 = new Func<int, int>(a2 => a2 + x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -5619,28 +6089,32 @@ class C(int x)
     [Fact]
     public void Lambdas_Update_StaticToPrimaryParameterOnly()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C(int x)
-{
-    void F()
-    {
-        var f = new Func<int, int>(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C(int x)
-{
-    void F()
-    {
-        var f = new Func<int, int>(a => a + x);
-    }
-}
-";
+            class C(int x)
+            {
+                void F()
+                {
+                    var f = new Func<int, int>(a => a);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C(int x)
+            {
+                void F()
+                {
+                    var f = new Func<int, int>(a => a + x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -5649,38 +6123,42 @@ class C(int x)
     [Fact]
     public void Lambdas_Update_StaticToClosure1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int x = 1;
-        var f1 = new Func<int, int>(a1 => a1);
-        var f2 = new Func<int, int>(a2 => a2 + x);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int x = 1;
-        var f1 = new Func<int, int>(a1 => 
-        { 
-            return a1 + 
-                x+ // 1 
-                x; // 2
-        });
+            class C
+            {
+                void F()
+                {
+                    int x = 1;
+                    var f1 = new Func<int, int>(a1 => a1);
+                    var f2 = new Func<int, int>(a2 => a2 + x);
+                }
+            }
 
-        var f2 = new Func<int, int>(a2 => a2 + x);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int x = 1;
+                    var f1 = new Func<int, int>(a1 => 
+                    { 
+                        return a1 + 
+                            x+ // 1 
+                            x; // 2
+                    });
+
+                    var f2 = new Func<int, int>(a2 => a2 + x);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -5690,36 +6168,40 @@ class C
     [Fact]
     public void Lambdas_Update_ThisOnlyToClosure1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 1;
+            using System;
 
-    void F()
-    {
-        int y = 1;
-        var f1 = new Func<int, int>(a1 => a1 + x);
-        var f2 = new Func<int, int>(a2 => a2 + x + y);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 1;
 
-class C
-{
-    int x = 1;
+                void F()
+                {
+                    int y = 1;
+                    var f1 = new Func<int, int>(a1 => a1 + x);
+                    var f2 = new Func<int, int>(a2 => a2 + x + y);
+                }
+            }
 
-    void F()
-    {
-        int y = 1;
-        var f1 = new Func<int, int>(a1 => a1 + x + y);
-        var f2 = new Func<int, int>(a2 => a2 + x + y);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 1;
+
+                void F()
+                {
+                    int y = 1;
+                    var f1 = new Func<int, int>(a1 => a1 + x + y);
+                    var f2 = new Func<int, int>(a2 => a2 + x + y);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -5728,38 +6210,42 @@ class C
     [Fact]
     public void Lambdas_Update_Nested1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        var f1 = new Func<int, int>(a1 => 
-        {
-            var f2 = new Func<int, int>(a2 => a2 + y);
-            return a1;
-        });
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        var f1 = new Func<int, int>(a1 => 
-        {
-            var f2 = new Func<int, int>(a2 => a2 + y);
-            return a1 + y;
-        });
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    var f1 = new Func<int, int>(a1 => 
+                    {
+                        var f2 = new Func<int, int>(a2 => a2 + y);
+                        return a1;
+                    });
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    var f1 = new Func<int, int>(a1 => 
+                    {
+                        var f2 = new Func<int, int>(a2 => a2 + y);
+                        return a1 + y;
+                    });
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -5768,38 +6254,42 @@ class C
     [Fact]
     public void Lambdas_Update_Nested2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        var f1 = new Func<int, int>(a1 => 
-        {
-            var f2 = new Func<int, int>(a2 => a2);
-            return a1;
-        });
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        var f1 = new Func<int, int>(a1 => 
-        {
-            var f2 = new Func<int, int>(a2 => a1 + a2);
-            return a1;
-        });
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    var f1 = new Func<int, int>(a1 => 
+                    {
+                        var f2 = new Func<int, int>(a2 => a2);
+                        return a1;
+                    });
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    var f1 = new Func<int, int>(a1 => 
+                    {
+                        var f2 = new Func<int, int>(a2 => a1 + a2);
+                        return a1;
+                    });
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -5809,38 +6299,42 @@ class C
     [Fact]
     public void Lambdas_Update_Accessing_Closure1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<int, int> f) {}
+            using System;
 
-    void F()
-    {
-        int x0 = 0, y0 = 0;                
-                                         
-        G(a => x0);
-        G(a => y0);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void G(Func<int, int> f) {}
 
-class C
-{
-    void G(Func<int, int> f) {}
+                void F()
+                {
+                    int x0 = 0, y0 = 0;                
+                                                     
+                    G(a => x0);
+                    G(a => y0);
+                }
+            }
 
-    void F()
-    {
-        int x0 = 0, y0 = 0;                
-                                         
-        G(a => x0);
-        G(a => y0 + x0);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G(Func<int, int> f) {}
+
+                void F()
+                {
+                    int x0 = 0, y0 = 0;                
+                                                     
+                    G(a => x0);
+                    G(a => y0 + x0);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -5849,51 +6343,55 @@ class C
     [Fact]
     public void Lambdas_Update_Accessing_Closure2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<int, int> f) {}
+            using System;
 
-    int x = 0;                     // Group #0
-                                   
-    void F()                       
-    {                              
-        { int x0 = 0, y0 = 0;      // Group #0             
-            { int x1 = 0, y1 = 0;  // Group #1               
-                                         
-                G(a => x + x0);   
-                G(a => x0);
-                G(a => y0);
-                G(a => x1);
+            class C
+            {
+                void G(Func<int, int> f) {}
+
+                int x = 0;                     // Group #0
+                                               
+                void F()                       
+                {                              
+                    { int x0 = 0, y0 = 0;      // Group #0             
+                        { int x1 = 0, y1 = 0;  // Group #1               
+                                                     
+                            G(a => x + x0);   
+                            G(a => x0);
+                            G(a => y0);
+                            G(a => x1);
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
 
-class C
-{
-    void G(Func<int, int> f) {}
-    int x = 0;                     // Group #0
+            """;
+        var src2 = """
 
-    void F()
-    {
-        { int x0 = 0, y0 = 0;      // Group #0          
-            { int x1 = 0, y1 = 0;  // Group #1              
-                                         
-                G(a => x);         // error: disconnecting previously connected closures
-                G(a => x0);
-                G(a => y0);
-                G(a => x1);
+            using System;
+
+            class C
+            {
+                void G(Func<int, int> f) {}
+                int x = 0;                     // Group #0
+
+                void F()
+                {
+                    { int x0 = 0, y0 = 0;      // Group #0          
+                        { int x1 = 0, y1 = 0;  // Group #1              
+                                                     
+                            G(a => x);         // error: disconnecting previously connected closures
+                            G(a => x0);
+                            G(a => y0);
+                            G(a => x1);
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -5902,53 +6400,57 @@ class C
     [Fact]
     public void Lambdas_Update_Accessing_Closure3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<int, int> f) {}
+            using System;
 
-    int x = 0;                     // Group #0
-                                   
-    void F()                       
-    {                              
-        { int x0 = 0, y0 = 0;      // Group #0             
-            { int x1 = 0, y1 = 0;  // Group #1               
-                                         
-                G(a => x);   
-                G(a => x0);
-                G(a => y0);
-                G(a => x1);
-                G(a => y1);
+            class C
+            {
+                void G(Func<int, int> f) {}
+
+                int x = 0;                     // Group #0
+                                               
+                void F()                       
+                {                              
+                    { int x0 = 0, y0 = 0;      // Group #0             
+                        { int x1 = 0, y1 = 0;  // Group #1               
+                                                     
+                            G(a => x);   
+                            G(a => x0);
+                            G(a => y0);
+                            G(a => x1);
+                            G(a => y1);
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
 
-class C
-{
-    void G(Func<int, int> f) {}
-    int x = 0;                     // Group #0
+            """;
+        var src2 = """
 
-    void F()
-    {
-        { int x0 = 0, y0 = 0;      // Group #0          
-            { int x1 = 0, y1 = 0;  // Group #1              
-                                         
-                G(a => x);         
-                G(a => x0);
-                G(a => y0);
-                G(a => x1);
-                G(a => y1 + x0);   // error: connecting previously disconnected closures
+            using System;
+
+            class C
+            {
+                void G(Func<int, int> f) {}
+                int x = 0;                     // Group #0
+
+                void F()
+                {
+                    { int x0 = 0, y0 = 0;      // Group #0          
+                        { int x1 = 0, y1 = 0;  // Group #1              
+                                                     
+                            G(a => x);         
+                            G(a => x0);
+                            G(a => y0);
+                            G(a => x1);
+                            G(a => y1 + x0);   // error: connecting previously disconnected closures
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -5958,53 +6460,57 @@ class C
     [Fact]
     public void Lambdas_Update_Accessing_Closure4()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<int, int> f) {}
+            using System;
 
-    int x = 0;                     // Group #0
-                                   
-    void F()                       
-    {                              
-        { int x0 = 0, y0 = 0;      // Group #0             
-            { int x1 = 0, y1 = 0;  // Group #1               
-                                         
-                G(a => x + x0);   
-                G(a => x0);
-                G(a => y0);
-                G(a => x1);
-                G(a => y1);
+            class C
+            {
+                void G(Func<int, int> f) {}
+
+                int x = 0;                     // Group #0
+                                               
+                void F()                       
+                {                              
+                    { int x0 = 0, y0 = 0;      // Group #0             
+                        { int x1 = 0, y1 = 0;  // Group #1               
+                                                     
+                            G(a => x + x0);   
+                            G(a => x0);
+                            G(a => y0);
+                            G(a => x1);
+                            G(a => y1);
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
 
-class C
-{
-    void G(Func<int, int> f) {}
-    int x = 0;                     // Group #0
+            """;
+        var src2 = """
 
-    void F()
-    {
-        { int x0 = 0, y0 = 0;      // Group #0          
-            { int x1 = 0, y1 = 0;  // Group #1              
-                                         
-                G(a => x);         // error: disconnecting previously connected closures
-                G(a => x0);
-                G(a => y0);
-                G(a => x1);
-                G(a => y1 + x0);   // error: connecting previously disconnected closures
+            using System;
+
+            class C
+            {
+                void G(Func<int, int> f) {}
+                int x = 0;                     // Group #0
+
+                void F()
+                {
+                    { int x0 = 0, y0 = 0;      // Group #0          
+                        { int x1 = 0, y1 = 0;  // Group #1              
+                                                     
+                            G(a => x);         // error: disconnecting previously connected closures
+                            G(a => x0);
+                            G(a => y0);
+                            G(a => x1);
+                            G(a => y1 + x0);   // error: connecting previously disconnected closures
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -6014,48 +6520,52 @@ class C
     [Fact]
     public void Lambdas_Update_Accessing_Closure_NestedLambdas()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<int, Func<int, int>> f) {}
+            using System;
 
-    void F()                       
-    {                              
-        { int x0 = 0;      // Group #0             
-            { int x1 = 0;  // Group #1               
-                                         
-                G(a => b => x0);
-                G(a => b => x1);
+            class C
+            {
+                void G(Func<int, Func<int, int>> f) {}
+
+                void F()                       
+                {                              
+                    { int x0 = 0;      // Group #0             
+                        { int x1 = 0;  // Group #1               
+                                                     
+                            G(a => b => x0);
+                            G(a => b => x1);
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
 
-class C
-{
-    void G(Func<int, Func<int, int>> f) {}
+            """;
+        var src2 = """
 
-    void F()
-    {
-        { int x0 = 0;      // Group #0          
-            { int x1 = 0;  // Group #1              
-                                         
-                G(a => b => x0);
-                G(a => b => x1);
+            using System;
 
-                G(a => b => x0);      // ok
-                G(a => b => x1);      // ok
-                G(a => b => x0 + x1); // runtime rude edit
+            class C
+            {
+                void G(Func<int, Func<int, int>> f) {}
+
+                void F()
+                {
+                    { int x0 = 0;      // Group #0          
+                        { int x1 = 0;  // Group #1              
+                                                     
+                            G(a => b => x0);
+                            G(a => b => x1);
+
+                            G(a => b => x0);      // ok
+                            G(a => b => x1);      // ok
+                            G(a => b => x0 + x1); // runtime rude edit
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -6065,28 +6575,32 @@ class C
     [Fact]
     public void Lambdas_CapturedLocal_Rename()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static void F()
-    <N:0>{
-        int x = 1;
-        Func<int> f = () => x;
-    }</N:0>
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static void F()
-    <N:0>{
-        int <S:0>X</S:0> = 1;
-        Func<int> f = () => X;
-    }</N:0>
-}";
+            class C
+            {
+                static void F()
+                <N:0>{
+                    int x = 1;
+                    Func<int> f = () => x;
+                }</N:0>
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static void F()
+                <N:0>{
+                    int <S:0>X</S:0> = 1;
+                    Func<int> f = () => X;
+                }</N:0>
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -6101,28 +6615,32 @@ class C
     [Fact]
     public void Lambdas_CapturedLocal_ChangeType()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static void F()
-    <N:0>{
-        int <S:0>x</S:0> = 1;
-        Func<int> f = <N:1>() => x</N:1>;
-    }</N:0>
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static void F()
-    <N:0>{
-        byte <S:0>x</S:0> = 1;
-        Func<int> f = <N:1>() => x</N:1>;
-    }</N:0>
-}";
+            class C
+            {
+                static void F()
+                <N:0>{
+                    int <S:0>x</S:0> = 1;
+                    Func<int> f = <N:1>() => x</N:1>;
+                }</N:0>
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static void F()
+                <N:0>{
+                    byte <S:0>x</S:0> = 1;
+                    Func<int> f = <N:1>() => x</N:1>;
+                }</N:0>
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -6138,26 +6656,30 @@ class C
     [Fact]
     public void Lambdas_CapturedParameter_Rename_BlockBody()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static void F(int x)
-    <N:0>{
-        Func<int> f = <N:1>() => x</N:1>;
-    }</N:0>
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static void F(int <S:0>X</S:0>)
-    <N:0>{
-        Func<int> f = <N:1>() => X</N:1>;
-    }</N:0>
-}";
+            class C
+            {
+                static void F(int x)
+                <N:0>{
+                    Func<int> f = <N:1>() => x</N:1>;
+                }</N:0>
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static void F(int <S:0>X</S:0>)
+                <N:0>{
+                    Func<int> f = <N:1>() => X</N:1>;
+                }</N:0>
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -6173,22 +6695,26 @@ class C
     [Fact]
     public void Lambdas_CapturedParameter_Rename_ExpressionBody()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static void G(Func<int> f) {}
-    static void F(int x) <N:0>=> G(<N:1>() => x</N:1>)</N:0>;
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static void G(Func<int> f) {}
-    static void F(int <S:0>X</S:0>) <N:0>=> G(<N:1>() => X</N:1>)</N:0>;
-}";
+            class C
+            {
+                static void G(Func<int> f) {}
+                static void F(int x) <N:0>=> G(<N:1>() => x</N:1>)</N:0>;
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static void G(Func<int> f) {}
+                static void F(int <S:0>X</S:0>) <N:0>=> G(<N:1>() => X</N:1>)</N:0>;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -6204,32 +6730,36 @@ class C
     [Fact]
     public void Lambdas_CapturedParameter_Rename_Lambda_BlockBody()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static void F()    
-    <N:0>{
-        Func<int> f1 = <N:1>x =>
-        <N:2>{
-            Func<int> f2 = <N:3>() => x</N:3>;
-        }</N:1,2>;
-    }</N:0>
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static void F()    
-    <N:0>{
-        Func<int> f1 = <N:1>X =>
-        <N:2>{
-            Func<int> f2 = <N:3>() => X</N:3>;
-        }</N:1,2>;
-    }</N:0>
-}";
+            class C
+            {
+                static void F()    
+                <N:0>{
+                    Func<int> f1 = <N:1>x =>
+                    <N:2>{
+                        Func<int> f2 = <N:3>() => x</N:3>;
+                    }</N:1,2>;
+                }</N:0>
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static void F()    
+                <N:0>{
+                    Func<int> f1 = <N:1>X =>
+                    <N:2>{
+                        Func<int> f2 = <N:3>() => X</N:3>;
+                    }</N:1,2>;
+                }</N:0>
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -6245,30 +6775,34 @@ class C
     [Fact]
     public void Lambdas_CapturedParameter_Rename_Lambda_ExpressionBody()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int G(Func<int> f) => 1;
+            using System;
 
-    static void F()    
-    {
-        Func<int, int> <N:0>f1 = <N:1>x => <N:2>G(<N:3>() => x</N:3>)</N:0,1,2>;
-    }
-}";
-        var src2 = @"
-using System;
+            class C
+            {
+                static int G(Func<int> f) => 1;
 
-class C
-{
-    static int G(Func<int> f) => 1;
+                static void F()    
+                {
+                    Func<int, int> <N:0>f1 = <N:1>x => <N:2>G(<N:3>() => x</N:3>)</N:0,1,2>;
+                }
+            }
+            """;
+        var src2 = """
 
-    static void F()    
-    {
-        Func<int, int> <N:0>f1 = <N:1>X => <N:2>G(<N:3>() => X</N:3>)</N:0,1,2>;
-    }
-}";
+            using System;
+
+            class C
+            {
+                static int G(Func<int> f) => 1;
+
+                static void F()    
+                {
+                    Func<int, int> <N:0>f1 = <N:1>X => <N:2>G(<N:3>() => X</N:3>)</N:0,1,2>;
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -6284,30 +6818,34 @@ class C
     [Fact]
     public void Lambdas_CapturedParameter_Rename_ConstructorDeclaration()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class B(Func<int> f);
+            using System;
 
-class C
-{
-    <N:0>C(int x, int y) : base(() => x)
-    {
-        Func<int> g = () => y;
-    }</N:0>
-}";
-        var src2 = @"
-using System;
+            class B(Func<int> f);
 
-class B(Func<int> f);
+            class C
+            {
+                <N:0>C(int x, int y) : base(() => x)
+                {
+                    Func<int> g = () => y;
+                }</N:0>
+            }
+            """;
+        var src2 = """
 
-class C
-{
-    <N:0>C(int <S:0>X</S:0>, int Y) : base(() => X)
-    {
-        Func<int> g = () => Y;
-    }</N:0>
-}";
+            using System;
+
+            class B(Func<int> f);
+
+            class C
+            {
+                <N:0>C(int <S:0>X</S:0>, int Y) : base(() => X)
+                {
+                    Func<int> g = () => Y;
+                }</N:0>
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -6324,20 +6862,24 @@ class C
     [Fact]
     public void Lambdas_CapturedParameter_Rename_PrimaryConstructorDeclaration()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class B(Func<int> f);
+            using System;
 
-<N:0>class C(int x) : B(() => x);</N:0>
-";
-        var src2 = @"
-using System;
+            class B(Func<int> f);
 
-class B(Func<int> f);
+            <N:0>class C(int x) : B(() => x);</N:0>
 
-<N:0>class C(int <S:0>X</S:0>) : B(() => X);</N:0>
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class B(Func<int> f);
+
+            <N:0>class C(int <S:0>X</S:0>) : B(() => X);</N:0>
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -6353,26 +6895,30 @@ class B(Func<int> f);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
     public void Lambdas_CapturedParameter_ChangeType()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static void F(int x)
-    {
-        Func<int> f = () => x;
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static void F(byte x)
-    {
-        Func<int> f = () => x;
-    }
-}";
+            class C
+            {
+                static void F(int x)
+                {
+                    Func<int> f = () => x;
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static void F(byte x)
+                {
+                    Func<int> f = () => x;
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -6387,22 +6933,26 @@ class C
     [Fact]
     public void Lambdas_CapturedParameter_ChangeType_Indexer1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int> this[int a] { get => () => a; }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int> this[byte a] => () => a;
-}
-";
+            class C
+            {
+                Func<int> this[int a] { get => () => a; }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int> this[byte a] => () => a;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -6418,22 +6968,26 @@ class C
     [Fact]
     public void Lambdas_CapturedParameter_ChangeType_Indexer_NoBodyChange()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int> this[int a ] => () => a;
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int> this[byte a] => () => a;
-}
-";
+            class C
+            {
+                Func<int> this[int a ] => () => a;
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int> this[byte a] => () => a;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -6449,28 +7003,32 @@ class C
     [Fact]
     public void Lambdas_ReorderCapturedParameters()
     {
-        var src1 = @"
-using System;
-using System.Diagnostics;
+        var src1 = """
 
-class Program
-{
-    static void Main(int x, int y)
-    {
-        Func<int> f = () => x + y;
-    }
-}";
-        var src2 = @"
-using System;
-using System.Diagnostics;
+            using System;
+            using System.Diagnostics;
 
-class Program
-{
-    static void Main(int y, int x)
-    {
-        Func<int> f = () => x + y;
-    }
-}";
+            class Program
+            {
+                static void Main(int x, int y)
+                {
+                    Func<int> f = () => x + y;
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+            using System.Diagnostics;
+
+            class Program
+            {
+                static void Main(int y, int x)
+                {
+                    Func<int> f = () => x + y;
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -6529,18 +7087,22 @@ class Program
     [Fact]
     public void Lambdas_StackAlloc_Update()
     {
-        var src1 = @"
-using System;
-class C
-{
-    Delegate F() => () => { Span<int> s = stackalloc int[10]; };
-}";
-        var src2 = @"
-using System;
-class C
-{
-    Delegate F() => () => { Span<int> s = stackalloc int[20]; };
-}";
+        var src1 = """
+
+            using System;
+            class C
+            {
+                Delegate F() => () => { Span<int> s = stackalloc int[10]; };
+            }
+            """;
+        var src2 = """
+
+            using System;
+            class C
+            {
+                Delegate F() => () => { Span<int> s = stackalloc int[20]; };
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -6551,18 +7113,22 @@ class C
     [Fact]
     public void Lambdas_StackAlloc_Insert()
     {
-        var src1 = @"
-using System;
-class C
-{
-    Delegate F() => () => { };
-}";
-        var src2 = @"
-using System;
-class C
-{
-    Delegate F() => () => { Span<int> s = stackalloc int[10]; };
-}";
+        var src1 = """
+
+            using System;
+            class C
+            {
+                Delegate F() => () => { };
+            }
+            """;
+        var src2 = """
+
+            using System;
+            class C
+            {
+                Delegate F() => () => { Span<int> s = stackalloc int[10]; };
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -6573,18 +7139,22 @@ class C
     [Fact]
     public void Lambdas_StackAlloc_Delete()
     {
-        var src1 = @"
-using System;
-class C
-{
-    Delegate F() => () => { Span<int> s = stackalloc int[10]; };
-}";
-        var src2 = @"
-using System;
-class C
-{
-    Delegate F() => () => { };
-}";
+        var src1 = """
+
+            using System;
+            class C
+            {
+                Delegate F() => () => { Span<int> s = stackalloc int[10]; };
+            }
+            """;
+        var src2 = """
+
+            using System;
+            class C
+            {
+                Delegate F() => () => { };
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -6606,28 +7176,32 @@ class C
     [Fact]
     public void Lambdas_AsyncModifier_Add()
     {
-        var src1 = @"
-using System;
-using System.Threading.Tasks;
+        var src1 = """
 
-class Test
-{
-    public void F()
-    {
-        var f = new Func<Task<int>>(() => Task.FromResult(1));
-    }
-}";
-        var src2 = @"
-using System;
-using System.Threading.Tasks;
+            using System;
+            using System.Threading.Tasks;
 
-class Test
-{
-    public void F()
-    {
-        var f = new Func<Task<int>>(async () => 1);
-    }
-}";
+            class Test
+            {
+                public void F()
+                {
+                    var f = new Func<Task<int>>(() => Task.FromResult(1));
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+            using System.Threading.Tasks;
+
+            class Test
+            {
+                public void F()
+                {
+                    var f = new Func<Task<int>>(async () => 1);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.MakeMethodAsyncNotSupportedByRuntime, "()")],
@@ -6635,6 +7209,78 @@ class Test
 
         edits.VerifySemanticDiagnostics(
             capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
+    }
+
+    [Fact]
+    public void Lambdas_BodyUpdate_RestartRequired()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(() => 1);
+                }
+            }
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(() => 2);
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "()", GetResource("lambda")));
+    }
+
+    [Fact]
+    public void Lambdas_BodyUpdate_RestartRequired_ContainingMethod()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F(System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(() => 1);
+                }
+            }
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F(System.Func<int> f)
+                    => f();
+
+                [RestartRequiredOnMetadataUpdateAttribute]
+                public void G()
+                {
+                    F(() => 2);
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        // UpdateMightNotHaveAnyEffect not reported since the change is in the lambda body:
+        edits.VerifySemanticDiagnostics(
+            capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
     }
 
     #endregion
@@ -6741,27 +7387,31 @@ class Test
     [Fact]
     public void LocalFunctions_Insert_Static()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int f(int a) => a;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int f(int a) => a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -6771,27 +7421,31 @@ class C
     [Fact]
     public void LocalFunctions_Insert_Static_InGenericContext_Method()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F<T>()
-    {
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F<T>()
-    {
-        int f(int a) => a;
-    }
-}
-";
+            class C
+            {
+                void F<T>()
+                {
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F<T>()
+                {
+                    int f(int a) => a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -6811,27 +7465,31 @@ class C
     [Fact]
     public void LocalFunctions_Insert_Static_InGenericContext_Type()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C<T>
-{
-    void F()
-    {
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C<T>
-{
-    void F()
-    {
-        int f(int a) => a;
-    }
-}
-";
+            class C<T>
+            {
+                void F()
+                {
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C<T>
+            {
+                void F()
+                {
+                    int f(int a) => a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -6851,39 +7509,43 @@ class C<T>
     [Fact]
     public void LocalFunctions_Insert_Static_InGenericContext_LocalFunction()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        void L<T>()
-        {
-            void M()
-            {
-            }
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        void L<T>()
-        {
-            void M()
+            class C
             {
-                int f(int a) => a;
+                void F()
+                {
+                    void L<T>()
+                    {
+                        void M()
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    void L<T>()
+                    {
+                        void M()
+                        {
+                            int f(int a) => a;
+                        }
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -6903,35 +7565,39 @@ class C
     [Fact]
     public void LocalFunctions_Insert_Static_Nested_ExpressionBodies()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int G(Func<int, int> f) => 0;
-    
-    void F()
-    {
-        int localF(int a) => a;
-        G(localF);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static int G(Func<int, int> f) => 0;
+            class C
+            {
+                static int G(Func<int, int> f) => 0;
+                
+                void F()
+                {
+                    int localF(int a) => a;
+                    G(localF);
+                }
+            }
 
-    void F()
-    {
-        int localF(int a) => a;
-        int localG(int a) => G(localF) + a;
-        G(localG);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static int G(Func<int, int> f) => 0;
+
+                void F()
+                {
+                    int localF(int a) => a;
+                    int localG(int a) => G(localF) + a;
+                    G(localG);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -6941,35 +7607,39 @@ class C
     [Fact]
     public void LocalFunctions_Insert_Static_Nested_BlockBodies()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int G(Func<int, int> f) => 0;
-    
-    void F()
-    {
-        int localF(int a) { return a; }
-        G(localF);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static int G(Func<int, int> f) => 0;
+            class C
+            {
+                static int G(Func<int, int> f) => 0;
+                
+                void F()
+                {
+                    int localF(int a) { return a; }
+                    G(localF);
+                }
+            }
 
-    void F()
-    {
-        int localF(int a) { return a; }
-        int localG(int a) { return G(localF) + a; }
-        G(localG);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static int G(Func<int, int> f) => 0;
+
+                void F()
+                {
+                    int localF(int a) { return a; }
+                    int localG(int a) { return G(localF) + a; }
+                    G(localG);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -6979,33 +7649,37 @@ class C
     [Fact]
     public void LocalFunctions_LocalFunction_Replace_Lambda()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int G(Func<int, int> f) => 0;
-    
-    void F()
-    {
-        G(<N:0>a => a</N:0>);
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static int G(Func<int, int> f) => 0;
+            class C
+            {
+                static int G(Func<int, int> f) => 0;
+                
+                void F()
+                {
+                    G(<N:0>a => a</N:0>);
+                }
+            }
 
-    void F()
-    {
-        <N:0>int <S:0>localF</S:0>(int a) { return a; }</N:0>
-        G(localF);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static int G(Func<int, int> f) => 0;
+
+                void F()
+                {
+                    <N:0>int <S:0>localF</S:0>(int a) { return a; }</N:0>
+                    G(localF);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -7021,33 +7695,37 @@ class C
     [Fact]
     public void LocalFunctions_Lambda_Replace_LocalFunction()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int G(Func<int, int> f) => 0;
+            using System;
 
-    void F()
-    {
-        <N:0>int localF(int a) { return a; }</N:0>
-        G(localF);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                static int G(Func<int, int> f) => 0;
 
-class C
-{
-    static int G(Func<int, int> f) => 0;
-    
-    void F()
-    {
-        G(<N:0>a => a</N:0>);
-    }
-}
-";
+                void F()
+                {
+                    <N:0>int localF(int a) { return a; }</N:0>
+                    G(localF);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static int G(Func<int, int> f) => 0;
+                
+                void F()
+                {
+                    G(<N:0>a => a</N:0>);
+                }
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -7062,31 +7740,35 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Insert_ThisOnly_Top1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 0;
+            using System;
 
-    void F()
-    {
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 0;
 
-class C
-{
-    int x = 0;
+                void F()
+                {
+                }
+            }
 
-    void F()
-    {
-        int G(int a) => x; 
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 0;
+
+                void F()
+                {
+                    int G(int a) => x; 
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -7097,39 +7779,43 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1291"), WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Insert_ThisOnly_Top2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        {
-            int x = 2;
-            int f1(int a) => y; 
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            using System;
+            using System.Linq;
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        {
-            int x = 2;
-            var f2 = from a in new[] { 1 } select a + y;
-            var f3 = from a in new[] { 1 } where x > 0 select a;
-        }
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    {
+                        int x = 2;
+                        int f1(int a) => y; 
+                    }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    {
+                        int x = 2;
+                        var f2 = from a in new[] { 1 } select a + y;
+                        var f3 = from a in new[] { 1 } where x > 0 select a;
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -7140,37 +7826,41 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Insert_ThisOnly_Nested1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 0;
-    int G(Func<int, int> f) => 0;
+            using System;
 
-    void F()
-    {
-        int f(int a) => a;
-        G(f);
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 0;
+                int G(Func<int, int> f) => 0;
 
-class C
-{
-    int x = 0;
-    int G(Func<int, int> f) => 0;
+                void F()
+                {
+                    int f(int a) => a;
+                    G(f);
+                }
+            }
 
-    void F()
-    {
-        int f(int a) => x;
-        int g(int a) => G(f);
-        G(g);
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 0;
+                int G(Func<int, int> f) => 0;
+
+                void F()
+                {
+                    int f(int a) => x;
+                    int g(int a) => G(f);
+                    G(g);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -7180,53 +7870,57 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Insert_ThisOnly_Nested2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 0;
+            using System;
 
-    void F()
-    {
-        int f1(int a) 
-        {
-            int f2(int b)
+            class C
             {
-                return b;
-            };
+                int x = 0;
 
-            return a;
-        };
-    }
-}
-";
-        var src2 = @"
-using System;
+                void F()
+                {
+                    int f1(int a) 
+                    {
+                        int f2(int b)
+                        {
+                            return b;
+                        };
 
-class C
-{
-    int x = 0;
+                        return a;
+                    };
+                }
+            }
 
-    void F()
-    {
-        int f1(int a)
-        {
-            int f2(int b)
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
             {
-                return b;
-            };
+                int x = 0;
 
-            int f3(int c)
-            {
-                return c + x;
-            };
+                void F()
+                {
+                    int f1(int a)
+                    {
+                        int f2(int b)
+                        {
+                            return b;
+                        };
 
-            return a;
-        };
-    }
-}
-";
+                        int f3(int c)
+                        {
+                            return c + x;
+                        };
+
+                        return a;
+                    };
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -7237,69 +7931,73 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_InsertAndDelete_Scopes1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<int, int> f) {}
+            using System;
 
-    int x = 0, y = 0;                      // Group #0
+            class C
+            {
+                void G(Func<int, int> f) {}
 
-    void F()
-    {
-        int x0 = 0, y0 = 0;                // Group #1 
+                int x = 0, y = 0;                      // Group #0
 
-        { int x1 = 0, y1 = 0;              // Group #2 
+                void F()
+                {
+                    int x0 = 0, y0 = 0;                // Group #1 
 
-            { int x2 = 0, y2 = 0;          // Group #1 
+                    { int x1 = 0, y1 = 0;              // Group #2 
 
-                { int x3 = 0, y3 = 0;      // Group #2 
+                        { int x2 = 0, y2 = 0;          // Group #1 
 
-                    int f1(int a) => x3 + x1;
-                    int f2(int a) => x0 + y0 + x2;
-                    int f3(int a) => x;
+                            { int x3 = 0, y3 = 0;      // Group #2 
+
+                                int f1(int a) => x3 + x1;
+                                int f2(int a) => x0 + y0 + x2;
+                                int f3(int a) => x;
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
 
-class C
-{
-    void G(Func<int, int> f) {}
+            """;
+        var src2 = """
 
-    int x = 0, y = 0;                       // Group #0
+            using System;
 
-    void F()
-    {
-        int x0 = 0, y0 = 0;                 // Group #1
+            class C
+            {
+                void G(Func<int, int> f) {}
 
-        { int x1 = 0, y1 = 0;               // Group #2 
+                int x = 0, y = 0;                       // Group #0
 
-            { int x2 = 0, y2 = 0;           // Group #1
+                void F()
+                {
+                    int x0 = 0, y0 = 0;                 // Group #1
 
-                { int x3 = 0, y3 = 0;       // Group #2 
+                    { int x1 = 0, y1 = 0;               // Group #2 
 
-                    int f1(int a) => x3 + x1;
-                    int f2(int a) => x0 + y0 + x2;
-                    int f3(int a) => x;
+                        { int x2 = 0, y2 = 0;           // Group #1
 
-                    int f4(int a) => x;         // OK
-                    int f5(int a) => x0 + y0;   // OK
-                    int f6(int a) => x1 + y0;   // runtime rude edit - connecting Group #1 and Group #2
-                    int f7(int a) => x3 + x1;   // runtime rude edit - multi-scope (conservative)
-                    int f8(int a) => x + y0;    // runtime rude edit - connecting Group #0 and Group #1
-                    int f9(int a) => x + x3;    // runtime rude edit - connecting Group #0 and Group #2
+                            { int x3 = 0, y3 = 0;       // Group #2 
+
+                                int f1(int a) => x3 + x1;
+                                int f2(int a) => x0 + y0 + x2;
+                                int f3(int a) => x;
+
+                                int f4(int a) => x;         // OK
+                                int f5(int a) => x0 + y0;   // OK
+                                int f6(int a) => x1 + y0;   // runtime rude edit - connecting Group #1 and Group #2
+                                int f7(int a) => x3 + x1;   // runtime rude edit - multi-scope (conservative)
+                                int f8(int a) => x + y0;    // runtime rude edit - connecting Group #0 and Group #1
+                                int f9(int a) => x + x3;    // runtime rude edit - connecting Group #0 and Group #2
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-";
+
+            """;
         var insert = GetTopEdits(src1, src2);
         insert.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -7314,46 +8012,50 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Insert_ForEach1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void G(Func<int, int> f) {}
+            using System;
 
-    void F()                       
-    {                              
-        foreach (int x0 in new[] { 1 })  // Group #0             
-        {                                // Group #1
-            int x1 = 0;
+            class C
+            {
+                void G(Func<int, int> f) {}
 
-            int f0(int a) => x0;
-            int f1(int a) => x1;
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
+                void F()                       
+                {                              
+                    foreach (int x0 in new[] { 1 })  // Group #0             
+                    {                                // Group #1
+                        int x1 = 0;
 
-class C
-{
-    void G(Func<int, int> f) {}
+                        int f0(int a) => x0;
+                        int f1(int a) => x1;
+                    }
+                }
+            }
 
-    void F()                       
-    {                              
-        foreach (int x0 in new[] { 1 })  // Group #0             
-        {                                // Group #1
-            int x1 = 0;                  
+            """;
+        var src2 = """
 
-            int f0(int a) => x0;
-            int f1(int a) => x1;
+            using System;
 
-            int f2(int a) => x0 + x1;   // runtime rude edit: connecting previously disconnected closures
-        }
-    }
-}
-";
+            class C
+            {
+                void G(Func<int, int> f) {}
+
+                void F()                       
+                {                              
+                    foreach (int x0 in new[] { 1 })  // Group #0             
+                    {                                // Group #1
+                        int x1 = 0;                  
+
+                        int f0(int a) => x0;
+                        int f1(int a) => x1;
+
+                        int f2(int a) => x0 + x1;   // runtime rude edit: connecting previously disconnected closures
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -7363,71 +8065,75 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Insert_Switch1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    bool G(Func<int> f) => true;
+            using System;
 
-    int a = 1;
+            class C
+            {
+                bool G(Func<int> f) => true;
 
-    void F()                       
-    {        
-        int x2 = 1;
-        int f2() => x2;
+                int a = 1;
 
-        switch (a)
-        {
-            case 1:
-                int x0 = 1;
-                int f0() => x0;
-                break;
+                void F()                       
+                {        
+                    int x2 = 1;
+                    int f2() => x2;
 
-            case 2:
-                int x1 = 1;
-                int f1() => x1;
-                break;
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
+                    switch (a)
+                    {
+                        case 1:
+                            int x0 = 1;
+                            int f0() => x0;
+                            break;
 
-class C
-{
-    bool G(Func<int> f) => true;
+                        case 2:
+                            int x1 = 1;
+                            int f1() => x1;
+                            break;
+                    }
+                }
+            }
 
-    int a = 1;
+            """;
+        var src2 = """
 
-    void F()                       
-    {                
-        int x2 = 1;
-        int f2() => x2;
+            using System;
 
-        switch (a)
-        {
-            case 1:
-                int x0 = 1;
-                int f0() => x0;
-                goto case 2;
+            class C
+            {
+                bool G(Func<int> f) => true;
 
-            case 2:
-                int x1 = 1;
-                int f1() => x1;
-                goto default;
+                int a = 1;
 
-            default:
-                x0 = 1;
-                x1 = 2;
-                int f01() => x0 + x1;   // ok
-                int f02() => x0 + x2;   // runtime rude edit
-                break;
-        }
-    }
-}
-";
+                void F()                       
+                {                
+                    int x2 = 1;
+                    int f2() => x2;
+
+                    switch (a)
+                    {
+                        case 1:
+                            int x0 = 1;
+                            int f0() => x0;
+                            goto case 2;
+
+                        case 2:
+                            int x1 = 1;
+                            int f1() => x1;
+                            goto default;
+
+                        default:
+                            x0 = 1;
+                            x1 = 2;
+                            int f01() => x0 + x1;   // ok
+                            int f02() => x0 + x2;   // runtime rude edit
+                            break;
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -7437,47 +8143,51 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Insert_Catch1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static void F()                       
-    {                              
-        try
-        {
-        }
-        catch (Exception x0)
-        {
-            int x1 = 1;
-            int f0() => x0;
-            int f1() => x1;
-        }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static void F()                       
-    {                              
-        try
-        {
-        }
-        catch (Exception x0)
-        {
-            int x1 = 1;
-            int f0() => x0;
-            int f1() => x1;
+            class C
+            {
+                static void F()                       
+                {                              
+                    try
+                    {
+                    }
+                    catch (Exception x0)
+                    {
+                        int x1 = 1;
+                        int f0() => x0;
+                        int f1() => x1;
+                    }
+                }
+            }
 
-            int f00() => x0; //ok
-            int f01() => F(x0, x1); // runtime rude edit
-        }
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static void F()                       
+                {                              
+                    try
+                    {
+                    }
+                    catch (Exception x0)
+                    {
+                        int x1 = 1;
+                        int f0() => x0;
+                        int f1() => x1;
+
+                        int f00() => x0; //ok
+                        int f01() => F(x0, x1); // runtime rude edit
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
@@ -7487,29 +8197,33 @@ class C
     [Fact]
     public void LocalFunctions_Insert_NotSupported()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        void M()
-        {
-        }
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    void M()
+                    {
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -7520,32 +8234,36 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_CeaseCapture_This()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 1;
+            using System;
 
-    void F()
-    {
-        int f(int a) => a + x;
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 1;
 
-class C
-{
-    int x = 1;
+                void F()
+                {
+                    int f(int a) => a + x;
+                }
+            }
 
-    void F()
-    {
-        int f(int a) => a;
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 1;
+
+                void F()
+                {
+                    int f(int a) => a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -7554,28 +8272,32 @@ class C
     [Fact]
     public void LocalFunctions_Update_Signature1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        <N:0>int f(int a) => a;</N:0>
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        <N:0>long <S:0>f</S:0>(long a) => a;</N:0>
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    <N:0>int f(int a) => a;</N:0>
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    <N:0>long <S:0>f</S:0>(long a) => a;</N:0>
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -7591,28 +8313,32 @@ class C
     [Fact]
     public void LocalFunctions_Update_Signature2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        <N:0>int f(int a) => a;</N:0>
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        <N:0>int <S:0>f</S:0>(int a, int b) => a + b;</N:0>
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    <N:0>int f(int a) => a;</N:0>
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    <N:0>int <S:0>f</S:0>(int a, int b) => a + b;</N:0>
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -7628,28 +8354,32 @@ class C
     [Fact]
     public void LocalFunctions_Update_Signature3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        <N:0>int f(int a) => a;</N:0>
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        <N:0>long <S:0>f</S:0>(int a) => a;</N:0>
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    <N:0>int f(int a) => a;</N:0>
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    <N:0>long <S:0>f</S:0>(int a) => a;</N:0>
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -7665,28 +8395,32 @@ class C
     [Fact]
     public void LocalFunctions_Update_Signature_ReturnType1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        <N:0>int f(int a) { return 1; }</N:0>
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        <N:0>void <S:0>f</S:0>(int a) { }</N:0>
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    <N:0>int f(int a) { return 1; }</N:0>
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    <N:0>void <S:0>f</S:0>(int a) { }</N:0>
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -7702,31 +8436,35 @@ class C
     [Fact]
     public void LocalFunctions_Update_Signature_BodySyntaxOnly()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int f(int a) => a;
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void G1(Func<int, int> f) {}
-    void G2(Func<int, int> f) {}
+            class C
+            {
+                void F()
+                {
+                    int f(int a) => a;
+                }
+            }
 
-    void F()
-    {
-        int f(int a) { return a; }
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void G1(Func<int, int> f) {}
+                void G2(Func<int, int> f) {}
+
+                void F()
+                {
+                    int f(int a) { return a; }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -7736,28 +8474,32 @@ class C
     [Fact]
     public void LocalFunctions_Update_Signature_ParameterName1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int f(int a) => 1;
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int f(int b) => 2;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int f(int a) => 1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int f(int b) => 2;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -7766,28 +8508,32 @@ class C
     [Fact]
     public void LocalFunctions_Update_Signature_ParameterRefness1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        <N:0>int <S:0>f</S:0>(ref int a) => 1;</N:0>
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        <N:0>int <S:0>f</S:0>(int a) => 2;</N:0>
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    <N:0>int <S:0>f</S:0>(ref int a) => 1;</N:0>
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    <N:0>int <S:0>f</S:0>(int a) => 2;</N:0>
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -7803,28 +8549,32 @@ class C
     [Fact]
     public void LocalFunctions_Update_Signature_ParameterRefness2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int f(out int a) => 1;
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int f(ref int a) => 2;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int f(out int a) => 1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int f(ref int a) => 2;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -7833,28 +8583,32 @@ class C
     [Fact]
     public void LocalFunctions_Update_Signature_ParameterRefness3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int f(ref int a) => 1;
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int f(out int a) => 1;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int f(ref int a) => 1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int f(out int a) => 1;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -7863,28 +8617,32 @@ class C
     [Fact]
     public void LocalFunctions_Signature_SemanticErrors()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        Unknown f(Unknown a) => 1;
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        Unknown f(Unknown a) => 2;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    Unknown f(Unknown a) => 1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    Unknown f(Unknown a) => 2;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // There are semantics errors in the case. The errors are captured during the emit execution.
@@ -7894,36 +8652,40 @@ class C
     [Fact]
     public void LocalFunctions_Update_CapturedParameters1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F(int x1)
-    {
-        int f1(int a1, int a2)
-        {
-            int f2(int a3) => x1 + a2;
-            return a1;
-        };
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F(int x1)
-    {
-        int f1(int a1, int a2)
-        {
-            int f2(int a3) => x1 + a2 + 1;
-            return a1;
-        };
-    }
-}
-";
+            class C
+            {
+                void F(int x1)
+                {
+                    int f1(int a1, int a2)
+                    {
+                        int f2(int a3) => x1 + a2;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F(int x1)
+                {
+                    int f1(int a1, int a2)
+                    {
+                        int f2(int a3) => x1 + a2 + 1;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -7932,48 +8694,52 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2223")]
     public void LocalFunctions_Update_CapturedParameters2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F(int x1)
-    {
-        int f1(int a1, int a2)
-        {
-            int f2(int a3) => x1 + a2;
-            return a1;
-        };
+            using System;
 
-        int f3(int a1, int a2)
-        {
-            int f4(int a3) => x1 + a2;
-            return a1;
-        };
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                void F(int x1)
+                {
+                    int f1(int a1, int a2)
+                    {
+                        int f2(int a3) => x1 + a2;
+                        return a1;
+                    };
 
-class C
-{
-    void F(int x1)
-    {
-        int f1(int a1, int a2)
-        {
-            int f2(int a3) => x1 + a2 + 1;
-            return a1;
-        };
+                    int f3(int a1, int a2)
+                    {
+                        int f4(int a3) => x1 + a2;
+                        return a1;
+                    };
+                }
+            }
 
-        int f3(int a1, int a2)
-        {
-            int f4(int a3) => x1 + a2 + 1;
-            return a1;
-        };
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F(int x1)
+                {
+                    int f1(int a1, int a2)
+                    {
+                        int f2(int a3) => x1 + a2 + 1;
+                        return a1;
+                    };
+
+                    int f3(int a1, int a2)
+                    {
+                        int f4(int a3) => x1 + a2 + 1;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -7982,38 +8748,42 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_CeaseCapture_Closure1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        int f1(int a1)
-        {
-            int f2(int a2) => y + a2;
-            return a1;
-        };
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        int f1(int a1)
-        {
-            int f2(int a2) => a2;
-            return a1 + y;
-        };
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    int f1(int a1)
+                    {
+                        int f2(int a2) => y + a2;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    int f1(int a1)
+                    {
+                        int f2(int a2) => a2;
+                        return a1 + y;
+                    };
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // y is no longer captured in f2
@@ -8024,22 +8794,26 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_CeaseCapture_IndexerParameter()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { int f(int a3) => a1 + a2; return f; } }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { int f(int a3) => a2; return f; } }
-}
-";
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { int f(int a3) => a1 + a2; return f; } }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { int f(int a3) => a2; return f; } }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true));
@@ -8048,28 +8822,32 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_CeaseCapture_MethodParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F(int a1, int a2)
-    {
-        int f2(int a3) => a1 + a2;
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F(int a1, int a2)
-    {
-        int f2(int a3) => a1;
-    }
-}
-";
+            class C
+            {
+                void F(int a1, int a2)
+                {
+                    int f2(int a3) => a1 + a2;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F(int a1, int a2)
+                {
+                    int f2(int a3) => a1;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -8078,36 +8856,40 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_CeaseCapture_LambdaParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int f1(int a1, int a2)
-        {
-            int f2(int a3) => a1 + a2;
-            return a1;
-        };
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int f1(int a1, int a2)
-        {
-            int f2(int a3) => a2;
-            return a1;
-        };
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int f1(int a1, int a2)
+                    {
+                        int f2(int a3) => a1 + a2;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int f1(int a1, int a2)
+                    {
+                        int f2(int a3) => a2;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -8116,30 +8898,34 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_CeaseCapture_SetterValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int D
-    {
-        get { return 0; }
-        set { void f() { Console.Write(value); } f(); }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int D
-    {
-        get { return 0; }
-        set { }
-    }
-}
-";
+            class C
+            {
+                int D
+                {
+                    get { return 0; }
+                    set { void f() { Console.Write(value); } f(); }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int D
+                {
+                    get { return 0; }
+                    set { }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_D")));
@@ -8148,30 +8934,34 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_CeaseCapture_IndexerSetterValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int this[int a1, int a2]
-    {
-        get { return 0; }
-        set { void f() { Console.Write(value); } f(); }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int this[int a1, int a2]
-    {
-        get { return 0; }
-        set { }
-    }
-}
-";
+            class C
+            {
+                int this[int a1, int a2]
+                {
+                    get { return 0; }
+                    set { void f() { Console.Write(value); } f(); }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int this[int a1, int a2]
+                {
+                    get { return 0; }
+                    set { }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item")));
@@ -8180,30 +8970,34 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_CeaseCapture_EventAdderValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    event Action D
-    {
-        add { void f() { Console.Write(value); } f(); }
-        remove { }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    event Action D
-    {
-        add {  }
-        remove { }
-    }
-}
-";
+            class C
+            {
+                event Action D
+                {
+                    add { void f() { Console.Write(value); } f(); }
+                    remove { }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                event Action D
+                {
+                    add {  }
+                    remove { }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.add_D")));
@@ -8212,30 +9006,34 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_CeaseCapture_EventRemoverValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    event Action D
-    {
-        add { }
-        remove { void f() { Console.Write(value); } f(); }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    event Action D
-    {
-        add { }
-        remove { }
-    }
-}
-";
+            class C
+            {
+                event Action D
+                {
+                    add { }
+                    remove { void f() { Console.Write(value); } f(); }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                event Action D
+                {
+                    add { }
+                    remove { }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D")));
@@ -8244,37 +9042,41 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_DeleteCapture1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        int f1(int a1)
-        {
-            int f2(int a2) => y + a2;
-            return y;
-        };
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    { // error
-        int f1(int a1)
-        {
-            int f2(int a2) => a2;
-            return a1;
-        };
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    int f1(int a1)
+                    {
+                        int f2(int a2) => y + a2;
+                        return y;
+                    };
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                { // error
+                    int f1(int a1)
+                    {
+                        int f2(int a2) => a2;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -8284,22 +9086,26 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_Capturing_IndexerGetterParameter2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { int f(int a3) => a2; return f; } }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { int f(int a3) => a1 + a2; return f; } }
-}
-";
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { int f(int a3) => a2; return f; } }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { int f(int a3) => a1 + a2; return f; } }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -8309,22 +9115,26 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_Capturing_IndexerSetterParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { return null; } set { int f(int a3) => a2; } }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    Func<int, int> this[int a1, int a2] { get { return null; } set { int f(int a3) => a1 + a2; } }
-}
-";
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { return null; } set { int f(int a3) => a2; } }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                Func<int, int> this[int a1, int a2] { get { return null; } set { int f(int a3) => a1 + a2; } }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -8334,30 +9144,34 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_Capturing_IndexerSetterValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int this[int a1, int a2]
-    {
-        get { return 0; }
-        set {  }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int this[int a1, int a2]
-    {
-        get { return 0; }
-        set { void f() { Console.Write(value); } f(); }
-    }
-}
-";
+            class C
+            {
+                int this[int a1, int a2]
+                {
+                    get { return 0; }
+                    set {  }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int this[int a1, int a2]
+                {
+                    get { return 0; }
+                    set { void f() { Console.Write(value); } f(); }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true)],
@@ -8367,30 +9181,34 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_Capturing_EventAdderValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    event Action D
-    {
-        add {  }
-        remove { }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    event Action D
-    {
-        add {  }
-        remove { void f() { Console.Write(value); } f(); }
-    }
-}
-";
+            class C
+            {
+                event Action D
+                {
+                    add {  }
+                    remove { }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                event Action D
+                {
+                    add {  }
+                    remove { void f() { Console.Write(value); } f(); }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D"), preserveLocalVariables: true)],
@@ -8400,30 +9218,34 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_Capturing_EventRemoverValueParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    event Action D
-    {
-        add { }
-        remove {  }
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    event Action D
-    {
-        add { }
-        remove { void f() { Console.Write(value); } f(); }
-    }
-}
-";
+            class C
+            {
+                event Action D
+                {
+                    add { }
+                    remove {  }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                event Action D
+                {
+                    add { }
+                    remove { void f() { Console.Write(value); } f(); }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D"), preserveLocalVariables: true)],
@@ -8433,28 +9255,32 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_Capturing_MethodParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F(int a1, int a2)
-    {
-        int f2(int a3) => a1;
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F(int a1, int a2)
-    {
-        int f2(int a3) => a1 + a2;
-    }
-}
-";
+            class C
+            {
+                void F(int a1, int a2)
+                {
+                    int f2(int a3) => a1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F(int a1, int a2)
+                {
+                    int f2(int a3) => a1 + a2;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -8463,36 +9289,40 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_Capturing_LambdaParameter1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int f1(int a1, int a2)
-        {
-            int f2(int a3) => a2;
-            return a1;
-        };
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int f1(int a1, int a2)
-        {
-            int f2(int a3) => a1 + a2;
-            return a1;
-        };
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int f1(int a1, int a2)
+                    {
+                        int f2(int a3) => a2;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int f1(int a1, int a2)
+                    {
+                        int f2(int a3) => a1 + a2;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -8501,32 +9331,36 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_StaticToThisOnly1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 1;
+            using System;
 
-    void F()
-    {
-        int f(int a) => a;
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 1;
 
-class C
-{
-    int x = 1;
+                void F()
+                {
+                    int f(int a) => a;
+                }
+            }
 
-    void F()
-    {
-        int f(int a) => a + x;
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 1;
+
+                void F()
+                {
+                    int f(int a) => a + x;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -8535,40 +9369,44 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_StaticToThisOnly_Partial()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-partial class C
-{
-    int x = 1;
-    partial void F(); // def
-}
+            using System;
 
-partial class C
-{
-    partial void F()  // impl
-    {
-        int f(int a) => a;
-    }
-}
-";
-        var src2 = @"
-using System;
+            partial class C
+            {
+                int x = 1;
+                partial void F(); // def
+            }
 
-partial class C
-{
-    int x = 1;
-    partial void F(); // def
-}
+            partial class C
+            {
+                partial void F()  // impl
+                {
+                    int f(int a) => a;
+                }
+            }
 
-partial class C
-{
-    partial void F()  // impl
-    {
-        int f(int a) => a + x;
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            partial class C
+            {
+                int x = 1;
+                partial void F(); // def
+            }
+
+            partial class C
+            {
+                partial void F()  // impl
+                {
+                    int f(int a) => a + x;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, preserveLocalVariables: true, partialType: "C"));
@@ -8577,34 +9415,38 @@ partial class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_StaticToThisOnly3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 1;
+            using System;
 
-    void F()
-    {
-        int f1(int a1) => a1;
-        int f2(int a2) => a2 + x;
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 1;
 
-class C
-{
-    int x = 1;
+                void F()
+                {
+                    int f1(int a1) => a1;
+                    int f2(int a2) => a2 + x;
+                }
+            }
 
-    void F()
-    {
-        int f1(int a1) => a1 + x;
-        int f2(int a2) => a2 + x;
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 1;
+
+                void F()
+                {
+                    int f1(int a1) => a1 + x;
+                    int f2(int a2) => a2 + x;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -8613,38 +9455,42 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_StaticToClosure1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int x = 1;
-        int f1(int a1) => a1;
-        int f2(int a2) => a2 + x;
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    { 
-        int x = 1;       
-        int f1(int a1) 
-        {
-            return a1 + 
-                x+ // 1 
-                x; // 2
-        };
+            class C
+            {
+                void F()
+                {
+                    int x = 1;
+                    int f1(int a1) => a1;
+                    int f2(int a2) => a2 + x;
+                }
+            }
 
-        int f2(int a2) => a2 + x;
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                { 
+                    int x = 1;       
+                    int f1(int a1) 
+                    {
+                        return a1 + 
+                            x+ // 1 
+                            x; // 2
+                    };
+
+                    int f2(int a2) => a2 + x;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -8654,36 +9500,40 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_ThisOnlyToClosure1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int x = 1;
+            using System;
 
-    void F()
-    {
-        int y = 1;
-        int f1(int a1) => a1 + x;
-        int f2(int a2) => a2 + x + y;
-    }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                int x = 1;
 
-class C
-{
-    int x = 1;
+                void F()
+                {
+                    int y = 1;
+                    int f1(int a1) => a1 + x;
+                    int f2(int a2) => a2 + x + y;
+                }
+            }
 
-    void F()
-    {
-        int y = 1;
-        int f1(int a1) => a1 + x + y;
-        int f2(int a2) => a2 + x + y;
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int x = 1;
+
+                void F()
+                {
+                    int y = 1;
+                    int f1(int a1) => a1 + x + y;
+                    int f2(int a2) => a2 + x + y;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -8692,38 +9542,42 @@ class C
     [Fact]
     public void LocalFunctions_Update_Nested1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        int f1(int a1) 
-        {
-            int f2(int a2) => a2 + y;
-            return a1;
-        };
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        int f1(int a1) 
-        {
-            int f2(int a2) => a2 + y;
-            return a1 + y;
-        };
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    int f1(int a1) 
+                    {
+                        int f2(int a2) => a2 + y;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    int f1(int a1) 
+                    {
+                        int f2(int a2) => a2 + y;
+                        return a1 + y;
+                    };
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -8732,38 +9586,42 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_Update_Nested2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        int f1(int a1)
-        {
-            int f2(int a2) => a2;
-            return a1;
-        };
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void F()
-    {
-        int y = 1;
-        int f1(int a1)
-        {
-            int f2(int a2) => a1 + a2;
-            return a1;
-        };
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    int f1(int a1)
+                    {
+                        int f2(int a2) => a2;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    int y = 1;
+                    int f1(int a1)
+                    {
+                        int f2(int a2) => a1 + a2;
+                        return a1;
+                    };
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -8772,28 +9630,32 @@ class C
     [Fact]
     public void LocalFunctions_Update_Generic()
     {
-        var src1 = @"
-class C
-{
-    void F()
-    {
-        int L<T>() => 1;
-        int M<T>() => 1;
-        int N<T>() => 1;
-        int O<T>() => 1;
-    }
-}";
-        var src2 = @"
-class C
-{
-    void F()
-    {
-        int L<T>() => 1;
-        int M<T>() => 2;
-        int N<T>() => 1 ;
-        int O<T>() =>  1;
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                void F()
+                {
+                    int L<T>() => 1;
+                    int M<T>() => 1;
+                    int N<T>() => 1;
+                    int O<T>() => 1;
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                void F()
+                {
+                    int L<T>() => 1;
+                    int M<T>() => 2;
+                    int N<T>() => 1 ;
+                    int O<T>() =>  1;
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -8810,30 +9672,34 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
     public void LocalFunctions_RenameCapturedLocal()
     {
-        var src1 = @"
-using System;
-using System.Diagnostics;
+        var src1 = """
 
-class C
-{
-    static void F()
-    <N:0>{
-        int x = 1;
-        int f() => x;
-    }</N:0>
-}";
-        var src2 = @"
-using System;
-using System.Diagnostics;
+            using System;
+            using System.Diagnostics;
 
-class C
-{
-    static void F()
-    <N:0>{
-        int <S:0>X</S:0> = 1;
-        int f() => X;
-    }</N:0>
-}";
+            class C
+            {
+                static void F()
+                <N:0>{
+                    int x = 1;
+                    int f() => x;
+                }</N:0>
+            }
+            """;
+        var src2 = """
+
+            using System;
+            using System.Diagnostics;
+
+            class C
+            {
+                static void F()
+                <N:0>{
+                    int <S:0>X</S:0> = 1;
+                    int f() => X;
+                }</N:0>
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -8851,28 +9717,32 @@ class C
     [Fact]
     public void LocalFunctions_RenameCapturedParameter()
     {
-        var src1 = @"
-using System;
-using System.Diagnostics;
+        var src1 = """
 
-class C
-{
-    static void F(int x)
-    <N:0>{
-        int f() => x;
-    }</N:0>
-}";
-        var src2 = @"
-using System;
-using System.Diagnostics;
+            using System;
+            using System.Diagnostics;
 
-class C
-{
-    static void F(int <S:0>X</S:0>)
-    <N:0>{
-        int f() => X;
-    }</N:0>
-}";
+            class C
+            {
+                static void F(int x)
+                <N:0>{
+                    int f() => x;
+                }</N:0>
+            }
+            """;
+        var src2 = """
+
+            using System;
+            using System.Diagnostics;
+
+            class C
+            {
+                static void F(int <S:0>X</S:0>)
+                <N:0>{
+                    int f() => X;
+                }</N:0>
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -8890,43 +9760,47 @@ class C
     [Fact]
     public void LocalFunctions_Update()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    void M()
-    {
-        N(3);
-        
-        void N(int x)
-        {
-            if (x > 3)
-            {
-                x.ToString();
-            }
-            else
-            {
-                N(x - 1);
-            }
-        }
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void M()
-    {
-        N(3);
-        
-        void N(int x)
-        {
-            Console.WriteLine(""Hello"");
-        }
-    }
-}";
+            class C
+            {
+                void M()
+                {
+                    N(3);
+                    
+                    void N(int x)
+                    {
+                        if (x > 3)
+                        {
+                            x.ToString();
+                        }
+                        else
+                        {
+                            N(x - 1);
+                        }
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    N(3);
+                    
+                    void N(int x)
+                    {
+                        Console.WriteLine("Hello");
+                    }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
@@ -9015,38 +9889,42 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37128")]
     public void LocalFunction_AddToInterfaceMethod()
     {
-        var src1 = @"
-using System;
-interface I
-{
-    static int X = M(() => 1);
-    static int M() => 1;
+        var src1 = """
 
-    static void F()
-    {
-        void g() { }
-    }
-}
-";
-        var src2 = @"
-using System;
-interface I
-{
-    static int X = M(() => { void f3() {} return 2; });
-    static int M() => 1;
+            using System;
+            interface I
+            {
+                static int X = M(() => 1);
+                static int M() => 1;
 
-    static void F()
-    {
-        int f1() => 1;
-        f1();
+                static void F()
+                {
+                    void g() { }
+                }
+            }
 
-        void g() { void f2() {} f2(); }
+            """;
+        var src2 = """
 
-        var l = new Func<int>(() => 1);
-        l();
-    }
-}
-";
+            using System;
+            interface I
+            {
+                static int X = M(() => { void f3() {} return 2; });
+                static int M() => 1;
+
+                static void F()
+                {
+                    int f1() => 1;
+                    f1();
+
+                    void g() { void f2() {} f2(); }
+
+                    var l = new Func<int>(() => 1);
+                    l();
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // lambdas are ok as they are emitted to a nested type
@@ -9492,38 +10370,42 @@ interface I
     [Fact]
     public void LocalFunctions_Stackalloc_Update()
     {
-        var src1 = @"
-using System;
-class C
-{
-    void F()
-    {
-        void L1()
-        {
-            Span<int> s = stackalloc int[10];
-        }
-        void L2()
-        {
-            Span<int> s = stackalloc int[10];
-        }
-    }
-}";
-        var src2 = @"
-using System;
-class C
-{
-    void F()
-    {
-        void L1()
-        {
-            Span<int> s = stackalloc int[20];
-        }
-        void L2()
-        {
-            Span<int> s = stackalloc int[10 ];
-        }
-    }
-}";
+        var src1 = """
+
+            using System;
+            class C
+            {
+                void F()
+                {
+                    void L1()
+                    {
+                        Span<int> s = stackalloc int[10];
+                    }
+                    void L2()
+                    {
+                        Span<int> s = stackalloc int[10];
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+            class C
+            {
+                void F()
+                {
+                    void L1()
+                    {
+                        Span<int> s = stackalloc int[20];
+                    }
+                    void L2()
+                    {
+                        Span<int> s = stackalloc int[10 ];
+                    }
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -9534,29 +10416,33 @@ class C
     [Fact]
     public void LocalFunctions_Stackalloc_Insert()
     {
-        var src1 = @"
-using System;
-class C
-{
-    void F()
-    {
-        void L1()
-        {
-        }
-    }
-}";
-        var src2 = @"
-using System;
-class C
-{
-    void F()
-    {
-        void L1()
-        {
-            Span<int> s = stackalloc int[10];
-        }
-    }
-}";
+        var src1 = """
+
+            using System;
+            class C
+            {
+                void F()
+                {
+                    void L1()
+                    {
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+            class C
+            {
+                void F()
+                {
+                    void L1()
+                    {
+                        Span<int> s = stackalloc int[10];
+                    }
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -9567,29 +10453,33 @@ class C
     [Fact]
     public void LocalFunctions_Stackalloc_Delete()
     {
-        var src1 = @"
-using System;
-class C
-{
-    void F()
-    {
-        void L1()
-        {
-            Span<int> s = stackalloc int[10];
-        }
-    }
-}";
-        var src2 = @"
-using System;
-class C
-{
-    void F()
-    {
-        void L1()
-        {
-        }
-    }
-}";
+        var src1 = """
+
+            using System;
+            class C
+            {
+                void F()
+                {
+                    void L1()
+                    {
+                        Span<int> s = stackalloc int[10];
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+            class C
+            {
+                void F()
+                {
+                    void L1()
+                    {
+                    }
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -9600,40 +10490,44 @@ class C
     [Fact]
     public void LocalFunctions_Stackalloc_InNestedLocalFunction()
     {
-        var src1 = @"
-using System;
-class C
-{
-    void F()
-    {
-        void L()
-        {
-            void M()
-            {
-                Span<int> s = stackalloc int[10];
-            }
+        var src1 = """
 
-            Console.WriteLine(1);
-        }
-    }
-}";
-        var src2 = @"
-using System;
-class C
-{
-    void F()
-    {
-        void L()
-        {
-            void M()
+            using System;
+            class C
             {
-                Span<int> s = stackalloc int[10];
-            }
+                void F()
+                {
+                    void L()
+                    {
+                        void M()
+                        {
+                            Span<int> s = stackalloc int[10];
+                        }
 
-            Console.WriteLine(2);
-        }
-    }
-}";
+                        Console.WriteLine(1);
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+            class C
+            {
+                void F()
+                {
+                    void L()
+                    {
+                        void M()
+                        {
+                            Span<int> s = stackalloc int[10];
+                        }
+
+                        Console.WriteLine(2);
+                    }
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
@@ -9642,29 +10536,33 @@ class C
     [Fact]
     public void LocalFunctions_AsyncModifier_Add()
     {
-        var src1 = @"
-class Test
-{
-    public void F()
-    {
-        Task<int> WaitAsync()
-        {
-            return 1;
-        }
-    }
-}";
-        var src2 = @"
-class Test
-{
-    public void F()
-    {
-        async Task<int> WaitAsync()
-        {
-            await Task.Delay(1000);
-            return 1;
-        }
-    }
-}";
+        var src1 = """
+
+            class Test
+            {
+                public void F()
+                {
+                    Task<int> WaitAsync()
+                    {
+                        return 1;
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            class Test
+            {
+                public void F()
+                {
+                    async Task<int> WaitAsync()
+                    {
+                        await Task.Delay(1000);
+                        return 1;
+                    }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.MakeMethodAsyncNotSupportedByRuntime, "WaitAsync")],
@@ -9677,28 +10575,32 @@ class Test
     [Fact]
     public void LocalFunctions_Iterator_Add()
     {
-        var src1 = @"
-class Test
-{
-    public void F()
-    {
-        IEnumerable<int> Iter()
-        {
-            return null;
-        }
-    }
-}";
-        var src2 = @"
-class Test
-{
-    public void F()
-    {
-        IEnumerable<int> Iter()
-        {
-            yield return 1;
-        }
-    }
-}";
+        var src1 = """
+
+            class Test
+            {
+                public void F()
+                {
+                    IEnumerable<int> Iter()
+                    {
+                        return null;
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            class Test
+            {
+                public void F()
+                {
+                    IEnumerable<int> Iter()
+                    {
+                        yield return 1;
+                    }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.MakeMethodIteratorNotSupportedByRuntime, "Iter")],
@@ -9717,7 +10619,48 @@ class Test
 
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"))],
-            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Console.WriteLine(2);", GetResource("top-level code"))]);
+            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "2", GetResource("top-level code"))]);
+    }
+
+    [Fact]
+    public void LocalFunctions_BodyUpdate_RestartRequired()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(L);
+
+                    int L() => 1;
+                }
+            }
+        
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(L);
+            
+                    int L() => 2;
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        // UpdateMightNotHaveAnyEffect not reported for local functions.
+        edits.VerifySemanticDiagnostics();
     }
 
     #endregion
@@ -9749,30 +10692,34 @@ class Test
     [Fact]
     public void Queries_Update_Signature_Select1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>select a</N:0>;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            using System;
+            using System.Linq;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1.0} <N:0>select a</N:0>;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>select a</N:0>;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1.0} <N:0>select a</N:0>;
+                }
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -9789,30 +10736,34 @@ class C
     [Fact]
     public void Queries_Update_Signature_Select2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>select a</N:0>;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            using System;
+            using System.Linq;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>select a.ToString()</N:0>;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>select a</N:0>;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>select a.ToString()</N:0>;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -9828,30 +10779,34 @@ class C
     [Fact]
     public void Queries_Update_Signature_From1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = <N:0>from a in new[] {1}</N:0> from b in new[] {2} select b;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            using System;
+            using System.Linq;
 
-class C
-{
-    void F()
-    {
-        var result = <N:0>from long a in new[] {1}</N:0> from b in new[] {2} select b;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = <N:0>from a in new[] {1}</N:0> from b in new[] {2} select b;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void F()
+                {
+                    var result = <N:0>from long a in new[] {1}</N:0> from b in new[] {2} select b;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -9867,30 +10822,34 @@ class C
     [Fact]
     public void Queries_Update_Signature_From2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from System.Int64 a in new[] {1} from b in new[] {2} select b;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            using System;
+            using System.Linq;
 
-class C
-{
-    void F()
-    {
-        var result = from long a in new[] {1} from b in new[] {2} select b;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from System.Int64 a in new[] {1} from b in new[] {2} select b;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from long a in new[] {1} from b in new[] {2} select b;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -9899,32 +10858,36 @@ class C
     [Fact]
     public void Queries_Update_Signature_From3()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} from b in new[] {2} select b;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new List<int>() from b in new List<int>() select b;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} from b in new[] {2} select b;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new List<int>() from b in new List<int>() select b;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -9933,32 +10896,36 @@ class C
     [Fact]
     public void Queries_Update_Signature_Let1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>let b = 1</N:0> select a;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>let b = 1.0</N:0> select a;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>let b = 1</N:0> select a;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>let b = 1.0</N:0> select a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -9974,32 +10941,36 @@ class C
     [Fact]
     public void Queries_Update_Signature_OrderBy1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} orderby <N:0>a + 1 descending</N:0>, a + 2 ascending select a;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} orderby <N:0>a + 1.0 descending</N:0>, a + 2 ascending select a;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} orderby <N:0>a + 1 descending</N:0>, a + 2 ascending select a;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} orderby <N:0>a + 1.0 descending</N:0>, a + 2 ascending select a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -10015,32 +10986,36 @@ class C
     [Fact]
     public void Queries_Update_Signature_OrderBy2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} orderby a + 1 descending, <N:0>a + 2 ascending</N:0> select a;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} orderby a + 1 descending, <N:0>a + 2.0 ascending</N:0> select a;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} orderby a + 1 descending, <N:0>a + 2 ascending</N:0> select a;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} orderby a + 1 descending, <N:0>a + 2.0 ascending</N:0> select a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -10056,32 +11031,36 @@ class C
     [Fact]
     public void Queries_Update_Signature_Join1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b</N:0> select b;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>join b in new[] {1.0} on a equals b</N:0> select b;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b</N:0> select b;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>join b in new[] {1.0} on a equals b</N:0> select b;
+                }
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
@@ -10098,32 +11077,36 @@ class C
     [Fact]
     public void Queries_Update_Signature_Join2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b</N:0> select b;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>join byte b in new[] {1} on a equals b</N:0> select b;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b</N:0> select b;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>join byte b in new[] {1} on a equals b</N:0> select b;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -10139,32 +11122,36 @@ class C
     [Fact]
     public void Queries_Update_Signature_Join3()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>join b in new[] {1} on a + 1 equals b</N:0> select b;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>join b in new[] {1} on a + 1.0 equals b</N:0> select b;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>join b in new[] {1} on a + 1 equals b</N:0> select b;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>join b in new[] {1} on a + 1.0 equals b</N:0> select b;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -10180,32 +11167,36 @@ class C
     [Fact]
     public void Queries_Update_Signature_Join4()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b + 1</N:0> select b;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b + 1.0</N:0> select b;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b + 1</N:0> select b;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b + 1.0</N:0> select b;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -10221,32 +11212,36 @@ class C
     [Fact]
     public void Queries_Update_Signature_GroupBy1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>group a + 1 by a</N:0> into z select z;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>group a + 1.0 by a</N:0> into z select z;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>group a + 1 by a</N:0> into z select z;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>group a + 1.0 by a</N:0> into z select z;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -10262,32 +11257,36 @@ class C
     [Fact]
     public void Queries_Update_Signature_GroupBy2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>group a by a</N:0> into z select z;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>group a by a + 1.0</N:0> into z select z;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>group a by a</N:0> into z select z;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>group a by a + 1.0</N:0> into z select z;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -10303,38 +11302,42 @@ class C
     [Fact]
     public void Queries_Update_Signature_GroupBy_MatchingErrorTypes()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    Unknown G1(int a) => null;
-    Unknown G2(int a) => null;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-    void F()
-    {
-        var result = from a in new[] {1} group G1(a) by a into z select z;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            class C
+            {
+                Unknown G1(int a) => null;
+                Unknown G2(int a) => null;
 
-class C
-{
-    Unknown G1(int a) => null;
-    Unknown G2(int a) => null;
-    
-    void F()
-    {
-        var result = from a in new[] {1} group G2(a) by a into z select z;
-    }
-}
-";
+                void F()
+                {
+                    var result = from a in new[] {1} group G1(a) by a into z select z;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                Unknown G1(int a) => null;
+                Unknown G2(int a) => null;
+                
+                void F()
+                {
+                    var result = from a in new[] {1} group G2(a) by a into z select z;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -10343,38 +11346,42 @@ class C
     [Fact]
     public void Queries_Update_Signature_GroupBy_NonMatchingErrorTypes()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    Unknown1 G1(int a) => null;
-    Unknown2 G2(int a) => null;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>group G1(a) by a</N:0> into z select z;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            class C
+            {
+                Unknown1 G1(int a) => null;
+                Unknown2 G2(int a) => null;
 
-class C
-{
-    Unknown1 G1(int a) => null;
-    Unknown2 G2(int a) => null;
-    
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>group G2(a) by a</N:0> into z select z;
-    }
-}
-";
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>group G1(a) by a</N:0> into z select z;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                Unknown1 G1(int a) => null;
+                Unknown2 G2(int a) => null;
+                
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>group G2(a) by a</N:0> into z select z;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -10428,32 +11435,36 @@ class C
     [Fact]
     public void Queries_Select_Reduced1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} where a > 0 select a;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} where a > 0 select a + 1;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} where a > 0 select a;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} where a > 0 select a + 1;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -10461,32 +11472,36 @@ class C
     [Fact]
     public void Queries_Select_Reduced2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} where a > 0 select a + 1;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} where a > 0 select a;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} where a > 0 select a + 1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} where a > 0 select a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -10558,30 +11573,34 @@ class C
     [Fact]
     public void Queries_GroupBy_Reduced1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>group a by a</N:0>;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            using System;
+            using System.Linq;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>group a + 1.0 by a</N:0>;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>group a by a</N:0>;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>group a + 1.0 by a</N:0>;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -10597,30 +11616,34 @@ class C
     [Fact]
     public void Queries_GroupBy_Reduced2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} group a by a;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            using System;
+            using System.Linq;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} group a + 1 by a;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} group a by a;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} group a + 1 by a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -10628,30 +11651,34 @@ class C
     [Fact]
     public void Queries_GroupBy_Reduced3()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>group a + 1.0 by a</N:0>;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            using System;
+            using System.Linq;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} <N:0>group a by a</N:0>;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>group a + 1.0 by a</N:0>;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} <N:0>group a by a</N:0>;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 
@@ -10667,30 +11694,34 @@ class C
     [Fact]
     public void Queries_GroupBy_Reduced4()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} group a + 1 by a;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            using System;
+            using System.Linq;
 
-class C
-{
-    void F()
-    {
-        var result = from a in new[] {1} group a by a;
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} group a + 1 by a;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void F()
+                {
+                    var result = from a in new[] {1} group a by a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -10731,50 +11762,54 @@ class C
     [Fact]
     public void Queries_CapturedTransparentIdentifiers_FromClause1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-	int Z(Func<int> f)
-	{
-		return 1;
-	}
+            using System;
+            using System.Linq;
 
-    void F()
-    {
-		var result = from a in new[] { 1 }
-		             from b in new[] { 2 }
-		             where Z(() => a) > 0
-		             where Z(() => b) > 0
-		             where Z(() => a) > 0
-		             where Z(() => b) > 0
-		             select a;
-    }
-}";
-        var src2 = @"
-using System;
-using System.Linq;
+            class C
+            {
+            	int Z(Func<int> f)
+            	{
+            		return 1;
+            	}
 
-class C
-{
-	int Z(Func<int> f)
-	{
-		return 1;
-	}
+                void F()
+                {
+            		var result = from a in new[] { 1 }
+            		             from b in new[] { 2 }
+            		             where Z(() => a) > 0
+            		             where Z(() => b) > 0
+            		             where Z(() => a) > 0
+            		             where Z(() => b) > 0
+            		             select a;
+                }
+            }
+            """;
+        var src2 = """
 
-    void F()
-    {
-		var result = from a in new[] { 1 }
-		             from b in new[] { 2 }
-		             where Z(() => a) > 1  // update
-		             where Z(() => b) > 2  // update
-		             where Z(() => a) > 3  // update
-		             where Z(() => b) > 4  // update
-		             select a;
-    }
-}";
+            using System;
+            using System.Linq;
+
+            class C
+            {
+            	int Z(Func<int> f)
+            	{
+            		return 1;
+            	}
+
+                void F()
+                {
+            		var result = from a in new[] { 1 }
+            		             from b in new[] { 2 }
+            		             where Z(() => a) > 1  // update
+            		             where Z(() => b) > 2  // update
+            		             where Z(() => a) > 3  // update
+            		             where Z(() => b) > 4  // update
+            		             select a;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -10783,42 +11818,46 @@ class C
     [Fact]
     public void Queries_CapturedTransparentIdentifiers_LetClause1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-	int Z(Func<int> f)
-	{
-		return 1;
-	}
+            using System;
+            using System.Linq;
 
-    void F()
-    {
-		var result = from a in new[] { 1 }
-		             let b = Z(() => a)
-		             select a + b;
-    }
-}";
-        var src2 = @"
-using System;
-using System.Linq;
+            class C
+            {
+            	int Z(Func<int> f)
+            	{
+            		return 1;
+            	}
 
-class C
-{
-	int Z(Func<int> f)
-	{
-		return 1;
-	}
+                void F()
+                {
+            		var result = from a in new[] { 1 }
+            		             let b = Z(() => a)
+            		             select a + b;
+                }
+            }
+            """;
+        var src2 = """
 
-    void F()
-    {
-		var result = from a in new[] { 1 }
-		             let b = Z(() => a + 1)
-		             select a - b;
-    }
-}";
+            using System;
+            using System.Linq;
+
+            class C
+            {
+            	int Z(Func<int> f)
+            	{
+            		return 1;
+            	}
+
+                void F()
+                {
+            		var result = from a in new[] { 1 }
+            		             let b = Z(() => a + 1)
+            		             select a - b;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -10827,42 +11866,46 @@ class C
     [Fact]
     public void Queries_CapturedTransparentIdentifiers_JoinClause1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-	int Z(Func<int> f)
-	{
-		return 1;
-	}
+            using System;
+            using System.Linq;
 
-    void F()
-    {
-		var result = from a in new[] { 1 }
-                     join b in new[] { 3 } on Z(() => a + 1) equals Z(() => b - 1) into g
-                     select Z(() => g.First());
-    }
-}";
-        var src2 = @"
-using System;
-using System.Linq;
+            class C
+            {
+            	int Z(Func<int> f)
+            	{
+            		return 1;
+            	}
 
-class C
-{
-	int Z(Func<int> f)
-	{
-		return 1;
-	}
+                void F()
+                {
+            		var result = from a in new[] { 1 }
+                                 join b in new[] { 3 } on Z(() => a + 1) equals Z(() => b - 1) into g
+                                 select Z(() => g.First());
+                }
+            }
+            """;
+        var src2 = """
 
-    void F()
-    {
-		var result = from a in new[] { 1 }
-                     join b in new[] { 3 } on Z(() => a + 1) equals Z(() => b - 1) into g
-                     select Z(() => g.Last());
-    }
-}";
+            using System;
+            using System.Linq;
+
+            class C
+            {
+            	int Z(Func<int> f)
+            	{
+            		return 1;
+            	}
+
+                void F()
+                {
+            		var result = from a in new[] { 1 }
+                                 join b in new[] { 3 } on Z(() => a + 1) equals Z(() => b - 1) into g
+                                 select Z(() => g.Last());
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -10871,44 +11914,48 @@ class C
     [Fact]
     public void Queries_CeaseCapturingTransparentIdentifiers1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-	int Z(Func<int> f)
-	{
-		return 1;
-	}
+            using System;
+            using System.Linq;
 
-    void F()
-    {
-		var result = from a in new[] { 1 }
-		             from b in new[] { 2 }
-		             where Z(() => a + b) > 0
-		             select a;
-    }
-}";
-        var src2 = @"
-using System;
-using System.Linq;
+            class C
+            {
+            	int Z(Func<int> f)
+            	{
+            		return 1;
+            	}
 
-class C
-{
-	int Z(Func<int> f)
-	{
-		return 1;
-	}
+                void F()
+                {
+            		var result = from a in new[] { 1 }
+            		             from b in new[] { 2 }
+            		             where Z(() => a + b) > 0
+            		             select a;
+                }
+            }
+            """;
+        var src2 = """
 
-    void F()
-    {
-		var result = from a in new[] { 1 }
-		             from b in new[] { 2 }
-		             where Z(() => a + 1) > 0
-		             select a;
-    }
-}";
+            using System;
+            using System.Linq;
+
+            class C
+            {
+            	int Z(Func<int> f)
+            	{
+            		return 1;
+            	}
+
+                void F()
+                {
+            		var result = from a in new[] { 1 }
+            		             from b in new[] { 2 }
+            		             where Z(() => a + 1) > 0
+            		             select a;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -10917,44 +11964,48 @@ class C
     [Fact]
     public void Queries_CapturingTransparentIdentifiers1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-	int Z(Func<int> f)
-	{
-		return 1;
-	}
+            using System;
+            using System.Linq;
 
-    void F()
-    {
-		var result = from a in new[] { 1 }
-		             from b in new[] { 2 }
-		             where Z(() => a + 1) > 0
-		             select a;
-    }
-}";
-        var src2 = @"
-using System;
-using System.Linq;
+            class C
+            {
+            	int Z(Func<int> f)
+            	{
+            		return 1;
+            	}
 
-class C
-{
-	int Z(Func<int> f)
-	{
-		return 1;
-	}
+                void F()
+                {
+            		var result = from a in new[] { 1 }
+            		             from b in new[] { 2 }
+            		             where Z(() => a + 1) > 0
+            		             select a;
+                }
+            }
+            """;
+        var src2 = """
 
-    void F()
-    {
-		var result = from a in new[] { 1 }
-		             from b in new[] { 2 }
-		             where Z(() => a + b) > 0
-		             select a;
-    }
-}";
+            using System;
+            using System.Linq;
+
+            class C
+            {
+            	int Z(Func<int> f)
+            	{
+            		return 1;
+            	}
+
+                void F()
+                {
+            		var result = from a in new[] { 1 }
+            		             from b in new[] { 2 }
+            		             where Z(() => a + b) > 0
+            		             select a;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -10963,38 +12014,42 @@ class C
     [Fact]
     public void Queries_AccessingCapturedTransparentIdentifier1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    int Z(Func<int> f) => 1;
+            using System;
+            using System.Linq;
 
-    void F()
-    {
-        var result = from a in new[] { 1 }
-                     where Z(() => a) > 0
-                     select 1;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            class C
+            {
+                int Z(Func<int> f) => 1;
 
-class C
-{
-    int Z(Func<int> f) => 1;
-   
-    void F()
-    {
-        var result = from a in new[] { 1 } 
-                     where Z(() => a) > 0
-                     select a;
-    }
-}
-";
+                void F()
+                {
+                    var result = from a in new[] { 1 }
+                                 where Z(() => a) > 0
+                                 select 1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                int Z(Func<int> f) => 1;
+               
+                void F()
+                {
+                    var result = from a in new[] { 1 } 
+                                 where Z(() => a) > 0
+                                 select a;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -11002,40 +12057,44 @@ class C
     [Fact]
     public void Queries_AccessingCapturedTransparentIdentifier2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    int Z(Func<int> f) => 1;
+            using System;
+            using System.Linq;
 
-    void F()
-    {
-        var result = from a in new[] { 1 }
-                     from b in new[] { 1 }
-                     where Z(() => a) > 0
-                     select b;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            class C
+            {
+                int Z(Func<int> f) => 1;
 
-class C
-{
-    int Z(Func<int> f) => 1;
-   
-    void F()
-    {
-        var result = from a in new[] { 1 } 
-                     from b in new[] { 1 }
-                     where Z(() => a) > 0
-                     select a + b;
-    }
-}
-";
+                void F()
+                {
+                    var result = from a in new[] { 1 }
+                                 from b in new[] { 1 }
+                                 where Z(() => a) > 0
+                                 select b;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                int Z(Func<int> f) => 1;
+               
+                void F()
+                {
+                    var result = from a in new[] { 1 } 
+                                 from b in new[] { 1 }
+                                 where Z(() => a) > 0
+                                 select a + b;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -11044,38 +12103,42 @@ class C
     [Fact]
     public void Queries_AccessingCapturedTransparentIdentifier3()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    int Z(Func<int> f) => 1;
+            using System;
+            using System.Linq;
 
-    void F()
-    {
-        var result = from a in new[] { 1 }
-                     where Z(() => a) > 0
-                     select Z(() => 1);
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            class C
+            {
+                int Z(Func<int> f) => 1;
 
-class C
-{
-    int Z(Func<int> f) => 1;
-   
-    void F()
-    {
-        var result = from a in new[] { 1 } 
-                     where Z(() => a) > 0
-                     select Z(() => a);
-    }
-}
-";
+                void F()
+                {
+                    var result = from a in new[] { 1 }
+                                 where Z(() => a) > 0
+                                 select Z(() => 1);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                int Z(Func<int> f) => 1;
+               
+                void F()
+                {
+                    var result = from a in new[] { 1 } 
+                                 where Z(() => a) > 0
+                                 select Z(() => a);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11085,40 +12148,44 @@ class C
     [Fact]
     public void Queries_NotAccessingCapturedTransparentIdentifier1()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    int Z(Func<int> f) => 1;
+            using System;
+            using System.Linq;
 
-    void F()
-    {
-        var result = from a in new[] { 1 }
-                     from b in new[] { 1 }
-                     where Z(() => a) > 0
-                     select a + b;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            class C
+            {
+                int Z(Func<int> f) => 1;
 
-class C
-{
-    int Z(Func<int> f) => 1;
-   
-    void F()
-    {
-        var result = from a in new[] { 1 } 
-                     from b in new[] { 1 }
-                     where Z(() => a) > 0
-                     select b;
-    }
-}
-";
+                void F()
+                {
+                    var result = from a in new[] { 1 }
+                                 from b in new[] { 1 }
+                                 where Z(() => a) > 0
+                                 select a + b;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                int Z(Func<int> f) => 1;
+               
+                void F()
+                {
+                    var result = from a in new[] { 1 } 
+                                 from b in new[] { 1 }
+                                 where Z(() => a) > 0
+                                 select b;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -11127,38 +12194,42 @@ class C
     [Fact]
     public void Queries_NotAccessingCapturedTransparentIdentifier2()
     {
-        var src1 = @"
-using System;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    int Z(Func<int> f) => 1;
+            using System;
+            using System.Linq;
 
-    void F()
-    {
-        var result = from a in new[] { 1 }
-                     where Z(() => a) > 0
-                     select Z(() => 1);
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Linq;
+            class C
+            {
+                int Z(Func<int> f) => 1;
 
-class C
-{
-    int Z(Func<int> f) => 1;
-   
-    void F()
-    {
-        var result = from a in new[] { 1 } 
-                     where Z(() => a) > 0
-                     select Z(() => a);
-    }
-}
-";
+                void F()
+                {
+                    var result = from a in new[] { 1 }
+                                 where Z(() => a) > 0
+                                 select Z(() => 1);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                int Z(Func<int> f) => 1;
+               
+                void F()
+                {
+                    var result = from a in new[] { 1 } 
+                                 where Z(() => a) > 0
+                                 select Z(() => a);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
@@ -11167,35 +12238,39 @@ class C
     [Fact]
     public void Queries_Insert_Static_First()
     {
-        var src1 = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    IEnumerable<int> F()
-    {
-        return null;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
 
-class C
-{
-    IEnumerable<int> F()
-    {
-        return from x in new[] {1,2,3}
-               where x > 1
-               group x by x + 1 into z
-               select z.Key;
-    }
-}
-";
+            class C
+            {
+                IEnumerable<int> F()
+                {
+                    return null;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                IEnumerable<int> F()
+                {
+                    return from x in new[] {1,2,3}
+                           where x > 1
+                           group x by x + 1 into z
+                           select z.Key;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             capabilities:
@@ -11215,41 +12290,45 @@ class C
     [Fact]
     public void Queries_Insert_ThisOnly_Second()
     {
-        var src1 = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    int y;
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
 
-    IEnumerable<int> F()
-    {
-        var f = () => y;
-        return null;
-    }
-}
-";
-        var src2 = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+            class C
+            {
+                int y;
 
-class C
-{
-    int y;
+                IEnumerable<int> F()
+                {
+                    var f = () => y;
+                    return null;
+                }
+            }
 
-    IEnumerable<int> F()
-    {
-        var f = () => y;
-        return from x in new[] {1,2,3}
-               where x > y
-               group x by x + y into z
-               select z.Key + y;
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                int y;
+
+                IEnumerable<int> F()
+                {
+                    var f = () => y;
+                    return from x in new[] {1,2,3}
+                           where x > y
+                           group x by x + y into z
+                           select z.Key + y;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             capabilities:
@@ -11269,40 +12348,44 @@ class C
     [Fact]
     public void Queries_StackAlloc()
     {
-        var src1 = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+        var src1 = """
 
-class C
-{
-    IEnumerable<int> F()
-    {
-        return from x in new[] {1,2,3}
-               where G(stackalloc int[1]) > 1
-               group G(stackalloc int[2]) by G(stackalloc int[3]) into z
-               select z.Key + G(stackalloc int[4]);
-    }
-    
-    int G(Span<int> span) => span.Length;
-}";
-        var src2 = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
 
-class C
-{
-    IEnumerable<int> F()
-    {
-        return from x in new[] {1,2,3}
-               where G(stackalloc int[10]) > 1
-               group G(stackalloc int[20]) by G(stackalloc int[30]) into z
-               select z.Key + G(stackalloc int[40]);
-    }
-    
-    int G(Span<int> span) => span.Length;
-}";
+            class C
+            {
+                IEnumerable<int> F()
+                {
+                    return from x in new[] {1,2,3}
+                           where G(stackalloc int[1]) > 1
+                           group G(stackalloc int[2]) by G(stackalloc int[3]) into z
+                           select z.Key + G(stackalloc int[4]);
+                }
+                
+                int G(Span<int> span) => span.Length;
+            }
+            """;
+        var src2 = """
+
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                IEnumerable<int> F()
+                {
+                    return from x in new[] {1,2,3}
+                           where G(stackalloc int[10]) > 1
+                           group G(stackalloc int[20]) by G(stackalloc int[30]) into z
+                           select z.Key + G(stackalloc int[40]);
+                }
+                
+                int G(Span<int> span) => span.Length;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -11320,28 +12403,32 @@ class C
     [Fact]
     public void Yield_Update1()
     {
-        var src1 = @"
-class C
-{
-    static IEnumerable<int> F()
-    {
-        yield return 1;
-        yield return 2;
-        yield break;
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static IEnumerable<int> F()
-    {
-        yield return 3;
-        yield break;
-        yield return 4;
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 1;
+                    yield return 2;
+                    yield break;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 3;
+                    yield break;
+                    yield return 4;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11352,15 +12439,19 @@ class C
     [Fact]
     public void Yield_Delete1()
     {
-        var src1 = @"
-yield return 1;
-yield return 2;
-yield return 3;
-";
-        var src2 = @"
-yield return 1;
-yield return 3;
-";
+        var src1 = """
+
+            yield return 1;
+            yield return 2;
+            yield return 3;
+
+            """;
+        var src2 = """
+
+            yield return 1;
+            yield return 3;
+
+            """;
 
         var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Iterator);
 
@@ -11371,27 +12462,31 @@ yield return 3;
     [Fact]
     public void Yield_Delete2()
     {
-        var src1 = @"
-class C
-{
-    static IEnumerable<int> F()
-    {
-        yield return 1;
-        yield return 2;
-        yield return 3;
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static IEnumerable<int> F()
-    {
-        yield return 1;
-        yield return 3;
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 1;
+                    yield return 2;
+                    yield return 3;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 1;
+                    yield return 3;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11402,16 +12497,20 @@ class C
     [Fact]
     public void Yield_Insert1()
     {
-        var src1 = @"
-yield return 1;
-yield return 3;
-";
-        var src2 = @"
-yield return 1;
-yield return 2;
-yield return 3;
-yield return 4;
-";
+        var src1 = """
+
+            yield return 1;
+            yield return 3;
+
+            """;
+        var src2 = """
+
+            yield return 1;
+            yield return 2;
+            yield return 3;
+            yield return 4;
+
+            """;
 
         var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Iterator);
 
@@ -11423,28 +12522,32 @@ yield return 4;
     [Fact]
     public void Yield_Insert2()
     {
-        var src1 = @"
-class C
-{
-    static IEnumerable<int> F()
-    {
-        yield return 1;
-        yield return 3;
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static IEnumerable<int> F()
-    {
-        yield return 1;
-        yield return 2;
-        yield return 3;
-        yield return 4;
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 1;
+                    yield return 3;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 1;
+                    yield return 2;
+                    yield return 3;
+                    yield return 4;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11455,24 +12558,28 @@ class C
     [Fact]
     public void Yield_Update_GenericType()
     {
-        var src1 = @"
-class C<T>
-{
-    static IEnumerable<int> F()
-    {
-        yield return 1;
-    }
-}
-";
-        var src2 = @"
-class C<T>
-{
-    static IEnumerable<int> F()
-    {
-        yield return 2;
-    }
-}
-";
+        var src1 = """
+
+            class C<T>
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C<T>
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 2;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -11493,24 +12600,28 @@ class C<T>
     [Fact]
     public void Yield_Update_GenericMethod()
     {
-        var src1 = @"
-class C
-{
-    static IEnumerable<int> F<T>()
-    {
-        yield return 1;
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static IEnumerable<int> F<T>()
-    {
-        yield return 2;
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static IEnumerable<int> F<T>()
+                {
+                    yield return 1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static IEnumerable<int> F<T>()
+                {
+                    yield return 2;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -11531,30 +12642,34 @@ class C
     [Fact]
     public void Yield_Update_GenericLocalFunction()
     {
-        var src1 = @"
-class C
-{
-    void F()
-    {
-        IEnumerable<int> L<T>()
-        {
-            yield return 1;
-        }
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    void F()
-    {
-        IEnumerable<int> L<T>()
-        {
-            yield return 2;
-        }
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                void F()
+                {
+                    IEnumerable<int> L<T>()
+                    {
+                        yield return 1;
+                    }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                void F()
+                {
+                    IEnumerable<int> L<T>()
+                    {
+                        yield return 2;
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -11575,28 +12690,32 @@ class C
     [Fact]
     public void MissingIteratorStateMachineAttribute()
     {
-        var src1 = @"
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    static IEnumerable<int> F()
-    {
-        yield return 1;
-    }
-}
-";
-        var src2 = @"
-using System.Collections.Generic;
+            using System.Collections.Generic;
 
-class C
-{
-    static IEnumerable<int> F()
-    {
-        yield return 2;
-    }
-}
-";
+            class C
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System.Collections.Generic;
+
+            class C
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 2;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -11610,28 +12729,32 @@ class C
     [Fact]
     public void MissingIteratorStateMachineAttribute2()
     {
-        var src1 = @"
-using System.Collections.Generic;
+        var src1 = """
 
-class C
-{
-    static IEnumerable<int> F()
-    {
-        return null;
-    }
-}
-";
-        var src2 = @"
-using System.Collections.Generic;
+            using System.Collections.Generic;
 
-class C
-{
-    static IEnumerable<int> F()
-    {
-        yield return 2;
-    }
-}
-";
+            class C
+            {
+                static IEnumerable<int> F()
+                {
+                    return null;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System.Collections.Generic;
+
+            class C
+            {
+                static IEnumerable<int> F()
+                {
+                    yield return 2;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -11664,26 +12787,34 @@ class C
     [InlineData("return await F(old);")]
     public void AwaitSpilling_OK(string oldStatement, string newStatement = null)
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        " + oldStatement + @"
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    
+            """ + oldStatement + """
+
+                }
+            }
+
+            """;
         newStatement ??= oldStatement.Replace("old", "@new");
 
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        " + newStatement + @"
-    }
-}
-";
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    
+            """ + newStatement + """
+
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
@@ -11692,18 +12823,22 @@ class C
     [Fact]
     public void AwaitSpilling_ExpressionBody()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> G() => await F(1);
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> G() => await F(2);
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> G() => await F(1);
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> G() => await F(2);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
@@ -11723,26 +12858,34 @@ class C
     [InlineData("b += await F(old);")]
     public void AwaitSpilling_Errors(string oldStatement, string[] errorMessages = null)
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        " + oldStatement + @"
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    
+            """ + oldStatement + """
+
+                }
+            }
+
+            """;
         var newStatement = oldStatement.Replace("old", "@new");
 
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        " + newStatement + @"
-    }
-}
-";
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    
+            """ + newStatement + """
+
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // consider: these edits can be allowed if we get more sophisticated
@@ -11755,30 +12898,34 @@ class C
     [Fact]
     public void AwaitSpilling_Errors_LocalFunction()
     {
-        var src1 = @"
-class C
-{
-    static void F()
-    {
-        async Task<int> L()
-        {
-            F(old, await F(1));
-        }
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void F()
-    {
-        async Task<int> L()
-        {
-            F(old, await F(2));
-        }
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static void F()
+                {
+                    async Task<int> L()
+                    {
+                        F(old, await F(1));
+                    }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F()
+                {
+                    async Task<int> L()
+                    {
+                        F(old, await F(2));
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -11788,15 +12935,19 @@ class C
     [Fact]
     public void Await_Delete1()
     {
-        var src1 = @"
-await F(1);
-await F(2);
-await F(3);
-";
-        var src2 = @"
-await F(1);
-await F(3);
-";
+        var src1 = """
+
+            await F(1);
+            await F(2);
+            await F(3);
+
+            """;
+        var src2 = """
+
+            await F(1);
+            await F(3);
+
+            """;
 
         var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Async);
 
@@ -11808,32 +12959,36 @@ await F(3);
     [Fact]
     public void Await_Delete2()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        await F(1);
-        {
-            await F(2);
-        }
-        await F(3);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        await F(1);
-        {
-            F(2);
-        }
-        await F(3);
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await F(1);
+                    {
+                        await F(2);
+                    }
+                    await F(3);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await F(1);
+                    {
+                        F(2);
+                    }
+                    await F(3);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11844,24 +12999,28 @@ class C
     [Fact]
     public void Await_Delete3()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        await F(await F(1));
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        await F(1);
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await F(await F(1));
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await F(1);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11872,18 +13031,22 @@ class C
     [Fact]
     public void Await_Delete4()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() => await F(await F(1));
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F() => await F(1);
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() => await F(await F(1));
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F() => await F(1);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11894,18 +13057,22 @@ class C
     [Fact]
     public void Await_Delete5()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() => await F(1);
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F() => F(1);
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() => await F(1);
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F() => F(1);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11916,24 +13083,28 @@ class C
     [Fact]
     public void AwaitForEach_Delete1()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() 
-    {
-        await foreach (var x in G()) { } 
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        foreach (var x in G()) { } 
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() 
+                {
+                    await foreach (var x in G()) { } 
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    foreach (var x in G()) { } 
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11944,24 +13115,28 @@ class C
     [Fact]
     public void AwaitForEach_Delete2()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() 
-    {
-        await foreach (var (x, y) in G()) { } 
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        foreach (var (x, y) in G()) { } 
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() 
+                {
+                    await foreach (var (x, y) in G()) { } 
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    foreach (var (x, y) in G()) { } 
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11972,23 +13147,27 @@ class C
     [Fact]
     public void AwaitForEach_Delete3()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() 
-    {
-        await foreach (var x in G()) { } 
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() 
+                {
+                    await foreach (var x in G()) { } 
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11999,24 +13178,28 @@ class C
     [Fact]
     public void AwaitUsing_Delete1()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() 
-    {
-        await using D x = new D(), y = new D();
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        await using D x = new D();
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() 
+                {
+                    await using D x = new D(), y = new D();
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await using D x = new D();
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -12027,24 +13210,28 @@ class C
     [Fact]
     public void AwaitUsing_Delete2()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() 
-    {
-        await using D x = new D(), y = new D();
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        await using D y = new D();
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() 
+                {
+                    await using D x = new D(), y = new D();
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await using D y = new D();
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -12055,23 +13242,27 @@ class C
     [Fact]
     public void AwaitUsing_Delete3()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() 
-    {
-        await using D x = new D(), y = new D();
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() 
+                {
+                    await using D x = new D(), y = new D();
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -12082,24 +13273,28 @@ class C
     [Fact]
     public void AwaitUsing_Delete4()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() 
-    {
-        await using D x = new D(), y = new D();
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        using D x = new D(), y = new D();
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() 
+                {
+                    await using D x = new D(), y = new D();
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    using D x = new D(), y = new D();
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -12110,16 +13305,20 @@ class C
     [Fact]
     public void Await_Insert1()
     {
-        var src1 = @"
-await F(1);
-await F(3);
-";
-        var src2 = @"
-await F(1);
-await F(2);
-await F(3);
-await F(4);
-";
+        var src1 = """
+
+            await F(1);
+            await F(3);
+
+            """;
+        var src2 = """
+
+            await F(1);
+            await F(2);
+            await F(3);
+            await F(4);
+
+            """;
 
         var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Async);
 
@@ -12133,28 +13332,32 @@ await F(4);
     [Fact]
     public void Await_Insert2()
     {
-        var src1 = @"
-class C
-{
-    static async IEnumerable<int> F()
-    {
-        await F(1);
-        await F(3);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async IEnumerable<int> F()
-    {
-        await F(1);
-        await F(2);
-        await F(3);
-        await F(4);
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async IEnumerable<int> F()
+                {
+                    await F(1);
+                    await F(3);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async IEnumerable<int> F()
+                {
+                    await F(1);
+                    await F(2);
+                    await F(3);
+                    await F(4);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -12165,26 +13368,30 @@ class C
     [Fact]
     public void Await_Insert3()
     {
-        var src1 = @"
-class C
-{
-    static async IEnumerable<int> F()
-    {
-        await F(1);
-        await F(3);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async IEnumerable<int> F()
-    {
-        await F(await F(1));
-        await F(await F(2));
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async IEnumerable<int> F()
+                {
+                    await F(1);
+                    await F(3);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async IEnumerable<int> F()
+                {
+                    await F(await F(1));
+                    await F(await F(2));
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12195,18 +13402,22 @@ class C
     [Fact]
     public void Await_Insert4()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() => await F(1);
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F() => await F(await F(1));
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() => await F(1);
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F() => await F(await F(1));
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12216,18 +13427,22 @@ class C
     [Fact]
     public void Await_Insert5()
     {
-        var src1 = @"
-class C
-{
-    static Task<int> F() => F(1);
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F() => await F(1);
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static Task<int> F() => F(1);
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F() => await F(1);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12237,24 +13452,28 @@ class C
     [Fact]
     public void AwaitForEach_Insert_Ok()
     {
-        var src1 = @"
-class C
-{
-    static async Task F() 
-    {
-        foreach (var x in G()) { } 
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task F()
-    {
-        await foreach (var x in G()) { } 
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task F() 
+                {
+                    foreach (var x in G()) { } 
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task F()
+                {
+                    await foreach (var x in G()) { } 
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12264,28 +13483,32 @@ class C
     [Fact]
     public void AwaitForEach_Insert()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() 
-    {
-        await Task.FromResult(1);
+        var src1 = """
 
-        foreach (var x in G()) { } 
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        await Task.FromResult(1);
+            class C
+            {
+                static async Task<int> F() 
+                {
+                    await Task.FromResult(1);
 
-        await foreach (var x in G()) { } 
-    }
-}
-";
+                    foreach (var x in G()) { } 
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await Task.FromResult(1);
+
+                    await foreach (var x in G()) { } 
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -12296,24 +13519,28 @@ class C
     [Fact]
     public void AwaitUsing_Insert1()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() 
-    {
-        await using D x = new D();
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        await using D x = new D(), y = new D();
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() 
+                {
+                    await using D x = new D();
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await using D x = new D(), y = new D();
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -12324,26 +13551,30 @@ class C
     [Fact]
     public void AwaitUsing_Insert2()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> F() 
-    {
-        await G();
-        using D x = new D();
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        await G();
-        await using D x = new D();
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task<int> F() 
+                {
+                    await G();
+                    using D x = new D();
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await G();
+                    await using D x = new D();
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -12354,35 +13585,39 @@ class C
     [Fact]
     public void Await_Update()
     {
-        var src1 = s_asyncIteratorStateMachineAttributeSource + @"
-class C
-{
-    static async IAsyncEnumerable<int> F() 
-    {
-        await foreach (var x in G()) { }
-        await Task.FromResult(1);
-        await Task.FromResult(1);
-        await Task.FromResult(1);
-        yield return 1;
-        yield break;
-        yield break;
-    }
-}
-";
-        var src2 = s_asyncIteratorStateMachineAttributeSource + @"
-class C
-{
-    static async IAsyncEnumerable<int> F()
-    {
-        await foreach (var (x,y) in G()) { }
-        await foreach (var x in G()) { }
-        await using D x = new D(), y = new D();
-        await Task.FromResult(1);
-        await Task.FromResult(1);
-        yield return 1;
-    }
-}
-";
+        var src1 = s_asyncIteratorStateMachineAttributeSource + """
+
+            class C
+            {
+                static async IAsyncEnumerable<int> F() 
+                {
+                    await foreach (var x in G()) { }
+                    await Task.FromResult(1);
+                    await Task.FromResult(1);
+                    await Task.FromResult(1);
+                    yield return 1;
+                    yield break;
+                    yield break;
+                }
+            }
+
+            """;
+        var src2 = s_asyncIteratorStateMachineAttributeSource + """
+
+            class C
+            {
+                static async IAsyncEnumerable<int> F()
+                {
+                    await foreach (var (x,y) in G()) { }
+                    await foreach (var x in G()) { }
+                    await using D x = new D(), y = new D();
+                    await Task.FromResult(1);
+                    await Task.FromResult(1);
+                    yield return 1;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -12393,24 +13628,28 @@ class C
     [Fact]
     public void Await_Update_GenericType()
     {
-        var src1 = @"
-class C<T>
-{
-    static async Task F()
-    {
-        await Task.FromResult(1);
-    }
-}
-";
-        var src2 = @"
-class C<T>
-{
-    static async Task F()
-    {
-        await Task.FromResult(2);
-    }
-}
-";
+        var src1 = """
+
+            class C<T>
+            {
+                static async Task F()
+                {
+                    await Task.FromResult(1);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C<T>
+            {
+                static async Task F()
+                {
+                    await Task.FromResult(2);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12431,24 +13670,28 @@ class C<T>
     [Fact]
     public void Await_Update_GenericMethod()
     {
-        var src1 = @"
-class C
-{
-    static async Task F<T>()
-    {
-        await Task.FromResult(1);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task F<T>()
-    {
-        await Task.FromResult(2);
-    }
-}
-";
+        var src1 = """
+
+            class C
+            {
+                static async Task F<T>()
+                {
+                    await Task.FromResult(1);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static async Task F<T>()
+                {
+                    await Task.FromResult(2);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12469,36 +13712,40 @@ class C
     [Fact]
     public void Await_Update_GenericLocalFunction()
     {
-        var src1 = @"
-class C
-{
-    void F()
-    {
-        void M()
-        {
-            async Task L<T>()
+        var src1 = """
+
+            class C
             {
-                await Task.FromResult(1);
+                void F()
+                {
+                    void M()
+                    {
+                        async Task L<T>()
+                        {
+                            await Task.FromResult(1);
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    void F()
-    {
-        void M()
-        {
-            async Task L<T>()
+
+            """;
+        var src2 = """
+
+            class C
             {
-                await Task.FromResult(2);
+                void F()
+                {
+                    void M()
+                    {
+                        async Task L<T>()
+                        {
+                            await Task.FromResult(2);
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12519,30 +13766,34 @@ class C
     [Fact]
     public void MissingAsyncStateMachineAttribute()
     {
-        var src1 = @"
-using System.Threading.Tasks;
+        var src1 = """
 
-class C
-{
-    static async Task<int> F()
-    {
-        await new Task();
-        return 1;
-    }
-}
-";
-        var src2 = @"
-using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-class C
-{
-    static async Task<int> F()
-    {
-        await new Task();
-        return 2;
-    }
-}
-";
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await new Task();
+                    return 1;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System.Threading.Tasks;
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await new Task();
+                    return 2;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12556,29 +13807,33 @@ class C
     [Fact]
     public void MissingAsyncStateMachineAttribute_MakeMethodAsync()
     {
-        var src1 = @"
-using System.Threading.Tasks;
+        var src1 = """
 
-class C
-{
-    static Task<int> F()
-    {
-        return null;
-    }
-}
-";
-        var src2 = @"
-using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-class C
-{
-    static async Task<int> F()
-    {
-        await new Task();
-        return 2;
-    }
-}
-";
+            class C
+            {
+                static Task<int> F()
+                {
+                    return null;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System.Threading.Tasks;
+
+            class C
+            {
+                static async Task<int> F()
+                {
+                    await new Task();
+                    return 2;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12589,36 +13844,40 @@ class C
     [Fact]
     public void MissingAsyncStateMachineAttribute_LocalFunction()
     {
-        var src1 = @"
-using System.Threading.Tasks;
+        var src1 = """
 
-class C
-{
-    void F()
-    {
-        async IAsyncEnumerable<int> L()
-        {
-            await new Task();
-            yield return 1;
-        }
-    }
-}
-";
-        var src2 = @"
-using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-class C
-{
-    void F()
-    {
-        async IAsyncEnumerable<int> L()
-        {
-            await new Task();
-            yield return 2;
-        }
-    }
-}
-";
+            class C
+            {
+                void F()
+                {
+                    async IAsyncEnumerable<int> L()
+                    {
+                        await new Task();
+                        yield return 1;
+                    }
+                }
+            }
+
+            """;
+        var src2 = """
+
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void F()
+                {
+                    async IAsyncEnumerable<int> L()
+                    {
+                        await new Task();
+                        yield return 2;
+                    }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12632,36 +13891,40 @@ class C
     [Fact]
     public void SemanticError_AwaitInPropertyAccessor()
     {
-        var src1 = @"
-using System.Threading.Tasks;
+        var src1 = """
 
-class C
-{
-   public Task<int> P
-   {
-       get 
-       { 
-           await Task.Delay(1);
-           return 1;
-       }
-   }
-}
-";
-        var src2 = @"
-using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-class C
-{
-   public Task<int> P
-   {
-       get 
-       { 
-           await Task.Delay(2);
-           return 1;
-       }
-   }
-}
-";
+            class C
+            {
+               public Task<int> P
+               {
+                   get 
+                   { 
+                       await Task.Delay(1);
+                       return 1;
+                   }
+               }
+            }
+
+            """;
+        var src2 = """
+
+            using System.Threading.Tasks;
+
+            class C
+            {
+               public Task<int> P
+               {
+                   get 
+                   { 
+                       await Task.Delay(2);
+                       return 1;
+                   }
+               }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -12673,12 +13936,16 @@ class C
     [Fact]
     public void OutVarType_Update()
     {
-        var src1 = @"
-M(out var y);
-";
-        var src2 = @"
-M(out int y);
-";
+        var src1 = """
+
+            M(out var y);
+
+            """;
+        var src2 = """
+
+            M(out int y);
+
+            """;
         var edits = GetMethodEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -12688,12 +13955,16 @@ M(out int y);
     [Fact]
     public void OutVarNameAndType_Update()
     {
-        var src1 = @"
-M(out var y);
-";
-        var src2 = @"
-M(out int z);
-";
+        var src1 = """
+
+            M(out var y);
+
+            """;
+        var src2 = """
+
+            M(out int z);
+
+            """;
         var edits = GetMethodEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -12704,12 +13975,16 @@ M(out int z);
     [Fact]
     public void OutVar_Insert()
     {
-        var src1 = @"
-M();
-";
-        var src2 = @"
-M(out int y);
-";
+        var src1 = """
+
+            M();
+
+            """;
+        var src2 = """
+
+            M(out int y);
+
+            """;
         var edits = GetMethodEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -12720,13 +13995,17 @@ M(out int y);
     [Fact]
     public void OutVar_Delete()
     {
-        var src1 = @"
-M(out int y);
-";
+        var src1 = """
 
-        var src2 = @"
-M();
-";
+            M(out int y);
+
+            """;
+
+        var src2 = """
+
+            M();
+
+            """;
         var edits = GetMethodEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -12741,15 +14020,19 @@ M();
     [Fact]
     public void ConstantPattern_Update()
     {
-        var src1 = @"
-if ((o is null) && (y == 7)) return 3;
-if (a is 7) return 5;
-";
+        var src1 = """
 
-        var src2 = @"
-if ((o1 is null) && (y == 7)) return 3;
-if (a is 77) return 5;
-";
+            if ((o is null) && (y == 7)) return 3;
+            if (a is 7) return 5;
+
+            """;
+
+        var src2 = """
+
+            if ((o1 is null) && (y == 7)) return 3;
+            if (a is 77) return 5;
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -12761,19 +14044,23 @@ if (a is 77) return 5;
     [Fact]
     public void DeclarationPattern_Update()
     {
-        var src1 = @"
-if (!(o is int i) && (y == 7)) return;
-if (!(a is string s)) return;
-if (!(b is string t)) return;
-if (!(c is int j)) return;
-";
+        var src1 = """
 
-        var src2 = @"
-if (!(o1 is int i) && (y == 7)) return;
-if (!(a is int s)) return;
-if (!(b is string t1)) return;
-if (!(c is int)) return;
-";
+            if (!(o is int i) && (y == 7)) return;
+            if (!(a is string s)) return;
+            if (!(b is string t)) return;
+            if (!(c is int j)) return;
+
+            """;
+
+        var src2 = """
+
+            if (!(o1 is int i) && (y == 7)) return;
+            if (!(a is int s)) return;
+            if (!(b is string t1)) return;
+            if (!(c is int)) return;
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -12801,19 +14088,23 @@ if (!(c is int)) return;
     [Fact]
     public void VarPattern_Update()
     {
-        var src1 = @"
-if (o is (var x, var y)) return;
-if (o4 is (string a, var (b, c))) return;
-if (o2 is var (e, f, g)) return;
-if (o3 is var (k, l, m)) return;
-";
+        var src1 = """
 
-        var src2 = @"
-if (o is (int x, int y1)) return;
-if (o1 is (var a, (var b, string c1))) return;
-if (o7 is var (g, e, f)) return;
-if (o3 is (string k, int l2, int m)) return;
-";
+            if (o is (var x, var y)) return;
+            if (o4 is (string a, var (b, c))) return;
+            if (o2 is var (e, f, g)) return;
+            if (o3 is var (k, l, m)) return;
+
+            """;
+
+        var src2 = """
+
+            if (o is (int x, int y1)) return;
+            if (o1 is (var a, (var b, string c1))) return;
+            if (o7 is var (g, e, f)) return;
+            if (o3 is (string k, int l2, int m)) return;
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -12865,40 +14156,46 @@ if (o3 is (string k, int l2, int m)) return;
     [Fact]
     public void PositionalPattern_Reorder()
     {
-        var src1 = @"var r = (x, y, z) switch {
-(1, 2, 3) => 0,
-(var a, 3, 4) => a,
-(0, var b, int c) when c > 1 => 2,
-(1, 1, Point { X: 0 } p) => 3,
-_ => 4
-};
-";
+        var src1 = """
+            var r = (x, y, z) switch {
+            (1, 2, 3) => 0,
+            (var a, 3, 4) => a,
+            (0, var b, int c) when c > 1 => 2,
+            (1, 1, Point { X: 0 } p) => 3,
+            _ => 4
+            };
 
-        var src2 = @"var r = ((x, y, z)) switch {
-(1, 1, Point { X: 0 } p) => 3,
-(0, var b, int c) when c > 1 => 2,
-(var a, 3, 4) => a,
-(1, 2, 3) => 0,
-_ => 4
-};
-";
+            """;
+
+        var src2 = """
+            var r = ((x, y, z)) switch {
+            (1, 1, Point { X: 0 } p) => 3,
+            (0, var b, int c) when c > 1 => 2,
+            (var a, 3, 4) => a,
+            (1, 2, 3) => 0,
+            _ => 4
+            };
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
         edits.VerifyEdits(
-            @"Update [(x, y, z) switch {
-(1, 2, 3) => 0,
-(var a, 3, 4) => a,
-(0, var b, int c) when c > 1 => 2,
-(1, 1, Point { X: 0 } p) => 3,
-_ => 4
-}]@10 -> [((x, y, z)) switch {
-(1, 1, Point { X: 0 } p) => 3,
-(0, var b, int c) when c > 1 => 2,
-(var a, 3, 4) => a,
-(1, 2, 3) => 0,
-_ => 4
-}]@10",
+            """
+            Update [(x, y, z) switch {
+            (1, 2, 3) => 0,
+            (var a, 3, 4) => a,
+            (0, var b, int c) when c > 1 => 2,
+            (1, 1, Point { X: 0 } p) => 3,
+            _ => 4
+            }]@10 -> [((x, y, z)) switch {
+            (1, 1, Point { X: 0 } p) => 3,
+            (0, var b, int c) when c > 1 => 2,
+            (var a, 3, 4) => a,
+            (1, 2, 3) => 0,
+            _ => 4
+            }]@10
+            """,
             "Reorder [(var a, 3, 4) => a]@47 -> @100",
             "Reorder [(0, var b, int c) when c > 1 => 2]@68 -> @64",
             "Reorder [(1, 1, Point { X: 0 } p) => 3]@104 -> @32");
@@ -12907,17 +14204,21 @@ _ => 4
     [Fact]
     public void PropertyPattern_Update()
     {
-        var src1 = @"
-if (address is { State: ""WA"" }) return 1;
-if (obj is { Color: Color.Purple }) return 2;
-if (o is string { Length: 5 } s) return 3;
-";
+        var src1 = """
 
-        var src2 = @"
-if (address is { ZipCode: 98052 }) return 4;
-if (obj is { Size: Size.M }) return 2;
-if (o is string { Length: 7 } s7) return 5;
-";
+            if (address is { State: "WA" }) return 1;
+            if (obj is { Color: Color.Purple }) return 2;
+            if (o is string { Length: 5 } s) return 3;
+
+            """;
+
+        var src2 = """
+
+            if (address is { ZipCode: 98052 }) return 4;
+            if (obj is { Size: Size.M }) return 2;
+            if (o is string { Length: 7 } s7) return 5;
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -12933,29 +14234,33 @@ if (o is string { Length: 7 } s7) return 5;
     [Fact]
     public void RecursivePatterns_Reorder()
     {
-        var src1 = @"var r = obj switch
-{
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""a"", int i) => i,
-        _ => 0
-    },
-    int i => i * i,
-    _ => -1
-};
-";
+        var src1 = """
+            var r = obj switch
+            {
+                string s when s.Length > 0 => (s, obj1) switch
+                {
+                    ("a", int i) => i,
+                    _ => 0
+                },
+                int i => i * i,
+                _ => -1
+            };
 
-        var src2 = @"var r = obj switch
-{
-    int i => i * i,
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""a"", int i) => i,
-        _ => 0
-    },
-    _ => -1
-};
-";
+            """;
+
+        var src2 = """
+            var r = obj switch
+            {
+                int i => i * i,
+                string s when s.Length > 0 => (s, obj1) switch
+                {
+                    ("a", int i) => i,
+                    _ => 0
+                },
+                _ => -1
+            };
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -12968,22 +14273,26 @@ if (o is string { Length: 7 } s7) return 5;
     [Fact]
     public void CasePattern_UpdateInsert()
     {
-        var src1 = @"
-switch(shape)
-{
-    case Circle c: return 1;
-    default: return 4;
-}
-";
+        var src1 = """
 
-        var src2 = @"
-switch(shape)
-{
-    case Circle c1: return 1;
-    case Point p: return 0;
-    default: return 4;
-}
-";
+            switch(shape)
+            {
+                case Circle c: return 1;
+                default: return 4;
+            }
+
+            """;
+
+        var src2 = """
+
+            switch(shape)
+            {
+                case Circle c1: return 1;
+                case Point p: return 0;
+                default: return 4;
+            }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -12999,22 +14308,26 @@ switch(shape)
     [Fact]
     public void CasePattern_UpdateDelete()
     {
-        var src1 = @"
-switch(shape)
-{
-    case Point p: return 0;
-    case Circle c: A(c); break;
-    default: return 4;
-}
-";
+        var src1 = """
 
-        var src2 = @"
-switch(shape)
-{
-    case Circle c1: A(c1); break;
-    default: return 4;
-}
-";
+            switch(shape)
+            {
+                case Point p: return 0;
+                case Circle c: A(c); break;
+                default: return 4;
+            }
+
+            """;
+
+        var src2 = """
+
+            switch(shape)
+            {
+                case Circle c1: A(c1); break;
+                default: return 4;
+            }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -13031,21 +14344,25 @@ switch(shape)
     [Fact]
     public void WhenCondition_Update()
     {
-        var src1 = @"
-switch(shape)
-{
-    case Circle c when (c < 10): return 1;
-    case Circle c when (c > 100): return 2;
-}
-";
+        var src1 = """
 
-        var src2 = @"
-switch(shape)
-{
-    case Circle c when (c < 5): return 1;
-    case Circle c2 when (c2 > 100): return 2;
-}
-";
+            switch(shape)
+            {
+                case Circle c when (c < 10): return 1;
+                case Circle c when (c > 100): return 2;
+            }
+
+            """;
+
+        var src2 = """
+
+            switch(shape)
+            {
+                case Circle c when (c < 5): return 1;
+                case Circle c2 when (c2 > 100): return 2;
+            }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -13060,23 +14377,27 @@ switch(shape)
     [Fact]
     public void CasePatternWithWhenCondition_UpdateReorder()
     {
-        var src1 = @"
-switch(shape)
-{
-    case Rectangle r: return 0;
-    case Circle c when (c.Radius < 10): return 1;
-    case Circle c when (c.Radius > 100): return 2;
-}
-";
+        var src1 = """
 
-        var src2 = @"
-switch(shape)
-{
-    case Circle c when (c.Radius > 99): return 2;
-    case Circle c when (c.Radius < 10): return 1;
-    case Rectangle r: return 0;
-}
-";
+            switch(shape)
+            {
+                case Rectangle r: return 0;
+                case Circle c when (c.Radius < 10): return 1;
+                case Circle c when (c.Radius > 100): return 2;
+            }
+
+            """;
+
+        var src2 = """
+
+            switch(shape)
+            {
+                case Circle c when (c.Radius > 99): return 2;
+                case Circle c when (c.Radius < 10): return 1;
+                case Rectangle r: return 0;
+            }
+
+            """;
         var edits = GetMethodEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -13095,15 +14416,19 @@ switch(shape)
     [Fact]
     public void Ref_Update()
     {
-        var src1 = @"
-ref int a = ref G(new int[] { 1, 2 });
-ref int G(int[] p) { return ref p[1];  }
-";
+        var src1 = """
 
-        var src2 = @"
-ref int32 a = ref G1(new int[] { 1, 2 });
-ref int G1(int[] p) { return ref p[2]; }
-";
+            ref int a = ref G(new int[] { 1, 2 });
+            ref int G(int[] p) { return ref p[1];  }
+
+            """;
+
+        var src2 = """
+
+            ref int32 a = ref G1(new int[] { 1, 2 });
+            ref int G1(int[] p) { return ref p[2]; }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -13116,15 +14441,19 @@ ref int G1(int[] p) { return ref p[2]; }
     [Fact]
     public void Ref_Insert()
     {
-        var src1 = @"
-int a = G(new int[] { 1, 2 });
-int G(int[] p) { return p[1];  }
-";
+        var src1 = """
 
-        var src2 = @"
-ref int32 a = ref G1(new int[] { 1, 2 });
-ref int G1(int[] p) { return ref p[2]; }
-";
+            int a = G(new int[] { 1, 2 });
+            int G(int[] p) { return p[1];  }
+
+            """;
+
+        var src2 = """
+
+            ref int32 a = ref G1(new int[] { 1, 2 });
+            ref int G1(int[] p) { return ref p[2]; }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -13137,15 +14466,19 @@ ref int G1(int[] p) { return ref p[2]; }
     [Fact]
     public void Ref_Delete()
     {
-        var src1 = @"
-ref int a = ref G(new int[] { 1, 2 });
-ref int G(int[] p) { return ref p[1];  }
-";
+        var src1 = """
 
-        var src2 = @"
-int32 a = G1(new int[] { 1, 2 });
-int G1(int[] p) { return p[2]; }
-";
+            ref int a = ref G(new int[] { 1, 2 });
+            ref int G(int[] p) { return ref p[1];  }
+
+            """;
+
+        var src2 = """
+
+            int32 a = G1(new int[] { 1, 2 });
+            int G1(int[] p) { return p[2]; }
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -13162,17 +14495,21 @@ int G1(int[] p) { return p[2]; }
     [Fact]
     public void TupleType_LocalVariables()
     {
-        var src1 = @"
-(int a, string c) x = (a, string2);
-(int a, int b) y = (3, 4);
-(int a, int b, int c) z = (5, 6, 7);
-";
+        var src1 = """
 
-        var src2 = @"
-(int a, int b)  x = (a, string2);
-(int a, int b, string c) z1 = (5, 6, 7);
-(int a, int b) y2 = (3, 4);
-";
+            (int a, string c) x = (a, string2);
+            (int a, int b) y = (3, 4);
+            (int a, int b, int c) z = (5, 6, 7);
+
+            """;
+
+        var src2 = """
+
+            (int a, int b)  x = (a, string2);
+            (int a, int b, string c) z1 = (5, 6, 7);
+            (int a, int b) y2 = (3, 4);
+
+            """;
 
         var edits = GetMethodEdits(src1, src2);
 
@@ -13296,16 +14633,20 @@ int G1(int[] p) { return p[2]; }
     [Fact]
     public void TopLevelStatement_Lambda_Update()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-var x = new Func<int>(() => 1);
-";
-        var src2 = @"
-using System;
+            using System;
 
-var x = new Func<int>(() => 2);
-";
+            var x = new Func<int>(() => 1);
+
+            """;
+        var src2 = """
+
+            using System;
+
+            var x = new Func<int>(() => 2);
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)]);
@@ -13314,37 +14655,45 @@ var x = new Func<int>(() => 2);
     [Fact]
     public void TopLevelStatement_Lambda_Insert()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.WriteLine(1);
-";
-        var src2 = @"
-using System;
+            using System;
 
-Console.WriteLine(1);
-var x = new Func<int>(() => 2);
-";
+            Console.WriteLine(1);
+
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.WriteLine(1);
+            var x = new Func<int>(() => 2);
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)],
-            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Console.WriteLine(1);", GetResource("top-level code"))],
+            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "var", GetResource("top-level code"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
     }
 
     [Fact]
     public void TopLevelStatement_Capture_Args()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-var x = new Func<string[]>(() => null);
-";
-        var src2 = @"
-using System;
+            using System;
 
-var x = new Func<string[]>(() => args);
-";
+            var x = new Func<string[]>(() => null);
+
+            """;
+        var src2 = """
+
+            using System;
+
+            var x = new Func<string[]>(() => args);
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)]);
@@ -13353,16 +14702,20 @@ var x = new Func<string[]>(() => args);
     [Fact]
     public void TopLevelStatement_CeaseCapture_Args()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-var x = new Func<string[]>(() => args);
-";
-        var src2 = @"
-using System;
+            using System;
 
-var x = new Func<string[]>(() => null);
-";
+            var x = new Func<string[]>(() => args);
+
+            """;
+        var src2 = """
+
+            using System;
+
+            var x = new Func<string[]>(() => null);
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true));
@@ -13371,24 +14724,28 @@ var x = new Func<string[]>(() => null);
     [Fact]
     public void TopLevelStatement_CeaseCapture_Args_Closure()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-var f1 = new Func<int, int>(a1 => 
-{
-    var f2 = new Func<int, int>(a2 => args.Length + a2);
-    return a1;
-});
-";
-        var src2 = @"
-using System;
+            using System;
 
-var f1 = new Func<int, int>(a1 => 
-{
-    var f2 = new Func<int, int>(a2 => a2);
-    return a1 + args.Length;
-});
-";
+            var f1 = new Func<int, int>(a1 => 
+            {
+                var f2 = new Func<int, int>(a2 => args.Length + a2);
+                return a1;
+            });
+
+            """;
+        var src2 = """
+
+            using System;
+
+            var f1 = new Func<int, int>(a1 => 
+            {
+                var f2 = new Func<int, int>(a2 => a2);
+                return a1 + args.Length;
+            });
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // y is no longer captured in f2
@@ -13428,17 +14785,7 @@ var f1 = new Func<int, int>(a1 =>
 
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)],
-            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, """
-                foreach (int x0 in new[] { 1 })  // Group #0
-                {                                // Group #1
-                    int x1 = 0;
-
-                    int f0(int a) => x0;
-                    int f1(int a) => x1;
-
-                    int f2(int a) => x0 + x1;   // runtime rude edit: connecting previously disconnected closures
-                }
-                """, GetResource("top-level code"))],
+            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "int", GetResource("top-level code"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.UpdateParameters);
     }
 

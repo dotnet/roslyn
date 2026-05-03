@@ -100,6 +100,22 @@ internal static class CommonSignatureHelpUtilities
         return TextSpan.FromBounds(start, nextToken.SpanStart);
     }
 
+    internal static async Task<TSyntax?> TryGetSyntaxAsync<TSyntax>(
+        Document document,
+        int position,
+        SignatureHelpTriggerReason triggerReason,
+        Func<SyntaxToken, bool> isTriggerToken,
+        Func<TSyntax, SyntaxToken, bool> isArgumentListToken,
+        CancellationToken cancellationToken)
+        where TSyntax : SyntaxNode
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        return TryGetSyntax(
+            root, position, syntaxFacts, triggerReason, isTriggerToken, isArgumentListToken, cancellationToken, out var syntax) ? syntax : null;
+    }
+
     internal static bool TryGetSyntax<TSyntax>(
         SyntaxNode root,
         int position,
@@ -170,9 +186,8 @@ internal static class CommonSignatureHelpUtilities
             position, parentType, WellKnownMemberNames.CollectionInitializerAddMethodName, includeReducedExtensionMethods: true);
 
         var addMethods = addSymbols.OfType<IMethodSymbol>()
-                                   .Where(m => m.Parameters.Length >= 1)
-                                   .ToImmutableArray()
-                                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+                                   .WhereAsArray(m => m.Parameters.Length >= 1)
+                                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                                    .Sort(semanticModel, position);
 
         return addMethods;

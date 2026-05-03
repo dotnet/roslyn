@@ -3,17 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageService
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-
     <[UseExportProvider]>
     Public Class SymbolDescriptionServiceTests
-
         Private Shared Async Function TestAsync(languageServiceProvider As HostLanguageServices, workspace As EditorTestWorkspace, expectedDescription As String) As Task
 
             Dim solution = workspace.CurrentSolution

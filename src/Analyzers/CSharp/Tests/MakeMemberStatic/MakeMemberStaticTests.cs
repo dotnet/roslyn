@@ -17,12 +17,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpMakeMemberStaticCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
-public class MakeMemberStaticTests
+public sealed class MakeMemberStaticTests
 {
     [Fact]
-    public async Task TestField()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestField()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             public static class Foo
             {
@@ -35,12 +34,10 @@ public class MakeMemberStaticTests
                 static int i;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54202")]
-    public async Task TestTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestTrivia()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             public static class Foo
             {
@@ -55,12 +52,10 @@ public class MakeMemberStaticTests
                 static readonly int i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             public static class Foo
             {
@@ -73,12 +68,10 @@ public class MakeMemberStaticTests
                 static void M() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestProperty()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestProperty()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             public static class Foo
             {
@@ -91,12 +84,10 @@ public class MakeMemberStaticTests
                 static object P { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEventField()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestEventField()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             public static class Foo
             {
@@ -109,12 +100,10 @@ public class MakeMemberStaticTests
                 static event System.Action E;
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAll()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task FixAll()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             namespace NS
             {
@@ -139,5 +128,4 @@ public class MakeMemberStaticTests
                 }
             }
             """);
-    }
 }

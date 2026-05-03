@@ -86,7 +86,10 @@ internal enum Glyph
 
     OpenFolder,
 
-    Operator,
+    OperatorPublic,
+    OperatorProtected,
+    OperatorPrivate,
+    OperatorInternal,
 
     Parameter,
 
@@ -112,5 +115,7 @@ internal enum Glyph
 
     AddReference,
     NuGet,
-    TargetTypeMatch
+    TargetTypeMatch,
+
+    Copilot,
 }

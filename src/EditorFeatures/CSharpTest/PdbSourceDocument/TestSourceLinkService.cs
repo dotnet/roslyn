@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PdbSourceDocument;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
-internal class TestSourceLinkService : ISourceLinkService
+internal sealed class TestSourceLinkService : ISourceLinkService
 {
     private readonly string? _pdbFilePath;
     private readonly string? _sourceFilePath;
@@ -20,23 +20,23 @@ internal class TestSourceLinkService : ISourceLinkService
         _sourceFilePath = sourceFilePath;
     }
 
-    public Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken)
+    public async Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken)
     {
         if (_pdbFilePath is null)
         {
-            return Task.FromResult<PdbFilePathResult?>(null);
+            return null;
         }
 
-        return Task.FromResult<PdbFilePathResult?>(new PdbFilePathResult(_pdbFilePath));
+        return new PdbFilePathResult(_pdbFilePath);
     }
 
-    public Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken)
+    public async Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken)
     {
         if (_sourceFilePath is null)
         {
-            return Task.FromResult<SourceFilePathResult?>(null);
+            return null;
         }
 
-        return Task.FromResult<SourceFilePathResult?>(new SourceFilePathResult(_sourceFilePath));
+        return new SourceFilePathResult(_sourceFilePath);
     }
 }

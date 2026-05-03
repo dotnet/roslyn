@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
 
 [DataContract]
-internal record WorkspaceProjectCreationInfo(
+internal sealed record WorkspaceProjectCreationInfo(
     [property: DataMember(Order = 0)] string Language,
     [property: DataMember(Order = 1)] string DisplayName,
     [property: DataMember(Order = 2)] string? FilePath,

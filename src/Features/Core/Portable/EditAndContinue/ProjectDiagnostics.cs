@@ -24,7 +24,7 @@ internal static partial class Extensions
             foreach (var diagnostic in projectDiagnostics)
             {
                 var document = solution.GetDocument(diagnostic.Location.SourceTree);
-                var data = (document != null) ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(solution, diagnostic, project);
+                var data = document != null ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(diagnostic, project);
                 result.Add(data);
             }
         }

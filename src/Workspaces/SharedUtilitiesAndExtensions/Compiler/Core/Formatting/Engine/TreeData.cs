@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 

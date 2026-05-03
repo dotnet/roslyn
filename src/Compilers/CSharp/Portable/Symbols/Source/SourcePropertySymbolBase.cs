@@ -9,7 +9,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         private SynthesizedBackingFieldSymbol? _lazyDeclaredBackingField;
-        private SynthesizedBackingFieldSymbol? _lazyMergedBackingField;
+        private StrongBox<SynthesizedBackingFieldSymbol?>? _lazyMergedBackingField;
 
         protected SourcePropertySymbolBase(
             SourceMemberContainerTypeSymbol containingType,
@@ -469,7 +471,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
                     // handle partially filled bags.
                     CustomAttributesBag<CSharpAttributeData>? temp = null;
-                    LoadAndValidateAttributes(OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true);
+                    Binder rootBinder = GetAttributeBinder(indexerNameAttributeLists, DeclaringCompilation);
+                    LoadAndValidateAttributes(
+                        OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true,
+                        binderOpt: rootBinder,
+                        attributeMatchesOpt: this.IsExtensionBlockMember() ? isPossibleIndexerNameAttributeInExtension : isPossibleIndexerNameAttribute);
                     if (temp != null)
                     {
                         Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
@@ -486,6 +492,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return _lazySourceName;
+
+                static bool isPossibleIndexerNameAttribute(AttributeSyntax node, Binder? rootBinderOpt)
+                {
+                    Debug.Assert(rootBinderOpt is not null);
+                    QuickAttributeChecker checker = rootBinderOpt.QuickAttributeChecker;
+                    return checker.IsPossibleMatch(node, QuickAttributes.IndexerName);
+                }
+
+                static bool isPossibleIndexerNameAttributeInExtension(AttributeSyntax node, Binder? rootBinderOpt)
+                {
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78829 : extension indexers, Temporarily limit binding to a string literal argument in order to avoid a binding cycle.
+                    if (node.ArgumentList?.Arguments is not [{ NameColon: null, NameEquals: null, Expression: LiteralExpressionSyntax { RawKind: (int)SyntaxKind.StringLiteralExpression } }])
+                    {
+                        return false;
+                    }
+
+                    return isPossibleIndexerNameAttribute(node, rootBinderOpt);
+                }
             }
         }
 #nullable disable
@@ -600,6 +624,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool HasReadOnlyModifier => (_modifiers & DeclarationModifiers.ReadOnly) != 0;
+
+        internal bool HasUnsafeModifier => (_modifiers & DeclarationModifiers.Unsafe) != 0;
 
 #nullable enable
         /// <summary>
@@ -756,19 +782,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyMergedBackingField is null)
                 {
                     var backingField = DeclaredBackingField;
-                    // The property should only be used after members in the containing
-                    // type are complete, and partial members have been merged.
-                    if (!_containingType.AreMembersComplete)
-                    {
-                        // When calling through the SemanticModel, partial members are not
-                        // necessarily merged when the containing type includes a primary
-                        // constructor - see https://github.com/dotnet/roslyn/issues/75002.
-                        Debug.Assert(_containingType.PrimaryConstructor is { });
-                        return backingField;
-                    }
-                    Interlocked.CompareExchange(ref _lazyMergedBackingField, backingField, null);
+                    // The property should only be used after partial members have been merged.
+                    Debug.Assert(!IsPartial);
+                    Interlocked.CompareExchange(ref _lazyMergedBackingField, new StrongBox<SynthesizedBackingFieldSymbol?>(backingField), null);
                 }
-                return _lazyMergedBackingField;
+                return _lazyMergedBackingField.Value;
             }
         }
 
@@ -787,8 +805,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void SetMergedBackingField(SynthesizedBackingFieldSymbol? backingField)
         {
-            Interlocked.CompareExchange(ref _lazyMergedBackingField, backingField, null);
-            Debug.Assert((object?)_lazyMergedBackingField == backingField);
+            Interlocked.CompareExchange(ref _lazyMergedBackingField, new StrongBox<SynthesizedBackingFieldSymbol?>(backingField), null);
+            Debug.Assert((object?)_lazyMergedBackingField.Value == backingField);
         }
 
         private SynthesizedBackingFieldSymbol CreateBackingField()
@@ -870,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsAutoPropertyOrUsesFieldKeyword)
             {
-                if (!IsStatic && ((_propertyFlags & Flags.HasAutoPropertySet) != 0) && SetMethod is { IsInitOnly: false })
+                if (!IsStatic && HasAutoPropertySet && SetMethod is { IsInitOnly: false })
                 {
                     if (ContainingType.IsReadOnly)
                     {
@@ -1000,10 +1018,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable disable
 
-            Location location = TypeLocation;
+            Location typeLocation = TypeLocation;
+            var location = GetFirstLocation();
             var compilation = DeclaringCompilation;
 
-            Debug.Assert(location != null);
+            Debug.Assert(typeLocation != null);
 
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // property name location for any such errors. We'll do the same for return
@@ -1024,15 +1043,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, typeLocation, modifyCompilation: true);
+            }
+
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                var modifiers = (CSharpSyntaxNode as MemberDeclarationSyntax)?.Modifiers ?? default;
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(location), modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.EnsureParamCollectionAttributeExistsAndModifyCompilation(compilation, Parameters, diagnostics);
+            ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
             if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
-                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, typeLocation, modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
@@ -1042,10 +1067,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 this.TypeWithAnnotations.NeedsNullableAttribute())
             {
-                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNullableAttributeExists(diagnostics, typeLocation, modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
+
+            if (this.IsExtensionBlockMember())
+            {
+                ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
+
+                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
         }
 
         private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
@@ -1116,6 +1148,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
+            }
+            else if (ContainingType is { IsExtension: true, ExtensionParameter.Name: "" } && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, location, Name);
             }
             else if (ContainingType.IsStatic && !IsStatic)
             {
@@ -1394,11 +1430,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
+            }
+
             if (IsRequired)
             {
                 AddSynthesizedAttribute(
                     ref attributes,
                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
+            }
+
+            if (this.IsExtensionBlockMember())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerAttribute(this, ((SourceNamedTypeSymbol)this.ContainingType).ExtensionMarkerName));
             }
         }
 
@@ -1451,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return (null, null);
             }
-            else if (IsIndexer && CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
+            else if ((IsIndexer || this.IsExtensionBlockMember()) && CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
             {
                 (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out var hasAnyDiagnostics);
 
@@ -1537,7 +1583,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 | ReservedAttributes.TupleElementNamesAttribute
                 | ReservedAttributes.NullableAttribute
                 | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.DisallowNullAttribute))
@@ -1586,6 +1633,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
             {
@@ -1703,12 +1754,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, node.ArgumentList.Arguments[0].Location, node.GetErrorDisplayName());
                 }
+                else if (this.IsExtensionBlockMember() && SourceName != indexerName)
+                {
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78829 : extension indexers, Report more descriptive error
+                    // error CS8078: An expression is too long or complex to compile
+                    diagnostics.Add(ErrorCode.ERR_InsufficientStack, node.ArgumentList.Arguments[0].Location);
+                }
             }
         }
 
         internal sealed override int TryGetOverloadResolutionPriority()
         {
-            Debug.Assert(this.IsIndexer);
+            Debug.Assert(this.IsIndexer || this.IsExtensionBlockMember());
             return GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority ?? 0;
         }
 
@@ -1839,9 +1896,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-            else if (this.IsAutoPropertyOrUsesFieldKeyword && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            else if (this.IsAutoPropertyOrUsesFieldKeyword)
             {
-                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
+                if (!this.IsStatic && (ContainingType.IsRecord || ContainingType.IsRecordStruct) && type.IsPointerOrFunctionPointer())
+                {
+                    // The type '{0}' may not be used for a field of a record.
+                    diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, TypeLocation, type);
+                }
+                else if (type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+                {
+                    diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
+                }
             }
 
             if (type.IsStatic)

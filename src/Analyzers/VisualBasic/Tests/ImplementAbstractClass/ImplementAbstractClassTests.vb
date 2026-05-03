@@ -2,12 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.ImplementType
-Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractClass
@@ -604,7 +602,7 @@ End Class")
         <WorkItem("https://github.com/dotnet/roslyn/issues/13932")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/5898")>
         Public Async Function TestAutoProperties() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class AbstractClass
     MustOverride ReadOnly Property ReadOnlyProp As Integer
     MustOverride Property ReadWriteProp As Integer

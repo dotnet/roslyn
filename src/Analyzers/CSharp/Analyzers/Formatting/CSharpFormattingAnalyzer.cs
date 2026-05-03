@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Formatting;
 namespace Microsoft.CodeAnalysis.CodeStyle;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpFormattingAnalyzer : AbstractFormattingAnalyzer
+internal sealed class CSharpFormattingAnalyzer : AbstractFormattingAnalyzer
 {
     protected override ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;

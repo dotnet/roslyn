@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -12,8 +10,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Rename;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
@@ -42,7 +40,7 @@ internal sealed class VisualStudioSymbolRenamedCodeActionOperationFactoryWorkspa
             updatedSolution ?? throw new ArgumentNullException(nameof(updatedSolution)));
     }
 
-    private class RenameSymbolOperation : CodeActionOperation
+    private sealed class RenameSymbolOperation : CodeActionOperation
     {
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
         private readonly ISymbol _symbol;

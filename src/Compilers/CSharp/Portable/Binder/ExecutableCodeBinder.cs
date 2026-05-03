@@ -107,14 +107,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            foreach (var parameter in iterator.Parameters)
+            var parameters = iterator.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
+
+            foreach (var parameter in parameters)
             {
+                bool isReceiverParameter = parameter.IsExtensionParameter();
                 if (parameter.RefKind != RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.GetFirstLocation());
+                    var location = isReceiverParameter ? iterator.GetFirstLocation() : parameter.GetFirstLocation();
+                    diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, location);
                 }
-                else if (parameter.Type.IsPointerOrFunctionPointer())
+                else if (parameter.Type.IsPointerOrFunctionPointer() && !isReceiverParameter)
                 {
+                    // We already reported an error elsewhere if the receiver parameter of an extension is a pointer type.
                     diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.GetFirstLocation());
                 }
             }

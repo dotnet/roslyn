@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 
 [ExportHighlighter(LanguageNames.CSharp), Shared]
-internal class LockStatementHighlighter : AbstractKeywordHighlighter<LockStatementSyntax>
+internal sealed class LockStatementHighlighter : AbstractKeywordHighlighter<LockStatementSyntax>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

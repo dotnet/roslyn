@@ -9,9 +9,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Return the computed replacement root node
             var newRoot = replacement[this.RootNode];
             replacement.Free();
-            return this.Update(newRoot);
+            return this.Update(newRoot, this.SuitableForLowering);
         }
 
         /// <summary>
@@ -198,11 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-        }
-
-        public bool ContainsAnySynthesizedNodes()
-        {
-            return this.TopologicallySortedNodes.Any(static node => node is BoundEvaluationDecisionDagNode e && e.Evaluation.Kind == BoundKind.DagAssignmentEvaluation);
         }
 
 #if DEBUG

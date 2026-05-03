@@ -160,7 +160,7 @@ internal abstract class AbstractUseCompoundAssignmentDiagnosticAnalyzer<
                         assignmentToken.GetLocation(),
                         option.Notification,
                         context.Options,
-            additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+            additionalLocations: [assignment.GetLocation()],
                         properties: ImmutableDictionary.Create<string, string?>()
                             .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
                     return;
@@ -180,7 +180,7 @@ internal abstract class AbstractUseCompoundAssignmentDiagnosticAnalyzer<
                         assignmentToken.GetLocation(),
                         option.Notification,
                         context.Options,
-                        additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+                        additionalLocations: [assignment.GetLocation()],
                         properties: ImmutableDictionary.Create<string, string?>()
                             .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
                     return;
@@ -193,7 +193,7 @@ internal abstract class AbstractUseCompoundAssignmentDiagnosticAnalyzer<
             assignmentToken.GetLocation(),
             option.Notification,
             context.Options,
-            additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+            additionalLocations: [assignment.GetLocation()],
             properties: null));
     }
 }

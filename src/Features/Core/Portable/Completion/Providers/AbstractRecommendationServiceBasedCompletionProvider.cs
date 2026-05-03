@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -60,26 +60,55 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
             if (!shouldPreselectInferredTypes)
                 return recommendedSymbols.NamedSymbols.SelectAsArray(s => new SymbolAndSelectionInfo(Symbol: s, Preselect: false));
 
-            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet(SymbolEqualityComparer.Default);
+            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+            var objectType = context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
+            var enumerableOfObjectType = context.SemanticModel.Compilation.IEnumerableOfTType()?.Construct(objectType);
+            var asyncEnumerableOfObjectType = context.SemanticModel.Compilation.IAsyncEnumerableOfTType()?.Construct(objectType);
 
             return recommendedSymbols.NamedSymbols.SelectAsArray(
                 static (symbol, args) =>
                 {
+                    var (inferredTypes, compilation, self, enumerableOfObjectType, asyncEnumerableOfObjectType) = args;
+
                     // Don't preselect intrinsic type symbols so we can preselect their keywords instead. We will also
                     // ignore nullability for purposes of preselection -- if a method is returning a string? but we've
                     // inferred we're assigning to a string or vice versa we'll still count those as the same.
 
-                    var preselect = !args.self.IsInstrinsic(symbol) && args.inferredTypes.Count > 0 && args.inferredTypes.Contains(GetSymbolType(symbol));
+                    var symbolType = GetSymbolType(symbol);
+                    var preselect =
+                        !self.IsInstrinsic(symbol) &&
+                        symbolType != null &&
+                        inferredTypes.Count > 0 &&
+                        (CompletionUtilities.IsTypeImplicitlyConvertible(compilation, symbolType, inferredTypes) ||
+                         IsForEachEnumerableMatch(symbolType, inferredTypes, enumerableOfObjectType, asyncEnumerableOfObjectType));
                     return new SymbolAndSelectionInfo(symbol, preselect);
                 },
-                (inferredTypes, self: this));
+                (inferredTypes, compilation: context.SemanticModel.Compilation, self: this, enumerableOfObjectType, asyncEnumerableOfObjectType));
         }
+    }
+
+    private static bool IsForEachEnumerableMatch(
+        ITypeSymbol symbolType,
+        ISet<ITypeSymbol> inferredTypes,
+        INamedTypeSymbol? enumerableOfObjectType,
+        INamedTypeSymbol? asyncEnumerableOfObjectType)
+    {
+        foreach (var inferredType in inferredTypes)
+        {
+            if (SymbolEqualityComparer.Default.Equals(inferredType, enumerableOfObjectType) && symbolType.CanBeEnumerated())
+                return true;
+
+            if (SymbolEqualityComparer.Default.Equals(inferredType, asyncEnumerableOfObjectType) && symbolType.CanBeAsynchronouslyEnumerated(asyncEnumerableOfObjectType))
+                return true;
+        }
+
+        return false;
     }
 
     private static bool IsValidForTaskLikeTypeOnlyContext(ISymbol symbol, TSyntaxContext context)
     {
         // We want to allow all namespaces as the user may be typing a namespace name to get to a task-like type.
-        if (symbol.IsNamespace())
+        if (symbol is INamespaceSymbol)
             return true;
 
         if (symbol is not INamedTypeSymbol namedType ||
@@ -104,11 +133,8 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
 
     private static bool IsValidForGenericConstraintContext(ISymbol symbol)
     {
-        if (symbol.IsNamespace() ||
-            symbol.IsKind(SymbolKind.TypeParameter))
-        {
+        if (symbol is INamespaceSymbol or ITypeParameterSymbol)
             return true;
-        }
 
         if (symbol is not INamedTypeSymbol namedType ||
             symbol.IsDelegateType() ||
@@ -182,20 +208,14 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
 
     private static int ComputeSymbolMatchPriority(ISymbol symbol)
     {
-        if (symbol.MatchesKind(SymbolKind.Local, SymbolKind.Parameter, SymbolKind.RangeVariable))
-        {
+        if (symbol is ILocalSymbol or IParameterSymbol or IRangeVariableSymbol)
             return SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable;
-        }
 
-        if (symbol.MatchesKind(SymbolKind.Field, SymbolKind.Property))
-        {
+        if (symbol is IFieldSymbol or IPropertySymbol)
             return SymbolMatchPriority.PreferFieldOrProperty;
-        }
 
-        if (symbol.MatchesKind(SymbolKind.Event, SymbolKind.Method))
-        {
+        if (symbol is IEventSymbol or IMethodSymbol)
             return SymbolMatchPriority.PreferEventOrMethod;
-        }
 
         return SymbolMatchPriority.PreferType;
     }
@@ -230,7 +250,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
 
         async Task<CompletionDescription?> TryGetDescriptionAsync(DocumentId documentId)
         {
-            var relatedDocument = document.Project.Solution.GetRequiredDocument(documentId);
+            var relatedDocument = await document.Project.Solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             var context = await Utilities.CreateSyntaxContextWithExistingSpeculativeModelAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
             Contract.ThrowIfNull(context);
             var symbols = await TryGetSymbolsForContextAsync(completionContext: null, context, options, cancellationToken).ConfigureAwait(false);
@@ -281,5 +301,11 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
         var token = root.FindToken(characterPosition);
 
         return IsTriggerOnDot(token, characterPosition);
+    }
+
+    protected override ImmutableArray<ImmutableArray<SymbolAndSelectionInfo>> DeduplicateSymbols(
+        MultiDictionary<(string displayText, string suffix, string insertionText), SymbolAndSelectionInfo>.ValueSet symbols)
+    {
+        return symbols.GroupBy(symbol => symbol.Symbol.Kind).Select(group => group.ToImmutableArray()).ToImmutableArray();
     }
 }

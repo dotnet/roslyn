@@ -23,12 +23,12 @@ internal abstract partial class AbstractRenameCommandHandler :
         => GetCommandState();
 
     public bool ExecuteCommand(WordDeleteToStartCommandArgs args, CommandExecutionContext context)
-        => HandleWordDeleteCommand(args, context, args.TextView, deleteToStart: true);
+        => HandleWordDeleteCommand(args, args.TextView, deleteToStart: true);
 
     public bool ExecuteCommand(WordDeleteToEndCommandArgs args, CommandExecutionContext context)
-        => HandleWordDeleteCommand(args, context, args.TextView, deleteToStart: false);
+        => HandleWordDeleteCommand(args, args.TextView, deleteToStart: false);
 
-    private bool HandleWordDeleteCommand(EditorCommandArgs args, CommandExecutionContext context, ITextView view, bool deleteToStart)
+    private bool HandleWordDeleteCommand(EditorCommandArgs args, ITextView view, bool deleteToStart)
     {
         var subjectBuffer = args.SubjectBuffer;
         if (renameService.ActiveSession == null)
@@ -73,7 +73,7 @@ internal abstract partial class AbstractRenameCommandHandler :
             }
             else
             {
-                CommitIfSynchronousOrCancelIfAsynchronous(args, context.OperationContext, placeCaretAtTheEndOfIdentifier: true);
+                CancelRenameSession();
             }
         }
 

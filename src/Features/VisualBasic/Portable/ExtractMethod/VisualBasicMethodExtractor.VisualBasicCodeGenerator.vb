@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Formatting
@@ -19,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend NotInheritable Class VisualBasicExtractMethodService
         Partial Friend Class VisualBasicMethodExtractor
             Partial Private MustInherit Class VisualBasicCodeGenerator
-                Inherits CodeGenerator(Of StatementSyntax, StatementSyntax, VisualBasicCodeGenerationOptions)
+                Inherits CodeGenerator(Of StatementSyntax, VisualBasicCodeGenerationOptions)
 
                 Private ReadOnly _methodName As SyntaxToken
 
@@ -52,6 +53,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)
                 End Sub
 
+                Protected Overrides Function CreateBreakStatement() As ExecutableStatementSyntax
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Protected Overrides Function CreateContinueStatement() As ExecutableStatementSyntax
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Protected Overrides Function CreateFlowControlReturnExpression(flowControlInformation As ExtractMethodFlowControlInformation, flowValue As Object) As ExpressionSyntax
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
                 Protected Overrides Function UpdateMethodAfterGenerationAsync(originalDocument As SemanticDocument, methodSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
                     Return Task.FromResult(originalDocument)
                 End Function
@@ -67,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         attributes:=ImmutableArray(Of AttributeData).Empty,
                         accessibility:=Accessibility.Private,
                         modifiers:=CreateMethodModifiers(),
-                        returnType:=Me.AnalyzerResult.ReturnType,
+                        returnType:=Me.GetFinalReturnType(),
                         refKind:=RefKind.None,
                         explicitInterfaceImplementations:=Nothing,
                         name:=_methodName.ToString(),
@@ -75,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         parameters:=CreateMethodParameters(),
                         statements:=statements.CastArray(Of SyntaxNode))
 
-                    Return Me.MethodDefinitionAnnotation.AddAnnotationToSymbol(
+                    Return MethodDefinitionAnnotation.AddAnnotationToSymbol(
                         Formatter.Annotation.AddAnnotationToSymbol(methodSymbol))
                 End Function
 
@@ -173,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         isShared = True
                     End If
 
-                    Dim isAsync = Me.SelectionResult.CreateAsyncMethod()
+                    Dim isAsync = Me.SelectionResult.ContainsAwaitExpression()
 
                     Return New DeclarationModifiers(isStatic:=isShared, isAsync:=isAsync)
                 End Function
@@ -204,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End Function
 
                 Private Shared Function CheckActiveStatements(statements As ImmutableArray(Of StatementSyntax)) As OperationStatus
-                    Dim count = statements.Count()
+                    Dim count = statements.Length
                     If count = 0 Then
                         Return OperationStatus.NoActiveStatement
                     End If
@@ -309,20 +322,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return declStatements.Concat(statements)
                 End Function
 
-                Protected Overrides Function CreateIdentifier(name As String) As SyntaxToken
-                    Return name.ToIdentifierToken()
-                End Function
-
-                Protected Overrides Function CreateReturnStatement(ParamArray identifierNames As String()) As StatementSyntax
-                    Contract.ThrowIfTrue(identifierNames.Length > 1)
-
-                    If identifierNames.Length = 0 Then
-                        Return SyntaxFactory.ReturnStatement()
-                    End If
-
-                    Return SyntaxFactory.ReturnStatement(identifierNames(0).ToIdentifierName())
-                End Function
-
                 Protected Overrides Function LastStatementOrHasReturnStatementInReturnableConstruct() As Boolean
                     Dim lastStatement = GetLastStatementOrInitializerSelectedAtCallSite()
                     Dim container = lastStatement.GetAncestorsOrThis(Of SyntaxNode).Where(Function(n) n.IsReturnableConstruct()).FirstOrDefault()
@@ -361,27 +360,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim invocation = SyntaxFactory.InvocationExpression(
                         methodExpression, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)))
 
-                    If Me.SelectionResult.CreateAsyncMethod() Then
-                        If Me.SelectionResult.ShouldCallConfigureAwaitFalse() Then
-                            If AnalyzerResult.ReturnType.GetMembers().Any(
-                            Function(x)
-                                Dim method = TryCast(x, IMethodSymbol)
-                                If method Is Nothing Then
-                                    Return False
-                                End If
-
-                                If Not CaseInsensitiveComparison.Equals(method.Name, NameOf(Task.ConfigureAwait)) Then
-                                    Return False
-                                End If
-
-                                If method.Parameters.Length <> 1 Then
-                                    Return False
-                                End If
-
-                                Return method.Parameters(0).Type.SpecialType = SpecialType.System_Boolean
-                            End Function) Then
-
-                                invocation = SyntaxFactory.InvocationExpression(
+                    ' If we're extracting any code that contained an 'await' then we'll have to await the new method
+                    ' we're calling as well.  If we also see any use of .ConfigureAwait(false) in the extracted code,
+                    ' keep that pattern on the await expression we produce.
+                    If Me.SelectionResult.ContainsAwaitExpression() Then
+                        If Me.SelectionResult.ContainsConfigureAwaitFalse() Then
+                            invocation = SyntaxFactory.InvocationExpression(
                                 SyntaxFactory.MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     invocation,
@@ -392,7 +376,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                         SyntaxFactory.LiteralExpression(
                                             SyntaxKind.FalseLiteralExpression,
                                             SyntaxFactory.Token(SyntaxKind.FalseKeyword))))))
-                            End If
                         End If
 
                         Return SyntaxFactory.AwaitExpression(invocation)
@@ -422,6 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Protected Overrides Function CreateDeclarationStatement(
                         variables As ImmutableArray(Of VariableInfo),
                         initialValue As ExpressionSyntax,
+                        flowControlInformation As ExtractMethodFlowControlInformation,
                         cancellationToken As CancellationToken) As StatementSyntax
                     Contract.ThrowIfTrue(variables.Length <> 1)
 
@@ -431,8 +415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     Dim initializer = If(initialValue, If(shouldInitializeWithNothing, SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword)), Nothing))
 
-                    Dim variableType = variable.GetVariableType()
-                    Dim typeNode = variableType.GenerateTypeSyntax()
+                    Dim typeNode = variable.SymbolType.GenerateTypeSyntax()
 
                     Dim names = SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(variable.Name)))
                     Dim modifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.DimKeyword))
@@ -442,12 +425,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return SyntaxFactory.LocalDeclarationStatement(modifiers, declarators)
                 End Function
 
-                Protected Overrides Async Function CreateGeneratedCodeAsync(newDocument As SemanticDocument, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+                Protected Overrides Async Function PerformFinalTriviaFixupAsync(newDocument As SemanticDocument, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
                     ' in hybrid code cases such as extract method, formatter will have some difficulties on where it breaks lines in two.
                     ' here, we explicitly insert newline at the end of auto generated method decl's begin statement so that anchor knows how to find out
                     ' indentation of inserted statements (from users code) with user code style preserved
                     Dim root = newDocument.Root
-                    Dim methodDefinition = root.GetAnnotatedNodes(Of MethodBlockBaseSyntax)(Me.MethodDefinitionAnnotation).First()
+                    Dim methodDefinition = root.GetAnnotatedNodes(Of MethodBlockBaseSyntax)(MethodDefinitionAnnotation).First()
                     Dim lastTokenOfBeginStatement = methodDefinition.BlockStatement.GetLastToken(includeZeroWidth:=True)
 
                     Dim newMethodDefinition = methodDefinition.ReplaceToken(
@@ -457,7 +440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     newDocument = Await newDocument.WithSyntaxRootAsync(root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(False)
 
-                    Return Await MyBase.CreateGeneratedCodeAsync(newDocument, cancellationToken).ConfigureAwait(False)
+                    Return newDocument
                 End Function
             End Class
         End Class

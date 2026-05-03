@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 _builder.EmitArrayElementAddress(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type),
-                                                arrayAccess.Syntax, _diagnostics.DiagnosticBag);
+                                                arrayAccess.Syntax);
             }
         }
 

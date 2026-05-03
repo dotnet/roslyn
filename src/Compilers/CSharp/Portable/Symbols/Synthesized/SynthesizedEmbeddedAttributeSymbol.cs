@@ -4,16 +4,17 @@
 
 #nullable disable
 
-using Microsoft.Cci;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override NamedTypeSymbol ConstructedFrom => this;
 
-        public override bool MightContainExtensionMethods => false;
+        public override bool MightContainExtensions => false;
 
         public override string Name => _name;
 
@@ -112,7 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
+        internal override bool IsUnionTypeCore => false;
+
         internal override bool IsInterpolatedStringHandlerType => false;
+
+#nullable enable
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+        internal sealed override string? ExtensionGroupingName => null;
+        internal sealed override string? ExtensionMarkerName => null;
+#nullable disable
 
         internal override bool HasSpecialName => false;
 

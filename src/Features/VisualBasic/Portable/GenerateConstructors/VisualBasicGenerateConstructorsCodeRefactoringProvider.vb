@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructors
 
         Protected Overrides Function PrefersThrowExpressionAsync(document As Document, cancellationToken As CancellationToken) As ValueTask(Of Boolean)
             ' No throw expression preference option is defined for VB because it doesn't support throw expressions.
-            Return ValueTaskFactory.FromResult(False)
+            Return RoslynValueTaskExtensions.FromResult(False)
         End Function
 
         Protected Overrides Function TryMapToWritableInstanceField([property] As IPropertySymbol, cancellationToken As CancellationToken) As IFieldSymbol

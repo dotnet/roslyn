@@ -9,18 +9,17 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
-{
-    [ExportLanguageService(typeof(IProjectExistsUIContextProviderLanguageService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpProjectExistsUIContextProviderLanguageService : IProjectExistsUIContextProviderLanguageService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpProjectExistsUIContextProviderLanguageService()
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 
-        public UIContext GetUIContext()
-            => UIContext.FromUIContextGuid(Guids.CSharpProjectExistsInWorkspaceUIContext);
+[ExportLanguageService(typeof(IProjectExistsUIContextProviderLanguageService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpProjectExistsUIContextProviderLanguageService : IProjectExistsUIContextProviderLanguageService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpProjectExistsUIContextProviderLanguageService()
+    {
     }
+
+    public UIContext GetUIContext()
+        => UIContext.FromUIContextGuid(Guids.CSharpProjectExistsInWorkspaceUIContext);
 }

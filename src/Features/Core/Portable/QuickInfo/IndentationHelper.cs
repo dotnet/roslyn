@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +24,6 @@ internal static class IndentationHelper
     /// <param name="text"></param>
     /// <param name="classifiedSpans">The initial set of spans to align.</param>
     /// <param name="tabSize">The number of spaces to </param>
-    /// <returns></returns>
     public static ImmutableArray<ClassifiedSpan> GetSpansWithAlignedIndentation(
         SourceText text,
         ImmutableArray<ClassifiedSpan> classifiedSpans,

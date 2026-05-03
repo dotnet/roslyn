@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -102,7 +102,8 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
         private readonly Workspace _workspace;
         private readonly CancellationTokenSource _cancellationSource = new();
         private readonly IActiveStatementSpanFactory _spanProvider;
-        private readonly ICompileTimeSolutionProvider _compileTimeSolutionProvider;
+        private readonly WorkspaceEventRegistration _documentOpenedHandlerDisposer;
+        private readonly WorkspaceEventRegistration _documentClosedHandlerDisposer;
 
         #region lock(_trackingSpans)
 
@@ -119,10 +120,9 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
         {
             _workspace = workspace;
             _spanProvider = spanProvider;
-            _compileTimeSolutionProvider = workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>();
 
-            _workspace.DocumentOpened += DocumentOpened;
-            _workspace.DocumentClosed += DocumentClosed;
+            _documentOpenedHandlerDisposer = _workspace.RegisterDocumentOpenedHandler(DocumentOpened);
+            _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(DocumentClosed);
         }
 
         internal Dictionary<string, ImmutableArray<ActiveStatementTrackingSpan>> Test_GetTrackingSpans()
@@ -133,8 +133,8 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             _cancellationSource.Cancel();
             _cancellationSource.Dispose();
 
-            _workspace.DocumentOpened -= DocumentOpened;
-            _workspace.DocumentClosed -= DocumentClosed;
+            _documentOpenedHandlerDisposer.Dispose();
+            _documentClosedHandlerDisposer.Dispose();
 
             lock (_trackingSpans)
             {
@@ -142,7 +142,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             }
         }
 
-        private void DocumentClosed(object? sender, DocumentEventArgs e)
+        private void DocumentClosed(DocumentEventArgs e)
         {
             if (e.Document.FilePath != null)
             {
@@ -153,29 +153,26 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             }
         }
 
-        private void DocumentOpened(object? sender, DocumentEventArgs e)
+        private void DocumentOpened(DocumentEventArgs e)
             => _ = TrackActiveSpansAsync(e.Document);
 
-        private async Task TrackActiveSpansAsync(Document designTimeDocument)
+        private async Task TrackActiveSpansAsync(Document document)
         {
             try
             {
                 var cancellationToken = _cancellationSource.Token;
 
-                if (!designTimeDocument.DocumentState.SupportsEditAndContinue())
+                if (!document.DocumentState.SupportsEditAndContinue())
                 {
                     return;
                 }
 
-                var compileTimeSolution = _compileTimeSolutionProvider.GetCompileTimeSolution(designTimeDocument.Project.Solution);
-                var compileTimeDocument = await compileTimeSolution.GetDocumentAsync(designTimeDocument.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-
-                if (compileTimeDocument == null || !TryGetSnapshot(compileTimeDocument, out var snapshot))
+                if (!TryGetSnapshot(document, out var snapshot))
                 {
                     return;
                 }
 
-                _ = await GetAdjustedTrackingSpansAsync(compileTimeDocument, snapshot, cancellationToken).ConfigureAwait(false);
+                _ = await GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

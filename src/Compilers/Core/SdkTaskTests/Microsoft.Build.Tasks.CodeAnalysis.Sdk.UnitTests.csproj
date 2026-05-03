@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.BuildTasks.Sdk.UnitTests</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\MSBuildTaskTests\TestUtilities\IntegrationTestBase.cs" LinkBase="TestUtilities" />
+    <Compile Include="..\MSBuildTaskTests\TestUtilities\MSBuildUtil.cs" LinkBase="TestUtilities" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\CSharp\csc\AnyCpu\csc.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)" />
+    <ProjectReference Include="..\..\VisualBasic\vbc\AnyCpu\vbc.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)" />
+    <ProjectReference Include="..\..\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)" />
+    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
+    <ProjectReference Include="..\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj" />
+    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Microsoft.Build" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" />
+    <Reference Include="Microsoft.Build.Engine" />
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <Target Name="CopyAssetsForIntegrationTests" Condition="'@(CommandLineCompilerReference)' != ''" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths">
+    <PropertyGroup>
+      <_CommandLineCompilerReferenceOutputPath>@(CommandLineCompilerReference->'%(RootDir)%(Directory)*.*')</_CommandLineCompilerReferenceOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_CommandLineCompilerReferenceContent Include="$(_CommandLineCompilerReferenceOutputPath)" />
+      <_CommandLineCompilerReferenceKey Include="@(_CommandLineCompilerReferenceContent->'%(Filename)%(Extension)')" Original="%(Identity)" KeepDuplicates="false" />
+    </ItemGroup>
+    <RemoveDuplicates Inputs="@(_CommandLineCompilerReferenceKey)">
+      <Output TaskParameter="Filtered" ItemName="_CommandLineCompilerReferenceDeduplicated" />
+    </RemoveDuplicates>
+    <ItemGroup>
+      <Content Include="%(_CommandLineCompilerReferenceDeduplicated.Original)" Link="bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+    <RemoveDir Directories="$(OutDir)..\bincore" Condition="'$(DesignTimeBuild)' != 'true' and '$(BuildingProject)' == 'true'" />
+  </Target>
+</Project>

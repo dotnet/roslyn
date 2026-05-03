@@ -97,11 +97,11 @@ internal sealed partial class RegexEmbeddedCompletionProvider(RegexEmbeddedLangu
             var change = embeddedItem.Change;
             var textChange = change.TextChange;
 
-            properties.Add(KeyValuePairUtil.Create(StartKey, textChange.Span.Start.ToString()));
-            properties.Add(KeyValuePairUtil.Create(LengthKey, textChange.Span.Length.ToString()));
-            properties.Add(KeyValuePairUtil.Create(NewTextKey, textChange.NewText));
-            properties.Add(KeyValuePairUtil.Create(DescriptionKey, embeddedItem.FullDescription));
-            properties.Add(KeyValuePairUtil.Create(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name));
+            properties.Add(KeyValuePair.Create(StartKey, textChange.Span.Start.ToString()));
+            properties.Add(KeyValuePair.Create(LengthKey, textChange.Span.Length.ToString()));
+            properties.Add(KeyValuePair.Create(NewTextKey, textChange.NewText));
+            properties.Add(KeyValuePair.Create(DescriptionKey, embeddedItem.FullDescription));
+            properties.Add(KeyValuePair.Create(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name));
 
             if (change.NewPosition != null)
             {

@@ -198,9 +198,9 @@ class C : CSharpErrors.InterfaceMethods
     // (5,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass[] CSharpErrors.InterfaceMethods.ReturnType2() { return null; }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 5),
-    // (5,54): error CS0539: 'C.ReturnType2()' in explicit interface declaration is not a member of interface
+    // (5,54): error CS9334: 'C.ReturnType2()': return type must be 'UnavailableClass[]' to match implemented member 'InterfaceMethods.ReturnType2()'
     //     UnavailableClass[] CSharpErrors.InterfaceMethods.ReturnType2() { return null; }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "ReturnType2").WithArguments("C.ReturnType2()").WithLocation(5, 54),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "ReturnType2").WithArguments("C.ReturnType2()", "UnavailableClass[]", "CSharpErrors.InterfaceMethods.ReturnType2()").WithLocation(5, 54),
     // (6,55): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     void CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass x) { }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(6, 55),
@@ -216,9 +216,9 @@ class C : CSharpErrors.InterfaceMethods
     // (4,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass CSharpErrors.InterfaceMethods.ReturnType1() { return null; }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(4, 5),
-    // (4,52): error CS0539: 'C.ReturnType1()' in explicit interface declaration is not a member of interface
+    // (4,52): error CS9334: 'C.ReturnType1()': return type must be 'UnavailableClass' to match implemented member 'InterfaceMethods.ReturnType1()'
     //     UnavailableClass CSharpErrors.InterfaceMethods.ReturnType1() { return null; }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "ReturnType1").WithArguments("C.ReturnType1()").WithLocation(4, 52),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "ReturnType1").WithArguments("C.ReturnType1()", "UnavailableClass", "CSharpErrors.InterfaceMethods.ReturnType1()").WithLocation(4, 52),
     // (2,11): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     // class C : CSharpErrors.InterfaceMethods
     Diagnostic(ErrorCode.ERR_NoTypeDef, "CSharpErrors.InterfaceMethods").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 11),
@@ -473,39 +473,39 @@ class C : CSharpErrors.InterfaceProperties
     // (4,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass CSharpErrors.InterfaceProperties.Get1 { get { return null; } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(4, 5),
-    // (4,55): error CS0539: 'C.Get1' in explicit interface declaration is not a member of interface
+    // (4,55): error CS9333: 'C.Get1': type must be 'UnavailableClass' to match implemented member 'InterfaceProperties.Get1'
     //     UnavailableClass CSharpErrors.InterfaceProperties.Get1 { get { return null; } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Get1").WithArguments("C.Get1").WithLocation(4, 55),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Get1").WithArguments("C.Get1", "UnavailableClass", "CSharpErrors.InterfaceProperties.Get1").WithLocation(4, 55),
     // (5,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.Get2 { get { return null; } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 5),
-    // (5,57): error CS0539: 'C.Get2' in explicit interface declaration is not a member of interface
+    // (5,57): error CS9333: 'C.Get2': type must be 'UnavailableClass[]' to match implemented member 'InterfaceProperties.Get2'
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.Get2 { get { return null; } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Get2").WithArguments("C.Get2").WithLocation(5, 57),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Get2").WithArguments("C.Get2", "UnavailableClass[]", "CSharpErrors.InterfaceProperties.Get2").WithLocation(5, 57),
     // (7,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass CSharpErrors.InterfaceProperties.Set1 { set { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(7, 5),
-    // (7,55): error CS0539: 'C.Set1' in explicit interface declaration is not a member of interface
+    // (7,55): error CS9333: 'C.Set1': type must be 'UnavailableClass' to match implemented member 'InterfaceProperties.Set1'
     //     UnavailableClass CSharpErrors.InterfaceProperties.Set1 { set { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Set1").WithArguments("C.Set1").WithLocation(7, 55),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Set1").WithArguments("C.Set1", "UnavailableClass", "CSharpErrors.InterfaceProperties.Set1").WithLocation(7, 55),
     // (8,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.Set2 { set { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(8, 5),
-    // (8,57): error CS0539: 'C.Set2' in explicit interface declaration is not a member of interface
+    // (8,57): error CS9333: 'C.Set2': type must be 'UnavailableClass[]' to match implemented member 'InterfaceProperties.Set2'
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.Set2 { set { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Set2").WithArguments("C.Set2").WithLocation(8, 57),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Set2").WithArguments("C.Set2", "UnavailableClass[]", "CSharpErrors.InterfaceProperties.Set2").WithLocation(8, 57),
     // (10,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass CSharpErrors.InterfaceProperties.GetSet1 { get { return null; } set { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(10, 5),
-    // (10,55): error CS0539: 'C.GetSet1' in explicit interface declaration is not a member of interface
+    // (10,55): error CS9333: 'C.GetSet1': type must be 'UnavailableClass' to match implemented member 'InterfaceProperties.GetSet1'
     //     UnavailableClass CSharpErrors.InterfaceProperties.GetSet1 { get { return null; } set { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "GetSet1").WithArguments("C.GetSet1").WithLocation(10, 55),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "GetSet1").WithArguments("C.GetSet1", "UnavailableClass", "CSharpErrors.InterfaceProperties.GetSet1").WithLocation(10, 55),
     // (11,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.GetSet2 { get { return null; } set { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(11, 5),
-    // (11,57): error CS0539: 'C.GetSet2' in explicit interface declaration is not a member of interface
+    // (11,57): error CS9333: 'C.GetSet2': type must be 'UnavailableClass[]' to match implemented member 'InterfaceProperties.GetSet2'
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.GetSet2 { get { return null; } set { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "GetSet2").WithArguments("C.GetSet2").WithLocation(11, 57),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "GetSet2").WithArguments("C.GetSet2", "UnavailableClass[]", "CSharpErrors.InterfaceProperties.GetSet2").WithLocation(11, 57),
     // (2,11): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     // class C : CSharpErrors.InterfaceProperties
     Diagnostic(ErrorCode.ERR_NoTypeDef, "CSharpErrors.InterfaceProperties").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 11),
@@ -831,21 +831,21 @@ class C : CSharpErrors.InterfaceEvents
     // (4,11): error CS0246: The type or namespace name 'UnavailableDelegate' could not be found (are you missing a using directive or an assembly reference?)
     //     event UnavailableDelegate CSharpErrors.InterfaceEvents.Event1 { add { } remove { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableDelegate").WithArguments("UnavailableDelegate").WithLocation(4, 11),
-    // (4,60): error CS0539: 'C.Event1' in explicit interface declaration is not a member of interface
+    // (4,60): error CS9333: 'C.Event1': type must be 'UnavailableDelegate' to match implemented member 'InterfaceEvents.Event1'
     //     event UnavailableDelegate CSharpErrors.InterfaceEvents.Event1 { add { } remove { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event1").WithArguments("C.Event1").WithLocation(4, 60),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Event1").WithArguments("C.Event1", "UnavailableDelegate", "CSharpErrors.InterfaceEvents.Event1").WithLocation(4, 60),
     // (5,38): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     event CSharpErrors.EventDelegate<UnavailableClass> CSharpErrors.InterfaceEvents.Event2 { add { } remove { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 38),
-    // (5,85): error CS0539: 'C.Event2' in explicit interface declaration is not a member of interface
+    // (5,85): error CS9333: 'C.Event2': type must be 'CSharpErrors.EventDelegate<UnavailableClass>' to match implemented member 'InterfaceEvents.Event2'
     //     event CSharpErrors.EventDelegate<UnavailableClass> CSharpErrors.InterfaceEvents.Event2 { add { } remove { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event2").WithArguments("C.Event2").WithLocation(5, 85),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Event2").WithArguments("C.Event2", "CSharpErrors.EventDelegate<UnavailableClass>", "CSharpErrors.InterfaceEvents.Event2").WithLocation(5, 85),
     // (6,38): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     event CSharpErrors.EventDelegate<UnavailableClass[]> CSharpErrors.InterfaceEvents.Event3 { add { } remove { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(6, 38),
-    // (6,87): error CS0539: 'C.Event3' in explicit interface declaration is not a member of interface
+    // (6,87): error CS9333: 'C.Event3': type must be 'CSharpErrors.EventDelegate<UnavailableClass[]>' to match implemented member 'InterfaceEvents.Event3'
     //     event CSharpErrors.EventDelegate<UnavailableClass[]> CSharpErrors.InterfaceEvents.Event3 { add { } remove { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event3").WithArguments("C.Event3").WithLocation(6, 87),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Event3").WithArguments("C.Event3", "CSharpErrors.EventDelegate<UnavailableClass[]>", "CSharpErrors.InterfaceEvents.Event3").WithLocation(6, 87),
     // (2,11): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     // class C : CSharpErrors.InterfaceEvents
     Diagnostic(ErrorCode.ERR_NoTypeDef, "CSharpErrors.InterfaceEvents").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 11),

@@ -13,15 +13,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
 [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-public class AsyncMethodHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class AsyncMethodHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(AsyncAwaitHighlighter);
 
     [Fact]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -47,12 +46,10 @@ public class AsyncMethodHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_1()
-    {
-        await TestAsync(
+    public Task TestExample2_1()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -78,5 +75,4 @@ public class AsyncMethodHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 }

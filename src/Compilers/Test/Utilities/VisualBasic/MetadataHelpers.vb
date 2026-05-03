@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Friend Module MetadataTestHelpers
 

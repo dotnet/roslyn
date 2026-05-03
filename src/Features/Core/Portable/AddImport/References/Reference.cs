@@ -98,10 +98,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 
         public abstract Task<AddImportFixData> TryGetFixDataAsync(
-            Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken);
+            Document document, SyntaxNode node, bool cleanupDocument, CodeCleanupOptions options, CancellationToken cancellationToken);
 
         protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
-            Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, bool cleanupDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             // Within an import, we're only adding a package/nuget reference (and we're not going to add another
             // using/import as we're already in one).  So no need for text changes.
@@ -116,13 +116,21 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             var newDocument = await provider.AddImportAsync(
                 node, SearchResult.NameParts, document, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
 
-            var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-                newDocument, options, cancellationToken).ConfigureAwait(false);
+            var cleanedDocument = await CleanDocumentAsync(newDocument, cleanupDocument, options, cancellationToken).ConfigureAwait(false);
 
             var textChanges = await cleanedDocument.GetTextChangesAsync(
                 originalDocument, cancellationToken).ConfigureAwait(false);
 
             return [.. textChanges];
+        }
+
+        protected static async Task<Document> CleanDocumentAsync(Document newDocument, bool cleanupDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
+        {
+            // We always need to at least cleanup syntax (this ensures spacing of elastic trivia on the new import).
+            // Optionally cleanup the rest of the document if that is requested.
+            return cleanupDocument
+                ? await CodeAction.CleanupDocumentAsync(newDocument, options, cancellationToken).ConfigureAwait(false)
+                : await CodeAction.CleanupSyntaxAsync(newDocument, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }

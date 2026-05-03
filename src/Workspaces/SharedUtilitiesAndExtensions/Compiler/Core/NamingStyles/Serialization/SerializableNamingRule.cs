@@ -21,14 +21,6 @@ internal sealed record class SerializableNamingRule
     [DataMember(Order = 2)]
     public ReportDiagnostic EnforcementLevel { get; init; }
 
-    public NamingRule GetRule(NamingStylePreferences info)
-    {
-        return new NamingRule(
-            info.GetSymbolSpecification(SymbolSpecificationID),
-            info.GetNamingStyle(NamingStyleID),
-            EnforcementLevel);
-    }
-
     internal XElement CreateXElement()
     {
         var element = new XElement(nameof(SerializableNamingRule),

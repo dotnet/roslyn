@@ -110,6 +110,6 @@ internal sealed class VoidKeywordRecommender() : AbstractSyntacticSingleKeywordR
 
     private static bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         => context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.IsMemberDeclarationContext(validModifiers: s_validClassInterfaceRecordModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceRecordTypeDeclarations, canBePartial: true, cancellationToken) ||
+            context.IsMemberDeclarationContext(validModifiers: s_validClassInterfaceRecordModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken) ||
             context.IsMemberDeclarationContext(validModifiers: s_validStructModifiers, validTypeDeclarations: SyntaxKindSet.StructOnlyTypeDeclarations, canBePartial: false, cancellationToken);
 }

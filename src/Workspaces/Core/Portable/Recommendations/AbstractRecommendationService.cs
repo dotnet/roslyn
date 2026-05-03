@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -31,12 +31,9 @@ internal abstract partial class AbstractRecommendationService<
         var namedSymbols = result.NamedSymbols;
         var unnamedSymbols = result.UnnamedSymbols;
 
-        namedSymbols = namedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
-        unnamedSymbols = unnamedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
-
         var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(syntaxContext, cancellationToken);
-        namedSymbols = namedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
-        unnamedSymbols = unnamedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
+        namedSymbols = namedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, shouldIncludeSymbolContext.ShouldIncludeSymbol);
+        unnamedSymbols = unnamedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, shouldIncludeSymbolContext.ShouldIncludeSymbol);
 
         return new RecommendedSymbols(namedSymbols, unnamedSymbols);
     }
@@ -110,14 +107,17 @@ internal abstract partial class AbstractRecommendationService<
             if (_context.IsAttributeNameContext)
             {
                 return symbol.IsOrContainsAccessibleAttribute(
-                    _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken),
+                    _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken)!,
                     _context.SemanticModel.Compilation.Assembly,
+                    _context.ValidAttributeTargets ?? AttributeTargets.All,
                     _cancellationToken);
             }
 
             if (_context.IsEnumTypeMemberAccessContext)
             {
-                return symbol.Kind == SymbolKind.Field;
+                // Within an enum type, we can access fields of the enum, as well as static extensions on that type.
+                return symbol.Kind == SymbolKind.Field ||
+                     symbol is { IsStatic: true, ContainingType.IsExtension: true };
             }
 
             // In an expression or statement context, we don't want to display instance members declared in outer containing types.

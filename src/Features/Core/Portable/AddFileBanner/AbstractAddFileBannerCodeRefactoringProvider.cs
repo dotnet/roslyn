@@ -27,8 +27,8 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
 
     protected abstract bool IsCommentStartCharacter(char ch);
 
-    protected sealed override ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
-        = [FixAllScope.Project, FixAllScope.Solution];
+    protected sealed override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes { get; }
+        = [RefactorAllScope.Project, RefactorAllScope.Solution];
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -145,7 +145,7 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
         return bannerService.GetFileBanner(token);
     }
 
-    protected sealed override async Task FixAllAsync(
+    protected sealed override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,

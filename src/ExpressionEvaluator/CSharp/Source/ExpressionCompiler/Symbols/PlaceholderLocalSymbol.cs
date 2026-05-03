@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Clr;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -209,6 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 @checked: false,
                 explicitCastInCode: false,
                 conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
                 constantValueOpt: null,
                 type: type,
                 hasErrors: !conversion.IsValid);

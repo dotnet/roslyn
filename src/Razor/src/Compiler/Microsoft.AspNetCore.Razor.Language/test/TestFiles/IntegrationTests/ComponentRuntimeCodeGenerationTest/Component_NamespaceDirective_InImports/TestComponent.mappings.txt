@@ -1,0 +1,5 @@
+﻿Source Location: (1:0,1 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|Counter|
+Generated Location: (1089:38,53 [7] )
+|Counter|
+

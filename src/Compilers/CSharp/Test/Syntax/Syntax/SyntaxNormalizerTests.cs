@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1215,6 +1216,93 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   }
                 }
                 """);
+        }
+
+        [Theory]
+        [InlineData("+=")]
+        [InlineData("-=")]
+        [InlineData("*=")]
+        [InlineData("/=")]
+        [InlineData("%=")]
+        [InlineData("&=")]
+        [InlineData("|=")]
+        [InlineData("^=")]
+        [InlineData("<<=")]
+        [InlineData(">>=")]
+        [InlineData(">>>=")]
+        public void TestNormalizeCompoundAssignmentOperatorDeclarations(string op)
+        {
+            TestNormalizeDeclaration(
+"class a{b operator    " + op + "  ( c  d ){}}",
+@"class a
+{
+  b operator " + op + @"(c d)
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{b I1 . operator    " + op + "  ( c  d ){}}",
+@"class a
+{
+  b I1.operator " + op + @"(c d)
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{b operator" + op + "  ( c  d ){}}",
+@"class a
+{
+  b operator " + op + @"(c d)
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{b I1 . operator" + op + "  ( c  d ){}}",
+@"class a
+{
+  b I1.operator " + op + @"(c d)
+  {
+  }
+}");
+        }
+
+        [Theory]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void TestNormalizeIncrementOperatorDeclarations(string op)
+        {
+            TestNormalizeDeclaration(
+"class a{void    operator    " + op + "  ( ){}}",
+@"class a
+{
+  void operator " + op + @"()
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{void   I1 . operator    " + op + "  ( ){}}",
+@"class a
+{
+  void I1.operator " + op + @"()
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{void  operator" + op + "  ( ){}}",
+@"class a
+{
+  void operator " + op + @"()
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{void   I1 . operator" + op + "  ( ){}}",
+@"class a
+{
+  void I1.operator " + op + @"()
+  {
+  }
+}");
         }
 
         [Fact]
@@ -3405,7 +3493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void TestNormalizeDeclaration(string text, string expected)
         {
-            var node = SyntaxFactory.ParseCompilationUnit(text.NormalizeLineEndings());
+            var node = SyntaxFactory.ParseCompilationUnit(text.NormalizeLineEndings(), options: TestOptions.RegularPreview);
             Assert.Equal(text.NormalizeLineEndings(), node.ToFullString().NormalizeLineEndings());
             var actual = node.NormalizeWhitespace("  ").ToFullString();
             AssertEx.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
@@ -3705,6 +3793,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
+        [Fact]
+        public void IgnoredDirectives()
+        {
+            TestNormalizeDeclaration("""
+                    #:a
+                 #: b c
+                {
+                   #:d
+                }
+                #:e
+                """, """
+                #:a
+                #:b c
+                {
+                #:d
+                }
+                #:e
+
+                """);
+        }
+
         [Fact, WorkItem(542887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542887")]
         public void TestFormattingForBlockSyntax()
         {
@@ -3788,6 +3897,26 @@ $"  ///  </summary>{Environment.NewLine}" +
 "  {\r\n" +
 "  }\r\n" +
 "}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76856")]
+        public void TestNormalizeDocumentationMultiLineCommentsWithTrailingNewline()
+        {
+            TestNormalizeStatement("""
+               /**
+                * 
+                * Escape XML special characters
+                */
+               private String EscapeXML(String str)
+               {
+               """, """
+                    ///
+                    /// 
+                    /// Escape XML special characters
+                    //////
+                    private String EscapeXML(String str)
+                    {
+                    """);
         }
 
         [Fact]
@@ -6068,6 +6197,93 @@ $"  ///  </summary>{Environment.NewLine}" +
                   }
                 }
                 """);
+        }
+
+        [Fact]
+        public void TestNormalizeExtension_01()
+        {
+            TestNormalizeDeclaration("""
+static class E
+{
+extension < T > ( int i )  where   T   : struct
+{
+}
+}
+""", """
+static class E
+{
+  extension<T>(int i)
+    where T : struct
+  {
+  }
+}
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeExtension_02()
+        {
+            TestNormalizeDeclaration("""
+static class E
+{
+extension ( int  )
+{
+}
+}
+""", """
+static class E
+{
+  extension(int)
+  {
+  }
+}
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_01()
+        {
+            TestNormalizeDeclaration("""
+throw null!;
+""", """
+throw null!;
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_02()
+        {
+            TestNormalizeDeclaration("""
+throw x!;
+""", """
+throw x!;
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_03()
+        {
+            TestNormalizeDeclaration("""
+M()!;
+""", """
+M()!;
+""");
+        }
+
+        [Fact]
+        public void UnionDeclaration_01()
+        {
+            TestNormalizeDeclaration("""
+[Attr1]public   union  Result < T ,  E > ( Ok , Err ):IResult  where  T:class{public   void   M ( ) { }}
+""", """
+[Attr1]
+public union Result<T, E>(Ok, Err) : IResult where T : class
+{
+  public void M()
+  {
+  }
+}
+""");
         }
     }
 }

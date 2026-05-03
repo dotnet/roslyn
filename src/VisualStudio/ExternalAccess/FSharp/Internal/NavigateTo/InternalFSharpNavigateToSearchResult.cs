@@ -12,33 +12,32 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
+
+internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
 {
-    internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
+    public string AdditionalInformation { get; }
+    public string Kind { get; }
+    public NavigateToMatchKind MatchKind { get; }
+    public string Name { get; }
+    public INavigableItem NavigableItem { get; }
+
+    public InternalFSharpNavigateToSearchResult(FSharpNavigateToSearchResult result)
     {
-        public string AdditionalInformation { get; }
-        public string Kind { get; }
-        public NavigateToMatchKind MatchKind { get; }
-        public string Name { get; }
-        public INavigableItem NavigableItem { get; }
-
-        public InternalFSharpNavigateToSearchResult(FSharpNavigateToSearchResult result)
-        {
-            AdditionalInformation = result.AdditionalInformation;
-            Kind = result.Kind;
-            MatchKind = FSharpNavigateToMatchKindHelpers.ConvertTo(result.MatchKind);
-            Name = result.Name;
-            NavigableItem = new InternalFSharpNavigableItem(result.NavigableItem);
-        }
-
-        public bool IsCaseSensitive => false;
-
-        public ImmutableArray<TextSpan> NameMatchSpans => [];
-
-        public string SecondarySort => null;
-
-        public string Summary => null;
-
-        public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
+        AdditionalInformation = result.AdditionalInformation;
+        Kind = result.Kind;
+        MatchKind = FSharpNavigateToMatchKindHelpers.ConvertTo(result.MatchKind);
+        Name = result.Name;
+        NavigableItem = new InternalFSharpNavigableItem(result.NavigableItem);
     }
+
+    public bool IsCaseSensitive => false;
+
+    public ImmutableArray<TextSpan> NameMatchSpans => [];
+
+    public string SecondarySort => null;
+
+    public string Summary => null;
+
+    public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
 }

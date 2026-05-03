@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(ObjectAndWithInitializerCompletionProvider);
@@ -246,9 +246,8 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
     }
 
     [Fact]
-    public async Task NotInEqualsValue()
-    {
-        var markup = """
+    public Task NotInEqualsValue()
+        => VerifyNoItemsExistAsync("""
             class C 
             { 
                 public int value {set; get; }
@@ -262,10 +261,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                    C goo = new C { value = v$$
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
     public async Task NothingLeftToShow()
@@ -320,9 +316,8 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
     }
 
     [Fact]
-    public async Task NotExclusive1()
-    {
-        var markup = """
+    public Task NotExclusive1()
+        => VerifyExclusiveAsync("""
             using System.Collections.Generic;
             class C : IEnumerable<int>
             { 
@@ -338,14 +333,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                    C bar = new C { v$$
                 }
             }
-            """;
-        await VerifyExclusiveAsync(markup, false);
-    }
+            """, false);
 
     [Fact]
-    public async Task NotExclusive2()
-    {
-        var markup = """
+    public Task NotExclusive2()
+        => VerifyExclusiveAsync("""
             using System.Collections;
             class C : IEnumerable
             { 
@@ -361,14 +353,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                    C bar = new C { v$$
                 }
             }
-            """;
-        await VerifyExclusiveAsync(markup, false);
-    }
+            """, false);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
-    public async Task NotInArgumentList()
-    {
-        var markup = """
+    public Task NotInArgumentList()
+        => VerifyNoItemsExistAsync("""
             class C
             {
                 void M(int i, int j)
@@ -376,14 +365,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     M(i, j$$
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")]
-    public async Task NotInArgumentList2()
-    {
-        var markup = """
+    public Task NotInArgumentList2()
+        => VerifyNoItemsExistAsync("""
             class C
             {
                 public int A;
@@ -392,9 +378,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     new C(1, $$
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544289")]
     public async Task DerivedMembers()
@@ -434,9 +418,8 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
-    public async Task NotInCollectionInitializer()
-    {
-        var markup = """
+    public Task NotInCollectionInitializer()
+        => VerifyNoItemsExistAsync("""
             using System.Collections.Generic;
             class C
             {
@@ -445,14 +428,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     var a = new List<int> {0, $$
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task InitializeDerivedType()
-    {
-        var markup = """
+    public Task InitializeDerivedType()
+        => VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             class B {}
@@ -468,9 +448,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     B a = new D { $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "goo");
-    }
+            """, "goo");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
     public async Task ReadOnlyPropertiesShouldNotBePresent()
@@ -530,9 +508,8 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544607")]
-    public async Task DoNotIncludeStaticMember()
-    {
-        var markup = """
+    public Task DoNotIncludeStaticMember()
+        => VerifyItemIsAbsentAsync("""
             class Goo
             {
                 public static int Gibberish { get; set; }
@@ -545,10 +522,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     var c = new Goo { $$
                 }
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Gibberish");
-    }
+            """, "Gibberish");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
     public async Task EditorBrowsable_PropertyInObjectCreationAlways()
@@ -652,9 +626,8 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
     }
 
     [Fact]
-    public async Task TestCommitCharacter()
-    {
-        const string markup = """
+    public Task TestCommitCharacter()
+        => VerifyCommonCommitCharactersAsync("""
             class C { public int value {set; get; }}
 
             class D
@@ -664,10 +637,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                    C goo = new C { v$$
                 }
             }
-            """;
-
-        await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "v");
-    }
+            """, textTypedSoFar: "v");
 
     [Fact]
     public async Task TestEnter()
@@ -909,9 +879,8 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4754")]
-    public async Task ObjectInitializerOfGenericTypeConstructedWithInaccessibleType()
-    {
-        var markup = """
+    public Task ObjectInitializerOfGenericTypeConstructedWithInaccessibleType()
+        => VerifyItemExistsAsync("""
             class Generic<T>
             {
                 public string Value { get; set; }
@@ -929,10 +898,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     var g = new Generic<InaccessibleToGeneric> { $$ }
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Value");
-    }
+            """, "Value");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24612")]
     public async Task ObjectInitializerOfGenericTypeСonstraint1()
@@ -962,9 +928,8 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24612")]
-    public async Task ObjectInitializerOfGenericTypeСonstraint2()
-    {
-        var markup = """
+    public Task ObjectInitializerOfGenericTypeСonstraint2()
+        => VerifyNoItemsExistAsync("""
             internal class Example
             {
                 public static T Create<T>()
@@ -976,10 +941,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     };
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24612")]
     public async Task ObjectInitializerOfGenericTypeСonstraint3()
@@ -1003,9 +965,8 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24612")]
-    public async Task ObjectInitializerOfGenericTypeСonstraint4()
-    {
-        var markup = """
+    public Task ObjectInitializerOfGenericTypeСonstraint4()
+        => VerifyNoItemsExistAsync("""
             internal class Example
             {
                 public static T Create<T>()
@@ -1017,15 +978,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     };
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74331")]
-    public async Task ObjectInitializerOnVariousMembers_01()
-    {
-        var markup = """
+    public Task ObjectInitializerOnVariousMembers_01()
+        => VerifyNoItemsExistAsync("""
             using System.Collections;
             using System.Collections.Generic;
 
@@ -1051,15 +1008,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     };
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74331")]
-    public async Task ObjectInitializerOnVariousMembers_02()
-    {
-        var markup = """
+    public Task ObjectInitializerOnVariousMembers_02()
+        => VerifyNoItemsExistAsync("""
             using System.Collections;
             using System.Collections.Generic;
 
@@ -1085,10 +1038,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     };
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26560")]
     public async Task ObjectInitializerEscapeKeywords()
@@ -1143,10 +1093,32 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
         await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: FeaturesResources.Required);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15205")]
-    public async Task NestedPropertyInitializers1()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80192")]
+    public async Task RequiredMembersNotLabeledOrSelectedInRecordWith()
     {
         var markup = """
+            record C
+            {
+                public required int RequiredField;
+                public required int RequiredProperty { get; set; }
+            }
+
+            class D
+            {
+                static void Main(C c)
+                {
+                    var t = c with { $$ };
+                }
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "RequiredField", inlineDescription: "", matchPriority: MatchPriority.Default);
+        await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: "");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15205")]
+    public Task NestedPropertyInitializers1()
+        => VerifyItemExistsAsync("""
             class A
             {
                 public B PropB { get; }
@@ -1165,15 +1137,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     var a = new A { $$ }
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "PropB");
-    }
+            """, "PropB");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15205")]
-    public async Task NestedPropertyInitializers2()
-    {
-        var markup = """
+    public Task NestedPropertyInitializers2()
+        => VerifyItemExistsAsync("""
             class A
             {
                 public B PropB { get; }
@@ -1197,15 +1165,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     var a = new A { $$ }
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "PropB");
-    }
+            """, "PropB");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15205")]
-    public async Task NestedPropertyInitializers3()
-    {
-        var markup = """
+    public Task NestedPropertyInitializers3()
+        => VerifyItemExistsAsync("""
             class A
             {
                 public B PropB { get; }
@@ -1243,15 +1207,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     var a = new A { $$ }
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "PropB");
-    }
+            """, "PropB");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15205")]
-    public async Task NestedPropertyInitializers4()
-    {
-        var markup = """
+    public Task NestedPropertyInitializers4()
+        => VerifyItemExistsAsync("""
             class A
             {
                 public B PropB { get; }
@@ -1275,15 +1235,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     var a = new A { $$ }
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "PropB");
-    }
+            """, "PropB");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15205")]
-    public async Task NestedPropertyInitializers5()
-    {
-        var markup = """
+    public Task NestedPropertyInitializers5()
+        => VerifyItemExistsAsync("""
             class A
             {
                 public B PropB { get; }
@@ -1306,15 +1262,11 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     var a = new A { $$ }
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "PropB");
-    }
+            """, "PropB");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36702")]
-    public async Task NestedPropertyInitializers6()
-    {
-        var markup = """
+    public Task NestedPropertyInitializers6()
+        => VerifyItemExistsAsync("""
             class A
             {
                 public B PropB { get; }
@@ -1337,10 +1289,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     var a = new A { PropB = { $$ } }
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "PropC");
-    }
+            """, "PropC");
 
     private async Task VerifyExclusiveAsync(string markup, bool exclusive)
     {

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
                 };
 
                 var entry = (entry1.Item, input2);
-                if (state != EntryState.Modified || _comparer is null || !tableBuilder.TryModifyEntry(entry, _comparer, stopwatch.Elapsed, stepInputs, state))
+                if (state != EntryState.Modified || _comparer is null || !tableBuilder.TryModifyEntry(entry, stopwatch.Elapsed, stepInputs, state))
                 {
                     tableBuilder.AddEntry(entry, state, stopwatch.Elapsed, stepInputs, state);
                 }

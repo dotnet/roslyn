@@ -32,6 +32,8 @@ This page discusses the process by which language feature *implementations* are 
 
 1. **Prototype phase**: All features are initially prototyped in a separate branch. The name of the branch is `features/<feature name>`. These branches are created when a feature speclet is marked as 'Ready for prototype', language team member champions the feature, and [a developer is assigned](#community-contributions) to implement the feature. The developer is responsible for keeping an up-to-date speclet of the feature at `docs/features/<feature name>.md` throughout the development.  
 
+     When starting work on a new feature, use the `new-compiler-feature` Copilot skill (in `.github/skills/new-compiler-feature/`) to set up tracking: it creates a test plan issue, a `Feature - <name>` label, updates the [Language Feature Status](../Language%20Feature%20Status.md) page, and links related PRs. Run it from a PR that implements (part of) the feature.
+
      All features should be off by default until fully accepted into the language. A new feature should only be enabled when explicitly included in the `/features:<feature-name>` compiler option. This helps ensure the language is always in a shippable state no matter what prototypes are in the current branch.
 
 1. **Prototype decision**: When the prototype phase ends, the Language Team will make a decision on the feature:
@@ -42,7 +44,7 @@ This page discusses the process by which language feature *implementations* are 
     left some language details unspecified, to be resolved based
     on implementation experience, or when experience with the prototype suggests that some language design
     decisions should be reconsidered. 
-    * **Closed**: The feature hit unforeseen design issues, implementation road blocks, etc. that caused it to be removed.
+    * **Closed**: The feature hit unforeseen design issues, implementation roadblocks, etc. that caused it to be removed.
 
 1. **Finishing**: Once a feature is integrated into the main tree, it's time to lock down and finish the implementation. This includes any remaining areas not completed in the prototype, and completing all of the corner cases and tests (lots and lots of tests!).  
 
@@ -52,7 +54,7 @@ This page discusses the process by which language feature *implementations* are 
 
 It's important to note there are **no guarantees** about a feature being a part of the language until it has reached the 'Acceptance' state **and** shipped in an official build. Features in any other state--no matter how complete--can be pulled at the last minute if the Language Team deems it's necessary to do so.  
 
-Pulling a feature after the prototype phase completes is not a decision the Langauge Team takes lightly; however, in the past, unforeseen circumstances have caused us to do so. The best example of this was the decision to pull parameterless struct constructors very late in the C# 6.0 timeframe.  
+Pulling a feature after the prototype phase completes is not a decision the Language Team takes lightly; however, in the past, unforeseen circumstances have caused us to do so. The best example of this was the decision to pull parameterless struct constructors very late in the C# 6.0 timeframe.  
 
 ## Community Contributions
 The intent of this document is to codify the process used by the Language Team to implement language features so that the community can contribute implementations. Community members can contribute to ongoing prototypes or in some cases be the primary driver of the prototype.  
@@ -66,7 +68,7 @@ Community members who wish to drive a particular feature can request so by comme
 
 - **Why are features disabled by default?**: Language features spend a considerable amount of time in the same branch as our shipping product which is often main.  The main branch of Roslyn is kept in a ship ready state at all times.  To facilitate this all features which haven't been fully accepted into the language must be disabled.
 
-- **What is the difference between the feature and main branches?**: The main branch represents code which will ship in updates to the current version of the compiler.  The feature branches represents each feature which are still in progress, therefore not merged yet.
+- **What is the difference between the feature and main branches?**: The main branch represents code which will ship in updates to the current version of the compiler. The feature branches represent features that are still in progress, therefore not merged yet.
 
 - **Why weren't speclets filed for early features?**: Features such as tuples and local functions were done before this process was fully developed.  Their speclets were considered internally and eventually became the `docs/feature/<feature name.md>` file.
 

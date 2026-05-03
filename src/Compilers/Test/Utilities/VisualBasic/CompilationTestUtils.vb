@@ -7,9 +7,8 @@ Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Text
-Imports System.Xml.Linq
 Imports Basic.Reference.Assemblies
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -747,7 +746,7 @@ Friend Module CompilationUtils
             For Each d In diags
                 Console.WriteLine(ErrorText(d))
             Next
-            Assert.True(False, "Should not have any diagnostics")
+            Assert.Fail("Should not have any diagnostics")
         End If
     End Sub
 
@@ -767,7 +766,7 @@ Friend Module CompilationUtils
             For Each d In diags
                 Console.WriteLine(ErrorText(d))
             Next
-            Assert.True(False, "Should not have any errors")
+            Assert.Fail("Should not have any errors")
         End If
     End Sub
 
@@ -889,7 +888,7 @@ Friend Module CompilationUtils
                     .AppendLine("UNEXPECTED ERROR MESSAGES:")
                     .AppendLine(actualText.Substring(expectedText.Length))
 
-                    Assert.True(False, .ToString())
+                    Assert.Fail(.ToString())
                 Else
                     Dim expectedLines = expectedText.Split({vbCrLf, vbLf}, StringSplitOptions.RemoveEmptyEntries)
                     Dim actualLines = actualText.Split({vbCrLf, vbLf}, StringSplitOptions.RemoveEmptyEntries)
@@ -913,7 +912,7 @@ Friend Module CompilationUtils
                     Next
 
                     If appendedLines > 0 Then
-                        Assert.True(False, .ToString())
+                        Assert.Fail(.ToString())
                     Else
                         CompareLineByLine(expectedText, actualText)
                     End If

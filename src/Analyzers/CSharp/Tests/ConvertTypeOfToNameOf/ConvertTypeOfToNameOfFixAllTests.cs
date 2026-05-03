@@ -13,14 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf;
 using VerifyCS = CSharpCodeFixVerifier<CSharpConvertTypeOfToNameOfDiagnosticAnalyzer,
     CSharpConvertTypeOfToNameOfCodeFixProvider>;
 
-public partial class ConvertTypeOfToNameOfTests
+public sealed partial class ConvertTypeOfToNameOfTests
 {
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task FixAllDocumentBasic()
-    {
-        var input = """
+    public Task FixAllDocumentBasic()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 static void Main()
@@ -30,9 +29,7 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName3 = [|typeof(Test).Name|];
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Test
             {
                 static void Main()
@@ -42,17 +39,13 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName3 = nameof(Test);
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task FixAllDocumentVariedSingleLine()
-    {
-        var input = """
+    public Task FixAllDocumentVariedSingleLine()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 static void Main()
@@ -60,9 +53,7 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName1 = [|typeof(Test).Name|]; var typeName2 = [|typeof(int).Name|]; var typeName3 = [|typeof(System.String).Name|];
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Test
             {
                 static void Main()
@@ -70,17 +61,13 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName1 = nameof(Test); var typeName2 = nameof(System.Int32); var typeName3 = nameof(System.String);
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task FixAllDocumentVariedWithUsing()
-    {
-        var input = """
+    public Task FixAllDocumentVariedWithUsing()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class Test
@@ -93,9 +80,7 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName4 = [|typeof(System.Double).Name|];
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -108,17 +93,13 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName4 = nameof(Double);
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task FixAllProject()
-    {
-        await new VerifyCS.Test
+    public Task FixAllProject()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -183,14 +164,12 @@ public partial class ConvertTypeOfToNameOfTests
                 }
             }
         }.RunAsync();
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task FixAllSolution()
-    {
-        await new VerifyCS.Test
+    public Task FixAllSolution()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -291,5 +270,4 @@ public partial class ConvertTypeOfToNameOfTests
                 }
             }
         }.RunAsync();
-    }
 }

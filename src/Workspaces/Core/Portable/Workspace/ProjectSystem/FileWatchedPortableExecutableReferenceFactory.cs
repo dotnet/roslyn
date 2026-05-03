@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ProjectSystem;
@@ -101,14 +102,6 @@ internal sealed class FileWatchedReferenceFactory<TReference>
                 referenceDirectories.Add("/usr/local/share/dotnet/packs");
             }
 
-            // Also watch the NuGet restore path; we don't do this (yet) on Windows due to potential concerns about
-            // whether this creates additional overhead responding to changes during a restore. TODO: remove this
-            // condition
-            if (!PlatformInformation.IsWindows)
-            {
-                referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages"));
-            }
-
             return referenceDirectories.SelectAsArray(static d => new WatchedDirectory(d, [".dll"]));
         }
     }
@@ -141,7 +134,6 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     {
         lock (_gate)
         {
-            var disposalLocation = callerFilePath + ", line " + callerLineNumber;
             if (!_referenceFileWatchingTokens.TryGetValue(fullFilePath, out var watchedFileReference))
             {
                 if (referenceToTrack != null)
@@ -166,6 +158,8 @@ internal sealed class FileWatchedReferenceFactory<TReference>
 
                 if (referenceToTrack != null)
                 {
+                    var disposalLocation = callerFilePath + ", line " + callerLineNumber;
+
                     _previousDisposalLocations.Remove(referenceToTrack);
                     _previousDisposalLocations.Add(referenceToTrack, disposalLocation);
                 }

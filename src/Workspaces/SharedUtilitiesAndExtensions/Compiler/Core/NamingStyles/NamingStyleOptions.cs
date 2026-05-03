@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Microsoft.CodeAnalysis.Host;
 #endif
 
@@ -26,10 +25,15 @@ internal static class NamingStyleOptions
         defaultValue: NamingStylePreferences.Default,
         isEditorConfigOption: true,
         serializer: EditorConfigValueSerializer<NamingStylePreferences>.Unsupported);
+
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> EditorConfigOptions = [NamingPreferences];
 }
 
 internal interface NamingStylePreferencesProvider
-#if !CODE_STYLE
+#if WORKSPACE
     : OptionsProvider<NamingStylePreferences>
 #endif
 {

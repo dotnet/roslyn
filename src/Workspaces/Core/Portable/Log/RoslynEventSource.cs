@@ -125,7 +125,7 @@ internal sealed partial class RoslynEventSource : EventSource
                         where attr is PerfGoalAttribute
                         select ((PerfGoalAttribute)attr).InteractionClass).DefaultIfEmpty(InteractionClass.Undefined).First();
 
-            output.Append(value);
+            output.Append(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             output.Append(' ');
             output.Append(name);
             output.Append(' ');

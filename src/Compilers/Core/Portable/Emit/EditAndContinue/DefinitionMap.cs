@@ -159,16 +159,22 @@ namespace Microsoft.CodeAnalysis.Emit
         public MethodDefinitionHandle GetPreviousMethodHandle(IMethodSymbolInternal oldMethod)
             => GetPreviousMethodHandle(oldMethod, out _);
 
+        public PropertyDefinitionHandle GetPreviousPropertyHandle(IPropertySymbolInternal oldProperty)
+            => GetPreviousPropertyHandle(oldProperty, out _);
+
+        public EventDefinitionHandle GetPreviousEventHandle(IEventSymbolInternal oldEvent)
+            => GetPreviousEventHandle(oldEvent, out _);
+
         /// <summary>
         /// Returns method handle of a method symbol from the immediately preceding generation.
         /// </summary>
         /// <remarks>
-        /// The method may have been defined in any preceding generation but <paramref name="oldMethod"/> symbol must be mapped to
+        /// The method may have been defined in any preceding generation but <paramref name="oldProperty"/> symbol must be mapped to
         /// the immediately preceding one.
         /// </remarks>
-        public MethodDefinitionHandle GetPreviousMethodHandle(IMethodSymbolInternal oldMethod, out IMethodSymbolInternal? peMethod)
+        private MethodDefinitionHandle GetPreviousMethodHandle(IMethodSymbolInternal oldProperty, out IMethodSymbolInternal? peMethod)
         {
-            var oldMethodDef = (Cci.IMethodDefinition)oldMethod.GetCciAdapter();
+            var oldMethodDef = (Cci.IMethodDefinition)oldProperty.GetCciAdapter();
 
             if (Baseline.MethodsAdded.TryGetValue(oldMethodDef, out var methodRowId))
             {
@@ -179,9 +185,61 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 peMethod = (IMethodSymbolInternal?)PreviousSourceToMetadataSymbolMatcher.MapDefinition(oldMethodDef)?.GetInternalSymbol();
                 Debug.Assert(peMethod != null);
-                Debug.Assert(peMethod.MetadataName == oldMethod.MetadataName);
+                Debug.Assert(peMethod.MetadataName == oldProperty.MetadataName);
 
                 return (MethodDefinitionHandle)MetadataTokens.EntityHandle(peMethod.MetadataToken);
+            }
+        }
+
+        /// <summary>
+        /// Returns property handle of a property symbol from the immediately preceding generation.
+        /// </summary>
+        /// <remarks>
+        /// The property may have been defined in any preceding generation but <paramref name="oldProperty"/> symbol must be mapped to
+        /// the immediately preceding one.
+        /// </remarks>
+        private PropertyDefinitionHandle GetPreviousPropertyHandle(IPropertySymbolInternal oldProperty, out IPropertySymbolInternal? peProperty)
+        {
+            var oldPropertyDef = (Cci.IPropertyDefinition)oldProperty.GetCciAdapter();
+
+            if (Baseline.PropertiesAdded.TryGetValue(oldPropertyDef, out var propertyRowId))
+            {
+                peProperty = null;
+                return MetadataTokens.PropertyDefinitionHandle(propertyRowId);
+            }
+            else
+            {
+                peProperty = (IPropertySymbolInternal?)PreviousSourceToMetadataSymbolMatcher.MapDefinition(oldPropertyDef)?.GetInternalSymbol();
+                Debug.Assert(peProperty != null);
+                Debug.Assert(peProperty.MetadataName == oldProperty.MetadataName);
+
+                return (PropertyDefinitionHandle)MetadataTokens.EntityHandle(peProperty.MetadataToken);
+            }
+        }
+
+        /// <summary>
+        /// Returns event handle of a event symbol from the immediately preceding generation.
+        /// </summary>
+        /// <remarks>
+        /// The event may have been defined in any preceding generation but <paramref name="oldEvent"/> symbol must be mapped to
+        /// the immediately preceding one.
+        /// </remarks>
+        private EventDefinitionHandle GetPreviousEventHandle(IEventSymbolInternal oldEvent, out IEventSymbolInternal? peEvent)
+        {
+            var oldEventDef = (Cci.IEventDefinition)oldEvent.GetCciAdapter();
+
+            if (Baseline.EventsAdded.TryGetValue(oldEventDef, out var eventRowId))
+            {
+                peEvent = null;
+                return MetadataTokens.EventDefinitionHandle(eventRowId);
+            }
+            else
+            {
+                peEvent = (IEventSymbolInternal?)PreviousSourceToMetadataSymbolMatcher.MapDefinition(oldEventDef)?.GetInternalSymbol();
+                Debug.Assert(peEvent != null);
+                Debug.Assert(peEvent.MetadataName == oldEvent.MetadataName);
+
+                return (EventDefinitionHandle)MetadataTokens.EntityHandle(peEvent.MetadataToken);
             }
         }
 
@@ -295,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
                         MessageProvider.ERR_InvalidDebugInfo,
-                        method.Locations.First(),
+                        method.GetFirstLocation(),
                         method,
                         MetadataTokens.GetToken(methodHandle),
                         method.ContainingAssembly,
@@ -380,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     {
                         diagnostics.Add(MessageProvider.CreateDiagnostic(
                             MessageProvider.ERR_InvalidDebugInfo,
-                            method.Locations.First(),
+                            method.GetFirstLocation(),
                             method,
                             MetadataTokens.GetToken(localSignature),
                             method.ContainingAssembly,
@@ -421,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             diagnostics.Add(MessageProvider.CreateDiagnostic(
                 MessageProvider.ERR_EncUpdateFailedMissingSymbol,
-                method.Locations.First(),
+                method.GetFirstLocation(),
                 CodeAnalysisResources.Attribute,
                 stateMachineAttributeFullName));
         }

@@ -126,7 +126,7 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
                 document.Project,
                 codeFixProvider,
                 FixAllScope.Solution,
-                codeActionEquivalenceKey: action?.EquivalenceKey!, // FixAllState supports null equivalence key. This should still be supported.
+                codeActionEquivalenceKey: action?.EquivalenceKey, // FixAllState supports null equivalence key. This should still be supported.
                 diagnosticIds: codeFixProvider.FixableDiagnosticIds,
                 fixAllDiagnosticProvider: diagnosticProvider),
             progressTracker,
@@ -169,8 +169,7 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
         {
             var projectDiagnostics = await GetProjectDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
             return projectDiagnostics
-                .Where(diagnostic => diagnostic.Location.SourceTree?.FilePath == document.FilePath)
-                .ToImmutableArray();
+                .WhereAsArray(diagnostic => diagnostic.Location.SourceTree?.FilePath == document.FilePath);
         }
 
         public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)

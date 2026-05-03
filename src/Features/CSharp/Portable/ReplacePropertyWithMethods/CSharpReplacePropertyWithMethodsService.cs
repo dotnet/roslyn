@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,7 +20,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods;
 
@@ -36,7 +36,7 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService() :
         Document document,
         IPropertySymbol property,
         SyntaxNode propertyDeclarationNode,
-        IFieldSymbol propertyBackingField,
+        IFieldSymbol? propertyBackingField,
         string desiredGetMethodName,
         string desiredSetMethodName,
         CancellationToken cancellationToken)
@@ -134,10 +134,15 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService() :
 
             methodDeclaration = methodDeclaration.WithAttributeLists(setAccessorDeclaration.AttributeLists);
 
+            // If this is a partial definition, return a declaration without a body
+            if (setMethod.IsPartialDefinition)
+                return methodDeclaration;
+
             if (setAccessorDeclaration.Body != null)
             {
                 return methodDeclaration.WithBody(setAccessorDeclaration.Body)
-                                        .WithAdditionalAnnotations(Formatter.Annotation);
+                                        .WithAdditionalAnnotations(Formatter.Annotation)
+                                        .WithSemicolonToken(default);
             }
             else if (setAccessorDeclaration.ExpressionBody != null)
             {
@@ -186,6 +191,10 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService() :
             {
                 methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
+
+            // If this is a partial definition, return a declaration without a body
+            if (getMethod.IsPartialDefinition)
+                return methodDeclaration;
 
             if (propertyDeclaration.ExpressionBody != null)
             {

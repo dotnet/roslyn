@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -27,6 +26,6 @@ internal sealed class WorkspaceEditAndContinueDiagnosticSourceProvider() : IDiag
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
-        return EditAndContinueDiagnosticSource.CreateWorkspaceDiagnosticSourcesAsync(context.Solution!, document => context.IsTracking(document.GetURI()), cancellationToken);
+        return EditAndContinueDiagnosticSource.CreateWorkspaceDiagnosticSourcesAsync(context.Solution, document => context.IsTracking(document.GetURI()), cancellationToken);
     }
 }

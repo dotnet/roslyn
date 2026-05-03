@@ -9,24 +9,23 @@ using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeRefactorings.WorkspaceServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.CodeRefactorings.WorkspaceServices
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.CodeRefactorings.WorkspaceServices;
+
+[Shared]
+[ExportWorkspaceService(typeof(ISymbolRenamedCodeActionOperationFactoryWorkspaceService))]
+internal sealed class OmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService : ISymbolRenamedCodeActionOperationFactoryWorkspaceService
 {
-    [Shared]
-    [ExportWorkspaceService(typeof(ISymbolRenamedCodeActionOperationFactoryWorkspaceService))]
-    internal sealed class OmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService : ISymbolRenamedCodeActionOperationFactoryWorkspaceService
+    private readonly IOmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService _service;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public OmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService(IOmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService service)
     {
-        private readonly IOmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService _service;
+        _service = service;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService(IOmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService service)
-        {
-            _service = service;
-        }
-
-        public CodeActionOperation CreateSymbolRenamedOperation(ISymbol symbol, string newName, Solution startingSolution, Solution updatedSolution)
-        {
-            return _service.CreateSymbolRenamedOperation(symbol, newName, startingSolution, updatedSolution);
-        }
+    public CodeActionOperation CreateSymbolRenamedOperation(ISymbol symbol, string newName, Solution startingSolution, Solution updatedSolution)
+    {
+        return _service.CreateSymbolRenamedOperation(symbol, newName, startingSolution, updatedSolution);
     }
 }

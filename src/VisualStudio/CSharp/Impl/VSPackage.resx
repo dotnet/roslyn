@@ -283,26 +283,6 @@ Insert space before and after binary operators;</value>
     <value>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</value>
     <comment>C# Formatting &gt; Wrapping options page keywords</comment>
   </data>
-  <data name="312" xml:space="preserve">
-    <value>Change completion list settings;Pre-select most recently used member; Completion Lists;
-Show completion list after a character is typed;
-Show completion list after a character is deleted;
-Automatically show completion list in argument lists (experimental);
-Highlight matching portions of completion list items;
-Show completion item filters;
-Automatically complete statement on semicolon;
-Snippets behavior;
-Never include snippets;
-Always include snippets;
-Include snippets when ?-Tab is typed after an identifier;
-Enter key behavior;
-Never add new line on enter;
-Only add new line on enter after end of fully typed word;
-Always add new line on enter;
-Show name suggestions;
-Show items from unimported namespaces (experimental);</value>
-    <comment>C# IntelliSense options page keywords</comment>
-  </data>
   <data name="107" xml:space="preserve">
     <value>Formatting</value>
     <comment>"Formatting" category node under Tools &gt; Options, Text Editor, C#, Code Style (no corresponding keywords)</comment>

@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.Remoting.Contexts;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
@@ -27,7 +31,11 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
 
     protected virtual void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
     {
-        activeSession.InitiateCommit(operationContext);
+        var token = listener.BeginAsyncOperation(nameof(ExecuteCommand));
+
+        // CommitAsync will display UI to the user while this asynchronous work is being done.
+        activeSession.CommitAsync(previewChanges: false, operationContext)
+            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
         SetFocusToTextView(textView);
     }
 }

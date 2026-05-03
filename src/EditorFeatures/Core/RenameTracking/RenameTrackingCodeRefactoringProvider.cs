@@ -8,13 +8,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.RenameTracking), Shared]
-internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
 {
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
@@ -32,7 +33,7 @@ internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
         this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
     }
 
-    public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+    public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, span, _) = context;
 
@@ -41,8 +42,6 @@ internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
 
         if (action != null)
             context.RegisterRefactoring(action, renameSpan);
-
-        return Task.CompletedTask;
     }
 
     /// <summary>

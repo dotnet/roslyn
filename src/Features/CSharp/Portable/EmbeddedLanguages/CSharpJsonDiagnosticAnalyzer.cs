@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpJsonDiagnosticAnalyzer : AbstractJsonDiagnosticAnalyzer
+internal sealed class CSharpJsonDiagnosticAnalyzer : AbstractJsonDiagnosticAnalyzer
 {
     public CSharpJsonDiagnosticAnalyzer()
         : base(CSharpEmbeddedLanguagesProvider.Info)

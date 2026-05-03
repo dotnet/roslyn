@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (IsToken)
             {
-                token = AsToken()!;
+                token = AsToken();
                 return true;
             }
 
@@ -868,7 +869,7 @@ namespace Microsoft.CodeAnalysis
         private static void GetDirectives<TDirective>(SyntaxNode node, Func<TDirective, bool>? filter, ref List<TDirective>? directives)
             where TDirective : SyntaxNode
         {
-            foreach (var trivia in node.DescendantTrivia(node => node.ContainsDirectives, descendIntoTrivia: true))
+            foreach (var trivia in node.DescendantTrivia(descendIntoChildrenGreen: static node => node.ContainsDirectives, descendIntoChildrenRed: null, descendIntoTrivia: true))
             {
                 GetDirectivesInTrivia(trivia, filter, ref directives);
             }

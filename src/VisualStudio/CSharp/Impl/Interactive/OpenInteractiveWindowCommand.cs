@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 /// Implements View/Other Windows/C# Interactive command.
 /// </summary>
 [VisualStudioContribution]
-internal class OpenInteractiveWindowCommand(
+internal sealed class OpenInteractiveWindowCommand(
     MefInjection<IThreadingContext> mefThreadingContext,
     MefInjection<CSharpVsInteractiveWindowProvider> mefInteractiveWindowProvider) : Command
 {

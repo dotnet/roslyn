@@ -113,10 +113,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (8,26): error CS1004: Duplicate 'async' modifier
                 //         Action v = async async delegate() { };
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(8, 26),
-                // (8,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action v = async async delegate() { };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(8, 32));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(8, 26)
+            );
         }
 
         [Fact]
@@ -311,10 +309,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (8,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Action v = static async delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20),
-                // (8,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action v = static async delegate() { };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20)
+            );
         }
 
         [Fact]
@@ -412,10 +408,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (8,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Action v = static async delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20),
-                // (8,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action v = static async delegate() { };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20)
+            );
         }
 
         [Fact]
@@ -765,10 +759,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
-                // (9,46): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> v = async async => async;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 46));
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -1873,7 +1864,7 @@ public class C
             var test = @"delegate*<void> ptr = &() => { };";
             var testWithStatement = @$"class C {{ void M() {{ {test} }} }}";
 
-            CreateCompilation(testWithStatement).VerifyDiagnostics(
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class C { void M() { delegate*<void> ptr = &() => { }; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 22),
@@ -1886,6 +1877,20 @@ public class C
                 // (1,51): error CS1002: ; expected
                 // class C { void M() { delegate*<void> ptr = &() => { }; } }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 51));
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (1,46): error CS1525: Invalid expression term ')'
+                // class C { void M() { delegate*<void> ptr = &() => { }; } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 46),
+                // (1,48): error CS1003: Syntax error, ',' expected
+                // class C { void M() { delegate*<void> ptr = &() => { }; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 48),
+                // (1,51): error CS1002: ; expected
+                // class C { void M() { delegate*<void> ptr = &() => { }; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 51),
+            };
+            CreateCompilation(testWithStatement).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
             CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,22): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class C { void M() { delegate*<void> ptr = &() => { }; } }
@@ -1979,7 +1984,7 @@ public class C
             var test = @"delegate*<void> ptr = &static () => { };";
             var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
 
-            CreateCompilation(testInMethod).VerifyDiagnostics(
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class C { void M() { delegate*<void> ptr = &static () => { }; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 22),
@@ -2004,6 +2009,32 @@ public class C
                 // (1,58): error CS1002: ; expected
                 // class C { void M() { delegate*<void> ptr = &static () => { }; } }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 58));
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (1,45): error CS1525: Invalid expression term 'static'
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 45),
+                // (1,45): error CS1002: ; expected
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(1, 45),
+                // (1,45): error CS0106: The modifier 'static' is not valid for this item
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(1, 45),
+                // (1,53): error CS8124: Tuple must contain at least two elements.
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 53),
+                // (1,55): error CS1001: Identifier expected
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 55),
+                // (1,55): error CS1003: Syntax error, ',' expected
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 55),
+                // (1,58): error CS1002: ; expected
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 58),
+            };
+            CreateCompilation(testInMethod).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(testInMethod, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
             CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,22): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class C { void M() { delegate*<void> ptr = &static () => { }; } }
@@ -2102,13 +2133,21 @@ public class C
         {
             var test = @"delegate*<void> ptr = &delegate() { };";
 
-            CreateCompilation(test).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // delegate*<void> ptr = &delegate() { };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
                 // (1,24): error CS0211: Cannot take the address of the given expression
                 // delegate*<void> ptr = &delegate() { };
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "delegate() { }").WithLocation(1, 24));
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (1,24): error CS0211: Cannot take the address of the given expression
+                // delegate*<void> ptr = &delegate() { };
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "delegate() { }").WithLocation(1, 24),
+            };
+            CreateCompilation(test).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
             CreateCompilation(test, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // delegate*<void> ptr = &delegate() { };
@@ -2191,13 +2230,21 @@ public class C
             var test = @"delegate*<void> ptr = &delegate() { };";
             var testWithStatement = @$"class C {{ void M() {{ {test} }} }}";
 
-            CreateCompilation(testWithStatement).VerifyDiagnostics(
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class C { void M() { delegate*<void> ptr = &delegate() { }; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 22),
                 // (1,45): error CS0211: Cannot take the address of the given expression
                 // class C { void M() { delegate*<void> ptr = &delegate() { }; } }
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "delegate() { }").WithLocation(1, 45));
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (1,45): error CS0211: Cannot take the address of the given expression
+                // class C { void M() { delegate*<void> ptr = &delegate() { }; } }
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "delegate() { }").WithLocation(1, 45),
+            };
+            CreateCompilation(testWithStatement).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
             CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,22): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class C { void M() { delegate*<void> ptr = &delegate() { }; } }
@@ -2578,10 +2625,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (9,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = static async async => async;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 34),
-                // (9,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> v = static async async => async;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 53));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 34)
+            );
         }
 
         [Fact]
@@ -2726,10 +2771,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (9,40): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = async static async => async;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
-                // (9,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> v = async static async => async;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 53));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40)
+            );
         }
 
         [Fact]
@@ -2878,10 +2921,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
                 // (9,47): error CS1004: Duplicate 'async' modifier
                 //         Func<int, Task<int>> v = async static async async => async;
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47),
-                // (9,59): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> v = async static async async => async;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 59));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47)
+            );
         }
 
         [Fact]
@@ -3137,10 +3178,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
-                // (9,48): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> v = async (async) => async;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 48));
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -3404,10 +3442,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (9,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = static async (async) => async;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 34),
-                // (9,55): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> v = static async (async) => async;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 55));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 34)
+            );
         }
 
         [Fact]
@@ -3557,10 +3593,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (9,40): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = async static (async) => async;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
-                // (9,55): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> v = async static (async) => async;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 55));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40)
+            );
         }
 
         [Fact]
@@ -3714,10 +3748,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
                 // (9,47): error CS1004: Duplicate 'async' modifier
                 //         Func<int, Task<int>> v = async static async (async) => async;
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47),
-                // (9,61): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> v = async static async (async) => async;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 61));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47)
+            );
         }
 
         [Fact]
@@ -3991,10 +4023,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
-                // (10,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<Task<int>> v = async () => a;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 38));
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -4276,10 +4305,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (10,29): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<Task<int>> v = static async () => a;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 29),
-                // (10,45): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<Task<int>> v = static async () => a;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 45));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 29)
+            );
         }
 
         [Fact]
@@ -4438,10 +4465,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (10,35): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<Task<int>> v = async static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 35),
-                // (10,45): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<Task<int>> v = async static () => a;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 45));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 35)
+            );
         }
 
         [Fact]
@@ -4604,10 +4629,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 35),
                 // (10,42): error CS1004: Duplicate 'async' modifier
                 //         Func<Task<int>> v = async static async () => a;
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(10, 42),
-                // (10,51): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<Task<int>> v = async static async () => a;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 51));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(10, 42)
+            );
         }
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -80,13 +81,13 @@ namespace Microsoft.CodeAnalysis
             EscapeName(sb, Name);
 
             sb.Append(", Version=");
-            sb.Append(_version.Major);
+            sb.Append(_version.Major.ToString(System.Globalization.CultureInfo.InvariantCulture));
             sb.Append('.');
-            sb.Append(_version.Minor);
+            sb.Append(_version.Minor.ToString(System.Globalization.CultureInfo.InvariantCulture));
             sb.Append('.');
-            sb.Append(_version.Build);
+            sb.Append(_version.Build.ToString(System.Globalization.CultureInfo.InvariantCulture));
             sb.Append('.');
-            sb.Append(_version.Revision);
+            sb.Append(_version.Revision.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             sb.Append(", Culture=");
             if (_cultureName.Length == 0)
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis
         /// Perf: ETW traces show 2%+ of all allocations parsing assembly identity names.  This is due to how large
         /// these strings can be (600+ characters in some cases), and how many substrings are continually produced as
         /// the string is broken up into the pieces needed by AssemblyIdentity.  The capacity of 1024 was picked as
-        /// around 700 unique strings were found in a solution the size of Roslyn.sln.  So this seems like a reasonable
+        /// around 700 unique strings were found in a solution the size of Roslyn.slnx.  So this seems like a reasonable
         /// starting point for a large solution.  This cache takes up around 240k in memory, but ends up saving >80MB of
         /// garbage over typing even a few characters.  And, of course, that savings just grows over the lifetime of a
         /// session this is hosted within.

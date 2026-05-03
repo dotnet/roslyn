@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public class TestHostSolution(params TestHostProject[] projects)
+public sealed class TestHostSolution(params TestHostProject[] projects)
     : TestHostSolution<TestHostDocument>(projects)
 {
     public TestHostSolution(

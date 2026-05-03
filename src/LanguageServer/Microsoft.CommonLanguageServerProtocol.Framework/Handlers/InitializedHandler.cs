@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
 [LanguageServerEndpoint("initialized", LanguageServerConstants.DefaultLanguageName)]
-internal class InitializedHandler<TRequest, TRequestContext> : INotificationHandler<TRequest, TRequestContext>
+internal sealed class InitializedHandler<TRequest, TRequestContext> : INotificationHandler<TRequest, TRequestContext>
 {
     private bool HasBeenInitialized = false;
 
     public bool MutatesSolutionState => true;
 
-    public Task HandleNotificationAsync(TRequest request, TRequestContext requestContext, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(TRequest request, TRequestContext requestContext, CancellationToken cancellationToken)
     {
         if (HasBeenInitialized)
         {
@@ -26,7 +26,5 @@ internal class InitializedHandler<TRequest, TRequestContext> : INotificationHand
         }
 
         HasBeenInitialized = true;
-
-        return Task.CompletedTask;
     }
 }

@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -105,21 +106,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             If _addMethod Is Nothing Then
                                 _addMethod = accessor
                             Else
-                                diagnostics.Add(ERRID.ERR_DuplicateAddHandlerDef, accessor.Locations(0))
+                                diagnostics.Add(ERRID.ERR_DuplicateAddHandlerDef, accessor.GetFirstLocation())
                             End If
 
                         Case MethodKind.EventRemove
                             If _removeMethod Is Nothing Then
                                 _removeMethod = accessor
                             Else
-                                diagnostics.Add(ERRID.ERR_DuplicateRemoveHandlerDef, accessor.Locations(0))
+                                diagnostics.Add(ERRID.ERR_DuplicateRemoveHandlerDef, accessor.GetFirstLocation())
                             End If
 
                         Case MethodKind.EventRaise
                             If _raiseMethod Is Nothing Then
                                 _raiseMethod = accessor
                             Else
-                                diagnostics.Add(ERRID.ERR_DuplicateRaiseEventDef, accessor.Locations(0))
+                                diagnostics.Add(ERRID.ERR_DuplicateRaiseEventDef, accessor.GetFirstLocation())
                             End If
 
                         Case Else
@@ -367,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim method As New CustomEventAccessorSymbol(
                 Me._containingType,
                 Me,
-                binder.GetAccessorName(Me.Name, flags.ToMethodKind(), isWinMd:=False),
+                Binder.GetAccessorName(Me.Name, flags.ToMethodKind(), isWinMd:=False),
                 flags,
                 binder.GetSyntaxReference(syntax),
                 location)
@@ -754,7 +755,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                 Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 type.CheckAllConstraints(DeclaringCompilation.LanguageVersion,
-                                     Locations(0), diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, sourceModule.ContainingAssembly))
+                                     GetFirstLocation(), diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, sourceModule.ContainingAssembly))
                 sourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.TypeConstraintsChecked, 0, diagnostics)
                 diagnostics.Free()
             End If

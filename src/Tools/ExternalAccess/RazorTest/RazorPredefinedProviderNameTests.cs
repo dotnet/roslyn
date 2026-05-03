@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests
         {
             return namesType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
                 .Where(field => field.FieldType == typeof(string))
-                .ToImmutableDictionary(field => field.Name, field => (string)field.GetValue(null));
+                .ToImmutableDictionary(field => field.Name, field => (string)field.GetValue(null)!);
         }
 
         private static ImmutableDictionary<string, string> GetPredefinedNamesFromProperties(Type namesType)
         {
             return namesType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
                 .Where(property => property.PropertyType == typeof(string))
-                .ToImmutableDictionary(property => property.Name, property => (string)property.GetValue(null));
+                .ToImmutableDictionary(property => property.Name, property => (string)property.GetValue(null)!);
         }
     }
 }

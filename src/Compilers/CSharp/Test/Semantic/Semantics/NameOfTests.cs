@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -1082,7 +1083,7 @@ public class Program
                     AssertEx.SetEqual(
                         symbols.Select(s => s.GetPublicSymbol()),
                         symbolInfo.CandidateSymbols,
-                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                        ReferenceEqualityComparer.Instance);
                 }
             }
 
@@ -1246,7 +1247,7 @@ public class Program
                     AssertEx.SetEqual(
                         symbols.Select(s => s.GetPublicSymbol()),
                         symbolInfo.CandidateSymbols,
-                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                        ReferenceEqualityComparer.Instance);
                 }
             }
 
@@ -2347,7 +2348,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
-        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler2()
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler2_01()
         {
             var source = @"
 class C
@@ -2361,6 +2362,50 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 // (4,18): error CS8082: Sub-expression cannot be used in an argument to nameof.
                 //     [Attr(nameof(Method<C>().Method))]
                 Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "Method<C>()").WithLocation(4, 18)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,18): error CS0120: An object reference is required for the non-static field, method, or property 'C.Method<C>()'
+                //     [Attr(nameof(Method<C>().Method))]
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Method<C>").WithArguments("C.Method<C>()").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler2_02()
+        {
+            var source = @"
+class C
+{
+    [Attr(nameof(P.P))]
+    C P => default;
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,18): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     [Attr(nameof(P.P))]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "P").WithArguments("instance member in 'nameof'", "12.0").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler2_03()
+        {
+            var source = @"
+class C
+{
+    [Attr(nameof(this.P.P))]
+    C P => default;
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            var expectedDiagnostics = new[]
+            {
+                // (4,18): error CS0027: Keyword 'this' is not available in the current context
+                //     [Attr(nameof(this.P.P))]
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(4, 18)
             };
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
@@ -2389,9 +2434,9 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 var v = nameof(List<>);
                 Console.WriteLine(v);
                 """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                    // (4,16): error CS8652: The feature 'unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // var v = nameof(List<>);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "List<>").WithArguments("unbound generic types in nameof operator").WithLocation(4, 16));
+                // (4,16): error CS9260: Feature 'unbound generic types in nameof operator' is not available in C# 13.0. Please use language version 14.0 or greater.
+                // var v = nameof(List<>);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "List<>").WithArguments("unbound generic types in nameof operator", "14.0").WithLocation(4, 16));
         }
 
         [Fact]
@@ -2403,7 +2448,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(List<>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularNext, expectedOutput: "List").VerifyDiagnostics();
+                """, parseOptions: TestOptions.Regular14, expectedOutput: "List").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2417,9 +2462,9 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 class A<X> { public class B<Y>; }
                 """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (3,16): error CS8652: The feature 'unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,16): error CS9260: Feature 'unbound generic types in nameof operator' is not available in C# 13.0. Please use language version 14.0 or greater.
                 // var v = nameof(A<>.B<int>);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("unbound generic types in nameof operator").WithLocation(3, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "A<>").WithArguments("unbound generic types in nameof operator", "14.0").WithLocation(3, 16));
         }
 
         [Fact]
@@ -2433,9 +2478,9 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 class A<X> { public class B<Y>; }
                 """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (3,23): error CS8652: The feature 'unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,23): error CS9260: Feature 'unbound generic types in nameof operator' is not available in C# 13.0. Please use language version 14.0 or greater.
                 // var v = nameof(A<int>.B<>);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("unbound generic types in nameof operator").WithLocation(3, 23));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "B<>").WithArguments("unbound generic types in nameof operator", "14.0").WithLocation(3, 23));
         }
 
         [Fact]
@@ -2449,12 +2494,12 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 class A<X> { public class B<Y>; }
                 """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                    // (3,16): error CS8652: The feature 'unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // var v = nameof(A<>.B<>);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("unbound generic types in nameof operator").WithLocation(3, 16),
-                    // (3,20): error CS8652: The feature 'unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // var v = nameof(A<>.B<>);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("unbound generic types in nameof operator").WithLocation(3, 20));
+                // (3,16): error CS9260: Feature 'unbound generic types in nameof operator' is not available in C# 13.0. Please use language version 14.0 or greater.
+                // var v = nameof(A<>.B<>);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "A<>").WithArguments("unbound generic types in nameof operator", "14.0").WithLocation(3, 16),
+                // (3,20): error CS9260: Feature 'unbound generic types in nameof operator' is not available in C# 13.0. Please use language version 14.0 or greater.
+                // var v = nameof(A<>.B<>);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "B<>").WithArguments("unbound generic types in nameof operator", "14.0").WithLocation(3, 20));
         }
 
         [Fact]
@@ -3069,6 +3114,276 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             Assert.NotNull(igooType);
 
             Assert.Equal(igooType, nameofType);
+        }
+
+        [Fact]
+        public void Nameof_Indexer_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                var d = new Dictionary<string, string>();
+                _ = nameof(d[""]);
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8081: Expression does not have a name.
+                // _ = nameof(d[""]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, @"d[""""]").WithLocation(3, 12));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_02()
+        {
+            string source = """
+                var a = new object[1];
+                _ = nameof(a[0]);
+                _ = nameof(a[^1]);
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (2,12): error CS8081: Expression does not have a name.
+                // _ = nameof(a[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "a[0]").WithLocation(2, 12),
+                // (3,12): error CS8081: Expression does not have a name.
+                // _ = nameof(a[^1]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "a[^1]").WithLocation(3, 12));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_03()
+        {
+            string source = """
+                using System;
+                var s = new Span<int>();
+                _ = nameof(s[0]);
+                _ = nameof(s[^1]);
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8081: Expression does not have a name.
+                // _ = nameof(s[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "s[0]").WithLocation(3, 12),
+                // (4,12): error CS8081: Expression does not have a name.
+                // _ = nameof(s[^1]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "s[^1]").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_04()
+        {
+            string source = """
+                class C<T>
+                {
+                    public ref T this[int i] => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new C<object>();
+                        _ = nameof(x[0]);
+                        _ = nameof(x[0] = default);
+                        var y = new C<int>();
+                        _ = nameof(y[0] += 1);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(x[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "x[0]").WithLocation(10, 20),
+                // (11,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(x[0] = default);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "x[0] = default").WithLocation(11, 20),
+                // (13,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(y[0] += 1);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "y[0] += 1").WithLocation(13, 20));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_05()
+        {
+            string source = """
+                ref struct R<T>
+                {
+                    public T this[int i] => default;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R<object>();
+                        _ = nameof(r[0]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0]").WithLocation(10, 20));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_06()
+        {
+            string source = """
+                ref struct R<T>
+                {
+                    public T this[int i] { set { } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R<object>();
+                        _ = nameof(r[0]);
+                        _ = nameof(r[0] = default);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0]").WithLocation(10, 20),
+                // (10,20): error CS0154: The property or indexer 'R<object>.this[int]' cannot be used in this context because it lacks the get accessor
+                //         _ = nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "r[0]").WithArguments("R<object>.this[int]").WithLocation(10, 20),
+                // (11,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(r[0] = default);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0] = default").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_07()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                ref struct R<T>
+                {
+                    private ref readonly int _i;
+                    public T this[[UnscopedRef] in int i] { get { _i = ref i; return default; } }
+                }
+                class Program
+                {
+                    static R<string> F(bool b)
+                    {
+                        var r = new R<string>();
+                        _ = b ?
+                            r[0] :
+                            nameof(r[0]);
+                        return r;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (13,13): error CS8350: This combination of arguments to 'R<string>.this[in int]' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             r[0] :
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[0]").WithArguments("R<string>.this[in int]", "i").WithLocation(13, 13),
+                // (13,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //             r[0] :
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "0").WithLocation(13, 15),
+                // (14,20): error CS8081: Expression does not have a name.
+                //             nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0]").WithLocation(14, 20),
+                // (14,20): error CS8350: This combination of arguments to 'R<string>.this[in int]' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[0]").WithArguments("R<string>.this[in int]", "i").WithLocation(14, 20),
+                // (14,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //             nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "0").WithLocation(14, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81738")]
+        public void NameofInObjectInitializerImplicitIndexer()
+        {
+            CompileAndVerify("""
+                using System.Collections.Generic;
+                class C
+                {
+                    private readonly Dictionary<string, int> _map = new();
+                    public int this[string key]
+                    {
+                        get => _map[key];
+                        set => _map[key] = value;
+                    }
+                    public int P { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C { [nameof(C.P)] = 42 };
+                        System.Console.Write(c[nameof(C.P)]);
+                    }
+                }
+                """, expectedOutput: "42").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81738")]
+        public void NameofOnObjectInitializerRightHandSide()
+        {
+            CompileAndVerify("""
+                class C
+                {
+                    public string P { get; set; }
+                    public string Q { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C { P = nameof(C.Q) };
+                        System.Console.Write(c.P);
+                    }
+                }
+                """, expectedOutput: "Q").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
+        public void ColorColor_FieldInitializer([CombinatorialValues("", "static")] string modifier)
+        {
+            var source = $$"""
+                #pragma warning disable CS0169, CS0414, CS0649 // unused field
+                class C
+                {
+                    string F = nameof(D.M);
+                    D D;
+                }
+                class D
+                {
+                    public {{modifier}} void M() { }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyEmitDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
+        public void ColorColor_Attribute([CombinatorialValues("", "static")] string modifier)
+        {
+            var source = $$"""
+                #pragma warning disable CS0169 // unused field
+                [A(nameof(D.M))] class C
+                {
+                    D D;
+                }
+                class D
+                {
+                    public {{modifier}} void M() { }
+                }
+                class A : System.Attribute
+                {
+                    public A(string s) { }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyEmitDiagnostics();
         }
     }
 }

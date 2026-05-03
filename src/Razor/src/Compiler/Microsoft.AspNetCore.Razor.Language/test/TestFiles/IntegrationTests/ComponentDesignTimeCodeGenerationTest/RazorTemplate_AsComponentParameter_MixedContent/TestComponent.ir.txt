@@ -1,0 +1,35 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [54] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (2:0,2 [54] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  RenderFragment<Test.Context> template = (context) => 
+                Template - (57:0,57 [50] x:\dir\subdir\Test\TestComponent.cshtml)
+                    MarkupElement - (57:0,57 [50] x:\dir\subdir\Test\TestComponent.cshtml) - li
+                        HtmlContent - (61:0,61 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (61:0,61 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - #
+                        CSharpExpression - (63:0,63 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (63:0,63 [13] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.Index
+                        HtmlContent - (76:0,76 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (76:0,76 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \-
+                        CSharpExpression - (80:0,80 [22] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (80:0,80 [22] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.Item.ToLower()
+                CSharpCode - (107:0,107 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (107:0,107 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ; 
+                Component - (112:1,0 [35] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (135:1,23 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Template - Template - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (136:1,24 [8] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - template
+                HtmlContent - (147:1,35 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (147:1,35 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n

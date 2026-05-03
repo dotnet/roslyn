@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime;
@@ -24,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal abstract partial class BrokeredServiceBase : IDisposable
 {
     protected readonly TraceSource TraceLogger;
-    protected readonly RemoteWorkspaceManager WorkspaceManager;
+    protected RemoteWorkspaceManager WorkspaceManager
+        => TestData?.WorkspaceManager ?? RemoteWorkspaceManager.Default;
 
     protected readonly SolutionAssetSource SolutionAssetSource;
     protected readonly ServiceBrokerClient ServiceBrokerClient;
@@ -61,7 +61,6 @@ internal abstract partial class BrokeredServiceBase : IDisposable
         TraceLogger = traceSource;
 
         TestData = (RemoteHostTestData?)arguments.ServiceProvider.GetService(typeof(RemoteHostTestData));
-        WorkspaceManager = TestData?.WorkspaceManager ?? RemoteWorkspaceManager.Default;
 
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
         ServiceBrokerClient = new ServiceBrokerClient(arguments.ServiceBroker);
@@ -78,6 +77,9 @@ internal abstract partial class BrokeredServiceBase : IDisposable
 
     public SolutionServices GetWorkspaceServices()
         => GetWorkspace().Services.SolutionServices;
+
+    public static TService GetRequiredService<TService>()
+        => RemoteExportProviderBuilder.ExportProvider.GetExportedValue<TService>();
 
     protected void Log(TraceEventType errorType, string message)
         => TraceLogger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
@@ -195,7 +197,7 @@ internal abstract partial class BrokeredServiceBase : IDisposable
             //   "appBasePath": "%VSAPPIDDIR%"
             //
 
-            var loadDir = AppDomain.CurrentDomain.BaseDirectory!;
+            var loadDir = AppDomain.CurrentDomain.BaseDirectory;
 
             try
             {

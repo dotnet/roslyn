@@ -105,7 +105,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             if (ienumerableType is null)
                 return default;
 
-            if (!IsConstructibleCollectionType(
+            if (!CollectionExpressionUtilities.IsConstructibleCollectionType(
                     semanticModel.Compilation, ienumerableType.TypeArguments.Single()))
             {
                 return default;
@@ -196,7 +196,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 initializer.OpenBraceToken.GetLocation(),
                 option.Notification,
                 context.Options,
-                additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
+                additionalLocations: [initializer.GetLocation()],
                 properties: changesSemantics ? ChangesSemantics : null));
         }
     }

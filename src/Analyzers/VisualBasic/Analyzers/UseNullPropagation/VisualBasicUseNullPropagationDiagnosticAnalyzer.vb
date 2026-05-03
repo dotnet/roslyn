@@ -2,17 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Threading
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseNullPropagation
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicUseNullPropagationDiagnosticAnalyzer
+    Friend NotInheritable Class VisualBasicUseNullPropagationDiagnosticAnalyzer
         Inherits AbstractUseNullPropagationDiagnosticAnalyzer(Of
             SyntaxKind,
             ExpressionSyntax,
@@ -25,6 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             MemberAccessExpressionSyntax,
             MultiLineIfBlockSyntax,
             ExpressionStatementSyntax)
+
+        Public Shared ReadOnly Instance As New VisualBasicUseNullPropagationDiagnosticAnalyzer()
 
         Protected Overrides ReadOnly Property IfStatementSyntaxKind As SyntaxKind = SyntaxKind.MultiLineIfBlock
 
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Protected Overrides Function TryGetPartsOfIfStatement(
                 ifStatement As MultiLineIfBlockSyntax,
                 ByRef condition As ExpressionSyntax,
-                ByRef trueStatement As ExecutableStatementSyntax) As Boolean
+                ByRef trueStatements As ImmutableArray(Of ExecutableStatementSyntax)) As Boolean
 
             condition = ifStatement.IfStatement.Condition
 
@@ -56,12 +56,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
                 Return False
             End If
 
-            If ifStatement.Statements.Count <> 1 Then
+            If ifStatement.Statements.Count > 2 Then
                 Return False
             End If
 
-            trueStatement = TryCast(ifStatement.Statements(0), ExecutableStatementSyntax)
-            Return trueStatement IsNot Nothing
+            If Not ifStatement.Statements.All(Function(s) TypeOf s Is ExecutableStatementSyntax) Then
+                Return False
+            End If
+
+            trueStatements = ifStatement.Statements.Cast(Of ExecutableStatementSyntax)().ToImmutableArrayOrEmpty()
+            Return True
         End Function
     End Class
 End Namespace

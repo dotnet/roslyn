@@ -13,27 +13,23 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
-public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumentTests
+public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumentTests
 {
     [Fact]
-    public async Task Net6SdkLayout_InvalidXml()
-    {
-        var source = """
+    public Task Net6SdkLayout_InvalidXml()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 // A change
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var packDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "ref", "net6.0")).FullName;
             var dataDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "data")).FullName;
@@ -56,22 +52,18 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
 
             Assert.False(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
         });
-    }
 
     [Fact]
-    public async Task Net6SdkLayout()
-    {
-        var source = """
+    public Task Net6SdkLayout()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 // A change
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var packDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "ref", "net6.0")).FullName;
             var dataDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "data")).FullName;
@@ -96,22 +88,18 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             Assert.True(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
             Assert.Equal(GetDllPath(sharedDir), implementationDll);
         });
-    }
 
     [Fact]
-    public async Task Net6SdkLayout_PacksInPath()
-    {
-        var source = """
+    public Task Net6SdkLayout_PacksInPath()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 // A change
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             path = Path.Combine(path, "packs", "installed", "here");
 
@@ -138,34 +126,28 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             Assert.True(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
             Assert.Equal(GetDllPath(sharedDir), implementationDll);
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards()
-    {
-        var source = """
+    public Task FollowTypeForwards()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 // A change
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-        var typeForwardSource = """
-            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
 
@@ -182,19 +164,21 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             assemblyName = "typeforward";
 
             implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
-            sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+            sourceText = SourceText.From("""
+            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+            """, Encoding.UTF8);
             CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
 
             var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
             Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards_Namespace()
-    {
-        var source = """
+    public Task FollowTypeForwards_Namespace()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             namespace A
             {
                 namespace B
@@ -209,14 +193,7 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
                     }
                 }
             }
-            """;
-        var typeForwardSource = """
-            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A.B.C))]
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
@@ -228,11 +205,12 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -242,7 +220,9 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             assemblyName = "typeforward";
 
             implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
-            sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+            sourceText = SourceText.From("""
+            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A.B.C))]
+            """, Encoding.UTF8);
             CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
 
             var service = workspace.GetService<IImplementationAssemblyLookupService>();
@@ -250,12 +230,12 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger());
             Assert.Equal(dllFilePath, foundImplementationFilePath);
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards_Generics()
-    {
-        var source = """
+    public Task FollowTypeForwards_Generics()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             namespace A
             {
                 namespace B
@@ -270,14 +250,7 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
                     }
                 }
             }
-            """;
-        var typeForwardSource = """
-            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A.B.C<>))]
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
@@ -289,11 +262,12 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -303,7 +277,9 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             assemblyName = "typeforward";
 
             implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
-            sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+            sourceText = SourceText.From("""
+            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A.B.C<>))]
+            """, Encoding.UTF8);
             CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
 
             var service = workspace.GetService<IImplementationAssemblyLookupService>();
@@ -311,12 +287,12 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger());
             Assert.Equal(dllFilePath, foundImplementationFilePath);
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards_NestedType()
-    {
-        var source = """
+    public Task FollowTypeForwards_NestedType()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public class D
@@ -325,14 +301,7 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
                     public event System.EventHandler [|E|] { add { } remove { } }
                 }
             }
-            """;
-        var typeForwardSource = """
-            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
@@ -344,11 +313,12 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -358,32 +328,27 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             assemblyName = "typeforward";
 
             implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
-            sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+            sourceText = SourceText.From("""
+            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+            """, Encoding.UTF8);
             CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
 
             var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
             Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards_Cache()
-    {
-        var source = """
+    public Task FollowTypeForwards_Cache()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 // A change
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-        var typeForwardSource = """
-            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
@@ -395,11 +360,12 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -409,7 +375,9 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             assemblyName = "typeforward";
 
             implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
-            sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+            sourceText = SourceText.From("""
+            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+            """, Encoding.UTF8);
             CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
 
             var service = workspace.GetService<IImplementationAssemblyLookupService>();
@@ -423,12 +391,12 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
 
             Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards_MultipleTypes_Cache()
-    {
-        var source = """
+    public Task FollowTypeForwards_MultipleTypes_Cache()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 // A change
@@ -438,17 +406,7 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             public class D { }
             public class E { }
             public class F { }
-            """;
-        var typeForwardSource = """
-            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(D))]
-            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(E))]
-            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(F))]
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
@@ -460,11 +418,12 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -474,7 +433,12 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             assemblyName = "typeforward";
 
             implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
-            sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+            sourceText = SourceText.From("""
+            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(D))]
+            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(E))]
+            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(F))]
+            """, Encoding.UTF8);
             CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
 
             var service = workspace.GetService<IImplementationAssemblyLookupService>();
@@ -488,25 +452,23 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
 
             Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
         });
-    }
 
     [Fact]
     public async Task FollowTypeForwards_MultipleHops_Cache()
     {
-        var source = """
-            public class C
-            {
-                // A change
-                public event System.EventHandler [|E|] { add { } remove { } }
-            }
-            """;
         var typeForwardSource = """
             [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
             """;
 
         await RunTestAsync(async path =>
         {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            MarkupTestFile.GetSpan("""
+            public class C
+            {
+                // A change
+                public event System.EventHandler [|E|] { add { } remove { } }
+            }
+            """, out var metadataSource, out var expectedSpan);
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
@@ -518,11 +480,12 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
             var pdbFilePath = Path.Combine(path, "implementation.pdb");
             var assemblyName = "implementation";
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -567,7 +530,7 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
     /// <summary>
     /// Test logger that ensures we don't log the same message twice.
     /// </summary>
-    private class NoDuplicatesLogger : IPdbSourceDocumentLogger
+    private sealed class NoDuplicatesLogger : IPdbSourceDocumentLogger
     {
         private readonly HashSet<string> _logs = [];
         public void Clear()

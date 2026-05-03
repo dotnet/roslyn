@@ -2,8 +2,8 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="77E1B4B1-51C4-4B24-9CA2-3CFAC4943DFF" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>Roslyn Services for .NET ServiceHub Host</DisplayName>
-    <Description xml:space="preserve">Roslyn Services for .NET ServiceHub Host</Description>
+    <DisplayName>Roslyn ServiceHub Services</DisplayName>
+    <Description xml:space="preserve">Roslyn ServiceHub Services</Description>
     <PackageId>Microsoft.CodeAnalysis.VisualStudio.ServiceHub.Setup.x64</PackageId>
     <License>EULA.rtf</License>
     <AllowClientRole>true</AllowClientRole>
@@ -29,6 +29,6 @@
     <!--#SERVICEHUB_ASSETS#-->
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,19.0)" DisplayName="Visual Studio core editor" />
   </Prerequisites>
 </PackageManifest>

@@ -31,7 +31,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim formattingOptions = Await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
             Dim indentSize = formattingOptions.IndentationSize
 
-            Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
+            Dim generatedText = Await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedText, indentSize, generatedNode)
 
             ' switch back to ui thread to actually perform the application and navigation
             Await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)

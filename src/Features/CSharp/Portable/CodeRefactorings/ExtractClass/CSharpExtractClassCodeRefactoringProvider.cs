@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass;
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ExtractClass), Shared]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ExtractInterface)]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.UseExpressionBody)]
-internal class CSharpExtractClassCodeRefactoringProvider : AbstractExtractClassRefactoringProvider
+internal sealed class CSharpExtractClassCodeRefactoringProvider : AbstractExtractClassRefactoringProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -32,6 +32,11 @@
         <target state="translated">Aynı satırda katıştırılmış ifadelere izin ver</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_add_using">
+        <source>Always add using</source>
+        <target state="translated">Her zaman using ekle</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
         <target state="translated">Deyimi noktalı virgülle otomatik olarak tamamla</target>
@@ -122,6 +127,16 @@
         <target state="translated">namespace içinde</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Never_add_using">
+        <source>Never add using</source>
+        <target state="translated">Hiçbir zaman using ekleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_using_if_explicitly_completed">
+        <source>Only add using if explicitly completed (via TAB or double-click)</source>
+        <target state="translated">using'i yalnızca açıkça tamamlandığında (SEKME tuşu veya çift tıklama ile) ekle</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Desen eşleştirme tercihleri:</target>
@@ -140,6 +155,11 @@
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Tür görünür olduğunda örtük nesne oluşturmayı tercih et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="translated">Türü örtük olarak belirtilmiş lambda ifadesini tercih edin</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -179,12 +199,12 @@
       </trans-unit>
       <trans-unit id="Show_name_s_uggestions">
         <source>Show name s_uggestions</source>
-        <target state="new">Show name s_uggestions</target>
+        <target state="translated">Ad ö_nerilerini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience">
         <source>Show new snippet experience</source>
-        <target state="new">Show new snippet experience</target>
+        <target state="translated">Yeni kod parçacığı deneyimini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
@@ -709,7 +729,7 @@
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
         <source>Show name suggestions</source>
-        <target state="needs-review-translation">Ad ö_nerilerini göster</target>
+        <target state="translated">Ad önerilerini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 
 internal static class PredefinedCodeFixProviderNames
 {
-    public const string AddAccessibilityModifiers = nameof(AddAccessibilityModifiers);
+    public const string AddOrRemoveAccessibilityModifiers = nameof(AddOrRemoveAccessibilityModifiers);
     public const string AddAnonymousTypeMemberName = nameof(AddAnonymousTypeMemberName);
     public const string AddAsync = nameof(AddAsync);
     public const string AddBraces = nameof(AddBraces);
@@ -43,6 +43,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string ConvertToRecord = nameof(ConvertToRecord);
     public const string ConvertToTopLevelStatements = nameof(ConvertToTopLevelStatements);
     public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
+    public const string CopilotImplementNotImplementedException = nameof(CopilotImplementNotImplementedException);
     public const string CopilotSuggestions = nameof(CopilotSuggestions);
     public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
     public const string DeclareAsNullable = nameof(DeclareAsNullable);
@@ -66,6 +67,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string GenerateMethod = nameof(GenerateMethod);
     public const string GenerateType = nameof(GenerateType);
     public const string GenerateVariable = nameof(GenerateVariable);
+    public const string HiddenExplicitCast = nameof(HiddenExplicitCast);
     public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
     public const string ImplementInterface = nameof(ImplementInterface);
     public const string InlineDeclaration = nameof(InlineDeclaration);
@@ -107,8 +109,10 @@ internal static class PredefinedCodeFixProviderNames
     public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
     public const string RemoveUnnecessaryLambdaExpression = nameof(RemoveUnnecessaryLambdaExpression);
     public const string RemoveUnnecessaryNullableDirective = nameof(RemoveUnnecessaryNullableDirective);
+    public const string RemoveUnnecessaryNullableWarningSuppressions = nameof(RemoveUnnecessaryNullableWarningSuppressions);
     public const string RemoveUnnecessaryParentheses = nameof(RemoveUnnecessaryParentheses);
     public const string RemoveUnnecessaryPragmaSuppressions = nameof(RemoveUnnecessaryPragmaSuppressions);
+    public const string RemoveUnnecessaryUnsafeModifier = nameof(RemoveUnnecessaryUnsafeModifier);
     public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
     public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
     public const string RemoveUnusedMembers = nameof(RemoveUnusedMembers);
@@ -121,6 +125,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string SimplifyLinqTypeCheckAndCast = nameof(SimplifyLinqTypeCheckAndCast);
     public const string SimplifyNames = nameof(SimplifyNames);
     public const string SimplifyObjectCreation = nameof(SimplifyObjectCreation);
+    public const string SimplifyPropertyAccessor = nameof(SimplifyPropertyAccessor);
     public const string SimplifyPropertyPattern = nameof(SimplifyPropertyPattern);
     public const string SimplifyThisOrMe = nameof(SimplifyThisOrMe);
     public const string SpellCheck = nameof(SpellCheck);
@@ -154,6 +159,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseExpressionBody = nameof(UseExpressionBody);
     public const string UseExpressionBodyForLambda = nameof(UseExpressionBodyForLambda);
     public const string UseImplicitObjectCreation = nameof(UseImplicitObjectCreation);
+    public const string UseImplicitlyTypedLambdaExpression = nameof(UseImplicitlyTypedLambdaExpression);
     public const string UseImplicitType = nameof(UseImplicitType);
     public const string UseIndexOperator = nameof(UseIndexOperator);
     public const string UseInferredMemberName = nameof(UseInferredMemberName);

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 
-internal class SyntaxKindSet
+internal sealed class SyntaxKindSet
 {
     public static readonly ISet<SyntaxKind> AllTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
@@ -73,6 +73,9 @@ internal class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !OLDER_ROSLYN
+        SyntaxKind.UnionDeclaration,
+#endif
         SyntaxKind.EnumDeclaration,
     };
 
@@ -83,6 +86,22 @@ internal class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !OLDER_ROSLYN
+        SyntaxKind.UnionDeclaration,
+#endif
+    };
+
+    public static readonly ISet<SyntaxKind> NonEnumTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+    {
+        SyntaxKind.ClassDeclaration,
+#if !OLDER_ROSLYN
+        SyntaxKind.ExtensionBlockDeclaration,
+        SyntaxKind.UnionDeclaration,
+#endif
+        SyntaxKind.InterfaceDeclaration,
+        SyntaxKind.RecordDeclaration,
+        SyntaxKind.RecordStructDeclaration,
+        SyntaxKind.StructDeclaration,
     };
 
     public static readonly ISet<SyntaxKind> ClassInterfaceRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
@@ -104,12 +123,18 @@ internal class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !OLDER_ROSLYN
+        SyntaxKind.UnionDeclaration,
+#endif
     };
 
     public static readonly ISet<SyntaxKind> StructOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !OLDER_ROSLYN
+        SyntaxKind.UnionDeclaration,
+#endif
     };
 
     public static readonly ISet<SyntaxKind> InterfaceOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)

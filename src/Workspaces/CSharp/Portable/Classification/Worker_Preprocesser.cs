@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
@@ -68,6 +70,9 @@ internal ref partial struct Worker
                 break;
             case SyntaxKind.LoadDirectiveTrivia:
                 ClassifyLoadDirective((LoadDirectiveTriviaSyntax)node);
+                break;
+            case SyntaxKind.IgnoredDirectiveTrivia:
+                ClassifyIgnoredDirective((IgnoredDirectiveTriviaSyntax)node);
                 break;
             case SyntaxKind.NullableDirectiveTrivia:
                 ClassifyNullableDirective((NullableDirectiveTriviaSyntax)node);
@@ -322,6 +327,127 @@ internal ref partial struct Worker
         AddClassification(node.LoadKeyword, ClassificationTypeNames.PreprocessorKeyword);
         AddClassification(node.File, ClassificationTypeNames.StringLiteral);
         ClassifyDirectiveTrivia(node);
+    }
+
+    private void ClassifyIgnoredDirective(IgnoredDirectiveTriviaSyntax node)
+    {
+        // https://github.com/dotnet/sdk/blob/main/documentation/general/dotnet-run-file.md#directives-for-project-metadata
+
+        // #:kind name=value
+        // ^^
+        AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
+        AddClassification(node.ColonToken, ClassificationTypeNames.PreprocessorKeyword);
+
+        var contentText = node.Content.Text.AsSpan();
+        var firstWhitespaceIndex = contentText.IndexOfAny([' ', '\t']);
+
+        if (firstWhitespaceIndex <= 0)
+        {
+            // Only have a 'kind' here.
+            // #:kind
+            //   ^^^^
+            AddClassification(node.Content, ClassificationTypeNames.PreprocessorKeyword);
+            ClassifyDirectiveTrivia(node);
+            return;
+        }
+
+        // #:kind name=value
+        //   ^^^^
+        AddClassification(new TextSpan(node.Content.SpanStart, firstWhitespaceIndex), ClassificationTypeNames.PreprocessorKeyword);
+
+        // Skip whitespace between 'kind' and 'name'
+        var nameStart = firstWhitespaceIndex;
+        while (nameStart < contentText.Length && (contentText[nameStart] == ' ' || contentText[nameStart] == '\t'))
+        {
+            nameStart++;
+        }
+
+        if (nameStart < contentText.Length)
+        {
+            var directiveKind = contentText[..firstWhitespaceIndex];
+            if (directiveKind.Equals("sdk".AsSpan(), StringComparison.Ordinal)
+                || directiveKind.Equals("package".AsSpan(), StringComparison.Ordinal))
+            {
+                // #:kind name@value
+                //        ^^^^^^^^^^
+                ClassifyAppDirectiveNameAndOptionalSeparatorValue(node.Content.SpanStart, contentText, nameStart, '@');
+            }
+            else if (directiveKind.Equals("property".AsSpan(), StringComparison.Ordinal))
+            {
+                // #:kind name=value
+                //        ^^^^^^^^^^
+                ClassifyAppDirectiveNameAndOptionalSeparatorValue(node.Content.SpanStart, contentText, nameStart, '=');
+            }
+            else
+            {
+                // #:kind name
+                //        ^^^^
+                AddClassification(new TextSpan(node.Content.SpanStart + nameStart, contentText.Length - nameStart), ClassificationTypeNames.StringLiteral);
+            }
+        }
+
+        ClassifyDirectiveTrivia(node);
+    }
+
+    private void ClassifyAppDirectiveNameAndOptionalSeparatorValue(int contentStart, ReadOnlySpan<char> contentText, int nameStart, char separator)
+    {
+        var separatorIndex = contentText[nameStart..].IndexOf(separator);
+        if (separatorIndex == -1)
+        {
+            // Only have a name
+            ClassifyDottedName(contentStart, contentText, nameStart, contentText.Length);
+            return;
+        }
+
+        // Adjust 'separatorIndex' to be relative to 'contentText'
+        separatorIndex += nameStart;
+
+        // my.name=value
+        // ^^^^^^^
+        ClassifyDottedName(contentStart, contentText, nameStart, separatorIndex);
+
+        // my.name=value
+        //        ^
+        AddClassification(new TextSpan(contentStart + separatorIndex, 1), ClassificationTypeNames.Punctuation);
+
+        var valueIndex = separatorIndex + 1;
+        if (valueIndex < contentText.Length)
+        {
+            // my.name=value
+            //         ^^^^^
+            AddClassification(new TextSpan(contentStart + valueIndex, contentText.Length - valueIndex), ClassificationTypeNames.StringLiteral);
+        }
+    }
+
+    private void ClassifyDottedName(int contentStart, ReadOnlySpan<char> contentText, int start, int end)
+    {
+        var segmentStart = start;
+        for (var index = start; index < end; index++)
+        {
+            if (contentText[index] != '.')
+            {
+                continue;
+            }
+
+            if (index > segmentStart)
+            {
+                // left.right
+                // ^^^^
+                AddClassification(new TextSpan(contentStart + segmentStart, index - segmentStart), ClassificationTypeNames.Identifier);
+            }
+
+            // left.right
+            //     ^
+            AddClassification(new TextSpan(contentStart + index, 1), ClassificationTypeNames.Punctuation);
+            segmentStart = index + 1;
+        }
+
+        if (end > segmentStart)
+        {
+            // left.right
+            //      ^^^^^
+            AddClassification(new TextSpan(contentStart + segmentStart, end - segmentStart), ClassificationTypeNames.Identifier);
+        }
     }
 
     private void ClassifyNullableDirective(NullableDirectiveTriviaSyntax node)

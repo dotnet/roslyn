@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.VisualStudio.Text
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
     <[UseExportProvider]>

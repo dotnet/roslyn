@@ -934,5 +934,36 @@ class C
 
             Await VerifyTypeHints(input, output)
         End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48941")>
+        Public Async Function TestNoDoubleClickWithCollectionExpression() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>
+using System.Collections.Immutable;
+class A
+{
+    private static readonly ImmutableHashSet&lt;string?&gt; Hashes = {| ImmutableHashSet&lt;string?&gt;:|}[];
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>
+using System.Collections.Immutable;
+class A
+{
+    private static readonly ImmutableHashSet&lt;string?&gt; Hashes = [];
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
     End Class
 End Namespace

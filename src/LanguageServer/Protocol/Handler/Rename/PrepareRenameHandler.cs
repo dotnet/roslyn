@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(LSP.Methods.TextDocumentPrepareRenameName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class PrepareRenameHandler() : ILspServiceDocumentRequestHandler<LSP.PrepareRenameParams, LSP.Range?>
+internal sealed class PrepareRenameHandler() : ILspServiceDocumentRequestHandler<LSP.PrepareRenameParams, LSP.Range?>
 {
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;

@@ -1,0 +1,5 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Instrumented.cshtml(41,13): error CS8917: The delegate type could not be inferred.
+//             item => new global::Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_template_writer) => {
+Diagnostic(ErrorCode.ERR_CannotInferDelegateType, @"item => new global::Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_template_writer) => {
+            }
+            )").WithLocation(41, 13)

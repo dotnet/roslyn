@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices;
 
 [Export(typeof(IWpfThemeService)), Shared]
-internal class VSWpfThemeService : IWpfThemeService
+internal sealed class VSWpfThemeService : IWpfThemeService
 {
     private readonly ResourceDictionary _themeDictionary = [];
 

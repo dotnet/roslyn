@@ -13,9 +13,37 @@ namespace Microsoft.CodeAnalysis.SymbolSearch;
 [DataContract]
 internal readonly record struct SymbolSearchOptions()
 {
+    /// <summary>
+    /// Search for symbols contained in the starting project/compilation.  These are source or metadata symbols that can
+    /// be referenced just by adding a using/import.
+    /// </summary>
+    [DataMember]
+    public bool SearchReferencedProjectSymbols { get; init; } = true;
+
+    /// <summary>
+    /// Search for source symbols in non-referenced projects.  These are source symbols that can be referenced by adding
+    /// a project reference as well as a using/import.
+    /// </summary>
+    [DataMember]
+    public bool SearchUnreferencedProjectSourceSymbols { get; init; } = true;
+
+    /// <summary>
+    /// Search for source symbols in non-referenced metadata assemblies (that are referenced by other projects).  These
+    /// are source symbols that can be referenced by adding a metadata reference as well as a using/import.
+    /// </summary>
+    [DataMember]
+    public bool SearchUnreferencedMetadataSymbols { get; init; } = true;
+
+    /// <summary>
+    /// Search for well known symbols in the common set of .Net reference assemblies.  We have an index for these and
+    /// they are common enough to want to always search.
+    /// </summary>
     [DataMember]
     public bool SearchReferenceAssemblies { get; init; } = true;
 
+    /// <summary>
+    /// Search for symbols in the NuGet package index.
+    /// </summary>
     [DataMember]
     public bool SearchNuGetPackages { get; init; } = true;
 
@@ -38,8 +66,30 @@ internal static class SymbolSearchOptionsStorage
         isEditorConfigOption: true,
         group: s_optionGroup);
 
+    public static PerLanguageOption2<bool> SearchReferencedProjectSymbols = new(
+        "dotnet_unsupported_search_referenced_project_symbols",
+        SymbolSearchOptions.Default.SearchReferencedProjectSymbols,
+        isEditorConfigOption: true,
+        group: s_optionGroup);
+
+    public static PerLanguageOption2<bool> SearchUnreferencedProjectSourceSymbols = new(
+        "dotnet_unsupported_search_unreferenced_project_symbols",
+        SymbolSearchOptions.Default.SearchUnreferencedProjectSourceSymbols,
+        isEditorConfigOption: true,
+        group: s_optionGroup);
+
+    public static PerLanguageOption2<bool> SearchUnreferencedMetadataSymbols = new(
+        "dotnet_unsupported_search_unreferenced_metadata_symbols",
+        SymbolSearchOptions.Default.SearchUnreferencedMetadataSymbols,
+        isEditorConfigOption: true,
+        group: s_optionGroup);
+
     public static readonly ImmutableArray<IOption2> EditorConfigOptions = [SearchReferenceAssemblies];
-    public static readonly ImmutableArray<IOption2> UnsupportedOptions = [SearchNuGetPackages];
+    public static readonly ImmutableArray<IOption2> UnsupportedOptions = [
+        SearchNuGetPackages,
+        SearchReferencedProjectSymbols,
+        SearchUnreferencedProjectSourceSymbols,
+        SearchUnreferencedMetadataSymbols];
 }
 
 internal static class SymbolSearchOptionsProviders
@@ -48,7 +98,10 @@ internal static class SymbolSearchOptionsProviders
         => new()
         {
             SearchReferenceAssemblies = options.GetOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies, language),
-            SearchNuGetPackages = options.GetOption(SymbolSearchOptionsStorage.SearchNuGetPackages, language)
+            SearchNuGetPackages = options.GetOption(SymbolSearchOptionsStorage.SearchNuGetPackages, language),
+            SearchReferencedProjectSymbols = options.GetOption(SymbolSearchOptionsStorage.SearchReferencedProjectSymbols, language),
+            SearchUnreferencedProjectSourceSymbols = options.GetOption(SymbolSearchOptionsStorage.SearchUnreferencedProjectSourceSymbols, language),
+            SearchUnreferencedMetadataSymbols = options.GetOption(SymbolSearchOptionsStorage.SearchUnreferencedMetadataSymbols, language),
         };
 
     public static async ValueTask<SymbolSearchOptions> GetSymbolSearchOptionsAsync(this Document document, CancellationToken cancellationToken)

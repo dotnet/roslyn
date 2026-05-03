@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseInterpolatedVerbatimString;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseInterpolatedVerbatimString)]
-public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public CSharpUseInterpolatedVerbatimStringCodeFixTests(ITestOutputHelper logger)
       : base(logger)
@@ -26,9 +26,8 @@ public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDia
         => (null, new CSharpUseInterpolatedVerbatimStringCodeFixProvider());
 
     [Fact]
-    public async Task Simple()
-    {
-        await TestInRegularAndScript1Async(
+    public Task Simple()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -46,13 +45,11 @@ public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDia
                     var s = $@"hello";
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
-    }
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
-    public async Task AfterString()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AfterString()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -61,13 +58,11 @@ public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDia
                     var s = @$"hello"[||];
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
-    }
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
-    public async Task InCall()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InCall()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -85,13 +80,11 @@ public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDia
                     var s = M($@"hello");
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
-    }
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
-    public async Task FixAllInDocument()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllInDocument()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -111,13 +104,11 @@ public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDia
                     var s2 = $@"hello";
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
-    }
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
-    public async Task MissingOnInterpolatedVerbatimString()
-    {
-        await TestMissingAsync(
+    public Task MissingOnInterpolatedVerbatimString()
+        => TestMissingAsync(
             """
             class C
             {
@@ -126,13 +117,11 @@ public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDia
                     var s = $[||]@"hello";
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
-    }
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
-    public async Task MissingInCSharp8()
-    {
-        await TestMissingAsync(
+    public Task MissingInCSharp8()
+        => TestMissingAsync(
             """
             class C
             {
@@ -141,6 +130,5 @@ public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDia
                     var s = @[||]$"hello";
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp8)));
-    }
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp8)));
 }

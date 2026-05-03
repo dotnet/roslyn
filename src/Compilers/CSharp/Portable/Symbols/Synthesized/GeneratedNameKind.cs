@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ReusableHoistedLocalField = '7',
         LambdaCacheField = '9',
         FixedBufferField = 'e',
+        Extension = 'E',
         FileType = 'F',
         AnonymousType = 'f',
         TransparentIdentifier = 'h',

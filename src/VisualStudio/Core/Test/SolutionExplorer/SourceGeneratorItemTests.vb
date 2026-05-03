@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Host
@@ -272,7 +271,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 workspace.GetService(Of IThreadingContext),
                 New AnalyzerItem(New AnalyzersFolderItem(workspace.GetService(Of IThreadingContext), workspace, projectId, Nothing, Nothing), analyzerReference, Nothing),
                 New FakeAnalyzersCommandHandler,
-                workspace.GetService(Of IDiagnosticAnalyzerService),
                 workspace.GetService(Of IAsynchronousOperationListenerProvider))
         End Function
 

@@ -5,10 +5,12 @@
 using System;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 
@@ -64,5 +66,23 @@ internal sealed class CSharpCompletionService : CommonCompletionService
         Interlocked.Exchange(ref _latestRules, newRules);
 
         return newRules;
+    }
+
+    internal override async Task<bool> IsSpeculativeTypeParameterContextAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+        // Because it's less likely the user wants to type a (undeclared) type parameter when they are inside a method body, treating them so
+        // might intefere with user intention. For example, while it's fine to provide a speculative `T` item in a statement context,
+        // since typing 2 characters would filter it out, but for selection, we don't want to soft-select item `TypeBuilder`after `TB`
+        // is typed in the example below (as if user want to add `TBuilder` to method declaration later):
+        //
+        // class C
+        // {
+        //     void M()
+        //     {
+        //         TB$$
+        //     }
+        return CompletionUtilities.IsSpeculativeTypeParameterContext(syntaxTree, position, semanticModel: null, includeStatementContexts: false, cancellationToken);
     }
 }

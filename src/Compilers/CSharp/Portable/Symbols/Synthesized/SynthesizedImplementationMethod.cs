@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SynthesizedImplementationMethod : SynthesizedInstanceMethodSymbol
+    internal abstract class SynthesizedImplementationMethod : SynthesizedMethodSymbol
     {
         //inputs
         protected readonly MethodSymbol _interfaceMethod;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // alpha-rename to get the implementation's type parameters
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
-            typeMap.WithAlphaRename(interfaceMethod, this, out _typeParameters);
+            typeMap.WithAlphaRename(interfaceMethod, this, propagateAttributes: false, out _typeParameters);
 
             _interfaceMethod = interfaceMethod.ConstructIfGeneric(TypeArgumentsWithAnnotations);
             _parameters = SynthesizedParameterSymbol.DeriveParameters(_interfaceMethod, this);

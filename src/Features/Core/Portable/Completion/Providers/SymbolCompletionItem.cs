@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Tags;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -24,7 +23,9 @@ internal static class SymbolCompletionItem
 
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
-    private static readonly char[] s_projectSeperators = [';'];
+    private static ContextPositionCache s_lastContextPositionInfo = new(0, "0");
+
+    private const char ProjectSeparatorChar = ';';
 
     private static CompletionItem CreateWorker(
         string displayText,
@@ -50,9 +51,9 @@ internal static class SymbolCompletionItem
             builder.AddRange(properties);
 
         if (insertionText != null)
-            builder.Add(KeyValuePairUtil.Create(InsertionTextProperty, insertionText));
+            builder.Add(KeyValuePair.Create(InsertionTextProperty, insertionText));
 
-        builder.Add(KeyValuePairUtil.Create("ContextPosition", contextPosition.ToString()));
+        AddContextPosition(builder, contextPosition);
         AddSupportedPlatforms(builder, supportedPlatforms);
         symbolEncoder(symbols, builder);
 
@@ -79,17 +80,17 @@ internal static class SymbolCompletionItem
     }
 
     private static void AddSymbolEncoding(ImmutableArray<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
-        => properties.Add(KeyValuePairUtil.Create("Symbols", EncodeSymbols(symbols)));
+        => properties.Add(KeyValuePair.Create("Symbols", EncodeSymbols(symbols)));
 
     private static void AddSymbolInfo(ImmutableArray<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
     {
         var symbol = symbols[0];
         var isGeneric = symbol.GetArity() > 0;
-        properties.Add(KeyValuePairUtil.Create("SymbolKind", SmallNumberFormatter.ToString((int)symbol.Kind)));
-        properties.Add(KeyValuePairUtil.Create("SymbolName", symbol.Name));
+        properties.Add(KeyValuePair.Create("SymbolKind", SmallNumberFormatter.ToString((int)symbol.Kind)));
+        properties.Add(KeyValuePair.Create("SymbolName", symbol.Name));
 
         if (isGeneric)
-            properties.Add(KeyValuePairUtil.Create("IsGeneric", isGeneric.ToString()));
+            properties.Add(KeyValuePair.Create("IsGeneric", isGeneric.ToString()));
     }
 
     public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item)
@@ -104,6 +105,12 @@ internal static class SymbolCompletionItem
 
         return false;
     }
+
+    public static CompletionItem AddHasAccessibleNestedTypes(CompletionItem item)
+        => item.AddProperty("HasAccessibleNestedTypes", true.ToString());
+
+    public static bool GetHasAccessibleNestedTypes(CompletionItem item)
+        => item.TryGetProperty("HasAccessibleNestedTypes", out _);
 
     public static string EncodeSymbols(ImmutableArray<ISymbol> symbols)
     {
@@ -220,12 +227,32 @@ internal static class SymbolCompletionItem
         return document;
     }
 
+    private static void AddContextPosition(ArrayBuilder<KeyValuePair<string, string>> properties, int contextPosition)
+    {
+        // Cache the last context position we added to avoid doing extra allocations of converting int to string.
+        // Nearly all completion items for a session have the same context position.
+        var contextPositionData = s_lastContextPositionInfo;
+
+        string contextPositionString;
+        if (contextPositionData.Position == contextPosition)
+        {
+            contextPositionString = contextPositionData.PositionString;
+        }
+        else
+        {
+            contextPositionString = contextPosition.ToString();
+            s_lastContextPositionInfo = new ContextPositionCache(contextPosition, contextPositionString);
+        }
+
+        properties.Add(KeyValuePair.Create("ContextPosition", contextPositionString));
+    }
+
     private static void AddSupportedPlatforms(ArrayBuilder<KeyValuePair<string, string>> properties, SupportedPlatformData? supportedPlatforms)
     {
         if (supportedPlatforms != null)
         {
-            properties.Add(KeyValuePairUtil.Create("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id))));
-            properties.Add(KeyValuePairUtil.Create("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id))));
+            properties.Add(KeyValuePair.Create("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id))));
+            properties.Add(KeyValuePair.Create("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id))));
         }
     }
 
@@ -236,11 +263,43 @@ internal static class SymbolCompletionItem
         {
             return new SupportedPlatformData(
                 solution,
-                [.. invalidProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s)))],
-                candidateProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList());
+                SplitIntoProjectIds(invalidProjects),
+                SplitIntoProjectIds(candidateProjects));
         }
 
         return null;
+    }
+
+    private static ImmutableArray<ProjectId> SplitIntoProjectIds(string projectIds)
+    {
+        // Does the equivalent of string.Split, with fewer allocations
+        var start = 0;
+        var current = 0;
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var builder);
+
+        while (current < projectIds.Length)
+        {
+            if (projectIds[current] == ProjectSeparatorChar)
+            {
+                if (start != current)
+                {
+                    var projectGuid = Guid.Parse(projectIds.Substring(start, current - start));
+                    builder.Add(ProjectId.CreateFromSerialized(projectGuid));
+                }
+
+                start = current + 1;
+            }
+
+            current++;
+        }
+
+        if (start != current)
+        {
+            var projectGuid = Guid.Parse(projectIds.Substring(start, current - start));
+            builder.Add(ProjectId.CreateFromSerialized(projectGuid));
+        }
+
+        return builder.ToImmutableAndClear();
     }
 
     public static int GetContextPosition(CompletionItem item)
@@ -368,5 +427,11 @@ internal static class SymbolCompletionItem
         {
             return CompletionDescription.Empty;
         }
+    }
+
+    private sealed class ContextPositionCache(int position, string positionString)
+    {
+        public readonly int Position = position;
+        public readonly string PositionString = positionString;
     }
 }

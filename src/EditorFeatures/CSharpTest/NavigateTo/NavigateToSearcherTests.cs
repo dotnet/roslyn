@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
@@ -111,8 +113,8 @@ public sealed class NavigateToSearcherTests
         }
     }
 
-    private static ValueTask<bool> IsFullyLoadedAsync(bool projectSystem, bool remoteHost)
-        => new(projectSystem && remoteHost);
+    private static async ValueTask<bool> IsFullyLoadedAsync(bool projectSystem, bool remoteHost)
+        => projectSystem && remoteHost;
 
     [Fact]
     public async Task NotFullyLoadedOnlyMakesOneSearchProjectCallIfValueReturned()
@@ -134,7 +136,7 @@ public sealed class NavigateToSearcherTests
         var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
         callbackMock.Setup(c => c.ReportIncomplete());
         callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         // Because we returned a result when not fully loaded, we should notify the user that data was not complete.
         callbackMock.Setup(c => c.Done(false));
@@ -173,7 +175,7 @@ public sealed class NavigateToSearcherTests
         var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
         callbackMock.Setup(c => c.ReportIncomplete());
         callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<CancellationToken>()))
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>()))
                     .Returns(Task.CompletedTask);
 
         // Because the remote host wasn't fully loaded, we still notify that our results may be incomplete.
@@ -247,7 +249,7 @@ public sealed class NavigateToSearcherTests
 
         var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
         callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<CancellationToken>()))
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>()))
                     .Returns(Task.CompletedTask);
 
         // Because we did a full search, we should let the user know it was totally accurate.
@@ -272,7 +274,7 @@ public sealed class NavigateToSearcherTests
         var results = ImmutableArray.Create<INavigateToSearchResult>(new TestNavigateToSearchResult(workspace, new TextSpan(0, 0)));
 
         var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
-        hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(() => new ValueTask<bool>(true));
+        hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(async () => true);
 
         // Ensure that returning null for the search service doesn't crash.
         hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(() => null);
@@ -280,7 +282,7 @@ public sealed class NavigateToSearcherTests
         var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
         callbackMock.Setup(c => c.ReportIncomplete());
         callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         callbackMock.Setup(c => c.Done(true));
 
@@ -320,7 +322,7 @@ public sealed class NavigateToSearcherTests
         var results = ImmutableArray.Create<INavigateToSearchResult>(new TestNavigateToSearchResult(workspace, new TextSpan(0, 0)));
 
         var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
-        hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(() => new ValueTask<bool>(true));
+        hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(async () => true);
 
         var searchGeneratedDocumentsAsyncCalled = false;
         var searchService = new MockAdvancedNavigateToSearchService
@@ -338,7 +340,7 @@ public sealed class NavigateToSearcherTests
         var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
         callbackMock.Setup(c => c.ReportIncomplete());
         callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        callbackMock.Setup(c => c.AddResultsAsync(results, It.IsAny<Document>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         callbackMock.Setup(c => c.Done(true));
 
@@ -354,6 +356,149 @@ public sealed class NavigateToSearcherTests
         Assert.True(searchGeneratedDocumentsAsyncCalled);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77051")]
+    public async Task DocumentScopeRelatedDocuments_Inheritance()
+    {
+        using var workspace = EditorTestWorkspace.Create("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="z:\\file1.cs">
+                    public class C : Base
+                    {
+                        // Starting search here.
+                        void Goo1() { }
+                    }
+                    </Document>
+                    <Document FilePath="z:\\file2.cs">
+                    public class Base
+                    {
+                        // Should find this.
+                        void Goo2() { }
+                    }
+                    public class Other
+                    {
+                        // Should not find this.
+                        void Goo3() { }
+                    }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, composition: FirstActiveAndVisibleComposition);
+
+        var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
+        hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(async () => true);
+
+        var project = workspace.CurrentSolution.Projects.Single();
+        var searchService = project.GetRequiredLanguageService<INavigateToSearchService>();
+
+        hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(() => searchService);
+
+        var callback = new TestNavigateToSearchCallback();
+
+        var searcher = NavigateToSearcher.Create(
+            workspace.CurrentSolution,
+            callback,
+            "Goo",
+            kinds: searchService.KindsProvided,
+            hostMock.Object);
+
+        await searcher.SearchAsync(NavigateToSearchScope.Document, CancellationToken.None);
+
+        Assert.Equal(2, callback.Results.Count);
+
+        var firstDocument = project.Documents.Single(d => d.FilePath!.Contains("file1"));
+        var secondDocument = project.Documents.Single(d => d.FilePath!.Contains("file2"));
+
+        var firstDocumentResult = Assert.Single(callback.Results, r => r.NavigableItem.Document.Id == firstDocument.Id);
+        var secondDocumentResult = Assert.Single(callback.Results, r => r.NavigableItem.Document.Id == secondDocument.Id);
+
+        Assert.Equal("Goo1", firstDocumentResult.Name);
+        Assert.Equal("Goo2", secondDocumentResult.Name);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77051")]
+    public async Task DocumentScopeRelatedDocuments_Partial()
+    {
+        using var workspace = EditorTestWorkspace.Create("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="z:\\file1.cs">
+                    public partial class C
+                    {
+                        // Starting search here.
+                        void Goo1() { }
+                    }
+                    </Document>
+                    <Document FilePath="z:\\file2.cs">
+                    public class Base
+                    {
+                        // Should not find this.
+                        void Goo2() { }
+                    }
+                    public partial class C
+                    {
+                        // Should find this.
+                        void Goo3() { }
+                    }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, composition: FirstActiveAndVisibleComposition);
+
+        var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
+        hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(async () => true);
+
+        var project = workspace.CurrentSolution.Projects.Single();
+        var searchService = project.GetRequiredLanguageService<INavigateToSearchService>();
+
+        hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(() => searchService);
+
+        var callback = new TestNavigateToSearchCallback();
+
+        var searcher = NavigateToSearcher.Create(
+            workspace.CurrentSolution,
+            callback,
+            "Goo",
+            kinds: searchService.KindsProvided,
+            hostMock.Object);
+
+        await searcher.SearchAsync(NavigateToSearchScope.Document, CancellationToken.None);
+
+        Assert.Equal(2, callback.Results.Count);
+
+        var firstDocument = project.Documents.Single(d => d.FilePath!.Contains("file1"));
+        var secondDocument = project.Documents.Single(d => d.FilePath!.Contains("file2"));
+
+        var firstDocumentResult = Assert.Single(callback.Results, r => r.NavigableItem.Document.Id == firstDocument.Id);
+        var secondDocumentResult = Assert.Single(callback.Results, r => r.NavigableItem.Document.Id == secondDocument.Id);
+
+        Assert.Equal("Goo1", firstDocumentResult.Name);
+        Assert.Equal("Goo3", secondDocumentResult.Name);
+    }
+
+    private sealed class TestNavigateToSearchCallback : INavigateToSearchCallback
+    {
+        public readonly ConcurrentBag<INavigateToSearchResult> Results = [];
+
+        public void Done(bool isFullyLoaded)
+        {
+        }
+
+        public void ReportIncomplete()
+        {
+        }
+
+        public async Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken)
+        {
+            foreach (var result in results)
+                this.Results.Add(result);
+        }
+
+        public void ReportProgress(int current, int maximum)
+        {
+        }
+    }
+
     private sealed class MockAdvancedNavigateToSearchService : IAdvancedNavigateToSearchService
     {
         public IImmutableSet<string> KindsProvided => AbstractNavigateToSearchService.AllKinds;
@@ -365,28 +510,24 @@ public sealed class NavigateToSearcherTests
         public Action? OnSearchGeneratedDocumentsAsyncCalled { get; set; }
         public Action? OnSearchProjectsAsyncCalled { get; set; }
 
-        public Task SearchCachedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public async Task SearchCachedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             OnSearchCachedDocumentsAsyncCalled?.Invoke();
-            return Task.CompletedTask;
         }
 
-        public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
+        public async Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
         {
             OnSearchDocumentsAsyncCalled?.Invoke();
-            return Task.CompletedTask;
         }
 
-        public Task SearchGeneratedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public async Task SearchGeneratedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             OnSearchGeneratedDocumentsAsyncCalled?.Invoke();
-            return Task.CompletedTask;
         }
 
-        public Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             OnSearchProjectsAsyncCalled?.Invoke();
-            return Task.CompletedTask;
         }
     }
 

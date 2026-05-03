@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.ExtractMethod
     <Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
-    Public Class ExtractMethodTests
+    Public NotInheritable Class ExtractMethodTests
         Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
@@ -592,7 +592,7 @@ End Class
 Namespace System
     Structure ValueTuple(Of T1, T2)
     End Structure
-End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+End Namespace", New TestParameters(TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3)))
 
         End Function
 
@@ -624,7 +624,7 @@ End Class
 Namespace System
     Structure ValueTuple(Of T1, T2)
     End Structure
-End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+End Namespace", New TestParameters(TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15)))
 
         End Function
 
@@ -828,7 +828,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess1() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -853,7 +853,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess2() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -878,7 +878,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess3() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -903,7 +903,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess4() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -928,7 +928,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess5() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -953,7 +953,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess6() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -978,7 +978,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess7() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -1003,7 +1003,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess8() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 class C
@@ -1028,7 +1028,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess9() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 imports System.Xml.Linq
@@ -1055,7 +1055,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")>
         Public Async Function TestConditionalAccess10() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 imports System
 imports System.Collections.Generic
 imports System.Xml.Linq
@@ -1109,9 +1109,9 @@ class Program
     End Sub
 end class
 ",
-            options:=New OptionsCollection(LanguageNames.VisualBasic) From {
+            New TestParameters(options:=New OptionsCollection(LanguageNames.VisualBasic) From {
                 {CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement}
-            })
+            }))
         End Function
 
         <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/33618")>
@@ -1147,9 +1147,9 @@ class Program
     End Sub
 end class
 ",
-            options:=New OptionsCollection(LanguageNames.VisualBasic) From {
+            New TestParameters(options:=New OptionsCollection(LanguageNames.VisualBasic) From {
                 {CodeStyleOptions2.QualifyMethodAccess, New CodeStyleOption2(Of Boolean)(True, New NotificationOption2(diagnostic, True))}
-            })
+            }))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")>
@@ -1177,9 +1177,83 @@ class Program
     End Sub
 end class
 ",
-            options:=New OptionsCollection(LanguageNames.VisualBasic) From {
+            New TestParameters(options:=New OptionsCollection(LanguageNames.VisualBasic) From {
                 {CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement}
-            })
+            }))
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20088")>
+        Public Async Function TestInElseIfBlock1() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class Class1
+    Private Function Method(arg As Integer?) As Boolean
+        Dim something As Boolean
+        If arg.HasValue Then
+            something = True
+        ElseIf arg.Value < 50 Then
+            [|something = arg.Value > 15|]
+        Else
+            something = False
+        End If
+
+        Return something
+    End Function
+End Class",
+"Public Class Class1
+    Private Function Method(arg As Integer?) As Boolean
+        Dim something As Boolean
+        If arg.HasValue Then
+            something = True
+        ElseIf arg.Value < 50 Then
+            something = {|Rename:NewMethod|}(arg)
+        Else
+            something = False
+        End If
+
+        Return something
+    End Function
+
+    Private Shared Function NewMethod(arg As Integer?) As Boolean
+        Return arg.Value > 15
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20088")>
+        Public Async Function TestInElseIfBlock2() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class Class1
+    Private Function Method(arg As Integer?) As Boolean
+        Dim something As Boolean
+        If arg.HasValue Then
+            something = True
+        ElseIf arg.Value < 50 Then
+[|            something = arg.Value > 15|]
+        Else
+            something = False
+        End If
+
+        Return something
+    End Function
+End Class",
+"Public Class Class1
+    Private Function Method(arg As Integer?) As Boolean
+        Dim something As Boolean
+        If arg.HasValue Then
+            something = True
+        ElseIf arg.Value < 50 Then
+            something = {|Rename:NewMethod|}(arg)
+        Else
+            something = False
+        End If
+
+        Return something
+    End Function
+
+    Private Shared Function NewMethod(arg As Integer?) As Boolean
+        Return arg.Value > 15
+    End Function
+End Class")
         End Function
     End Class
 End Namespace

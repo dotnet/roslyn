@@ -64,12 +64,14 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int? Utf8SingleLineRawStringLiteralToken => (int)SyntaxKind.Utf8SingleLineRawStringLiteralToken;
     public int? Utf8MultiLineRawStringLiteralToken => (int)SyntaxKind.Utf8MultiLineRawStringLiteralToken;
 
+    public int XmlCrefAttribute => (int)SyntaxKind.XmlCrefAttribute;
     public int XmlTextLiteralToken => (int)SyntaxKind.XmlTextLiteralToken;
 
     public int DelegateKeyword => (int)SyntaxKind.DelegateKeyword;
     public int FalseKeyword => (int)SyntaxKind.FalseKeyword;
     public int IfKeyword => (int)SyntaxKind.IfKeyword;
     public int NewKeyword => (int)SyntaxKind.NewKeyword;
+    public int PartialKeyword => (int)SyntaxKind.PartialKeyword;
     public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
     public int UsingKeyword => (int)SyntaxKind.UsingKeyword;
 
@@ -94,9 +96,11 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;
     public int AwaitExpression => (int)SyntaxKind.AwaitExpression;
     public int BaseExpression => (int)SyntaxKind.BaseExpression;
+    public int? CollectionExpression => (int)SyntaxKind.CollectionExpression;
     public int CollectionInitializerExpression => (int)SyntaxKind.CollectionInitializerExpression;
     public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
     public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
+    public int? FieldExpression => (int)SyntaxKind.FieldExpression;
     public int? ImplicitArrayCreationExpression => (int)SyntaxKind.ImplicitArrayCreationExpression;
     public int? ImplicitObjectCreationExpression => (int)SyntaxKind.ImplicitObjectCreationExpression;
     public int? IndexExpression => (int)SyntaxKind.IndexExpression;
@@ -116,11 +120,13 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
     public int SimpleAssignmentExpression => (int)SyntaxKind.SimpleAssignmentExpression;
     public int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
+    public int? SizeOfExpression => (int)SyntaxKind.SizeOfExpression;
     public int? SuppressNullableWarningExpression => (int)SyntaxKind.SuppressNullableWarningExpression;
     public int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;
     public int ThisExpression => (int)SyntaxKind.ThisExpression;
     public int? ThrowExpression => (int)SyntaxKind.ThrowExpression;
     public int TupleExpression => (int)SyntaxKind.TupleExpression;
+    public int TypeOfExpression => (int)SyntaxKind.TypeOfExpression;
 
     public int? AndPattern => (int)SyntaxKind.AndPattern;
     public int? ConstantPattern => (int)SyntaxKind.ConstantPattern;
@@ -172,6 +178,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int ElseClause => (int)SyntaxKind.ElseClause;
     public int EqualsValueClause => (int)SyntaxKind.EqualsValueClause;
 
+    public int? ExpressionElement => (int)SyntaxKind.ExpressionElement;
     public int? ImplicitElementAccess => (int)SyntaxKind.ImplicitElementAccess;
     public int Interpolation => (int)SyntaxKind.Interpolation;
     public int InterpolatedStringExpression => (int)SyntaxKind.InterpolatedStringExpression;

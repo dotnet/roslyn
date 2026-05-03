@@ -4,17 +4,16 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics
-{
-    internal class XamlDiagnosticReport
-    {
-        public string? ResultId { get; set; }
-        public ImmutableArray<XamlDiagnostic>? Diagnostics { get; set; }
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
 
-        public XamlDiagnosticReport(string? resultId = null, ImmutableArray<XamlDiagnostic>? diagnostics = null)
-        {
-            this.ResultId = resultId;
-            this.Diagnostics = diagnostics;
-        }
+internal sealed class XamlDiagnosticReport
+{
+    public string? ResultId { get; set; }
+    public ImmutableArray<XamlDiagnostic>? Diagnostics { get; set; }
+
+    public XamlDiagnosticReport(string? resultId = null, ImmutableArray<XamlDiagnostic>? diagnostics = null)
+    {
+        this.ResultId = resultId;
+        this.Diagnostics = diagnostics;
     }
 }

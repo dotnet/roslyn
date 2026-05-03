@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.Equal(0, assembly.Count);
-                Assert.Equal(0, locals.Count);
+                Assert.Empty(assembly);
+                Assert.Empty(locals);
                 locals.Free();
             });
         }

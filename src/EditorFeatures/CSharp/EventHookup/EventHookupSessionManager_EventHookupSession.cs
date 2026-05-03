@@ -35,9 +35,6 @@ internal sealed partial class EventHookupSessionManager
     internal sealed class EventHookupSession
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly ITrackingSpan _trackingSpan;
-        private readonly ITextView _textView;
-        private readonly ITextBuffer _subjectBuffer;
 
         public event Action Dismissed = () => { };
 
@@ -52,7 +49,7 @@ internal sealed partial class EventHookupSessionManager
             get
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                return _trackingSpan;
+                return field;
             }
         }
 
@@ -61,7 +58,7 @@ internal sealed partial class EventHookupSessionManager
             get
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                return _textView;
+                return field;
             }
         }
 
@@ -70,7 +67,7 @@ internal sealed partial class EventHookupSessionManager
             get
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                return _subjectBuffer;
+                return field;
             }
         }
 
@@ -96,13 +93,13 @@ internal sealed partial class EventHookupSessionManager
             _cancellationTokenSource = new();
             var cancellationToken = _cancellationTokenSource.Token;
 
-            _textView = textView;
-            _subjectBuffer = subjectBuffer;
+            TextView = textView;
+            SubjectBuffer = subjectBuffer;
             this.TESTSessionHookupMutex = testSessionHookupMutex;
 
             // If the caret is at the end of the document we just create an empty span
             var length = subjectBuffer.CurrentSnapshot.Length > position + 1 ? 1 : 0;
-            _trackingSpan = subjectBuffer.CurrentSnapshot.CreateTrackingSpan(new Span(position, length), SpanTrackingMode.EdgeInclusive);
+            TrackingSpan = subjectBuffer.CurrentSnapshot.CreateTrackingSpan(new Span(position, length), SpanTrackingMode.EdgeInclusive);
 
             var asyncToken = asyncListener.BeginAsyncOperation(GetType().Name + ".Start");
 
@@ -155,7 +152,7 @@ internal sealed partial class EventHookupSessionManager
 
                 var namingRule = await document.GetApplicableNamingRuleAsync(
                     new SymbolKindOrTypeKind(MethodKind.Ordinary),
-                    new DeclarationModifiers(isStatic: plusEqualsToken.Value.GetRequiredParent().IsInStaticContext()),
+                    new DeclarationModifiers(isStatic: plusEqualsToken.Value.GetRequiredParent().IsInStaticContext()).Modifiers,
                     Accessibility.Private,
                     cancellationToken).ConfigureAwait(false);
 
@@ -248,11 +245,8 @@ internal sealed partial class EventHookupSessionManager
             // Note: For generic, it's ok(it's even a good idea) to exclude type variables,
             // because the name is only used as a prefix for the method name.
 
-            var typeDeclaration = syntaxFactsService.GetContainingTypeDeclaration(
-                semanticModel.SyntaxTree.GetRoot(),
-                plusEqualsToken.SpanStart) as BaseTypeDeclarationSyntax;
-
-            return typeDeclaration != null
+            return syntaxFactsService.GetContainingTypeDeclaration(
+                semanticModel.SyntaxTree.GetRoot(), plusEqualsToken.SpanStart) is BaseTypeDeclarationSyntax typeDeclaration
                 ? typeDeclaration.Identifier.Text
                 : eventSymbol.ContainingType.Name;
         }

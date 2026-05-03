@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record Pass
+internal sealed record Pass
 {
     [JsonPropertyName("input")]
     public required Input Input { get; init; }

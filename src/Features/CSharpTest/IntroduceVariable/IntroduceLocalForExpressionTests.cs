@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
-public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeActionTest_NoEditor
 {
     private static readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
     private static readonly CodeStyleOption2<bool> offWithInfo = new(false, NotificationOption2.Suggestion);
@@ -57,9 +57,8 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
         => new CSharpIntroduceLocalForExpressionCodeRefactoringProvider();
 
     [Fact]
-    public async Task IntroduceLocal_NoSemicolon()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_NoSemicolon()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -82,12 +81,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IntroduceLocal_NoSemicolon_BlankLineAfter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_NoSemicolon_BlankLineAfter()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -112,12 +109,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IntroduceLocal_NoSemicolon_SelectExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_NoSemicolon_SelectExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -140,12 +135,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task IntroduceLocal_Inside_Expression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_Inside_Expression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -168,12 +161,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IntroduceLocal_Semicolon()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_Semicolon()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -196,12 +187,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IntroduceLocal_Semicolon_BlankLineAfter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_Semicolon_BlankLineAfter()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -226,12 +215,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IntroduceLocal_Semicolon_SelectExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_Semicolon_SelectExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -254,12 +241,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IntroduceLocal_Semicolon_SelectStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_Semicolon_SelectStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -282,12 +267,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MissingOnAssignmentExpressionStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MissingOnAssignmentExpressionStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -300,12 +283,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IntroduceLocal_Space()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_Space()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -328,12 +309,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IntroduceLocal_LeadingTrivia()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_LeadingTrivia()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -358,12 +337,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IntroduceLocal_PreferVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_PreferVar()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -385,17 +362,15 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     var {|Rename:dateTime|} = new DateTime();
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
-{
-    { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOption2.TrueWithSuggestionEnforcement },
-    { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement },
-});
-    }
+            """, new(options: new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOption2.TrueWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement },
+            }));
 
     [Fact]
-    public async Task MissingOnVoidCall()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MissingOnVoidCall()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -407,12 +382,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MissingOnDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MissingOnDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -424,12 +397,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IntroduceLocal_ArithmeticExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceLocal_ArithmeticExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -452,12 +423,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction1_A()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction1_A()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -484,12 +453,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction1_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction1_B()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -516,12 +483,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction1_C()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction1_C()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -547,13 +512,11 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     var (someString, someInt) = X();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
-    }
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction2_A()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction2_A()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -580,12 +543,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction2_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction2_B()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -612,12 +573,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction2_C()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction2_C()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -643,13 +602,11 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     var (someString, someInt) = X();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
-    }
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction3_A()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction3_A()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -680,12 +637,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction3_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction3_B()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -716,12 +671,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction3_C()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction3_C()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -751,13 +704,11 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     string someString;
                 }
             }
-            """, options: ImplicitTypeEverywhere());
-    }
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction4_A()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction4_A()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -784,12 +735,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction4_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction4_B()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -816,12 +765,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction4_C()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction4_C()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -847,13 +794,11 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     var (item1, item2) = X();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
-    }
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction5_A()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction5_A()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -880,12 +825,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction5_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction5_B()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -912,12 +855,10 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                 }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction5_C()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction5_C()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -943,13 +884,11 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     var (item1, item2) = X();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
-    }
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction_ImplicitTypeForIntrinsics1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction_ImplicitTypeForIntrinsics1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -975,13 +914,11 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     var (someString, someInt) = X();
                 }
             }
-            """, options: ImplicitTypeForIntrinsics());
-    }
+            """, new(options: ImplicitTypeForIntrinsics()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction_ImplicitTypeForIntrinsics2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction_ImplicitTypeForIntrinsics2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1009,13 +946,11 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     (var someString, C c) = X();
                 }
             }
-            """, options: ImplicitTypeForIntrinsics());
-    }
+            """, new(options: ImplicitTypeForIntrinsics()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction_ImplicitTypeWhenApparent1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction_ImplicitTypeWhenApparent1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1041,13 +976,11 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     (string someString, int someInt) = X();
                 }
             }
-            """, options: ImplicitTypeForApparent());
-    }
+            """, new(options: ImplicitTypeForApparent()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction_ImplicitTypeWhenApparent2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction_ImplicitTypeWhenApparent2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1071,13 +1004,11 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     (string someString, C someC) = (someString: "", someC: default(C));
                 }
             }
-            """, options: ImplicitTypeForApparent());
-    }
+            """, new(options: ImplicitTypeForApparent()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-    public async Task IntroduceDeconstruction_ImplicitTypeWhenApparentAndBuiltIn1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IntroduceDeconstruction_ImplicitTypeWhenApparentAndBuiltIn1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1101,6 +1032,5 @@ public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeAction
                     var (someString, someC) = (someString: "", someC: default(C));
                 }
             }
-            """, options: ImplicitTypeForApparentAndBuiltIn());
-    }
+            """, new(options: ImplicitTypeForApparentAndBuiltIn()));
 }

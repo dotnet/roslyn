@@ -74,18 +74,57 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.CollectionInitializerExpression:
                     var result = ArrayBuilder<BoundExpression>.GetInstance();
-                    AddCollectionInitializers(result, null, ((BoundCollectionInitializerExpression)initializerExpression).Initializers);
+                    addCollectionInitializersForExpressionTree(result, ((BoundCollectionInitializerExpression)initializerExpression).Initializers);
                     return result.ToImmutableAndFree();
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(initializerExpression.Kind);
+            }
+
+            void addCollectionInitializersForExpressionTree(ArrayBuilder<BoundExpression> result, ImmutableArray<BoundExpression> initializers)
+            {
+                foreach (var initializer in initializers)
+                {
+                    // In general bound initializers may contain bad expressions or element initializers.
+                    // We don't lower them if they contain errors, so it's safe to assume an element initializer.
+
+                    if (initializer.Kind != BoundKind.CollectionElementInitializer)
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
+                    }
+
+                    var elementInitializer = (BoundCollectionElementInitializer)initializer;
+
+                    // NOTE: Calls cannot be omitted within an expression tree (CS0765); this should already
+                    // have been checked.
+                    Debug.Assert(!elementInitializer.AddMethod.CallsAreOmitted(initializer.SyntaxTree));
+
+                    Debug.Assert(!elementInitializer.InvokedAsExtensionMethod);
+                    Debug.Assert(!elementInitializer.AddMethod.IsExtensionMethod);
+                    Debug.Assert(!elementInitializer.AddMethod.IsExtensionBlockMember());
+                    Debug.Assert(elementInitializer.Arguments.Length == elementInitializer.AddMethod.ParameterCount);
+                    Debug.Assert(elementInitializer.ImplicitReceiverOpt is BoundObjectOrCollectionValuePlaceholder);
+
+                    result.Add(
+                        VisitExpression(
+                            elementInitializer.Update(
+                                elementInitializer.AddMethod,
+                                elementInitializer.Arguments,
+                                implicitReceiverOpt: null,
+                                elementInitializer.Expanded,
+                                elementInitializer.ArgsToParamsOpt,
+                                elementInitializer.DefaultArguments,
+                                elementInitializer.InvokedAsExtensionMethod,
+                                elementInitializer.ResultKind,
+                                elementInitializer.Type)));
+                }
             }
         }
 
         // Rewrite collection initializer add method calls:
         // 2) new List<int> { 1 };
         //                    ~
-        private void AddCollectionInitializers(ArrayBuilder<BoundExpression> result, BoundExpression? rewrittenReceiver, ImmutableArray<BoundExpression> initializers)
+        private void AddCollectionInitializers(ArrayBuilder<BoundExpression> result, BoundExpression rewrittenReceiver, ImmutableArray<BoundExpression> initializers)
         {
             Debug.Assert(rewrittenReceiver is { } || _inExpressionLambda);
 
@@ -97,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression? rewrittenInitializer;
                 if (initializer.Kind == BoundKind.CollectionElementInitializer)
                 {
-                    rewrittenInitializer = MakeCollectionInitializer(rewrittenReceiver, (BoundCollectionElementInitializer)initializer);
+                    rewrittenInitializer = MakeCollectionInitializer((BoundCollectionElementInitializer)initializer);
                 }
                 else
                 {
@@ -137,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Rewrite collection initializer element Add method call:
         //  new List<int> { 1, 2, 3 };  OR  new List<int> { { 1, 2 }, 3 }; OR [1, 2, 3]
         //                  ~                               ~~~~~~~~
-        private BoundExpression? MakeCollectionInitializer(BoundExpression? rewrittenReceiver, BoundCollectionElementInitializer initializer)
+        private BoundExpression? MakeCollectionInitializer(BoundCollectionElementInitializer initializer)
         {
             MethodSymbol addMethod = initializer.AddMethod;
 
@@ -146,22 +185,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .Skip(addMethod.IsExtensionMethod ? 1 : 0)
                 .All(p => p.RefKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
             Debug.Assert(initializer.Arguments.Any());
-            Debug.Assert(rewrittenReceiver != null || _inExpressionLambda);
+            Debug.Assert(!_inExpressionLambda);
 
             var syntax = initializer.Syntax;
 
             if (_allowOmissionOfConditionalCalls)
             {
-                // NOTE: Calls cannot be omitted within an expression tree (CS0765); this should already
-                // have been checked.
                 if (addMethod.CallsAreOmitted(initializer.SyntaxTree))
                 {
                     return null;
                 }
             }
 
+            BoundExpression? rewrittenReceiver = VisitExpression(initializer.ImplicitReceiverOpt);
+
             var argumentRefKindsOpt = default(ImmutableArray<RefKind>);
-            if (addMethod.Parameters[0].RefKind == RefKind.Ref)
+            if (initializer.InvokedAsExtensionMethod && addMethod.Parameters[0].RefKind == RefKind.Ref)
             {
                 // If the Add method is an extension which takes a `ref this` as the first parameter, implicitly add a `ref` to the argument
                 // Initializer element syntax cannot have `ref`, `in`, or `out` keywords.
@@ -175,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol>? temps = null;
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref rewrittenReceiver,
-                captureReceiverMode: ReceiverCaptureMode.Default,
+                forceReceiverCapturing: false,
                 initializer.Arguments,
                 addMethod,
                 initializer.ArgsToParamsOpt,
@@ -186,20 +225,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenType = VisitType(initializer.Type);
 
+#if DEBUG
             if (initializer.InvokedAsExtensionMethod)
             {
                 Debug.Assert(addMethod.IsStatic);
                 Debug.Assert(addMethod.IsExtensionMethod);
-                Debug.Assert(!_inExpressionLambda, "Expression trees do not support extension Add");
-                rewrittenReceiver = null;
+                Debug.Assert(rewrittenReceiver is null);
             }
-
-            if (_inExpressionLambda)
-            {
-                Debug.Assert(temps.Count == 0);
-                temps.Free();
-                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, invokedAsExtensionMethod: false, initializer.ResultKind, rewrittenType);
-            }
+#endif
 
             if (Instrument)
             {
@@ -218,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var originalReceiver = rewrittenReceiver;
             ArrayBuilder<LocalSymbol>? constructionTemps = null;
-            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(ref rewrittenReceiver, captureReceiverMode: ReceiverCaptureMode.Default, node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt,
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(ref rewrittenReceiver, forceReceiverCapturing: false, node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt,
                 storesOpt: null, ref constructionTemps);
 
             if (constructionTemps != null)
@@ -365,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Rewrite simple assignment to field/property.
                                 var rewrittenRight = VisitExpression(right);
                                 Debug.Assert(assignment.Type.IsDynamic() || TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, used: false));
+                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, used: false, AssignmentKind.SimpleAssignment));
                                 return;
                             }
                         }
@@ -437,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Rewrite simple assignment to field/property.
                             var rewrittenRight = VisitExpression(right);
                             Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false, AssignmentKind.SimpleAssignment));
                             return;
                         }
 
@@ -470,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Rewrite as simple assignment.
                             var rewrittenRight = VisitExpression(right);
                             Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false, AssignmentKind.SimpleAssignment));
                             return;
                         }
 
@@ -486,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenAccess = GetUnderlyingIndexerOrSliceAccess(
                             implicitIndexer,
                             isLeftOfAssignment: !isRhsNestedInitializer,
-                            isRegularAssignmentOrRegularCompoundAssignment: true,
+                            isRegularAssignment: true,
                             cacheAllArgumentsOnly: true,
                             result, temps);
 
@@ -504,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var rewrittenRight = VisitExpression(right);
                         Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, used: false));
+                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, used: false, AssignmentKind.SimpleAssignment));
                         return;
                     }
 
@@ -665,9 +698,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, isChecked: false, ref discardedUseSiteInfo).IsImplicit ||
+                         (memberSymbol.IsExtensionBlockMember() && !memberSymbol.IsStatic && ConversionsBase.IsValidExtensionMethodThisArgConversion(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType.ExtensionParameter!.Type, isChecked: false, ref discardedUseSiteInfo))) ||
                          _compilation.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(rewrittenReceiver.Type, memberSymbol.ContainingType, ref discardedUseSiteInfo, out _));
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 #endif
+            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
+            rewrittenReceiver = this.ConvertReceiverForExtensionMemberIfNeeded(memberSymbol, rewrittenReceiver, markAsChecked: true);
 
             switch (memberSymbol.Kind)
             {

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
@@ -120,7 +121,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     {
         // Check if we don't have a database to search.  
         if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
-            return ValueTaskFactory.FromResult(ImmutableArray<TResult>.Empty);
+            return ValueTask.FromResult(ImmutableArray<TResult>.Empty);
 
         var database = databaseWrapper.Database;
 
@@ -128,7 +129,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
 
         // never find anything named 'var'.
         if (searchName == "var")
-            return ValueTaskFactory.FromResult(ImmutableArray<TResult>.Empty);
+            return ValueTask.FromResult(ImmutableArray<TResult>.Empty);
 
         var query = new MemberQuery(searchName, isFullSuffix: true, isFullNamespace: false);
         var symbols = new PartialArray<Symbol>(100);
@@ -145,7 +146,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
             }
         }
 
-        return ValueTaskFactory.FromResult(results.ToImmutableAndClear());
+        return ValueTask.FromResult(results.ToImmutableAndClear());
 
         static IEnumerable<Symbol> FilterToViableSymbols(
             PartialArray<Symbol> symbols, NamespaceQuery namespaceQuery)
@@ -178,7 +179,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
         {
             // Don't have a database to search.  
-            return ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
+            return ValueTask.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
         }
 
         using var _ = ArrayBuilder<PackageWithAssemblyResult>.GetInstance(out var result);
@@ -210,7 +211,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
             }
         }
 
-        return ValueTaskFactory.FromResult(result.ToImmutableAndClear());
+        return ValueTask.FromResult(result.ToImmutableAndClear());
     }
 
     private static int GetRank(Symbol symbol)

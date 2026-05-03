@@ -5,40 +5,37 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp;
+
+[Export(typeof(FSharpGlobalOptions)), Shared]
+internal sealed class FSharpGlobalOptions
 {
-    [Export(typeof(FSharpGlobalOptions)), Shared]
-    internal sealed class FSharpGlobalOptions
+    private readonly IGlobalOptionService _globalOptions;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpGlobalOptions(IGlobalOptionService globalOptions)
     {
-        private readonly IGlobalOptionService _globalOptions;
+        _globalOptions = globalOptions;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpGlobalOptions(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
+    public bool BlockForCompletionItems
+    {
+        get => _globalOptions.GetOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.FSharp);
+        set => _globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.FSharp, value);
+    }
 
-        public bool BlockForCompletionItems
-        {
-            get => _globalOptions.GetOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.FSharp);
-            set => _globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.FSharp, value);
-        }
-
-        public void SetBackgroundAnalysisScope(bool openFilesOnly)
-        {
-            _globalOptions.SetGlobalOption(
-                SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.FSharp,
-                openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
-            _globalOptions.SetGlobalOption(
-                SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.FSharp,
-                openFilesOnly ? CompilerDiagnosticsScope.OpenFiles : CompilerDiagnosticsScope.FullSolution);
-        }
+    public void SetBackgroundAnalysisScope(bool openFilesOnly)
+    {
+        _globalOptions.SetGlobalOption(
+            SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.FSharp,
+            openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
+        _globalOptions.SetGlobalOption(
+            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.FSharp,
+            openFilesOnly ? CompilerDiagnosticsScope.OpenFiles : CompilerDiagnosticsScope.FullSolution);
     }
 }

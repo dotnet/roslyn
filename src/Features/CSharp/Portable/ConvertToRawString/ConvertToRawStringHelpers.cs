@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
@@ -16,11 +17,8 @@ internal static class ConvertToRawStringHelpers
     public static bool CanBeSingleLine(VirtualCharSequence characters)
     {
         // Single line raw strings cannot start/end with quote.
-        if (characters.First().Rune.Value == '"' ||
-            characters.Last().Rune.Value == '"')
-        {
+        if (characters[0] == '"' || characters[^1] == '"')
             return false;
-        }
 
         // a single line raw string cannot contain a newline.
         if (characters.Any(static ch => IsCSharpNewLine(ch)))
@@ -30,20 +28,20 @@ internal static class ConvertToRawStringHelpers
     }
 
     public static bool IsCSharpNewLine(VirtualChar ch)
-        => ch.Rune.Utf16SequenceLength == 1 && SyntaxFacts.IsNewLine((char)ch.Value);
+        => SyntaxFacts.IsNewLine(ch);
 
     public static bool IsCSharpWhitespace(VirtualChar ch)
-        => ch.Rune.Utf16SequenceLength == 1 && SyntaxFacts.IsWhitespace((char)ch.Value);
+        => SyntaxFacts.IsWhitespace(ch);
 
     public static bool IsCarriageReturnNewLine(VirtualCharSequence characters, int index)
     {
         return index + 1 < characters.Length &&
-            characters[index].Rune is { Utf16SequenceLength: 1, Value: '\r' } &&
-            characters[index + 1].Rune is { Utf16SequenceLength: 1, Value: '\n' };
+            characters[index] == '\r' &&
+            characters[index + 1] == '\n';
     }
 
     public static bool AllEscapesAreQuotes(VirtualCharSequence sequence)
-        => AllEscapesAre(sequence, static ch => ch.Value == '"');
+        => AllEscapesAre(sequence, static ch => ch == '"');
 
     public static bool AllEscapesAre(VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
     {
@@ -86,48 +84,55 @@ internal static class ConvertToRawStringHelpers
         if (characters.IsDefault)
             return false;
 
-        foreach (var ch in characters)
+        for (var i = 0; i < characters.Length; i++)
         {
-            if (!CanConvert(ch))
-                return false;
+            var ch = characters[i];
 
             // Look for *explicit* usages of sequences like \r or \n.  These are multi character representations of
             // newlines.  If we see these, we only want to fix these up in a fix-all if the original string contained
             // those as well.
-            if (ch.Span.Length > 1 && SyntaxFacts.IsNewLine((char)ch.Value))
-                containsEscapedEndOfLineCharacter = true;
-        }
+            //
+            // Also, Check if we have an escaped character in the original string. An escaped newline is fine to convert
+            // (to a multi-line raw string). Whereas Control/formatting unicode escapes should stay as escapes.  The
+            // user code will just be enormously difficult to read/reason about if we convert those to the actual
+            // corresponding non-escaped chars.
+            if (ch.Span.Length > 1)
+            {
+                if (SyntaxFacts.IsNewLine(ch))
+                {
+                    containsEscapedEndOfLineCharacter = true;
+                }
+                else if (IsFormatOrControl(char.GetUnicodeCategory(ch)))
+                {
+                    return false;
+                }
+            }
 
-        return true;
-    }
-
-    private static bool CanConvert(VirtualChar ch)
-    {
-        // Don't bother with unpaired surrogates.  This is just a legacy language corner case that we don't care to
-        // even try having support for.
-        if (ch.SurrogateChar != 0)
-            return false;
-
-        // Can't ever encode a null value directly in a c# file as our lexer/parser/text apis will stop righ there.
-        if (ch.Rune.Value == 0)
-            return false;
-
-        // Check if we have an escaped character in the original string.
-        if (ch.Span.Length > 1)
-        {
-            // An escaped newline is fine to convert (to a multi-line raw string).
-            if (IsCSharpNewLine(ch))
-                return true;
-
-            // Control/formatting unicode escapes should stay as escapes.  The user code will just be enormously
-            // difficult to read/reason about if we convert those to the actual corresponding non-escaped chars.
-            var category = Rune.GetUnicodeCategory(ch.Rune);
-            if (category is UnicodeCategory.Format or UnicodeCategory.Control)
+            // Can't ever encode a null value directly in a c# file as our lexer/parser/text apis will stop right there.
+            if (ch.Value == 0)
                 return false;
+
+            // A paired surrogate is fine to convert.
+            if (i + 1 < characters.Length &&
+                char.IsHighSurrogate(ch) &&
+                char.IsLowSurrogate(characters[i + 1]) &&
+                !IsFormatOrControl(Rune.GetUnicodeCategory(new Rune(ch, characters[i + 1]))))
+            {
+                // Increase by one more to account for the low surrogate we just looked at.
+                i++;
+            }
+            else if (char.IsSurrogate(ch))
+            {
+                // Unpaired surrogates aren't things we want to convert from an escape to a random character.
+                return false;
+            }
         }
 
         return true;
     }
+
+    private static bool IsFormatOrControl(UnicodeCategory category)
+        => category is UnicodeCategory.Format or UnicodeCategory.Control;
 
     public static int GetLongestQuoteSequence(VirtualCharSequence characters)
         => GetLongestCharacterSequence(characters, '"');

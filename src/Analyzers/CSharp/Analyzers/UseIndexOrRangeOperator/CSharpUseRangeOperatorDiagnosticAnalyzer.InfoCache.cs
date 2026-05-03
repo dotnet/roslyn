@@ -158,7 +158,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
                 // Also, look to see if the type has a `.Slice(int start, int length)` method.
                 // This is also a method the compiler knows to look for when a user writes `x[a..b]`
                 var actualSliceMethod =
-                    sliceLikeMethod.ContainingType.GetMembers(nameof(Span<int>.Slice))
+                    sliceLikeMethod.ContainingType.GetMembers(nameof(Span<>.Slice))
                                                   .OfType<IMethodSymbol>()
                                                   .FirstOrDefault(s => IsTwoArgumentSliceLikeMethod(s));
                 if (actualSliceMethod != null)

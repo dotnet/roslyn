@@ -1,0 +1,33 @@
+﻿RazorDocument - [0..21)::21 - [<p>LF@**@  @**@LF</p>]
+    MarkupBlock - [0..21)::21
+        MarkupElement - [0..21)::21
+            MarkupStartTag - [0..3)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [3..5)::2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            RazorComment - [5..9)::4
+                RazorCommentTransition;[@];
+                RazorCommentStar;[*];
+                RazorCommentLiteral;[<Missing>];
+                RazorCommentStar;[*];
+                RazorCommentTransition;[@];
+            MarkupTextLiteral - [9..9)::0 - [] - Gen<Markup>
+                Marker;[];
+            MarkupEphemeralTextLiteral - [9..11)::2 - [  ] - Gen<None>
+                Whitespace;[  ];
+            RazorComment - [11..15)::4
+                RazorCommentTransition;[@];
+                RazorCommentStar;[*];
+                RazorCommentLiteral;[<Missing>];
+                RazorCommentStar;[*];
+                RazorCommentTransition;[@];
+            MarkupEphemeralTextLiteral - [15..17)::2 - [LF] - Gen<None>
+                NewLine;[LF];
+            MarkupEndTag - [17..21)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+    EndOfFile;[];

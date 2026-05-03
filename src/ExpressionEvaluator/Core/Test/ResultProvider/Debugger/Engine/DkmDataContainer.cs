@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Debugger
 {
     public abstract class DkmDataContainer
     {
-        private readonly Dictionary<Guid, object> _dataItems = new Dictionary<Guid, object>();
+        private readonly Dictionary<Guid, object> _dataItems = [];
 
         public T GetDataItem<T>() where T : DkmDataItem
         {

@@ -7,13 +7,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Basic.Reference.Assemblies;
-using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     if (kind != result.Kind)
                     {
                         var result2 = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics); // set breakpoint here if this test is failing...
-                        Assert.True(false, string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
+                        Assert.Fail(string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
                     }
                 }
             }
@@ -482,7 +483,7 @@ public class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
-            Assert.Equal("C C.op_Implicit(System.Func<System.Int32> intDelegate)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());  // Unexpected: Should be null
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
             var conversion = model.GetConversion(memberAccess);
             Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind); // Unexpected: Should be NoConversion or possibly Identity for error case
             Assert.Equal(ConversionKind.MethodGroup, conversion.UserDefinedFromConversion.Kind);
@@ -525,7 +526,7 @@ public struct C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75833")]
-        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_InAssignemnt()
+        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_InAssignment()
         {
             var src = """
 public class C
@@ -553,7 +554,7 @@ public class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
-            Assert.Equal("C C.op_Implicit(System.Func<System.Int32> intDelegate)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());  // Unexpected: Should be null
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
             var conversion = model.GetConversion(memberAccess);
             Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind); // Unexpected: Should be NoConversion or possibly Identity for error case
             Assert.Equal(ConversionKind.MethodGroup, conversion.UserDefinedFromConversion.Kind);

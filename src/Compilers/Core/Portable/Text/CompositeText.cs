@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Text
             if (segments.Count > 1)
             {
                 // Remove empty segments before checking for split line breaks
-                segments.RemoveWhere(static (s, _, _) => s.Length == 0, default(VoidResult));
+                segments.RemoveAll(static (s, _, _) => s.Length == 0, arg: 0);
 
                 var splitLineBreakFound = false;
                 for (int i = 1; i < segments.Count; i++)
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     // If a split line break was present, ensure there aren't any empty lines again
                     // due to the sourcetexts created from the GetSubText calls.
-                    segments.RemoveWhere(static (s, _, _) => s.Length == 0, default(VoidResult));
+                    segments.RemoveAll(static (s, _, _) => s.Length == 0, arg: 0);
                 }
             }
         }
@@ -517,6 +517,7 @@ namespace Microsoft.CodeAnalysis.Text
                         lineLength += nextSegment.Lines[0].SpanIncludingLineBreak.Length;
                     }
 
+                    int lineBreakLen;
                     if (firstSegmentIndexInclusive != lastSegmentIndexInclusive)
                     {
                         var lastSegment = _compositeText.Segments[lastSegmentIndexInclusive];
@@ -524,10 +525,16 @@ namespace Microsoft.CodeAnalysis.Text
                         // lastSegment should have at least one line.
                         Debug.Assert(lastSegment.Lines.Count >= 1);
 
-                        lineLength += lastSegment.Lines[0].SpanIncludingLineBreak.Length;
+                        var lastSegmentLine = lastSegment.Lines[0];
+                        lineLength += lastSegmentLine.SpanIncludingLineBreak.Length;
+                        lineBreakLen = lastSegmentLine.LineBreakLength;
+                    }
+                    else
+                    {
+                        lineBreakLen = firstSegmentTextLine.LineBreakLength;
                     }
 
-                    var resultLine = TextLine.FromSpanUnsafe(_compositeText, new TextSpan(firstSegmentOffset + firstSegmentTextLine.Start, lineLength));
+                    var resultLine = TextLine.FromSpanUnsafe(_compositeText, new TextSpan(firstSegmentOffset + firstSegmentTextLine.Start, lineLength), lineBreakLen);
 
                     // Assert resultLine only has line breaks in the appropriate locations
                     Debug.Assert(resultLine.ToString().All(static c => !TextUtilities.IsAnyLineBreakCharacter(c)));

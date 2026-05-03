@@ -8,20 +8,26 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.UseUnboundGenericTypeInNameOf;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertTypeOfToNameOf), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class CSharpConvertTypeOfToNameOfCodeFixProvider() : AbstractConvertTypeOfToNameOfCodeFixProvider<
-    MemberAccessExpressionSyntax>
+internal sealed class CSharpConvertTypeOfToNameOfCodeFixProvider()
+    : AbstractConvertTypeOfToNameOfCodeFixProvider<MemberAccessExpressionSyntax>
 {
     protected override string GetCodeFixTitle()
         => CSharpCodeFixesResources.Convert_typeof_to_nameof;
+
+    protected override SyntaxNode ConvertToUnboundGeneric(ParseOptions options, SyntaxNode nameOfSyntax)
+        => options.LanguageVersion().IsCSharp14OrAbove()
+            ? CSharpUseUnboundGenericTypeInNameOfCodeFixProvider.ConvertToUnboundGenericNameof(nameOfSyntax)
+            : nameOfSyntax;
 
     protected override SyntaxNode GetSymbolTypeExpression(SemanticModel model, MemberAccessExpressionSyntax node, CancellationToken cancellationToken)
     {

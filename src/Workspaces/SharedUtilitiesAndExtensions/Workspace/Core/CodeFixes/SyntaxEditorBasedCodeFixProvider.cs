@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,6 +20,10 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
         [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
     private readonly bool _supportsFixAll = supportsFixAll;
+
+#if WORKSPACE
+    protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
+#endif
 
     public sealed override FixAllProvider? GetFixAllProvider()
     {
@@ -42,7 +47,11 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
 
                 return await FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
             },
-            s_defaultSupportedFixAllScopes);
+            s_defaultSupportedFixAllScopes
+#if WORKSPACE
+            , this.Cleanup
+#endif
+            );
     }
 
     protected void RegisterCodeFix(CodeFixContext context, string title, string equivalenceKey, Diagnostic? diagnostic = null)
@@ -93,10 +102,9 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
     /// create multiple diagnostics for the same issue (For example, one main diagnostic and multiple 'faded out code'
     /// diagnostics).  FixAll can be invoked from any of those, but we'll only want perform an edit for only one
     /// diagnostic for each of those sets of diagnostics.
-    /// <para/>
-    /// This overload differs from <see cref="IncludeDiagnosticDuringFixAll(Diagnostic)"/> in that it also passes along
-    /// the <see cref="FixAllState"/> in case that would be useful (for example if the <see
-    /// cref="IFixAllState.CodeActionEquivalenceKey"/> is used.
+    /// <para/> This overload differs from <see cref="IncludeDiagnosticDuringFixAll(Diagnostic)"/> in that it also
+    /// passes along the <see cref="FixAllState"/> in case that would be useful (for example if the
+    /// CodeActionEquivalenceKey is used).
     /// <para/>
     /// Only one of these two overloads needs to be overridden if you want to customize behavior.
     /// </summary>
@@ -108,12 +116,11 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
     /// create multiple diagnostics for the same issue (For example, one main diagnostic and multiple 'faded out code'
     /// diagnostics).  FixAll can be invoked from any of those, but we'll only want perform an edit for only one
     /// diagnostic for each of those sets of diagnostics.
-    /// <para/>
-    /// By default, all diagnostics will be included in fix-all unless they are filtered out here. If only the
+    /// <para/> By default, all diagnostics will be included in fix-all unless they are filtered out here. If only the
     /// diagnostic needs to be queried to make this determination, only this overload needs to be overridden.  However,
-    /// if information from <see cref="FixAllState"/> is needed (for example <see
-    /// cref="IFixAllState.CodeActionEquivalenceKey"/>), then <see cref="IncludeDiagnosticDuringFixAll(Diagnostic,
-    /// Document, string, CancellationToken)"/> should be overridden instead.
+    /// if information from <see cref="FixAllState"/> is needed (for example the CodeActionEquivalenceKey), then <see
+    /// cref="IncludeDiagnosticDuringFixAll(Diagnostic, Document, string, CancellationToken)"/> should be overridden
+    /// instead.
     /// <para/>
     /// Only one of these two overloads needs to be overridden if you want to customize behavior.
     /// </summary>

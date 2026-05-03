@@ -110,63 +110,103 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void VisitPathsToNode(BoundDecisionDagNode rootNode, BoundDecisionDagNode targetNode, bool nullPaths,
             Func<ImmutableArray<BoundDecisionDagNode>, bool, bool> handler)
         {
+#nullable enable
             var pathBuilder = ArrayBuilder<BoundDecisionDagNode>.GetInstance();
+            var stack = ArrayBuilder<BoundDecisionDagNode?>.GetInstance();
             exploreToNode(rootNode, currentRequiresFalseWhenClause: false);
+            stack.Free();
             pathBuilder.Free();
             return;
 
             // Recursive exploration helper
             // Returns true to continue, false to stop
-            bool exploreToNode(BoundDecisionDagNode currentNode, bool currentRequiresFalseWhenClause)
+            bool exploreToNode(BoundDecisionDagNode? currentNode, bool currentRequiresFalseWhenClause)
             {
-                if (currentNode == targetNode)
+                if (currentNode is null)
                 {
-                    return handler(pathBuilder.ToImmutable(), currentRequiresFalseWhenClause);
+                    return true;
                 }
 
-                pathBuilder.Push(currentNode);
+                int stackSize = stack.Count;
+                stack.Push(currentNode);
 
-                switch (currentNode)
+                do
                 {
-                    case null:
-                    case BoundLeafDecisionDagNode:
-                        break;
+                    currentNode = stack.Pop();
 
-                    case BoundTestDecisionDagNode test:
-                        bool skipWhenTrue = test.Test is BoundDagExplicitNullTest && !nullPaths;
-                        bool skipWhenFalse = test.Test is BoundDagNonNullTest && !nullPaths;
-
-                        if (!skipWhenTrue)
-                        {
-                            if (!exploreToNode(test.WhenTrue, currentRequiresFalseWhenClause))
-                                return false;
-                        }
-
-                        if (!skipWhenFalse)
-                        {
-                            if (!exploreToNode(test.WhenFalse, currentRequiresFalseWhenClause))
-                                return false;
-                        }
-
-                        break;
-
-                    case BoundEvaluationDecisionDagNode evaluation:
-                        if (!exploreToNode(evaluation.Next, currentRequiresFalseWhenClause))
-                            return false;
-
-                        break;
-
-                    case BoundWhenDecisionDagNode whenNode:
+                    if (currentNode is null)
+                    {
                         pathBuilder.Pop();
-                        return exploreToNode(whenNode.WhenFalse, currentRequiresFalseWhenClause: true);
+                        continue;
+                    }
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(currentNode.Kind);
+                    if (currentNode == targetNode)
+                    {
+                        if (!handler(pathBuilder.ToImmutable(), currentRequiresFalseWhenClause))
+                        {
+                            stack.Count = stackSize;
+                            return false;
+                        }
+
+                        continue;
+                    }
+
+                    pathBuilder.Push(currentNode);
+
+                    switch (currentNode)
+                    {
+                        case BoundLeafDecisionDagNode:
+                            break;
+
+                        case BoundTestDecisionDagNode test:
+                            stack.Push(null); // marker to pop from pathBuilder
+
+                            bool skipWhenTrue = test.Test is BoundDagExplicitNullTest && !nullPaths;
+                            bool skipWhenFalse = test.Test is BoundDagNonNullTest && !nullPaths;
+
+                            if (!skipWhenFalse && test.WhenFalse is not null)
+                            {
+                                stack.Push(test.WhenFalse);
+                            }
+
+                            if (!skipWhenTrue && test.WhenTrue is not null)
+                            {
+                                stack.Push(test.WhenTrue);
+                            }
+
+                            continue;
+
+                        case BoundEvaluationDecisionDagNode evaluation:
+
+                            if (evaluation.Next is not null)
+                            {
+                                stack.Push(null); // marker to pop from pathBuilder
+                                stack.Push(evaluation.Next);
+                                continue;
+                            }
+                            break;
+
+                        case BoundWhenDecisionDagNode whenNode:
+                            pathBuilder.Pop();
+                            if (!exploreToNode(whenNode.WhenFalse, currentRequiresFalseWhenClause: true))
+                            {
+                                stack.Count = stackSize;
+                                return false;
+                            }
+
+                            continue;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(currentNode.Kind);
+                    }
+
+                    pathBuilder.Pop();
                 }
+                while (stack.Count > stackSize);
 
-                pathBuilder.Pop();
                 return true;
             }
+#nullable disable
         }
 
         /// <summary>
@@ -258,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool sense = t.WhenTrue == nextNode || (t.WhenFalse != nextNode && t.WhenTrue is BoundWhenDecisionDagNode);
                                 BoundDagTest test = t.Test;
                                 BoundDagTemp temp = test.Input;
-                                if (test is BoundDagTypeTest && sense == false)
+                                if (test is BoundDagTypeTest && sense == false && ValueSetFactory.TypeUnionValueSetFactoryForInput(test.Input) is null)
                                 {
                                     // A failed type test is not very useful in constructing a counterexample,
                                     // at least not without discriminated unions, so we just drop them.
@@ -300,6 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return
                 tryHandleSingleTest() ??
+                tryHandleTypeUnionLimits() ??
                 tryHandleTypeTestAndTypeEvaluation(ref unnamedEnumValue) ??
                 tryHandleUnboxNullableValueType(ref unnamedEnumValue) ??
                 tryHandleTuplePattern(ref unnamedEnumValue) ??
@@ -336,13 +377,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Handle the special case of a type test and a type evaluation.
             string tryHandleTypeTestAndTypeEvaluation(ref bool unnamedEnumValue)
             {
-                if (evaluations.Length == 1 && constraints.Length == 1 &&
-                    constraints[0] is (BoundDagTypeTest { Type: var constraintType }, true) &&
-                    evaluations[0] is BoundDagTypeEvaluation { Type: var evaluationType } te &&
-                    constraintType.Equals(evaluationType, TypeCompareKind.AllIgnoreOptions))
+                if (evaluations is [BoundDagTypeEvaluation { Type: var evaluationType } te])
                 {
-                    var typedTemp = new BoundDagTemp(te.Syntax, te.Type, te);
-                    return SamplePatternForTemp(typedTemp, constraintMap, evaluationMap, requireExactType: true, ref unnamedEnumValue);
+                    TypeSymbol constraintType = null;
+                    bool sense = false;
+
+                    if (constraints is [(BoundDagTypeTest { Type: var constraintType1 }, true)])
+                    {
+                        constraintType = constraintType1;
+                        sense = true;
+                    }
+                    else if (constraints is [(BoundDagNonNullTest, true) or (BoundDagExplicitNullTest, false), (BoundDagTypeTest { Type: var constraintType2 }, var sense2)])
+                    {
+                        constraintType = constraintType2;
+                        sense = sense2;
+                    }
+
+                    if (constraintType is not null &&
+                        constraintType.Equals(evaluationType, TypeCompareKind.AllIgnoreOptions) == sense)
+                    {
+                        var typedTemp = te.MakeResultTemp();
+                        return SamplePatternForTemp(typedTemp, constraintMap, evaluationMap, requireExactType: true, ref unnamedEnumValue);
+                    }
                 }
 
                 return null;
@@ -356,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     evaluations[0] is BoundDagTypeEvaluation { Type: var evaluationType } te &&
                     input.Type.IsNullableType() && input.Type.GetNullableUnderlyingType().Equals(evaluationType, TypeCompareKind.AllIgnoreOptions))
                 {
-                    var typedTemp = new BoundDagTemp(te.Syntax, te.Type, te);
+                    var typedTemp = te.MakeResultTemp();
                     var result = SamplePatternForTemp(typedTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
                     // We need a null check. If not included in the result, add it.
                     return (result == "_") ? "not null" : result;
@@ -400,8 +456,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
-                    var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
+                    var lengthTemp = lengthOrCount.MakeResultTemp();
+                    var lengthValues = (IConstantValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
                     int lengthValue = lengthValues.Sample.Int32Value;
                     if (slice != null)
                     {
@@ -428,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (evaluations[i])
                         {
                             case BoundDagIndexerEvaluation e:
-                                var indexerTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                                var indexerTemp = e.MakeResultTemp();
                                 int index = e.Index;
                                 int effectiveIndex = index < 0 ? lengthValue + index : index;
                                 if (effectiveIndex < 0 || effectiveIndex >= lengthValue)
@@ -447,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (slice != null)
                     {
-                        var sliceTemp = new BoundDagTemp(slice.Syntax, slice.SliceType, slice);
+                        var sliceTemp = slice.MakeResultTemp();
                         var slicePattern = SamplePatternForTemp(sliceTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
                         if (slicePattern != "_")
                         {
@@ -476,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     subpatterns.AddMany("_", cardinality);
                     foreach (BoundDagFieldEvaluation e in evaluations)
                     {
-                        var elementTemp = new BoundDagTemp(e.Syntax, e.Field.Type, e);
+                        var elementTemp = e.MakeResultTemp();
                         var index = e.Field.TupleElementIndex;
                         if (index < 0 || index >= cardinality)
                             return null;
@@ -507,11 +563,69 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ValueSetFactory.ForInput(input) is { } fac)
                 {
                     // All we have are numeric constraints. Process them to compute a value not covered.
-                    IValueSet remainingValues = computeRemainingValues(fac, constraints);
-                    if (remainingValues.Complement().IsEmpty)
+                    IConstantValueSet remainingValues = computeRemainingValues(fac, constraints);
+                    if (((IConstantValueSet)remainingValues.Complement()).IsEmpty)
                         return "_";
 
                     return SampleValueString(remainingValues, input.Type, requireExactType: requireExactType, unnamedEnumValue: ref unnamedEnumValue);
+                }
+
+                return null;
+            }
+
+            string tryHandleTypeUnionLimits()
+            {
+                if (evaluations.IsEmpty && ValueSetFactory.TypeUnionValueSetFactoryForInput(input) is { } factory &&
+                    constraints.All(t => t switch
+                    {
+                        (BoundDagTypeTest _, _) => true,
+                        (BoundDagExplicitNullTest _, sense: false) => true,
+                        (BoundDagNonNullTest _, sense: true) => true,
+                        _ => false
+                    }))
+                {
+                    var conversions = input.Type.ContainingAssembly.TypeConversions;
+                    var remainingValues = factory.AllValues(conversions);
+                    var discardedInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    foreach (var constraint in constraints)
+                    {
+                        var (test, sense) = constraint;
+
+                        TypeUnionValueSet filtered;
+
+                        switch (test)
+                        {
+                            case BoundDagTypeTest typeTest:
+                                filtered = factory.FromTypeMatch(typeTest.Type, conversions, ref discardedInfo);
+                                break;
+                            case BoundDagExplicitNullTest:
+                                filtered = factory.FromNullMatch(conversions);
+                                break;
+                            case BoundDagNonNullTest:
+                                filtered = factory.FromNonNullMatch(conversions);
+                                break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(test);
+                        }
+
+                        if (!sense)
+                        {
+                            filtered = filtered.Complement();
+                        }
+
+                        remainingValues = remainingValues.Intersect(filtered);
+                    }
+
+                    if (remainingValues.IsEmpty(ref discardedInfo))
+                        return null;
+
+                    if (remainingValues.SampleType(ref discardedInfo) is { } type)
+                    {
+                        return type.ToDisplayString();
+                    }
+
+                    if (remainingValues.IncludesNull)
+                        return "null";
                 }
 
                 return null;
@@ -542,14 +656,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int extensionExtra = method.RequiresInstanceReceiver ? 0 : 1;
                             int count = method.Parameters.Length - extensionExtra;
                             var subpatternBuilder = new StringBuilder("(");
-                            for (int j = 0; j < count; j++)
+                            ArrayBuilder<BoundDagTemp> outParamTemps = e.MakeOutParameterTemps();
+                            bool first = true;
+                            foreach (var elementTemp in outParamTemps)
                             {
-                                var elementTemp = new BoundDagTemp(e.Syntax, method.Parameters[j + extensionExtra].Type, e, j);
                                 var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
-                                if (j != 0)
+                                if (first)
+                                {
+                                    first = false;
+                                }
+                                else
+                                {
                                     subpatternBuilder.Append(", ");
+                                }
+
                                 subpatternBuilder.Append(newPattern);
                             }
+                            outParamTemps.Free();
                             subpatternBuilder.Append(')');
                             var result = subpatternBuilder.ToString();
                             if (deconstruction != null && needsPropertyString)
@@ -563,15 +686,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundDagFieldEvaluation e:
                             {
-                                var subInput = new BoundDagTemp(e.Syntax, e.Field.Type, e);
+                                var subInput = e.MakeResultTemp();
                                 var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
                                 properties.Add(e.Field, subPattern);
                             }
                             break;
                         case BoundDagPropertyEvaluation e:
                             {
-                                var subInput = new BoundDagTemp(e.Syntax, e.Property.Type, e);
+                                var subInput = e.MakeResultTemp();
                                 var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
+
+                                if (evaluations.Length == 1 && e.Property is { Name: WellKnownMemberNames.ValuePropertyName } property &&
+                                    e.Input.Type is NamedTypeSymbol { IsUnionType: true } unionType &&
+                                    Binder.IsUnionTypeValueProperty(unionType, property))
+                                {
+                                    return subPattern;
+                                }
+
                                 properties.Add(e.Property, subPattern);
                             }
                             break;
@@ -593,9 +724,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return requireExactType ? input.Type.ToDisplayString() : "_";
             }
 
-            IValueSet computeRemainingValues(IValueSetFactory fac, ImmutableArray<(BoundDagTest test, bool sense)> constraints)
+            IConstantValueSet computeRemainingValues(IConstantValueSetFactory fac, ImmutableArray<(BoundDagTest test, bool sense)> constraints)
             {
-                var remainingValues = fac.AllValues;
+                IConstantValueSet remainingValues = fac.AllValues;
                 foreach (var constraint in constraints)
                 {
                     var (test, sense) = constraint;
@@ -613,10 +744,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (value.IsBad)
                             return;
-                        var filtered = fac.Related(relation, value);
+                        IConstantValueSet filtered = fac.Related(relation, value);
                         if (!sense)
-                            filtered = filtered.Complement();
-                        remainingValues = remainingValues.Intersect(filtered);
+                            filtered = (IConstantValueSet)filtered.Complement();
+                        remainingValues = (IConstantValueSet)remainingValues.Intersect(filtered);
                     }
                 }
 
@@ -638,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static string SampleValueString(IValueSet remainingValues, TypeSymbol type, bool requireExactType, ref bool unnamedEnumValue)
+        private static string SampleValueString(IConstantValueSet remainingValues, TypeSymbol type, bool requireExactType, ref bool unnamedEnumValue)
         {
             // In rare cases it's possible the DAG path we analyzed yields empty remaining values
             if (remainingValues.IsEmpty)

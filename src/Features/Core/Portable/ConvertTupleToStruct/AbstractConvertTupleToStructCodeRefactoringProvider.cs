@@ -11,9 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -854,13 +854,13 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         SemanticModel model, SyntaxGenerator generator,
         INamedTypeSymbol tupleType, IMethodSymbol constructor)
     {
-        var assignments = tupleType.TupleElements.Select(
+        var assignments = tupleType.TupleElements.SelectAsArray(
             (field, index) => generator.ExpressionStatement(
                 generator.AssignmentStatement(
                     generator.IdentifierName(constructor.Parameters[index].Name),
                     generator.MemberAccessExpression(
                         generator.ThisExpression(),
-                        field.Name)))).ToImmutableArray();
+                        field.Name))));
 
         return CodeGenerationSymbolFactory.CreateMethodSymbol(
             attributes: default,

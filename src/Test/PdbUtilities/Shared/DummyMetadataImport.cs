@@ -5,13 +5,13 @@
 #nullable disable
 
 using System;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.DiaSymReader.PortablePdb;
-using System.Reflection;
 
 namespace Roslyn.Test.PdbUtilities
 {

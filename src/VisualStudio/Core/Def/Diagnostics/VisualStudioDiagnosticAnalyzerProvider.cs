@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,9 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 /// This service provides diagnostic analyzers from the analyzer assets specified in the manifest files of installed VSIX extensions.
 /// These analyzers are used across this workspace session.
 /// </summary>
-internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
+internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
 {
     private const string AnalyzerContentTypeName = "Microsoft.VisualStudio.Analyzer";
+
+    internal const string RazorContentTypeName = "Microsoft.VisualStudio.RazorAssembly";
 
     /// <summary>
     /// Loader for VSIX-based analyzers.
@@ -40,24 +43,24 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticA
 
         _extensionManager = extensionManager;
         _typeIExtensionContent = typeIExtensionContent;
-        _lazyAnalyzerReferences = new Lazy<ImmutableArray<(AnalyzerFileReference, string)>>(GetAnalyzerReferencesImpl);
+        _lazyAnalyzerReferences = new Lazy<ImmutableArray<(AnalyzerFileReference, string)>>(() => GetExtensionContent(AnalyzerContentTypeName).SelectAsArray(c => (new AnalyzerFileReference(c.path, AnalyzerAssemblyLoader), c.extensionId)));
     }
 
     public ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions()
         => _lazyAnalyzerReferences.Value;
 
-    private ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesImpl()
+    private ImmutableArray<(string path, string extensionId)> GetExtensionContent(string contentTypeName)
     {
         try
         {
             // dynamic is weird. it can't see internal type with public interface even if callee is
             // implementation of the public interface in internal type. so we can't use dynamic here
-            var _ = PooledDictionary<AnalyzerFileReference, string>.GetInstance(out var analyzePaths);
+            var _ = PooledDictionary<string, string>.GetInstance(out var analyzePaths);
 
-            // var enabledExtensions = extensionManager.GetEnabledExtensions(AnalyzerContentTypeName);
+            // var enabledExtensions = extensionManager.GetEnabledExtensions(contentTypeName);
             var extensionManagerType = _extensionManager.GetType();
             var extensionManager_GetEnabledExtensionsMethod = extensionManagerType.GetRuntimeMethod("GetEnabledExtensions", [typeof(string)]);
-            var enabledExtensions = (IEnumerable<object>)extensionManager_GetEnabledExtensionsMethod.Invoke(_extensionManager, [AnalyzerContentTypeName]);
+            var enabledExtensions = (IEnumerable<object>)extensionManager_GetEnabledExtensionsMethod.Invoke(_extensionManager, [contentTypeName]);
 
             foreach (var extension in enabledExtensions)
             {
@@ -73,7 +76,7 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticA
 
                 foreach (var content in extension_Content)
                 {
-                    if (!ShouldInclude(content))
+                    if (!ShouldInclude(content, contentTypeName))
                     {
                         continue;
                     }
@@ -85,7 +88,7 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticA
                         continue;
                     }
 
-                    analyzePaths.Add(new AnalyzerFileReference(assemblyPath, AnalyzerAssemblyLoader), identifier);
+                    analyzePaths.Add(assemblyPath, identifier);
                 }
             }
 
@@ -94,7 +97,7 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticA
             GC.KeepAlive(enabledExtensions);
 
             // Order for deterministic result.
-            return analyzePaths.OrderBy((x, y) => string.CompareOrdinal(x.Key.FullPath, y.Key.FullPath)).SelectAsArray(entry => (entry.Key, entry.Value));
+            return analyzePaths.OrderBy((x, y) => string.CompareOrdinal(x.Key, y.Key)).SelectAsArray(entry => (entry.Key, entry.Value));
         }
         catch (TargetInvocationException ex) when (ex.InnerException is InvalidOperationException)
         {
@@ -108,13 +111,13 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticA
         }
     }
 
-    private static bool ShouldInclude(object content)
+    private static bool ShouldInclude(object content, string contentTypeName)
     {
         // var content_ContentTypeName = content.ContentTypeName;
         var contentType = content.GetType();
         var contentType_ContentTypeNameProperty = contentType.GetRuntimeProperty("ContentTypeName");
         var content_ContentTypeName = contentType_ContentTypeNameProperty.GetValue(content) as string;
 
-        return string.Equals(content_ContentTypeName, AnalyzerContentTypeName, StringComparison.InvariantCultureIgnoreCase);
+        return string.Equals(content_ContentTypeName, contentTypeName, StringComparison.InvariantCultureIgnoreCase);
     }
 }

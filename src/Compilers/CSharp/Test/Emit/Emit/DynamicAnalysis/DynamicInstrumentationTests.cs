@@ -3624,6 +3624,491 @@ static void Test()
             verifier.VerifyDiagnostics();
         }
 
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extension_01()
+        {
+            // ExcludeFromCodeCoverage on extension method
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+static class C
+{
+    extension(int i)
+    {
+        [ExcludeFromCodeCoverage]
+        void M1() { Console.WriteLine(1); }
+
+        void M2() { Console.WriteLine(1); }
+    }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M1");
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M2");
+
+            AssertNotInstrumented(verifier, "C.M1");
+            AssertInstrumented(verifier, "C.M2");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extension_02()
+        {
+            // ExcludeFromCodeCoverage on extension property
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+static class C
+{
+    extension(int i)
+    {
+        [ExcludeFromCodeCoverage]
+        int P1 { get => 1; set { } }
+
+        int P2 { get => 1; set { } }
+    }              
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P1.get");
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P1.set");
+            AssertNotInstrumented(verifier, "C.get_P1");
+            AssertNotInstrumented(verifier, "C.set_P1");
+
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P2.get");
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P2.set");
+            AssertInstrumented(verifier, "C.get_P2");
+            AssertInstrumented(verifier, "C.set_P2");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_03()
+        {
+            // instrumentation of extension method
+            var source = """
+42.M();
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            System.Console.WriteLine("Test");
+        }
+    }
+}
+""" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(5, 1, snippet: "", expectBodySpan: false)
+                .True("42.M();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(7, 1, snippet: "public void M()")
+                .True("""System.Console.WriteLine("Test");""");
+            checker.Method(9, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("E.M", """
+{
+  // Code size       72 (0x48)
+  .maxstack  5
+  .locals init (bool[] V_0)
+  // sequence point: {
+  IL_0000:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0005:  ldtoken    "void E.M(int)"
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_0034
+  IL_000f:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+  IL_0014:  ldtoken    "void E.M(int)"
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0023:  ldtoken    "void E.M(int)"
+  IL_0028:  ldelema    "bool[]"
+  IL_002d:  ldc.i4.2
+  IL_002e:  call       "bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)"
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  // sequence point: System.Console.WriteLine("Test");
+  IL_0038:  ldloc.0
+  IL_0039:  ldc.i4.1
+  IL_003a:  ldc.i4.1
+  IL_003b:  stelem.i1
+  IL_003c:  ldstr      "Test"
+  IL_0041:  call       "void System.Console.WriteLine(string)"
+  IL_0046:  nop
+  // sequence point: }
+  IL_0047:  ret
+}
+""");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_04()
+        {
+            // instrumentation of extension getter
+            var source = """
+_ = 42.P;
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+public static class E
+{
+    extension(int i)
+    {
+        public int P
+        {
+            get
+            {
+                System.Console.WriteLine("Test");
+                return 0;
+            }
+        }
+    }
+}
+""" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(5, 1, snippet: "", expectBodySpan: false)
+                .True("_ = 42.P;")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(7, 1, snippet: "get")
+                .True("""System.Console.WriteLine("Test");""")
+                .True("return 0;");
+            checker.Method(9, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_05()
+        {
+            // instrumentation of lambda in extension method
+            var source = """
+42.M();
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            var f = () =>
+            {
+                System.Console.WriteLine("Test");
+            };
+
+            f();
+        }
+    }
+}
+""" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(5, 1, snippet: "", expectBodySpan: false)
+                .True("42.M();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(7, 1, snippet: "public void M()")
+                .True("""System.Console.WriteLine("Test");""")
+                .True("var f = () =>")
+                .True("f();");
+            checker.Method(9, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_06()
+        {
+            // instrumentation of local function in extension method
+            var source = """
+42.M();
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            local();
+
+            static void local()
+            {
+                System.Console.WriteLine("Test");
+            }
+        }
+    }
+}
+""" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(5, 1, snippet: "", expectBodySpan: false)
+                .True("42.M();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(7, 1, snippet: "public void M()")
+                .True("local();")
+                .True("""System.Console.WriteLine("Test");""");
+            checker.Method(10, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_07(bool classic)
+        {
+            // instrumentation of local function in extension method, using the extension parameter
+            string classicSource = """
+42.M();
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+public static class E
+{
+    public static void M(this int i)
+    {
+        local();
+
+        void local()
+        {
+            System.Console.WriteLine(i);
+        }
+    }
+}
+""" + InstrumentationHelperSource;
+
+            string newSource = """
+42.M();
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            local();
+
+            void local()
+            {
+                System.Console.WriteLine(i);
+            }
+        }
+    }
+}
+""" + InstrumentationHelperSource;
+
+            var source = classic ? classicSource : newSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(classic ? 3 : 5, 1, snippet: "", expectBodySpan: false)
+                .True("42.M();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(classic ? 5 : 7, 1, snippet: classic ? "public static void M(this int i)" : "public void M()")
+                .True("local();")
+                .True("""System.Console.WriteLine(i);""");
+            checker.Method(classic ? 8 : 10, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"42
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            string index = classic ? "0" : "1";
+            verifier.VerifyMethodBody("E.M(this int)", $$"""
+{
+  // Code size      105 (0x69)
+  .maxstack  6
+  .locals init (E.<>c__DisplayClass{{index}}_0 V_0) //CS$<>8__locals0
+  // sequence point: <hidden>
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldarg.0
+  IL_0003:  stfld      "int E.<>c__DisplayClass{{index}}_0.i"
+  // sequence point: {
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+  IL_000f:  ldtoken    "void E.M(int)"
+  IL_0014:  ldelem.ref
+  IL_0015:  stfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_001a:  ldloc.0
+  IL_001b:  ldfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_0020:  brtrue.s   IL_004d
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+  IL_0029:  ldtoken    "void E.M(int)"
+  IL_002e:  ldtoken    Source Document 0
+  IL_0033:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0038:  ldtoken    "void E.M(int)"
+  IL_003d:  ldelema    "bool[]"
+  IL_0042:  ldc.i4.3
+  IL_0043:  call       "bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)"
+  IL_0048:  stfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_004d:  ldloc.0
+  IL_004e:  ldfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_0053:  ldc.i4.0
+  IL_0054:  ldc.i4.1
+  IL_0055:  stelem.i1
+  // sequence point: local();
+  IL_0056:  ldloc.0
+  IL_0057:  ldfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_005c:  ldc.i4.1
+  IL_005d:  ldc.i4.1
+  IL_005e:  stelem.i1
+  IL_005f:  ldloca.s   V_0
+  IL_0061:  call       "void E.<M>g__local|{{index}}_0(ref E.<>c__DisplayClass{{index}}_0)"
+  IL_0066:  nop
+  IL_0067:  nop
+  // sequence point: }
+  IL_0068:  ret
+}
+""");
+            verifier.VerifyMethodBody($$"""E.<M>g__local|{{index}}_0(ref E.<>c__DisplayClass{{index}}_0)""", $$"""
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: System.Console.WriteLine(i);
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_0007:  ldc.i4.2
+  IL_0008:  ldc.i4.1
+  IL_0009:  stelem.i1
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      "int E.<>c__DisplayClass{{index}}_0.i"
+  IL_0010:  call       "void System.Console.WriteLine(int)"
+  IL_0015:  nop
+  // sequence point: }
+  IL_0016:  ret
+}
+""");
+        }
+
         private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
             => AssertInstrumented(verifier, qualifiedMethodName, expected: false);
 

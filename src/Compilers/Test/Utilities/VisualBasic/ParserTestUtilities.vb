@@ -2,19 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Globalization
+Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Text
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports Microsoft.CodeAnalysis.Collections
-Imports System.Collections.Immutable
 
 Friend Module ParserTestUtilities
     Friend ReadOnly Property PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool(64)
@@ -573,7 +570,7 @@ Public Module VerificationHelpers
         With errorString.Builder
             .Append(vbTab)
             .Append("<error id=""")
-            .Append(id)
+            .Append(id.ToString(Globalization.CultureInfo.InvariantCulture))
             .Append("""")
             If message IsNot Nothing Then
                 .Append(" message=""")

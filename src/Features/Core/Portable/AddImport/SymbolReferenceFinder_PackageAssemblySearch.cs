@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -21,8 +19,15 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     private sealed partial class SymbolReferenceFinder
     {
         internal async Task FindNugetOrReferenceAssemblyReferencesAsync(
-            ConcurrentQueue<Reference> allReferences, CancellationToken cancellationToken)
+            ConcurrentQueue<Reference> allReferences, bool exact, CancellationToken cancellationToken)
         {
+            var options = this.Options.SearchOptions;
+            Contract.ThrowIfFalse(options.SearchNuGetPackages || options.SearchReferenceAssemblies);
+
+            // We only support searching NuGet in an exact manner currently. 
+            if (!exact)
+                return;
+
             // Only do this if none of the project or metadata searches produced any results. We always consider source
             // and local metadata to be better than any NuGet/assembly-reference results.
             if (!allReferences.IsEmpty)
@@ -31,7 +36,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (!_owner.CanAddImportForTypeOrNamespace(_diagnosticId, _node, out var nameNode))
                 return;
 
-            if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken))
+            if (ExpressionBinds(nameNode, checkForExtensionMembers: false, cancellationToken))
                 return;
 
             var (typeQuery, namespaceQuery, inAttributeContext) = GetSearchQueries(nameNode);
@@ -50,12 +55,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 NamespaceQuery namespaceQuery,
                 bool isAttributeSearch)
             {
-                if (_options.SearchOptions.SearchReferenceAssemblies)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    await FindReferenceAssemblyReferencesAsync(
-                        allReferences, nameNode, typeQuery, namespaceQuery, isAttributeSearch, cancellationToken).ConfigureAwait(false);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+                await FindReferenceAssemblyReferencesAsync(
+                    allReferences, nameNode, typeQuery, namespaceQuery, isAttributeSearch, cancellationToken).ConfigureAwait(false);
 
                 var packageSources = PackageSourceHelper.GetPackageSources(_packageSources);
                 foreach (var (sourceName, sourceUrl) in packageSources)
@@ -127,6 +129,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             bool isAttributeSearch,
             CancellationToken cancellationToken)
         {
+            if (!this.Options.SearchOptions.SearchReferenceAssemblies)
+                return;
+
             cancellationToken.ThrowIfCancellationRequested();
             var results = await _symbolSearchService.FindReferenceAssembliesAsync(
                 typeQuery, namespaceQuery, cancellationToken).ConfigureAwait(false);
@@ -153,6 +158,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             bool isAttributeSearch,
             CancellationToken cancellationToken)
         {
+            if (!this.Options.SearchOptions.SearchNuGetPackages)
+                return;
+
             cancellationToken.ThrowIfCancellationRequested();
             var results = await _symbolSearchService.FindPackagesAsync(
                 sourceName, typeQuery, namespaceQuery, cancellationToken).ConfigureAwait(false);

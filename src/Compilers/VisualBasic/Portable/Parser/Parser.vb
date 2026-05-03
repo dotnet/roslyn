@@ -70,6 +70,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
+        Friend ReadOnly Property Options As VisualBasicParseOptions
+            Get
+                Return _scanner.Options
+            End Get
+        End Property
+
         Friend ReadOnly Property IsScript As Boolean
             Get
                 Return _scanner.Options.Kind = SourceCodeKind.Script

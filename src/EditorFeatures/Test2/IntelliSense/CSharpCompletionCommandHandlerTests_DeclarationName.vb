@@ -2,28 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports System.Composition
-Imports System.Globalization
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
-Imports Microsoft.CodeAnalysis.CSharp.Formatting
-Imports Microsoft.CodeAnalysis.CSharp.[Shared].Extensions
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
-Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Tags
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
-Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Operations
-Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -16,24 +17,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// </summary>
 internal interface IDocumentChangeTracker
 {
-    ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText, string languageId, CancellationToken cancellationToken);
-    void UpdateTrackedDocument(Uri documentUri, SourceText text);
-    ValueTask StopTrackingAsync(Uri documentUri, CancellationToken cancellationToken);
+    ValueTask StartTrackingAsync(DocumentUri documentUri, SourceText initialText, string languageId, int lspVersion, CancellationToken cancellationToken);
+    void UpdateTrackedDocument(DocumentUri documentUri, SourceText text, int lspVersion);
+    ValueTask StopTrackingAsync(DocumentUri documentUri, CancellationToken cancellationToken);
 }
 
-internal class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
+internal sealed class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
 {
-    public ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText, string languageId, CancellationToken cancellationToken)
+    public ValueTask StartTrackingAsync(DocumentUri documentUri, SourceText initialText, string languageId, int lspVersion, CancellationToken cancellationToken)
     {
         throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
     }
 
-    public ValueTask StopTrackingAsync(Uri documentUri, CancellationToken cancellationToken)
+    public ValueTask StopTrackingAsync(DocumentUri documentUri, CancellationToken cancellationToken)
     {
         throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
     }
 
-    public void UpdateTrackedDocument(Uri documentUri, SourceText text)
+    public void UpdateTrackedDocument(DocumentUri documentUri, SourceText text, int lspVersion)
     {
         throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
     }

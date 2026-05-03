@@ -5,11 +5,7 @@
 using System;
 using System.ComponentModel;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Editing;
-#else
 namespace Microsoft.CodeAnalysis.Editing;
-#endif
 
 /// <devdocs>
 /// This should contain only language-agnostic declarations. Things like record struct should fall under struct, etc.

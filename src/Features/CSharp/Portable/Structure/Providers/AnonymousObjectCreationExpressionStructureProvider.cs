@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class AnonymousObjectCreationExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<AnonymousObjectCreationExpressionSyntax>
+internal sealed class AnonymousObjectCreationExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<AnonymousObjectCreationExpressionSyntax>
 {
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,

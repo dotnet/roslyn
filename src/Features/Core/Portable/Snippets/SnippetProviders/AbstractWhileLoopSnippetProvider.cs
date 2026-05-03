@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
@@ -12,6 +13,7 @@ internal abstract class AbstractWhileLoopSnippetProvider<TWhileStatementSyntax, 
     where TWhileStatementSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {
-    protected sealed override TWhileStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
+    protected sealed override TWhileStatementSyntax GenerateStatement(
+        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo)
         => (TWhileStatementSyntax)generator.WhileStatement(inlineExpressionInfo?.Node.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression(), []);
 }

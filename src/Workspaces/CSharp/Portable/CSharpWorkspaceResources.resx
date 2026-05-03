@@ -126,8 +126,11 @@
   <data name="Remove_and_Sort_Usings" xml:space="preserve">
     <value>R&amp;emove and Sort Usings</value>
   </data>
-  <data name="Sort_Usings" xml:space="preserve">
+  <data name="Sort_Usings_with_accelerator" xml:space="preserve">
     <value>&amp;Sort Usings</value>
+  </data>
+  <data name="Sort_Usings" xml:space="preserve">
+    <value>Sort Usings</value>
   </data>
   <data name="CSharp_Formatting_Rules" xml:space="preserve">
     <value>C# Formatting Rules</value>

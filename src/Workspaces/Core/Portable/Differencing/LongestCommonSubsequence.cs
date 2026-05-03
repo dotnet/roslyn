@@ -285,7 +285,7 @@ internal abstract class LongestCommonSubsequence<TSequence> : LongestCommonSubse
                 Debug.Assert(yEnd > yMid);
                 xEnd--;
                 yEnd--;
-                yield return KeyValuePairUtil.Create(xEnd, yEnd);
+                yield return KeyValuePair.Create(xEnd, yEnd);
             }
 
             x = xStart;

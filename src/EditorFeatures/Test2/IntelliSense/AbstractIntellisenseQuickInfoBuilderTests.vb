@@ -15,7 +15,6 @@ Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Utilities
 Imports Moq
-
 Imports VSQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense

@@ -125,7 +125,7 @@ internal abstract class AbstractChangeSignatureCommandHandler(IThreadingContext 
                 string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
                 "vs.csharp.refactoring.preview",
                 EditorFeaturesResources.Change_Signature_colon,
-                result.Name,
+                result.Name!,
                 result.Glyph.GetValueOrDefault(),
                 result.UpdatedSolution,
                 oldSolution);

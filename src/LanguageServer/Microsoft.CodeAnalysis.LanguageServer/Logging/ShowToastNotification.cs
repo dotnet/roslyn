@@ -4,7 +4,6 @@
 
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
-using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -33,7 +32,7 @@ internal static class ShowToastNotification
         await languageServerManager.SendNotificationAsync(ShowToastNotificationName, toastParams, cancellationToken);
     }
 
-    private record ShowToastNotificationParams(
+    private sealed record ShowToastNotificationParams(
         [property: JsonPropertyName("messageType")] LSP.MessageType MessageType,
         [property: JsonPropertyName("message")] string Message,
         [property: JsonPropertyName("commands")] LSP.Command[] Commands);

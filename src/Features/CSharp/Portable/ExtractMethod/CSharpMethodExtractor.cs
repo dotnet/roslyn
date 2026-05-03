@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,8 +22,8 @@ internal sealed partial class CSharpExtractMethodService
         SelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
         : MethodExtractor(result, options, localFunction)
     {
-        protected override CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult)
-            => CSharpCodeGenerator.Create(this.OriginalSelectionResult, analyzerResult, this.Options, this.LocalFunction);
+        protected override CodeGenerator CreateCodeGenerator(SelectionResult selectionResult, AnalyzerResult analyzerResult)
+            => CSharpCodeGenerator.Create(selectionResult, analyzerResult, this.Options, this.LocalFunction);
 
         protected override AnalyzerResult Analyze(CancellationToken cancellationToken)
         {
@@ -170,24 +169,15 @@ internal sealed partial class CSharpExtractMethodService
                 result);
         }
 
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
-        {
-            var codeGenerator = CSharpCodeGenerator.Create(selectionResult, analyzeResult, options, this.LocalFunction);
-            return codeGenerator.GenerateAsync(insertionPoint, cancellationToken);
-        }
-
         protected override AbstractFormattingRule GetCustomFormattingRule(Document document)
             => FormattingRule.Instance;
-
-        protected override SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> methodNames)
-            => methodNames.FirstOrNull(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
         protected override SyntaxNode ParseTypeName(string name)
             => SyntaxFactory.ParseTypeName(name);
 
-        protected override async Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+        protected override async Task<(Document document, SyntaxToken invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document,
-            SyntaxToken? invocationNameToken,
+            SyntaxToken invocationNameToken,
             SyntaxNode methodDefinition,
             CancellationToken cancellationToken)
         {
@@ -212,8 +202,7 @@ internal sealed partial class CSharpExtractMethodService
 
                 var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                if (invocationNameToken != null)
-                    invocationNameToken = newRoot.FindToken(invocationNameToken.Value.SpanStart);
+                invocationNameToken = newRoot.FindToken(invocationNameToken.SpanStart);
             }
 
             return (document, invocationNameToken);

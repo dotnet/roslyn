@@ -26,10 +26,34 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\DefaultOperationProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\AggregatedFormattingResult.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\FormattingResult.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.AbstractLineBreakTrivia.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.Analyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.CodeShapeAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.ComplexTrivia.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.FormattedComplexTrivia.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.LineContinuationTrivia.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.TriviaRewriter.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\VisualBasicTriviaFormatter.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\VisualBasicFormatEngine.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\VisualBasicStructuredTriviaFormatEngine.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingHelpers.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\AdjustSpaceFormattingRule.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\AlignTokensFormattingRule.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\BaseFormattingRule.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\ElasticTriviaFormattingRule.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\NodeBasedFormattingRule.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\StructuredTriviaFormattingRule.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasicSyntaxFormatting.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsRewriter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicSmartTokenFormatter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\VisualBasicPrecedenceService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\VisualBasicRefactoringHelpers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\VisualBasicSelectedMembers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\VisualBasicSemanticFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicAccessibilityFacts.vb" />
@@ -53,9 +77,14 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" GenerateSource="true" Link="VisualBasicCompilerExtensionsResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\" />
   </ItemGroup>
 </Project>

@@ -11,59 +11,58 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
+namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers;
+
+[ExportWorkspaceService(typeof(IMoveStaticMembersOptionsService))]
+[Shared]
+[PartNotDiscoverable]
+internal sealed class TestMoveStaticMembersService : IMoveStaticMembersOptionsService
 {
-    [ExportWorkspaceService(typeof(IMoveStaticMembersOptionsService))]
-    [Shared]
-    [PartNotDiscoverable]
-    internal class TestMoveStaticMembersService : IMoveStaticMembersOptionsService
+    [ImportingConstructor]
+    [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TestMoveStaticMembersService()
     {
-        [ImportingConstructor]
-        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestMoveStaticMembersService()
+    }
+
+    public string? DestinationName { get; set; }
+
+    public ImmutableArray<string> SelectedMembers { get; set; }
+
+    public ImmutableArray<string> ExpectedPrecheckedMembers { get; set; }
+
+    public string? Filename { get; set; }
+
+    public bool CreateNew { get; set; } = true;
+
+    public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedNodeSymbols)
+    {
+        if (!ExpectedPrecheckedMembers.IsEmpty)
         {
+            // if we expect to have prechecked members and don't have the correct ones, error
+            var actualPrecheckedMembers = selectedNodeSymbols.SelectAsArray(n => n.Name).Sort();
+            if (!ExpectedPrecheckedMembers.Sort().SequenceEqual(actualPrecheckedMembers))
+            {
+                System.Diagnostics.Debug.Fail("Expected Prechecked members did not match recieved members");
+                var errMsg = string.Format("Expected: {0} \n Actual: {1}", ExpectedPrecheckedMembers, actualPrecheckedMembers);
+                System.Diagnostics.Debug.Fail(errMsg);
+                throw new InvalidOperationException(errMsg);
+            }
         }
 
-        public string? DestinationName { get; set; }
-
-        public ImmutableArray<string> SelectedMembers { get; set; }
-
-        public ImmutableArray<string> ExpectedPrecheckedMembers { get; set; }
-
-        public string? Filename { get; set; }
-
-        public bool CreateNew { get; set; } = true;
-
-        public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedNodeSymbols)
+        var selectedMembers = selectedType.GetMembers().WhereAsArray(symbol => SelectedMembers.Contains(symbol.Name));
+        if (CreateNew)
         {
-            if (!ExpectedPrecheckedMembers.IsEmpty)
-            {
-                // if we expect to have prechecked members and don't have the correct ones, error
-                var actualPrecheckedMembers = selectedNodeSymbols.SelectAsArray(n => n.Name).Sort();
-                if (!ExpectedPrecheckedMembers.Sort().SequenceEqual(actualPrecheckedMembers))
-                {
-                    System.Diagnostics.Debug.Fail("Expected Prechecked members did not match recieved members");
-                    var errMsg = string.Format("Expected: {0} \n Actual: {1}", ExpectedPrecheckedMembers, actualPrecheckedMembers);
-                    System.Diagnostics.Debug.Fail(errMsg);
-                    throw new InvalidOperationException(errMsg);
-                }
-            }
-
-            var selectedMembers = selectedType.GetMembers().WhereAsArray(symbol => SelectedMembers.Contains(symbol.Name));
-            if (CreateNew)
-            {
-                var namespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
-                    ? string.Empty
-                    : selectedType.ContainingNamespace.ToDisplayString();
-                // just return all the selected members
-                return new MoveStaticMembersOptions(
-                    Filename!,
-                    string.Join(".", namespaceDisplay, DestinationName!),
-                    selectedMembers);
-            }
-
-            var destination = selectedType.ContainingNamespace.GetAllTypes(CancellationToken.None).First(t => t.ToDisplayString() == DestinationName);
-            return new MoveStaticMembersOptions(destination, selectedMembers);
+            var namespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
+                ? string.Empty
+                : selectedType.ContainingNamespace.ToDisplayString();
+            // just return all the selected members
+            return new MoveStaticMembersOptions(
+                Filename!,
+                string.Join(".", namespaceDisplay, DestinationName!),
+                selectedMembers);
         }
+
+        var destination = selectedType.ContainingNamespace.GetAllTypes(CancellationToken.None).First(t => t.ToDisplayString() == DestinationName);
+        return new MoveStaticMembersOptions(destination, selectedMembers);
     }
 }

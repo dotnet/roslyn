@@ -177,7 +177,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        ApplyChange_OnUIThread(textBuffer, changes, waitContext);
+        await ApplyChangeAsync(textBuffer, changes, waitContext).ConfigureAwait(true);
 
         if (methodNameAtInvocation != null)
         {
@@ -193,15 +193,17 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         }
     }
 
-    private void ApplyChange_OnUIThread(
+    private async Task ApplyChangeAsync(
         ITextBuffer textBuffer, IEnumerable<TextChange> changes, IBackgroundWorkIndicatorContext waitContext)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(waitContext.AllowCancellation);
 
         using var undoTransaction = _undoManager.GetTextBufferUndoManager(textBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
         // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-        waitContext.CancelOnEdit = false;
+        var disposable = await waitContext.SuppressAutoCancelAsync().ConfigureAwait(true);
+        await using var _ = disposable.ConfigureAwait(true);
+
         textBuffer.ApplyChanges(changes);
 
         // apply changes

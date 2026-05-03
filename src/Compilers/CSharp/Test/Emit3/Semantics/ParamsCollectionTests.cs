@@ -20,15 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class ParamsCollectionTests : CompilingTestBase
     {
-        private const string ParamCollectionAttributeSource = @"
-namespace System.Runtime.CompilerServices
-{
-    public sealed class ParamCollectionAttribute : Attribute
-    {
-        public ParamCollectionAttribute() { }
-    }
-}
-";
+        private static string ParamCollectionAttributeSource => TestSources.ParamsCollectionAttribute;
 
         private static void VerifyParamsAndAttribute(ParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
         {
@@ -828,16 +820,16 @@ public class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (18,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (18,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(18, 9),
-                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(19, 9),
-                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(20, 9),
-                // (23,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (23,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(23, 29)
                 );
@@ -978,16 +970,16 @@ public class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(19, 9),
-                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(20, 9),
-                // (21,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (21,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(21, 9),
-                // (24,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (24,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(24, 29)
                 );
@@ -1076,16 +1068,16 @@ class Program
 
             // The error improvement is tracked by https://github.com/dotnet/roslyn/issues/71854
             comp.VerifyDiagnostics(
-                // (5,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (5,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(5, 9),
-                // (6,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (6,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(6, 9),
-                // (7,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (7,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(7, 9),
-                // (10,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (10,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //     static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(10, 22)
                 );
@@ -2741,10 +2733,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
-
-                    Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
                 }).VerifyDiagnostics(
                     // (7,72): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                     //         System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
@@ -2797,8 +2787,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Int64[] x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
+                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.Int64[] x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamArray: true);
                 }).VerifyDiagnostics(
                     // (5,50): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                     //         System.Action<long[]> l = (params long[] x) => {};
@@ -2943,10 +2933,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
-                    AssertEx.Equal("void Program.<Main>g__local|0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
-
-                    Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                    AssertEx.Equal("void Program.<Main>g__local|0_0(params System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
                 }).VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -2992,8 +2980,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
-                    AssertEx.Equal("void Program.<Main>g__local|0_0(System.Int64[] x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
+                    AssertEx.Equal("void Program.<Main>g__local|0_0(params System.Int64[] x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamArray: true);
                 }).VerifyDiagnostics();
         }
 
@@ -3078,7 +3066,7 @@ format:
   IL_006c:  ldloca.s   V_0
   IL_006e:  ldc.i4.2
   IL_006f:  call       ""System.ReadOnlySpan<CustomHandler> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<CustomHandler>, CustomHandler>(in <>y__InlineArray2<CustomHandler>, int)""
-  IL_0074:  call       ""void Program.<<Main>$>g__M|0_0(scoped System.ReadOnlySpan<CustomHandler>)""
+  IL_0074:  call       ""void Program.<<Main>$>g__M|0_0(params System.ReadOnlySpan<CustomHandler>)""
   IL_0079:  ret
 }
 ");
@@ -3193,7 +3181,7 @@ GetA
 
             // Note, the collection is created after the lexically previous argument is evaluated, 
             // but before the lexically following argument is evaluated. This differs from params
-            // array case, which is created right before the target methos is invoked, after all
+            // array case, which is created right before the target method is invoked, after all
             // arguments are evaluated in their lexical order, which can be observed in a unit-test
             // Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenTests.NamedParamsOptimizationAndParams002​
             verifier.VerifyIL("Program.Main", @"
@@ -4533,15 +4521,13 @@ class Program
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
                         VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
-                        // Note, no attributes on lambdas
-
                         MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                        AssertEx.Equal("void Program.<>c.<Main>b__0_0(scoped System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l1.Parameters.Last());
+                        AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_1");
-                        AssertEx.Equal("void Program.<>c.<Main>b__0_1(System.Int64[] a)", l2.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l2.Parameters.Last());
+                        AssertEx.Equal("void Program.<>c.<Main>b__0_1(params System.Int64[] a)", l2.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l2.Parameters.Last(), isParamArray: true);
 
                         if (attributeIsEmbedded)
                         {
@@ -4686,15 +4672,13 @@ class Program
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
                         VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
-                        // Note, no attributes on local functions
-
                         MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test1|0_0");
-                        AssertEx.Equal("void Program.<Main>g__Test1|0_0(scoped System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l1.Parameters.Last());
+                        AssertEx.Equal("void Program.<Main>g__Test1|0_0(params System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test2|0_1");
-                        AssertEx.Equal("void Program.<Main>g__Test2|0_1(System.Int64[] a)", l2.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l2.Parameters.Last());
+                        AssertEx.Equal("void Program.<Main>g__Test2|0_1(params System.Int64[] a)", l2.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l2.Parameters.Last(), isParamArray: true);
 
                         if (attributeIsEmbedded)
                         {
@@ -12970,9 +12954,9 @@ class Program
                 src,
                 "<>f__AnonymousDelegate0.Invoke",
                 "void <>f__AnonymousDelegate0.Invoke(params System.Collections.Generic.IEnumerable<System.Int64> arg)",
-                // (7,18): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
-                //         var x1 = Test1;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test1").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(7, 18)
+                // (11,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         void Test1(params IEnumerable<long> a) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> a").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(11, 20)
                 );
         }
 
@@ -13551,7 +13535,7 @@ class Program
 }
 """;
 
-            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseExe);
             comp4.VerifyEmitDiagnostics(
                 // (5,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Params.Test();
@@ -13563,6 +13547,11 @@ class Program
                 //         Params.Test(2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Params.Test(2, 3)").WithLocation(7, 9)
                 );
+
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
 
             string source5 = """
 class Program
@@ -13652,7 +13641,7 @@ class Program
 }
 """;
 
-            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseExe);
             comp4.VerifyEmitDiagnostics(
                 // (6,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Params.Test(1);
@@ -13664,6 +13653,11 @@ class Program
                 //         Params.Test(2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(7, 24)
                 );
+
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
 
             string source5 = """
 class Program
@@ -17050,6 +17044,55 @@ class Program
   IL_004c:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void ScopedParams()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct S : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class C
+                {
+                    public static void M(scoped params S x)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (12,33): error CS9348: The 'params' modifier cannot immediately follow the 'scoped' modifier.
+                //     public static void M(scoped params S x)
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "params").WithArguments("params").WithLocation(12, 33));
+        }
+
+        [Fact]
+        public void ParamsScoped()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct S : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+                
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class C
+                {
+                    public static void M(params scoped S x)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics();
         }
     }
 }

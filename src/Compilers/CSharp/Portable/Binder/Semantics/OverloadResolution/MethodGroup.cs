@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -47,10 +46,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.PopulateHelper(receiverOpt, resultKind, error);
             this.IsExtensionMethodGroup = true;
+
             foreach (var member in members)
             {
-                this.Methods.Add((MethodSymbol)member);
+                if (member is MethodSymbol method)
+                {
+                    Debug.Assert(method.IsExtensionMethod || method.IsExtensionBlockMember());
+                    this.Methods.Add(method);
+                }
             }
+
             if (!typeArguments.IsDefault)
             {
                 this.TypeArguments.AddRange(typeArguments);

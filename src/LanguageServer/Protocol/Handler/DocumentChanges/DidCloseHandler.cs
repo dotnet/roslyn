@@ -11,29 +11,24 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
+
+[ExportCSharpVisualBasicStatelessLspService(typeof(DidCloseHandler)), Shared]
+[Method(LSP.Methods.TextDocumentDidCloseName)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class DidCloseHandler() : ILspServiceNotificationHandler<LSP.DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidCloseTextDocumentParams, TextDocumentIdentifier>
 {
-    [ExportCSharpVisualBasicStatelessLspService(typeof(DidCloseHandler)), Shared]
-    [Method(LSP.Methods.TextDocumentDidCloseName)]
-    internal class DidCloseHandler : ILspServiceNotificationHandler<LSP.DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidCloseTextDocumentParams, TextDocumentIdentifier>
+    public bool MutatesSolutionState => true;
+    public bool RequiresLSPSolution => false;
+
+    public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
+
+    public async Task HandleNotificationAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DidCloseHandler()
-        {
-        }
+        // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
+        context.TraceDebug($"didClose for {request.TextDocument.DocumentUri}");
 
-        public bool MutatesSolutionState => true;
-        public bool RequiresLSPSolution => false;
-
-        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
-
-        public async Task HandleNotificationAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
-        {
-            // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
-            context.TraceInformation($"didClose for {request.TextDocument.Uri}");
-
-            await context.StopTrackingAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
-        }
+        await context.StopTrackingAsync(request.TextDocument.DocumentUri, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             output?.WriteLine($"Emitting baseline");
 
-            verifier.Emit(
+            verifier.EmitAndVerify(
                 expectedOutput: null,
                 trimOutput: false,
                 expectedReturnCode: null,
@@ -70,16 +70,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return This;
         }
 
-        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, Action<GenerationVerifier> validator)
-            => AddGeneration(source, _ => edits, validator);
+        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, Action<GenerationVerifier> validator, EmitDifferenceOptions? options = null)
+            => AddGeneration(source, _ => edits, validator, options);
 
-        internal TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator)
-            => AddGeneration(source, edits, validator, expectedErrors: []);
+        internal TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator, EmitDifferenceOptions? options = null)
+            => AddGeneration(source, edits, validator, expectedErrors: [], options);
 
-        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, DiagnosticDescription[] expectedErrors)
-            => AddGeneration(source, _ => edits, validator: static _ => { }, expectedErrors);
+        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, DiagnosticDescription[] expectedErrors, EmitDifferenceOptions? options = null)
+            => AddGeneration(source, _ => edits, validator: static _ => { }, expectedErrors, options);
 
-        private TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator, DiagnosticDescription[] expectedErrors)
+        private TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator, DiagnosticDescription[] expectedErrors, EmitDifferenceOptions? options = null)
         {
             _hasVerified = false;
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             output?.WriteLine($"Emitting generation #{_generations.Count}");
 
-            CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits);
+            CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits, options: options);
 
             diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify(expectedErrors);
             if (expectedErrors is not [])
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             // If the test has thrown an exception, or the test host has crashed, we don't want to assert here
             // or we'll hide it, so we need to do this dodgy looking thing.
-            var isInException = Marshal.GetExceptionPointers() != IntPtr.Zero;
+            var isInException = ExecutionConditionUtil.IsMonoCore ? false : Marshal.GetExceptionPointers() != IntPtr.Zero;
 
             Assert.True(isInException || _hasVerified, "No Verify call since the last AddGeneration call.");
             foreach (var disposable in _disposables)

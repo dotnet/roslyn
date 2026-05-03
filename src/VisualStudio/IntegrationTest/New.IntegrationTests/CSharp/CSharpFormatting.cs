@@ -27,242 +27,278 @@ public class CSharpFormatting : AbstractEditorTest
     public async Task AlignOpenBraceWithMethodDeclaration()
     {
         await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
-        await SetUpEditorAsync(@"
-$$class C
-{
-    void Main()
-     {
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            $$class C
+            {
+                void Main()
+                 {
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-class C
-{
-    void Main()
-    {
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            class C
+            {
+                void Main()
+                {
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
         await telemetry.VerifyFiredAsync(["vs/ide/vbcs/commandhandler/formatcommand"], HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task FormatOnSemicolon()
     {
-        await SetUpEditorAsync(@"
-public class C
-{
-    void Goo()
-    {
-        var x =        from a             in       new List<int>()
-    where x % 2 = 0
-                      select x   ;$$
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            public class C
+            {
+                void Goo()
+                {
+                    var x =        from a             in       new List<int>()
+                where x % 2 = 0
+                                  select x   ;$$
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync([VirtualKeyCode.BACK, ';'], HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-public class C
-{
-    void Goo()
-    {
-        var x = from a in new List<int>()
-                where x % 2 = 0
-                select x;
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            public class C
+            {
+                void Goo()
+                {
+                    var x = from a in new List<int>()
+                            where x % 2 = 0
+                            select x;
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task FormatSelection()
     {
-        await SetUpEditorAsync(@"
-public class C {
-    public void M( ) {$$
-        }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            public class C {
+                public void M( ) {$$
+                    }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.SelectTextInCurrentDocumentAsync("public void M( ) {", HangMitigatingCancellationToken);
         await TestServices.Editor.FormatSelectionAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-public class C {
-    public void M()
-    {
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            public class C {
+                public void M()
+                {
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task PasteCodeWithLambdaBody()
     {
-        await SetUpEditorAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        Action a = () =>
-        {
-            using (null)
-            {
-                $$
-            }
-        };
-    }
-}", HangMitigatingCancellationToken);
-        await TestServices.Editor.PasteAsync(@"        Action b = () =>
-        {
+        await SetUpEditorAsync("""
 
-            };", HangMitigatingCancellationToken);
-
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        Action a = () =>
-        {
-            using (null)
+            using System;
+            class Program
             {
-                Action b = () =>
+                static void Main()
                 {
-
-                };
+                    Action a = () =>
+                    {
+                        using (null)
+                        {
+                            $$
+                        }
+                    };
+                }
             }
-        };
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+            """, HangMitigatingCancellationToken);
+        await TestServices.Editor.PasteAsync("""
+                    Action b = () =>
+                    {
+
+                        };
+            """, HangMitigatingCancellationToken);
+
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    Action a = () =>
+                    {
+                        using (null)
+                        {
+                            Action b = () =>
+                            {
+
+                            };
+                        }
+                    };
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
         // Undo should only undo the formatting
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        Action a = () =>
-        {
-            using (null)
-            {
-                        Action b = () =>
-        {
+        await TestServices.EditorVerifier.TextContainsAsync("""
 
-            };
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    Action a = () =>
+                    {
+                        using (null)
+                        {
+                                    Action b = () =>
+                    {
+
+                        };
+                        }
+                    };
+                }
             }
-        };
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task PasteCodeWithLambdaBody2()
     {
-        await SetUpEditorAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        Action a = () =>
-        {
-            using (null)
-            {
-                $$
-            }
-        };
-    }
-}", HangMitigatingCancellationToken);
-        await TestServices.Editor.PasteAsync(@"        Action<int> b = n =>
-        {
-            Console.Writeline(n);
-        };", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        Action a = () =>
-        {
-            using (null)
+            using System;
+            class Program
             {
-                Action<int> b = n =>
+                static void Main()
                 {
-                    Console.Writeline(n);
-                };
+                    Action a = () =>
+                    {
+                        using (null)
+                        {
+                            $$
+                        }
+                    };
+                }
             }
-        };
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+            """, HangMitigatingCancellationToken);
+        await TestServices.Editor.PasteAsync("""
+                    Action<int> b = n =>
+                    {
+                        Console.Writeline(n);
+                    };
+            """, HangMitigatingCancellationToken);
+
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    Action a = () =>
+                    {
+                        using (null)
+                        {
+                            Action<int> b = n =>
+                            {
+                                Console.Writeline(n);
+                            };
+                        }
+                    };
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task PasteCodeWithLambdaBody3()
     {
-        await SetUpEditorAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        Action a = () =>
-        {
-            using (null)
-            {
-                $$
-            }
-        };
-    }
-}", HangMitigatingCancellationToken);
-        await TestServices.Editor.PasteAsync(@"        D d = delegate(int x)
-{
-    return 2 * x;
-};", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        Action a = () =>
-        {
-            using (null)
+            using System;
+            class Program
             {
-                D d = delegate (int x)
+                static void Main()
                 {
-                    return 2 * x;
-                };
+                    Action a = () =>
+                    {
+                        using (null)
+                        {
+                            $$
+                        }
+                    };
+                }
             }
-        };
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+            """, HangMitigatingCancellationToken);
+        await TestServices.Editor.PasteAsync("""
+                    D d = delegate(int x)
+            {
+                return 2 * x;
+            };
+            """, HangMitigatingCancellationToken);
+
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    Action a = () =>
+                    {
+                        using (null)
+                        {
+                            D d = delegate (int x)
+                            {
+                                return 2 * x;
+                            };
+                        }
+                    };
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task ShiftEnterWithIntelliSenseAndBraceMatching()
     {
-        await SetUpEditorAsync(@"
-class Program
-{
-    object M(object bar)
-    {
-        return M$$
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            class Program
+            {
+                object M(object bar)
+                {
+                    return M$$
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync(["(ba", (VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), "// comment"], HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-class Program
-{
-    object M(object bar)
-    {
-        return M(bar);
-        // comment
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync("""
+
+            class Program
+            {
+                object M(object bar)
+                {
+                    return M(bar);
+                    // comment
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -270,29 +306,19 @@ class Program
     [WorkItem("https://github.com/dotnet/roslyn/issues/15003")]
     public async Task ApplyEditorConfigAndFormatDocument()
     {
-        var markup = @"
-class C
-{
-    public int X1
-    {
-        get
-        {
-            $$return 3;
-        }
-    }
-}";
-        var expectedTextTwoSpaceIndent = @"
-class C
-{
-  public int X1
-  {
-    get
-    {
-      return 3;
-    }
-  }
-}";
+        var markup = """
 
+            class C
+            {
+                public int X1
+                {
+                    get
+                    {
+                        $$return 3;
+                    }
+                }
+            }
+            """;
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
         MarkupTestFile.GetSpans(markup, out var expectedTextFourSpaceIndent, out _);
@@ -320,11 +346,13 @@ class C
          * verifies that the next Format Document operation adheres to the formatting.
          */
 
-        var editorConfig = @"root = true
+        var editorConfig = """
+            root = true
 
-[*.cs]
-indent_size = 2
-";
+            [*.cs]
+            indent_size = 2
+
+            """;
 
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", editorConfig, open: false, HangMitigatingCancellationToken);
 
@@ -338,7 +366,19 @@ indent_size = 2
             HangMitigatingCancellationToken);
         await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
 
-        Assert.Equal(expectedTextTwoSpaceIndent, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+
+            class C
+            {
+              public int X1
+              {
+                get
+                {
+                  return 3;
+                }
+              }
+            }
+            """, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
 
         /*
          * The third portion of this test modifies the existing .editorconfig file with a new indentation behavior,

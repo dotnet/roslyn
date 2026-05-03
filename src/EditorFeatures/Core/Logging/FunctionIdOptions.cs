@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Collections.Concurrent;
-using Microsoft.CodeAnalysis.Options;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
@@ -35,7 +35,7 @@ internal static class FunctionIdOptions
     }
 
     private static IEnumerable<FunctionId> GetFunctionIds()
-        => Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>();
+        => Enum.GetValues<FunctionId>();
 
     public static IEnumerable<IOption2> GetOptions()
         => GetFunctionIds().Select(GetOption);

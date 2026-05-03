@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public UseCoalesceExpressionForTernaryConditionalCheckTests(ITestOutputHelper logger)
       : base(logger)
@@ -28,9 +28,8 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
             new UseCoalesceExpressionForTernaryConditionalCheckCodeFixProvider());
 
     [Fact]
-    public async Task TestOnLeft_Equals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnLeft_Equals()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -53,12 +52,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnLeft_NotEquals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnLeft_NotEquals()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -81,12 +78,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnRight_Equals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnRight_Equals()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -109,12 +104,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnRight_NotEquals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnRight_NotEquals()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -137,12 +130,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComplexExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestComplexExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -165,12 +156,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParens1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestParens1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -193,12 +182,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParens2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestParens2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -221,12 +208,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParens3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestParens3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -249,12 +234,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParens4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestParens4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -277,12 +260,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -307,12 +288,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -335,12 +314,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -363,12 +340,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16025")]
-    public async Task TestTrivia1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -395,12 +370,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17028")]
-    public async Task TestInExpressionOfT()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInExpressionOfT()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -425,12 +398,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnconstrainedTypeParameter()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestUnconstrainedTypeParameter()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C<T>
             {
@@ -440,12 +411,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStructConstrainedTypeParameter()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestStructConstrainedTypeParameter()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C<T> where T : struct
             {
@@ -455,12 +424,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestClassConstrainedTypeParameter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestClassConstrainedTypeParameter()
+        => TestInRegularAndScriptAsync(
             """
             class C<T> where T : class
             {
@@ -479,12 +446,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnNullable()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotOnNullable()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -494,12 +459,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnArray()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnArray()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -518,12 +481,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnInterface()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnInterface()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -542,12 +503,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnDynamic()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnDynamic()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -566,12 +525,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38066")]
-    public async Task TestSemicolonPlacement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSemicolonPlacement()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -592,12 +549,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38066")]
-    public async Task TestParenthesisPlacement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestParenthesisPlacement()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -618,12 +573,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38066")]
-    public async Task TestAnotherConditionalPlacement()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAnotherConditionalPlacement()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -648,12 +601,10 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53190")]
-    public async Task TestNotWithTargetTyping()
-    {
-        await TestMissingAsync(
+    public Task TestNotWithTargetTyping()
+        => TestMissingAsync(
             """
             class Program
             {
@@ -669,5 +620,4 @@ public class UseCoalesceExpressionForTernaryConditionalCheckTests : AbstractCSha
                 }
             }
             """);
-    }
 }

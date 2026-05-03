@@ -3,11 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
-Imports System.IO
-Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Scripting
-Imports Microsoft.CodeAnalysis.Scripting.Hosting
-Imports Microsoft.CodeAnalysis.Scripting.Test
 Imports Microsoft.CodeAnalysis.Scripting.TestUtilities
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting

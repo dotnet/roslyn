@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -518,12 +519,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _lazyNetModuleAttributesBag
         End Function
 
-        Private Function GetNetModuleAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Dim attributesBag = Me.GetNetModuleAttributesBag()
-            Debug.Assert(attributesBag.IsSealed)
-            Return attributesBag.Attributes
-        End Function
-
         Friend Function GetNetModuleDecodedWellKnownAttributeData() As CommonAssemblyWellKnownAttributeData
             Dim attributesBag = Me.GetNetModuleAttributesBag()
             Debug.Assert(attributesBag.IsSealed)
@@ -881,7 +876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If haveGrantedAssemblies IsNot Nothing Then
                 For Each otherAssembly In haveGrantedAssemblies.Keys
-                    Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(otherAssembly)
+                    Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(otherAssembly, assertUnexpectedGiver:=True)
 
                     Debug.Assert(conclusion <> IVTConclusion.NoRelationshipClaimed)
 
@@ -1081,8 +1076,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyCompanyAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
             ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyProductAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyProductAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
-            ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttribute) Then
-                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyInformationalVersionAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
             ElseIf attrData.IsTargetAttribute(AttributeDescription.SatelliteContractVersionAttribute) Then
                 'just check the format of this one, don't do anything else with it.
                 Dim dummy As Version = Nothing
@@ -1664,7 +1657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(potentialGiverOfAccess)
+            Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver:=True)
             Return conclusion = IVTConclusion.Match
             ' Note that C#, for error recovery, includes OrElse conclusion = IVTConclusion.OneSignedOneNot
         End Function

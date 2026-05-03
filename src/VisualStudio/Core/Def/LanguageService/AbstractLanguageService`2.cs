@@ -36,39 +36,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 {
     internal TPackage Package { get; }
 
-    private readonly VsLanguageDebugInfo _languageDebugInfo;
+    private readonly Lazy<VsLanguageDebugInfo> _languageDebugInfo;
 
-    // DevDiv 753309:
-    // We've redefined some VS interfaces that had incorrect PIAs. When 
-    // we interop with native parts of VS, they always QI, so everything
-    // works. However, Razor is now managed, but assumes that the C#
-    // language service is native. When setting breakpoints, they
-    // get the language service from its GUID and cast it to IVsLanguageDebugInfo.
-    // This would QI the native lang service. Since we're managed and
-    // we've redefined IVsLanguageDebugInfo, the cast
-    // fails. To work around this, we put the LS inside a ComAggregate object,
-    // which always force a QueryInterface and allow their cast to succeed.
-    // 
-    // This also fixes 752331, which is a similar problem with the 
-    // exception assistant.
-    internal object? ComAggregate { get; private set; }
-
-    // Note: The lifetime for state in this class is carefully managed.  For every bit of state
-    // we set up, there is a corresponding tear down phase which deconstructs the state in the
-    // reverse order it was created in.
-    internal readonly EditorOptionsService EditorOptionsService;
-    internal readonly VisualStudioWorkspaceImpl Workspace;
-    internal readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
-
-    /// <summary>
-    /// Whether or not we have been set up. This is set once everything is wired up and cleared once tear down has begun.
-    /// </summary>
-    /// <remarks>
-    /// We don't set this until we've completed setup. If something goes sideways during it, we will never register
-    /// with the shell and thus have a floating thing around that can't be safely shut down either. We're in a bad
-    /// state but trying to proceed will only make things worse.
-    /// </remarks>
-    private bool _isSetUp;
+    internal readonly Lazy<VisualStudioWorkspaceImpl> Workspace;
 
     protected abstract string ContentTypeName { get; }
     protected abstract string LanguageName { get; }
@@ -81,10 +51,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         Debug.Assert(!this.Package.JoinableTaskFactory.Context.IsOnMainThread, "Language service should be instantiated on background thread");
 
-        this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
-        this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
-        this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-        this._languageDebugInfo = CreateLanguageDebugInfo();
+        this.Workspace = this.Package.ComponentModel.DefaultExportProvider.GetExport<VisualStudioWorkspaceImpl>();
+
+        this._languageDebugInfo = new Lazy<VsLanguageDebugInfo>(CreateLanguageDebugInfo);
     }
 
     private IThreadingContext ThreadingContext => this.Package.ComponentModel.GetService<IThreadingContext>();
@@ -92,60 +61,25 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     public override IServiceProvider SystemServiceProvider
         => Package;
 
-    /// <summary>
-    /// Setup and TearDown go in reverse order.
-    /// </summary>
-    public async Task SetupAsync(CancellationToken cancellationToken)
+    public void Setup(CancellationToken cancellationToken)
     {
-        // First, acquire any services we need throughout our lifetime.
-        // This method should only contain calls to acquire services off of the component model
-        // or service providers.  Anything else which is more complicated should go in Initialize
-        // instead.
-
         // Start off a background task to prime some components we'll need for editing.
         Task.Run(() =>
         {
-            var formatter = this.Workspace.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
+            var formatter = this.Workspace.Value.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
             formatter?.GetDefaultFormattingRules();
         }, cancellationToken).Forget();
-
-        await this.Package.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        // Creating the com aggregate has to happen on the UI thread.
-        this.ComAggregate = Interop.ComAggregate.CreateAggregatedObject(this);
-
-        _isSetUp = true;
-    }
-
-    internal void TearDown()
-    {
-        if (!_isSetUp)
-        {
-            throw new InvalidOperationException();
-        }
-
-        _isSetUp = false;
-        GC.SuppressFinalize(this);
-    }
-
-    ~AbstractLanguageService()
-    {
-        if (!Environment.HasShutdownStarted && _isSetUp)
-        {
-            throw new InvalidOperationException("TearDown not called!");
-        }
     }
 
     protected virtual void SetupNewTextView(IVsTextView textView)
     {
         Contract.ThrowIfNull(textView);
 
-        var wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
+        var editorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+        var wpfTextView = editorAdaptersFactoryService.GetWpfTextView(textView);
         Contract.ThrowIfNull(wpfTextView, "Could not get IWpfTextView for IVsTextView");
 
         Debug.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter)));
-
-        var workspace = Package.ComponentModel.GetService<VisualStudioWorkspace>();
 
         // The lifetime of CommandFilter is married to the view
         wpfTextView.GetOrCreateAutoClosingProperty(v =>
@@ -219,7 +153,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
     private VsLanguageDebugInfo CreateLanguageDebugInfo()
     {
-        var languageServices = this.Workspace.Services.GetLanguageServices(RoslynLanguageName);
+        var languageServices = this.Workspace.Value.Services.GetLanguageServices(RoslynLanguageName);
 
         return new VsLanguageDebugInfo(
             this.DebuggerLanguageId,
@@ -235,7 +169,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         return new ContainedLanguage(
             bufferCoordinator,
             this.Package.ComponentModel,
-            this.Workspace,
+            this.Workspace.Value,
             project.Id,
             project,
             this.LanguageServiceId);

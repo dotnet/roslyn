@@ -18,11 +18,12 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class ExtractInterfaceDialogInProcess
+internal sealed partial class ExtractInterfaceDialogInProcess
 {
     private async Task<ExtractInterfaceDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {
@@ -35,7 +36,7 @@ internal partial class ExtractInterfaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await buttonAccessor(dialog).SimulateClickAsync(JoinableTaskFactory));
     }
@@ -96,7 +97,7 @@ internal partial class ExtractInterfaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         return dialog.DestinationControl.fileNameTextBox.Text;
     }
@@ -106,38 +107,31 @@ internal partial class ExtractInterfaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         var memberSelectionList = dialog.GetTestAccessor().Members;
         var comListItems = memberSelectionList.Items;
         var listItems = Enumerable.Range(0, comListItems.Count).Select(comListItems.GetItemAt);
 
         return listItems.Cast<SymbolViewModel<ISymbol>>()
-            .Where(viewModel => viewModel.IsChecked)
-            .ToImmutableArray();
+            .WhereAsArray(viewModel => viewModel.IsChecked);
     }
 
-    public async Task ClickDeselectAllAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().DeselectAllButton, cancellationToken);
-    }
+    public Task ClickDeselectAllAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().DeselectAllButton, cancellationToken);
 
-    public async Task ClickSelectAllAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().SelectAllButton, cancellationToken);
-    }
+    public Task ClickSelectAllAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().SelectAllButton, cancellationToken);
 
-    public async Task SelectSameFileAsync(CancellationToken cancellationToken)
-    {
-        await ClickAsync(dialog => dialog.GetTestAccessor().DestinationCurrentFileSelectionRadioButton, cancellationToken);
-    }
+    public Task SelectSameFileAsync(CancellationToken cancellationToken)
+        => ClickAsync(dialog => dialog.GetTestAccessor().DestinationCurrentFileSelectionRadioButton, cancellationToken);
 
     public async Task ToggleItemAsync(string item, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         var memberSelectionList = dialog.GetTestAccessor().Members;
         var items = memberSelectionList.Items.Cast<MemberSymbolViewModel>().ToArray();

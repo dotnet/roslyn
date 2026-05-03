@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Shared.Naming;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -36,6 +35,6 @@ internal static class NamingExtensions
         this Document document, CancellationToken cancellationToken)
     {
         var options = await document.GetNamingStylePreferencesAsync(cancellationToken).ConfigureAwait(false);
-        return options.CreateRules().NamingRules.AddRange(FallbackNamingRules.Default);
+        return options.Rules.NamingRules.AddRange(FallbackNamingRules.Default);
     }
 }

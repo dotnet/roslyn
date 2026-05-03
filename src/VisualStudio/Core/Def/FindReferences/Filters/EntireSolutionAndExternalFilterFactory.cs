@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences.
 [DefaultScope]
 [Name(nameof(EntireSolutionAndExternalFilterFactory))]
 [Order(Before = PredefinedScopeFilterNames.EntireSolutionScopeFilter)]
-internal class EntireSolutionAndExternalFilterFactory : IScopeFilterFactory
+internal sealed class EntireSolutionAndExternalFilterFactory : IScopeFilterFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,7 +29,7 @@ internal class EntireSolutionAndExternalFilterFactory : IScopeFilterFactory
         return EntireSolutionAndExternalFilterHandler.Instance;
     }
 
-    private class EntireSolutionAndExternalFilterHandler : ExternalSourcesFilterHandlerBase
+    private sealed class EntireSolutionAndExternalFilterHandler : ExternalSourcesFilterHandlerBase
     {
         public static EntireSolutionAndExternalFilterHandler Instance = new();
 

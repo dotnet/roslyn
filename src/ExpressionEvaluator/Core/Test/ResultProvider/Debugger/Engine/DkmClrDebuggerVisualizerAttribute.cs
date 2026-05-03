@@ -9,8 +9,6 @@
 
 #endregion
 
-using Microsoft.VisualStudio.Debugger.Clr;
-
 namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
     public class DkmClrDebuggerVisualizerAttribute : DkmClrEvalAttribute

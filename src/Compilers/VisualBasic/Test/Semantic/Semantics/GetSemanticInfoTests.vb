@@ -3,19 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.IO
-Imports System.Linq
 Imports System.Runtime.CompilerServices
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class SemanticModelTests
@@ -5354,8 +5350,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Null(typeInfo.Type)
-                Assert.Null(typeInfo.ConvertedType)
+                Assert.Equal("Test.C", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("Test.C", typeInfo.ConvertedType.ToTestDisplayString())
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)
@@ -5443,8 +5439,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Null(typeInfo.Type)
-                Assert.Null(typeInfo.ConvertedType)
+                Assert.Equal("Test.I", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("Test.I", typeInfo.ConvertedType.ToTestDisplayString())
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)
@@ -5548,8 +5544,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Null(typeInfo.Type)
-                Assert.Null(typeInfo.ConvertedType)
+                Assert.Equal("Test.I", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("Test.I", typeInfo.ConvertedType.ToTestDisplayString())
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)

@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public UseIsNullCheckForReferenceEqualsTests(ITestOutputHelper logger)
         : base(logger)
@@ -31,9 +31,8 @@ public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagn
         => (new CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(), new CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider());
 
     [Fact]
-    public async Task TestIdentifierName()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIdentifierName()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -58,12 +57,10 @@ public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagn
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
-    public async Task TestIsNullTitle()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task TestIsNullTitle()
+        => TestExactActionSetOfferedAsync(
             """
             using System;
 
@@ -76,13 +73,11 @@ public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagn
                 }
             }
             """,
-[CSharpAnalyzersResources.Use_is_null_check]);
-    }
+            [CSharpAnalyzersResources.Use_is_null_check]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
-    public async Task TestIsObjectTitle()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task TestIsObjectTitle()
+        => TestExactActionSetOfferedAsync(
             """
             using System;
 
@@ -95,14 +90,12 @@ public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagn
                 }
             }
             """,
-[CSharpAnalyzersResources.Use_is_object_check],
-new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
+            [CSharpAnalyzersResources.Use_is_object_check],
+            new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
-    public async Task TestIsNotNullTitle()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task TestIsNotNullTitle()
+        => TestExactActionSetOfferedAsync(
             """
             using System;
 
@@ -115,14 +108,12 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """,
-[CSharpAnalyzersResources.Use_is_not_null_check],
-new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
-    }
+            [CSharpAnalyzersResources.Use_is_not_null_check],
+            new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
-    public async Task TestBuiltInType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestBuiltInType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -147,12 +138,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNamedType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNamedType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -177,12 +166,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReversed()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestReversed()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -207,12 +194,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNegated_CSharp7()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNegated_CSharp7()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -237,12 +222,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, new TestParameters(parseOptions: CSharp7));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestNegated_CSharp9()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNegated_CSharp9()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -267,12 +250,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, new TestParameters(parseOptions: CSharp9));
-    }
 
     [Fact]
-    public async Task TestNotInCSharp6()
-    {
-        await TestMissingAsync(
+    public Task TestNotInCSharp6()
+        => TestMissingAsync(
             """
             using System;
 
@@ -285,12 +266,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -317,12 +296,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -349,12 +326,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23581")]
-    public async Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp7()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp7()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -378,12 +353,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, new TestParameters(parseOptions: CSharp7));
-    }
 
     [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
-    public async Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp8()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp8()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -412,12 +385,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, new TestParameters(parseOptions: CSharp8));
-    }
 
     [Fact]
-    public async Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp7()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp7()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -441,12 +412,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, new TestParameters(parseOptions: CSharp7));
-    }
 
     [Fact]
-    public async Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp9()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp9()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -470,12 +439,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, new TestParameters(parseOptions: CSharp9));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23581")]
-    public async Task TestValueParameterTypeIsRefConstraintGeneric()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestValueParameterTypeIsRefConstraintGeneric()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -500,12 +467,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp7()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp7()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -530,12 +495,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, new TestParameters(parseOptions: CSharp7));
-    }
 
     [Fact]
-    public async Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp9()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp9()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -560,12 +523,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, new TestParameters(parseOptions: CSharp9));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23581")]
-    public async Task TestValueParameterTypeIsValueConstraintGeneric()
-    {
-        await TestMissingAsync(
+    public Task TestValueParameterTypeIsValueConstraintGeneric()
+        => TestMissingAsync(
             """
             class C
             {
@@ -578,12 +539,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestValueParameterTypeIsValueConstraintGenericNegated()
-    {
-        await TestMissingAsync(
+    public Task TestValueParameterTypeIsValueConstraintGenericNegated()
+        => TestMissingAsync(
             """
             class C
             {
@@ -596,12 +555,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllNested1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAllNested1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -626,12 +583,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
-    public async Task TestValueParameterTypeIsBaseTypeConstraintGeneric()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestValueParameterTypeIsBaseTypeConstraintGeneric()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -660,5 +615,4 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, new TestParameters(parseOptions: CSharp7));
-    }
 }

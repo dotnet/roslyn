@@ -12,15 +12,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
-public class AsyncLocalFunctionHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class AsyncLocalFunctionHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(AsyncAwaitHighlighter);
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-    public async Task TestLocalFunction()
-    {
-        await TestAsync(
+    public Task TestLocalFunction()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -46,5 +45,4 @@ public class AsyncLocalFunctionHighlighterTests : AbstractCSharpKeywordHighlight
                 }
             }
             """);
-    }
 }

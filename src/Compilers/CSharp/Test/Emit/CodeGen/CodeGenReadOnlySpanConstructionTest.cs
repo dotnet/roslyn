@@ -26,83 +26,6 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        private const string CompilerFeatureRequiredAttributeIL = @"
-.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
-     extends [mscorlib]System.Attribute
- {
-     .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
-         01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
-         4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
-         72 69 74 65 64 00
-     )
-     // Fields
-     .field private initonly string '<FeatureName>k__BackingField'
-     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-         01 00 00 00
-     )
-     .field private initonly bool '<IsOptional>k__BackingField'
-     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-         01 00 00 00
-     )
-
-     .field public static literal string RefStructs = ""RefStructs""
-     .field public static literal string RequiredMembers = ""RequiredMembers""
- 
-     // Methods
-     .method public hidebysig specialname rtspecialname 
-         instance void .ctor (
-             string featureName
-         ) cil managed 
-     {
-         ldarg.0
-         call instance void [mscorlib]System.Attribute::.ctor()
-         ldarg.0
-         ldarg.1
-         stfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
-         ret
-     } // end of method CompilerFeatureRequiredAttribute::.ctor
- 
-     .method public hidebysig specialname 
-         instance string get_FeatureName () cil managed 
-     {
-         ldarg.0
-         ldfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
-         ret
-     } // end of method CompilerFeatureRequiredAttribute::get_FeatureName
- 
-     .method public hidebysig specialname 
-         instance bool get_IsOptional () cil managed 
-     {
-         ldarg.0
-         ldfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
-         ret
-     } // end of method CompilerFeatureRequiredAttribute::get_IsOptional
- 
-     .method public hidebysig specialname 
-         instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_IsOptional (
-             bool 'value'
-         ) cil managed 
-     {
-         ldarg.0
-         ldarg.1
-         stfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
-         ret
-     } // end of method CompilerFeatureRequiredAttribute::set_IsOptional
- 
-     // Properties
-     .property instance string FeatureName()
-     {
-         .get instance string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_FeatureName()
-     }
-     .property instance bool IsOptional()
-     {
-         .get instance bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_IsOptional()
-         .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::set_IsOptional(bool)
-     }
- 
- } // end of class System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
-";
-
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyOrNullStringConv()
@@ -1631,7 +1554,7 @@ public class Test
   .locals init (System.ReadOnlySpan<byte> V_0, //s1
                 System.ReadOnlySpan<int> V_1, //s2
                 System.ReadOnlySpan<long> V_2, //s3
-                System.ReadOnlySpan<nint> V_3) //s4
+                System.ReadOnlySpan<System.IntPtr> V_3) //s4
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldsflda    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81"
   IL_0007:  ldc.i4.3
@@ -1685,11 +1608,11 @@ public class Test
   IL_0081:  stelem.i
   IL_0082:  dup
   IL_0083:  stsfld     "nint[] <PrivateImplementationDetails>.A52856308140261655B0EC09C0AC3BD6EA183729842D3B8029A1493EA881439B_B8"
-  IL_0088:  call       "System.ReadOnlySpan<nint>..ctor(nint[])"
+  IL_0088:  call       "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
   IL_008d:  ldloc.3
-  IL_008e:  call       "void Test.Print<nint>(System.ReadOnlySpan<nint>)"
+  IL_008e:  call       "void Test.Print<System.IntPtr>(System.ReadOnlySpan<System.IntPtr>)"
   IL_0093:  ldloca.s   V_3
-  IL_0095:  call       "bool System.ReadOnlySpan<nint>.IsEmpty.get"
+  IL_0095:  call       "bool System.ReadOnlySpan<System.IntPtr>.IsEmpty.get"
   IL_009a:  pop
   IL_009b:  ret
 }
@@ -3009,7 +2932,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B8"
-  IL_001a:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
   IL_001f:  ret
 }
 """;
@@ -3052,7 +2975,7 @@ public class C
   IL_0017:  stelem.i
   IL_0018:  dup
   IL_0019:  stsfld     "nint[] <PrivateImplementationDetails>.A2C70538651A7E9296B097E8C3DFC1B195A945802FFE45AA471868FBA6F1042E_B8"
-  IL_001e:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
+  IL_001e:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
   IL_0023:  ret
 }
 """;
@@ -3102,7 +3025,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B16"
-  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(System.UIntPtr[])"
   IL_001f:  ret
 }
 """;
@@ -3145,7 +3068,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.AD95131BC0B799C0B1AF477FB14FCF26A6A9F76079E48BF090ACB7E8367BFD0E_B16"
-  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(System.UIntPtr[])"
   IL_001f:  ret
 }
 """;
@@ -3192,7 +3115,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B16"
-  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(System.UIntPtr[])"
   IL_001f:  ret
 }
 """);
@@ -3213,7 +3136,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B8"
-  IL_001a:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
   IL_001f:  ret
 }
 """);
@@ -3502,7 +3425,7 @@ class Test
   IL_003f:  call       "void System.Console.Write(bool)"
   IL_0044:  ret
 }
-""");
+""", ilFormat: SymbolDisplayFormat.ILVisualizationFormat.RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType));
         }
 
         [Theory]

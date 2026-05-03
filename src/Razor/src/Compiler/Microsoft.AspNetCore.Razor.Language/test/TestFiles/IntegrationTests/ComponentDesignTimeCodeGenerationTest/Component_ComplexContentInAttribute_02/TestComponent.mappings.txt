@@ -1,0 +1,27 @@
+﻿Source Location: (30:0,30 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyEnum|
+Generated Location: (1140:29,30 [6] )
+|MyEnum|
+
+Source Location: (13:0,13 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|StringProperty|
+Generated Location: (1554:42,13 [14] )
+|StringProperty|
+
+Source Location: (52:2,7 [67] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public enum MyEnum
+    {
+        One,
+        Two
+    }
+|
+Generated Location: (1976:60,7 [67] )
+|
+    public enum MyEnum
+    {
+        One,
+        Two
+    }
+|
+

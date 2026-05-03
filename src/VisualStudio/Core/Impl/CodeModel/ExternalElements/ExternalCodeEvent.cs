@@ -10,125 +10,124 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements;
+
+[ComVisible(true)]
+[ComDefaultInterface(typeof(EnvDTE80.CodeEvent))]
+public sealed class ExternalCodeEvent : AbstractExternalCodeMember, EnvDTE80.CodeEvent
 {
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE80.CodeEvent))]
-    public sealed class ExternalCodeEvent : AbstractExternalCodeMember, EnvDTE80.CodeEvent
+    internal static EnvDTE80.CodeEvent Create(CodeModelState state, ProjectId projectId, IEventSymbol symbol)
     {
-        internal static EnvDTE80.CodeEvent Create(CodeModelState state, ProjectId projectId, IEventSymbol symbol)
+        var element = new ExternalCodeEvent(state, projectId, symbol);
+        return (EnvDTE80.CodeEvent)ComAggregate.CreateAggregatedObject(element);
+    }
+
+    private ExternalCodeEvent(CodeModelState state, ProjectId projectId, IEventSymbol symbol)
+        : base(state, projectId, symbol)
+    {
+    }
+
+    private IEventSymbol EventSymbol
+    {
+        get { return (IEventSymbol)LookupSymbol(); }
+    }
+
+    protected override EnvDTE.CodeElements GetParameters()
+        => throw new NotImplementedException();
+
+    public override EnvDTE.vsCMElement Kind
+    {
+        get { return EnvDTE.vsCMElement.vsCMElementEvent; }
+    }
+
+    public EnvDTE.CodeFunction Adder
+    {
+        get
         {
-            var element = new ExternalCodeEvent(state, projectId, symbol);
-            return (EnvDTE80.CodeEvent)ComAggregate.CreateAggregatedObject(element);
-        }
-
-        private ExternalCodeEvent(CodeModelState state, ProjectId projectId, IEventSymbol symbol)
-            : base(state, projectId, symbol)
-        {
-        }
-
-        private IEventSymbol EventSymbol
-        {
-            get { return (IEventSymbol)LookupSymbol(); }
-        }
-
-        protected override EnvDTE.CodeElements GetParameters()
-            => throw new NotImplementedException();
-
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementEvent; }
-        }
-
-        public EnvDTE.CodeFunction Adder
-        {
-            get
-            {
-                var symbol = EventSymbol;
-                if (symbol.AddMethod == null)
-                {
-                    throw Exceptions.ThrowEFail();
-                }
-
-                return ExternalCodeAccessorFunction.Create(this.State, this.ProjectId, symbol.AddMethod, this);
-            }
-
-            set
+            var symbol = EventSymbol;
+            if (symbol.AddMethod == null)
             {
                 throw Exceptions.ThrowEFail();
             }
+
+            return ExternalCodeAccessorFunction.Create(this.State, this.ProjectId, symbol.AddMethod, this);
         }
 
-        // TODO: Verify VB implementation
-        public bool IsPropertyStyleEvent
+        set
         {
-            get { return true; }
+            throw Exceptions.ThrowEFail();
+        }
+    }
+
+    // TODO: Verify VB implementation
+    public bool IsPropertyStyleEvent
+    {
+        get { return true; }
+    }
+
+    // TODO: Verify VB implementation
+    public EnvDTE80.vsCMOverrideKind OverrideKind
+    {
+        get
+        {
+            throw Exceptions.ThrowENotImpl();
         }
 
-        // TODO: Verify VB implementation
-        public EnvDTE80.vsCMOverrideKind OverrideKind
+        set
         {
-            get
-            {
-                throw Exceptions.ThrowENotImpl();
-            }
+            throw Exceptions.ThrowEFail();
+        }
+    }
 
-            set
+    public EnvDTE.CodeFunction Remover
+    {
+        get
+        {
+            var symbol = EventSymbol;
+            if (symbol.RemoveMethod == null)
             {
                 throw Exceptions.ThrowEFail();
             }
+
+            return ExternalCodeAccessorFunction.Create(this.State, this.ProjectId, symbol.RemoveMethod, this);
         }
 
-        public EnvDTE.CodeFunction Remover
+        set
         {
-            get
-            {
-                var symbol = EventSymbol;
-                if (symbol.RemoveMethod == null)
-                {
-                    throw Exceptions.ThrowEFail();
-                }
+            throw Exceptions.ThrowEFail();
+        }
+    }
 
-                return ExternalCodeAccessorFunction.Create(this.State, this.ProjectId, symbol.RemoveMethod, this);
-            }
-
-            set
+    public EnvDTE.CodeFunction Thrower
+    {
+        get
+        {
+            // TODO: Verify this with VB implementation
+            var symbol = EventSymbol;
+            if (symbol.RaiseMethod == null)
             {
                 throw Exceptions.ThrowEFail();
             }
+
+            return ExternalCodeAccessorFunction.Create(this.State, this.ProjectId, symbol.RaiseMethod, this);
         }
 
-        public EnvDTE.CodeFunction Thrower
+        set
         {
-            get
-            {
-                // TODO: Verify this with VB implementation
-                var symbol = EventSymbol;
-                if (symbol.RaiseMethod == null)
-                {
-                    throw Exceptions.ThrowEFail();
-                }
+            throw Exceptions.ThrowEFail();
+        }
+    }
 
-                return ExternalCodeAccessorFunction.Create(this.State, this.ProjectId, symbol.RaiseMethod, this);
-            }
-
-            set
-            {
-                throw Exceptions.ThrowEFail();
-            }
+    public EnvDTE.CodeTypeRef Type
+    {
+        get
+        {
+            return CodeTypeRef.Create(this.State, this, this.ProjectId, EventSymbol.Type);
         }
 
-        public EnvDTE.CodeTypeRef Type
+        set
         {
-            get
-            {
-                return CodeTypeRef.Create(this.State, this, this.ProjectId, EventSymbol.Type);
-            }
-
-            set
-            {
-                throw Exceptions.ThrowEFail();
-            }
+            throw Exceptions.ThrowEFail();
         }
     }
 }

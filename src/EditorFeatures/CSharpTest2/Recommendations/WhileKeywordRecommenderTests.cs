@@ -6,202 +6,159 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class WhileKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class WhileKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact]
-        public async Task TestAtRoot_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact]
-        public async Task TestAfterClass_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterGlobalStatement()
-        {
-            await VerifyKeywordAsync(
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestEmptyStatement()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestEmptyStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
-        }
 
-        [Fact]
-        public async Task TestBeforeStatement()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                $$
-                return true;
-                """));
-        }
+    [Fact]
+    public Task TestBeforeStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            $$
+            return true;
+            """));
 
-        [Fact]
-        public async Task TestAfterStatement()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                return true;
-                $$
-                """));
-        }
+    [Fact]
+    public Task TestAfterStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            return true;
+            $$
+            """));
 
-        [Fact]
-        public async Task TestAfterBlock()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                if (true) {
-                }
-                $$
-                """));
-        }
+    [Fact]
+    public Task TestAfterBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            if (true) {
+            }
+            $$
+            """));
 
-        [Fact]
-        public async Task TestInsideWhile()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                while (true)
-                     $$
-                """));
-        }
+    [Fact]
+    public Task TestInsideWhile()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            while (true)
+                 $$
+            """));
 
-        [Fact]
-        public async Task TestInsideWhileInsideWhile()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                while (true)
-                     while (true)
-                        $$
-                """));
-        }
+    [Fact]
+    public Task TestInsideWhileInsideWhile()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            while (true)
+                 while (true)
+                    $$
+            """));
 
-        [Fact]
-        public async Task TestInsideWhileBlock()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                while (true) {
-                     $$
-                """));
-        }
+    [Fact]
+    public Task TestInsideWhileBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            while (true) {
+                 $$
+            """));
 
-        [Fact]
-        public async Task TestAfterDo()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                do
-                     Console.WriteLine();
-                  $$
-                """));
-        }
+    [Fact]
+    public Task TestAfterDo()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            do
+                 Console.WriteLine();
+              $$
+            """));
 
-        [Fact]
-        public async Task TestAfterDoBlock()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                do {
-                } $$
-                """));
-        }
+    [Fact]
+    public Task TestAfterDoBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            do {
+            } $$
+            """));
 
-        [Fact]
-        public async Task TestNotAfterWhile1()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterWhile1()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"while $$"));
-        }
 
-        [Fact]
-        public async Task TestNotAfterWhile2()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterWhile2()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"while ($$"));
-        }
 
-        [Fact]
-        public async Task TestNotAfterWhile3()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterWhile3()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"while (true $$"));
-        }
 
-        [Fact]
-        public async Task TestNotInClass()
-        {
-            await VerifyAbsenceAsync("""
-                class C
-                {
-                  $$
-                }
-                """);
-        }
+    [Fact]
+    public Task TestNotInClass()
+        => VerifyAbsenceAsync("""
+            class C
+            {
+              $$
+            }
+            """);
 
-        [Fact]
-        public async Task TestAfterUsing()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                using (var e2 = other.TypeArguments.GetEnumerator())
-                    $$
-                """));
-        }
+    [Fact]
+    public Task TestAfterUsing()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            using (var e2 = other.TypeArguments.GetEnumerator())
+                $$
+            """));
 
-        [Fact]
-        public async Task TestAfterLock()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                lock (expr)
-                    $$
-                """));
-        }
-    }
+    [Fact]
+    public Task TestAfterLock()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            lock (expr)
+                $$
+            """));
 }

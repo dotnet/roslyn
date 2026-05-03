@@ -12,15 +12,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
-public class LockStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class LockStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(LockStatementHighlighter);
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             class Account
             {
@@ -44,5 +43,4 @@ public class LockStatementHighlighterTests : AbstractCSharpKeywordHighlighterTes
                 }
             }
             """);
-    }
 }

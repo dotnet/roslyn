@@ -13,36 +13,27 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTests<RegionDirectiveTriviaSyntax>
+public sealed class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTests<RegionDirectiveTriviaSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new RegionDirectiveStructureProvider();
 
     [Fact]
-    public async Task BrokenRegion()
-    {
-        var code = """
+    public Task BrokenRegion()
+        => VerifyNoBlockSpansAsync("""
                 $$#region Goo
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
-    }
+                """);
 
     [Fact]
-    public async Task SimpleRegion()
-    {
-        var code = """
+    public Task SimpleRegion()
+        => VerifyBlockSpansAsync("""
                 {|span:$$#region Goo
                 #endregion|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "Goo", autoCollapse: false, isDefaultCollapsed: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
-    public async Task RegressionFor5284()
-    {
-        var code = """
+    public Task RegressionFor5284()
+        => VerifyBlockSpansAsync("""
                 namespace BasicGenerateFromUsage
                 {
                     class BasicGenerateFromUsage
@@ -69,16 +60,18 @@ public class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTe
                     {
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "TaoRegion", autoCollapse: false, isDefaultCollapsed: true));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668"), CombinatorialData]
     public async Task RegionsShouldBeCollapsedByDefault(bool collapseRegionsWhenFirstOpened)
     {
-        var code = """
+        var options = GetDefaultOptions() with
+        {
+            CollapseRegionsWhenFirstOpened = collapseRegionsWhenFirstOpened
+        };
+
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span:#region Re$$gion
@@ -87,21 +80,13 @@ public class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTe
                     }
                     #endregion|}
                 }
-                """;
-
-        var options = GetDefaultOptions() with
-        {
-            CollapseRegionsWhenFirstOpened = collapseRegionsWhenFirstOpened
-        };
-
-        await VerifyBlockSpansAsync(code, options,
+                """, options,
             Region("span", "Region", autoCollapse: false, isDefaultCollapsed: collapseRegionsWhenFirstOpened));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4105")]
-    public async Task SpacesBetweenPoundAndRegionShouldNotAffectBanner()
-    {
-        var code = """
+    public Task SpacesBetweenPoundAndRegionShouldNotAffectBanner()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                 {|span:#  region R$$egion
@@ -110,23 +95,16 @@ public class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTe
                     }
                 #  endregion|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "Region", autoCollapse: false, isDefaultCollapsed: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
-    public async Task Trailing()
-    {
-        var code = """
+    public Task Trailing()
+        => VerifyBlockSpansAsync("""
             {|span:#region R$$1
             /* comment */ #endregion
             /* comment */ #region R2
             #endregion|}
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span", "R1", autoCollapse: false, isDefaultCollapsed: true));
-    }
 }

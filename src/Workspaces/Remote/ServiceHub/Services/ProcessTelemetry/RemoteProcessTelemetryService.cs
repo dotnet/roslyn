@@ -5,18 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
-using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -42,7 +39,7 @@ internal sealed partial class RemoteProcessTelemetryService(
     /// </summary>
     public ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, bool logDelta, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(cancellationToken =>
+        return RunServiceAsync(async cancellationToken =>
         {
             var services = GetWorkspace().Services;
 
@@ -55,11 +52,11 @@ internal sealed partial class RemoteProcessTelemetryService(
             FaultReporter.InitializeFatalErrorHandlers();
 
             // log telemetry that service hub started
-            RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
+            RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(static (m, hostProcessId) =>
             {
                 m["Host"] = hostProcessId;
                 m["Framework"] = RuntimeInformation.FrameworkDescription;
-            }));
+            }, hostProcessId));
 
             // start performance reporter
             var diagnosticAnalyzerPerformanceTracker = services.GetService<IPerformanceTrackerService>();
@@ -68,8 +65,6 @@ internal sealed partial class RemoteProcessTelemetryService(
                 // We know in the remote layer that this type must exist.
                 _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, _shutdownCancellationSource.Token);
             }
-
-            return ValueTaskFactory.CompletedTask;
         }, cancellationToken);
     }
 
@@ -78,7 +73,7 @@ internal sealed partial class RemoteProcessTelemetryService(
     /// </summary>
     public ValueTask EnableLoggingAsync(ImmutableArray<string> loggerTypeNames, ImmutableArray<FunctionId> functionIds, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(cancellationToken =>
+        return RunServiceAsync(async cancellationToken =>
         {
             var functionIdsSet = new HashSet<FunctionId>(functionIds);
             bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
@@ -86,8 +81,6 @@ internal sealed partial class RemoteProcessTelemetryService(
             // we only support 2 types of loggers
             SetRoslynLogger(loggerTypeNames, () => new EtwLogger(logChecker));
             SetRoslynLogger(loggerTypeNames, () => new TraceLogger(logChecker));
-
-            return ValueTaskFactory.CompletedTask;
         }, cancellationToken);
     }
 
@@ -101,19 +94,5 @@ internal sealed partial class RemoteProcessTelemetryService(
         {
             RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
         }
-    }
-
-    /// <summary>
-    /// Remote API.
-    /// </summary>
-    public ValueTask<int> InitializeAsync(WorkspaceConfigurationOptions options, CancellationToken cancellationToken)
-    {
-        return RunServiceAsync(cancellationToken =>
-        {
-            var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
-            service.InitializeOptions(options);
-
-            return ValueTaskFactory.FromResult(Process.GetCurrentProcess().Id);
-        }, cancellationToken);
     }
 }

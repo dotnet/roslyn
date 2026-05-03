@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.OrganizeImports;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports;
 
@@ -19,7 +19,7 @@ internal sealed partial class CSharpOrganizeImportsService() : IOrganizeImportsS
 {
     public async Task<Document> OrganizeImportsAsync(Document document, OrganizeImportsOptions options, CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var rewriter = new Rewriter(options);
         var newRoot = rewriter.Visit(root);
@@ -29,6 +29,9 @@ internal sealed partial class CSharpOrganizeImportsService() : IOrganizeImportsS
     }
 
     public string SortImportsDisplayStringWithAccelerator
+        => CSharpWorkspaceResources.Sort_Usings_with_accelerator;
+
+    public string SortImportsDisplayStringWithoutAccelerator
         => CSharpWorkspaceResources.Sort_Usings;
 
     public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator

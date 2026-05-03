@@ -21,12 +21,11 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpDeclareAsNullableCodeFixProvider());
 
-    private static readonly TestParameters s_nullableFeature = new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+    private static readonly TestParameters s_nullableFeature = new(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
 
     [Fact]
-    public async Task FixAll()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAll()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -61,12 +60,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixReturnType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -87,12 +84,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixReturnType_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_Async()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -113,12 +108,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixReturnType_AsyncLocalFunction()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_AsyncLocalFunction()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -145,12 +138,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixReturnType_WithTrivia()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_WithTrivia()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -171,12 +162,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixReturnType_ArrowBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_ArrowBody()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -191,12 +180,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 static string? M() => null;
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26639")]
-    public async Task FixReturnType_LocalFunction_ArrowBody()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FixReturnType_LocalFunction_ArrowBody()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -207,12 +194,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26639")]
-    public async Task FixLocalFunctionReturnType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixLocalFunctionReturnType()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -239,12 +224,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task NoFixAlreadyNullableReturnType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoFixAlreadyNullableReturnType()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -255,12 +238,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26628")]
-    public async Task FixField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixField()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -275,12 +256,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 string? x = null;
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixFieldEqualsNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixFieldEqualsNull()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -303,12 +282,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixPropertyEqualsNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixPropertyEqualsNull()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -331,12 +308,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixLocalDeclaration()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixLocalDeclaration()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -357,12 +332,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixLocalDeclaration_FromAssignment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixLocalDeclaration_FromAssignment()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -385,12 +358,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task CannotFixMultiLocalDeclaration_FromAssignment()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task CannotFixMultiLocalDeclaration_FromAssignment()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -402,12 +373,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixParameter_FromAssignment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixParameter_FromAssignment()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -428,12 +397,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task CannotFixParameterOfPartialMethod_FromAssignment()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task CannotFixParameterOfPartialMethod_FromAssignment()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             partial class Program
@@ -446,12 +413,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task CannotFixParameterOfExtendedPartialMethod_FromAssignment()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task CannotFixParameterOfExtendedPartialMethod_FromAssignment()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             partial class Program
@@ -464,12 +429,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixLocalDeclaration_WithVar()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FixLocalDeclaration_WithVar()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -480,12 +443,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task NoFixMultiDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoFixMultiDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -496,12 +457,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26628")]
-    public async Task FixPropertyDeclaration()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixPropertyDeclaration()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -516,12 +475,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 string? x { get; set; } = null;
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixPropertyDeclaration_WithReturnNull()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixPropertyDeclaration_WithReturnNull()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -536,12 +493,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 string? x { get { return null; } }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixPropertyDeclaration_ArrowBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixPropertyDeclaration_ArrowBody()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -556,13 +511,11 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 string? x => null;
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26626")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/30026")]
-    public async Task FixOptionalParameter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixOptionalParameter()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -577,12 +530,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 static void M(string? x = null) { }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixLocalWithAs()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixLocalWithAs()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -603,12 +554,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixReturnType_Iterator_Enumerable()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_Iterator_Enumerable()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -629,12 +578,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixReturnType_Iterator_Enumerator()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_Iterator_Enumerator()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -655,12 +602,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixReturnType_IteratorProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_IteratorProperty()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -687,12 +632,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixReturnType_Iterator_LocalFunction()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_Iterator_LocalFunction()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -719,12 +662,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39422")]
-    public async Task FixReturnType_ConditionalOperator_Function()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_ConditionalOperator_Function()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -745,12 +686,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39422")]
-    public async Task FixAllReturnType_ConditionalOperator_Function()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllReturnType_ConditionalOperator_Function()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -801,12 +740,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39422")]
-    public async Task FixAllReturnType_Invocation()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllReturnType_Invocation()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -861,12 +798,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39420")]
-    public async Task FixReturnType_TernaryExpression_Function()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_TernaryExpression_Function()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -887,12 +822,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39423")]
-    public async Task FixReturnType_Default()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_Default()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -913,12 +846,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39423")]
-    public async Task FixReturnType_DefaultWithNullableType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixReturnType_DefaultWithNullableType()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -939,12 +870,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixInvocation_NamedArgument()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixInvocation_NamedArgument()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -967,12 +896,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 void M2(string? x) { }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44338")]
-    public async Task NoFixInvocationOfExternalMethod_NamedArgument()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoFixInvocationOfExternalMethod_NamedArgument()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -984,12 +911,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixInvocation_NamedArgument_OutOfOrder()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixInvocation_NamedArgument_OutOfOrder()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1012,12 +937,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 void M2(int i, string? x) { }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44338")]
-    public async Task NoFixInvocationOfExternalMethod_NamedArgument_OutOfOrder()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoFixInvocationOfExternalMethod_NamedArgument_OutOfOrder()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1029,12 +952,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixInvocation_NamedArgument_Partial()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FixInvocation_NamedArgument_Partial()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             partial class Program
@@ -1047,12 +968,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 partial void M2(string x) { }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixInvocation_PositionArgument()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixInvocation_PositionArgument()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1075,12 +994,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 void M2(string? x) { }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44338")]
-    public async Task NoFixInvocationOfExternalMethod_PositionArgument()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoFixInvocationOfExternalMethod_PositionArgument()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1092,12 +1009,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixInvocation_PositionArgument_SecondPosition()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixInvocation_PositionArgument_SecondPosition()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1120,12 +1035,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 void M2(int i, string? x) { }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixInvocation_PositionArgument_Params()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FixInvocation_PositionArgument_Params()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1137,13 +1050,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 void M2(params string[] x) { }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixInvocation_Indexer()
-    {
-        // Not supported yet
-        await TestMissingInRegularAndScriptAsync(
+    public Task FixInvocation_Indexer()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1155,12 +1065,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 int this[string x] { get { throw null!; } set { throw null!; } }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact]
-    public async Task FixPropertyDeclaration_Unassigned()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixPropertyDeclaration_Unassigned()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1178,12 +1086,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
             }
             """,
             parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44983")]
-    public async Task FixFieldDeclaration_Unassigned()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixFieldDeclaration_Unassigned()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1201,12 +1107,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
             }
             """,
             parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44983")]
-    public async Task MultipleDeclarator_NoDiagnostic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MultipleDeclarator_NoDiagnostic()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1214,12 +1118,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
                 string [|s|], s2 = "hello";
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46354")]
-    public async Task FixTupleFieldAssignment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixTupleFieldAssignment()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1242,12 +1144,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
               }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46354")]
-    public async Task FixTupleNamedFieldAssignment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixTupleNamedFieldAssignment()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1270,12 +1170,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
               }
             }
             """, parameters: s_nullableFeature);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46354")]
-    public async Task FixTupleGenericFieldAssignment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixTupleGenericFieldAssignment()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Program
@@ -1302,5 +1200,4 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
               }
             }
             """, parameters: s_nullableFeature);
-    }
 }

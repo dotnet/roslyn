@@ -19,21 +19,14 @@ internal sealed partial class RoslynSearchItemsSourceProvider
     /// A callback to be passed to the <see cref="NavigateToSearcher"/>.  Results it pushes into us will then be
     /// converted and pushed into <see cref="_searchCallback"/>.
     /// </summary>
-    private sealed class RoslynNavigateToSearchCallback : INavigateToSearchCallback
+    private sealed class RoslynNavigateToSearchCallback(
+        Solution solution,
+        RoslynSearchItemsSourceProvider provider,
+        ISearchCallback searchCallback) : INavigateToSearchCallback
     {
-        private readonly Solution _solution;
-        private readonly RoslynSearchItemsSourceProvider _provider;
-        private readonly ISearchCallback _searchCallback;
-
-        public RoslynNavigateToSearchCallback(
-            Solution solution,
-            RoslynSearchItemsSourceProvider provider,
-            ISearchCallback searchCallback)
-        {
-            _solution = solution;
-            _provider = provider;
-            _searchCallback = searchCallback;
-        }
+        private readonly Solution _solution = solution;
+        private readonly RoslynSearchItemsSourceProvider _provider = provider;
+        private readonly ISearchCallback _searchCallback = searchCallback;
 
         public void Done(bool isFullyLoaded)
         {
@@ -54,16 +47,17 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             _searchCallback.ReportIncomplete(IncompleteReason.Parsing);
         }
 
-        public Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
+        public async Task AddResultsAsync(
+            ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken)
         {
             // Convert roslyn pattern matches to the platform type.
             foreach (var result in results)
             {
                 var matches = result.Matches.SelectAsArray(static m => new PatternMatch(
-                ConvertKind(m.Kind),
-                punctuationStripped: false,
-                m.IsCaseSensitive,
-                m.MatchedSpans.SelectAsArray(static s => s.ToSpan())));
+                    ConvertKind(m.Kind),
+                    punctuationStripped: false,
+                    m.IsCaseSensitive,
+                    m.MatchedSpans.SelectAsArray(static s => s.ToSpan())));
 
                 // Weight the items based on the overall pattern matching weights.  We want the items that have the best
                 // pattern matches (low .Kind values) to have the highest float values (as higher is better for the VS
@@ -78,12 +72,24 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                     result.Name,
                     result.SecondarySort,
                     matches,
-                    result.NavigableItem.Document.FilePath,
+                    await GetFilePathAsync(result).ConfigureAwait(false),
                     perProviderItemPriority,
-                    project.Language));
+                    project.Language,
+                    isActiveDocument: activeDocument != null && activeDocument.Id == result.NavigableItem.Document.Id));
             }
 
-            return Task.CompletedTask;
+            async ValueTask<string?> GetFilePathAsync(INavigateToSearchResult result)
+            {
+                var document = result.NavigableItem.Document;
+                if (document.Id.IsSourceGenerated)
+                {
+                    var foundDocument = await document.GetRequiredDocumentAsync(_solution, cancellationToken).ConfigureAwait(false);
+                    if (foundDocument is SourceGeneratedDocument sourceGeneratedDocument)
+                        return _provider._sourceGeneratedFileManager.MapSourceGeneratedDocumentToOpenableFilePath(sourceGeneratedDocument);
+                }
+
+                return document.FilePath;
+            }
         }
 
         private static PatternMatchKind ConvertKind(PatternMatching.PatternMatchKind kind)

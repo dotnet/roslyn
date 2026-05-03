@@ -36,7 +36,7 @@ internal sealed partial class CSharpExtractMethodService
             public static ImmutableArray<StatementSyntax> RemoveRedundantBlock(ImmutableArray<StatementSyntax> statements)
             {
                 // it must have only one statement
-                if (statements.Count() != 1)
+                if (statements.Length != 1)
                 {
                     return statements;
                 }

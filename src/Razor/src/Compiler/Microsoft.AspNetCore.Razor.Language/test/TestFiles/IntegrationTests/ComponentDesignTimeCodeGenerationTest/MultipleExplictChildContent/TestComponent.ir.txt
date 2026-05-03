@@ -1,0 +1,23 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [87] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentChildContent - (19:1,4 [20] x:\dir\subdir\Test\TestComponent.cshtml) - Header - context
+                        HtmlContent - (27:1,12 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (27:1,12 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hi!
+                    ComponentChildContent - (45:2,4 [26] x:\dir\subdir\Test\TestComponent.cshtml) - Footer - context
+                        CSharpExpression - (55:2,14 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (55:2,14 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "bye!"

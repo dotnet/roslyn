@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override NamedTypeSymbol ConstructedFrom => this;
 
-        public override bool MightContainExtensionMethods => false;
+        public override bool MightContainExtensions => false;
 
         public override string Name { get; }
 
@@ -63,6 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeKind TypeKind => TypeKind.Struct;
 
         public override bool IsRefLikeType => false;
+
+        internal override string? ExtensionGroupingName => null;
+
+        internal override string? ExtensionMarkerName => null;
 
         public override bool IsReadOnly => true;
 
@@ -96,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
+        internal override bool IsUnionTypeCore => false;
+
         internal override bool GetGuidString(out string? guidString)
         {
             guidString = null;
@@ -103,6 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsInterpolatedStringHandlerType => false;
+
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
 
         internal override bool HasSpecialName => false;
 

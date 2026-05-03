@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
             Return False
         End Function
 
-        Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As VirtualCharSequence
+        Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As VirtualCharGreenSequence
             Debug.Assert(Not token.ContainsDiagnostics)
 
             If token.Kind() = SyntaxKind.StringLiteralToken Then

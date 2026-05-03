@@ -8,12 +8,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Shared.Lightup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
@@ -39,17 +38,14 @@ internal static partial class ITypeSymbolExtensions
         var type = symbol as ITypeSymbol;
         var containsAnonymousType = type != null && type.ContainsAnonymousType();
 
+        // something with an anonymous type can only be represented with 'var', regardless
+        // of what the user's preferences might be.
         if (containsAnonymousType && allowVar)
-        {
-            // something with an anonymous type can only be represented with 'var', regardless
-            // of what the user's preferences might be.
             return IdentifierName("var");
-        }
 
         var syntax = containsAnonymousType
             ? TypeSyntaxGeneratorVisitor.CreateSystemObject()
-            : symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
-                    .WithAdditionalAnnotations(Simplifier.Annotation);
+            : symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!.WithAdditionalAnnotations(Simplifier.Annotation);
 
         if (!allowVar)
             syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
@@ -58,9 +54,9 @@ internal static partial class ITypeSymbolExtensions
         {
             var additionalAnnotation = type.NullableAnnotation switch
             {
-                NullableAnnotation.None => NullableSyntaxAnnotationEx.Oblivious,
-                NullableAnnotation.Annotated => NullableSyntaxAnnotationEx.AnnotatedOrNotAnnotated,
-                NullableAnnotation.NotAnnotated => NullableSyntaxAnnotationEx.AnnotatedOrNotAnnotated,
+                NullableAnnotation.None => NullableSyntaxAnnotation.Oblivious,
+                NullableAnnotation.Annotated => NullableSyntaxAnnotation.AnnotatedOrNotAnnotated,
+                NullableAnnotation.NotAnnotated => NullableSyntaxAnnotation.AnnotatedOrNotAnnotated,
                 _ => throw ExceptionUtilities.UnexpectedValue(type.NullableAnnotation),
             };
 

@@ -11,15 +11,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType;
@@ -73,7 +73,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var state = State.Generate((TService)this, semanticDocument, node, cancellationToken);
+            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
             if (state != null)
             {
                 var actions = GetActions(semanticDocument, node, state, cancellationToken);
@@ -102,7 +102,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         State state,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
+        using var result = TemporaryArray<CodeAction>.Empty;
 
         var generateNewTypeInDialog = false;
         if (state.NamespaceToGenerateInOpt != null)
@@ -121,6 +121,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var generateIntoContaining = IsGeneratingIntoContainingNamespace(document, node, state, cancellationToken);
 
             if ((isSimpleName || generateIntoContaining) &&
+                !document.Document.IsRazorSourceGeneratedDocument() &&
                 CanGenerateIntoContainingNamespace(document, node, cancellationToken))
             {
                 result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: false));

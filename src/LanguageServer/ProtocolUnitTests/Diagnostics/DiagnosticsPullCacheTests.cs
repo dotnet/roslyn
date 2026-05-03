@@ -19,7 +19,8 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
-public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
+
+public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
     : AbstractPullDiagnosticTestsBase(testOutputHelper)
 {
     [Theory, CombinatorialData]
@@ -35,7 +36,7 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics.Single().Code);
+        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
         // Make a change that modifies the versions we use to cache.
@@ -65,7 +66,7 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics.Single().Code);
+        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
         // Make a global version change
@@ -96,7 +97,7 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics.Single().Code);
+        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
         // Make another request without modifying anything and assert we did not re-calculate anything.
@@ -113,28 +114,23 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(TestDiagnosticSourceProvider));
 
-    private class TestDiagnosticSource(Document document, TestDiagnosticSourceProvider provider) : AbstractDocumentDiagnosticSource<Document>(document)
+    private sealed class TestDiagnosticSource(Document document, TestDiagnosticSourceProvider provider) : AbstractDocumentDiagnosticSource<Document>(document)
     {
         public const string Id = "Id";
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref provider.DiagnosticsRequestedCount);
-            return Task.FromResult<ImmutableArray<DiagnosticData>>([new DiagnosticData(Id, category: "category", context.Document!.Name, DiagnosticSeverity.Error, DiagnosticSeverity.Error,
+            return [new DiagnosticData(Id, category: "category", context.Document!.Name, DiagnosticSeverity.Error, DiagnosticSeverity.Error,
                 isEnabledByDefault: true, warningLevel: 0, [], ImmutableDictionary<string, string?>.Empty,context.Document!.Project.Id,
-                new DiagnosticDataLocation(new FileLinePositionSpan(context.Document!.FilePath!, new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))))]);
-        }
-
-        public override bool IsLiveSource()
-        {
-            return true;
+                new DiagnosticDataLocation(new FileLinePositionSpan(context.Document!.FilePath!, new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))))];
         }
     }
 
     [Export(typeof(IDiagnosticSourceProvider)), Shared, PartNotDiscoverable]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private class TestDiagnosticSourceProvider() : IDiagnosticSourceProvider
+    private sealed class TestDiagnosticSourceProvider() : IDiagnosticSourceProvider
     {
         public bool IsDocument => true;
 
@@ -142,9 +138,9 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
 
         public int DiagnosticsRequestedCount = 0;
 
-        public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return new ValueTask<ImmutableArray<IDiagnosticSource>>([new TestDiagnosticSource(context.Document!, this)]);
+            return [new TestDiagnosticSource(context.Document!, this)];
         }
 
         public bool IsEnabled(LSP.ClientCapabilities clientCapabilities)

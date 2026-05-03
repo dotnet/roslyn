@@ -35,20 +35,22 @@ internal sealed class LessAndGreaterThanBraceCompletionService() : AbstractCShar
     protected override bool IsValidClosingBraceToken(SyntaxToken token)
         => token.IsKind(SyntaxKind.GreaterThanToken);
 
-    protected override ValueTask<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
+    protected override async ValueTask<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // check what parser thinks about the newly typed "<" and only proceed if parser thinks it is "<" of 
         // type argument or parameter list
         if (token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) ||
             token.CheckParent<TypeArgumentListSyntax>(n => n.LessThanToken == token) ||
             token.CheckParent<FunctionPointerParameterListSyntax>(n => n.LessThanToken == token))
         {
-            return ValueTaskFactory.FromResult(true);
+            return true;
         }
 
         // type argument can be easily ambiguous with normal < operations
         if (token.Parent is not BinaryExpressionSyntax(SyntaxKind.LessThanExpression) node || node.OperatorToken != token)
-            return ValueTaskFactory.FromResult(false);
+            return false;
 
         // type_argument_list only shows up in the following grammar construct:
         //
@@ -58,15 +60,10 @@ internal sealed class LessAndGreaterThanBraceCompletionService() : AbstractCShar
         // So if the prior token is not an identifier, this could not be a type-argument-list.
         var previousToken = token.GetPreviousToken();
         if (previousToken.Parent is not IdentifierNameSyntax identifier)
-            return ValueTaskFactory.FromResult(false);
+            return false;
 
-        return IsSemanticTypeArgumentAsync(document, node.SpanStart, identifier, cancellationToken);
-
-        static async ValueTask<bool> IsSemanticTypeArgumentAsync(Document document, int position, IdentifierNameSyntax identifier, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var info = semanticModel.GetSymbolInfo(identifier, cancellationToken);
-            return info.CandidateSymbols.Any(static s => s.GetArity() > 0);
-        }
+        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+        var info = semanticModel.GetSymbolInfo(identifier, cancellationToken);
+        return info.CandidateSymbols.Any(static s => s.GetArity() > 0);
     }
 }

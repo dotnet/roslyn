@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record Category
+internal sealed record Category
 {
     [JsonPropertyName("title")]
     [JsonConverter(typeof(ResourceStringConverter))]

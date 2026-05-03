@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -157,15 +156,7 @@ public abstract class AbstractPdbSourceDocumentTests
 
             var pdbService = (PdbSourceDocumentMetadataAsSourceFileProvider)workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().Single(s => s is PdbSourceDocumentMetadataAsSourceFileProvider);
 
-            // Add the document to the workspace.  We provide an empty static source text as the API requires it to open the document.
-            // We're not really trying to verify that the source text the editor hands to us is the right encoding - just that the document we added has the right encoding.
-            var result = pdbService.TryAddDocumentToWorkspace((MetadataAsSourceWorkspace)masWorkspace!, file.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out _);
-            Assert.True(result);
-
-            // Immediately close the document so that we get the source text provided by the workspace (instead of the empty one we passed).
             var info = pdbService.GetTestAccessor().Documents[file.FilePath];
-            masWorkspace!.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.FilePath, info.Encoding));
-
             var document = masWorkspace!.CurrentSolution.GetRequiredDocument(info.DocumentId);
 
             // Mapping the project from the generated document should map back to the original project
@@ -212,14 +203,17 @@ public abstract class AbstractPdbSourceDocumentTests
         Encoding? fallbackEncoding = null)
     {
         var preprocessorSymbolsAttribute = preprocessorSymbols?.Length > 0
-            ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
+            ? $"""
+            PreprocessorSymbols="{string.Join(";", preprocessorSymbols)}"
+            """
             : "";
 
-        var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"" {preprocessorSymbolsAttribute}>
-    </Project>
-</Workspace>", composition: GetTestComposition());
+        var workspace = EditorTestWorkspace.Create($"""
+            <Workspace>
+                <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true" {preprocessorSymbolsAttribute}>
+                </Project>
+            </Workspace>
+            """, composition: GetTestComposition());
 
         var project = workspace.CurrentSolution.Projects.First();
 
@@ -251,9 +245,7 @@ public abstract class AbstractPdbSourceDocumentTests
         var dllFilePath = GetDllPath(path);
         var sourceCodePath = GetSourceFilePath(path);
         var pdbFilePath = GetPdbPath(path);
-        var assemblyName = "reference";
-
-        CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
+        CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, "reference", source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
     }
 
     protected static void CompileTestSource(string dllFilePath, string sourceCodePath, string? pdbFilePath, string assemblyName, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
@@ -342,7 +334,7 @@ public abstract class AbstractPdbSourceDocumentTests
         return Path.Combine(path, "reference.pdb");
     }
 
-    protected class StaticSourceTextContainer(SourceText sourceText) : SourceTextContainer
+    protected sealed class StaticSourceTextContainer(SourceText sourceText) : SourceTextContainer
     {
         public override SourceText CurrentText => sourceText;
 

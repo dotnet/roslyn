@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal class WorkspaceFoldersServerCapabilities
+internal sealed class WorkspaceFoldersServerCapabilities
 {
     /// <summary>
     /// The server has support for workspace folders

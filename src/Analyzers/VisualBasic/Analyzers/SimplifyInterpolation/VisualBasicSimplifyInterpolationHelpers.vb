@@ -3,10 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.SimplifyInterpolation
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
     Friend NotInheritable Class VisualBasicSimplifyInterpolationHelpers
-        Inherits AbstractSimplifyInterpolationHelpers
+        Inherits AbstractSimplifyInterpolationHelpers(Of InterpolationSyntax, ExpressionSyntax)
 
         Public Shared ReadOnly Property Instance As New VisualBasicSimplifyInterpolationHelpers
 

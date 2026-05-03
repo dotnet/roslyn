@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -110,8 +111,7 @@ internal sealed partial class XmlDocCommentCompletionProvider : AbstractDocComme
                     addEqualsAndQuotes: !nextToken.IsKind(SyntaxKind.EqualsToken) || nextToken.HasLeadingTrivia);
             }
 
-            var wasTriggeredAfterSpace = trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == ' ';
-            if (wasTriggeredAfterSpace)
+            if (trigger is { Kind: CompletionTriggerKind.Insertion, Character: ' ' })
             {
                 // Nothing below this point should triggered by a space character
                 // (only attribute names should be triggered by <SPACE>)
@@ -123,7 +123,7 @@ internal sealed partial class XmlDocCommentCompletionProvider : AbstractDocComme
                 return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
             }
 
-            if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character != '<')
+            if (trigger is { Kind: CompletionTriggerKind.Insertion, Character: not '<' })
             {
                 // With the use of IsTriggerAfterSpaceOrStartOfWordCharacter, the code below is much
                 // too aggressive at suggesting tags, so exit early before degrading the experience
@@ -397,6 +397,10 @@ internal sealed partial class XmlDocCommentCompletionProvider : AbstractDocComme
             else if (namedTypeSymbol is { DelegateInvokeMethod.Parameters: var delegateInvokeParameters })
             {
                 declaredParameters = delegateInvokeParameters;
+            }
+            else if (namedTypeSymbol.IsExtension && namedTypeSymbol.ExtensionParameter is { } extensionParameter)
+            {
+                declaredParameters = [extensionParameter];
             }
         }
 

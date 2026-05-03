@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -166,18 +165,18 @@ public class Document : TextDocument
     /// to <see cref="SyntaxTree.GetRoot"/> or <see cref="SyntaxTree.GetRootAsync"/> may end up causing computation
     /// to occur at that point.
     /// </returns>
-    public Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
+    public async Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
     {
         // If the language doesn't support getting syntax trees for a document, then bail out immediately.
         if (!this.SupportsSyntaxTree)
         {
-            return SpecializedTasks.Null<SyntaxTree>();
+            return null;
         }
 
         // if we have a cached result task use it
         if (_syntaxTreeResultTask != null)
         {
-            return _syntaxTreeResultTask.AsNullable();
+            return await _syntaxTreeResultTask.ConfigureAwait(false);
         }
 
         // check to see if we already have the tree before actually going async
@@ -186,13 +185,13 @@ public class Document : TextDocument
             // stash a completed result task for this value for the next request (to reduce extraneous allocations of tasks)
             // don't use the actual async task because it depends on a specific cancellation token
             // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
-            Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
+            _ = Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
 
-            return _syntaxTreeResultTask.AsNullable();
+            return await _syntaxTreeResultTask.ConfigureAwait(false);
         }
 
         // do it async for real.
-        return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask().AsNullable();
+        return await DocumentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
     }
 
     internal SyntaxTree? GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
@@ -389,13 +388,33 @@ public class Document : TextDocument
     /// Creates a new instance of this document updated to have the text specified.
     /// </summary>
     public Document WithText(SourceText text)
-        => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
+    {
+        var solution = this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity);
+
+        if (Id.IsSourceGenerated)
+        {
+            // We just modified the text of the generated document, so it should be available synchronously, and throwing is appropriate if it isn't.
+            return solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id);
+        }
+
+        return solution.GetRequiredDocument(Id);
+    }
 
     /// <summary>
     /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
     /// </summary>
     public Document WithSyntaxRoot(SyntaxNode root)
-        => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
+    {
+        var solution = this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity);
+
+        if (Id.IsSourceGenerated)
+        {
+            // We just modified the text of the generated document, so it should be available synchronously, and throwing is appropriate if it isn't.
+            return solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id);
+        }
+
+        return solution.GetRequiredDocument(Id);
+    }
 
     /// <summary>
     /// Creates a new instance of this document updated to have the specified name.

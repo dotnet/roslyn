@@ -28,20 +28,17 @@ using static SyntaxFactory;
 [ExportSignatureHelpProvider("ElementAccessExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
 internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
+    private static readonly ImmutableArray<char> s_triggerCharacters = ['[', ','];
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ElementAccessExpressionSignatureHelpProvider()
     {
     }
 
-    public override bool IsTriggerCharacter(char ch)
-        => IsTriggerCharacterInternal(ch);
+    public override ImmutableArray<char> TriggerCharacters => s_triggerCharacters;
 
-    private static bool IsTriggerCharacterInternal(char ch)
-        => ch is '[' or ',';
-
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ']';
+    public override ImmutableArray<char> RetriggerCharacters => [']'];
 
     private static bool TryGetElementAccessExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, [NotNullWhen(true)] out ExpressionSyntax? identifier, out SyntaxToken openBrace)
     {
@@ -99,7 +96,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
             return null;
         }
 
-        accessibleIndexers = accessibleIndexers.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+        accessibleIndexers = accessibleIndexers.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                                                .Sort(semanticModel, expression.SpanStart);
 
         var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
@@ -186,7 +183,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
 
         if (indexers.Any() && expression is MemberAccessExpressionSyntax memberAccessExpression)
         {
-            expressionType = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type!;
+            expressionType = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type;
             return true;
         }
 
@@ -281,7 +278,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         {
             return !token.IsKind(SyntaxKind.None) &&
                 token.ValueText.Length == 1 &&
-                IsTriggerCharacterInternal(token.ValueText[0]) &&
+                s_triggerCharacters.Contains(token.ValueText[0]) &&
                 token.Parent is BracketedArgumentListSyntax &&
                 token.Parent.Parent is ElementAccessExpressionSyntax;
         }
@@ -295,7 +292,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         internal static TextSpan GetTextSpan(SyntaxToken openBracket)
         {
             Contract.ThrowIfFalse(openBracket.Parent is BracketedArgumentListSyntax &&
-                (openBracket.Parent.Parent is ElementAccessExpressionSyntax || openBracket.Parent.Parent is ElementBindingExpressionSyntax));
+                openBracket.Parent.Parent is ElementAccessExpressionSyntax or ElementBindingExpressionSyntax);
             return SignatureHelpUtilities.GetSignatureHelpSpan((BracketedArgumentListSyntax)openBracket.Parent);
         }
 
@@ -330,7 +327,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         {
             return !token.IsKind(SyntaxKind.None) &&
                 token.ValueText.Length == 1 &&
-                IsTriggerCharacterInternal(token.ValueText[0]) &&
+                s_triggerCharacters.Contains(token.ValueText[0]) &&
                 token.Parent is ArrayRankSpecifierSyntax;
         }
 
@@ -365,7 +362,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         {
             return !token.IsKind(SyntaxKind.None) &&
                 token.ValueText.Length == 1 &&
-                IsTriggerCharacterInternal(token.ValueText[0]) &&
+                s_triggerCharacters.Contains(token.ValueText[0]) &&
                 token.Parent is BracketedArgumentListSyntax &&
                 token.Parent.Parent is ElementBindingExpressionSyntax &&
                 token.Parent.Parent.Parent is ConditionalAccessExpressionSyntax;

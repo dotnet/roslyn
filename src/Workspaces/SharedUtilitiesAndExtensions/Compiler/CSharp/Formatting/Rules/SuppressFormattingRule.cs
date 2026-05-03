@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class SuppressFormattingRule : BaseFormattingRule
+internal sealed class SuppressFormattingRule : BaseFormattingRule
 {
     internal const string Name = "CSharp Suppress Formatting Rule";
 
@@ -167,7 +167,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
             }
 
             var propertyDeclNode = node as PropertyDeclarationSyntax;
-            if (propertyDeclNode?.Initializer != null && propertyDeclNode?.AccessorList != null)
+            if (propertyDeclNode is { Initializer: not null, AccessorList: not null })
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, propertyDeclNode.AccessorList.GetLastToken());
             }
@@ -185,28 +185,20 @@ internal class SuppressFormattingRule : BaseFormattingRule
         {
             if (switchSection.Labels.Count < 2)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
-                return;
+                AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken());
             }
             else
             {
                 // Add Separate suppression for each Label and for the last label, add the <> 
                 for (var i = 0; i < switchSection.Labels.Count - 1; ++i)
-                {
-                    if (switchSection.Labels[i] != null)
-                    {
-                        AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.Labels[i].GetFirstToken(includeZeroWidth: true), switchSection.Labels[i].GetLastToken(includeZeroWidth: true));
-                    }
-                }
+                    AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.Labels[i].GetFirstToken(includeZeroWidth: true), switchSection.Labels[i].GetLastToken());
 
                 // For the last label add the rest of the statements of the switch
-                if (switchSection.Labels[switchSection.Labels.Count - 1] != null)
-                {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.Labels[switchSection.Labels.Count - 1].GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
-                }
-
-                return;
+                if (switchSection.Labels[^1] != null)
+                    AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.Labels[^1].GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken());
             }
+
+            return;
         }
 
         if (node is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax)
@@ -220,9 +212,9 @@ internal class SuppressFormattingRule : BaseFormattingRule
 
         if (node is ParameterSyntax parameterNode)
         {
-            if (parameterNode.AttributeLists.Count != 0)
+            if (parameterNode.AttributeLists is [var firstAttribute, ..])
             {
-                var anchorToken = parameterNode.AttributeLists.First().OpenBracketToken;
+                var anchorToken = firstAttribute.OpenBracketToken;
                 AddSuppressAllOperationIfOnMultipleLine(list, anchorToken, parameterNode.GetLastToken());
             }
         }
@@ -230,7 +222,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         if (node is TryStatementSyntax tryStatement)
         {
             // Add a suppression operation if the try keyword and the block are in the same line
-            if (!tryStatement.TryKeyword.IsMissing && tryStatement.Block != null && !tryStatement.Block.CloseBraceToken.IsMissing)
+            if (tryStatement is { TryKeyword.IsMissing: false, Block: not null } && !tryStatement.Block.CloseBraceToken.IsMissing)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, tryStatement.TryKeyword, tryStatement.Block.CloseBraceToken);
             }
@@ -239,7 +231,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         if (node is CatchClauseSyntax catchClause)
         {
             // Add a suppression operation if the catch keyword and the corresponding block are in the same line
-            if (!catchClause.CatchKeyword.IsMissing && catchClause.Block != null && !catchClause.Block.CloseBraceToken.IsMissing)
+            if (catchClause is { CatchKeyword.IsMissing: false, Block: not null } && !catchClause.Block.CloseBraceToken.IsMissing)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, catchClause.CatchKeyword, catchClause.Block.CloseBraceToken);
             }
@@ -248,7 +240,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         if (node is FinallyClauseSyntax finallyClause)
         {
             // Add a suppression operation if the finally keyword and the corresponding block are in the same line
-            if (!finallyClause.FinallyKeyword.IsMissing && finallyClause.Block != null && !finallyClause.Block.CloseBraceToken.IsMissing)
+            if (finallyClause is { FinallyKeyword.IsMissing: false, Block: not null } && !finallyClause.Block.CloseBraceToken.IsMissing)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
             }

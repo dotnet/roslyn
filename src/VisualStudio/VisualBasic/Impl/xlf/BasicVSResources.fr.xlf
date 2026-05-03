@@ -52,11 +52,6 @@
         <target state="translated">Afficher les indicateurs pour les expressions 'New'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Don_t_put_ByRef_on_custom_structure">
-        <source>_Don't put ByRef on custom structure</source>
-        <target state="translated">_Ne pas ajouter ByRef dans une structure personnalisée</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>A_utomatic insertion of end constructs</source>
         <target state="translated">Insertion a_utomatique des constructions de fin</target>

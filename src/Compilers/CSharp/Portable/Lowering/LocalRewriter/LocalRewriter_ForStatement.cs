@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? rewrittenCondition,
             BoundStatement? rewrittenIncrement,
             BoundStatement rewrittenBody,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             bool hasErrors)
         {
             Debug.Assert(original.Kind is BoundKind.ForStatement or BoundKind.ForEachStatement or BoundKind.CollectionExpressionSpreadElement);

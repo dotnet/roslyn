@@ -123,8 +123,7 @@ public sealed class GlobalOptionsTests
                         // Skip validation of ReloadChangedAnalyzerReferences.  The test options store returns 'true'
                         // for 'null' (which the option uses to mean 'try the feature flag').  Which is also equivalent
                         // to the default for this option.
-                        if (IsStoredInGlobalOptions(property, language) &&
-                            property.Name != nameof(WorkspaceConfigurationOptions.ReloadChangedAnalyzerReferences))
+                        if (IsStoredInGlobalOptions(property, language))
                         {
                             Assert.False(Equals(value, defaultValue), $"{type.FullName}.{property.Name} not initialized from global options");
                         }
@@ -168,7 +167,8 @@ public sealed class GlobalOptionsTests
              property.DeclaringType == typeof(DocumentFormattingOptions) && property.Name == nameof(DocumentFormattingOptions.InsertFinalNewLine) ||
              property.DeclaringType == typeof(ClassificationOptions) && property.Name == nameof(ClassificationOptions.FrozenPartialSemantics) ||
              property.DeclaringType == typeof(HighlightingOptions) && property.Name == nameof(HighlightingOptions.FrozenPartialSemantics) ||
-             property.DeclaringType == typeof(BlockStructureOptions) && property.Name == nameof(BlockStructureOptions.IsMetadataAsSource));
+             property.DeclaringType == typeof(BlockStructureOptions) && property.Name == nameof(BlockStructureOptions.IsMetadataAsSource) ||
+             property.DeclaringType == typeof(WorkspaceConfigurationOptions) && property.Name == nameof(WorkspaceConfigurationOptions.SourceGeneratorExecution));
 
     /// <summary>
     /// Our mock <see cref="IGlobalOptionService"/> implementation returns a non-default value for each option it reads.

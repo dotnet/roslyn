@@ -43,5 +43,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         RecordStructs,
         RequiredMembers,
         RefLifetime,
+        Extensions,
+        Unsafe,
+        CollectionExpressions,
     }
 }

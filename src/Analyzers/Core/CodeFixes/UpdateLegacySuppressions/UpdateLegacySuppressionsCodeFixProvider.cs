@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -38,7 +37,7 @@ internal sealed class UpdateLegacySuppressionsCodeFixProvider() : SyntaxEditorBa
         }
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {
@@ -46,7 +45,5 @@ internal sealed class UpdateLegacySuppressionsCodeFixProvider() : SyntaxEditorBa
             var newDocCommentId = diagnostic.Properties[AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.DocCommentIdKey];
             editor.ReplaceNode(node, editor.Generator.LiteralExpression(newDocCommentId).WithTriviaFrom(node));
         }
-
-        return Task.CompletedTask;
     }
 }

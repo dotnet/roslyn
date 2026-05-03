@@ -31,7 +31,6 @@ internal abstract class AbstractSimplifyThisOrMeDiagnosticAnalyzer<
                    CodeStyleOptions2.QualifyMethodAccess,
                    CodeStyleOptions2.QualifyEventAccess,
                ],
-               fadingOption: null,
                new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                new LocalizableResourceString(nameof(AnalyzersResources.Name_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     {
@@ -75,7 +74,7 @@ internal abstract class AbstractSimplifyThisOrMeDiagnosticAnalyzer<
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor, thisExpression.GetLocation(), notification,
             context.Options,
-            ImmutableArray.Create(memberAccessExpression.GetLocation()),
+            [memberAccessExpression.GetLocation()],
             builder.ToImmutable()));
     }
 }

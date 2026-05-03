@@ -6,9 +6,9 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
@@ -20,16 +20,16 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
         private readonly ImmutableArray<string> _capabilities = capabilities;
 
         public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
+            => ValueTask.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
         public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
+            => ValueTask.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_capabilities);
+            => ValueTask.FromResult(_capabilities);
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
-            => ValueTaskFactory.CompletedTask;
+            => ValueTask.CompletedTask;
     }
 
     public readonly struct Update(
@@ -49,10 +49,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-        (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
-
-    private static readonly ImmutableArray<Update> EmptyUpdate = [];
-    private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = [];
+        (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
     private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
     private DebuggingSessionId _sessionId;
@@ -62,17 +59,17 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     /// </summary>
     /// <param name="solution">Solution that represents sources that match the built binaries on disk.</param>
     /// <param name="capabilities">Array of capabilities retrieved from the runtime to dictate supported rude edits.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     public async Task StartSessionAsync(Solution solution, ImmutableArray<string> capabilities, CancellationToken cancellationToken)
     {
-        var newSessionId = await _encService.StartDebuggingSessionAsync(
+        // Hydrate the solution snapshot with file content.
+        // It's important to do this before we start watching for changes so that we have a baseline we can compare future snapshots to.
+        await EditAndContinueService.HydrateDocumentsAsync(solution, cancellationToken).ConfigureAwait(false);
+
+        var newSessionId = _encService.StartDebuggingSession(
             solution,
             new DebuggerService(capabilities),
             NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [],
-            captureAllMatchingDocuments: true,
-            reportDiagnostics: false,
-            cancellationToken).ConfigureAwait(false);
+            reportDiagnostics: false);
 
         Contract.ThrowIfFalse(_sessionId == default, "Session already started");
         _sessionId = newSessionId;
@@ -85,7 +82,6 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     /// </summary>
     /// <param name="solution">Solution snapshot.</param>
     /// <param name="commitUpdates">commits changes if true, discards if false</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>
     /// Updates (one for each changed project) and Rude Edit diagnostics. Does not include syntax or semantic diagnostics.
     /// </returns>
@@ -95,7 +91,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
         Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
         var results = await _encService
-            .EmitSolutionUpdateAsync(sessionId, solution, runningProjects: [], s_solutionActiveStatementSpanProvider, cancellationToken)
+            .EmitSolutionUpdateAsync(sessionId, solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty, s_solutionActiveStatementSpanProvider, cancellationToken)
             .ConfigureAwait(false);
 
         if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
@@ -110,11 +106,10 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
             }
         }
 
-        if (results.SyntaxError is not null)
+        var diagnostics = results.GetAllDiagnostics();
+        if (diagnostics.HasAnyErrors())
         {
-            // We do not need to acquire any updates or other
-            // diagnostics if there is a syntax error.
-            return (EmptyUpdate, EmptyDiagnostic.Add(results.SyntaxError));
+            return ([], diagnostics);
         }
 
         var updates = results.ModuleUpdates.Updates.SelectAsArray(
@@ -125,8 +120,6 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
                 update.PdbDelta,
                 update.UpdatedMethods,
                 update.UpdatedTypes));
-
-        var diagnostics = results.GetAllDiagnostics();
 
         return (updates, diagnostics);
     }

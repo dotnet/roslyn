@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            value = default!;
+            value = default;
             return false;
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            value = default!;
+            value = default;
             return false;
         }
 

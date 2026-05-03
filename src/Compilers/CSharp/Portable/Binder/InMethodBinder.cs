@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -292,8 +293,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Parameter:
                     case SymbolKind.Local:
-                        // CS0412: '{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                        diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
+                        if (parameter.ContainingSymbol is NamedTypeSymbol { IsExtension: true })
+                        {
+                            diagnostics.Add(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, newLocation, name);
+                        }
+                        else
+                        {
+                            // CS0412: '{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                            diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
+                        }
+
                         return true;
 
                     case SymbolKind.Method:
@@ -323,6 +332,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var parameters = _methodSymbol.Parameters;
             var typeParameters = _methodSymbol.TypeParameters;
+
+            if (_methodSymbol.IsExtensionBlockMember())
+            {
+                typeParameters = _methodSymbol.ContainingType.TypeParameters.Concat(typeParameters);
+
+                if (_methodSymbol.ContainingType.ExtensionParameter is { Name: not "" } receiver)
+                {
+                    parameters = parameters.Insert(0, receiver);
+                }
+            }
 
             if (parameters.IsEmpty && typeParameters.IsEmpty)
             {

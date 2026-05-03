@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -18,10 +19,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-// Cache of list of analyzer references to whether or not they have source generators.  Keyed based off
-// IReadOnlyList<AnalyzerReference> so that we can cache the value even as project-states fork based on 
-// document edits.
-using AnalyzerReferenceMap = ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, AsyncLazy<bool>>;
+// Cache of list of analyzer references to whether or not they have source generators, and what kind of
+// generators they are if they do.  Keyed based off IReadOnlyList<AnalyzerReference> so that we can
+// cache the value even as project-states fork based on document edits.
+using AnalyzerReferenceMap = ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, AsyncLazy<SourceGeneratorPresence>>;
 
 internal sealed partial class SolutionCompilationState
 {
@@ -57,6 +58,15 @@ internal sealed partial class SolutionCompilationState
     {
         var map = GetSourceGeneratorMap(projectState);
         return map is null ? [] : map.SourceGenerators;
+    }
+
+    private static GeneratorDriver UpdateGeneratorDriverToMatchState(GeneratorDriver driver, ProjectState projectState)
+    {
+        return driver
+            .ReplaceAdditionalTexts(projectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
+            .WithUpdatedParseOptions(projectState.ParseOptions!)
+            .WithUpdatedAnalyzerConfigOptions(projectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider)
+            .ReplaceGenerators(GetSourceGenerators(projectState));
     }
 
     /// <summary>
@@ -103,12 +113,18 @@ internal sealed partial class SolutionCompilationState
 
     public async Task<bool> HasSourceGeneratorsAsync(ProjectId projectId, CancellationToken cancellationToken)
     {
+        var state = await GetProjectGeneratorPresenceAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return state is not SourceGeneratorPresence.NoSourceGenerators;
+    }
+
+    public async Task<SourceGeneratorPresence> GetProjectGeneratorPresenceAsync(ProjectId projectId, CancellationToken cancellationToken)
+    {
         var projectState = this.SolutionState.GetRequiredProjectState(projectId);
         if (projectState.AnalyzerReferences.Count == 0)
-            return false;
+            return SourceGeneratorPresence.NoSourceGenerators;
 
         if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
-            return false;
+            return SourceGeneratorPresence.NoSourceGenerators;
 
         var analyzerReferenceMap = s_languageToAnalyzerReferenceMap[projectState.Language];
         if (!analyzerReferenceMap.TryGetValue(projectState.AnalyzerReferences, out var lazy))
@@ -119,31 +135,32 @@ internal sealed partial class SolutionCompilationState
 
         return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-        AsyncLazy<bool> GetLazy(AnalyzerReferenceMap analyzerReferenceMap, ProjectState projectState)
+        AsyncLazy<SourceGeneratorPresence> GetLazy(AnalyzerReferenceMap analyzerReferenceMap, ProjectState projectState)
             => analyzerReferenceMap.GetValue(
                 projectState.AnalyzerReferences,
                 _ => AsyncLazy.Create(
                     cancellationToken => ComputeHasSourceGeneratorsAsync(this, projectState, cancellationToken)));
 
-        static async Task<bool> ComputeHasSourceGeneratorsAsync(
+        static async Task<SourceGeneratorPresence> ComputeHasSourceGeneratorsAsync(
             SolutionCompilationState solution, ProjectState projectState, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+
             // If in proc, just load the generators and see if we have any.
             if (client is null)
-                return GetSourceGenerators(projectState).Any();
+                return GetSourceGenerators(projectState).GetSourceGeneratorPresence();
 
             // Out of process, call to the remote to figure this out.
             var projectId = projectState.Id;
             var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             var analyzerReferences = projectStateChecksums.AnalyzerReferences.Children;
 
-            var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, bool>(
+            var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, SourceGeneratorPresence>(
                 solution,
                 projectId,
-                (service, solution, cancellationToken) => service.HasGeneratorsAsync(solution, projectId, analyzerReferences, projectState.Language, cancellationToken),
+                (service, solution, cancellationToken) => service.GetSourceGeneratorPresenceAsync(solution, projectId, analyzerReferences, projectState.Language, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-            return result.HasValue && result.Value;
+            return result.HasValue ? result.Value : SourceGeneratorPresence.NoSourceGenerators;
         }
     }
 }

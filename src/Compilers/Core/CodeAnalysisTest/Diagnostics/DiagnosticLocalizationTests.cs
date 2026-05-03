@@ -304,11 +304,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException = (ex, a, diag, ct) => exceptionDiagnostics.Add(diag);
             var analyzerManager = new AnalyzerManager(analyzer);
             var compilation = CSharp.CSharpCompilation.Create("test");
-            var analyzerExecutor = AnalyzerExecutor.Create(compilation, AnalyzerOptions.Empty,
-                addNonCategorizedDiagnostic: (_, _) => { }, onAnalyzerException, analyzerExceptionFilter: null,
-                isCompilerAnalyzer: _ => false, analyzerManager, shouldSkipAnalysisOnGeneratedCode: _ => false,
-                shouldSuppressGeneratedCodeDiagnostic: (_, _, _, _) => false, isGeneratedCodeLocation: (_, _, _) => false,
-                isAnalyzerSuppressedForTree: (_, _, _, _) => false, getAnalyzerGate: _ => null,
+            var analyzerExecutor = AnalyzerExecutor.Create(
+                compilation,
+                AnalyzerOptions.Empty,
+                addNonCategorizedDiagnostic: (_, _, _) => { },
+                onAnalyzerException,
+                analyzerExceptionFilter: null,
+                isCompilerAnalyzer: _ => false,
+                diagnosticAnalyzers: [analyzer],
+                getAnalyzerConfigOptionsProvider: null,
+                analyzerManager,
+                shouldSkipAnalysisOnGeneratedCode: _ => false,
+                shouldSuppressGeneratedCodeDiagnostic: (_, _, _, _) => false,
+                isGeneratedCodeLocation: (_, _, _) => false,
+                isAnalyzerSuppressedForTree: (_, _, _, _) => false,
+                getAnalyzerGate: _ => null,
                 getSemanticModel: tree => compilation.GetSemanticModel(tree, ignoreAccessibility: true),
                 SeverityFilter.None);
             var descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, CancellationToken.None);

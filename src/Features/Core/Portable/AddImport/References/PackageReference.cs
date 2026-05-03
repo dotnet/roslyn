@@ -26,10 +26,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         private readonly string _versionOpt = versionOpt;
 
         public override async Task<AddImportFixData> TryGetFixDataAsync(
-            Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, bool cleanupDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             var textChanges = await GetTextChangesAsync(
-                document, node, options, cancellationToken).ConfigureAwait(false);
+                document, node, cleanupDocument, options, cancellationToken).ConfigureAwait(false);
 
             return AddImportFixData.CreateForPackageSymbol(
                 textChanges, _source, _packageName, _versionOpt);

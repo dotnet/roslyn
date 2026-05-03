@@ -650,24 +650,13 @@ namespace Microsoft.CodeAnalysis.Text
                         {
                             var shortSpan = MemoryMarshal.Cast<char, short>(charSpan);
 
-#if NET8_0_OR_GREATER
-                            // Defer to the platform to do the reversal.  It ships with a vectorized
-                            // implementation for this on .NET 8 and above.
-                            BinaryPrimitives.ReverseEndianness(source: shortSpan, destination: shortSpan);
-#else
-                            // Otherwise, fallback to the simple approach of reversing each pair of bytes.
-                            for (var i = 0; i < shortSpan.Length; i++)
-                                shortSpan[i] = BinaryPrimitives.ReverseEndianness(shortSpan[i]);
-#endif
+                            ReverseEndianness(shortSpan);
                         }
 
                         hash.Append(MemoryMarshal.AsBytes(charSpan));
                     }
 
-                    // Switch this to ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset()) when we move to S.C.I v8.
-                    Span<byte> destination = stackalloc byte[128 / 8];
-                    hash.GetHashAndReset(destination);
-                    return destination.ToImmutableArray();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset());
                 }
                 finally
                 {
@@ -678,6 +667,19 @@ namespace Microsoft.CodeAnalysis.Text
                     s_contentHashPool.Free(hash);
                 }
             }
+        }
+
+        internal static void ReverseEndianness(Span<short> shortSpan)
+        {
+#if NET8_0_OR_GREATER
+            // Defer to the platform to do the reversal.  It ships with a vectorized
+            // implementation for this on .NET 8 and above.
+            BinaryPrimitives.ReverseEndianness(source: shortSpan, destination: shortSpan);
+#else
+            // Otherwise, fallback to the simple approach of reversing each pair of bytes.
+            for (var i = 0; i < shortSpan.Length; i++)
+                shortSpan[i] = BinaryPrimitives.ReverseEndianness(shortSpan[i]);
+#endif
         }
 
         internal static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
@@ -719,25 +721,46 @@ namespace Microsoft.CodeAnalysis.Text
             CheckSubSpan(span);
 
             // default implementation constructs text using CopyTo
-            var builder = PooledStringBuilder.GetInstance();
-            var buffer = s_charArrayPool.Allocate();
+            var tempBuffer = s_charArrayPool.Allocate();
+            string result;
 
             int position = Math.Max(Math.Min(span.Start, this.Length), 0);
             int length = Math.Min(span.End, this.Length) - position;
+
+#if NET
+            result = string.Create(length, (this, position, length, tempBuffer), static (buffer, arg) =>
+            {
+                var (sourceText, position, length, tempBuffer) = arg;
+
+                while (buffer.Length > 0)
+                {
+                    int copyLength = Math.Min(tempBuffer.Length, length);
+                    sourceText.CopyTo(position, tempBuffer, 0, copyLength);
+                    tempBuffer.AsSpan(0, copyLength).CopyTo(buffer);
+
+                    buffer = buffer[copyLength..];
+                    length -= copyLength;
+                    position += copyLength;
+                }
+            });
+#else
+            var builder = PooledStringBuilder.GetInstance();
             builder.Builder.EnsureCapacity(length);
 
             while (position < this.Length && length > 0)
             {
-                int copyLength = Math.Min(buffer.Length, length);
-                this.CopyTo(position, buffer, 0, copyLength);
-                builder.Builder.Append(buffer, 0, copyLength);
+                int copyLength = Math.Min(tempBuffer.Length, length);
+                this.CopyTo(position, tempBuffer, 0, copyLength);
+                builder.Builder.Append(tempBuffer, 0, copyLength);
                 length -= copyLength;
                 position += copyLength;
             }
 
-            s_charArrayPool.Free(buffer);
+            result = builder.ToStringAndFree();
+#endif
 
-            return builder.ToStringAndFree();
+            s_charArrayPool.Free(tempBuffer);
+            return result;
         }
 
         #region Changes
@@ -961,11 +984,43 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal sealed class LineInfo : TextLineCollection
         {
+            // Each entry encodes two fields in a uint:
+            //   Bit  31    (1 bit):  was the prior line break a \r\n (Windows-style) pair?
+            //   Bits 30-0  (31 bits): start position of this line
+            //
+            // Every line break is exactly one character (\n, \r, \u0085, \u2028, \u2029) except for
+            // the Windows \r\n sequence, which is two characters.  So the top bit is really a boolean:
+            // 0 means the prior line break was a single character (length 1), and 1 means it was the
+            // \r\n pair (length 2).  To recover the prior break length: (bit >>> 31) + 1.
+            //
+            // The first entry (_lineStarts[0]) always has bit 31 == 0, but that bit is never read as
+            // a break length: the indexer reads break lengths from _lineStarts[index + 1], so the
+            // minimum index accessed for break length is 1, which always corresponds to a real prior
+            // line break.
+            internal const int LineBreakLengthShift = 31;
+            internal const uint LineStartMask = (1u << LineBreakLengthShift) - 1; // 31 bits
+
+            private static int GetLineStart(uint entry) => (int)(entry & LineStartMask);
+
+            private sealed class LineStartComparer : IComparer<uint>
+            {
+                public static readonly LineStartComparer Instance = new LineStartComparer();
+                public int Compare(uint x, uint y) => GetLineStart(x).CompareTo(GetLineStart(y));
+            }
+
+            // priorLineBreakLength is 1 (any single-char break) or 2 (\r\n only); the top bit stores
+            // whether this was the 2-char \r\n case: (priorLineBreakLength - 1).
+            internal static uint PackEntry(int lineStart, int priorLineBreakLength)
+            {
+                Debug.Assert(priorLineBreakLength is 1 or 2);
+                return (uint)lineStart | ((uint)(priorLineBreakLength - 1) << LineBreakLengthShift);
+            }
+
             private readonly SourceText _text;
-            private readonly SegmentedList<int> _lineStarts;
+            private readonly SegmentedList<uint> _lineStarts;
             private int _lastLineNumber;
 
-            public LineInfo(SourceText text, SegmentedList<int> lineStarts)
+            public LineInfo(SourceText text, SegmentedList<uint> lineStarts)
             {
                 _text = text;
                 _lineStarts = lineStarts;
@@ -982,15 +1037,17 @@ namespace Microsoft.CodeAnalysis.Text
                         throw new ArgumentOutOfRangeException(nameof(index));
                     }
 
-                    int start = _lineStarts[index];
+                    var start = GetLineStart(_lineStarts[index]);
                     if (index == _lineStarts.Count - 1)
                     {
-                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, _text.Length));
+                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, _text.Length), lineBreakLength: 0);
                     }
                     else
                     {
-                        int end = _lineStarts[index + 1];
-                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end));
+                        var nextEntry = _lineStarts[index + 1];
+                        var end = GetLineStart(nextEntry);
+                        var lineBreakLen = (int)(nextEntry >>> LineBreakLengthShift) + 1; // reverse the bias-1 encoding
+                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end), lineBreakLen);
                     }
                 }
             }
@@ -1004,15 +1061,15 @@ namespace Microsoft.CodeAnalysis.Text
 
                 int lineNumber;
 
-                // it is common to ask about position on the same line 
+                // it is common to ask about position on the same line
                 // as before or on the next couple lines
                 var lastLineNumber = _lastLineNumber;
-                if (position >= _lineStarts[lastLineNumber])
+                if (position >= GetLineStart(_lineStarts[lastLineNumber]))
                 {
                     var limit = Math.Min(_lineStarts.Count, lastLineNumber + 4);
-                    for (int i = lastLineNumber; i < limit; i++)
+                    for (var i = lastLineNumber; i < limit; i++)
                     {
-                        if (position < _lineStarts[i])
+                        if (position < GetLineStart(_lineStarts[i]))
                         {
                             lineNumber = i - 1;
                             _lastLineNumber = lineNumber;
@@ -1024,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // Binary search to find the right line
                 // if no lines start exactly at position, round to the left
                 // EoF position will map to the last line.
-                lineNumber = _lineStarts.BinarySearch(position);
+                lineNumber = _lineStarts.BinarySearch((uint)position, LineStartComparer.Instance);
                 if (lineNumber < 0)
                 {
                     lineNumber = (~lineNumber) - 1;
@@ -1060,19 +1117,19 @@ namespace Microsoft.CodeAnalysis.Text
             s_charArrayPool.Free(buffer);
         }
 
-        private SegmentedList<int> ParseLineStarts()
+        private SegmentedList<uint> ParseLineStarts()
         {
             // Corner case check
             if (0 == this.Length)
             {
-                return [0];
+                return [0u];
             }
 
             // Initial line capacity estimated at 64 chars / line. This value was obtained by
             // looking at ratios in large files in the roslyn repo.
-            var lineStarts = new SegmentedList<int>(Length / 64)
+            var lineStarts = new SegmentedList<uint>(Length / 64)
             {
-                0 // there is always the first line
+                0u // there is always the first line; top bits are 0 (no prior line break)
             };
 
             var lastWasCR = false;
@@ -1080,23 +1137,27 @@ namespace Microsoft.CodeAnalysis.Text
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
             // and non-line breaks.
+            // Each entry encodes the start of the line in the low 31 bits and whether the
+            // *prior* line's break was the 2-char \r\n pair in the top bit (see LineInfo).
             EnumerateChars((int position, char[] buffer, int length) =>
             {
                 var index = 0;
                 if (lastWasCR)
                 {
+                    var breakLen = 1;
                     if (length > 0 && buffer[0] == '\n')
                     {
                         index++;
+                        breakLen = 2;
                     }
 
-                    lineStarts.Add(position + index);
+                    lineStarts.Add(LineInfo.PackEntry(position + index, breakLen));
                     lastWasCR = false;
                 }
 
                 while (index < length)
                 {
-                    char c = buffer[index];
+                    var c = buffer[index];
                     index++;
 
                     // Common case - ASCII & not a line break
@@ -1109,11 +1170,13 @@ namespace Microsoft.CodeAnalysis.Text
                     }
 
                     // Assumes that the only 2-char line break sequence is CR+LF
+                    var lineBreakLen = 1;
                     if (c == '\r')
                     {
                         if (index < length && buffer[index] == '\n')
                         {
                             index++;
+                            lineBreakLen = 2;
                         }
                         else if (index >= length)
                         {
@@ -1126,8 +1189,8 @@ namespace Microsoft.CodeAnalysis.Text
                         continue;
                     }
 
-                    // next line starts at index
-                    lineStarts.Add(position + index);
+                    // next line starts at index; encode the prior line's break length in the top bit
+                    lineStarts.Add(LineInfo.PackEntry(position + index, lineBreakLen));
                 }
             });
 
@@ -1296,6 +1359,41 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             throw new IOException(CodeAnalysisResources.StreamIsTooLong);
+        }
+
+        /// <returns>
+        /// If <paramref name="checksumAlgorithm"/> is <see cref="SourceHashAlgorithm.None"/>, returns this instance without modification.
+        /// Otherwise, returns a <see cref="SourceText"/> with the same <see cref="ChecksumAlgorithm"/> as <paramref name="checksumAlgorithm"/>, potentially by wrapping this instance.
+        /// </returns>
+        internal SourceText WithChecksumAlgorithmIfAny(SourceHashAlgorithm checksumAlgorithm)
+        {
+            if (checksumAlgorithm == SourceHashAlgorithm.None || checksumAlgorithm == ChecksumAlgorithm)
+                return this;
+
+            return new SourceTextWithAlgorithm(this, checksumAlgorithm);
+        }
+
+        private sealed class SourceTextWithAlgorithm : SourceText
+        {
+            private readonly SourceText _underlying;
+
+            public SourceTextWithAlgorithm(SourceText underlying, SourceHashAlgorithm checksumAlgorithm) : base(checksumAlgorithm: checksumAlgorithm)
+            {
+                Debug.Assert(checksumAlgorithm != SourceHashAlgorithm.None);
+                Debug.Assert(checksumAlgorithm != underlying.ChecksumAlgorithm);
+                _underlying = underlying;
+            }
+
+            public override char this[int position] => _underlying[position];
+
+            public override Encoding? Encoding => _underlying.Encoding;
+
+            public override int Length => _underlying.Length;
+
+            public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
+            {
+                _underlying.CopyTo(sourceIndex, destination, destinationIndex, count);
+            }
         }
     }
 }

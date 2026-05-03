@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 
@@ -23,15 +24,6 @@ internal interface IImplementInterfaceService : ILanguageService
 {
     Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken);
 
-    Task<ImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken);
-
-    Task<Document> ImplementInterfaceAsync(
-        Document document,
-        ImplementInterfaceInfo info,
-        ImplementTypeOptions options,
-        ImplementInterfaceConfiguration configuration,
-        CancellationToken cancellationToken);
-
     /// <summary>
     /// Produces the symbol that implements that provided <paramref name="interfaceMember"/> within the corresponding
     /// <see cref="ImplementInterfaceInfo.ClassOrStructType"/>, based on the provided <paramref name="options"/> and
@@ -44,4 +36,9 @@ internal interface IImplementInterfaceService : ILanguageService
         ImplementInterfaceConfiguration configuration,
         Compilation compilation,
         ISymbol interfaceMember);
+
+    Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+        Document document, SyntaxNode? interfaceType, CancellationToken cancellationToken);
+
+    ImmutableArray<SyntaxNode> GetInterfaceTypes(SyntaxNode typeDeclaration);
 }

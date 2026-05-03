@@ -2,9 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -935,7 +935,7 @@ End Namespace
             Dim comp = CompileAndGetModelAndSpan(program, startNodes, endNodes, Nothing, Nothing,
                                                  parseOptions:=
                                                     VisualBasicParseOptions.Default.WithPreprocessorSymbols(
-                                                        KeyValuePairUtil.Create("SQLITE_DEBUG", CObj(True))))
+                                                        KeyValuePair.Create("SQLITE_DEBUG", CObj(True))))
 
             Assert.Equal(4, startNodes.Count)
             Assert.Equal(SyntaxKind.DictionaryAccessExpression, startNodes(2).Kind)

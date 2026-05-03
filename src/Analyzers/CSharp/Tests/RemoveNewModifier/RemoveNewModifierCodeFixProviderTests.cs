@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveNewModifier;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveNewModifier)]
-public class RemoveNewModifierCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class RemoveNewModifierCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public RemoveNewModifierCodeFixProviderTests(ITestOutputHelper logger)
        : base(logger)
@@ -139,7 +139,7 @@ public class RemoveNewModifierCodeFixProviderTests : AbstractCSharpDiagnosticPro
 
     private Task TestRemoveNewModifierCodeFixAsync(string original, string expected)
     {
-        return TestInRegularAndScript1Async(
+        return TestInRegularAndScriptAsync(
             $$"""
             class App
             {

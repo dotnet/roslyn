@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -53,11 +53,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         #region Fields that can be accessed from either thread
 
         private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
-
-        /// <summary>
-        /// Information about what workspace the buffer we're tagging is associated with.
-        /// </summary>
-        private readonly WorkspaceRegistration _workspaceRegistration;
 
         /// <summary>
         /// Work queue that collects high priority requests to call TagsChanged with.
@@ -153,8 +148,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             _dataSource = dataSource;
             _nonFrozenComputationCancellationSeries = new(_disposalTokenSource.Token);
             _tagSpanSetPool = new ObjectPool<HashSet<TagSpan<TTag>>>(() => new HashSet<TagSpan<TTag>>(this), trimOnFree: false);
-
-            _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 
             // PERF: Use AsyncBatchingWorkQueue<_, VoidResult> instead of AsyncBatchingWorkQueue<_> because the latter
             // has an async state machine that rethrows a very common cancellation exception.
@@ -342,7 +335,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
 
             OnTagsChangedForBuffer(
-                [KeyValuePairUtil.Create(buffer, difference)],
+                [KeyValuePair.Create(buffer, difference)],
                 highPriority: false);
         }
     }

@@ -14,7 +14,7 @@ internal sealed class MethodKeywordRecommender() : AbstractSyntacticSingleKeywor
 {
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        if (context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, includingRecordParameters: false, cancellationToken))
+        if (context.IsMemberAttributeContext(SyntaxKindSet.NonEnumTypeDeclarations, includingRecordParameters: false, cancellationToken))
             return true;
 
         var token = context.TargetToken;

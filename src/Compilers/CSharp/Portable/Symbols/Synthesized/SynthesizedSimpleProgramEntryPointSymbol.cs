@@ -125,7 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
-            get { return default(System.Reflection.MethodImplAttributes); }
+            get
+            {
+                var attributes = default(System.Reflection.MethodImplAttributes);
+                AddAsyncImplAttributeIfNeeded(ref attributes);
+                return attributes;
+            }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -141,6 +146,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return 1;
+            }
+        }
+
+        internal sealed override bool IsUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal sealed override bool CanBeCallerUnsafe
+        {
+            get
+            {
+                Debug.Assert(!IsUnsafe, $"Revisit {nameof(CanBeCallerUnsafe)} implementation if {nameof(SynthesizedSimpleProgramEntryPointSymbol)} can be marked 'unsafe'.");
+                return false;
             }
         }
 

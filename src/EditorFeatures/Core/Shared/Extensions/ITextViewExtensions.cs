@@ -108,6 +108,15 @@ internal static partial class ITextViewExtensions
         textView.GetMultiSelectionBroker().SetSelectionRange(spansInView, spansInView.Last());
     }
 
+    internal static bool TrySetSelectionAndEnsureVisible(this ITextView textView, SnapshotSpan span, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
+    {
+        if (!textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(span.End), outliningManagerService, ensureSpanVisibleOptions))
+            return false;
+
+        SetSelection(textView, span, isReversed: false);
+        return true;
+    }
+
     public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, SnapshotPoint point, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
         => textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(point), outliningManagerService, ensureSpanVisibleOptions);
 
@@ -134,6 +143,9 @@ internal static partial class ITextViewExtensions
 
             outliningManager?.ExpandAll(new SnapshotSpan(pointInView.Value, length: 0), match: _ => true);
         }
+
+        // Moving caret doesn't clear previous selection so we need to clear it manually
+        textView.Selection.Clear();
 
         var newPosition = textView.Caret.MoveTo(new VirtualSnapshotPoint(pointInView.Value, point.VirtualSpaces));
 

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
@@ -223,8 +225,8 @@ internal sealed class KeybindingResetDetector : IOleCommandTarget
 
         _globalOptions.SetGlobalOptions(
         [
-            KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus), (object)currentStatus),
-            KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.NeedsReset), (object)needsReset),
+            KeyValuePair.Create(new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus), (object)currentStatus),
+            KeyValuePair.Create(new OptionKey2(KeybindingResetOptionsStorage.NeedsReset), (object)needsReset),
         ]);
 
         if (needsReset)

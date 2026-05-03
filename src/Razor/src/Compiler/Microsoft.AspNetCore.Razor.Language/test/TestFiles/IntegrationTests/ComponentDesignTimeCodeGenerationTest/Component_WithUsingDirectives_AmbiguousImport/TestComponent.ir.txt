@@ -1,0 +1,27 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Test2
+        UsingDirective - (15:1,1 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Test3
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (12:0,12 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (12:0,12 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                HtmlContent - (26:1,12 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (26:1,12 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (28:2,0 [15] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                HtmlContent - (43:2,15 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (43:2,15 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                TagHelper - (45:3,0 [17] x:\dir\subdir\Test\TestComponent.cshtml) - SomeComponent - TagMode.SelfClosing
+                    TagHelperBody - 

@@ -13,25 +13,24 @@ using Microsoft.CodeAnalysis.NavigateTo;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests
-{
-    public class EnumTests
-    {
-        [Theory]
-        [InlineData(typeof(ExtractInterfaceOptionsResult.ExtractLocation),
-                    typeof(OmniSharpExtractInterfaceOptionsResult.OmniSharpExtractLocation))]
-        [InlineData(typeof(ImplementTypeInsertionBehavior), typeof(OmniSharpImplementTypeInsertionBehavior))]
-        [InlineData(typeof(ImplementTypePropertyGenerationBehavior), typeof(OmniSharpImplementTypePropertyGenerationBehavior))]
-        [InlineData(typeof(NavigateToMatchKind), typeof(OmniSharpNavigateToMatchKind))]
-        public void AssertEnumsInSync(Type internalType, Type externalType)
-        {
-            var internalValues = Enum.GetValues(internalType).Cast<int>().ToArray();
-            var internalNames = Enum.GetNames(internalType);
-            var externalValues = Enum.GetValues(externalType).Cast<int>().ToArray();
-            var externalNames = Enum.GetNames(externalType);
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests;
 
-            AssertEx.Equal(internalValues, externalValues);
-            AssertEx.Equal(internalNames, externalNames);
-        }
+public class EnumTests
+{
+    [Theory]
+    [InlineData(typeof(ExtractInterfaceOptionsResult.ExtractLocation),
+                typeof(OmniSharpExtractInterfaceOptionsResult.OmniSharpExtractLocation))]
+    [InlineData(typeof(ImplementTypeInsertionBehavior), typeof(OmniSharpImplementTypeInsertionBehavior))]
+    [InlineData(typeof(ImplementTypePropertyGenerationBehavior), typeof(OmniSharpImplementTypePropertyGenerationBehavior))]
+    [InlineData(typeof(NavigateToMatchKind), typeof(OmniSharpNavigateToMatchKind))]
+    public void AssertEnumsInSync(Type internalType, Type externalType)
+    {
+        var internalValues = Enum.GetValues(internalType).Cast<int>().ToArray();
+        var internalNames = Enum.GetNames(internalType);
+        var externalValues = Enum.GetValues(externalType).Cast<int>().ToArray();
+        var externalNames = Enum.GetNames(externalType);
+
+        AssertEx.Equal(internalValues, externalValues);
+        AssertEx.Equal(internalNames, externalNames);
     }
 }

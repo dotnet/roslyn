@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(result, options, localFunction:=False)
             End Sub
 
-            Protected Overrides Function CreateCodeGenerator(analyzerResult As AnalyzerResult) As CodeGenerator
-                Return VisualBasicCodeGenerator.Create(Me.OriginalSelectionResult, analyzerResult, Me.Options)
+            Protected Overrides Function CreateCodeGenerator(selectionResult As SelectionResult, analyzerResult As AnalyzerResult) As CodeGenerator
+                Return VisualBasicCodeGenerator.Create(selectionResult, analyzerResult, Me.Options)
             End Function
 
             Protected Overrides Function Analyze(cancellationToken As CancellationToken) As AnalyzerResult
@@ -57,17 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         result)
             End Function
 
-            Protected Overrides Async Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As ExtractMethodGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-                Dim generator = VisualBasicCodeGenerator.Create(selectionResult, analyzeResult, options)
-                Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
-            End Function
-
             Protected Overrides Function GetCustomFormattingRule(document As Document) As AbstractFormattingRule
                 Return FormattingRule.Instance
-            End Function
-
-            Protected Overrides Function GetInvocationNameToken(methodNames As IEnumerable(Of SyntaxToken)) As SyntaxToken?
-                Return methodNames.FirstOrNull(Function(t) t.Parent.Kind <> SyntaxKind.SubStatement AndAlso t.Parent.Kind <> SyntaxKind.FunctionStatement)
             End Function
 
             Protected Overrides Function ParseTypeName(name As String) As SyntaxNode
@@ -120,9 +111,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Protected Overrides Function InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
                     document As Document,
-                    invocationNameToken? As SyntaxToken,
+                    invocationNameToken As SyntaxToken,
                     methodDefinition As SyntaxNode,
-                    cancellationToken As CancellationToken) As Task(Of (document As Document, invocationNameToken As SyntaxToken?))
+                    cancellationToken As CancellationToken) As Task(Of (document As Document, invocationNameToken As SyntaxToken))
                 ' VB doesn't need to do any correction, so we just return the values untouched
                 Return Task.FromResult((document, invocationNameToken))
             End Function

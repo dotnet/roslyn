@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -17,1062 +16,1132 @@ public partial class GenerateTypeTests : AbstractCSharpDiagnosticProviderBasedUs
     #region SameProject
     #region SameProject_SameFile 
     [Fact]
-    public async Task GenerateTypeDefaultValues()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}",
+    public Task GenerateTypeDefaultValues()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}
+expected: """
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
 
-class Goo
-{
-}",
+            class Goo
+            {
+            }
+            """,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeInsideNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    void Main()
-    {
-        [|A.Goo$$|] f;
-    }
-}
+    public Task GenerateTypeInsideNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                void Main()
+                {
+                    [|A.Goo$$|] f;
+                }
+            }
 
-namespace A
-{
-}",
+            namespace A
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    void Main()
-    {
-        A.Goo f;
-    }
-}
+expected: """
+            class Program
+            {
+                void Main()
+                {
+                    A.Goo f;
+                }
+            }
 
-namespace A
-{
-    class Goo
-    {
-    }
-}",
+            namespace A
+            {
+                class Goo
+                {
+                }
+            }
+            """,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeInsideFileScopedNamespace1()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-namespace A;
+    public Task GenerateTypeInsideFileScopedNamespace1()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
 
-class Program
-{
-    void Main()
-    {
-        [|A.Goo$$|] f;
-    }
-}
-",
+            namespace A;
+
+            class Program
+            {
+                void Main()
+                {
+                    [|A.Goo$$|] f;
+                }
+            }
+
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"
-namespace A;
+expected: """
 
-class Program
-{
-    void Main()
-    {
-        A.Goo f;
-    }
-}
+            namespace A;
 
-class Goo
-{
-}",
+            class Program
+            {
+                void Main()
+                {
+                    A.Goo f;
+                }
+            }
+
+            class Goo
+            {
+            }
+            """,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeInsideFileScopedNamespace2()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-namespace A;
+    public Task GenerateTypeInsideFileScopedNamespace2()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
 
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}
-",
+            namespace A;
+
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }
+
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"
-namespace A;
+expected: """
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}
+            namespace A;
 
-class Goo
-{
-}",
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+
+            class Goo
+            {
+            }
+            """,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeInsideQualifiedNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}",
+    public Task GenerateTypeInsideQualifiedNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    void Main()
-    {
-        A.B.Goo f;
-    }
-}
-namespace A.B
-{
-    class Goo
-    {
-    }
-}",
+expected: """
+            class Program
+            {
+                void Main()
+                {
+                    A.B.Goo f;
+                }
+            }
+            namespace A.B
+            {
+                class Goo
+                {
+                }
+            }
+            """,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeWithinQualifiedNestedNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    void Main()
-    {
-        [|A.B.C.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-    namespace C
-    {
-    }
-}",
+    public Task GenerateTypeWithinQualifiedNestedNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.C.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+                namespace C
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    void Main()
-    {
-        A.B.C.Goo f;
-    }
-}
-namespace A.B
-{
-    namespace C
-    {
-        class Goo
-        {
-        }
-    }
-}",
+expected: """
+            class Program
+            {
+                void Main()
+                {
+                    A.B.C.Goo f;
+                }
+            }
+            namespace A.B
+            {
+                namespace C
+                {
+                    class Goo
+                    {
+                    }
+                }
+            }
+            """,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeWithinNestedQualifiedNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    void Main()
-    {
-        [|A.B.C.Goo$$|] f;
-    }
-}
-namespace A
-{
-    namespace B.C
-    {
-    }
-}",
+    public Task GenerateTypeWithinNestedQualifiedNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.C.Goo$$|] f;
+                }
+            }
+            namespace A
+            {
+                namespace B.C
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    void Main()
-    {
-        A.B.C.Goo f;
-    }
-}
-namespace A
-{
-    namespace B.C
-    {
-        class Goo
-        {
-        }
-    }
-}",
+expected: """
+            class Program
+            {
+                void Main()
+                {
+                    A.B.C.Goo f;
+                }
+            }
+            namespace A
+            {
+                namespace B.C
+                {
+                    class Goo
+                    {
+                    }
+                }
+            }
+            """,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeWithConstructorMembers()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var f = new [|$$Goo|](bar: 1, baz: 2);
-    }
-}",
+    public Task GenerateTypeWithConstructorMembers()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var f = new [|$$Goo|](bar: 1, baz: 2);
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var f = new Goo(bar: 1, baz: 2);
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var f = new Goo(bar: 1, baz: 2);
+                }
+            }
 
-class Goo
-{
-    private int bar;
-    private int baz;
+            class Goo
+            {
+                private int bar;
+                private int baz;
 
-    public Goo(int bar, int baz)
-    {
-        this.bar = bar;
-        this.baz = baz;
-    }
-}",
+                public Goo(int bar, int baz)
+                {
+                    this.bar = bar;
+                    this.baz = baz;
+                }
+            }
+            """,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeWithBaseTypes()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"using System.Collections.Generic;
-class Program
-{
-    static void Main(string[] args)
-    {
-        List<int> f = new [|$$Goo|]();
-    }
-}",
+    public Task GenerateTypeWithBaseTypes()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    List<int> f = new [|$$Goo|]();
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"using System.Collections.Generic;
-class Program
-{
-    static void Main(string[] args)
-    {
-        List<int> f = new Goo();
-    }
-}
+expected: """
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    List<int> f = new Goo();
+                }
+            }
 
-class Goo : List<int>
-{
-}",
+            class Goo : List<int>
+            {
+            }
+            """,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeWithPublicInterface()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    void Main()
-    {
-        [|A.B.C.Goo$$|] f;
-    }
-}
-namespace A
-{
-    namespace B.C
-    {
-    }
-}",
+    public Task GenerateTypeWithPublicInterface()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.C.Goo$$|] f;
+                }
+            }
+            namespace A
+            {
+                namespace B.C
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    void Main()
-    {
-        A.B.C.Goo f;
-    }
-}
-namespace A
-{
-    namespace B.C
-    {
-        public interface Goo
-        {
-        }
-    }
-}",
+expected: """
+            class Program
+            {
+                void Main()
+                {
+                    A.B.C.Goo f;
+                }
+            }
+            namespace A
+            {
+                namespace B.C
+                {
+                    public interface Goo
+                    {
+                    }
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeWithInternalStruct()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    void Main()
-    {
-        [|A.B.C.Goo$$|] f;
-    }
-}
-namespace A
-{
-    namespace B.C
-    {
-    }
-}",
+    public Task GenerateTypeWithInternalStruct()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.C.Goo$$|] f;
+                }
+            }
+            namespace A
+            {
+                namespace B.C
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    void Main()
-    {
-        A.B.C.Goo f;
-    }
-}
-namespace A
-{
-    namespace B.C
-    {
-        internal struct Goo
-        {
-        }
-    }
-}",
+expected: """
+            class Program
+            {
+                void Main()
+                {
+                    A.B.C.Goo f;
+                }
+            }
+            namespace A
+            {
+                namespace B.C
+                {
+                    internal struct Goo
+                    {
+                    }
+                }
+            }
+            """,
 accessibility: Accessibility.Internal,
 typeKind: TypeKind.Struct,
 isNewFile: false);
-    }
 
     [Fact]
-    public async Task GenerateTypeWithDefaultEnum()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A
-{
-    namespace B
-    {
-    }
-}",
+    public Task GenerateTypeWithDefaultEnum()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A
+            {
+                namespace B
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    void Main()
-    {
-        A.B.Goo f;
-    }
-}
-namespace A
-{
-    namespace B
-    {
-        enum Goo
-        {
-        }
-    }
-}",
+expected: """
+            class Program
+            {
+                void Main()
+                {
+                    A.B.Goo f;
+                }
+            }
+            namespace A
+            {
+                namespace B
+                {
+                    enum Goo
+                    {
+                    }
+                }
+            }
+            """,
 accessibility: Accessibility.NotApplicable,
 typeKind: TypeKind.Enum,
 isNewFile: false);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeWithDefaultEnum_DefaultNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}",
+    public Task GenerateTypeWithDefaultEnum_DefaultNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"using ConsoleApplication;
+expected: """
+            using ConsoleApplication;
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
 
-namespace ConsoleApplication
-{
-    enum Goo
-    {
-    }
-}",
+            namespace ConsoleApplication
+            {
+                enum Goo
+                {
+                }
+            }
+            """,
 defaultNamespace: "ConsoleApplication",
 accessibility: Accessibility.NotApplicable,
 typeKind: TypeKind.Enum,
 isNewFile: false);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeWithDefaultEnum_DefaultNamespace_NotSimpleName()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A
-{
-    namespace B
-    {
-    }
-}",
+    public Task GenerateTypeWithDefaultEnum_DefaultNamespace_NotSimpleName()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A
+            {
+                namespace B
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    void Main()
-    {
-        A.B.Goo f;
-    }
-}
-namespace A
-{
-    namespace B
-    {
-        enum Goo
-        {
-        }
-    }
-}",
+expected: """
+            class Program
+            {
+                void Main()
+                {
+                    A.B.Goo f;
+                }
+            }
+            namespace A
+            {
+                namespace B
+                {
+                    enum Goo
+                    {
+                    }
+                }
+            }
+            """,
 defaultNamespace: "ConsoleApplication",
 accessibility: Accessibility.NotApplicable,
 typeKind: TypeKind.Enum,
 isNewFile: false);
-    }
     #endregion
 
     // Working is very similar to the adding to the same file
     #region SameProject_ExistingFile
     [Fact]
-    public async Task GenerateTypeInExistingEmptyFile()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                        <Document FilePath=""Test2.cs"">
+    public Task GenerateTypeInExistingEmptyFile()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                    <Document FilePath="Test2.cs">
 
-                        </Document>
-                    </Project>
-                </Workspace>",
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace A.B
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace A.B
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeInExistingEmptyFile_Usings_Folders()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                        <Document Folders= ""outer\inner"" FilePath=""Test2.cs"">
+    public Task GenerateTypeInExistingEmptyFile_Usings_Folders()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                    <Document Folders= "outer\inner" FilePath="Test2.cs">
 
-                        </Document>
-                    </Project>
-                </Workspace>",
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace outer.inner
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace outer.inner
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using outer.inner;
+expectedTextWithUsings: """
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            using outer.inner;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeInExistingEmptyFile_Usings_DefaultNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                        <Document FilePath=""Test2.cs"">
+    public Task GenerateTypeInExistingEmptyFile_Usings_DefaultNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                    <Document FilePath="Test2.cs">
 
-                        </Document>
-                    </Project>
-                </Workspace>",
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace ConsoleApplication
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace ConsoleApplication
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using ConsoleApplication;
+expectedTextWithUsings: """
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            using ConsoleApplication;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeInExistingEmptyFile_Usings_Folders_DefaultNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                        <Document Folders= ""outer\inner"" FilePath=""Test2.cs"">
+    public Task GenerateTypeInExistingEmptyFile_Usings_Folders_DefaultNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                    <Document Folders= "outer\inner" FilePath="Test2.cs">
 
-                        </Document>
-                    </Project>
-                </Workspace>",
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace ConsoleApplication.outer.inner
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace ConsoleApplication.outer.inner
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using ConsoleApplication.outer.inner;
+expectedTextWithUsings: """
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            using ConsoleApplication.outer.inner;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeInExistingEmptyFile_NoUsings_Folders_NotSimpleName()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                        <Document FilePath=""Test2.cs"" Folders= ""outer\inner"">
+    public Task GenerateTypeInExistingEmptyFile_NoUsings_Folders_NotSimpleName()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                    <Document FilePath="Test2.cs" Folders= "outer\inner">
 
-                        </Document>
-                    </Project>
-                </Workspace>",
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace A.B
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace A.B
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs");
-    }
     #endregion
 
     #region SameProject_NewFile
     [WpfFact]
-    public async Task GenerateTypeInNewFile()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeInNewFile()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace A.B
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace A.B
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: [],
 newFileName: "Test2.cs");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-namespace outer
-{
-    namespace inner
-    {
-        class Program
-        {
-            void Main()
+    public Task GenerateType_UsingsNotNeeded_InNewFile_InFolder()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            namespace outer
             {
-                [|Goo$$|] f;
+                namespace inner
+                {
+                    class Program
+                    {
+                        void Main()
+                        {
+                            [|Goo$$|] f;
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-                        </Document>
-                    </Project>
-                </Workspace>",
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace outer.inner
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace outer.inner
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateType_UsingsNeeded_InNewFile_InFolder()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateType_UsingsNeeded_InNewFile_InFolder()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace outer.inner
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace outer.inner
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using outer.inner;
+expectedTextWithUsings: """
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            using outer.inner;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_NotSimpleName()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_NotSimpleName()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace A.B
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace A.B
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateType_UsingsNeeded_InNewFile_InFolder_DefaultNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateType_UsingsNeeded_InNewFile_InFolder_DefaultNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace ConsoleApplication.outer.inner
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace ConsoleApplication.outer.inner
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using ConsoleApplication.outer.inner;
+expectedTextWithUsings: """
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            using ConsoleApplication.outer.inner;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-namespace ConsoleApplication.outer
-{
-    class Program
-    {
-        void Main()
-        {
-            [|Goo$$|] f;
-        }
-    }
-}</Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            namespace ConsoleApplication.outer
+            {
+                class Program
+                {
+                    void Main()
+                    {
+                        [|Goo$$|] f;
+                    }
+                }
+            }</Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace ConsoleApplication.outer
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace ConsoleApplication.outer
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-namespace ConsoleApplication.outer
-{
-    class Program
-    {
-        void Main()
-        {
-            Goo f;
-        }
-    }
-}",
+expectedTextWithUsings: """
+
+            namespace ConsoleApplication.outer
+            {
+                class Program
+                {
+                    void Main()
+                    {
+                        Goo f;
+                    }
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: ["outer"],
 newFileName: "Test2.cs");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace_NotSimpleName()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
+    public Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace_NotSimpleName()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
 
-namespace A.B
-{
-}</Document>
-                    </Project>
-                </Workspace>",
+            namespace A.B
+            {
+            }</Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace A.B
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace A.B
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-class Program
-{
-    void Main()
-    {
-        A.B.Goo f;
-    }
-}
+expectedTextWithUsings: """
 
-namespace A.B
-{
-}",
+            class Program
+            {
+                void Main()
+                {
+                    A.B.Goo f;
+                }
+            }
+
+            namespace A.B
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: ["outer"],
 newFileName: "Test2.cs");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898452")]
-    public async Task GenerateType_InValidFolderNameNotMadeNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-namespace outer
-{
-    namespace inner
-    {
-        class Program
-        {
-            void Main()
+    public Task GenerateType_InValidFolderNameNotMadeNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            namespace outer
             {
-                [|Goo$$|] f;
-            }
-        }
-    }
-}</Document>
-                    </Project>
-                </Workspace>",
+                namespace inner
+                {
+                    class Program
+                    {
+                        void Main()
+                        {
+                            [|Goo$$|] f;
+                        }
+                    }
+                }
+            }</Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
 defaultNamespace: "ConsoleApplication",
-expected: @"namespace ConsoleApplication
-{
-    public interface Goo
-    {
-    }
-}",
-checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using ConsoleApplication;
-
-namespace outer
-{
-    namespace inner
-    {
-        class Program
-        {
-            void Main()
+expected: """
+            namespace ConsoleApplication
             {
-                Goo f;
+                public interface Goo
+                {
+                }
             }
-        }
-    }
-}",
+            """,
+checkIfUsingsIncluded: true,
+expectedTextWithUsings: """
+
+            using ConsoleApplication;
+
+            namespace outer
+            {
+                namespace inner
+                {
+                    class Program
+                    {
+                        void Main()
+                        {
+                            Goo f;
+                        }
+                    }
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 areFoldersValidIdentifiers: false,
 newFileFolderContainers: ["123", "456"],
 newFileName: "Test2.cs");
-    }
 
     #endregion
 
@@ -1080,267 +1149,284 @@ newFileName: "Test2.cs");
     #region SameLanguageDifferentProject
     #region SameLanguageDifferentProject_ExistingFile
     [Fact]
-    public async Task GenerateTypeIntoSameLanguageDifferentProjectEmptyFile()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                        <Document FilePath=""Test2.cs"">
-                        </Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoSameLanguageDifferentProjectEmptyFile()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                    <Document FilePath="Test2.cs">
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace A.B
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace A.B
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs",
 projectName: "Assembly2");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                        <Document Folders=""outer\inner"" FilePath=""Test2.cs"">
-namespace A
-{
-    namespace B
-    {
-    }
-}</Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                    <Document Folders="outer\inner" FilePath="Test2.cs">
+            namespace A
+            {
+                namespace B
+                {
+                }
+            }</Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"
-namespace A
-{
-    namespace B
-    {
-        public interface Goo
-        {
-        }
-    }
-}",
+expected: """
+
+            namespace A
+            {
+                namespace B
+                {
+                    public interface Goo
+                    {
+                    }
+                }
+            }
+            """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs",
 projectName: "Assembly2");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile_Usings_Folders()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                    </Project>
-                    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                        <Document Folders=""outer\inner"" FilePath=""Test2.cs"">
-namespace A
-{
-    namespace B
-    {
-    }
-}</Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile_Usings_Folders()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                </Project>
+                                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                    <Document Folders="outer\inner" FilePath="Test2.cs">
+            namespace A
+            {
+                namespace B
+                {
+                }
+            }</Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"
-namespace A
-{
-    namespace B
-    {
-    }
-}
+expected: """
 
-namespace outer.inner
-{
-    public interface Goo
-    {
-    }
-}",
+            namespace A
+            {
+                namespace B
+                {
+                }
+            }
+
+            namespace outer.inner
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using outer.inner;
+expectedTextWithUsings: """
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            using outer.inner;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs",
 projectName: "Assembly2");
-    }
 
     #endregion
     #region SameLanguageDifferentProject_NewFile
     [WpfFact]
-    public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoSameLanguageDifferentProjectNewFile()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace A.B
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace A.B
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
 newFileFolderContainers: [],
 projectName: "Assembly2");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                    </Project>
-                    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                </Project>
+                                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace outer.inner
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace outer.inner
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using outer.inner;
+expectedTextWithUsings: """
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            using outer.inner;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
 newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace A.B
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace A.B
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
@@ -1348,84 +1434,90 @@ isNewFile: true,
 newFileName: "Test2.cs",
 newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings_DefaultNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                    </Project>
-                    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings_DefaultNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                </Project>
+                                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace ConsoleApplication.outer.inner
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace ConsoleApplication.outer.inner
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using ConsoleApplication.outer.inner;
+expectedTextWithUsings: """
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            using ConsoleApplication.outer.inner;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
 newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName_DefaultNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName_DefaultNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"namespace A.B
-{
-    public interface Goo
-    {
-    }
-}",
+expected: """
+            namespace A.B
+            {
+                public interface Goo
+                {
+                }
+            }
+            """,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
@@ -1434,120 +1526,128 @@ isNewFile: true,
 newFileName: "Test2.cs",
 newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-    }
     #endregion
     #endregion
     #region DifferentLanguage
     [WpfFact]
-    public async Task GenerateTypeIntoDifferentLanguageNewFile()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoDifferentLanguageNewFile()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"Namespace Global.A.B
-    Public Class Goo
-    End Class
-End Namespace
-",
+expected: """
+            Namespace Global.A.B
+                Public Class Goo
+                End Class
+            End Namespace
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: [],
 projectName: "Assembly2");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"Namespace outer.inner
-    Public Class Goo
-    End Class
-End Namespace
-",
-checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using outer.inner;
+expected: """
+            Namespace outer.inner
+                Public Class Goo
+                End Class
+            End Namespace
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            """,
+checkIfUsingsIncluded: true,
+expectedTextWithUsings: """
+
+            using outer.inner;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"Namespace Global.A.B
-    Public Class Goo
-    End Class
-End Namespace
-",
+expected: """
+            Namespace Global.A.B
+                Public Class Goo
+                End Class
+            End Namespace
+
+            """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
@@ -1555,83 +1655,89 @@ isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings_RootNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                        <CompilationOptions RootNamespace=""BarBaz""/>
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings_RootNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                    <CompilationOptions RootNamespace="BarBaz"/>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"Namespace outer.inner
-    Public Class Goo
-    End Class
-End Namespace
-",
-checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using BarBaz.outer.inner;
+expected: """
+            Namespace outer.inner
+                Public Class Goo
+                End Class
+            End Namespace
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            """,
+checkIfUsingsIncluded: true,
+expectedTextWithUsings: """
+
+            using BarBaz.outer.inner;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                        <CompilationOptions RootNamespace=""BarBaz""/>
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                    <CompilationOptions RootNamespace="BarBaz"/>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"Namespace Global.A.B
-    Public Class Goo
-    End Class
-End Namespace
-",
+expected: """
+            Namespace Global.A.B
+                Public Class Goo
+                End Class
+            End Namespace
+
+            """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
@@ -1639,43 +1745,45 @@ isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace_ProjectReference()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                        <CompilationOptions RootNamespace=""BarBaz""/>
-                        <Document FilePath=""Test2.vb"">
-                        Namespace A.B
-                            Public Class Goo
-                            End Class
-                        End Namespace
-                        </Document>
-                    </Project>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <ProjectReference>Assembly2</ProjectReference>
-                        <Document FilePath=""Test1.cs"">
-using BarBaz.A;
+    public Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace_ProjectReference()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                    <CompilationOptions RootNamespace="BarBaz"/>
+                                    <Document FilePath="Test2.vb">
+                                    Namespace A.B
+                                        Public Class Goo
+                                        End Class
+                                    End Namespace
+                                    </Document>
+                                </Project>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <ProjectReference>Assembly2</ProjectReference>
+                                    <Document FilePath="Test1.cs">
+            using BarBaz.A;
 
-class Program
-{
-    void Main()
-    {
-        [|BarBaz.A.B.Bar$$|] f;
-    }
-}</Document>
-                    </Project>
-                </Workspace>",
+            class Program
+            {
+                void Main()
+                {
+                    [|BarBaz.A.B.Bar$$|] f;
+                }
+            }</Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
-expected: @"Namespace A.B
-    Public Class Bar
-    End Class
-End Namespace
-",
+expected: """
+            Namespace A.B
+                Public Class Bar
+                End Class
+            End Namespace
+
+            """,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
@@ -1684,254 +1792,268 @@ isNewFile: true,
 newFileName: "Test3.vb",
 newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858826")]
-    public async Task GenerateTypeIntoDifferentLanguageNewFileAdjustFileExtension()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoDifferentLanguageNewFileAdjustFileExtension()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"Namespace Global.A.B
-    Public Class Goo
-    End Class
-End Namespace
-",
+expected: """
+            Namespace Global.A.B
+                Public Class Goo
+                End Class
+            End Namespace
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: [],
 projectName: "Assembly2");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                        <Document Folders=""outer\inner"" FilePath=""Test2.vb"">
-                        </Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoDifferentLanguageExistingEmptyFile()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                    <Document Folders="outer\inner" FilePath="Test2.vb">
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"Namespace Global.A.B
-    Public Class Goo
-    End Class
-End Namespace
-",
+expected: """
+            Namespace Global.A.B
+                Public Class Goo
+                End Class
+            End Namespace
+
+            """,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
 projectName: "Assembly2");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-    public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile_Usings_Folder()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|Goo$$|] f;
-    }
-}</Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                        <Document Folders=""outer\inner"" FilePath=""Test2.vb"">
-                        </Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoDifferentLanguageExistingEmptyFile_Usings_Folder()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|Goo$$|] f;
+                }
+            }</Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                    <Document Folders="outer\inner" FilePath="Test2.vb">
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"Namespace outer.inner
-    Public Class Goo
-    End Class
-End Namespace
-",
+expected: """
+            Namespace outer.inner
+                Public Class Goo
+                End Class
+            End Namespace
+
+            """,
 checkIfUsingsIncluded: true,
-expectedTextWithUsings: @"
-using outer.inner;
+expectedTextWithUsings: """
 
-class Program
-{
-    void Main()
-    {
-        Goo f;
-    }
-}",
+            using outer.inner;
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo f;
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
 projectName: "Assembly2");
-    }
 
     [Fact]
-    public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyFile()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                        <Document FilePath=""Test2.vb"">
-Namespace A
-End Namespace
-                        </Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoDifferentLanguageExistingNonEmptyFile()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                    <Document FilePath="Test2.vb">
+            Namespace A
+            End Namespace
+                                    </Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"
-Namespace A
-End Namespace
+expected: """
 
-Namespace Global.A.B
-    Public Class Goo
-    End Class
-End Namespace
-",
+            Namespace A
+            End Namespace
+
+            Namespace Global.A.B
+                Public Class Goo
+                End Class
+            End Namespace
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
 projectName: "Assembly2");
-    }
 
     [Fact]
-    public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyTargetFile()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.B.Goo$$|] f;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                        <Document FilePath=""Test2.vb"">
-Namespace Global
-    Namespace A
-        Namespace C
-        End Namespace
-        Namespace B
-        End Namespace
-    End Namespace
-End Namespace</Document>
-                    </Project>
-                </Workspace>",
+    public Task GenerateTypeIntoDifferentLanguageExistingNonEmptyTargetFile()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.B.Goo$$|] f;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                    <Document FilePath="Test2.vb">
+            Namespace Global
+                Namespace A
+                    Namespace C
+                    End Namespace
+                    Namespace B
+                    End Namespace
+                End Namespace
+            End Namespace</Document>
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"
-Namespace Global
-    Namespace A
-        Namespace C
-        End Namespace
-        Namespace B
-            Public Class Goo
-            End Class
-        End Namespace
-    End Namespace
-End Namespace",
+expected: """
+
+            Namespace Global
+                Namespace A
+                    Namespace C
+                    End Namespace
+                    Namespace B
+                        Public Class Goo
+                        End Class
+                    End Namespace
+                End Namespace
+            End Namespace
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
 projectName: "Assembly2");
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869593")]
-    public async Task GenerateModuleFromCSharpToVisualBasicInTypeContext()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        [|A.Goo$$|].Bar f;
-    }
-}
-namespace A
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateModuleFromCSharpToVisualBasicInTypeContext()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    [|A.Goo$$|].Bar f;
+                }
+            }
+            namespace A
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"Namespace Global.A
-    Public Module Goo
-    End Module
-End Namespace
-",
+expected: """
+            Namespace Global.A
+                Public Module Goo
+                End Module
+            End Namespace
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Module,
 isNewFile: true,
@@ -1939,1703 +2061,1804 @@ newFileName: "Test2.vb",
 newFileFolderContainers: [],
 projectName: "Assembly2",
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
-    }
 
     #endregion
     #region Bugfix 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/873066")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
-    public async Task GenerateTypeWithProperAccessibilityAndTypeKind_1()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-public class C : [|$$D|]
-{
-}",
+    public Task GenerateTypeWithProperAccessibilityAndTypeKind_1()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            public class C : [|$$D|]
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "D",
-expected: @"
-public class C : D
-{
-}
+expected: """
 
-public class D
-{
-}",
+            public class C : D
+            {
+            }
+
+            public class D
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
-    public async Task GenerateTypeWithProperAccessibilityAndTypeKind_2()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"public interface CCC : [|$$DDD|]
-{
-}",
+    public Task GenerateTypeWithProperAccessibilityAndTypeKind_2()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            public interface CCC : [|$$DDD|]
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "DDD",
-expected: @"public interface CCC : DDD
-{
-}
+expected: """
+            public interface CCC : DDD
+            {
+            }
 
-public interface DDD
-{
-}",
+            public interface DDD
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
-    public async Task GenerateTypeWithProperAccessibilityAndTypeKind_3()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"public struct CCC : [|$$DDD|]
-{
-}",
+    public Task GenerateTypeWithProperAccessibilityAndTypeKind_3()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            public struct CCC : [|$$DDD|]
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "DDD",
-expected: @"public struct CCC : DDD
-{
-}
+expected: """
+            public struct CCC : DDD
+            {
+            }
 
-public interface DDD
-{
-}",
+            public interface DDD
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
-    public async Task GenerateTypeInMemberAccessExpression()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|$$A.B|];
-    }
-}",
+    public Task GenerateTypeInMemberAccessExpression()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = [|$$A.B|];
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "A",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = A.B;
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = A.B;
+                }
+            }
 
-public class A
-{
-}",
+            public class A
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
-    public async Task GenerateTypeInMemberAccessExpressionInNamespace()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|$$A.B.C|];
-    }
-}
+    public Task GenerateTypeInMemberAccessExpressionInNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = [|$$A.B.C|];
+                }
+            }
 
-namespace A
-{
-}",
+            namespace A
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "B",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = A.B.C;
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = A.B.C;
+                }
+            }
 
-namespace A
-{
-    public class B
-    {
-    }
-}",
+            namespace A
+            {
+                public class B
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-    public async Task GenerateTypeWithoutEnumForGenericsInMemberAccess()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|$$Goo<Bar>|].D;
-    }
-}
+    public Task GenerateTypeWithoutEnumForGenericsInMemberAccess()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = [|$$Goo<Bar>|].D;
+                }
+            }
 
-class Bar
-{
-}",
+            class Bar
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = Goo<Bar>.D;
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = Goo<Bar>.D;
+                }
+            }
 
-class Bar
-{
-}
+            class Bar
+            {
+            }
 
-public class Goo<T>
-{
-}",
+            public class Goo<T>
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-    public async Task GenerateTypeWithoutEnumForGenericsInNameContext()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        [|$$Goo<Bar>|] baz;
-    }
-}
+    public Task GenerateTypeWithoutEnumForGenericsInNameContext()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|$$Goo<Bar>|] baz;
+                }
+            }
 
-internal class Bar
-{
-}",
+            internal class Bar
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        Goo<Bar> baz;
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Goo<Bar> baz;
+                }
+            }
 
-internal class Bar
-{
-}
+            internal class Bar
+            {
+            }
 
-public class Goo<T>
-{
-}",
+            public class Goo<T>
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Interface | TypeKindOptions.Delegate));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-    public async Task GenerateTypeInMemberAccessWithNSForModule()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|Goo.$$Bar|].Baz;
-    }
-}
+    public Task GenerateTypeInMemberAccessWithNSForModule()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = [|Goo.$$Bar|].Baz;
+                }
+            }
 
-namespace Goo
-{
-}",
+            namespace Goo
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = Goo.Bar.Baz;
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = Goo.Bar.Baz;
+                }
+            }
 
-namespace Goo
-{
-    public class Bar
-    {
-    }
-}",
+            namespace Goo
+            {
+                public class Bar
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-    public async Task GenerateTypeInMemberAccessWithGlobalNSForModule()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|$$Bar|].Baz;
-    }
-}",
+    public Task GenerateTypeInMemberAccessWithGlobalNSForModule()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = [|$$Bar|].Baz;
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = Bar.Baz;
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = Bar.Baz;
+                }
+            }
 
-public class Bar
-{
-}",
+            public class Bar
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-    public async Task GenerateTypeInMemberAccessWithoutNS()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|$$Bar|].Baz;
-    }
-}
+    public Task GenerateTypeInMemberAccessWithoutNS()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = [|$$Bar|].Baz;
+                }
+            }
 
-namespace Bar
-{
-}",
+            namespace Bar
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
 isMissing: true);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883531")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")]
-    public async Task GenerateType_NoParameterLessConstructorForStruct()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = new [|$$Bar|]();
-    }
-}",
+    public Task GenerateType_NoParameterLessConstructorForStruct()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = new [|$$Bar|]();
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = new Bar();
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = new Bar();
+                }
+            }
 
-public struct Bar
-{
-}",
+            public struct Bar
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Structure,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure, false));
-    }
 
     [Fact, WorkItem(63280, "https://github.com/dotnet/roslyn/issues/63280")]
-    public async Task GenerateType_GenericBaseList()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-using System.Collections.Generic;
+    public Task GenerateType_GenericBaseList()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
 
-struct C : IEnumerable<[|$$NewType|]>
-{
-}",
+            using System.Collections.Generic;
+
+            struct C : IEnumerable<[|$$NewType|]>
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "NewType",
-expected: @"
-using System.Collections.Generic;
+expected: """
 
-struct C : IEnumerable<NewType>
-{
-}
+            using System.Collections.Generic;
 
-public class NewType
-{
-}",
+            struct C : IEnumerable<NewType>
+            {
+            }
+
+            public class NewType
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions, false));
-    }
 
     [Fact]
-    public async Task GenerateType_QualifiedBaseList()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-using System.Collections.Generic;
+    public Task GenerateType_QualifiedBaseList()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
 
-struct C : A.B.[|$$INewType|]
-{
-}
+            using System.Collections.Generic;
 
-namespace A.B
-{
-}",
+            struct C : A.B.[|$$INewType|]
+            {
+            }
+
+            namespace A.B
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "INewType",
-expected: @"
-using System.Collections.Generic;
+expected: """
 
-struct C : A.B.INewType
-{
-}
+            using System.Collections.Generic;
 
-namespace A.B
-{
-    public interface INewType
-    {
-    }
-}",
+            struct C : A.B.INewType
+            {
+            }
+
+            namespace A.B
+            {
+                public interface INewType
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Interface, false));
-    }
 
     [Fact]
-    public async Task GenerateType_AliasQualifiedBaseList()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-using System.Collections.Generic;
+    public Task GenerateType_AliasQualifiedBaseList()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
 
-struct C : global::A.B.[|$$INewType|]
-{
-}
+            using System.Collections.Generic;
 
-namespace A.B
-{
-}",
+            struct C : global::A.B.[|$$INewType|]
+            {
+            }
+
+            namespace A.B
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "INewType",
-expected: @"
-using System.Collections.Generic;
+expected: """
 
-struct C : global::A.B.INewType
-{
-}
+            using System.Collections.Generic;
 
-namespace A.B
-{
-    public interface INewType
-    {
-    }
-}",
+            struct C : global::A.B.INewType
+            {
+            }
+
+            namespace A.B
+            {
+                public interface INewType
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Interface, false));
-    }
     #endregion
     #region Delegates
     [Fact]
-    public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = new [|$$MyD|](goo);
-    }
-    static void goo()
-    {
-    }
-}",
+    public Task GenerateDelegateType_ObjectCreationExpression_MethodGroup()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s2 = new [|$$MyD|](goo);
+                }
+                static void goo()
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = new MyD(goo);
-    }
-    static void goo()
-    {
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s2 = new MyD(goo);
+                }
+                static void goo()
+                {
+                }
+            }
 
-public delegate void MyD();
-",
+            public delegate void MyD();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup_Generics()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = new [|$$MyD|](goo);
-    }
-    static void goo<T>()
-    {
-    }
-}",
+    public Task GenerateDelegateType_ObjectCreationExpression_MethodGroup_Generics()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s2 = new [|$$MyD|](goo);
+                }
+                static void goo<T>()
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = new MyD(goo);
-    }
-    static void goo<T>()
-    {
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s2 = new MyD(goo);
+                }
+                static void goo<T>()
+                {
+                }
+            }
 
-public delegate void MyD<T>();
-",
+            public delegate void MyD<T>();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_ObjectCreationExpression_Delegate()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        MyD1 d = null;
-        var s1 = new [|$$MyD2|](d);
-    }
-    public delegate object MyD1();
-}",
+    public Task GenerateDelegateType_ObjectCreationExpression_Delegate()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyD1 d = null;
+                    var s1 = new [|$$MyD2|](d);
+                }
+                public delegate object MyD1();
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        MyD1 d = null;
-        var s1 = new MyD2(d);
-    }
-    public delegate object MyD1();
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyD1 d = null;
+                    var s1 = new MyD2(d);
+                }
+                public delegate object MyD1();
+            }
 
-public delegate object MyD();
-",
+            public delegate object MyD();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_ObjectCreationExpression_Action()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action<int> action1 = null;
-        var s3 = new [|$$MyD|](action1);
-    }
-}",
+    public Task GenerateDelegateType_ObjectCreationExpression_Action()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Action<int> action1 = null;
+                    var s3 = new [|$$MyD|](action1);
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action<int> action1 = null;
-        var s3 = new MyD(action1);
-    }
-}
+expected: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Action<int> action1 = null;
+                    var s3 = new MyD(action1);
+                }
+            }
 
-public delegate void MyD(int obj);
-",
+            public delegate void MyD(int obj);
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_ObjectCreationExpression_Func()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Func<int> lambda = () => { return 0; };
-        var s4 = new [|$$MyD|](lambda);
-    }
-}",
+    public Task GenerateDelegateType_ObjectCreationExpression_Func()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<int> lambda = () => { return 0; };
+                    var s4 = new [|$$MyD|](lambda);
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Func<int> lambda = () => { return 0; };
-        var s4 = new MyD(lambda);
-    }
-}
+expected: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<int> lambda = () => { return 0; };
+                    var s4 = new MyD(lambda);
+                }
+            }
 
-public delegate int MyD();
-",
+            public delegate int MyD();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_ObjectCreationExpression_ParenLambda()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s5 = new [|$$MyD|]((int n) => { return n; });
-    }
-}",
+    public Task GenerateDelegateType_ObjectCreationExpression_ParenLambda()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s5 = new [|$$MyD|]((int n) => { return n; });
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s5 = new MyD((int n) => { return n; });
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s5 = new MyD((int n) => { return n; });
+                }
+            }
 
-public delegate int MyD(int n);
-",
+            public delegate int MyD(int n);
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambda()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s6 = new [|$$MyD|](n => { return n; });
-    }
-}",
+    public Task GenerateDelegateType_ObjectCreationExpression_SimpleLambda()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s6 = new [|$$MyD|](n => { return n; });
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s6 = new MyD(n => { return n; });
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s6 = new MyD(n => { return n; });
+                }
+            }
 
-public delegate void MyD(object n);
-",
+            public delegate void MyD(object n);
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-    }
 
     [Fact(Skip = "872935")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872935")]
-    public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambdaEmpty()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s7 = new [|$$MyD3|](() => { });
-    }
-}",
+    public Task GenerateDelegateType_ObjectCreationExpression_SimpleLambdaEmpty()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s7 = new [|$$MyD3|](() => { });
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s7 = new MyD3(() => { });
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s7 = new MyD3(() => { });
+                }
+            }
 
-public delegate void MyD();
-",
+            public delegate void MyD();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_VarDecl_MethodGroup()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        [|$$MyD|] z1 = goo;
-    }
-    static void goo()
-    {
-    }
-}",
+    public Task GenerateDelegateType_VarDecl_MethodGroup()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|$$MyD|] z1 = goo;
+                }
+                static void goo()
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        MyD z1 = goo;
-    }
-    static void goo()
-    {
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyD z1 = goo;
+                }
+                static void goo()
+                {
+                }
+            }
 
-public delegate void MyD();
-",
+            public delegate void MyD();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_VarDecl_Delegate()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        MyD1 temp = null;
-        [|$$MyD|] z2 = temp; // Still Error
-    }
-}
+    public Task GenerateDelegateType_VarDecl_Delegate()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyD1 temp = null;
+                    [|$$MyD|] z2 = temp; // Still Error
+                }
+            }
 
-public delegate object MyD1();",
+            public delegate object MyD1();
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        MyD1 temp = null;
-        MyD z2 = temp; // Still Error
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyD1 temp = null;
+                    MyD z2 = temp; // Still Error
+                }
+            }
 
-public delegate object MyD1();
+            public delegate object MyD1();
 
-public delegate object MyD();
-",
+            public delegate object MyD();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_VarDecl_Action()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action<int, int, int> action2 = null;
-        [|$$MyD|] z3 = action2; // Still Error
-    }
-}",
+    public Task GenerateDelegateType_VarDecl_Action()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Action<int, int, int> action2 = null;
+                    [|$$MyD|] z3 = action2; // Still Error
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action<int, int, int> action2 = null;
-        MyD z3 = action2; // Still Error
-    }
-}
+expected: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Action<int, int, int> action2 = null;
+                    MyD z3 = action2; // Still Error
+                }
+            }
 
-public delegate void MyD(int arg1, int arg2, int arg3);
-",
+            public delegate void MyD(int arg1, int arg2, int arg3);
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_VarDecl_Func()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Func<int> lambda2 = () => { return 0; };
-        [|$$MyD|] z4 = lambda2; // Still Error
-    }
-}",
+    public Task GenerateDelegateType_VarDecl_Func()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<int> lambda2 = () => { return 0; };
+                    [|$$MyD|] z4 = lambda2; // Still Error
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Func<int> lambda2 = () => { return 0; };
-        MyD z4 = lambda2; // Still Error
-    }
-}
+expected: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<int> lambda2 = () => { return 0; };
+                    MyD z4 = lambda2; // Still Error
+                }
+            }
 
-public delegate int MyD();
-",
+            public delegate int MyD();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_VarDecl_ParenLambda()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        [|$$MyD|] z5 = (int n) => { return n; };
-    }
-}
-",
+    public Task GenerateDelegateType_VarDecl_ParenLambda()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|$$MyD|] z5 = (int n) => { return n; };
+                }
+            }
+
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        MyD z5 = (int n) => { return n; };
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyD z5 = (int n) => { return n; };
+                }
+            }
 
-public delegate int MyD(int n);
-",
+            public delegate int MyD(int n);
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_VarDecl_SimpleLambda()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        [|$$MyD|] z6 = n => { return n; };
-    }
-}",
+    public Task GenerateDelegateType_VarDecl_SimpleLambda()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|$$MyD|] z6 = n => { return n; };
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        MyD z6 = n => { return n; };
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyD z6 = n => { return n; };
+                }
+            }
 
-public delegate void MyD(object n);
-",
+            public delegate void MyD(object n);
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_Cast_MethodGroup()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var zz1 = ([|$$MyD|])goo;
-    }
-    static void goo()
-    {
-    }
-}",
+    public Task GenerateDelegateType_Cast_MethodGroup()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var zz1 = ([|$$MyD|])goo;
+                }
+                static void goo()
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var zz1 = (MyD)goo;
-    }
-    static void goo()
-    {
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var zz1 = (MyD)goo;
+                }
+                static void goo()
+                {
+                }
+            }
 
-public delegate void MyD();
-",
+            public delegate void MyD();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_Cast_Delegate()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        MyDDD temp1 = null;
-        var zz2 = ([|$$MyD|])temp1; // Still Error
-    }
-}
+    public Task GenerateDelegateType_Cast_Delegate()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyDDD temp1 = null;
+                    var zz2 = ([|$$MyD|])temp1; // Still Error
+                }
+            }
 
-public delegate object MyDDD();",
+            public delegate object MyDDD();
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        MyDDD temp1 = null;
-        var zz2 = (MyD)temp1; // Still Error
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyDDD temp1 = null;
+                    var zz2 = (MyD)temp1; // Still Error
+                }
+            }
 
-public delegate object MyDDD();
+            public delegate object MyDDD();
 
-public delegate object MyD();
-",
+            public delegate object MyD();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_Cast_Action()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action<int, int, int> action3 = null;
-        var zz3 = ([|$$MyD|])action3; // Still Error
-    }
-}",
+    public Task GenerateDelegateType_Cast_Action()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Action<int, int, int> action3 = null;
+                    var zz3 = ([|$$MyD|])action3; // Still Error
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action<int, int, int> action3 = null;
-        var zz3 = (MyD)action3; // Still Error
-    }
-}
+expected: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Action<int, int, int> action3 = null;
+                    var zz3 = (MyD)action3; // Still Error
+                }
+            }
 
-public delegate void MyD(int arg1, int arg2, int arg3);
-",
+            public delegate void MyD(int arg1, int arg2, int arg3);
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_Cast_Func()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Func<int> lambda3 = () => { return 0; };
-        var zz4 = ([|$$MyD|])lambda3; // Still Error
-    }
-}",
+    public Task GenerateDelegateType_Cast_Func()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<int> lambda3 = () => { return 0; };
+                    var zz4 = ([|$$MyD|])lambda3; // Still Error
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Func<int> lambda3 = () => { return 0; };
-        var zz4 = (MyD)lambda3; // Still Error
-    }
-}
+expected: """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<int> lambda3 = () => { return 0; };
+                    var zz4 = (MyD)lambda3; // Still Error
+                }
+            }
 
-public delegate int MyD();
-",
+            public delegate int MyD();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_Cast_ParenLambda()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var zz5 = ([|$$MyD|])((int n) => { return n; });
-    }
-}
-",
+    public Task GenerateDelegateType_Cast_ParenLambda()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var zz5 = ([|$$MyD|])((int n) => { return n; });
+                }
+            }
+
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var zz5 = (MyD)((int n) => { return n; });
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var zz5 = (MyD)((int n) => { return n; });
+                }
+            }
 
-public delegate int MyD(int n);
-",
+            public delegate int MyD(int n);
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_Cast_SimpleLambda()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var zz6 = ([|$$MyD|])(n => { return n; });
-    }
-}",
+    public Task GenerateDelegateType_Cast_SimpleLambda()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var zz6 = ([|$$MyD|])(n => { return n; });
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var zz6 = (MyD)(n => { return n; });
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var zz6 = (MyD)(n => { return n; });
+                }
+            }
 
-public delegate void MyD(object n);
-",
+            public delegate void MyD(object n);
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-    }
 
     [WpfFact]
-    public async Task GenerateDelegateTypeIntoDifferentLanguageNewFile()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"<Workspace>
-                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-                        <Document FilePath=""Test1.cs"">
-class Program
-{
-    void Main()
-    {
-        var f = ([|A.B.Goo$$|])Main;
-    }
-}
-namespace A.B
-{
-}
-                        </Document>
-                    </Project>
-                    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-                    </Project>
-                </Workspace>",
+    public Task GenerateDelegateTypeIntoDifferentLanguageNewFile()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            <Workspace>
+                                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                    <Document FilePath="Test1.cs">
+            class Program
+            {
+                void Main()
+                {
+                    var f = ([|A.B.Goo$$|])Main;
+                }
+            }
+            namespace A.B
+            {
+            }
+                                    </Document>
+                                </Project>
+                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                </Project>
+                            </Workspace>
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Goo",
-expected: @"Namespace Global.A.B
-    Public Delegate Sub Goo()
-End Namespace
-",
+expected: """
+            Namespace Global.A.B
+                Public Delegate Sub Goo()
+            End Namespace
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: [],
 projectName: "Assembly2");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860210")]
-    public async Task GenerateDelegateType_NoInfo()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        [|$$MyD<int>|] d;
-    }
-}",
+    public Task GenerateDelegateType_NoInfo()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|$$MyD<int>|] d;
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        MyD<int> d;
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    MyD<int> d;
+                }
+            }
 
-public delegate void MyD<T>();
-",
+            public delegate void MyD<T>();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false);
-    }
     #endregion 
     #region Dev12Filtering
     [Fact]
-    public async Task GenerateDelegateType_NoEnum_InvocationExpression_0()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = [|$$B|].C();
-    }
-}",
+    public Task GenerateDelegateType_NoEnum_InvocationExpression_0()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s2 = [|$$B|].C();
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "B",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = B.C();
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s2 = B.C();
+                }
+            }
 
-public class B
-{
-}",
+            public class B
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertTypeKindAbsent: [TypeKindOptions.Enum]);
-    }
 
     [Fact]
-    public async Task GenerateDelegateType_NoEnum_InvocationExpression_1()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = [|A.$$B|].C();
-    }
-}
+    public Task GenerateDelegateType_NoEnum_InvocationExpression_1()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s2 = [|A.$$B|].C();
+                }
+            }
 
-namespace A
-{
-}",
+            namespace A
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "B",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = A.B.C();
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s2 = A.B.C();
+                }
+            }
 
-namespace A
-{
-    public class B
-    {
-    }
-}",
+            namespace A
+            {
+                public class B
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertTypeKindAbsent: [TypeKindOptions.Enum]);
-    }
 
     [Fact]
-    public async Task GenerateType_TypeConstraint_1()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}
+    public Task GenerateType_TypeConstraint_1()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                }
+            }
 
-public class F<T> where T : [|$$Bar|] 
-{
-}
-",
+            public class F<T> where T : [|$$Bar|] 
+            {
+            }
+
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                }
+            }
 
-public class F<T> where T : Bar 
-{
-}
+            public class F<T> where T : Bar 
+            {
+            }
 
-public class Bar
-{
-}",
+            public class Bar
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList));
-    }
 
     [Fact]
-    public async Task GenerateType_TypeConstraint_2()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}
+    public Task GenerateType_TypeConstraint_2()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                }
+            }
 
-class outer
-{
-    public class F<T> where T : [|$$Bar|] 
-    {
-    }
-}
-",
+            class outer
+            {
+                public class F<T> where T : [|$$Bar|] 
+                {
+                }
+            }
+
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                }
+            }
 
-class outer
-{
-    public class F<T> where T : Bar 
-    {
-    }
-}
+            class outer
+            {
+                public class F<T> where T : Bar 
+                {
+                }
+            }
 
-public class Bar
-{
-}",
+            public class Bar
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList));
-    }
 
     [Fact]
-    public async Task GenerateType_TypeConstraint_3()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}
+    public Task GenerateType_TypeConstraint_3()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                }
+            }
 
-public class outerOuter
-{
-    public class outer
-    {
-        public class F<T> where T : [|$$Bar|]
-        {
-        }
-    }
-}
-",
+            public class outerOuter
+            {
+                public class outer
+                {
+                    public class F<T> where T : [|$$Bar|]
+                    {
+                    }
+                }
+            }
+
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}
+expected: """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                }
+            }
 
-public class outerOuter
-{
-    public class outer
-    {
-        public class F<T> where T : Bar
-        {
-        }
-    }
-}
+            public class outerOuter
+            {
+                public class outer
+                {
+                    public class F<T> where T : Bar
+                    {
+                    }
+                }
+            }
 
-public class Bar
-{
-}",
+            public class Bar
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList));
-    }
 
     [Fact]
-    public async Task GenerateTypeWithProperAccessibilityWithNesting_1()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-public class B
-{
-    public class C : [|$$D|]
-    {
-    }
-}",
+    public Task GenerateTypeWithProperAccessibilityWithNesting_1()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            public class B
+            {
+                public class C : [|$$D|]
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "D",
-expected: @"
-public class B
-{
-    public class C : D
-    {
-    }
-}
+expected: """
 
-public class D
-{
-}",
+            public class B
+            {
+                public class C : D
+                {
+                }
+            }
+
+            public class D
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false));
-    }
 
     [Fact]
-    public async Task GenerateTypeWithProperAccessibilityWithNesting_2()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-class B
-{
-    public class C : [|$$D|]
-    {
-    }
-}",
+    public Task GenerateTypeWithProperAccessibilityWithNesting_2()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            class B
+            {
+                public class C : [|$$D|]
+                {
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "D",
-expected: @"
-class B
-{
-    public class C : D
-    {
-    }
-}
+expected: """
 
-public class D
-{
-}",
+            class B
+            {
+                public class C : D
+                {
+                }
+            }
+
+            public class D
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false));
-    }
 
     [Fact]
-    public async Task GenerateTypeWithProperAccessibilityWithNesting_3()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-class A
-{
-    public class B
-    {
-        public class C : [|$$D|]
-        {
-        }
-    }
-}",
+    public Task GenerateTypeWithProperAccessibilityWithNesting_3()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            class A
+            {
+                public class B
+                {
+                    public class C : [|$$D|]
+                    {
+                    }
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "D",
-expected: @"
-class A
-{
-    public class B
-    {
-        public class C : D
-        {
-        }
-    }
-}
+expected: """
 
-public class D
-{
-}",
+            class A
+            {
+                public class B
+                {
+                    public class C : D
+                    {
+                    }
+                }
+            }
+
+            public class D
+            {
+            }
+            """,
 accessibility: Accessibility.Public,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false));
-    }
 
     [Fact]
-    public async Task GenerateType_Event_1()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-class A
-{
-    event [|$$goo|] name1
-    {
-        add { }
-        remove { }
-    }
-}",
+    public Task GenerateType_Event_1()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            class A
+            {
+                event [|$$goo|] name1
+                {
+                    add { }
+                    remove { }
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "goo",
-expected: @"
-class A
-{
-    event goo name1
-    {
-        add { }
-        remove { }
-    }
-}
+expected: """
 
-public delegate void goo();
-",
+            class A
+            {
+                event goo name1
+                {
+                    add { }
+                    remove { }
+                }
+            }
+
+            public delegate void goo();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateType_Event_2()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-class A
-{
-    public event [|$$goo|] name2;
-}",
+    public Task GenerateType_Event_2()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            class A
+            {
+                public event [|$$goo|] name2;
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "goo",
-expected: @"
-class A
-{
-    public event goo name2;
-}
+expected: """
 
-public delegate void goo();
-",
+            class A
+            {
+                public event goo name2;
+            }
+
+            public delegate void goo();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateType_Event_3()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-class A
-{
-    event [|NS.goo$$|] name1
-    {
-        add { }
-        remove { }
-    }
-}",
+    public Task GenerateType_Event_3()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            class A
+            {
+                event [|NS.goo$$|] name1
+                {
+                    add { }
+                    remove { }
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "goo",
-expected: @"
-class A
-{
-    event NS.goo name1
-    {
-        add { }
-        remove { }
-    }
-}
+expected: """
 
-namespace NS
-{
-    public delegate void goo();
-}",
+            class A
+            {
+                event NS.goo name1
+                {
+                    add { }
+                    remove { }
+                }
+            }
+
+            namespace NS
+            {
+                public delegate void goo();
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateType_Event_4()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-class A
-{
-    public event [|NS.goo$$|] name2;
-}",
+    public Task GenerateType_Event_4()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            class A
+            {
+                public event [|NS.goo$$|] name2;
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "goo",
-expected: @"
-class A
-{
-    public event NS.goo name2;
-}
+expected: """
 
-namespace NS
-{
-    public delegate void goo();
-}",
+            class A
+            {
+                public event NS.goo name2;
+            }
+
+            namespace NS
+            {
+                public delegate void goo();
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateType_Event_5()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-class A
-{
-    event [|$$NS.goo.Mydel|] name1
-    {
-        add { }
-        remove { }
-    }
-}
+    public Task GenerateType_Event_5()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
 
-namespace NS
-{
-}",
+            class A
+            {
+                event [|$$NS.goo.Mydel|] name1
+                {
+                    add { }
+                    remove { }
+                }
+            }
+
+            namespace NS
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "goo",
-expected: @"
-class A
-{
-    event NS.goo.Mydel name1
-    {
-        add { }
-        remove { }
-    }
-}
+expected: """
 
-namespace NS
-{
-    public class goo
-    {
-    }
-}",
+            class A
+            {
+                event NS.goo.Mydel name1
+                {
+                    add { }
+                    remove { }
+                }
+            }
+
+            namespace NS
+            {
+                public class goo
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
-    }
 
     [Fact]
-    public async Task GenerateType_Event_6()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-class A
-{
-    public event [|$$NS.goo.Mydel|] name2;
-}
+    public Task GenerateType_Event_6()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
 
-namespace NS
-{
-}",
+            class A
+            {
+                public event [|$$NS.goo.Mydel|] name2;
+            }
+
+            namespace NS
+            {
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "goo",
-expected: @"
-class A
-{
-    public event NS.goo.Mydel name2;
-}
+expected: """
 
-namespace NS
-{
-    public class goo
-    {
-    }
-}",
+            class A
+            {
+                public event NS.goo.Mydel name2;
+            }
+
+            namespace NS
+            {
+                public class goo
+                {
+                }
+            }
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
-    }
 
     [Fact]
-    public async Task GenerateType_Event_7()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-public class A
-{
-    public event [|$$goo|] name1
-    {
-        add { }
-        remove { }
-    }
-}",
+    public Task GenerateType_Event_7()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            public class A
+            {
+                public event [|$$goo|] name1
+                {
+                    add { }
+                    remove { }
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "goo",
-expected: @"
-public class A
-{
-    public event goo name1
-    {
-        add { }
-        remove { }
-    }
-}
+expected: """
 
-public delegate void goo();
-",
+            public class A
+            {
+                public event goo name1
+                {
+                    add { }
+                    remove { }
+                }
+            }
+
+            public delegate void goo();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Delegate));
-    }
 
     [Fact]
-    public async Task GenerateType_Event_8()
-    {
-        await TestWithMockedGenerateTypeDialog(
-initial: @"
-public class outer
-{
-    public class A
-    {
-        public event [|$$goo|] name1
-        {
-            add { }
-            remove { }
-        }
-    }
-}",
+    public Task GenerateType_Event_8()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            public class outer
+            {
+                public class A
+                {
+                    public event [|$$goo|] name1
+                    {
+                        add { }
+                        remove { }
+                    }
+                }
+            }
+            """,
 languageName: LanguageNames.CSharp,
 typeName: "goo",
-expected: @"
-public class outer
-{
-    public class A
-    {
-        public event goo name1
-        {
-            add { }
-            remove { }
-        }
-    }
-}
+expected: """
 
-public delegate void goo();
-",
+            public class outer
+            {
+                public class A
+                {
+                    public event goo name1
+                    {
+                        add { }
+                        remove { }
+                    }
+                }
+            }
+
+            public delegate void goo();
+
+            """,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Delegate));
-    }
     #endregion
 }

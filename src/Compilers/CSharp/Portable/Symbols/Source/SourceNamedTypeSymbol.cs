@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,6 +13,8 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -76,12 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (declaration.Kind)
             {
                 case DeclarationKind.Struct:
+                case DeclarationKind.Union:
                 case DeclarationKind.Interface:
                 case DeclarationKind.Enum:
                 case DeclarationKind.Delegate:
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
                 case DeclarationKind.RecordStruct:
+                case DeclarationKind.Extension:
                     break;
                 default:
                     Debug.Assert(false, "bad declaration kind");
@@ -117,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.UnionDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
                     return ((BaseTypeDeclarationSyntax)node).Identifier;
@@ -158,9 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.UnionDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.ExtensionBlockDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
 
@@ -467,9 +475,11 @@ next:;
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.UnionDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ExtensionBlockDeclaration:
                     var typeDeclaration = (TypeDeclarationSyntax)node;
                     typeParameterList = typeDeclaration.TypeParameterList;
                     return typeDeclaration.ConstraintClauses;
@@ -800,7 +810,7 @@ next:;
 
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
         {
-            get { return AttributeLocation.Type; }
+            get { return IsExtension ? AttributeLocation.Extension : AttributeLocation.Type; }
         }
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
@@ -1042,6 +1052,21 @@ next:;
                 return (null, null);
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnionAttribute))
+            {
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors && attributeData.CommonConstructorArguments.IsEmpty)
+                {
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasUnionAttribute = true;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                }
+
+                return (null, null);
+            }
+
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 #nullable disable
@@ -1165,7 +1190,8 @@ next:;
                 | ReservedAttributes.NullableContextAttribute
                 | ReservedAttributes.NativeIntegerAttribute
                 | ReservedAttributes.CaseSensitiveExtensionAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
@@ -1220,6 +1246,10 @@ next:;
             else if (attribute.IsTargetAttribute(AttributeDescription.CompilerLoweringPreserveAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasCompilerLoweringPreserveAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExtendedLayoutAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExtendedLayoutAttribute = true;
             }
             else
             {
@@ -1408,6 +1438,11 @@ next:;
         {
             get
             {
+                if (this.IsExtension)
+                {
+                    return true;
+                }
+
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
             }
@@ -1418,7 +1453,9 @@ next:;
             get
             {
                 var data = GetEarlyDecodedWellKnownAttributeData();
-                return data != null && data.HasCodeAnalysisEmbeddedAttribute;
+                return (data != null && data.HasCodeAnalysisEmbeddedAttribute)
+                    // If this is Microsoft.CodeAnalysis.EmbeddedAttribute, we'll synthesize EmbeddedAttribute even if it's not applied.
+                    || this.IsMicrosoftCodeAnalysisEmbeddedAttribute();
             }
         }
 
@@ -1432,6 +1469,22 @@ next:;
         }
 
 #nullable enable
+        internal override bool IsUnionTypeCore
+        {
+            get
+            {
+                return IsUnionDeclaration || HasUnionAttribute;
+            }
+        }
+
+        private bool HasUnionAttribute
+        {
+            get
+            {
+                return GetEarlyDecodedWellKnownAttributeData()?.HasUnionAttribute == true;
+            }
+        }
+
         internal sealed override bool IsInterpolatedStringHandlerType
             => GetEarlyDecodedWellKnownAttributeData()?.HasInterpolatedStringHandlerAttribute == true;
 #nullable disable
@@ -1496,7 +1549,13 @@ next:;
             get
             {
                 var data = GetDecodedWellKnownAttributeData();
-                if (data != null && data.HasStructLayoutAttribute)
+
+                if (data is { HasExtendedLayoutAttribute: true })
+                {
+                    return new TypeLayout(LayoutKind.Extended, 0, alignment: 0);
+                }
+
+                if (data is { HasStructLayoutAttribute: true })
                 {
                     return data.Layout;
                 }
@@ -1508,6 +1567,7 @@ next:;
                     // 
                     // Dev11 compiler sets the value to 1 for structs with no instance fields and no size specified.
                     // It does not change the size value if it was explicitly specified to be 0, nor does it report an error.
+
                     return new TypeLayout(LayoutKind.Sequential, this.HasInstanceFields() ? 0 : 1, alignment: 0);
                 }
 
@@ -1530,6 +1590,15 @@ next:;
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return (data != null && data.HasStructLayoutAttribute) ? data.MarshallingCharSet : DefaultMarshallingCharSet;
+            }
+        }
+
+        internal bool HasExtendedLayoutAttribute
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data is { HasExtendedLayoutAttribute: true };
             }
         }
 
@@ -1678,7 +1747,7 @@ next:;
 
             CSharpCompilation compilation = this.DeclaringCompilation;
 
-            if (this.ContainsExtensionMethods)
+            if (this.ContainsExtensions)
             {
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.
@@ -1761,6 +1830,43 @@ next:;
                         ImmutableArray.Create(new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, originalType)),
                         isOptionalUse: true));
             }
+
+            if (this.IsMicrosoftCodeAnalysisEmbeddedAttribute() && GetEarlyDecodedWellKnownAttributeData() is null or { HasCodeAnalysisEmbeddedAttribute: false })
+            {
+                // This is Microsoft.CodeAnalysis.EmbeddedAttribute, and the user didn't manually apply this attribute to itself. Grab the parameterless constructor
+                // and apply it; if there isn't a parameterless constructor, there would have been a declaration diagnostic
+
+                var parameterlessConstructor = InstanceConstructors.FirstOrDefault(c => c.ParameterCount == 0);
+
+                if (parameterlessConstructor is not null)
+                {
+                    AddSynthesizedAttribute(
+                        ref attributes,
+                        SynthesizedAttributeData.Create(DeclaringCompilation, parameterlessConstructor, arguments: [], namedArguments: []));
+                }
+            }
+
+            // Union type
+            if (ShouldApplyUnionAttribute())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor));
+            }
+        }
+
+        private bool ShouldApplyUnionAttribute()
+        {
+            return IsUnionDeclaration && !HasUnionAttribute;
+        }
+
+        protected override void AfterMembersChecks(BindingDiagnosticBag diagnostics)
+        {
+            base.AfterMembersChecks(diagnostics);
+
+            // Union type
+            if (ShouldApplyUnionAttribute())
+            {
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor, diagnostics, GetFirstLocation());
+            }
         }
 
         #endregion
@@ -1791,6 +1897,30 @@ next:;
             get
             {
                 return this.declaration.Declarations.Any(static d => d.IsSimpleProgram);
+            }
+        }
+
+        public override string MetadataName
+        {
+            get
+            {
+                if (IsExtension)
+                {
+                    Debug.Assert(ExtensionMarkerName is not null);
+                    return ExtensionMarkerName;
+                }
+
+                return base.MetadataName;
+            }
+        }
+
+        internal override bool MangleName
+        {
+            get
+            {
+                return IsExtension
+                    ? false
+                    : base.MangleName;
             }
         }
 
@@ -1833,9 +1963,15 @@ next:;
                 Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, diagnostics, indexerSymbol.TryGetFirstLocation() ?? GetFirstLocation());
             }
 
+            if (HasStructLayoutAttribute && HasExtendedLayoutAttribute)
+            {
+                // Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                diagnostics.Add(ErrorCode.ERR_StructLayoutAndExtendedLayout, GetFirstLocation());
+            }
+
             if (TypeKind == TypeKind.Struct && !IsRecordStruct && HasInlineArrayAttribute(out _))
             {
-                if (Layout.Kind == LayoutKind.Explicit)
+                if (Layout.Kind is not (LayoutKind.Sequential or LayoutKind.Auto))
                 {
                     diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayLayout, GetFirstLocation());
                 }
@@ -1916,6 +2052,54 @@ next:;
                 if (!ContainingAssembly.RuntimeSupportsInlineArrayTypes)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, GetFirstLocation());
+                }
+            }
+
+            if (TypeKind == TypeKind.Struct && HasExtendedLayoutAttribute)
+            {
+                if (!ContainingAssembly.RuntimeSupportsExtendedLayout)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes, GetFirstLocation());
+                }
+            }
+
+            if (this.IsMicrosoftCodeAnalysisEmbeddedAttribute())
+            {
+                // This is a user-defined implementation of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules:
+                // 1. It must be internal
+                // 2. It must be a class
+                // 3. It must be sealed
+                // 4. It must be non-static
+                // 5. It must have an internal or public parameterless constructor
+                // 6. It must inherit from System.Attribute
+                // 7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
+                // 8. It must be non-generic (checked as part of IsMicrosoftCodeAnalysisEmbeddedAttribute, we don't error on this because both types can exist)
+                // 9. It cannot have file scope
+
+                const AttributeTargets expectedTargets = AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate;
+
+                if (DeclaredAccessibility != Accessibility.Internal
+                    || TypeKind != TypeKind.Class
+                    || !IsSealed
+                    || IsStatic
+                    || IsFileLocal
+                    || !InstanceConstructors.Any(c => c is { ParameterCount: 0, DeclaredAccessibility: Accessibility.Internal or Accessibility.Public })
+                    || !this.DeclaringCompilation.IsAttributeType(this)
+                    || (GetAttributeUsageInfo().ValidTargets & expectedTargets) != expectedTargets)
+                {
+                    // The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                    diagnostics.Add(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, GetFirstLocation());
+                }
+
+            }
+
+            if (IsExtension && ContainingType?.IsExtension != true)
+            {
+                // If the containing type is an extension, we'll have already reported an error
+                if (ContainingType is null || !ContainingType.IsStatic || ContainingType.Arity != 0 || ContainingType.ContainingType is not null)
+                {
+                    var syntax = (ExtensionBlockDeclarationSyntax)this.GetNonNullSyntaxNode();
+                    diagnostics.Add(ErrorCode.ERR_BadExtensionContainingType, syntax.Keyword);
                 }
             }
         }

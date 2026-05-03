@@ -37,17 +37,14 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
             return;
 
         var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
-        if (localFunction == null)
-            return;
-
-        if (localFunction.Parent is not BlockSyntax parentBlock)
+        if (localFunction?.Parent is not BlockSyntax parentBlock)
             return;
 
         var container = localFunction.GetAncestor<MemberDeclarationSyntax>();
 
         // If the local function is defined in a block within the top-level statements context, then we can't provide the refactoring because
         // there is no class we can put the generated method in.
-        if (container == null || container is GlobalStatementSyntax or FieldDeclarationSyntax or EventFieldDeclarationSyntax)
+        if (container is null or GlobalStatementSyntax or FieldDeclarationSyntax or EventFieldDeclarationSyntax)
             return;
 
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -58,7 +55,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         context.RegisterRefactoring(
             CodeAction.Create(
                 CSharpFeaturesResources.Convert_to_method,
-                c => UpdateDocumentAsync(document, parentBlock, localFunction, container, c),
+                cancellationToken => UpdateDocumentAsync(document, parentBlock, localFunction, container, cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_method)),
             localFunction.Span);
     }
@@ -74,35 +71,29 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var declaredSymbol = semanticModel.GetRequiredDeclaredSymbol(localFunction, cancellationToken);
 
-        Contract.ThrowIfTrue(localFunction.Body is null && localFunction.ExpressionBody is null);
+        Contract.ThrowIfTrue(localFunction is { Body: null, ExpressionBody: null });
 
         var dataFlow = semanticModel.AnalyzeDataFlow(
             localFunction.Body ?? (SyntaxNode)localFunction.ExpressionBody!.Expression);
 
         // Exclude local function parameters in case they were captured inside the function body
-        var captures = dataFlow.CapturedInside.Except(dataFlow.VariablesDeclared).Except(declaredSymbol.Parameters).ToList();
+        var captures = dataFlow.CapturedInside.Except(dataFlow.VariablesDeclared).Except(declaredSymbol.Parameters).ToImmutableArray();
 
         // First, create a parameter per each capture so that we can pass them as arguments to the final method
         // Filter out `this` because it doesn't need a parameter, we will just make a non-static method for that
         // We also make a `ref` parameter here for each capture that is being written into inside the function
-        var capturesAsParameters = captures
-            .Where(capture => !capture.IsThisParameter())
-            .Select(capture => CodeGenerationSymbolFactory.CreateParameterSymbol(
+        var capturesAsParameters = captures.SelectAsArray(
+            capture => !capture.IsThisParameter(),
+            capture => CodeGenerationSymbolFactory.CreateParameterSymbol(
                 attributes: default,
                 refKind: dataFlow.WrittenInside.Contains(capture) ? RefKind.Ref : RefKind.None,
                 isParams: false,
                 type: capture.GetSymbolType() ?? semanticModel.Compilation.ObjectType,
-                name: capture.Name)).ToList();
+                name: capture.Name));
 
         // Find all enclosing type parameters e.g. from outer local functions and the containing member
         // We exclude the containing type itself which has type parameters accessible to all members
-        var typeParameters = new List<ITypeParameterSymbol>();
-        AddCapturedTypeParameters(declaredSymbol, typeParameters);
-
-        // We're going to remove unreferenced type parameters but we explicitly preserve
-        // captures' types, just in case that they were not spelt out in the function body
-        var captureTypes = captures.SelectMany(capture => capture.GetSymbolType().GetReferencedTypeParameters());
-        RemoveUnusedTypeParameters(localFunction, semanticModel, typeParameters, reservedTypeParameters: captureTypes);
+        var typeParameters = CreateFinalTypeParameterList(semanticModel, localFunction, declaredSymbol, captures);
 
         var containerSymbol = semanticModel.GetRequiredDeclaredSymbol(container, cancellationToken);
         var isStatic = containerSymbol.IsStatic || captures.All(capture => !capture.IsThisParameter());
@@ -114,6 +105,8 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
 
         var methodName = GenerateUniqueMethodName(declaredSymbol);
         var parameters = declaredSymbol.Parameters;
+        var finalParameterList = CreateFinalParameterList(parameters, capturesAsParameters);
+
         var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
             containingType: declaredSymbol.ContainingType,
             attributes: default,
@@ -124,7 +117,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
             explicitInterfaceImplementations: default,
             name: methodName,
             typeParameters: [.. typeParameters],
-            parameters: parameters.AddRange(capturesAsParameters));
+            parameters: finalParameterList);
 
         var info = (CSharpCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
         var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, info, cancellationToken);
@@ -138,63 +131,67 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         var needsRename = methodName != declaredSymbol.Name;
         var identifierToken = needsRename ? methodName.ToIdentifierToken() : default;
         var supportsNonTrailing = SupportsNonTrailingNamedArguments(root.SyntaxTree.Options);
-        var hasAdditionalArguments = !capturesAsParameters.IsEmpty();
-        var additionalTypeParameters = typeParameters.Except(declaredSymbol.TypeParameters).ToList();
-        var hasAdditionalTypeArguments = !additionalTypeParameters.IsEmpty();
-        var additionalTypeArguments = hasAdditionalTypeArguments
-            ? additionalTypeParameters.Select(p => (TypeSyntax)p.Name.ToIdentifierName()).ToArray()
-            : null;
+        var hasAdditionalArguments = capturesAsParameters.Length != 0;
+        var additionalTypeParameters = typeParameters.Except(declaredSymbol.TypeParameters).ToImmutableArray();
+        var hasAdditionalTypeArguments = additionalTypeParameters.Length != 0;
+        var additionalTypeArguments = additionalTypeParameters.SelectAsArray(p => (TypeSyntax)p.Name.ToIdentifierName());
 
         var anyDelegatesToReplace = false;
         // Update callers' name, arguments and type arguments
-        foreach (var node in parentBlock.DescendantNodes())
+        // A local function reference can only be an identifier or a generic name.
+        foreach (var simpleName in parentBlock.DescendantNodes().OfType<SimpleNameSyntax>())
         {
-            // A local function reference can only be an identifier or a generic name.
-            switch (node.Kind())
-            {
-                case SyntaxKind.IdentifierName:
-                case SyntaxKind.GenericName:
-                    break;
-                default:
-                    continue;
-            }
-
             // Using symbol to get type arguments, since it could be inferred and not present in the source
-            var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as IMethodSymbol;
+            var symbol = semanticModel.GetSymbolInfo(simpleName, cancellationToken).Symbol as IMethodSymbol;
             if (!Equals(symbol?.OriginalDefinition, declaredSymbol))
             {
                 continue;
             }
 
-            var currentNode = node;
-
+            var currentNode = simpleName;
             if (needsRename)
-            {
-                currentNode = ((SimpleNameSyntax)currentNode).WithIdentifier(identifierToken);
-            }
+                currentNode = currentNode.WithIdentifier(identifierToken).WithTriviaFrom(currentNode);
 
             if (hasAdditionalTypeArguments)
             {
-                var existingTypeArguments = symbol.TypeArguments.Select(s => s.GenerateTypeSyntax());
                 // Prepend additional type arguments to preserve lexical order in which they are defined
-                Contract.ThrowIfNull(additionalTypeArguments);
-                var typeArguments = additionalTypeArguments.Concat(existingTypeArguments);
-                currentNode = generator.WithTypeArguments(currentNode, typeArguments);
-                currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
+                var typeArguments = additionalTypeArguments.Concat(symbol.TypeArguments.Select(s => s.GenerateTypeSyntax()));
+                currentNode = (SimpleNameSyntax)generator
+                    .WithTypeArguments(currentNode, typeArguments)
+                    .WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
-            if (node.Parent is InvocationExpressionSyntax invocation)
+            if (simpleName.Parent is InvocationExpressionSyntax invocation)
             {
                 if (hasAdditionalArguments)
                 {
+                    var firstOptionalOrParamsArgument = invocation.ArgumentList.Arguments.FirstOrDefault(
+                        a =>
+                        {
+                            var parameter = a.DetermineParameter(semanticModel, allowUncertainCandidates: true, allowParams: true, cancellationToken);
+                            if (parameter is null)
+                                return false;
+
+                            return parameter.IsOptional || parameter.IsParams;
+                        });
+
+                    // Attempt to place the new arguments appropriately in the original invocation, accounting for things
+                    // like optional/params args. Otherwise, just fallback to appending the new arguments at the end if we
+                    // can't get proper semantics here.
+                    var insertionIndex = firstOptionalOrParamsArgument != null
+                        ? invocation.ArgumentList.Arguments.IndexOf(firstOptionalOrParamsArgument)
+                        : invocation.ArgumentList.Arguments.Count;
+
                     var shouldUseNamedArguments =
-                        !supportsNonTrailing && invocation.ArgumentList.Arguments.Any(arg => arg.NameColon != null);
+                        !supportsNonTrailing && invocation.ArgumentList.Arguments.Take(insertionIndex).Any(arg => arg.NameColon != null);
 
                     var additionalArguments = capturesAsParameters.Select(p =>
                         (ArgumentSyntax)GenerateArgument(p, p.Name, shouldUseNamedArguments)).ToArray();
 
-                    editor.ReplaceNode(invocation.ArgumentList,
-                        invocation.ArgumentList.AddArguments(additionalArguments));
+                    editor.ReplaceNode(
+                        invocation.ArgumentList,
+                        invocation.ArgumentList.WithArguments(
+                            invocation.ArgumentList.Arguments.InsertRange(insertionIndex, additionalArguments)));
                 }
             }
             else if (hasAdditionalArguments || hasAdditionalTypeArguments)
@@ -204,7 +201,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
                 anyDelegatesToReplace = true;
             }
 
-            editor.ReplaceNode(node, currentNode);
+            editor.ReplaceNode(simpleName, currentNode);
         }
 
         editor.TrackNode(localFunction);
@@ -252,16 +249,51 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         return document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 
+    private static ImmutableArray<ITypeParameterSymbol> CreateFinalTypeParameterList(
+        SemanticModel semanticModel,
+        LocalFunctionStatementSyntax localFunction,
+        IMethodSymbol declaredSymbol,
+        ImmutableArray<ISymbol> captures)
+    {
+        var typeParameters = new List<ITypeParameterSymbol>();
+        for (var containingMethod = declaredSymbol; containingMethod != null; containingMethod = containingMethod.ContainingSymbol as IMethodSymbol)
+            typeParameters.InsertRange(0, containingMethod.GetTypeParameters());
+
+        // We're going to remove unreferenced type parameters but we explicitly preserve
+        // captures' types, just in case that they were not spelt out in the function body
+        var reservedTypeParameters = captures.SelectMany(capture => capture.GetSymbolType().GetReferencedTypeParameters());
+        var unusedTypeParameters = typeParameters.ToList();
+        foreach (var id in localFunction.DescendantNodes().OfType<IdentifierNameSyntax>())
+        {
+            var symbol = semanticModel.GetSymbolInfo(id).Symbol;
+            if (symbol?.OriginalDefinition is ITypeParameterSymbol typeParameter)
+                unusedTypeParameters.Remove(typeParameter);
+        }
+
+        typeParameters.RemoveRange(unusedTypeParameters.Except(reservedTypeParameters));
+        return [.. typeParameters];
+    }
+
+    private static ImmutableArray<IParameterSymbol> CreateFinalParameterList(
+        ImmutableArray<IParameterSymbol> parameters, ImmutableArray<IParameterSymbol> capturesAsParameters)
+    {
+        var firstOptionalOrParamsParameterIndex = parameters.IndexOf(p => p.IsOptional || p.IsParams);
+        if (firstOptionalOrParamsParameterIndex < 0)
+            firstOptionalOrParamsParameterIndex = parameters.Length;
+
+        return [.. parameters.Take(firstOptionalOrParamsParameterIndex), .. capturesAsParameters, .. parameters.Skip(firstOptionalOrParamsParameterIndex)];
+    }
+
     private static bool SupportsNonTrailingNamedArguments(ParseOptions options)
         => options.LanguageVersion() >= LanguageVersion.CSharp7_2;
 
     private static SyntaxNode GenerateArgument(IParameterSymbol p, string name, bool shouldUseNamedArguments = false)
         => CSharpSyntaxGenerator.Instance.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
 
-    private static List<string> GenerateUniqueParameterNames(ImmutableArray<IParameterSymbol> parameters, List<string> reservedNames)
+    private static ImmutableArray<string> GenerateUniqueParameterNames(ImmutableArray<IParameterSymbol> parameters, ImmutableArray<string> reservedNames)
         => [.. parameters.Select(p => NameGenerator.EnsureUniqueness(p.Name, reservedNames))];
 
-    private static List<string> GetReservedNames(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+    private static ImmutableArray<string> GetReservedNames(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         => [.. semanticModel.GetAllDeclaredSymbols(node.GetAncestor<MemberDeclarationSyntax>(), cancellationToken).Select(s => s.Name)];
 
     private static ParameterSyntax GenerateParameter(IParameterSymbol parameter, string name)
@@ -278,37 +310,6 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
             .WithExpressionBody(localFunction.ExpressionBody)
             .WithSemicolonToken(localFunction.SemicolonToken)
             .WithBody(localFunction.Body);
-    }
-
-    private static void AddCapturedTypeParameters(ISymbol symbol, List<ITypeParameterSymbol> typeParameters)
-    {
-        var containingSymbol = symbol.ContainingSymbol;
-        if (containingSymbol != null &&
-            containingSymbol.Kind != SymbolKind.NamedType)
-        {
-            AddCapturedTypeParameters(containingSymbol, typeParameters);
-        }
-
-        typeParameters.AddRange(symbol.GetTypeParameters());
-    }
-
-    private static void RemoveUnusedTypeParameters(
-        SyntaxNode localFunction,
-        SemanticModel semanticModel,
-        List<ITypeParameterSymbol> typeParameters,
-        IEnumerable<ITypeParameterSymbol> reservedTypeParameters)
-    {
-        var unusedTypeParameters = typeParameters.ToList();
-        foreach (var id in localFunction.DescendantNodes().OfType<IdentifierNameSyntax>())
-        {
-            var symbol = semanticModel.GetSymbolInfo(id).Symbol;
-            if (symbol != null && symbol.OriginalDefinition is ITypeParameterSymbol typeParameter)
-            {
-                unusedTypeParameters.Remove(typeParameter);
-            }
-        }
-
-        typeParameters.RemoveRange(unusedTypeParameters.Except(reservedTypeParameters));
     }
 
     private static string GenerateUniqueMethodName(ISymbol declaredSymbol)

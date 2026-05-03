@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookCellArrayChange
+internal sealed class NotebookCellArrayChange
 {
     /// <summary>
     /// The start offset of the cell that changed.

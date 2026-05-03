@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Xml.Serialization;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 /// It uses the original tree's semantic model to create a speculative semantic model and verifies that
 /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
 /// </summary>
-internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
+internal sealed class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
     ExpressionSyntax,
     TypeSyntax,
     AttributeSyntax,
@@ -663,7 +663,7 @@ internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
         => node.IsKind(SyntaxKind.ParenthesizedExpression);
 
     protected override bool IsNamedArgument(ArgumentSyntax argument)
-        => argument.NameColon != null && !argument.NameColon.IsMissing;
+        => argument.NameColon is { IsMissing: false };
 
     protected override string GetNamedArgumentIdentifierValueText(ArgumentSyntax argument)
         => argument.NameColon.Name.Identifier.ValueText;

@@ -1,0 +1,112 @@
+﻿Document - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective -  - TModel = global::System.Object
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_BasicTagHelpers - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::TestNamespace.PTagHelper - __TestNamespace_PTagHelper
+            FieldDeclaration -  - private - global::TestNamespace.InputTagHelper - __TestNamespace_InputTagHelper
+            FieldDeclaration -  - private - global::TestNamespace.InputTagHelper2 - __TestNamespace_InputTagHelper2
+            DesignTimeDirective - 
+                DirectiveToken - (287:7,8 [62] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TModel>
+                DirectiveToken - (350:7,71 [4] ) - Html
+                DirectiveToken - (364:8,8 [54] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper
+                DirectiveToken - (419:8,63 [4] ) - Json
+                DirectiveToken - (433:9,8 [53] ) - global::Microsoft.AspNetCore.Mvc.IViewComponentHelper
+                DirectiveToken - (487:9,62 [9] ) - Component
+                DirectiveToken - (506:10,8 [43] ) - global::Microsoft.AspNetCore.Mvc.IUrlHelper
+                DirectiveToken - (550:10,52 [3] ) - Url
+                DirectiveToken - (563:11,8 [70] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider
+                DirectiveToken - (634:11,79 [23] ) - ModelExpressionProvider
+                DirectiveToken - (673:12,14 [104] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (793:13,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (904:14,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (14:0,14 [17] BasicTagHelpers.cshtml) - "*, TestAssembly"
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (31:0,31 [73] BasicTagHelpers.cshtml)
+                    LazyIntermediateToken - (31:0,31 [4] BasicTagHelpers.cshtml) - Html - \n\n
+                    LazyIntermediateToken - (35:2,0 [4] BasicTagHelpers.cshtml) - Html - <div
+                    LazyIntermediateToken - (39:2,4 [17] BasicTagHelpers.cshtml) - Html -  data-animation="
+                    LazyIntermediateToken - (56:2,21 [4] BasicTagHelpers.cshtml) - Html - fade
+                    LazyIntermediateToken - (60:2,25 [1] BasicTagHelpers.cshtml) - Html - "
+                    LazyIntermediateToken - (61:2,26 [36] BasicTagHelpers.cshtml) - Html -  class="randomNonTagHelperAttribute"
+                    LazyIntermediateToken - (97:2,62 [1] BasicTagHelpers.cshtml) - Html - >
+                    LazyIntermediateToken - (98:2,63 [6] BasicTagHelpers.cshtml) - Html - \n    
+                TagHelper - (104:3,4 [216] BasicTagHelpers.cshtml) - p - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (145:3,45 [10] BasicTagHelpers.cshtml)
+                            LazyIntermediateToken - (145:3,45 [10] BasicTagHelpers.cshtml) - Html - \n        
+                        TagHelper - (155:4,8 [25] BasicTagHelpers.cshtml) - p - TagMode.StartTagAndEndTag
+                            DefaultTagHelperBody - 
+                            DefaultTagHelperCreate -  - TestNamespace.PTagHelper
+                            DefaultTagHelperHtmlAttribute -  - data - HtmlAttributeValueStyle.DoubleQuotes
+                                HtmlContent - (164:4,17 [10] BasicTagHelpers.cshtml)
+                                    LazyIntermediateToken - (164:4,17 [10] BasicTagHelpers.cshtml) - Html - -delay1000
+                            DefaultTagHelperExecute - 
+                        HtmlContent - (180:4,33 [10] BasicTagHelpers.cshtml)
+                            LazyIntermediateToken - (180:4,33 [10] BasicTagHelpers.cshtml) - Html - \n        
+                        TagHelper - (190:5,8 [71] BasicTagHelpers.cshtml) - input - TagMode.StartTagOnly
+                            DefaultTagHelperBody - 
+                            DefaultTagHelperCreate -  - TestNamespace.InputTagHelper
+                            DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
+                            DefaultTagHelperHtmlAttribute -  - data-interval - HtmlAttributeValueStyle.DoubleQuotes
+                                HtmlContent - (212:5,30 [7] BasicTagHelpers.cshtml)
+                                    LazyIntermediateToken - (212:5,30 [7] BasicTagHelpers.cshtml) - Html - 2000 + 
+                                CSharpExpression - (220:5,38 [23] BasicTagHelpers.cshtml)
+                                    LazyIntermediateToken - (220:5,38 [23] BasicTagHelpers.cshtml) - CSharp - ViewBag.DefaultInterval
+                                HtmlContent - (243:5,61 [4] BasicTagHelpers.cshtml)
+                                    LazyIntermediateToken - (243:5,61 [4] BasicTagHelpers.cshtml) - Html -  + 1
+                            DefaultTagHelperProperty - (255:5,73 [4] BasicTagHelpers.cshtml) - type - string TestNamespace.InputTagHelper.Type - HtmlAttributeValueStyle.DoubleQuotes
+                                HtmlContent - (255:5,73 [4] BasicTagHelpers.cshtml)
+                                    LazyIntermediateToken - (255:5,73 [4] BasicTagHelpers.cshtml) - Html - text
+                            DefaultTagHelperProperty - (255:5,73 [4] BasicTagHelpers.cshtml) - type - string TestNamespace.InputTagHelper2.Type - HtmlAttributeValueStyle.DoubleQuotes
+                                HtmlContent - (255:5,73 [4] BasicTagHelpers.cshtml)
+                                    LazyIntermediateToken - (255:5,73 [4] BasicTagHelpers.cshtml) - Html - text
+                            DefaultTagHelperExecute - 
+                        HtmlContent - (261:5,79 [10] BasicTagHelpers.cshtml)
+                            LazyIntermediateToken - (261:5,79 [10] BasicTagHelpers.cshtml) - Html - \n        
+                        TagHelper - (271:6,8 [39] BasicTagHelpers.cshtml) - input - TagMode.SelfClosing
+                            DefaultTagHelperBody - 
+                            DefaultTagHelperCreate -  - TestNamespace.InputTagHelper
+                            DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
+                            DefaultTagHelperProperty - (284:6,21 [8] BasicTagHelpers.cshtml) - type - string TestNamespace.InputTagHelper.Type - HtmlAttributeValueStyle.DoubleQuotes
+                                HtmlContent - (284:6,21 [8] BasicTagHelpers.cshtml)
+                                    LazyIntermediateToken - (284:6,21 [8] BasicTagHelpers.cshtml) - Html - checkbox
+                            DefaultTagHelperProperty - (284:6,21 [8] BasicTagHelpers.cshtml) - type - string TestNamespace.InputTagHelper2.Type - HtmlAttributeValueStyle.DoubleQuotes
+                                HtmlContent - (284:6,21 [8] BasicTagHelpers.cshtml)
+                                    LazyIntermediateToken - (284:6,21 [8] BasicTagHelpers.cshtml) - Html - checkbox
+                            DefaultTagHelperProperty - (303:6,40 [4] BasicTagHelpers.cshtml) - checked - bool TestNamespace.InputTagHelper2.Checked - HtmlAttributeValueStyle.DoubleQuotes
+                                IntermediateToken - (303:6,40 [4] BasicTagHelpers.cshtml) - CSharp - true
+                            DefaultTagHelperExecute - 
+                        HtmlContent - (310:6,47 [6] BasicTagHelpers.cshtml)
+                            LazyIntermediateToken - (310:6,47 [6] BasicTagHelpers.cshtml) - Html - \n    
+                    DefaultTagHelperCreate -  - TestNamespace.PTagHelper
+                    DefaultTagHelperHtmlAttribute -  - class - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (114:3,14 [11] BasicTagHelpers.cshtml)
+                            LazyIntermediateToken - (114:3,14 [11] BasicTagHelpers.cshtml) - Html - Hello World
+                    DefaultTagHelperHtmlAttribute -  - data-delay - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (139:3,39 [4] BasicTagHelpers.cshtml)
+                            LazyIntermediateToken - (139:3,39 [4] BasicTagHelpers.cshtml) - Html - 1000
+                    DefaultTagHelperExecute - 
+                HtmlContent - (320:7,8 [8] BasicTagHelpers.cshtml)
+                    LazyIntermediateToken - (320:7,8 [2] BasicTagHelpers.cshtml) - Html - \n
+                    LazyIntermediateToken - (322:8,0 [6] BasicTagHelpers.cshtml) - Html - </div>
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

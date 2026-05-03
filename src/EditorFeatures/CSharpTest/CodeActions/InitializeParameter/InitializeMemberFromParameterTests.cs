@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActionTest
+public sealed partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActionTest
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         => new CSharpInitializeMemberFromParameterCodeRefactoringProvider();
@@ -24,9 +24,8 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
     private readonly NamingStylesTestOptionSets options = new(LanguageNames.CSharp);
 
     [Fact]
-    public async Task TestInitializeFieldWithSameName()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeFieldWithSameName()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -48,12 +47,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEndOfParameter1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestEndOfParameter1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -75,12 +72,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEndOfParameter2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestEndOfParameter2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -102,12 +97,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInitializeFieldWithUnderscoreName()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeFieldWithUnderscoreName()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -129,12 +122,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInitializeWritableProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeWritableProperty()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -156,12 +147,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInitializeFieldWithDifferentName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInitializeFieldWithDifferentName()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -185,12 +174,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public string S { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInitializeNonWritableProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeNonWritableProperty()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -214,12 +201,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInitializeDoesNotUsePropertyWithUnrelatedName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInitializeDoesNotUsePropertyWithUnrelatedName()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -242,12 +227,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInitializeFieldWithWrongType1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeFieldWithWrongType1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -271,12 +254,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public string S { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInitializeFieldWithWrongType2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeFieldWithWrongType2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -299,12 +280,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1);
-    }
 
     [Fact]
-    public async Task TestInitializeFieldWithConvertibleType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInitializeFieldWithConvertibleType()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -326,12 +305,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWhenAlreadyInitialized1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWhenAlreadyInitialized1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -344,12 +321,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWhenAlreadyInitialized2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWhenAlreadyInitialized2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -362,12 +337,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWhenAlreadyInitialized3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWhenAlreadyInitialized3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -394,12 +367,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public string S { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInsertionLocation1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInsertionLocation1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -425,12 +396,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInsertionLocation2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInsertionLocation2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -456,12 +425,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInsertionLocation3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInsertionLocation3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -486,12 +453,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInMethod()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotInMethod()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -502,12 +467,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInsertionLocation4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInsertionLocation4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -531,12 +494,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInsertionLocation5()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInsertionLocation5()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -560,12 +521,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInsertionLocation6()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInsertionLocation6()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -590,12 +549,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public string T { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInsertionLocation7()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInsertionLocation7()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -620,12 +577,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public string T { get; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19956")]
-    public async Task TestNoBlock()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNoBlock()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -645,12 +600,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")]
-    public async Task TestInitializeFieldWithParameterNameSelected1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeFieldWithParameterNameSelected1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -672,12 +625,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")]
-    public async Task TestInitializeField_ParameterNameSelected2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeField_ParameterNameSelected2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -699,12 +650,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInitializeClassProperty_RequiredAccessibilityOmitIfDefault()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeClassProperty_RequiredAccessibilityOmitIfDefault()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -728,12 +677,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public int Test2 { get; }
             }
             """, index: 0, parameters: OmitIfDefault_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeClassProperty_RequiredAccessibilityNever()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeClassProperty_RequiredAccessibilityNever()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -757,12 +704,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public int Test2 { get; }
             }
             """, index: 0, parameters: Never_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeClassProperty_RequiredAccessibilityAlways()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeClassProperty_RequiredAccessibilityAlways()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -786,12 +731,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public int Test2 { get; }
             }
             """, index: 0, parameters: Always_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeClassField_RequiredAccessibilityOmitIfDefault()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeClassField_RequiredAccessibilityOmitIfDefault()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -814,12 +757,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: OmitIfDefault_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeClassField_RequiredAccessibilityNever()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeClassField_RequiredAccessibilityNever()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -842,12 +783,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: Never_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeClassField_RequiredAccessibilityAlways()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeClassField_RequiredAccessibilityAlways()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -870,12 +809,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: Always_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeStructProperty_RequiredAccessibilityOmitIfDefault()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeStructProperty_RequiredAccessibilityOmitIfDefault()
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -895,12 +832,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public int Test { get; }
             }
             """, index: 0, parameters: OmitIfDefault_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeStructProperty_RequiredAccessibilityNever()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeStructProperty_RequiredAccessibilityNever()
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -920,12 +855,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public int Test { get; }
             }
             """, index: 0, parameters: Never_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeStructProperty_RequiredAccessibilityAlways()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeStructProperty_RequiredAccessibilityAlways()
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -945,12 +878,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public int Test { get; }
             }
             """, index: 0, parameters: Always_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeStructField_RequiredAccessibilityOmitIfDefault()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeStructField_RequiredAccessibilityOmitIfDefault()
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -970,12 +901,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: OmitIfDefault_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeStructField_RequiredAccessibilityNever()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeStructField_RequiredAccessibilityNever()
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -995,12 +924,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: Never_Warning);
-    }
 
     [Fact]
-    public async Task TestInitializeStructField_RequiredAccessibilityAlways()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeStructField_RequiredAccessibilityAlways()
+        => TestInRegularAndScriptAsync(
             """
             struct S
             {
@@ -1020,12 +947,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: Always_Warning);
-    }
 
     [Fact]
-    public async Task TestNoParameterNamingStyle_CreateAndInitField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNoParameterNamingStyle_CreateAndInitField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1045,12 +970,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
-    }
 
     [Fact]
-    public async Task TestCommonParameterNamingStyle_CreateAndInitField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCommonParameterNamingStyle_CreateAndInitField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1070,12 +993,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
-    }
 
     [Fact]
-    public async Task TestSpecifiedParameterNamingStyle_CreateAndInitField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSpecifiedParameterNamingStyle_CreateAndInitField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1095,12 +1016,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1120,12 +1039,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1145,12 +1062,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
-    }
 
     [Fact]
-    public async Task TestNoParameterNamingStyle_CreateAndInitProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNoParameterNamingStyle_CreateAndInitProperty()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1170,12 +1085,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public string S { get; }
             }
             """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestCommonParameterNamingStyle_CreateAndInitProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCommonParameterNamingStyle_CreateAndInitProperty()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1195,12 +1108,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public string S { get; }
             }
             """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestSpecifiedParameterNamingStyle_CreateAndInitProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSpecifiedParameterNamingStyle_CreateAndInitProperty()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1220,12 +1131,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public string S { get; }
             }
             """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitProperty()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1245,12 +1154,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public string S { get; }
             }
             """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitProperty()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1270,12 +1177,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 public string S { get; }
             }
             """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestNoParameterNamingStyle_InitializeField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNoParameterNamingStyle_InitializeField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1297,12 +1202,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
-    }
 
     [Fact]
-    public async Task TestCommonParameterNamingStyle_InitializeField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCommonParameterNamingStyle_InitializeField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1324,12 +1227,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
-    }
 
     [Fact]
-    public async Task TestSpecifiedParameterNamingStyle_InitializeField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSpecifiedParameterNamingStyle_InitializeField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1351,12 +1252,10 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestCommonAndSpecifiedParameterNamingStyle_InitializeField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCommonAndSpecifiedParameterNamingStyle_InitializeField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1378,22 +1277,20 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
                 }
             }
             """, index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeField()
+    public Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeField()
+        => TestInRegularAndScriptAsync(
+    """
+    class C
     {
-        await TestInRegularAndScript1Async(
-"""
-class C
-{
-    private readonly string _s;
+        private readonly string _s;
 
-    public C([||]string p_t_s_End)
-    {
+        public C([||]string p_t_s_End)
+        {
+        }
     }
-}
-""",
+    """,
     """
     class C
     {
@@ -1405,12 +1302,10 @@ class C
         }
     }
     """, index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestNoParameterNamingStyle_InitializeProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNoParameterNamingStyle_InitializeProperty()
+        => TestInRegularAndScriptAsync(
 """
 class C
 {
@@ -1432,12 +1327,10 @@ class C
     public string S { get; }
 }
 """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestCommonParameterNamingStyle_InitializeProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCommonParameterNamingStyle_InitializeProperty()
+        => TestInRegularAndScriptAsync(
 """
 class C
 {
@@ -1459,12 +1352,10 @@ class C
     public string S { get; }
 }
 """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestSpecifiedParameterNamingStyle_InitializeProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSpecifiedParameterNamingStyle_InitializeProperty()
+        => TestInRegularAndScriptAsync(
 """
 class C
 {
@@ -1486,12 +1377,10 @@ class C
     public string S { get; }
 }
 """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestCommonAndSpecifiedParameterNamingStyle_InitializeProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCommonAndSpecifiedParameterNamingStyle_InitializeProperty()
+        => TestInRegularAndScriptAsync(
 """
 class C
 {
@@ -1513,22 +1402,20 @@ class C
     public string S { get; }
 }
 """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeProperty()
+    public Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeProperty()
+        => TestInRegularAndScriptAsync(
+    """
+    class C
     {
-        await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string p_t_s_End)
-    {
-    }
+        public C([||]string p_t_s_End)
+        {
+        }
 
-    public string S { get; }
-}
-""",
+        public string S { get; }
+    }
+    """,
     """
     class C
     {
@@ -1540,12 +1427,10 @@ class C
         public string S { get; }
     }
     """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestBaseNameEmpty()
-    {
-        await TestMissingAsync(
+    public Task TestBaseNameEmpty()
+        => TestMissingAsync(
 """
 class C
 {
@@ -1556,15 +1441,10 @@ class C
     public string S { get; }
 }
 """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
     [Fact]
-    public async Task TestSomeBaseNamesEmpty()
-    {
-        // Currently, this case does not offer a refactoring because selecting multiple parameters 
-        // is not supported. If multiple parameters are supported in the future, this case should 
-        // be updated to verify that only the parameter name that does not have an empty base is offered.
-        await TestMissingAsync(
+    public Task TestSomeBaseNamesEmpty()
+        => TestMissingAsync(
 """
 class C
 {
@@ -1573,16 +1453,14 @@ class C
     }
 }
 """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
-    }
 
-    private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning));
-    private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never, NotificationOption2.Warning));
-    private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Warning));
+    private TestParameters OmitIfDefault_Warning => new(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning));
+    private TestParameters Never_Warning => new(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never, NotificationOption2.Warning));
+    private TestParameters Always_Warning => new(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Warning));
 
     [Fact]
-    public async Task TestCreateFieldWithTopLevelNullability()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCreateFieldWithTopLevelNullability()
+        => TestInRegularAndScriptAsync(
 """
 #nullable enable
 class C
@@ -1604,12 +1482,10 @@ class C
     }
 }
 """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
-    }
 
     [Fact]
-    public async Task TestCreatePropertyWithTopLevelNullability()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCreatePropertyWithTopLevelNullability()
+        => TestInRegularAndScriptAsync(
 """
 #nullable enable
 class C
@@ -1631,12 +1507,10 @@ class C
     public string? S { get; }
 }
 """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24526")]
-    public async Task TestSingleLineBlock_BraceOnNextLine()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSingleLineBlock_BraceOnNextLine()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1654,12 +1528,10 @@ class C
                 public string S { get; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24526")]
-    public async Task TestSingleLineBlock_BraceOnSameLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSingleLineBlock_BraceOnSameLine()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1675,13 +1547,11 @@ class C
 
                 public string S { get; }
             }
-            """, options: this.Option(CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Methods));
-    }
+            """, new(options: this.Option(CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Methods)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-    public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1706,12 +1576,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-    public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1736,12 +1604,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-    public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1767,12 +1633,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-    public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1794,12 +1658,10 @@ class C
                     (this.s, this.t, this.i) = (s, t, i);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-    public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1827,12 +1689,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-    public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1858,12 +1718,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-    public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1885,12 +1743,10 @@ class C
                     (this.i, this.s, this.t) = (i, s, t);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-    public async Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1916,12 +1772,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-    public async Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1943,12 +1797,10 @@ class C
                     (this.s, this.i, this.t) = (s, i, t);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-    public async Task TestGeneratePropertyIfParameterFollowsExistingPropertyAssignment_TupleAssignment1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGeneratePropertyIfParameterFollowsExistingPropertyAssignment_TupleAssignment1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1974,12 +1826,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41824")]
-    public async Task TestMissingInArgList()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInArgList()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1993,12 +1843,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
-    public async Task TestGenerateRemainingFields1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateRemainingFields1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2022,12 +1870,10 @@ class C
                 }
             }
             """, index: 3);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
-    public async Task TestGenerateRemainingFields2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateRemainingFields2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2054,12 +1900,10 @@ class C
                 }
             }
             """, index: 2);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
-    public async Task TestGenerateRemainingFields3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateRemainingFields3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2086,12 +1930,10 @@ class C
                 }
             }
             """, index: 2);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
-    public async Task TestGenerateRemainingFields4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateRemainingFields4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2118,12 +1960,10 @@ class C
                 }
             }
             """, index: 2);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
-    public async Task TestGenerateRemainingProperties1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateRemainingProperties1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2147,12 +1987,10 @@ class C
                 public int K { get; }
             }
             """, index: 2);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
-    public async Task TestGenerateRemainingProperties2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateRemainingProperties2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2180,12 +2018,10 @@ class C
                 public int K { get; }
             }
             """, index: 3);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
-    public async Task TestGenerateRemainingProperties3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateRemainingProperties3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2213,12 +2049,10 @@ class C
                 public int K { get; }
             }
             """, index: 3);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
-    public async Task TestGenerateRemainingProperties4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestGenerateRemainingProperties4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2246,12 +2080,10 @@ class C
                 public int J { get; }
             }
             """, index: 3);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53467")]
-    public async Task TestMissingWhenTypeNotInCompilation()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWhenTypeNotInCompilation()
+        => TestMissingInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1">
@@ -2274,12 +2106,10 @@ class C
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
-    public async Task TestInitializeThrowingProperty1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeThrowingProperty1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2305,12 +2135,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
-    public async Task TestInitializeThrowingProperty2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeThrowingProperty2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2342,12 +2170,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
-    public async Task TestInitializeThrowingProperty3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeThrowingProperty3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2379,12 +2205,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
-    public async Task TestInitializeThrowingProperty4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeThrowingProperty4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2418,12 +2242,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
-    public async Task TestInitializeThrowingProperty5()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeThrowingProperty5()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2457,12 +2279,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
-    public async Task TestInitializeThrowingProperty6()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInitializeThrowingProperty6()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2490,12 +2310,10 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
-    public async Task TestInitializeThrowingProperty_DifferentFile1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInitializeThrowingProperty_DifferentFile1()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -2539,5 +2357,4 @@ class C
                 </Project>
             </Workspace>
             """);
-    }
 }

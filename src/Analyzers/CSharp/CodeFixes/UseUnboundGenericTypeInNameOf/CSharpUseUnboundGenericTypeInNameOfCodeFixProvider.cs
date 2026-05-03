@@ -30,20 +30,17 @@ internal sealed partial class CSharpUseUnboundGenericTypeInNameOfCodeFixProvider
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseUnboundGenericTypeInNameOfDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_unbound_generic_type, nameof(CSharpAnalyzersResources.Use_unbound_generic_type));
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
             FixOne(editor, diagnostic, cancellationToken);
-
-        return Task.CompletedTask;
     }
 
     private static void FixOne(
@@ -53,14 +50,24 @@ internal sealed partial class CSharpUseUnboundGenericTypeInNameOfCodeFixProvider
         if (!nameofInvocation.IsNameOfInvocation())
             return;
 
-        foreach (var typeArgumentList in nameofInvocation.DescendantNodes().OfType<TypeArgumentListSyntax>().OrderByDescending(t => t.SpanStart))
-        {
-            if (typeArgumentList.Arguments.Any(a => a.Kind() != SyntaxKind.OmittedTypeArgument))
+        editor.ReplaceNode(nameofInvocation, ConvertToUnboundGenericNameof(nameofInvocation));
+    }
+
+    public static TSyntax ConvertToUnboundGenericNameof<TSyntax>(TSyntax syntax)
+        where TSyntax : SyntaxNode
+    {
+        return syntax.ReplaceNodes(
+            syntax.DescendantNodes().OfType<TypeArgumentListSyntax>(),
+            (original, current) =>
             {
-                var list = NodeOrTokenList(typeArgumentList.Arguments.GetWithSeparators().Select(
-                    t => t.IsToken ? t.AsToken().WithoutTrivia() : s_omittedArgument));
-                editor.ReplaceNode(typeArgumentList, typeArgumentList.WithArguments(SeparatedList<TypeSyntax>(list)));
-            }
-        }
+                if (current.Arguments.Any(a => a.Kind() != SyntaxKind.OmittedTypeArgument))
+                {
+                    var list = NodeOrTokenList(current.Arguments.GetWithSeparators().Select(
+                        t => t.IsToken ? t.AsToken().WithoutTrivia() : s_omittedArgument));
+                    return current.WithArguments(SeparatedList<TypeSyntax>(list));
+                }
+
+                return current;
+            });
     }
 }

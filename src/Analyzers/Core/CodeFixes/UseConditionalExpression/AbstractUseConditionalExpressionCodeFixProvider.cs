@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -47,7 +49,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Defer to our callback to actually make the edits for each diagnostic. In turn, it
         // will return 'true' if it made a multi-line conditional expression. In that case,
@@ -96,7 +98,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         {
             return negate
                 ? (TExpressionSyntax)generator.Negate(generatorInternal, condition, semanticModel, cancellationToken).WithoutTrivia()
-                : (TExpressionSyntax)condition.WithoutTrivia();
+                : condition.WithoutTrivia();
         }
 
         var trueExpression = MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, trueStatement, trueValue));
@@ -104,13 +106,14 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         trueExpression = WrapReturnExpressionIfNecessary(trueExpression, trueStatement);
         falseExpression = WrapReturnExpressionIfNecessary(falseExpression, falseStatement);
 
-        var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
+        var initialExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
             condition.WithoutTrivia(),
-            trueExpression,
-            falseExpression);
+            WithoutLeadingWhiteSpaceOrEndOfLineTrivia(trueExpression),
+            WithoutLeadingWhiteSpaceOrEndOfLineTrivia(falseExpression));
+        var (conditionalExpression, makeMultiLine) = UpdateConditionalExpression(ifOperation, initialExpression);
 
         conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
-        var makeMultiLine = await MakeMultiLineAsync(
+        makeMultiLine = makeMultiLine || await MakeMultiLineAsync(
             document, condition,
             trueValue.Syntax, falseValue.Syntax, formattingOptions, cancellationToken).ConfigureAwait(false);
         if (makeMultiLine)
@@ -122,8 +125,22 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         return MakeRef(generatorInternal, isRef, conditionalExpression);
     }
 
-    protected virtual SyntaxNode WrapIfStatementIfNecessary(IConditionalOperation operation)
-        => operation.Condition.Syntax;
+    private TExpressionSyntax WithoutLeadingWhiteSpaceOrEndOfLineTrivia(TExpressionSyntax expression)
+    {
+        var syntaxFacts = this.SyntaxFacts;
+        return expression.GetLeadingTrivia().All(syntaxFacts.IsWhitespaceOrEndOfLineTrivia)
+            ? expression.WithoutLeadingTrivia()
+            : expression;
+    }
+
+    protected virtual (TConditionalExpressionSyntax conditional, bool makeMultiLine) UpdateConditionalExpression(
+        IConditionalOperation originalIfStatement, TConditionalExpressionSyntax conditionalExpression)
+    {
+        return (conditionalExpression, makeMultiLine: false);
+    }
+
+    protected virtual TExpressionSyntax WrapIfStatementIfNecessary(IConditionalOperation operation)
+        => (TExpressionSyntax)operation.Condition.Syntax;
 
     protected virtual TExpressionSyntax WrapReturnExpressionIfNecessary(TExpressionSyntax returnExpression, IOperation returnOperation)
         => returnExpression;

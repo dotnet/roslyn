@@ -70,16 +70,32 @@ public partial class CSharpJsonParserTests
         if (runSubTreeChecks)
             TryParseSubTrees(stringText, options);
 
-        var actualTree = TreeToText(tree).Replace("\"", "\"\"");
-        AssertEx.Equal(expectedTree!.Replace("\"", "\"\""), actualTree);
+        var actualTree = TreeToText(tree).Replace("""
+            "
+            """, """
+            ""
+            """);
+        AssertEx.Equal(expectedTree.Replace("""
+            "
+            """, """
+            ""
+            """), actualTree);
 
         ValidateDiagnostics(expectedDiagnostics, tree);
     }
 
     private protected static void ValidateDiagnostics(string expectedDiagnostics, JsonTree tree)
     {
-        var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
-        AssertEx.Equal(RemoveMessagesInNonSupportedLanguage(expectedDiagnostics).Replace("\"", "\"\""), actualDiagnostics);
+        var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("""
+            "
+            """, """
+            ""
+            """);
+        AssertEx.Equal(RemoveMessagesInNonSupportedLanguage(expectedDiagnostics).Replace("""
+            "
+            """, """
+            ""
+            """), actualDiagnostics);
     }
 
     private static string RemoveMessagesInNonSupportedLanguage(string value)
@@ -92,7 +108,7 @@ public partial class CSharpJsonParserTests
 
         var diagnosticsElement = XElement.Parse(value);
         foreach (var diagnosticElement in diagnosticsElement.Elements("Diagnostic"))
-            diagnosticElement.Attribute("Message").Remove();
+            diagnosticElement.Attribute("Message")!.Remove();
 
         return diagnosticsElement.ToString();
     }
@@ -101,19 +117,33 @@ public partial class CSharpJsonParserTests
     {
         // Trim the input from the right and make sure tree invariants hold
         var current = stringText;
-        while (current != "@\"\"" && current != "\"\"")
+        while (current != """
+            @""
+            """ && current != """
+            ""
+            """)
         {
-            current = current[0..^2] + "\"";
+            current = current[0..^2] + """
+                "
+                """;
             TryParseTree(current, options, conversionFailureOk: true);
         }
 
         // Trim the input from the left and make sure tree invariants hold
         current = stringText;
-        while (current != "@\"\"" && current != "\"\"")
+        while (current != """
+            @""
+            """ && current != """
+            ""
+            """)
         {
             current = current[0] == '@'
-                ? "@\"" + current[3..]
-                : "\"" + current[2..];
+                ? """
+                @"
+                """ + current[3..]
+                : """
+                "
+                """ + current[2..];
 
             TryParseTree(current, options, conversionFailureOk: true);
         }
@@ -339,7 +369,7 @@ public partial class CSharpJsonParserTests
             case JsonKind.EndOfLineTrivia:
                 break;
             default:
-                Assert.False(true, "Incorrect trivia kind");
+                Assert.Fail("Incorrect trivia kind");
                 return;
         }
 
@@ -366,7 +396,7 @@ public partial class CSharpJsonParserTests
         return new XElement(element.Name, children);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Deep recursion test relies on Windows stack size (~1MB) to trigger stack overflow; Linux has 8MB stack")]
     public void TestDeepRecursion1()
     {
         var (token, tree, chars) =
@@ -413,11 +443,11 @@ public partial class CSharpJsonParserTests
                 """,
                 JsonOptions.Loose, conversionFailureOk: false);
         Assert.False(token.IsMissing);
-        Assert.False(chars.IsDefaultOrEmpty);
+        Assert.False(chars.IsDefaultOrEmpty());
         Assert.Null(tree);
     }
 
-    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Deep recursion test relies on Windows stack size"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
     public void TestDeepRecursion2()
     {
         var (token, tree, chars) =
@@ -464,7 +494,7 @@ public partial class CSharpJsonParserTests
                 """,
                 JsonOptions.Loose, conversionFailureOk: false);
         Assert.False(token.IsMissing);
-        Assert.False(chars.IsDefaultOrEmpty);
+        Assert.False(chars.IsDefaultOrEmpty());
         Assert.Null(tree);
     }
 }

@@ -572,6 +572,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
         System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
 
+        System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor,
+
         System_MemoryExtensions__SequenceEqual_Span_T,
         System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
         System_MemoryExtensions__AsSpan_String,
@@ -584,6 +587,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_HotReloadException__ctorStringInt32,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+        System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute__ctor,
 
         System_Collections_ICollection__Count,
         System_Collections_ICollection__IsSynchronized,
@@ -623,6 +627,7 @@ namespace Microsoft.CodeAnalysis
         System_Collections_Generic_List_T__AddRange,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
+        System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
 
         System_Linq_Enumerable__ToList,
         System_Linq_Enumerable__ToArray,
@@ -714,6 +719,18 @@ namespace Microsoft.CodeAnalysis
         System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo,
         System_Linq_Expressions_Expression__Default,
         System_Linq_Expressions_Expression__Power_MethodInfo,
+
+        System_Text_Encoding__get_UTF8,
+        System_Text_Encoding__GetString,
+
+        System_Span_T__Slice_Int,
+        System_ReadOnlySpan_T__Slice_Int,
+        System_Memory_T__Slice_Int_Int,
+        System_Memory_T__Slice_Int,
+        System_ReadOnlyMemory_T__Slice_Int_Int,
+        System_ReadOnlyMemory_T__Slice_Int,
+
+        System_Runtime_CompilerServices_UnionAttribute__ctor,
 
         Count,
 

@@ -12,8 +12,13 @@ internal static class IDEDiagnosticIds
     public const string SimplifyMemberAccessDiagnosticId = "IDE0002";
     public const string RemoveThisOrMeQualificationDiagnosticId = "IDE0003";
     public const string RemoveUnnecessaryCastDiagnosticId = "IDE0004";
+
     public const string RemoveUnnecessaryImportsDiagnosticId = "IDE0005";
-    public const string IntellisenseBuildFailedDiagnosticId = "IDE0006";
+    public const string RemoveUnnecessaryImportsGeneratedCodeDiagnosticId = RemoveUnnecessaryImportsDiagnosticId + "_gen";
+
+    // No longer used. Avoid re-using the same ID again.
+    // public const string IntellisenseBuildFailedDiagnosticId = "IDE0006";
+
     public const string UseImplicitTypeDiagnosticId = "IDE0007";
     public const string UseExplicitTypeDiagnosticId = "IDE0008";
     public const string AddThisOrMeQualificationDiagnosticId = "IDE0009";
@@ -63,7 +68,7 @@ internal static class IDEDiagnosticIds
 
     public const string UseLocalFunctionDiagnosticId = "IDE0039";
 
-    public const string AddAccessibilityModifiersDiagnosticId = "IDE0040";
+    public const string AddOrRemoveAccessibilityModifiersDiagnosticId = "IDE0040";
 
     public const string UseIsNullCheckDiagnosticId = "IDE0041";
 
@@ -176,6 +181,7 @@ internal static class IDEDiagnosticIds
     public const string UseProgramMainId = "IDE0211";
 
     public const string ForEachCastDiagnosticId = "IDE0220";
+    public const string HiddenExplicitCastDiagnosticId = "IDE0221";
 
     public const string UseUtf8StringLiteralDiagnosticId = "IDE0230";
 
@@ -207,6 +213,17 @@ internal static class IDEDiagnosticIds
 
     public const string UseUnboundGenericTypeInNameOfDiagnosticId = "IDE0340";
 
+    public const string UseImplicitlyTypedLambdaExpressionDiagnosticId = "IDE0350";
+
+    public const string SimplifyPropertyAccessorDiagnosticId = "IDE0360";
+
+    public const string RemoveUnnecessaryNullableWarningSuppression = "IDE0370";
+
+    public const string RemoveUnnecessaryUnsafeModifier = "IDE0380";
+
+    public const string RemoveUnnecessaryAsyncModifier = "IDE0390";
+    public const string RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride = "IDE0391";
+
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
     public const string AnalyzerDependencyConflictId = "IDE1002";
@@ -228,4 +245,7 @@ internal static class IDEDiagnosticIds
     public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
     public const string ConditionalExpressionPlacementDiagnosticId = "IDE2005";
     public const string ArrowExpressionClausePlacementDiagnosticId = "IDE2006";
+
+    // 3000 range for copilot features.
+    public const string CopilotImplementNotImplementedExceptionDiagnosticId = "IDE3000";
 }

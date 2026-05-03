@@ -5,14 +5,13 @@
 #nullable disable
 
 using System;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 

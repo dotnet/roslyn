@@ -15,10 +15,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 /// Project context to initialize properties and items of a Workspace project created by <see cref="IWorkspaceProjectContextFactory"/>. 
 /// </summary>
 /// <remarks>
-/// <see cref="IDisposable.Dispose"/> is safe to call on instances of this type on any thread.
+/// All methods are safe to call from any thread.
 /// </remarks>
-internal interface IWorkspaceProjectContext : IDisposable
+internal interface IWorkspaceProjectContext : IDisposable, IAsyncDisposable
 {
+    /// <inheritdoc cref="IDisposable.Dispose"/>
+    [Obsolete("Use DisposeAsync instead.")]
+    new void Dispose();
+
     // Project properties.
     string DisplayName { get; set; }
     string? ProjectFilePath { get; set; }
@@ -76,15 +80,6 @@ internal interface IWorkspaceProjectContext : IDisposable
     /// Creates a batching scope for this context
     /// </summary>
     ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken);
-
-    // Can be removed once CPS starts consuming CreateBatchScopeAsync
-    void StartBatch();
-
-    // Can be removed once CPS starts consuming CreateBatchScopeAsync
-    IAsyncDisposable CreateBatchScope();
-
-    // Can be removed once CPS starts consuming CreateBatchScopeAsync
-    ValueTask EndBatchAsync();
 
     void ReorderSourceFiles(IEnumerable<string> filePaths);
 }

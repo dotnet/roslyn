@@ -11,7 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -43,17 +42,12 @@ internal static partial class ConflictResolver
     /// resolves them where possible.
     /// </summary>
     /// <param name="replacementText">The new name of the identifier</param>
-    /// <param name="nonConflictSymbolKeys">Used after renaming references. References that now bind to any of these
-    /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
-    /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
-    /// behavior.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A conflict resolution containing the new solution.</returns>
     internal static async Task<ConflictResolution> ResolveLightweightConflictsAsync(
         ISymbol symbol,
         LightweightRenameLocations lightweightRenameLocations,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -69,7 +63,8 @@ internal static partial class ConflictResolver
 
                 var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolKeys, cancellationToken),
+                    (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(
+                        solutionInfo, serializableSymbol, serializableLocationSet, replacementText, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue && result.Value != null)
@@ -84,7 +79,7 @@ internal static partial class ConflictResolver
             return new ConflictResolution(WorkspacesResources.Failed_to_resolve_rename_conflicts);
 
         return await ResolveSymbolicLocationConflictsInCurrentProcessAsync(
-            heavyweightLocations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+            heavyweightLocations, replacementText, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -94,7 +89,6 @@ internal static partial class ConflictResolver
     internal static async Task<ConflictResolution> ResolveSymbolicLocationConflictsInCurrentProcessAsync(
         SymbolicRenameLocations renameLocations,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken)
     {
         // when someone e.g. renames a symbol from metadata through the API (IDE blocks this), we need to return
@@ -106,7 +100,7 @@ internal static partial class ConflictResolver
         }
 
         var resolution = await ResolveMutableConflictsAsync(
-            renameLocations, renameSymbolDeclarationLocation, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+            renameLocations, renameSymbolDeclarationLocation, replacementText, cancellationToken).ConfigureAwait(false);
 
         return resolution.ToConflictResolution();
     }
@@ -115,12 +109,11 @@ internal static partial class ConflictResolver
         SymbolicRenameLocations renameLocationSet,
         Location renameSymbolDeclarationLocation,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var session = new Session(
-            renameLocationSet, renameSymbolDeclarationLocation, replacementText, nonConflictSymbolKeys, cancellationToken);
+            renameLocationSet, renameSymbolDeclarationLocation, replacementText, cancellationToken);
         return session.ResolveConflictsAsync();
     }
 
@@ -226,6 +219,7 @@ internal static partial class ConflictResolver
     /// perspective of find all references), but we still need to track it.
     /// </summary>
     private static async Task AddDeclarationConflictsAsync(
+        ProjectId projectId,
         ISymbol renamedSymbol,
         ISymbol renameSymbol,
         IEnumerable<ISymbol> referencedSymbols,
@@ -235,7 +229,7 @@ internal static partial class ConflictResolver
     {
         try
         {
-            var projectOpt = conflictResolution.CurrentSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
+            var projectOpt = conflictResolution.CurrentSolution.GetProject(projectId);
             if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
             {
                 Contract.ThrowIfNull(projectOpt);
@@ -250,8 +244,8 @@ internal static partial class ConflictResolver
                 if (semanticFactsService.SupportsParameterizedProperties)
                 {
                     otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
-                        .Where(s => !s.MatchesKind(SymbolKind.Method, SymbolKind.Property) ||
-                            !renamedSymbol.MatchesKind(SymbolKind.Method, SymbolKind.Property));
+                        .Where(s => s is not IMethodSymbol and not IPropertySymbol ||
+                                    renamedSymbol is not IMethodSymbol and not IPropertySymbol);
                 }
                 else
                 {
@@ -262,21 +256,23 @@ internal static partial class ConflictResolver
                 AddConflictingSymbolLocations(otherThingsNamedTheSameExcludeMethodAndParameterizedProperty, conflictResolution, reverseMappedLocations);
             }
 
-            if (renamedSymbol.IsKind(SymbolKind.Namespace) && renamedSymbol.ContainingSymbol.IsKind(SymbolKind.Namespace))
+            if (renamedSymbol is INamespaceSymbol { ContainingSymbol: INamespaceSymbol containingNamespace })
             {
-                var otherThingsNamedTheSame = ((INamespaceSymbol)renamedSymbol.ContainingSymbol).GetMembers(renamedSymbol.Name)
-                                                        .Where(s => !s.Equals(renamedSymbol) &&
-                                                                    !s.IsKind(SymbolKind.Namespace) &&
-                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
+                var otherThingsNamedTheSame = containingNamespace
+                    .GetMembers(renamedSymbol.Name)
+                    .Where(s => !s.Equals(renamedSymbol) &&
+                                !s.IsKind(SymbolKind.Namespace) &&
+                                string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
 
                 AddConflictingSymbolLocations(otherThingsNamedTheSame, conflictResolution, reverseMappedLocations);
             }
 
-            if (renamedSymbol.IsKind(SymbolKind.NamedType) && renamedSymbol.ContainingSymbol is INamespaceOrTypeSymbol)
+            if (renamedSymbol is INamedTypeSymbol { ContainingSymbol: INamespaceOrTypeSymbol containingTypeOrNamespace })
             {
-                var otherThingsNamedTheSame = ((INamespaceOrTypeSymbol)renamedSymbol.ContainingSymbol).GetMembers(renamedSymbol.Name)
-                                                        .Where(s => !s.Equals(renamedSymbol) &&
-                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
+                var otherThingsNamedTheSame = containingTypeOrNamespace
+                    .GetMembers(renamedSymbol.Name)
+                    .Where(s => !s.Equals(renamedSymbol) &&
+                                string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
 
                 var conflictingSymbolLocations = otherThingsNamedTheSame.Where(s => !s.IsKind(SymbolKind.Namespace));
                 if (otherThingsNamedTheSame.Any(s => s.IsKind(SymbolKind.Namespace)))
@@ -360,12 +356,18 @@ internal static partial class ConflictResolver
 
                 if (overriddenSymbol != null)
                 {
-                    overriddenSymbol = SymbolFinder.FindSourceDefinition(overriddenSymbol, solution, cancellationToken);
+                    // Unfortunately we cannot easily make CreateDeclarationLocationAnnotations async, as it's used in the rewriter that is rewriting trees.
+                    // The asynchrony in GetSymbolLocationAsync comes from SymbolFinder.FindSourceDefinitionAsync() which will only be async in the cross-language case, and only once
+                    // when the compilation wasn't already available.
+                    overriddenSymbol = SymbolFinder.FindSourceDefinitionAsync(overriddenSymbol, solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
                     overriddenFromMetadata = overriddenSymbol == null || overriddenSymbol.Locations.All(loc => loc.IsInMetadata);
                 }
             }
 
-            var location = GetSymbolLocation(solution, symbol, cancellationToken);
+            // Unfortunately we cannot easily make CreateDeclarationLocationAnnotations async, as it's used in the rewriter that is rewriting trees.
+            // The asynchrony in GetSymbolLocationAsync comes from SymbolFinder.FindSourceDefinitionAsync() which will only be async in the cross-language case, and only once
+            // when the compilation wasn't already available.
+            var location = GetSymbolLocationAsync(solution, symbol, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
             if (location != null && location.IsInSource)
             {
                 renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(solution.GetDocumentId(location.SourceTree), location.SourceSpan, overriddenFromMetadata, locations.Length);
@@ -398,11 +400,11 @@ internal static partial class ConflictResolver
     /// <summary>
     /// Gives the First Location for a given Symbol by ordering the locations using DocumentId first and Location starting position second
     /// </summary>
-    private static Location? GetSymbolLocation(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+    private static async ValueTask<Location?> GetSymbolLocationAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
         var locations = symbol.Locations;
 
-        var originalsourcesymbol = SymbolFinder.FindSourceDefinition(symbol, solution, cancellationToken);
+        var originalsourcesymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
         if (originalsourcesymbol != null)
             locations = originalsourcesymbol.Locations;
 

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -38,7 +39,7 @@ internal static class StackFrameUtils
             return;
         }
 
-        AssertEx.NotNull(actual);
+        Assert.NotNull(actual);
 
         Assert.Equal(expected.Kind, actual.Kind);
         Assert.True(expected.ChildCount == actual.ChildCount, PrintChildDifference(expected, actual));

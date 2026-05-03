@@ -15,22 +15,21 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ContractWrappers.cs" Link="EditAndContinue\ContractWrappers.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ManagedHotReloadServiceBridge.cs" Link="EditAndContinue\ManagedHotReloadServiceBridge.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadLanguageService.cs" Link="EditAndContinue\ManagedHotReloadLanguageService.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadLanguageServiceFactory.cs" Link="EditAndContinue\ManagedHotReloadLanguageServiceFactory.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadLanguageServiceImpl.cs" Link="EditAndContinue\ManagedHotReloadLanguageServiceImpl.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadServiceProxy.cs" Link="EditAndContinue\ManagedHotReloadServiceProxy.cs" />
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\EditAndContinueLogReporter.cs" Link="EditAndContinue\EditAndContinueLogReporter.cs" />
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\HotReloadLoggerProxy.cs" Link="EditAndContinue\HotReloadLoggerProxy.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\Shared\*.cs" LinkBase="Logging" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\PdbSourceDocument\AbstractSourceLinkService.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Composition" />
-    <PackageReference Include="Microsoft.ServiceHub.Framework" />
-
     <!-- 
     Additional runtime dependencies that we must include in the NuGet package as they are not a part of the main language server package.
     Do not remove GeneratePathProperty="True" as it is required below to add the package to the package we generate.

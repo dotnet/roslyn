@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     [CompilerTrait(CompilerFeature.DefaultInterfaceImplementation)]
     public class DefaultInterfaceImplementationTests : CSharpTestBase
     {
+        private sealed class CSharp13_CSharp14_Preview()
+            : CombinatorialValuesAttribute(LanguageVersion.CSharp13, LanguageVersion.CSharp14, LanguageVersion.Preview);
+
         [Theory]
         [CombinatorialData]
         [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
@@ -3334,7 +3337,7 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_109A(bool isStatic, bool useCSharp13)
+        public void PropertyImplementation_109A(bool isStatic, [CSharp13_CSharp14_Preview] LanguageVersion langVer)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3357,17 +3360,19 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(langVer),
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            bool useCSharp13 = langVer == LanguageVersion.CSharp13;
 
             switch (isStatic, useCSharp13)
             {
                 case (true, true):
                     compilation1.VerifyDiagnostics(
-                        // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,24): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                         //     static virtual int P1 
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 24));
                     break;
                 case (true, false):
                     compilation1.VerifyDiagnostics(
@@ -3377,9 +3382,9 @@ class Test1 : I1
                     break;
                 case (false, true):
                     compilation1.VerifyDiagnostics(
-                        // (4,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,9): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                         //     int P1 
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 9),
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 9),
                         // (4,9): error CS0525: Interfaces cannot contain instance fields
                         //     int P1 
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
@@ -3425,7 +3430,7 @@ class Test1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_109B(bool useCSharp13)
+        public void PropertyImplementation_109B([CSharp13_CSharp14_Preview] LanguageVersion langVer)
         {
             var source1 =
 @"
@@ -3446,16 +3451,18 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(langVer),
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            bool useCSharp13 = langVer == LanguageVersion.CSharp13;
 
             if (useCSharp13)
             {
                 compilation1.VerifyDiagnostics(
-                    // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     static int P1 
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 16));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 16));
             }
             else
             {
@@ -3493,7 +3500,7 @@ class Test1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_110A(bool isStatic, bool useCSharp13)
+        public void PropertyImplementation_110A(bool isStatic, [CSharp13_CSharp14_Preview] LanguageVersion langVer)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3512,17 +3519,19 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(langVer),
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            bool useCSharp13 = langVer == LanguageVersion.CSharp13;
 
             switch (isStatic, useCSharp13)
             {
                 case (true, true):
                     compilation1.VerifyDiagnostics(
-                        // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,24): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                         //     static virtual int P1 
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 24));
                     break;
                 case (true, false):
                     compilation1.VerifyDiagnostics(
@@ -3532,9 +3541,9 @@ class Test1 : I1
                     break;
                 case (false, true):
                     compilation1.VerifyDiagnostics(
-                        // (4,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,9): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                         //     int P1 
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 9),
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 9),
                         // (4,9): error CS0525: Interfaces cannot contain instance fields
                         //     int P1 
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
@@ -3580,7 +3589,7 @@ class Test1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_110B(bool useCSharp13)
+        public void PropertyImplementation_110B([CSharp13_CSharp14_Preview] LanguageVersion langVer)
         {
             var source1 =
 @"
@@ -3597,16 +3606,18 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(langVer),
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            bool useCSharp13 = langVer == LanguageVersion.CSharp13;
 
             if (useCSharp13)
             {
                 compilation1.VerifyDiagnostics(
-                    // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     static int P1 
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 16));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 16));
             }
             else
             {
@@ -23764,9 +23775,9 @@ class Test2 : I1, I2, I3
                 // (26,12): error CS0122: 'I1.I2' is inaccessible due to its protection level
                 //         I1.I2 I3.I4.M4() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(26, 12),
-                // (26,21): error CS0539: 'CI4.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (26,21): error CS9334: 'CI4.M4()' return type must be 'I1.I2' to match implemented member 'I3.I4.M4()'
                 //         I1.I2 I3.I4.M4() => null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("CI4.M4()").WithLocation(26, 21),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M4").WithArguments("CI4.M4()", "I1.I2", "I3.I4.M4()").WithLocation(26, 21),
                 // (33,29): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'C3.I6.M6()'
                 //             protected I1.I2 M6();
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "M6").WithArguments("C3.I6.M6()", "I1.I2").WithLocation(33, 29),
@@ -23776,9 +23787,9 @@ class Test2 : I1, I2, I3
                 // (39,12): error CS0122: 'I1.I2' is inaccessible due to its protection level
                 //         I1.I2 C3.I6.M6() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(39, 12),
-                // (39,21): error CS0539: 'CI6.M6()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (39,21): error CS9334: 'CI6.M6()' return type must be 'I1.I2' to match implemented member 'C3.I6.M6()'
                 //         I1.I2 C3.I6.M6() => null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M6").WithArguments("CI6.M6()").WithLocation(39, 21),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M6").WithArguments("CI6.M6()", "I1.I2", "C3.I6.M6()").WithLocation(39, 21),
                 // (46,37): error CS0050: Inconsistent accessibility: return type 'C1.I2' is less accessible than method 'C33.C44.M44()'
                 //             protected virtual C1.I2 M44() => null;
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "M44").WithArguments("C33.C44.M44()", "C1.I2").WithLocation(46, 37),
@@ -23947,9 +23958,9 @@ class Test2 : I1, I2, I3
                 // (26,20): error CS0122: 'I1<string>.I2' is inaccessible due to its protection level
                 //         I1<string>.I2 I3.I4.M4() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1<string>.I2").WithLocation(26, 20),
-                // (26,29): error CS0539: 'CI4.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (26,29): error CS9334: 'CI4.M4()' type must be 'I1<string>.I2' to match implemented member 'I3.I4.M4()'
                 //         I1<string>.I2 I3.I4.M4() => null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("CI4.M4()").WithLocation(26, 29),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M4").WithArguments("CI4.M4()", "I1<string>.I2", "I3.I4.M4()").WithLocation(26, 29),
                 // (33,37): error CS0050: Inconsistent accessibility: return type 'I1<string>.I2' is less accessible than method 'C3.I6.M6()'
                 //             protected I1<string>.I2 M6();
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "M6").WithArguments("C3.I6.M6()", "I1<string>.I2").WithLocation(33, 37),
@@ -23959,9 +23970,9 @@ class Test2 : I1, I2, I3
                 // (39,20): error CS0122: 'I1<string>.I2' is inaccessible due to its protection level
                 //         I1<string>.I2 C3.I6.M6() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1<string>.I2").WithLocation(39, 20),
-                // (39,29): error CS0539: 'CI6.M6()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (39,29): error CS9334: 'CI6.M6()' type must be 'I1<string>.I2' to match implemented member 'C3.I6.M6()'
                 //         I1<string>.I2 C3.I6.M6() => null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M6").WithArguments("CI6.M6()").WithLocation(39, 29),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M6").WithArguments("CI6.M6()", "I1<string>.I2", "C3.I6.M6()").WithLocation(39, 29),
                 // (46,45): error CS0050: Inconsistent accessibility: return type 'C1<string>.I2' is less accessible than method 'C33.C44.M44()'
                 //             protected virtual C1<string>.I2 M44() => null;
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "M44").WithArguments("C33.C44.M44()", "C1<string>.I2").WithLocation(46, 45),
@@ -44585,33 +44596,24 @@ interface I19
                 // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I13() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
-                // (70,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                // (70,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial I15();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(70, 12),
-                // (70,20): error CS0501: 'I15.I15()' must declare a body because it is not marked abstract, extern, or partial
-                //     static partial I15();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I15").WithArguments("I15.I15()").WithLocation(70, 20),
-                // (70,20): error CS0542: 'I15': member names cannot be the same as their enclosing type
-                //     static partial I15();
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I15").WithArguments("I15").WithLocation(70, 20),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(70, 12),
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
-                // (78,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                // (78,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial I17() => throw null;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(78, 12),
-                // (78,20): error CS0542: 'I17': member names cannot be the same as their enclosing type
-                //     static partial I17() => throw null;
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I17").WithArguments("I17").WithLocation(78, 20),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(78, 12),
                 // (82,19): error CS0179: 'I18.I18()' cannot be extern and declare a body
                 //     extern static I18() {}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "I18").WithArguments("I18.I18()").WithLocation(82, 19),
@@ -47455,9 +47457,9 @@ class Test2 : I2
 
             var expected = new DiagnosticDescription[]
             {
-                // (7,17): error CS0035: Operator '-' is ambiguous on an operand of type 'I2'
+                // (7,17): error CS9342: Operator resolution is ambiguous between the following members: 'I1.operator -(I1)' and 'I3.operator -(I3)'
                 //         var y = -x;
-                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-x").WithArguments("-", "I2").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("I1.operator -(I1)", "I3.operator -(I3)").WithLocation(7, 17)
             };
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
@@ -47668,9 +47670,9 @@ class Test2 : I3
 
             var expected = new DiagnosticDescription[]
             {
-                // (7,17): error CS0034: Operator '+' is ambiguous on operands of type 'C1' and 'I3'
+                // (7,26): error CS9342: Operator resolution is ambiguous between the following members: 'C1.operator +(C1, I2)' and 'C1.operator +(C1, I1)'
                 //         var y = new C1() + x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C1() + x").WithArguments("+", "C1", "I3").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C1.operator +(C1, I2)", "C1.operator +(C1, I1)").WithLocation(7, 26)
             };
 
             var compilation0 = CreateCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
@@ -47801,9 +47803,9 @@ class Test2 : I3
 
             var expected = new DiagnosticDescription[]
             {
-                // (7,17): error CS0034: Operator '+' is ambiguous on operands of type 'I3' and 'C1'
+                // (7,19): error CS9342: Operator resolution is ambiguous between the following members: 'C1.operator +(I2, C1)' and 'C1.operator +(I1, C1)'
                 //         var y = x + new C1();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + new C1()").WithArguments("+", "I3", "C1").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C1.operator +(I2, C1)", "C1.operator +(I1, C1)").WithLocation(7, 19)
             };
 
             var compilation0 = CreateCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
@@ -47926,9 +47928,9 @@ class Test2: I1, I2
 
             var expected = new DiagnosticDescription[]
             {
-                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I1' and 'I2'
+                // (8,19): error CS9342: Operator resolution is ambiguous between the following members: 'I1.operator +(I1, I2)' and 'I2.operator +(I1, I2)'
                 //         var z = x + y;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + y").WithArguments("+", "I1", "I2").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("I1.operator +(I1, I2)", "I2.operator +(I1, I2)").WithLocation(8, 19),
                 // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I2' and 'I1'
                 //         z = y + x;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "I2", "I1").WithLocation(9, 13)
@@ -47993,9 +47995,9 @@ class Test2 : I2
 
             var expected = new DiagnosticDescription[]
             {
-                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I2' and 'I1'
+                // (8,19): error CS9342: Operator resolution is ambiguous between the following members: 'I2.operator +(I2, I1)' and 'I1.operator +(I2, I1)'
                 //         var z = y + x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "y + x").WithArguments("+", "I2", "I1").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("I2.operator +(I2, I1)", "I1.operator +(I2, I1)").WithLocation(8, 19),
                 // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I1' and 'I2'
                 //         z = x + y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "I1", "I2").WithLocation(9, 13)
@@ -48647,9 +48649,9 @@ class Test2 : I3
 
             var expected = new DiagnosticDescription[]
             {
-                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I1' and 'I3'
+                // (8,19): error CS9342: Operator resolution is ambiguous between the following members: 'I1.operator +(I1, I2)' and 'I2.operator +(I1, I2)'
                 //         var z = x + y;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + y").WithArguments("+", "I1", "I3").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("I1.operator +(I1, I2)", "I2.operator +(I1, I2)").WithLocation(8, 19),
                 // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I3' and 'I1'
                 //         z = y + x;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "I3", "I1").WithLocation(9, 13)
@@ -48717,9 +48719,9 @@ class Test2 : I3
 
             var expected = new DiagnosticDescription[]
             {
-                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I3' and 'I1'
+                // (8,19): error CS9342: Operator resolution is ambiguous between the following members: 'I2.operator +(I2, I1)' and 'I1.operator +(I2, I1)'
                 //         var z = y + x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "y + x").WithArguments("+", "I3", "I1").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("I2.operator +(I2, I1)", "I1.operator +(I2, I1)").WithLocation(8, 19),
                 // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I1' and 'I3'
                 //         z = x + y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "I1", "I3").WithLocation(9, 13)
@@ -48790,9 +48792,9 @@ class Test2 : I2
 
             var expected = new DiagnosticDescription[]
             {
-                // (7,17): error CS0034: Operator '-' is ambiguous on operands of type 'I2' and 'I2'
+                // (7,19): error CS9342: Operator resolution is ambiguous between the following members: 'I1.operator -(I1, I1)' and 'I3.operator -(I3, I3)'
                 //         var y = x - x;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x - x").WithArguments("-", "I2", "I2").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("I1.operator -(I1, I1)", "I3.operator -(I3, I3)").WithLocation(7, 19)
             };
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,

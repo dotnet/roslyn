@@ -6458,8 +6458,7 @@ unsafe class Derived : Base
     protected override delegate*<nint, void> M8() => throw null;
 }");
 
-            comp.VerifyDiagnostics(
-            );
+            comp.VerifyDiagnostics();
 
             assertMethods(comp.SourceModule);
             CompileAndVerify(comp, symbolValidator: assertMethods);
@@ -6511,8 +6510,7 @@ unsafe class Derived : Base
     protected override delegate*<dynamic, void> M8() => throw null;
 }");
 
-            comp.VerifyDiagnostics(
-            );
+            comp.VerifyDiagnostics();
 
             assertMethods(comp.SourceModule);
             CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
@@ -9799,18 +9797,12 @@ class D
                 // (6,30): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(6, 30),
-                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(6, 30),
                 // (11,25): error CS8894: Cannot use 'Task' as a return type on a method attributed with 'UnmanagedCallersOnly'.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
                 // (11,30): error CS8899: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
                 //     public static async Task Main() {}
-                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(11, 30),
-                // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
+                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(11, 30)
             );
         }
 
@@ -9837,10 +9829,7 @@ class D
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
                 // (11,30): warning CS8892: Method 'D.Main()' will not be used as an entry point because a synchronous entry point 'C.Main()' was found.
                 //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main()").WithLocation(11, 30),
-                // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main()").WithLocation(11, 30)
             );
         }
 
@@ -10811,7 +10800,7 @@ public unsafe class C
                            typeInfo.Type.ToTestDisplayString(includeNonNullable: false));
             AssertEx.Equal("System.Func<delegate*<System.Int32, System.Void>>",
                            typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: false));
-            Assert.Equal(Conversion.NoConversion, conversion);
+            Assert.False(conversion.Exists);
 
             typeInfo = model.GetTypeInfo(lambdas[1]);
             conversion = model.GetConversion(lambdas[1]);
@@ -11509,13 +11498,23 @@ class C<T> {}
                 class C { }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
                 // (11,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(B<delegate*<void>[]>.E)").WithLocation(11, 4),
                 // (11,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(11, 14));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(default(B<delegate*<void>[]>.E))").WithLocation(11, 2),
+            };
+
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11537,10 +11536,16 @@ class C<T> {}
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(default(B<delegate*<void>[]>.E))]
-                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(default(B<delegate*<void>[]>.E))").WithLocation(11, 2),
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11561,13 +11566,23 @@ class C<T> {}
                 class C { }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
                 // (11,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(B<delegate*<void>[]>.E)").WithLocation(11, 12),
                 // (11,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(11, 22));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A<object>(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A<object>(default(B<delegate*<void>[]>.E))").WithLocation(11, 2),
+            };
+
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11638,11 +11653,14 @@ class C<T> {}
                 unsafe class C { }
                 """;
 
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (3,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public A(B<delegate*<void>[]>.E e) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(3, 16)
                 );
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics();
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11701,11 +11719,14 @@ class C<T> {}
                 class C { }
                 """;
 
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (11,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A(default)]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default").WithLocation(11, 4)
                 );
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -12066,7 +12087,7 @@ class C<T> {}
                 class C { }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
                 // (12,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "B<delegate*<void>[]>").WithLocation(12, 12),
@@ -12076,6 +12097,16 @@ class C<T> {}
                 // (12,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(12, 14));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (12,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A<object>(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A<object>(B<delegate*<void>[]>.C)").WithLocation(12, 2),
+            };
+
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -12325,20 +12356,24 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594"), WorkItem("https://github.com/dotnet/runtime/issues/118568")]
         public void Attribute_TypedParamsConstant_EnumArray_ConstructorArgument(
             [CombinatorialValues("class", "struct")] string kind,
             [CombinatorialValues("[]{}", "()")] string initializer)
         {
+            var evalString = ExecutionConditionUtil.IsMonoCore
+                ? "Console.WriteLine(((((IEnumerable)arg.Value).Cast<object>().SingleOrDefault())) ?? \"null\");"
+                : "Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? \"null\");";
+            var includeString = ExecutionConditionUtil.IsMonoCore ? "" : "using System.Reflection;";
             var source = $$"""
                 using System;
                 using System.Collections;
                 using System.Linq;
-                using System.Reflection;
+                {{includeString}}
 
                 var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
                 var arg = attr.ConstructorArguments.Single();
-                Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? "null");
+                {{evalString}}
 
                 class A : Attribute
                 {

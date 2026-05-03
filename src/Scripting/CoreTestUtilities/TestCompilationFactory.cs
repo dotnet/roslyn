@@ -6,10 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {

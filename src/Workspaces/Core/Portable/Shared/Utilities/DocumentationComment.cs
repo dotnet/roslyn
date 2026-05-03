@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Xml;
 using Microsoft.CodeAnalysis.PooledObjects;
-using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 

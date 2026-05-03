@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -21,8 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
-using static UseCollectionExpressionHelpers;
 using static SyntaxFactory;
+using static UseCollectionExpressionHelpers;
 using FluentState = UpdateExpressionState<ExpressionSyntax, StatementSyntax>;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -42,24 +41,24 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     private static readonly ImmutableArray<string> s_suffixes =
     [
         nameof(Array),
-        nameof(Span<int>),
-        nameof(ReadOnlySpan<int>),
-        nameof(System.Collections.Generic.List<int>),
-        nameof(HashSet<int>),
-        nameof(LinkedList<int>),
-        nameof(Queue<int>),
-        nameof(SortedSet<int>),
-        nameof(Stack<int>),
-        nameof(ICollection<int>),
-        nameof(IReadOnlyCollection<int>),
-        nameof(IList<int>),
-        nameof(IReadOnlyList<int>),
-        nameof(ImmutableArray<int>),
-        nameof(ImmutableHashSet<int>),
-        nameof(ImmutableList<int>),
-        nameof(ImmutableQueue<int>),
-        nameof(ImmutableSortedSet<int>),
-        nameof(ImmutableStack<int>),
+        nameof(Span<>),
+        nameof(ReadOnlySpan<>),
+        nameof(System.Collections.Generic.List<>),
+        nameof(HashSet<>),
+        nameof(LinkedList<>),
+        nameof(Queue<>),
+        nameof(SortedSet<>),
+        nameof(Stack<>),
+        nameof(ICollection<>),
+        nameof(IReadOnlyCollection<>),
+        nameof(IList<>),
+        nameof(IReadOnlyList<>),
+        nameof(ImmutableArray<>),
+        nameof(ImmutableHashSet<>),
+        nameof(ImmutableList<>),
+        nameof(ImmutableQueue<>),
+        nameof(ImmutableSortedSet<>),
+        nameof(ImmutableStack<>),
         nameof(System.Collections.Immutable),
     ];
 
@@ -102,7 +101,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
             context.Options,
-            additionalLocations: ImmutableArray.Create(invocation.GetLocation()),
+            additionalLocations: [invocation.GetLocation()],
             properties: analysisResult.Value.ChangesSemantics ? ChangesSemantics : null));
 
         return;
@@ -307,17 +306,18 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     .All(static t => t.IsWhitespaceOrEndOfLine()))
             {
                 // Remove any whitespace around the `.`, making the singly-wrapped fluent expression into a single line.
-                postMatchesInReverse.Add(new CollectionMatch<ArgumentSyntax>(
+                postMatchesInReverse.Add(new(
                     Argument(innerInvocation.WithExpression(
                         memberAccess.Update(
                             memberAccess.Expression.WithoutTrailingTrivia(),
                             memberAccess.OperatorToken.WithoutTrivia(),
                             memberAccess.Name.WithoutLeadingTrivia()))),
-                    UseSpread: true));
+                    UseSpread: true,
+                    UseKeyValue: false));
                 return;
             }
 
-            postMatchesInReverse.Add(new CollectionMatch<ArgumentSyntax>(Argument(expression), UseSpread: true));
+            postMatchesInReverse.Add(new(Argument(expression), UseSpread: true, UseKeyValue: false));
         }
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something
@@ -362,7 +362,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return;
 
         for (var i = arguments.Count - 1; i >= 0; i--)
-            matchesInReverse.Add(new(arguments[i], useSpread));
+            matchesInReverse.Add(new(arguments[i], useSpread, UseKeyValue: false));
     }
 
     /// <summary>
@@ -406,7 +406,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             var name = memberAccess.Name.Identifier.ValueText;
 
             // Check for Add/AddRange/Concat
-            if (state.TryAnalyzeInvocationForCollectionExpression(invocation, allowLinq, cancellationToken, out _, out var useSpread))
+            if (state.TryAnalyzeInvocationForCollectionExpression(
+                    invocation, allowLinq, cancellationToken, out _, out var useSpread, out _))
             {
                 AddArgumentsInReverse(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
 

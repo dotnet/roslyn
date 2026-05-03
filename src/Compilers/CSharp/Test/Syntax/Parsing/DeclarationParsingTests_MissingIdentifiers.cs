@@ -4209,5 +4209,2816 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Fixed()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    fixed
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,10): error CS1003: Syntax error, '(' expected
+                //     fixed
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 10),
+                // (4,10): error CS1031: Type expected
+                //     fixed
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 10),
+                // (4,10): error CS1001: Identifier expected
+                //     fixed
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 10),
+                // (4,10): error CS1003: Syntax error, ',' expected
+                //     fixed
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 10),
+                // (5,2): error CS1026: ) expected
+                // }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1733: Expected expression
+                // }
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.FixedStatement);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Fixed_DoubleGeneric()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<List<Type>>
+                    fixed
+                }
+                """,
+                options: null,
+                // (3,21): error CS1525: Invalid expression term 'fixed'
+                //     List<List<Type>>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("fixed").WithLocation(3, 21),
+                // (3,21): error CS1002: ; expected
+                //     List<List<Type>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 21),
+                // (4,10): error CS1003: Syntax error, '(' expected
+                //     fixed
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 10),
+                // (4,10): error CS1031: Type expected
+                //     fixed
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 10),
+                // (4,10): error CS1001: Identifier expected
+                //     fixed
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 10),
+                // (4,10): error CS1003: Syntax error, ',' expected
+                //     fixed
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 10),
+                // (5,2): error CS1026: ) expected
+                // }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1733: Expected expression
+                // }
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.LessThanExpression);
+                        {
+                            N(SyntaxKind.LessThanExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                }
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                }
+                            }
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.RightShiftExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.GreaterThanGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.FixedStatement);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Break()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    break
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,10): error CS1002: ; expected
+                //     break
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 10));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Continue()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    continue
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,13): error CS1002: ; expected
+                //     continue
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 13));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ContinueStatement);
+                    {
+                        N(SyntaxKind.ContinueKeyword);
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Try()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    try
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,8): error CS1514: { expected
+                //     try
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(4, 8),
+                // (5,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.TryStatement);
+                    {
+                        N(SyntaxKind.TryKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            M(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        M(SyntaxKind.FinallyClause);
+                        {
+                            M(SyntaxKind.FinallyKeyword);
+                            M(SyntaxKind.Block);
+                            {
+                                M(SyntaxKind.OpenBraceToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Do()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    do
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,7): error CS1525: Invalid expression term '}'
+                //     do
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 7),
+                // (4,7): error CS1002: ; expected
+                //     do
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 7),
+                // (4,7): error CS1003: Syntax error, 'while' expected
+                //     do
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("while").WithLocation(4, 7),
+                // (4,7): error CS1003: Syntax error, '(' expected
+                //     do
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 7),
+                // (4,7): error CS1525: Invalid expression term '}'
+                //     do
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 7),
+                // (4,7): error CS1026: ) expected
+                //     do
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 7),
+                // (4,7): error CS1002: ; expected
+                //     do
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 7));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.DoStatement);
+                    {
+                        N(SyntaxKind.DoKeyword);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.WhileKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_For()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    for
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,8): error CS1003: Syntax error, '(' expected
+                //     for
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 8),
+                // (4,8): error CS1001: Identifier expected
+                //     for
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 8),
+                // (5,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1733: Expected expression
+                // }
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1026: ) expected
+                // }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1733: Expected expression
+                // }
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ForStatement);
+                    {
+                        N(SyntaxKind.ForKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Foreach()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    foreach
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,12): error CS1003: Syntax error, '(' expected
+                //     foreach
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 12),
+                // (4,12): error CS1525: Invalid expression term '}'
+                //     foreach
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 12),
+                // (4,12): error CS1515: 'in' expected
+                //     foreach
+                Diagnostic(ErrorCode.ERR_InExpected, "").WithLocation(4, 12),
+                // (4,12): error CS0230: Type and identifier are both required in a foreach statement
+                //     foreach
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "").WithLocation(4, 12),
+                // (4,12): error CS1525: Invalid expression term '}'
+                //     foreach
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 12),
+                // (4,12): error CS1026: ) expected
+                //     foreach
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 12),
+                // (4,12): error CS1525: Invalid expression term '}'
+                //     foreach
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 12),
+                // (4,12): error CS1002: ; expected
+                //     foreach
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 12));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ForEachVariableStatement);
+                    {
+                        N(SyntaxKind.ForEachKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.InKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Goto()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    goto
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,9): error CS1001: Identifier expected
+                //     goto
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 9),
+                // (4,9): error CS1002: ; expected
+                //     goto
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 9));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.GotoStatement);
+                    {
+                        N(SyntaxKind.GotoKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_If()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    if
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,7): error CS1003: Syntax error, '(' expected
+                //     if
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 7),
+                // (4,7): error CS1525: Invalid expression term '}'
+                //     if
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 7),
+                // (4,7): error CS1026: ) expected
+                //     if
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 7),
+                // (4,7): error CS1525: Invalid expression term '}'
+                //     if
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 7),
+                // (4,7): error CS1002: ; expected
+                //     if
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 7));
+
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Else()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    else
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (3,15): error CS8641: 'else' cannot start a statement.
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(3, 15),
+                // (3,15): error CS1003: Syntax error, '(' expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(3, 15),
+                // (3,15): error CS1525: Invalid expression term 'else'
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(3, 15),
+                // (3,15): error CS1026: ) expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1525: Invalid expression term 'else'
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,9): error CS1525: Invalid expression term '}'
+                //     else
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 9),
+                // (4,9): error CS1002: ; expected
+                //     else
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 9));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.IfStatement);
+                    {
+                        M(SyntaxKind.IfKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.ElseClause);
+                        {
+                            N(SyntaxKind.ElseKeyword);
+                            M(SyntaxKind.ExpressionStatement);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Lock()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    lock
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,9): error CS1003: Syntax error, '(' expected
+                //     lock
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 9),
+                // (4,9): error CS1525: Invalid expression term '}'
+                //     lock
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 9),
+                // (4,9): error CS1026: ) expected
+                //     lock
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 9),
+                // (4,9): error CS1525: Invalid expression term '}'
+                //     lock
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 9),
+                // (4,9): error CS1002: ; expected
+                //     lock
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 9));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.LockStatement);
+                    {
+                        N(SyntaxKind.LockKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Return()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    return
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,11): error CS1525: Invalid expression term '}'
+                //     return
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 11),
+                // (4,11): error CS1002: ; expected
+                //     return
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 11));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Switch()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    switch
+                }
+                """,
+                options: null,
+                // (3,15): error CS1525: Invalid expression term 'switch'
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("switch").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,11): error CS1525: Invalid expression term '}'
+                //     switch
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 11),
+                // (4,11): error CS8515: Parentheses are required around the switch governing expression.
+                //     switch
+                Diagnostic(ErrorCode.ERR_SwitchGoverningExpressionRequiresParens, "").WithLocation(4, 11),
+                // (4,11): error CS1514: { expected
+                //     switch
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(4, 11),
+                // (5,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.GreaterThanExpression);
+                        {
+                            N(SyntaxKind.LessThanExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                }
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SwitchStatement);
+                    {
+                        N(SyntaxKind.SwitchKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Unsafe()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    unsafe
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,5): error CS0106: The modifier 'unsafe' is not valid for this item
+                //     unsafe
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "unsafe").WithArguments("unsafe").WithLocation(4, 5),
+                // (4,11): error CS1031: Type expected
+                //     unsafe
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 11),
+                // (4,11): error CS1001: Identifier expected
+                //     unsafe
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 11),
+                // (4,11): error CS1003: Syntax error, ',' expected
+                //     unsafe
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 11),
+                // (5,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UnsafeKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Using()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    using
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,10): error CS1031: Type expected
+                //     using
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 10),
+                // (4,10): error CS1001: Identifier expected
+                //     using
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 10),
+                // (4,10): error CS1003: Syntax error, ',' expected
+                //     using
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 10),
+                // (5,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_While()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    while
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,10): error CS1003: Syntax error, '(' expected
+                //     while
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 10),
+                // (4,10): error CS1525: Invalid expression term '}'
+                //     while
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 10),
+                // (4,10): error CS1026: ) expected
+                //     while
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 10),
+                // (4,10): error CS1525: Invalid expression term '}'
+                //     while
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(4, 10),
+                // (4,10): error CS1002: ; expected
+                //     while
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 10));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.WhileStatement);
+                    {
+                        N(SyntaxKind.WhileKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Volatile()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    volatile
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,5): error CS0106: The modifier 'volatile' is not valid for this item
+                //     volatile
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(4, 5),
+                // (4,13): error CS1031: Type expected
+                //     volatile
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 13),
+                // (4,13): error CS1001: Identifier expected
+                //     volatile
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 13),
+                // (4,13): error CS1003: Syntax error, ',' expected
+                //     volatile
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 13),
+                // (5,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VolatileKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Extern()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    extern
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (4,5): error CS0106: The modifier 'extern' is not valid for this item
+                //     extern
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(4, 5),
+                // (4,11): error CS1031: Type expected
+                //     extern
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 11),
+                // (4,11): error CS1001: Identifier expected
+                //     extern
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 11),
+                // (4,11): error CS1003: Syntax error, ',' expected
+                //     extern
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 11),
+                // (5,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
+                // (5,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.ExternKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Case()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    List<Type>
+                    case
+                }
+                """,
+                options: null,
+                // (3,15): error CS1001: Identifier expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1002: ; expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // (3,15): error CS1003: Syntax error, 'switch' expected
+                //     List<Type>
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("switch").WithLocation(3, 15),
+                // (4,9): error CS8504: Pattern missing
+                //     case
+                Diagnostic(ErrorCode.ERR_MissingPattern, "").WithLocation(4, 9),
+                // (4,9): error CS1003: Syntax error, ':' expected
+                //     case
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(4, 9),
+                // (5,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SwitchStatement);
+                    {
+                        M(SyntaxKind.SwitchKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchSection);
+                        {
+                            N(SyntaxKind.CaseSwitchLabel);
+                            {
+                                N(SyntaxKind.CaseKeyword);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.ColonToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        [InlineData("checked", SyntaxKind.CheckedExpression, SyntaxKind.CheckedKeyword)]
+        [InlineData("unchecked", SyntaxKind.UncheckedExpression, SyntaxKind.UncheckedKeyword)]
+        public void DefiniteStatementAfterGenericType_Checked(string keyword, SyntaxKind expressionKind, SyntaxKind tokenKind)
+        {
+            UsingDeclaration($$"""
+                void M()
+                {
+                    List<Type> {{keyword}}(1);
+                }
+                """);
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.GreaterThanExpression);
+                        {
+                            N(SyntaxKind.LessThanExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                }
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                            N(expressionKind);
+                            {
+                                N(tokenKind);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Throw()
+        {
+            UsingDeclaration($$"""
+                void M()
+                {
+                    List<Type> throw ex;
+                }
+                """,
+                options: null,
+                // (3,16): error CS1525: Invalid expression term 'throw'
+                //     List<Type> throw ex;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw ex").WithArguments("throw").WithLocation(3, 16));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.GreaterThanExpression);
+                        {
+                            N(SyntaxKind.LessThanExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                }
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                            N(SyntaxKind.ThrowExpression);
+                            {
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "ex");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_OpenBrace()
+        {
+            UsingDeclaration($$"""
+                void M()
+                {
+                    List<Type> {
+                }
+                """,
+                options: null,
+                // (3,16): error CS1002: ; expected
+                //     List<Type> {
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(3, 16),
+                // (4,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "List");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Semicolon()
+        {
+            UsingDeclaration($$"""
+                void M()
+                {
+                    List<Type>;
+                }
+                """);
+
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "List");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Static()
+        {
+            UsingDeclaration($$"""
+                void M()
+                {
+                    List<Type> static
+                }
+                """,
+                null,
+                // (3,16): error CS1525: Invalid expression term 'static'
+                //     List<Type> static
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(3, 16),
+                // (3,16): error CS1002: ; expected
+                //     List<Type> static
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(3, 16),
+                // (3,16): error CS0106: The modifier 'static' is not valid for this item
+                //     List<Type> static
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(3, 16),
+                // (3,22): error CS1031: Type expected
+                //     List<Type> static
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 22),
+                // (3,22): error CS1001: Identifier expected
+                //     List<Type> static
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 22),
+                // (3,22): error CS1003: Syntax error, ',' expected
+                //     List<Type> static
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(3, 22),
+                // (4,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2),
+                // (4,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.GreaterThanExpression);
+                        {
+                            N(SyntaxKind.LessThanExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                }
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_ReadOnlyKeyword()
+        {
+            UsingDeclaration($$"""
+                void M()
+                {
+                    List<Type> readonly
+                }
+                """,
+                options: null,
+                // (3,16): error CS1525: Invalid expression term 'readonly'
+                //     List<Type> readonly
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(3, 16),
+                // (3,16): error CS1002: ; expected
+                //     List<Type> readonly
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(3, 16),
+                // (3,16): error CS0106: The modifier 'readonly' is not valid for this item
+                //     List<Type> readonly
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 16),
+                // (3,24): error CS1031: Type expected
+                //     List<Type> readonly
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 24),
+                // (3,24): error CS1001: Identifier expected
+                //     List<Type> readonly
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 24),
+                // (3,24): error CS1003: Syntax error, ',' expected
+                //     List<Type> readonly
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(3, 24),
+                // (4,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2),
+                // (4,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.GreaterThanExpression);
+                        {
+                            N(SyntaxKind.LessThanExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                }
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Ref()
+        {
+            UsingDeclaration($$"""
+                void M()
+                {
+                    List<Type> ref
+                }
+                """,
+                options: null,
+                // (3,16): error CS1525: Invalid expression term 'ref'
+                //     List<Type> ref
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, """
+                    ref
+
+                    """).WithArguments("ref").WithLocation(3, 16),
+                // (3,19): error CS1525: Invalid expression term '}'
+                //     List<Type> ref
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(3, 19),
+                // (3,19): error CS1002: ; expected
+                //     List<Type> ref
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 19));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.GreaterThanExpression);
+                        {
+                            N(SyntaxKind.LessThanExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                }
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Bracket()
+        {
+            UsingDeclaration($$"""
+                void M()
+                {
+                    List<Type> [
+                }
+                """,
+                options: null,
+                // (3,17): error CS1001: Identifier expected
+                //     List<Type> [
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 17),
+                // (4,2): error CS1003: Syntax error, ']' expected
+                // }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(4, 2),
+                // (4,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2),
+                // (4,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 2));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ElementAccessExpression);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_Dot()
+        {
+            UsingDeclaration($$"""
+                void M()
+                {
+                    List<Type> .
+                }
+                """,
+                options: null,
+                // (3,17): error CS1001: Identifier expected
+                //     List<Type> .
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 17),
+                // (3,17): error CS1002: ; expected
+                //     List<Type> .
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 17));
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("enum", SyntaxKind.EnumDeclaration, SyntaxKind.EnumKeyword)]
+        public void DefiniteStatementAfterGenericType_TypeDecl(string typeText, SyntaxKind declarationKind, SyntaxKind keywordKind)
+        {
+            int column = 1 + typeText.Length;
+            UsingTree($$"""
+                List<Type>
+
+                {{typeText}}
+                """,
+                options: null,
+                // (1,11): error CS1001: Identifier expected
+                // List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 11),
+                // (1,11): error CS1002: ; expected
+                // List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11),
+                // (3,7): error CS1001: Identifier expected
+                // struct
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, column),
+                // (3,7): error CS1514: { expected
+                // struct
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, column),
+                // (3,7): error CS1513: } expected
+                // struct
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, column));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(declarationKind);
+                {
+                    N(keywordKind);
+                    M(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_RecordDecl()
+        {
+            UsingTree($$"""
+                List<Type>
+
+                record
+                """,
+                options: null,
+                // (3,7): error CS1002: ; expected
+                // record
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 7));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_RecordDecl2()
+        {
+            UsingTree($$"""
+                List<Type>
+
+                record TypeName
+                """,
+                options: null,
+                // (3,8): error CS1003: Syntax error, ',' expected
+                // record TypeName
+                Diagnostic(ErrorCode.ERR_SyntaxError, "TypeName").WithArguments(",").WithLocation(3, 8),
+                // (3,16): error CS1002: ; expected
+                // record TypeName
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 16));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        public void DefiniteStatementAfterGenericType_DelegateDecl()
+        {
+            UsingTree($$"""
+                List<Type>
+
+                delegate
+                """,
+                options: null,
+                // (1,11): error CS1001: Identifier expected
+                // List<Type>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 11),
+                // (1,11): error CS1002: ; expected
+                // List<Type>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11),
+                // (3,9): error CS1031: Type expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 9),
+                // (3,9): error CS1001: Identifier expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 9),
+                // (3,9): error CS1003: Syntax error, '(' expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(3, 9),
+                // (3,9): error CS1026: ) expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 9),
+                // (3,9): error CS1002: ; expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 9));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.DelegateDeclaration);
+                {
+                    N(SyntaxKind.DelegateKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79031")]
+        [InlineData("public", SyntaxKind.PublicKeyword)]
+        [InlineData("internal", SyntaxKind.InternalKeyword)]
+        [InlineData("private", SyntaxKind.PrivateKeyword)]
+        [InlineData("protected", SyntaxKind.ProtectedKeyword)]
+        public void DefiniteStatementAfterGenericType_Accessibility(string accessibilityText, SyntaxKind accessibilityKind)
+        {
+            UsingTree($$"""
+                List<Type>
+
+                {{accessibilityText}}
+                """,
+                options: null,
+                // (3,1): error CS1585: Member modifier 'internal' must precede the member type and name
+                // internal
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, accessibilityText).WithArguments(accessibilityText).WithLocation(3, 1),
+                // (3,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // internal
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, accessibilityText).WithLocation(3, 1));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(accessibilityKind);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }

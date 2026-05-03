@@ -18,6 +18,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -645,6 +646,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+#nullable enable
+
         /// <summary>
         /// The function groups types defined in the module by their fully-qualified namespace name.
         /// The case-sensitivity of the grouping depends upon the provided StringComparer.
@@ -670,9 +673,11 @@ namespace Microsoft.CodeAnalysis
             // merged, even if they are equal according to the provided comparer.  This improves the error
             // experience because types retain their exact namespaces.
 
-            Dictionary<string, ArrayBuilder<TypeDefinitionHandle>> namespaces = new Dictionary<string, ArrayBuilder<TypeDefinitionHandle>>();
+            Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?> namespaces = new Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?>();
 
-            GetTypeNamespaceNamesOrThrow(namespaces);
+            // Note: the ! assertion here is for the ArrayBuilder<TypeDefinitionHandle> values being non-null in this 
+            // method. The dictionary is empty so this is trivially true.
+            GetTypeNamespaceNamesOrThrow(namespaces!);
             GetForwardedTypeNamespaceNamesOrThrow(namespaces);
 
             var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>(namespaces.Count);
@@ -686,7 +691,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        internal class TypesByNamespaceSortComparer : IComparer<IGrouping<string, TypeDefinitionHandle>>
+        internal sealed class TypesByNamespaceSortComparer : IComparer<IGrouping<string, TypeDefinitionHandle>>
         {
             private readonly StringComparer _nameComparer;
 
@@ -695,11 +700,21 @@ namespace Microsoft.CodeAnalysis
                 _nameComparer = nameComparer;
             }
 
-            public int Compare(IGrouping<string, TypeDefinitionHandle> left, IGrouping<string, TypeDefinitionHandle> right)
+            public int Compare(IGrouping<string, TypeDefinitionHandle>? left, IGrouping<string, TypeDefinitionHandle>? right)
             {
                 if (left == right)
                 {
                     return 0;
+                }
+
+                if (left is null)
+                {
+                    return -1;
+                }
+
+                if (right is null)
+                {
+                    return 1;
                 }
 
                 int result = _nameComparer.Compare(left.Key, right.Key);
@@ -745,7 +760,7 @@ namespace Microsoft.CodeAnalysis
                 NamespaceDefinitionHandle nsHandle = pair.NamespaceHandle;
                 TypeDefinitionHandle typeDef = pair.TypeDef;
 
-                ArrayBuilder<TypeDefinitionHandle> builder;
+                ArrayBuilder<TypeDefinitionHandle>? builder;
 
                 if (namespaceHandles.TryGetValue(nsHandle, out builder))
                 {
@@ -761,7 +776,7 @@ namespace Microsoft.CodeAnalysis
             {
                 string @namespace = MetadataReader.GetString(kvp.Key);
 
-                ArrayBuilder<TypeDefinitionHandle> builder;
+                ArrayBuilder<TypeDefinitionHandle>? builder;
 
                 if (namespaces.TryGetValue(@namespace, out builder))
                 {
@@ -816,7 +831,7 @@ namespace Microsoft.CodeAnalysis
         /// the qualifier).
         /// </summary>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private void GetForwardedTypeNamespaceNamesOrThrow(Dictionary<string, ArrayBuilder<TypeDefinitionHandle>> namespaces)
+        private void GetForwardedTypeNamespaceNamesOrThrow(Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?> namespaces)
         {
             EnsureForwardTypeToAssemblyMap();
 
@@ -830,6 +845,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+#nullable disable
 
         private IdentifierCollection ComputeTypeNameCollection()
         {
@@ -948,6 +965,10 @@ namespace Microsoft.CodeAnalysis
                         return default(TypeLayout);
 
                     default:
+                        if ((def.Attributes & TypeAttributes.LayoutMask) == TypeAttributes.ExtendedLayout)
+                        {
+                            return new TypeLayout(LayoutKind.Extended, 0, 0);
+                        }
                         // TODO (tomat) report error:
                         return default(TypeLayout);
                 }
@@ -1035,6 +1056,11 @@ namespace Microsoft.CodeAnalysis
         internal bool HasDefaultMemberAttribute(EntityHandle token, out string memberName)
         {
             return HasStringValuedAttribute(token, AttributeDescription.DefaultMemberAttribute, out memberName);
+        }
+
+        internal bool HasExtensionMarkerAttribute(EntityHandle token, out string markerName)
+        {
+            return HasStringValuedAttribute(token, AttributeDescription.ExtensionMarkerAttribute, out markerName);
         }
 
         internal bool HasGuidAttribute(EntityHandle token, out string guidValue)
@@ -1154,6 +1180,23 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
             }
+            version = 0;
+            return false;
+        }
+
+        internal bool HasMemorySafetyRulesAttribute(EntityHandle token, out int version, out bool foundAttributeType)
+        {
+            AttributeInfo info = FindTargetAttribute(MetadataReader, token, AttributeDescription.MemorySafetyRulesAttribute, out foundAttributeType);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out int value, s_attributeIntValueExtractor))
+                {
+                    version = value;
+                    return true;
+                }
+            }
+
             version = 0;
             return false;
         }
@@ -1392,6 +1435,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
                     nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
+                    nameof(CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators) => CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators,
                     _ => CompilerFeatureRequiredFeatures.None,
                 };
         }
@@ -1532,10 +1576,10 @@ namespace Microsoft.CodeAnalysis
                                     switch (namedArgValues.nameValuePair.Key)
                                     {
                                         case "AllowMultiple":
-                                            allowMultiple = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            allowMultiple = (bool)namedArgValues.nameValuePair.Value.ValueInternal;
                                             break;
                                         case "Inherited":
-                                            inherited = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            inherited = (bool)namedArgValues.nameValuePair.Value.ValueInternal;
                                             break;
                                     }
                                 }
@@ -2313,19 +2357,6 @@ namespace Microsoft.CodeAnalysis
                 CrackStringInAttributeValue(out string? @string, ref sig))
             {
                 value = new BoolAndStringData(sense, @string);
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
-
-        private static bool CrackBoolAndBoolInAttributeValue(out (bool, bool) value, ref BlobReader sig)
-        {
-            if (CrackBooleanInAttributeValue(out bool item1, ref sig) &&
-                CrackBooleanInAttributeValue(out bool item2, ref sig))
-            {
-                value = (item1, item2);
                 return true;
             }
 

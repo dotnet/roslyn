@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateType;
 
 internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
 {
-    protected class State
+    protected sealed class State
     {
         public string Name { get; private set; } = null!;
         public bool NameIsVerbatim { get; private set; }
@@ -65,17 +66,17 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         private State(Compilation compilation)
             => Compilation = compilation;
 
-        public static State? Generate(
+        public static async ValueTask<State?> GenerateAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
             var state = new State(document.SemanticModel.Compilation);
-            return state.TryInitialize(service, document, node, cancellationToken) ? state : (State?)null;
+            return await state.TryInitializeAsync(service, document, node, cancellationToken).ConfigureAwait(false) ? state : (State?)null;
         }
 
-        private bool TryInitialize(
+        private async ValueTask<bool> TryInitializeAsync(
             TService service,
             SemanticDocument semanticDocument,
             SyntaxNode node,
@@ -126,7 +127,8 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             }
 
             var semanticFacts = semanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
-            if (!semanticFacts.IsTypeContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
+            if (!IsInsideDocumentationComment(NameOrMemberAccessExpression, syntaxFacts) &&
+                !semanticFacts.IsTypeContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                 !semanticFacts.IsExpressionContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                 !semanticFacts.IsStatementContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                 !semanticFacts.IsInsideNameOfExpression(semanticModel, NameOrMemberAccessExpression, cancellationToken) &&
@@ -161,7 +163,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 }
             }
 
-            DetermineNamespaceOrTypeToGenerateIn(service, semanticDocument, cancellationToken);
+            await DetermineNamespaceOrTypeToGenerateInAsync(service, semanticDocument, cancellationToken).ConfigureAwait(false);
 
             // Now, try to infer a possible base type for this new class/interface.
             InferBaseType(service, semanticDocument, cancellationToken);
@@ -186,6 +188,17 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             }
 
             return TypeToGenerateInOpt != null || NamespaceToGenerateInOpt != null;
+        }
+
+        private static bool IsInsideDocumentationComment(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        {
+            for (var current = node; current != null; current = current.Parent)
+            {
+                if (syntaxFacts.IsDocumentationComment(current))
+                    return true;
+            }
+
+            return false;
         }
 
         private void InferBaseType(
@@ -275,7 +288,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             return service.IsInInterfaceList(NameOrMemberAccessExpression);
         }
 
-        private void DetermineNamespaceOrTypeToGenerateIn(
+        private async ValueTask DetermineNamespaceOrTypeToGenerateInAsync(
             TService service,
             SemanticDocument document,
             CancellationToken cancellationToken)
@@ -292,19 +305,19 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 }
                 else
                 {
-                    var symbol = SymbolFinder.FindSourceDefinition(TypeToGenerateInOpt, document.Project.Solution, cancellationToken);
-                    if (symbol == null ||
-                        !symbol.IsKind(SymbolKind.NamedType) ||
-                        !symbol.Locations.Any(static loc => loc.IsInSource))
+                    var symbol = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateInOpt, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                    if (symbol is not INamedTypeSymbol namedType)
                     {
                         TypeToGenerateInOpt = null;
                         return;
                     }
 
-                    var sourceTreeToBeGeneratedIn = symbol.Locations.First(loc => loc.IsInSource).SourceTree;
-                    var documentToBeGeneratedIn = document.Project.Solution.GetDocument(sourceTreeToBeGeneratedIn);
+                    var documentToBeGeneratedIn = namedType.Locations
+                        .Select(static loc => loc.SourceTree)
+                        .Select(document.Project.Solution.GetDocument)
+                        .FirstOrDefault(static generatedInDocument => generatedInDocument is not null && CanGenerateInDocument(generatedInDocument));
 
-                    if (documentToBeGeneratedIn == null)
+                    if (documentToBeGeneratedIn is null)
                     {
                         TypeToGenerateInOpt = null;
                         return;
@@ -318,18 +331,25 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                         IsPublicAccessibilityForTypeGeneration = true;
                     }
 
-                    TypeToGenerateInOpt = (INamedTypeSymbol)symbol;
+                    TypeToGenerateInOpt = namedType;
                 }
             }
 
             if (TypeToGenerateInOpt != null)
             {
-                if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateInOpt, cancellationToken))
+                var codeGenerationContext = new CodeGenerationContext(
+                    contextLocation: SimpleName.GetLocation(),
+                    allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
+
+                if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateInOpt, codeGenerationContext, cancellationToken))
                 {
                     TypeToGenerateInOpt = null;
                 }
             }
         }
+
+        private static bool CanGenerateInDocument(Document document)
+            => document is not SourceGeneratedDocument || document.IsRazorSourceGeneratedDocument();
 
         private bool DetermineNamespaceOrTypeToGenerateInWorker(
             TService service,
@@ -414,7 +434,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         }
     }
 
-    protected class GenerateTypeServiceStateOptions
+    protected sealed class GenerateTypeServiceStateOptions
     {
         public TExpressionSyntax? NameOrMemberAccessExpression { get; set; }
         public TObjectCreationExpressionSyntax? ObjectCreationExpressionOpt { get; set; }

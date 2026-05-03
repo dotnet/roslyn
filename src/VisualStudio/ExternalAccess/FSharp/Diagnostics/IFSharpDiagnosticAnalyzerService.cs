@@ -6,13 +6,12 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
+
+internal interface IFSharpDiagnosticAnalyzerService
 {
-    internal interface IFSharpDiagnosticAnalyzerService
-    {
-        /// <summary>
-        /// re-analyze given projects and documents
-        /// </summary>
-        void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false);
-    }
+    /// <summary>
+    /// re-analyze given projects and documents
+    /// </summary>
+    void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false);
 }

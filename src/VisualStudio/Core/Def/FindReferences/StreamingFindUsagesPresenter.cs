@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
@@ -201,7 +200,7 @@ internal sealed partial class StreamingFindUsagesPresenter : IStreamingFindUsage
         // no longer being displayed, VS will dispose it and it will remove itself from
         // this set.
         _currentContexts.Add(context);
-        return (context, context.CancellationTokenSource!.Token);
+        return (context, context.CancellationTokenSource.Token);
     }
 
     private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences(

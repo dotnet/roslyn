@@ -4,8 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 

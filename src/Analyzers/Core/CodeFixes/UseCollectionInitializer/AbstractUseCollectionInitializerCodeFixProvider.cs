@@ -76,7 +76,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
         using var analyzer = GetAnalyzer();
 
         var useCollectionExpression = properties.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true;
-        var (preMatches, postMatches) = analyzer.Analyze(
+        var (preMatches, postMatches, _) = analyzer.Analyze(
             semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
         if (preMatches.IsDefault || postMatches.IsDefault)
@@ -87,7 +87,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
 
         editor.ReplaceNode(oldNode, newNode);
 
-        // We only need to remove the post-matches.  The pre-matches are the arguments in teh object creation, which
+        // We only need to remove the post-matches.  The pre-matches are the arguments in the object creation, which
         // itself got replaced above.
         foreach (var match in postMatches)
             editor.RemoveNode(match.Node, SyntaxRemoveOptions.KeepUnbalancedDirectives);

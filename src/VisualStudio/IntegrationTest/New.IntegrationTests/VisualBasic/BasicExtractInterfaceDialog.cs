@@ -24,10 +24,12 @@ public class BasicExtractInterfaceDialog : AbstractEditorTest
     [IdeFact]
     public async Task CoreScenario()
     {
-        await SetUpEditorAsync(@"Class C$$
-    Public Sub M()
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C$$
+                Public Sub M()
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract interface...",
@@ -41,27 +43,33 @@ End Class", HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb", HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"Class C
-    Implements IC
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Class C
+                Implements IC
 
-    Public Sub M() Implements IC.M
-    End Sub
-End Class", cancellationToken: HangMitigatingCancellationToken);
+                Public Sub M() Implements IC.M
+                End Sub
+            End Class
+            """, cancellationToken: HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "IC.vb", HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"Interface IC
-    Sub M()
-End Interface", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Interface IC
+                Sub M()
+            End Interface
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task CheckFileName()
     {
-        await SetUpEditorAsync(@"Class C2$$
-    Public Sub M()
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C2$$
+                Public Sub M()
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract interface...",
@@ -81,10 +89,12 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task CheckSameFile()
     {
-        await SetUpEditorAsync(@"Class C$$
-    Public Sub M()
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C$$
+                Public Sub M()
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract interface...",
             applyFix: true,
@@ -98,27 +108,31 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.ExtractInterfaceDialog.ClickOKAsync(HangMitigatingCancellationToken);
         await TestServices.ExtractInterfaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"Interface IC
-    Sub M()
-End Interface
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Interface IC
+                Sub M()
+            End Interface
 
-Class C
-    Implements IC
+            Class C
+                Implements IC
 
-    Public Sub M() Implements IC.M
-    End Sub
-End Class", cancellationToken: HangMitigatingCancellationToken);
+                Public Sub M() Implements IC.M
+                End Sub
+            End Class
+            """, cancellationToken: HangMitigatingCancellationToken);
 
     }
 
     [IdeFact]
     public async Task CheckSameFileOnlySelectedItems()
     {
-        await SetUpEditorAsync(@"Class C$$
-    Public Sub M1()
-    Public Sub M2()
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C$$
+                Public Sub M1()
+                Public Sub M2()
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract interface...",
@@ -133,28 +147,32 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.ExtractInterfaceDialog.ClickOKAsync(HangMitigatingCancellationToken);
         await TestServices.ExtractInterfaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"Interface IC
-    Sub M2()
-End Interface
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Interface IC
+                Sub M2()
+            End Interface
 
-Class C
-    Implements IC
+            Class C
+                Implements IC
 
-    Public Sub M1()
-    Public Sub M2() Implements IC.M2
-    End Sub
-End Class");
+                Public Sub M1()
+                Public Sub M2() Implements IC.M2
+                End Sub
+            End Class
+            """);
     }
 
     [IdeFact]
     public async Task CheckSameFileNamespace()
     {
-        await SetUpEditorAsync(@"Namespace A
-    Class C$$
-        Public Sub M()
-        End Sub
-    End Class
-End Namespace", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Namespace A
+                Class C$$
+                    Public Sub M()
+                    End Sub
+                End Class
+            End Namespace
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract interface...",
@@ -169,17 +187,19 @@ End Namespace", HangMitigatingCancellationToken);
         await TestServices.ExtractInterfaceDialog.ClickOKAsync(HangMitigatingCancellationToken);
         await TestServices.ExtractInterfaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"Namespace A
-    Interface IC
-        Sub M()
-    End Interface
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Namespace A
+                Interface IC
+                    Sub M()
+                End Interface
 
-    Class C
-        Implements IC
+                Class C
+                    Implements IC
 
-        Public Sub M() Implements IC.M
-        End Sub
-    End Class
-End Namespace", cancellationToken: HangMitigatingCancellationToken);
+                    Public Sub M() Implements IC.M
+                    End Sub
+                End Class
+            End Namespace
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 }

@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 /// <summary>
 /// A MEF export for <see cref="IFileChangeWatcher" />. This checks if we're able to create an <see
 /// cref="LspFileChangeWatcher" /> if the client supports file watching. If we do, we create that and delegate to it.
-/// Otherwise we use a <see cref="SimpleFileChangeWatcher" />.
+/// Otherwise we use a <see cref="DefaultFileChangeWatcher" />.
 /// </summary>
 /// <remarks>
 /// LSP clients don't always support file watching; this allows us to be flexible and use it when we can, but fall back
@@ -38,7 +39,10 @@ internal sealed class DelegatingFileChangeWatcher(
                 return new LspFileChangeWatcher(instance, asynchronousOperationListenerProvider);
 
             loggerFactory.CreateLogger<DelegatingFileChangeWatcher>().LogWarning("We are unable to use LSP file watching; falling back to our in-process watcher.");
-            return new SimpleFileChangeWatcher();
+
+            // On non-Windows platforms, the number of inotify handles is limited, so we'll want to be more aggressive with reducing it.
+            // TODO: we could read the inotify limit and set this dynamically, since some newer kernels have a higher default.
+            return new DefaultFileChangeWatcher(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 10_000 : 50);
         });
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)

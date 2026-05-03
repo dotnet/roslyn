@@ -114,6 +114,80 @@ class C {
             Assert.Equal(SyntaxKind.AddExpression, nodes[7].Kind());
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46964")]
+        public void TestAncestorsOfDocumentationCommentTrivia()
+        {
+            var text = """
+                public class TestMe
+                {
+                    /// <summary>
+                    /// Test comment
+                    /// </summary>
+                    private int i;
+                }
+                """;
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var root = tree.GetCompilationUnitRoot();
+
+            var docComment = root.DescendantNodes(descendIntoTrivia: true)
+                .OfType<DocumentationCommentTriviaSyntax>()
+                .First();
+
+            // Verify that Ancestors() now returns all ancestors when ascendOutOfTrivia is true
+            var ancestors = docComment.Ancestors(ascendOutOfTrivia: true).ToList();
+            Assert.Equal(3, ancestors.Count);
+            Assert.Equal(SyntaxKind.FieldDeclaration, ancestors[0].Kind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, ancestors[1].Kind());
+            Assert.Equal(SyntaxKind.CompilationUnit, ancestors[2].Kind());
+
+            // Verify that AncestorsAndSelf() still works correctly
+            var ancestorsAndSelf = docComment.AncestorsAndSelf(ascendOutOfTrivia: true).ToList();
+            Assert.Equal(4, ancestorsAndSelf.Count);
+            Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, ancestorsAndSelf[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, ancestorsAndSelf[1].Kind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, ancestorsAndSelf[2].Kind());
+            Assert.Equal(SyntaxKind.CompilationUnit, ancestorsAndSelf[3].Kind());
+
+            // Verify that Ancestors() returns empty when ascendOutOfTrivia is false
+            var ancestorsWithoutAscending = docComment.Ancestors(ascendOutOfTrivia: false).ToList();
+            Assert.Equal(0, ancestorsWithoutAscending.Count);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46964")]
+        public void TestAncestorsOfDirectiveTrivia()
+        {
+            var text = """
+                #define DEBUG
+                public class TestMe
+                {
+                }
+                """;
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var root = tree.GetCompilationUnitRoot();
+
+            var defineDirective = root.DescendantNodes(descendIntoTrivia: true)
+                .OfType<DefineDirectiveTriviaSyntax>()
+                .First();
+
+            // The #define directive is attached as trivia to the class declaration's first token (public keyword)
+            // so the ClassDeclaration is its first ancestor, followed by CompilationUnit
+            var ancestors = defineDirective.Ancestors(ascendOutOfTrivia: true).ToList();
+            Assert.Equal(2, ancestors.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, ancestors[0].Kind());
+            Assert.Equal(SyntaxKind.CompilationUnit, ancestors[1].Kind());
+
+            // Verify that AncestorsAndSelf() still works correctly
+            var ancestorsAndSelf = defineDirective.AncestorsAndSelf(ascendOutOfTrivia: true).ToList();
+            Assert.Equal(3, ancestorsAndSelf.Count);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, ancestorsAndSelf[0].Kind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, ancestorsAndSelf[1].Kind());
+            Assert.Equal(SyntaxKind.CompilationUnit, ancestorsAndSelf[2].Kind());
+
+            // Verify that Ancestors() returns empty when ascendOutOfTrivia is false
+            var ancestorsWithoutAscending = defineDirective.Ancestors(ascendOutOfTrivia: false).ToList();
+            Assert.Equal(0, ancestorsWithoutAscending.Count);
+        }
+
         [Fact]
         public void TestFirstAncestorOrSelf()
         {
@@ -383,10 +457,10 @@ class C {
             testContainsHelper1("#undef x", SyntaxKind.UndefDirectiveTrivia);
             testContainsHelper1("#warning", SyntaxKind.WarningDirectiveTrivia);
 
-            // #! is special and is only recognized at start of a script file and nowhere else.
             testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Script));
-            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
-            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
+            testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
+            testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
+            testContainsHelper2([SyntaxKind.IgnoredDirectiveTrivia], SyntaxFactory.ParseCompilationUnit("#:x"));
 
             return;
 
@@ -470,7 +544,7 @@ class C {
             {
                 Assert.True(compilationUnit.ContainsDirectives);
                 foreach (var directiveKind in directiveKinds)
-                    Assert.True(compilationUnit.ContainsDirective(directiveKind));
+                    Assert.True(compilationUnit.ContainsDirective(directiveKind), directiveKind.ToString());
 
                 for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
                 {

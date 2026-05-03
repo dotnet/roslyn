@@ -3,14 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
+Imports Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.Host.Mef
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
-    <ExportLanguageService(GetType(IAddAccessibilityModifiersService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicAddAccessibilityModifiersService
-        Inherits VisualBasicAddAccessibilityModifiers
-        Implements IAddAccessibilityModifiersService
+Namespace Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers
+    <ExportLanguageService(GetType(IAddOrRemoveAccessibilityModifiersService), LanguageNames.VisualBasic), [Shared]>
+    Friend NotInheritable Class VisualBasicAddOrRemoveAccessibilityModifiersService
+        Inherits VisualBasicAddOrRemoveAccessibilityModifiers
+        Implements IAddOrRemoveAccessibilityModifiersService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

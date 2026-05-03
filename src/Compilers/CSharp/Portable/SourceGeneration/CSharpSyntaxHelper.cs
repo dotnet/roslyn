@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -30,6 +31,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode GetNameOfAttribute(SyntaxNode node)
             => ((AttributeSyntax)node).Name;
+
+        public override SyntaxNode RemapAttributeTarget(SyntaxNode target)
+        {
+            return target is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: BaseFieldDeclarationSyntax baseField } }
+                ? baseField
+                : target;
+        }
+
+        public override SyntaxNode GetAttributeOwningNode(SyntaxNode attribute)
+        {
+            Debug.Assert(attribute is AttributeSyntax);
+            Debug.Assert(attribute.Parent is AttributeListSyntax);
+            Debug.Assert(attribute.Parent.Parent is not null);
+            return attribute.Parent.Parent;
+        }
 
         public override bool IsAttributeList(SyntaxNode node)
             => node is AttributeListSyntax;

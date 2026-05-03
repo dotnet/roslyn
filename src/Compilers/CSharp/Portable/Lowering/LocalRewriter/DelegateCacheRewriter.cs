@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
@@ -22,7 +21,7 @@ internal sealed class DelegateCacheRewriter
     private readonly SyntheticBoundNodeFactory _factory;
     private readonly int _topLevelMethodOrdinal;
 
-    private Dictionary<MethodSymbol, DelegateCacheContainer>? _genericCacheContainers;
+    private Dictionary<Symbol, DelegateCacheContainer>? _genericCacheContainers;
 
     internal DelegateCacheRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
     {
@@ -90,7 +89,7 @@ internal sealed class DelegateCacheRewriter
         //
         // In the above case, only one cached delegate is necessary, and it could be assigned to the container 'owned' by LF1.
 
-        if (!TryGetOwnerFunction(_factory.CurrentFunction, boundDelegateCreation, out var ownerFunction))
+        if (!TryGetOwnerFunctionOrExtensionType(_factory.CurrentFunction, boundDelegateCreation, out Symbol? owner))
         {
             var typeCompilationState = _factory.CompilationState;
             container = typeCompilationState.ConcreteDelegateCacheContainer;
@@ -105,15 +104,15 @@ internal sealed class DelegateCacheRewriter
         }
         else
         {
-            var containers = _genericCacheContainers ??= new Dictionary<MethodSymbol, DelegateCacheContainer>(ReferenceEqualityComparer.Instance);
+            var containers = _genericCacheContainers ??= new Dictionary<Symbol, DelegateCacheContainer>(ReferenceEqualityComparer.Instance);
 
-            if (containers.TryGetValue(ownerFunction, out container))
+            if (containers.TryGetValue(owner, out container))
             {
                 return container;
             }
 
-            container = new DelegateCacheContainer(ownerFunction, _topLevelMethodOrdinal, containers.Count, generation);
-            containers.Add(ownerFunction, container);
+            container = new DelegateCacheContainer(_factory.CompilationState.Type, owner, _topLevelMethodOrdinal, ownerUniqueId: containers.Count, generation);
+            containers.Add(owner, container);
         }
 
         _factory.AddNestedType(container);
@@ -121,7 +120,7 @@ internal sealed class DelegateCacheRewriter
         return container;
     }
 
-    private static bool TryGetOwnerFunction(MethodSymbol currentFunction, BoundDelegateCreationExpression boundDelegateCreation, [NotNullWhen(true)] out MethodSymbol? ownerFunction)
+    private static bool TryGetOwnerFunctionOrExtensionType(MethodSymbol currentFunction, BoundDelegateCreationExpression boundDelegateCreation, [NotNullWhen(true)] out Symbol? owner)
     {
         var targetMethod = boundDelegateCreation.MethodOpt;
         Debug.Assert(targetMethod is { });
@@ -139,16 +138,23 @@ internal sealed class DelegateCacheRewriter
             //
             // Therefore, without too much analysis, we select the closest generic enclosing function as the cache container owner.
 
-            for (Symbol? enclosingSymbol = currentFunction; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
+            Symbol? enclosingSymbol = currentFunction;
+            for (; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
             {
                 if (enclosingMethod.Arity > 0)
                 {
-                    ownerFunction = enclosingMethod;
+                    owner = enclosingMethod;
                     return true;
                 }
             }
 
-            ownerFunction = null;
+            if (enclosingSymbol is NamedTypeSymbol { IsExtension: true, Arity: > 0 })
+            {
+                owner = enclosingSymbol;
+                return true;
+            }
+
+            owner = null;
             return false;
         }
 
@@ -173,16 +179,24 @@ internal sealed class DelegateCacheRewriter
             FindTypeParameters(delegateType, usedTypeParameters);
             FindTypeParameters(targetMethod, usedTypeParameters);
 
-            for (Symbol? enclosingSymbol = currentFunction; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
+            Symbol? enclosingSymbol = currentFunction;
+            for (; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
             {
                 if (usedTypeParametersContains(usedTypeParameters, enclosingMethod.TypeParameters))
                 {
-                    ownerFunction = enclosingMethod;
+                    owner = enclosingMethod;
                     return true;
                 }
             }
 
-            ownerFunction = null;
+            if (enclosingSymbol is NamedTypeSymbol { IsExtension: true, Arity: > 0 } extensionType &&
+                usedTypeParametersContains(usedTypeParameters, extensionType.TypeParameters))
+            {
+                owner = enclosingSymbol;
+                return true;
+            }
+
+            owner = null;
             return false;
         }
         finally

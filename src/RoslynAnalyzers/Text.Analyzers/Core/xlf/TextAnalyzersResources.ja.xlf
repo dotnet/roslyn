@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ja" original="../TextAnalyzersResources.resx">
+    <body>
+      <trans-unit id="FlagsEnumsShouldHavePluralNamesDescription">
+        <source>A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</source>
+        <target state="translated">パブリック列挙型に System.FlagsAttribute 属性があり、その名前の末尾に ""s"" がありません。FlagsAttribute を使用してマークされた型には複数形の名前が付きます。これは、この属性に複数の値を指定できることを示すためです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FlagsEnumsShouldHavePluralNamesMessage">
+        <source>Flags enums should have plural names</source>
+        <target state="translated">フラグ列挙型は、複数形の名前を含んでいなければなりません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FlagsEnumsShouldHavePluralNamesTitle">
+        <source>Flags enums should have plural names</source>
+        <target state="translated">フラグ列挙型は、複数形の名前を含んでいなければなりません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyFileParse">
+        <source>Error parsing dictionary '{0}': {1}</source>
+        <target state="translated">ディクショナリ '{0}' の解析でエラーが発生しました: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageVariable">
+        <source>Correct the spelling of '{0}' in variable name '{1}'</source>
+        <target state="translated">変数名 '{1}' の '{0}' のスペルを訂正してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyTitle">
+        <source>Identifiers should be spelled correctly</source>
+        <target state="translated">識別子は正しく入力されなければなりません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyDescription">
+        <source>The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.</source>
+        <target state="translated">外部から参照可能な識別子の名前に、Microsoft スペル チェック ライブラリによって認識されない単語が 1 つ以上含まれています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssembly">
+        <source>Correct the spelling of '{0}' in assembly name '{1}'</source>
+        <target state="translated">アセンブリ名 '{1}' の '{0}' のスペルを訂正してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespace">
+        <source>Correct the spelling of '{0}' in namespace name '{1}'</source>
+        <target state="translated">名前空間名 '{1}' の '{0}' のスペルを訂正してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageType">
+        <source>Correct the spelling of '{0}' in type name '{1}'</source>
+        <target state="translated">型名 '{1}' の '{0}' のスペルを訂正してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMember">
+        <source>Correct the spelling of '{0}' in member name '{1}' or remove it entirely if it represents any sort of Hungarian notation</source>
+        <target state="translated">メンバー名 '{1}' の '{0}' のスペルを訂正するか、または、それが何らかのハンガリアン記法を表す場合はその全体を削除してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameter">
+        <source>In method '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</source>
+        <target state="translated">メソッド '{0}' で、パラメーター名 '{2}' の '{1}' のスペルを訂正するか、または、それが何らかのハンガリアン記法を表す場合はその全体を削除してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameter">
+        <source>In delegate '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</source>
+        <target state="translated">デリゲート '{0}' で、パラメーター名 '{2}' の '{1}' のスペルを訂正するか、または、それが何らかのハンガリアン記法を表す場合はその全体を削除してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameter">
+        <source>On type '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</source>
+        <target state="translated">型 '{0}' で、ジェネリック型パラメーター名 '{2}' の '{1}' のスペルを訂正してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameter">
+        <source>On method '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</source>
+        <target state="translated">メソッド '{0}' で、ジェネリック型パラメーター名 '{2}' の '{1}' のスペルを訂正してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssemblyMoreMeaningfulName">
+        <source>Consider providing a more meaningful name than assembly name '{0}'</source>
+        <target state="translated">アセンブリ名 '{0}' よりも意味のある名前を指定することを検討してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespaceMoreMeaningfulName">
+        <source>Consider providing a more meaningful name than namespace name '{0}'</source>
+        <target state="translated">名前空間名 '{0}' よりも意味のある名前を指定することを検討してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeMoreMeaningfulName">
+        <source>Consider providing a more meaningful name than type name '{0}'</source>
+        <target state="translated">型名 '{0}' よりも意味のある名前を指定することを検討してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberMoreMeaningfulName">
+        <source>Consider providing a more meaningful name than member name '{0}'</source>
+        <target state="translated">メンバー名 '{0}' よりも意味のある名前を指定することを検討してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameterMoreMeaningfulName">
+        <source>In method '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
+        <target state="translated">メソッド '{0}' で、パラメーター名 '{1}' よりも意味のある名前を指定することを検討してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameterMoreMeaningfulName">
+        <source>In delegate '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
+        <target state="translated">デリゲート '{0}' で、パラメーター名 '{1}' よりも意味のある名前を指定することを検討してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameterMoreMeaningfulName">
+        <source>On type '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
+        <target state="translated">型 '{0}' で、ジェネリック型パラメーター名 '{1}' よりも意味のある名前を指定することを検討してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName">
+        <source>On method '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
+        <target state="translated">メソッド '{0}' で、ジェネリック型パラメーター名 '{1}' よりも意味のある名前を指定することを検討してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CategoryNaming">
+        <source>Naming</source>
+        <target state="translated">名前付け</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesDescription">
+        <source>Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</source>
+        <target state="translated">名前付け規則では、列挙型の複数形の名前は同時に複数の列挙型を指定できることを意味します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesMessage">
+        <source>Only FlagsAttribute enums should have plural names</source>
+        <target state="translated">FlagsAttribute 列挙型のみが複数形の名前を含んでいなければなりません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesTitle">
+        <source>Only FlagsAttribute enums should have plural names</source>
+        <target state="translated">FlagsAttribute 列挙型のみが複数形の名前を含んでいなければなりません</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

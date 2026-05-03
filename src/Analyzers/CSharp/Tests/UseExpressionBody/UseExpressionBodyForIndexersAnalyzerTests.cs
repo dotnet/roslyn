@@ -18,11 +18,10 @@ using VerifyCS = CSharpCodeFixVerifier<
     UseExpressionBodyCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForIndexersAnalyzerTests
+public sealed class UseExpressionBodyForIndexersAnalyzerTests
 {
-    private static async Task TestWithUseExpressionBody(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseExpressionBody(string code, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
@@ -32,11 +31,9 @@ public class UseExpressionBodyForIndexersAnalyzerTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never },
             }
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseBlockBody(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseBlockBody(string code, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
@@ -46,12 +43,10 @@ public class UseExpressionBodyForIndexersAnalyzerTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUseExpressionBody1()
-    {
-        var code = """
+    public Task TestUseExpressionBody1()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Bar() { return 0; }
@@ -64,17 +59,14 @@ public class UseExpressionBodyForIndexersAnalyzerTests
                     }
                 }|}
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Bar() { return 0; }
 
                 int this[int i] => Bar();
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
     public async Task TestMissingWithSetter()
@@ -121,9 +113,8 @@ public class UseExpressionBodyForIndexersAnalyzerTests
     }
 
     [Fact]
-    public async Task TestUseExpressionBody3()
-    {
-        var code = """
+    public Task TestUseExpressionBody3()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -136,22 +127,18 @@ public class UseExpressionBodyForIndexersAnalyzerTests
                     }
                 }|}
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
             {
                 int this[int i] => throw new NotImplementedException();
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseExpressionBody4()
-    {
-        var code = """
+    public Task TestUseExpressionBody4()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -164,30 +151,25 @@ public class UseExpressionBodyForIndexersAnalyzerTests
                     }
                 }|}
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
             {
                 int this[int i] => throw new NotImplementedException(); // comment
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBody1()
-    {
-        var code = """
+    public Task TestUseBlockBody1()
+        => TestWithUseBlockBody("""
             class C
             {
                 int Bar() { return 0; }
 
                 {|IDE0026:int this[int i] => Bar();|}
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Bar() { return 0; }
@@ -200,22 +182,21 @@ public class UseExpressionBodyForIndexersAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
-    public async Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
-    {
-        var code = """
+    public Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int Bar() { return 0; }
 
                 {|IDE0026:int this[int i] => Bar();|}
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             class C
             {
                 int Bar() { return 0; }
@@ -225,11 +206,7 @@ public class UseExpressionBodyForIndexersAnalyzerTests
                     get => Bar();
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },
@@ -238,20 +215,17 @@ public class UseExpressionBodyForIndexersAnalyzerTests
             NumberOfFixAllIterations = 2,
             NumberOfIncrementalIterations = 2,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUseBlockBody3()
-    {
-        var code = """
+    public Task TestUseBlockBody3()
+        => TestWithUseBlockBody("""
             using System;
 
             class C
             {
                 {|IDE0026:int this[int i] => throw new NotImplementedException();|}
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -264,22 +238,18 @@ public class UseExpressionBodyForIndexersAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBody4()
-    {
-        var code = """
+    public Task TestUseBlockBody4()
+        => TestWithUseBlockBody("""
             using System;
 
             class C
             {
                 {|IDE0026:int this[int i] => throw new NotImplementedException();|} // comment
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -292,7 +262,5 @@ public class UseExpressionBodyForIndexersAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 }

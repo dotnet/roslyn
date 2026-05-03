@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame;
 
 using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
 
-public partial class StackFrameParserTests
+public sealed partial class StackFrameParserTests
 {
     private static void Verify(
         string input,
@@ -36,7 +36,7 @@ public partial class StackFrameParserTests
             return;
         }
 
-        AssertEx.NotNull(tree);
+        Assert.NotNull(tree);
         VerifyCharacterSpans(input, tree);
 
         if (methodDeclaration is null)
@@ -104,7 +104,7 @@ public partial class StackFrameParserTests
 
                 if (textSeq[index++] != ch)
                 {
-                    Assert.True(false, PrintDifference());
+                    Assert.Fail(PrintDifference());
                 }
             }
         }
@@ -124,7 +124,7 @@ public partial class StackFrameParserTests
             sb.AppendLine();
 
             sb.Append("Actual: \t");
-            var enumeratedString = new string([.. enumeratedParsedCharacters.Select(ch => (char)ch.Value)]);
+            var enumeratedString = new string([.. enumeratedParsedCharacters.Select(ch => ch.Value)]);
             PrintString(enumeratedString, start, end, sb);
             sb.AppendLine();
 

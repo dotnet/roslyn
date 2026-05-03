@@ -6,6 +6,6 @@ namespace Microsoft.CodeAnalysis.Features.Intents;
 
 internal interface IIntentProviderMetadata
 {
-    public string IntentName { get; }
-    public string LanguageName { get; }
+    string IntentName { get; }
+    string LanguageName { get; }
 }

@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -26,10 +25,9 @@ internal sealed class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCode
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseSystemHashCode];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_System_HashCode, nameof(AnalyzersResources.Use_System_HashCode));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
@@ -71,7 +69,7 @@ internal sealed class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCode
 
                 // Only if there was a base.GetHashCode() do we pass in the ContainingType
                 // so that we generate the same.
-                var containingType = accessesBase ? method!.ContainingType : null;
+                var containingType = accessesBase ? method.ContainingType : null;
                 var components = generator.GetGetHashCodeComponents(
                     generatorInternal, semanticModel.Compilation, containingType, members, justMemberReference: true);
 

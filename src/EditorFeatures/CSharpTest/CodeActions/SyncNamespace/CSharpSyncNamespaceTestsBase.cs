@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -59,7 +58,7 @@ public abstract class CSharpSyncNamespaceTestsBase : AbstractCodeActionTest
 
     protected async Task TestMoveFileToMatchNamespace(string initialMarkup, List<string[]> expectedFolders = null)
     {
-        var testOptions = new TestParameters();
+        var testOptions = TestParameters.Default;
         using (var workspace = (EditorTestWorkspace)CreateWorkspaceFromOptions(initialMarkup, testOptions))
         {
             if (expectedFolders?.Count > 0)
@@ -137,7 +136,7 @@ public abstract class CSharpSyncNamespaceTestsBase : AbstractCodeActionTest
         string expectedSourceOriginal,
         string expectedSourceReference = null)
     {
-        var testOptions = new TestParameters();
+        var testOptions = TestParameters.Default;
         using (var workspace = CreateWorkspaceFromOptions(initialMarkUp, testOptions))
         {
             if (workspace.Projects.Count == 2)

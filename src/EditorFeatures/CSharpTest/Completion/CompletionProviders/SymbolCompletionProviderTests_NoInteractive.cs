@@ -22,7 +22,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
+public sealed class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(SymbolCompletionProvider);
@@ -30,7 +30,7 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
     private protected override Task VerifyWorkerAsync(
         string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
-        int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+        Glyph? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
         List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
     {
@@ -70,77 +70,64 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
         => await VerifyItemExistsAsync(@"System.Console.$$", @"Beep");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
-    public async Task GlobalStatement2()
-    {
-        await VerifyItemExistsAsync("""
+    public Task GlobalStatement2()
+        => VerifyItemExistsAsync("""
             using System;
             Console.$$
             """, @"Beep");
-    }
 
     [Fact]
     public async Task InvalidLocation3()
         => await VerifyItemIsAbsentAsync(@"using System.Console.$$", @"Beep");
 
     [Fact]
-    public async Task InvalidLocation4()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task InvalidLocation4()
+        => VerifyItemIsAbsentAsync("""
             class C {
             #if false 
             System.Console.$$
             #endif
             """, @"Beep");
-    }
 
     [Fact]
-    public async Task InvalidLocation5()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task InvalidLocation5()
+        => VerifyItemIsAbsentAsync("""
             class C {
             #if true 
             System.Console.$$
             #endif
             """, @"Beep");
-    }
 
     [Fact]
-    public async Task InvalidLocation6()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task InvalidLocation6()
+        => VerifyItemIsAbsentAsync("""
             using System;
 
             class C {
             // Console.$$
             """, @"Beep");
-    }
 
     [Fact]
-    public async Task InvalidLocation7()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task InvalidLocation7()
+        => VerifyItemIsAbsentAsync("""
             using System;
 
             class C {
             /*  Console.$$   */
             """, @"Beep");
-    }
 
     [Fact]
-    public async Task InvalidLocation8()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task InvalidLocation8()
+        => VerifyItemIsAbsentAsync("""
             using System;
 
             class C {
             /// Console.$$
             """, @"Beep");
-    }
 
     [Fact]
-    public async Task InvalidLocation9()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task InvalidLocation9()
+        => VerifyItemIsAbsentAsync("""
             using System;
 
             class C {
@@ -150,12 +137,10 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
                 }
             }
             """, @"Beep");
-    }
 
     [Fact]
-    public async Task InvalidLocation10()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task InvalidLocation10()
+        => VerifyItemIsAbsentAsync("""
             using System;
 
             class C {
@@ -163,7 +148,6 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
                 {
                     /**  Console.$$   */
             """, @"Beep");
-    }
 
     [Fact]
     public async Task InvalidLocation11()
@@ -174,40 +158,32 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
         => await VerifyItemIsAbsentAsync(@"[assembly: System.Console.$$]", @"Beep");
 
     [Fact]
-    public async Task InvalidLocation13()
-    {
-        var content = """
+    public Task InvalidLocation13()
+        => VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", """
             [Console.$$]
             class CL {}
-            """;
-
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"Beep");
-    }
+            """), @"Beep");
 
     [Fact]
     public async Task InvalidLocation14()
         => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<[Console.$$]T> {}"), @"Beep");
 
     [Fact]
-    public async Task InvalidLocation15()
-    {
-        var content = """
+    public Task InvalidLocation15()
+        => VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", """
             class CL {
                 [Console.$$]
                 void Method() {}
             }
-            """;
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"Beep");
-    }
+            """), @"Beep");
 
     [Fact]
     public async Task InvalidLocation16()
         => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<Console.$$"), @"Beep");
 
     [Fact]
-    public async Task InvalidLocation17()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task InvalidLocation17()
+        => VerifyItemIsAbsentAsync("""
             using System;
 
             class Program {
@@ -217,12 +193,10 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
                 }
             }
             """, @"Main");
-    }
 
     [Fact]
-    public async Task InvalidLocation18()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task InvalidLocation18()
+        => VerifyItemIsAbsentAsync("""
             using System;
 
             class Program {
@@ -233,12 +207,10 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
                 }
             }
             """, @"Main");
-    }
 
     [Fact]
-    public async Task InvalidLocation19()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task InvalidLocation19()
+        => VerifyItemIsAbsentAsync("""
             using System;
 
             class Program {
@@ -248,12 +220,10 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
                 }
             }
             """, @"SByte");
-    }
 
     [Fact]
-    public async Task InsideMethodBody()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InsideMethodBody()
+        => VerifyItemExistsAsync("""
             using System;
 
             class C {
@@ -261,16 +231,14 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
                 {
                     Console.$$
             """, @"Beep");
-    }
 
     [Fact]
     public async Task UsingDirectiveGlobal()
         => await VerifyItemExistsAsync(@"using global::$$;", @"System");
 
     [Fact]
-    public async Task InsideAccessor()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InsideAccessor()
+        => VerifyItemExistsAsync("""
             using System;
 
             class C {
@@ -280,32 +248,26 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
                     {
                         Console.$$
             """, @"Beep");
-    }
 
     [Fact]
-    public async Task FieldInitializer()
-    {
-        await VerifyItemExistsAsync("""
+    public Task FieldInitializer()
+        => VerifyItemExistsAsync("""
             using System;
 
             class C {
                 int i = Console.$$
             """, @"Beep");
-    }
 
     [Fact]
-    public async Task FieldInitializer2()
-    {
-        await VerifyItemExistsAsync("""
+    public Task FieldInitializer2()
+        => VerifyItemExistsAsync("""
             class C {
                 object i = $$
             """, @"System");
-    }
 
     [Fact]
-    public async Task ImportedProperty()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ImportedProperty()
+        => VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             class C {
@@ -313,22 +275,18 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
                 {
                    new List<string>().$$
             """, @"Capacity");
-    }
 
     [Fact]
-    public async Task FieldInitializerWithProperty()
-    {
-        await VerifyItemExistsAsync("""
+    public Task FieldInitializerWithProperty()
+        => VerifyItemExistsAsync("""
             using System.Collections.Generic;
             class C {
                 int i =  new List<string>().$$
             """, @"Count");
-    }
 
     [Fact]
-    public async Task StaticMethods()
-    {
-        await VerifyItemExistsAsync("""
+    public Task StaticMethods()
+        => VerifyItemExistsAsync("""
             using System;
 
             class C {
@@ -336,7 +294,6 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
 
                 int i = $$
             """, @"Method");
-    }
 
     [Fact]
     public async Task EndOfFile()

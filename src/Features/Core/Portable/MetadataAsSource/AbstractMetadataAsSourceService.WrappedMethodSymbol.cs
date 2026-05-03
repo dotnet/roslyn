@@ -116,16 +116,20 @@ internal abstract partial class AbstractMetadataAsSourceService
             => _symbol.GetDllImportData();
 
         public IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
-        {
-            // This implementation feels incorrect!
-            return _symbol.ReduceExtensionMethod(receiverType);
-        }
+            => throw new System.NotImplementedException();
+
+        public IMethodSymbol ReduceExtensionMember(ITypeSymbol receiverType)
+            => throw new System.NotImplementedException();
+
+        public IMethodSymbol AssociatedExtensionImplementation => null;
 
         public bool IsVararg => _symbol.IsVararg;
 
         public bool IsCheckedBuiltin => _symbol.IsCheckedBuiltin;
 
         public bool IsConditional => _symbol.IsConditional;
+
+        public bool IsIterator => _symbol.IsIterator;
 
         public SignatureCallingConvention CallingConvention => _symbol.CallingConvention;
 

@@ -26,9 +26,8 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
     private readonly NamingStylesTestOptionSets options = new(LanguageNames.CSharp);
 
     [Fact]
-    public async Task TestSingleField()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSingleField()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -50,12 +49,10 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSingleFieldWithCodeStyle()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSingleFieldWithCodeStyle()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -74,13 +71,11 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 public Z(int a{|Navigation:)|} => this.a = a;
             }
             """,
-            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
-    }
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact]
-    public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -99,13 +94,11 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 public Z(int a{|Navigation:)|} => this.a = a;
             }
             """,
-            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
-    }
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
 
     [Fact]
-    public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -130,13 +123,11 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """,
-            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
-    }
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
 
     [Fact]
-    public async Task TestMultipleFields()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleFields()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -161,12 +152,10 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultipleFields_VerticalSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleFields_VerticalSelection()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -191,12 +180,10 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultipleFields_VerticalSelectionUpToExcludedField()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleFields_VerticalSelectionUpToExcludedField()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -223,12 +210,10 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultipleFields_VerticalSelectionUpToMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleFields_VerticalSelectionUpToMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -255,12 +240,10 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultipleFields_SelectionIncludingClassOpeningBrace()
-    {
-        await TestMissingAsync(
+    public Task TestMultipleFields_SelectionIncludingClassOpeningBrace()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
 
@@ -270,12 +253,10 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 string b;|]
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSecondField()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSecondField()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -309,12 +290,10 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFieldAssigningConstructor()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFieldAssigningConstructor()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -349,12 +328,10 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFieldAssigningConstructor2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFieldAssigningConstructor2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -389,12 +366,10 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDelegatingConstructor()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDelegatingConstructor()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -428,16 +403,11 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """,
-index: 1);
-    }
+            index: 1);
 
     [Fact]
-    public async Task TestDelegatingConstructorWithNullabilityDifferences()
-    {
-        // For this test we have a problem: the existing constructor has different nullability than
-        // the underlying field. We will still offer to use the delegating constructor even though it has a nullability issue
-        // the user can then easily fix. If they don't want that, they can also just use the first option.
-        await TestInRegularAndScriptAsync(
+    public Task TestDelegatingConstructorWithNullabilityDifferences()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -475,13 +445,11 @@ index: 1);
                 }
             }
             """,
-index: 1);
-    }
+            index: 1);
 
     [Fact]
-    public async Task TestMissingWithExistingConstructor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWithExistingConstructor()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -502,12 +470,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultipleProperties()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleProperties()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -528,12 +494,10 @@ index: 1);
                 public string B { get; private set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiplePropertiesWithQualification()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiplePropertiesWithQualification()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -553,13 +517,11 @@ index: 1);
                 public int A { get; private set; }
                 public string B { get; private set; }
             }
-            """, options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
-    }
+            """, new TestParameters(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 
     [Fact]
-    public async Task TestStruct()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStruct()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -581,12 +543,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStructInitializingAutoProperty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStructInitializingAutoProperty()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -608,12 +568,10 @@ index: 1);
                 int i { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStructNotInitializingAutoProperty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStructNotInitializingAutoProperty()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -637,12 +595,10 @@ index: 1);
                 int j { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStruct2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStruct2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -668,12 +624,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStruct3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStruct3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -699,12 +653,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestGenericType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenericType()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -726,12 +678,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSmartTagText1()
-    {
-        await TestSmartTagTextAsync(
+    public Task TestSmartTagText1()
+        => TestSmartTagTextAsync(
             """
             using System.Collections.Generic;
 
@@ -741,34 +691,11 @@ index: 1);
                 HashSet<string> s;|]
             }
             """,
-string.Format(CodeFixesResources.Generate_constructor_0_1, "Program", "bool b, HashSet<string> s"));
-    }
+            string.Format(CodeFixesResources.Generate_constructor_0_1, "Program", "bool b, HashSet<string> s"));
 
     [Fact]
-    public async Task TestSmartTagText2()
-    {
-        await TestSmartTagTextAsync(
-            """
-            using System.Collections.Generic;
-
-            class Program
-            {
-                [|bool b;
-                HashSet<string> s;|]
-
-                public Program(bool b)
-                {
-                    this.b = b;
-                }
-            }
-            """,
-string.Format(CodeFixesResources.Generate_field_assigning_constructor_0_1, "Program", "bool b, HashSet<string> s"));
-    }
-
-    [Fact]
-    public async Task TestSmartTagText3()
-    {
-        await TestSmartTagTextAsync(
+    public Task TestSmartTagText2()
+        => TestSmartTagTextAsync(
             """
             using System.Collections.Generic;
 
@@ -783,14 +710,31 @@ string.Format(CodeFixesResources.Generate_field_assigning_constructor_0_1, "Prog
                 }
             }
             """,
-string.Format(FeaturesResources.Generate_delegating_constructor_0_1, "Program", "bool b, HashSet<string> s"),
-index: 1);
-    }
+            string.Format(CodeFixesResources.Generate_field_assigning_constructor_0_1, "Program", "bool b, HashSet<string> s"));
 
     [Fact]
-    public async Task TestContextualKeywordName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSmartTagText3()
+        => TestSmartTagTextAsync(
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                [|bool b;
+                HashSet<string> s;|]
+
+                public Program(bool b)
+                {
+                    this.b = b;
+                }
+            }
+            """,
+            string.Format(FeaturesResources.Generate_delegating_constructor_0_1, "Program", "bool b, HashSet<string> s"),
+            index: 1);
+
+    [Fact]
+    public Task TestContextualKeywordName()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -808,12 +752,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestGenerateConstructorNotOfferedForDuplicate()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestGenerateConstructorNotOfferedForDuplicate()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -829,12 +771,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Tuple()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Tuple()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -856,12 +796,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NullableReferenceType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NullableReferenceType()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -883,12 +821,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14219")]
-    public async Task TestUnderscoreInName1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnderscoreInName1()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -906,12 +842,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62162")]
-    public async Task TestUnderscoreInName_KeepIfNameWithoutUnderscoreIsInvalid()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnderscoreInName_KeepIfNameWithoutUnderscoreIsInvalid()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -929,34 +863,34 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/62162")]
     [InlineData('m')]
     [InlineData('s')]
     [InlineData('t')]
-    public async Task TestCommonPatternInName_KeepUnderscoreIfNameWithoutItIsInvalid(char commonPatternChar)
-    {
-        await TestInRegularAndScriptAsync(
-$@"class Program
-{{
-    [|int {commonPatternChar}_0;|]
-}}",
-$@"class Program
-{{
-    int {commonPatternChar}_0;
+    public Task TestCommonPatternInName_KeepUnderscoreIfNameWithoutItIsInvalid(char commonPatternChar)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            class Program
+            {
+                [|int {{commonPatternChar}}_0;|]
+            }
+            """,
+            $$"""
+            class Program
+            {
+                int {{commonPatternChar}}_0;
 
-    public Program(int _0{{|Navigation:)|}}
-    {{
-        {commonPatternChar}_0 = _0;
-    }}
-}}");
-    }
+                public Program(int _0{|Navigation:)|}
+                {
+                    {{commonPatternChar}}_0 = _0;
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14219")]
-    public async Task TestUnderscoreInName_PreferThis()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnderscoreInName_PreferThis()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -974,13 +908,11 @@ $@"class Program
                 }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
-    }
+            new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13944")]
-    public async Task TestGetter_Only_Auto_Props()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGetter_Only_Auto_Props()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Contribution
             {
@@ -1001,13 +933,11 @@ $@"class Program
                 public int Number { get; }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
-    }
+            new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13944")]
-    public async Task TestAbstract_Getter_Only_Auto_Props()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestAbstract_Getter_Only_Auto_Props()
+        => TestMissingInRegularAndScriptAsync(
             """
             abstract class Contribution
             {
@@ -1016,12 +946,10 @@ $@"class Program
             }
             """,
             new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement)));
-    }
 
     [Fact]
-    public async Task TestSingleFieldWithDialog()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestSingleFieldWithDialog()
+        => TestWithPickMembersDialogAsync(
             """
             using System.Collections.Generic;
 
@@ -1045,12 +973,10 @@ $@"class Program
             }
             """,
             chosenSymbols: ["a"]);
-    }
 
     [Fact]
-    public async Task TestSingleFieldWithDialog2()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestSingleFieldWithDialog2()
+        => TestWithPickMembersDialogAsync(
             """
             using System.Collections.Generic;
 
@@ -1073,12 +999,10 @@ $@"class Program
             }
             """,
             chosenSymbols: ["a"]);
-    }
 
     [Fact]
-    public async Task TestMissingOnClassAttributes()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnClassAttributes()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1088,12 +1012,10 @@ $@"class Program
                 int a;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPickNoFieldWithDialog()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestPickNoFieldWithDialog()
+        => TestWithPickMembersDialogAsync(
             """
             using System.Collections.Generic;
 
@@ -1116,12 +1038,10 @@ $@"class Program
             }
             """,
             chosenSymbols: []);
-    }
 
     [Fact]
-    public async Task TestReorderFieldsWithDialog()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestReorderFieldsWithDialog()
+        => TestWithPickMembersDialogAsync(
             """
             using System.Collections.Generic;
 
@@ -1148,12 +1068,10 @@ $@"class Program
             }
             """,
             chosenSymbols: ["b", "a"]);
-    }
 
     [Fact]
-    public async Task TestAddNullChecks1()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestAddNullChecks1()
+        => TestWithPickMembersDialogAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1183,12 +1101,10 @@ $@"class Program
             """,
             chosenSymbols: ["a", "b"],
             optionsCallback: options => options[0].Value = true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41428")]
-    public async Task TestAddNullChecksWithNullableReferenceType()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestAddNullChecksWithNullableReferenceType()
+        => TestWithPickMembersDialogAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1223,12 +1139,10 @@ $@"class Program
             """,
             chosenSymbols: ["a", "b", "c"],
             optionsCallback: options => options[0].Value = true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41428")]
-    public async Task TestAddNullChecksWithNullableReferenceTypeForGenerics()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestAddNullChecksWithNullableReferenceTypeForGenerics()
+        => TestWithPickMembersDialogAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1263,12 +1177,10 @@ $@"class Program
             """,
             chosenSymbols: ["a", "b", "c"],
             optionsCallback: options => options[0].Value = true);
-    }
 
     [Fact]
-    public async Task TestAddNullChecks2()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestAddNullChecks2()
+        => TestWithPickMembersDialogAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1305,12 +1217,10 @@ $@"class Program
             optionsCallback: options => options[0].Value = true,
             parameters: new TestParameters(options:
 Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestAddNullChecks3()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestAddNullChecks3()
+        => TestWithPickMembersDialogAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1342,12 +1252,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
             optionsCallback: options => options[0].Value = true,
             parameters: new TestParameters(options:
                 Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestAddNullChecks_CSharp6()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestAddNullChecks_CSharp6()
+        => TestWithPickMembersDialogAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1385,12 +1293,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
             parameters: new TestParameters(
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
                 options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestMissingOnMember1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnMember1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1401,12 +1307,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 [||]public void M() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnMember2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnMember2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1421,12 +1325,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 public void N() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnMember3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnMember3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1442,12 +1344,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 public void N() { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/21067")]
-    public async Task TestFinalCaretPosition()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFinalCaretPosition()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1469,12 +1369,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20595")]
-    public async Task ProtectedConstructorShouldBeGeneratedForAbstractClass()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ProtectedConstructorShouldBeGeneratedForAbstractClass()
+        => TestInRegularAndScriptAsync(
             """
             abstract class C 
             {
@@ -1492,13 +1390,11 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 public int Prop { get; set; }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
-    }
+            new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17643")]
-    public async Task TestWithDialogNoBackingField()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestWithDialogNoBackingField()
+        => TestWithPickMembersDialogAsync(
             """
             class Program
             {
@@ -1518,12 +1414,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
             }
             """,
             chosenSymbols: null);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25690")]
-    public async Task TestWithDialogNoIndexer()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestWithDialogNoIndexer()
+        => TestWithPickMembersDialogAsync(
             """
             class Program
             {
@@ -1545,12 +1439,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
             }
             """,
             chosenSymbols: null);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-    public async Task TestWithDialogSetterOnlyProperty()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestWithDialogSetterOnlyProperty()
+        => TestWithPickMembersDialogAsync(
             """
             class Program
             {
@@ -1573,12 +1465,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
             }
             """,
             chosenSymbols: null);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestPartialFieldSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPartialFieldSelection()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1596,12 +1486,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestPartialFieldSelection2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPartialFieldSelection2()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1619,12 +1507,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestPartialFieldSelection3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPartialFieldSelection3()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1642,12 +1528,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestPartialFieldSelectionBeforeIdentifier()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPartialFieldSelectionBeforeIdentifier()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1665,12 +1549,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestPartialFieldSelectionAfterIdentifier()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPartialFieldSelectionAfterIdentifier()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1688,36 +1570,30 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestPartialFieldSelectionIdentifierNotSelected()
-    {
-        await TestMissingAsync(
+    public Task TestPartialFieldSelectionIdentifierNotSelected()
+        => TestMissingAsync(
             """
             class Z
             {
                 in[|t|] a;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestPartialFieldSelectionIdentifierNotSelected2()
-    {
-        await TestMissingAsync(
+    public Task TestPartialFieldSelectionIdentifierNotSelected2()
+        => TestMissingAsync(
             """
             class Z
             {
                 int a [|= 3|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestMultiplePartialFieldSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiplePartialFieldSelection()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1738,12 +1614,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestMultiplePartialFieldSelection2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiplePartialFieldSelection2()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1763,12 +1637,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestMultiplePartialFieldSelection3_1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiplePartialFieldSelection3_1()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1786,12 +1658,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestMultiplePartialFieldSelection3_2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiplePartialFieldSelection3_2()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1810,24 +1680,20 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestMultiplePartialFieldSelection4()
-    {
-        await TestMissingAsync(
+    public Task TestMultiplePartialFieldSelection4()
+        => TestMissingAsync(
             """
             class Z
             {
                 int a = [|2|], b = 3;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
-    public async Task TestNoFieldNamingStyle()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNoFieldNamingStyle()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1844,13 +1710,11 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     a = p_a;
                 }
             }
-            """, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
-    }
+            """, new TestParameters(options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
-    public async Task TestCommonFieldNamingStyle()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCommonFieldNamingStyle()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1867,13 +1731,11 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     s_a = p_a;
                 }
             }
-            """, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
-    }
+            """, new TestParameters(options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
-    public async Task TestSpecifiedNamingStyle()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSpecifiedNamingStyle()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1890,13 +1752,11 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     field_a = p_a_End;
                 }
             }
-            """, options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
-    }
+            """, new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
-    public async Task TestSpecifiedAndCommonFieldNamingStyle()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSpecifiedAndCommonFieldNamingStyle()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1913,13 +1773,11 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     field_s_a = p_a_End;
                 }
             }
-            """, options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
-    }
+            """, new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
-    public async Task TestSpecifiedAndCommonFieldNamingStyle2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSpecifiedAndCommonFieldNamingStyle2()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1936,25 +1794,21 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     s_field_a = p_a_End;
                 }
             }
-            """, options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
-    }
+            """, new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
-    public async Task TestBaseNameEmpty()
-    {
-        await TestMissingAsync(
+    public Task TestBaseNameEmpty()
+        => TestMissingAsync(
             """
             class Z
             {
                 int [|field__End|] = 2;
             }
             """, new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
-    public async Task TestSomeBaseNamesEmpty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSomeBaseNamesEmpty()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1973,13 +1827,11 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     s_field_a = p_a;
                 }
             }
-            """, options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
-    }
+            """, new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45808")]
-    public async Task TestUnsafeField()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnsafeField()
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1996,13 +1848,11 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     this.a = a;
                 }
             }
-            """, compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
-    }
+            """, new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45808")]
-    public async Task TestUnsafeFieldInUnsafeClass()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnsafeFieldInUnsafeClass()
+        => TestInRegularAndScriptAsync(
             """
             unsafe class Z
             {
@@ -2019,13 +1869,11 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     this.a = a;
                 }
             }
-            """, compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
-    }
+            """, new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53467")]
-    public async Task TestMissingWhenTypeNotInCompilation()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWhenTypeNotInCompilation()
+        => TestMissingAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1">
@@ -2045,12 +1893,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29198")]
-    public async Task TestWithSelectedGetPropertyThatReturnsField1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithSelectedGetPropertyThatReturnsField1()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2078,12 +1924,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29198")]
-    public async Task TestWithSelectedGetPropertyThatReturnsField2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithSelectedGetPropertyThatReturnsField2()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2111,12 +1955,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29198")]
-    public async Task TestWithSelectedGetPropertyThatReturnsField3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithSelectedGetPropertyThatReturnsField3()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2144,12 +1986,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29198")]
-    public async Task TestWithSelectedGetPropertyThatReturnsField4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithSelectedGetPropertyThatReturnsField4()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2171,12 +2011,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 public int Goo => this._value;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29198")]
-    public async Task TestWithSelectedGetPropertyThatReturnsField5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithSelectedGetPropertyThatReturnsField5()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2204,12 +2042,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29198")]
-    public async Task TestWithSelectedGetPropertyThatReturnsField6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithSelectedGetPropertyThatReturnsField6()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2239,5 +2075,4 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
-    }
 }

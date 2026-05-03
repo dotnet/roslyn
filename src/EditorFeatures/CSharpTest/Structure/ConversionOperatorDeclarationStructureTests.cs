@@ -12,30 +12,25 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<ConversionOperatorDeclarationSyntax>
+public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<ConversionOperatorDeclarationSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new ConversionOperatorDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestOperator1()
-    {
-        var code = """
+    public Task TestOperator1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static explicit operator C(byte i){|textspan:
                     {
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperator2()
-    {
-        var code = """
+    public Task TestOperator2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static explicit operator C(byte i){|textspan:
@@ -45,16 +40,12 @@ public class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxN
                     {
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperator3()
-    {
-        var code = """
+    public Task TestOperator3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static explicit operator C(byte i){|textspan:
@@ -65,16 +56,12 @@ public class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxN
                     {
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperatorWithLeadingComments()
-    {
-        var code = """
+    public Task TestOperatorWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -83,10 +70,7 @@ public class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxN
                     {
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

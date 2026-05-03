@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax = unconvertedSource.Syntax;
             ImmutableArray<BoundExpression> expressions = makeInterpolatedStringFactoryArguments(syntax, parts, diagnostics);
 
-            BoundExpression construction = MakeInvocationExpression(
+            BoundExpression construction = MakeInvocationExpression( // Tracked by https://github.com/dotnet/roslyn/issues/78965 : interpolated string, test this scenario with a delegate-returning property (should be blocked by virtue of allowFieldsAndProperties: false)
                 syntax,
                 new BoundTypeExpression(syntax, null, factoryType) { WasCompilerGenerated = true },
                 factoryMethod,
@@ -381,11 +381,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (part is BoundStringInsert fillin)
                     {
                         // this is one of the expression holes
-                        stringBuilder.Append('{').Append(nextFormatPosition++);
+                        stringBuilder.Append('{').Append(nextFormatPosition++.ToString(System.Globalization.CultureInfo.InvariantCulture));
                         if (fillin.Alignment != null && !fillin.Alignment.HasErrors)
                         {
                             Debug.Assert(fillin.Alignment.ConstantValueOpt is { });
-                            stringBuilder.Append(',').Append(fillin.Alignment.ConstantValueOpt.Int64Value);
+                            stringBuilder.Append(',').Append(fillin.Alignment.ConstantValueOpt.Int64Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
                         }
                         if (fillin.Format != null && !fillin.Format.HasErrors)
                         {
@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterNamesAndLocationsBuilder.Clear();
                     }
 
-                    var call = MakeInvocationExpression(part.Syntax, implicitBuilderReceiver, methodName, arguments, diagnostics, names: parameterNamesAndLocations, searchExtensionMethodsIfNecessary: false);
+                    var call = MakeInvocationExpression(part.Syntax, implicitBuilderReceiver, methodName, arguments, diagnostics, names: parameterNamesAndLocations, searchExtensionsIfNecessary: false);
                     builderAppendCalls.Add(call);
                     positionInfo.Add((isLiteral, hasAlignment, hasFormat));
 

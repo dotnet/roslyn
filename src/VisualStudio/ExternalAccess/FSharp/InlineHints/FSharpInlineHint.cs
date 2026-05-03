@@ -10,33 +10,32 @@ using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints;
+
+/// <inheritdoc cref="InlineHint"/>
+internal readonly struct FSharpInlineHint
 {
-    /// <inheritdoc cref="InlineHint"/>
-    internal readonly struct FSharpInlineHint
+    public readonly TextSpan Span;
+    public readonly ImmutableArray<TaggedText> DisplayParts;
+    private readonly Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? _getDescriptionAsync;
+
+    public FSharpInlineHint(
+        TextSpan span,
+        ImmutableArray<TaggedText> displayParts,
+        Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
     {
-        public readonly TextSpan Span;
-        public readonly ImmutableArray<TaggedText> DisplayParts;
-        private readonly Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? _getDescriptionAsync;
+        if (displayParts.Length == 0)
+            throw new ArgumentException($"{nameof(displayParts)} must be non-empty");
 
-        public FSharpInlineHint(
-            TextSpan span,
-            ImmutableArray<TaggedText> displayParts,
-            Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
-        {
-            if (displayParts.Length == 0)
-                throw new ArgumentException($"{nameof(displayParts)} must be non-empty");
-
-            Span = span;
-            DisplayParts = displayParts;
-            _getDescriptionAsync = getDescriptionAsync;
-        }
-
-        /// <summary>
-        /// Gets a description for the inline hint, suitable to show when a user hovers over the editor adornment.  The
-        /// <paramref name="document"/> will represent the file at the time this hint was created.
-        /// </summary>
-        public Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, CancellationToken cancellationToken)
-            => _getDescriptionAsync?.Invoke(document, cancellationToken) ?? SpecializedTasks.EmptyImmutableArray<TaggedText>();
+        Span = span;
+        DisplayParts = displayParts;
+        _getDescriptionAsync = getDescriptionAsync;
     }
+
+    /// <summary>
+    /// Gets a description for the inline hint, suitable to show when a user hovers over the editor adornment.  The
+    /// <paramref name="document"/> will represent the file at the time this hint was created.
+    /// </summary>
+    public Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, CancellationToken cancellationToken)
+        => _getDescriptionAsync?.Invoke(document, cancellationToken) ?? SpecializedTasks.EmptyImmutableArray<TaggedText>();
 }

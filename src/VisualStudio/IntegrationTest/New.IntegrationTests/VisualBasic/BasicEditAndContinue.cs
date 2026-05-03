@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
@@ -46,26 +46,28 @@ public abstract class BasicEditAndContinue(string projectTemplate)
         await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458, https://github.com/dotnet/roslyn/issues/75456")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task UpdateActiveStatementLeafNode()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
+        await TestServices.Editor.SetTextAsync("""
 
-Module Module1
-    Sub Main()
-        Dim names(2) As String
-        names(0) = ""goo""
-        names(1) = ""bar""
+            Imports System
+            Imports System.Collections.Generic
+            Imports System.Linq
 
-        For index = 0 To names.GetUpperBound(0)
-            Console.WriteLine(names(index))
-        Next
-    End Sub
-End Module
-", HangMitigatingCancellationToken);
+            Module Module1
+                Sub Main()
+                    Dim names(2) As String
+                    names(0) = "goo"
+                    names(1) = "bar"
+
+                    For index = 0 To names.GetUpperBound(0)
+                        Console.WriteLine(names(index))
+                    Next
+                End Sub
+            End Module
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "names(0)", HangMitigatingCancellationToken);
@@ -73,53 +75,63 @@ End Module
         await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
         await TestServices.Editor.ReplaceTextAsync("names(0)", "names(1)", HangMitigatingCancellationToken);
         await TestServices.Debugger.StepOverAsync(waitForBreakOrEnd: true, HangMitigatingCancellationToken);
-        await TestServices.Debugger.CheckExpressionAsync("names(1)", "String", "\"goo\"", HangMitigatingCancellationToken);
+        await TestServices.Debugger.CheckExpressionAsync("names(1)", "String", """
+            "goo"
+            """, HangMitigatingCancellationToken);
         await TestServices.Debugger.StepOverAsync(waitForBreakOrEnd: true, HangMitigatingCancellationToken);
-        await TestServices.Debugger.CheckExpressionAsync("names(1)", "String", "\"bar\"", HangMitigatingCancellationToken);
+        await TestServices.Debugger.CheckExpressionAsync("names(1)", "String", """
+            "bar"
+            """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458, https://github.com/dotnet/roslyn/issues/75456")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task AddTryCatchAroundActiveStatement()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
-Module Module1
-    Sub Main()
-        Goo()
-    End Sub
+        await TestServices.Editor.SetTextAsync("""
 
-    Private Sub Goo()
-        Console.WriteLine(1)
-    End Sub
-End Module", HangMitigatingCancellationToken);
+            Imports System
+            Module Module1
+                Sub Main()
+                    Goo()
+                End Sub
+
+                Private Sub Goo()
+                    Console.WriteLine(1)
+                End Sub
+            End Module
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "Console.WriteLine(1)", HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
         await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
         await TestServices.Editor.ReplaceTextAsync("Console.WriteLine(1)",
-            @"Try
-Console.WriteLine(1)
-Catch ex As Exception
-End Try", HangMitigatingCancellationToken);
+            """
+            Try
+            Console.WriteLine(1)
+            Catch ex As Exception
+            End Try
+            """, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.StepOverAsync(waitForBreakOrEnd: true, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        End Try", cancellationToken: HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458, https://github.com/dotnet/roslyn/issues/75456")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task EditLambdaExpression()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
-Module Module1
-    Private Delegate Function del(i As Integer) As Integer
+        await TestServices.Editor.SetTextAsync("""
 
-    Sub Main()
-        Dim myDel As del = Function(x) x * x
-        Dim j As Integer = myDel(5)
-    End Sub
-End Module", HangMitigatingCancellationToken);
+            Imports System
+            Module Module1
+                Private Delegate Function del(i As Integer) As Integer
+
+                Sub Main()
+                    Dim myDel As del = Function(x) x * x
+                    Dim j As Integer = myDel(5)
+                End Sub
+            End Module
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "x * x", charsOffset: -1, HangMitigatingCancellationToken);
@@ -164,18 +176,20 @@ End Module", HangMitigatingCancellationToken);
         Assert.Empty(await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken));
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458, https://github.com/dotnet/roslyn/issues/75456")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task EnCWhileDebuggingFromImmediateWindow()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
+        await TestServices.Editor.SetTextAsync("""
 
-Module Module1
-    Sub Main()
-        Dim x = 4
-        Console.WriteLine(x)
-    End Sub
-End Module", HangMitigatingCancellationToken);
+            Imports System
+
+            Module Module1
+                Sub Main()
+                    Dim x = 4
+                    Console.WriteLine(x)
+                End Sub
+            End Module
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
@@ -197,37 +211,41 @@ End Module", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(cSharpLibrary, "File1.cs", cancellationToken: cancellationToken);
 
         await TestServices.SolutionExplorer.OpenFileAsync(basicLibrary, "Class1.vb", cancellationToken);
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
-Public Class Class1
-    Public Sub New()
-    End Sub
+        await TestServices.Editor.SetTextAsync("""
 
-    Public Sub PrintX(x As Integer)
-        Console.WriteLine(x)
-    End Sub
-End Class
-", cancellationToken);
+            Imports System
+            Public Class Class1
+                Public Sub New()
+                End Sub
+
+                Public Sub PrintX(x As Integer)
+                    Console.WriteLine(x)
+                End Sub
+            End Class
+
+            """, cancellationToken);
 
         await TestServices.SolutionExplorer.AddProjectReferenceAsync(ProjectName, basicLibrary, cancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, FileName, cancellationToken);
 
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
-Imports BasicLibrary1
+        await TestServices.Editor.SetTextAsync("""
 
-Module Module1
-    Sub Main()
-        Dim c As New Class1()
-        c.PrintX(5)
-    End Sub
-End Module
-", cancellationToken);
+            Imports System
+            Imports BasicLibrary1
+
+            Module Module1
+                Sub Main()
+                    Dim c As New Class1()
+                    c.PrintX(5)
+                End Sub
+            End Module
+
+            """, cancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task MultiProjectDebuggingWhereNotAllModulesAreLoaded()
     {
         await SetupMultiProjectSolutionAsync(HangMitigatingCancellationToken);
@@ -251,23 +269,27 @@ End Module
         AssertEx.Empty(await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken));
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458, https://github.com/dotnet/roslyn/issues/75456")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
-Module Module1
-    Sub Main()
-        Dim goo As String = ""abc""
-        Console.WriteLine(goo)
-    End Sub
-End Module
-", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            Imports System
+            Module Module1
+                Sub Main()
+                    Dim goo As String = "abc"
+                    Console.WriteLine(goo)
+                End Sub
+            End Module
+
+            """, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "End Sub", HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
         await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
-        await TestServices.Editor.ReplaceTextAsync("Dim goo As String = \"abc\"", "Dim goo As Single = 10", HangMitigatingCancellationToken);
+        await TestServices.Editor.ReplaceTextAsync("""
+            Dim goo As String = "abc"
+            """, "Dim goo As Single = 10", HangMitigatingCancellationToken);
         await TestServices.Editor.SelectTextInCurrentDocumentAsync("Sub Main()", HangMitigatingCancellationToken);
         await TestServices.Debugger.SetNextStatementAsync(HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
@@ -275,26 +297,28 @@ End Module
         Assert.Equal(("Single", "10"), await TestServices.LocalsWindow.GetEntryAsync(["goo"], HangMitigatingCancellationToken));
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458, https://github.com/dotnet/roslyn/issues/75456")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task LocalsWindowUpdatesCorrectlyDuringEnC()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
+        await TestServices.Editor.SetTextAsync("""
 
-Module Module1
-    Sub Main()
-        bar(5)
-    End Sub
+            Imports System
 
-    Function bar(ByVal moo As Long) As Decimal
-        Dim iInt As Integer = 0
-        Dim lLng As Long = 5
-        
-        iInt += 30
-        Return 4
-    End Function
-End Module
-", HangMitigatingCancellationToken);
+            Module Module1
+                Sub Main()
+                    bar(5)
+                End Sub
+
+                Function bar(ByVal moo As Long) As Decimal
+                    Dim iInt As Integer = 0
+                    Dim lLng As Long = 5
+                    
+                    iInt += 30
+                    Return 4
+                End Function
+            End Module
+
+            """, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "Function bar(ByVal moo As Long) As Decimal", HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
@@ -309,19 +333,21 @@ End Module
         Assert.Equal(("Long", "444"), await TestServices.LocalsWindow.GetEntryAsync(["lLng"], HangMitigatingCancellationToken));
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458, https://github.com/dotnet/roslyn/issues/75456")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task WatchWindowUpdatesCorrectlyDuringEnC()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
+        await TestServices.Editor.SetTextAsync("""
 
-Module Module1
-    Sub Main()
-        Dim iInt As Integer = 0
-        System.Diagnostics.Debugger.Break()
-    End Sub
-End Module
-", HangMitigatingCancellationToken);
+            Imports System
+
+            Module Module1
+                Sub Main()
+                    Dim iInt As Integer = 0
+                    System.Diagnostics.Debugger.Break()
+                End Sub
+            End Module
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
@@ -329,8 +355,10 @@ End Module
 
         await TestServices.Debugger.CheckExpressionAsync("iInt", "Integer", "0", HangMitigatingCancellationToken);
 
-        await TestServices.Editor.ReplaceTextAsync("System.Diagnostics.Debugger.Break()", @"iInt = 5
-System.Diagnostics.Debugger.Break()", HangMitigatingCancellationToken);
+        await TestServices.Editor.ReplaceTextAsync("System.Diagnostics.Debugger.Break()", """
+            iInt = 5
+            System.Diagnostics.Debugger.Break()
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.SelectTextInCurrentDocumentAsync("iInt = 5", HangMitigatingCancellationToken);
         await TestServices.Debugger.SetNextStatementAsync(HangMitigatingCancellationToken);

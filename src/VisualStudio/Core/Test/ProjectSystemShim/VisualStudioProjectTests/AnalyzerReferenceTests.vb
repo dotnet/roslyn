@@ -2,13 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
+Imports System.ComponentModel.Composition
 Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.[Shared].TestHooks
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -99,94 +99,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         End Function
 
         <WpfFact>
-        Public Async Function RazorSourceGenerator_FromVsix() As Task
-            Using environment = New TestEnvironment()
-                Dim providerFactory = DirectCast(environment.ExportProvider.GetExportedValue(Of IVisualStudioDiagnosticAnalyzerProviderFactory), MockVisualStudioDiagnosticAnalyzerProviderFactory)
-                providerFactory.Extensions =
-                {
-                    ({
-                        Path.Combine(TempRoot.Root, "RazorVsix", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll"),
-                        Path.Combine(TempRoot.Root, "RazorVsix", "VsixDependency1.dll"),
-                        Path.Combine(TempRoot.Root, "RazorVsix", "VsixDependency2.dll")
-                     },
-                     "Microsoft.VisualStudio.RazorExtension"),
-                     ({
-                        Path.Combine(TempRoot.Root, "File.dll")
-                     },
-                     "AnotherExtension")
-                }
-
-                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "Project", LanguageNames.CSharp, CancellationToken.None)
-
-                ' adding just Razor dependency and not the main source generator is a no-op
-                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "SdkDependency1.dll"))
-
-                Assert.Empty(environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences)
-
-                ' removing just Razor dependency and not the main source generator is a no-op
-                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "SdkDependency1.dll"))
-
-                Assert.Empty(environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences)
-
-                ' add Razor source generator and a couple more other analyzer files:
-                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "SdkDependency1.dll"))
-                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll"))
-                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Some other directory", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll"))
-                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Dir", "File.dll"))
-
-                AssertEx.Equal(
-                {
-                    Path.Combine(TempRoot.Root, "RazorVsix", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll"),
-                    Path.Combine(TempRoot.Root, "RazorVsix", "VsixDependency1.dll"),
-                    Path.Combine(TempRoot.Root, "RazorVsix", "VsixDependency2.dll"),
-                    Path.Combine(TempRoot.Root, "Some other directory", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll"),
-                    Path.Combine(TempRoot.Root, "Dir", "File.dll")
-                }, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
-
-                ' add Razor source generator again:
-                Assert.Throws(Of ArgumentException)(
-                    "fullPath",
-                    Sub() project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll")))
-
-                AssertEx.Equal(
-                {
-                    Path.Combine(TempRoot.Root, "RazorVsix", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll"),
-                    Path.Combine(TempRoot.Root, "RazorVsix", "VsixDependency1.dll"),
-                    Path.Combine(TempRoot.Root, "RazorVsix", "VsixDependency2.dll"),
-                    Path.Combine(TempRoot.Root, "Some other directory", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll"),
-                    Path.Combine(TempRoot.Root, "Dir", "File.dll")
-                }, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
-
-                ' remove:
-                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "SdkDependency1.dll"))
-                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll"))
-                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Some other directory", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll"))
-
-                AssertEx.Equal(
-                {
-                    Path.Combine(TempRoot.Root, "Dir", "File.dll")
-                }, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
-
-                ' remove again:
-                Assert.Throws(Of ArgumentException)(
-                    "fullPath",
-                    Sub() project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll")))
-
-                AssertEx.Equal(
-                {
-                    Path.Combine(TempRoot.Root, "Dir", "File.dll")
-                }, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
-            End Using
-        End Function
-
-        <WpfFact>
         Public Async Function RazorSourceGenerator_FromSdk() As Task
             Using environment = New TestEnvironment()
                 Dim providerFactory = DirectCast(environment.ExportProvider.GetExportedValue(Of IVisualStudioDiagnosticAnalyzerProviderFactory), MockVisualStudioDiagnosticAnalyzerProviderFactory)
+                providerFactory.ContentTypeName = VisualStudioDiagnosticAnalyzerProvider.RazorContentTypeName
                 providerFactory.Extensions =
                 {
-                     ({
+                    ({
                         Path.Combine(TempRoot.Root, "File.dll")
                      },
                      "AnotherExtension")
@@ -285,5 +204,43 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.False(project.HasSdkCodeStyleAnalyzers)
             End Using
         End Function
+
+        <WpfFact>
+        Public Async Function RedirectedAnalyzers_CSharp() As Task
+            Using environment = New TestEnvironment(GetType(Redirector))
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
+
+                ' Add analyzers
+                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "analyzers", "Microsoft.CodeAnalysis.NetAnalyzers.dll"))
+                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "analyzers", "Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll"))
+                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Dir", "File.dll"))
+
+                ' Ensure the SDK ones are redirected
+                AssertEx.Equal(
+                {
+                    Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "analyzers", "Microsoft.CodeAnalysis.NetAnalyzers.redirected.dll"),
+                    Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "analyzers", "Microsoft.CodeAnalysis.CSharp.NetAnalyzers.redirected.dll"),
+                    Path.Combine(TempRoot.Root, "Dir", "File.dll")
+                }, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
+            End Using
+        End Function
+
+        <Export(GetType(IAnalyzerAssemblyRedirector))>
+        Private Class Redirector
+            Implements IAnalyzerAssemblyRedirector
+
+            <ImportingConstructor, Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function RedirectPath(fullPath As String) As String Implements IAnalyzerAssemblyRedirector.RedirectPath
+                If fullPath.Contains("Microsoft.NET.Sdk") Then
+                    Return Path.ChangeExtension(fullPath, ".redirected.dll")
+                End If
+
+                Return Nothing
+            End Function
+        End Class
     End Class
 End Namespace

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis
 
         public void Add(AssemblyIdentity identity, TValue value)
         {
-            var pair = KeyValuePairUtil.Create(identity, value);
+            var pair = KeyValuePair.Create(identity, value);
 
             OneOrMany<KeyValuePair<AssemblyIdentity, TValue>> sameName;
             _map[identity.Name] = _map.TryGetValue(identity.Name, out sameName) ? sameName.Add(pair) : OneOrMany.Create(pair);

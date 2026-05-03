@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -243,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If startsCycle Then
                     diagnostics.Clear()
-                    diagnostics.Add(ERRID.ERR_CircularEvaluation1, Locations(0), CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                    diagnostics.Add(ERRID.ERR_CircularEvaluation1, GetFirstLocation(), CustomSymbolDisplayFormatter.ShortErrorName(Me))
                 End If
 
                 SetLazyConstantTuple(constantTuple, diagnostics)
@@ -530,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' We sort fields that belong to the same compilation by location to process cycles in deterministic order.
                 ' Relative order between compilations is not important, cycles do not cross compilation boundaries. 
                 fieldsInvolvedInCycles.AddRange(graph.Keys.GroupBy(Function(f) f.DeclaringCompilation).
-                    SelectMany(Function(g) g.OrderByDescending(Function(f1, f2) g.Key.CompareSourceLocations(f1.Locations(0), f2.Locations(0)))))
+                    SelectMany(Function(g) g.OrderByDescending(Function(f1, f2) g.Key.CompareSourceLocations(f1.GetFirstLocation(), f2.GetFirstLocation()))))
             End If
 
             Do

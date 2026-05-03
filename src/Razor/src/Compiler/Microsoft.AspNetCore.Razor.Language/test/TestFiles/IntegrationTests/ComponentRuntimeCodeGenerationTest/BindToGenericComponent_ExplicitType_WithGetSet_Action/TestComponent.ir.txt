@@ -1,0 +1,25 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [96] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentTypeArgument - (21:0,21 [11] x:\dir\subdir\Test\TestComponent.cshtml) - TValue
+                        IntermediateToken - (21:0,21 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - CustomValue
+                    ComponentAttribute - (51:0,51 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Value - Value - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken - (51:0,51 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
+                    ComponentAttribute - (51:0,51 [11] x:\dir\subdir\Test\TestComponent.cshtml) - ValueChanged - ValueChanged - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
+                            IntermediateToken - (81:0,81 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
+                            IntermediateToken -  - CSharp - , ParentValue)
+                    ComponentAttribute - (81:0,81 [11] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
+                        CSharpExpression - (81:0,81 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (81:0,81 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
+            CSharpCode - (105:1,7 [147] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (105:1,7 [147] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public CustomValue ParentValue { get; set; } = new CustomValue();\n\n    public void UpdateValue(CustomValue value) => ParentValue = value;\n

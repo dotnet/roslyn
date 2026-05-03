@@ -14,23 +14,22 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier;
 
 using VerifyCS = CSharpCodeFixVerifier<
-    EmptyDiagnosticAnalyzer,
+    CSharpRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer,
     CSharpRemoveAsyncModifierCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
 public sealed class RemoveAsyncModifierTests
 {
     [Fact]
-    public async Task Method_Task_MultipleAndNested()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_MultipleAndNested()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                {|IDE0390:async|} Task Goo()
                 {
                     if (DateTime.Now.Ticks > 0)
                     {
@@ -38,24 +37,24 @@ public sealed class RemoveAsyncModifierTests
                     }
                 }
 
-                async Task {|CS1998:Foo|}()
+                {|IDE0390:async|} Task Foo()
                 {
                     Console.WriteLine(1);
                 }
 
-                async Task {|CS1998:Bar|}()
+                {|IDE0390:async|} Task Bar()
                 {
-                    async Task {|CS1998:Baz|}()
+                    {|IDE0390:async|} Task Baz()
                     {
-                        Func<Task<int>> g = async () {|CS1998:=>|} 5;
+                        Func<Task<int>> g = {|IDE0390:async|} () => 5;
                     }
                 }
 
-                async Task<string> {|CS1998:Tur|}()
+                {|IDE0390:async|} Task<string> Tur()
                 {
-                    async Task<string> {|CS1998:Duck|}()
+                    {|IDE0390:async|} Task<string> Duck()
                     {
-                        async Task<string> {|CS1998:En|}()
+                        {|IDE0390:async|} Task<string> En()
                         {
                             return "Developers!";
                         }
@@ -66,9 +65,9 @@ public sealed class RemoveAsyncModifierTests
                     return "Developers! Developers! Developers!";
                 }
 
-                async Task {|CS1998:Nurk|}()
+                {|IDE0390:async|} Task Nurk()
                 {
-                    Func<Task<int>> f = async () {|CS1998:=>|} 4;
+                    Func<Task<int>> f = {|IDE0390:async|} () => 4;
 
                     if (DateTime.Now.Ticks > f().Result)
                     {
@@ -136,18 +135,16 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_EmptyBlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_EmptyBlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
             class C
             {
-                async Task {|CS1998:Goo|}(){}
+                {|IDE0390:async|} Task Goo(){}
             }
             """,
             """
@@ -161,18 +158,16 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                {|IDE0390:async|} Task Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -197,17 +192,18 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_ValueTask_BlockBody()
-    {
-        var source = """
+    public Task Method_ValueTask_BlockBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
             {
-                async ValueTask {|CS1998:Goo|}()
+                {|IDE0390:async|} ValueTask Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -215,9 +211,8 @@ public sealed class RemoveAsyncModifierTests
                     }
                 }
             }
-            """;
-
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
@@ -232,25 +227,20 @@ public sealed class RemoveAsyncModifierTests
                     return new ValueTask();
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Method_ValueTaskOfT_BlockBody()
-    {
-        var source = """
+    public Task Method_ValueTaskOfT_BlockBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
             {
-                async ValueTask<int> {|CS1998:Goo|}()
+                {|IDE0390:async|} ValueTask<int> Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -260,8 +250,8 @@ public sealed class RemoveAsyncModifierTests
                     return 3;
                 }
             }
-            """;
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
@@ -276,29 +266,23 @@ public sealed class RemoveAsyncModifierTests
                     return new ValueTask<int>(3);
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Method_ValueTask_ExpressionBody()
-    {
-        var source = """
+    public Task Method_ValueTask_ExpressionBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
             {
-                async ValueTask {|CS1998:Goo|}() => System.Console.WriteLine(1);
+                {|IDE0390:async|} ValueTask Goo() => System.Console.WriteLine(1);
             }
-            """;
-
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
@@ -309,55 +293,41 @@ public sealed class RemoveAsyncModifierTests
                     return new ValueTask();
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Method_ValueTaskOfT_ExpressionBody()
-    {
-        var source = """
+    public Task Method_ValueTaskOfT_ExpressionBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
             {
-                async ValueTask<int> {|CS1998:Goo|}() => 3;
+                {|IDE0390:async|} ValueTask<int> Goo() => 3;
             }
-            """;
-
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
             {
                 ValueTask<int> Goo() => new ValueTask<int>(3);
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Method_Task_BlockBody_Throws()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_BlockBody_Throws()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                {|IDE0390:async|} Task Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -384,18 +354,16 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_BlockBody_WithLocalFunction()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_BlockBody_WithLocalFunction()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                {|IDE0390:async|} Task Goo()
                 {
                     if (GetTicks() > 0)
                     {
@@ -430,18 +398,16 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_BlockBody_WithLambda()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_BlockBody_WithLambda()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                {|IDE0390:async|} Task Goo()
                 {
                     System.Func<long> getTicks = () => {
                         return System.DateTime.Now.Ticks;
@@ -475,18 +441,16 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_TaskOfT_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
             class C
             {
-                async Task<int> {|CS1998:Goo|}()
+                {|IDE0390:async|} Task<int> Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -513,18 +477,16 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_TaskOfT_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
             class C
             {
-                async Task<int> {|CS1998:Goo|}() => 2;
+                {|IDE0390:async|} Task<int> Goo() => 2;
             }
             """,
             """
@@ -535,19 +497,17 @@ public sealed class RemoveAsyncModifierTests
                 Task<int> Goo() => Task.FromResult(2);
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
 
             class C
             {
-                async Task {|CS1998:Goo|}() => Console.WriteLine("Hello");
+                {|IDE0390:async|} Task Goo() => Console.WriteLine("Hello");
             }
             """,
             """
@@ -563,12 +523,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LocalFunction_Task_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task LocalFunction_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -576,7 +534,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    async Task {|CS1998:Goo|}()
+                    {|IDE0390:async|} Task Goo()
                     {
                         if (System.DateTime.Now.Ticks > 0)
                         {
@@ -605,12 +563,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LocalFunction_Task_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task LocalFunction_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -619,7 +575,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    async Task {|CS1998:Goo|}() => Console.WriteLine(1);
+                    {|IDE0390:async|} Task Goo() => Console.WriteLine(1);
                 }
             }
             """,
@@ -635,12 +591,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LocalFunction_TaskOfT_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task LocalFunction_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -648,7 +602,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    async Task<int> {|CS1998:Goo|}()
+                    {|IDE0390:async|} Task<int> Goo()
                     {
                         return 1;
                     }
@@ -669,12 +623,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LocalFunction_TaskOfT_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task LocalFunction_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -682,7 +634,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    async Task<int> {|CS1998:Goo|}() => 1;
+                    {|IDE0390:async|} Task<int> Goo() => 1;
                 }
             }
             """,
@@ -697,12 +649,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AnonymousFunction_Task_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task AnonymousFunction_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -711,7 +661,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task> foo = (Func<Task>)async {|CS1998:delegate|} {
+                    Func<Task> foo = (Func<Task>){|IDE0390:async|} delegate {
                         if (System.DateTime.Now.Ticks > 0)
                         {
                             return;
@@ -740,12 +690,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AnonymousFunction_TaskOfT_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task AnonymousFunction_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -754,7 +702,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task<int>> foo = (Func<Task<int>>)async {|CS1998:delegate|}
+                    Func<Task<int>> foo = (Func<Task<int>>){|IDE0390:async|} delegate
                     {
                         return 1;
                     };
@@ -776,12 +724,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleLambda_TaskOfT_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SimpleLambda_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -790,7 +736,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<int, Task<int>> foo = async x {|CS1998:=>|} 1;
+                    Func<int, Task<int>> foo = {|IDE0390:async|} x => 1;
                 }
             }
             """,
@@ -806,12 +752,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleLambda_TaskOfT_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SimpleLambda_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -820,7 +764,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<int, Task<int>> foo = async x {|CS1998:=>|} {
+                    Func<int, Task<int>> foo = {|IDE0390:async|} x => {
                         return 1;
                     };
                 }
@@ -841,12 +785,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleLambda_Task_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SimpleLambda_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -855,7 +797,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<int, Task> foo = async x {|CS1998:=>|} Console.WriteLine(1);
+                    Func<int, Task> foo = {|IDE0390:async|} x => Console.WriteLine(1);
                 }
             }
             """,
@@ -871,12 +813,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleLambda_Task_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SimpleLambda_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -885,7 +825,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<int, Task> foo = async x {|CS1998:=>|}
+                    Func<int, Task> foo = {|IDE0390:async|} x =>
                     {
                         if (System.DateTime.Now.Ticks > 0)
                         {
@@ -915,12 +855,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ParenthesizedLambda_TaskOfT_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizedLambda_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -929,7 +867,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task<int>> foo = async () {|CS1998:=>|} 1;
+                    Func<Task<int>> foo = {|IDE0390:async|} () => 1;
                 }
             }
             """,
@@ -945,12 +883,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ParenthesizedLambda_TaskOfT_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizedLambda_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -959,7 +895,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task<int>> foo = async () {|CS1998:=>|} {
+                    Func<Task<int>> foo = {|IDE0390:async|} () => {
                         return 1;
                     };
                 }
@@ -980,12 +916,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ParenthesizedLambda_Task_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizedLambda_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -994,7 +928,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task> foo = async () {|CS1998:=>|} Console.WriteLine(1);
+                    Func<Task> foo = {|IDE0390:async|} () => Console.WriteLine(1);
                 }
             }
             """,
@@ -1010,12 +944,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ParenthesizedLambda_Task_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizedLambda_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1024,7 +956,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task> foo = async () {|CS1998:=>|}
+                    Func<Task> foo = {|IDE0390:async|} () =>
                     {
                         if (System.DateTime.Now.Ticks > 0)
                         {
@@ -1054,16 +986,14 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_BlockBody_FullyQualified()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_BlockBody_FullyQualified()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
-                async System.Threading.Tasks.Task {|CS1998:Goo|}()
+                {|IDE0390:async|} System.Threading.Tasks.Task Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -1086,16 +1016,14 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_TaskOfT_BlockBody_FullyQualified()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_TaskOfT_BlockBody_FullyQualified()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
-                async System.Threading.Tasks.Task<int> {|CS1998:Goo|}()
+                {|IDE0390:async|} System.Threading.Tasks.Task<int> Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -1120,18 +1048,16 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65536")]
-    public async Task Method_TaskOfT_BlockBody_QualifyTaskFromResultType()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task Method_TaskOfT_BlockBody_QualifyTaskFromResultType()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.Threading.Tasks;
             using System.Collections.Generic;
 
             class C
             {
-                public async Task<IReadOnlyCollection<int>> {|CS1998:M|}()
+                public {|IDE0390:async|} Task<IReadOnlyCollection<int>> M()
                 {
                     return new int[0];
                 }
@@ -1148,7 +1074,6 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task IAsyncEnumerable_Missing()
@@ -1159,7 +1084,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async IAsyncEnumerable<int> M()
+                {|IDE0390:async|} IAsyncEnumerable<int> M()
                 {
                     yield return 1;
                 }
@@ -1170,11 +1095,6 @@ public sealed class RemoveAsyncModifierTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
             TestCode = source,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(7,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                DiagnosticResult.CompilerWarning("CS1998").WithSpan(6, 33, 6, 34),
-            },
             FixedCode = source,
         }.RunAsync();
     }
@@ -1187,7 +1107,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async void M()
+                {|IDE0390:async|} void M()
                 {
                     System.Console.WriteLine(1);
                 }
@@ -1198,11 +1118,6 @@ public sealed class RemoveAsyncModifierTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
             TestCode = source,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                DiagnosticResult.CompilerWarning("CS1998").WithSpan(5, 16, 5, 17),
-            },
             FixedCode = source,
         }.RunAsync();
     }
@@ -1218,7 +1133,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 void M()
                 {
-                    Action a = async () => Console.WriteLine(1);
+                    Action a = {|IDE0390:async|} () => Console.WriteLine(1);
                 }
             }
             """;
@@ -1227,11 +1142,6 @@ public sealed class RemoveAsyncModifierTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
             TestCode = source,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(9,29): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                DiagnosticResult.CompilerWarning("CS1998").WithSpan(8, 29, 8, 31),
-            },
             FixedCode = source,
         }.RunAsync();
     }
@@ -1247,7 +1157,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 void M()
                 {
-                    Action<int> a = async x => Console.WriteLine(x);
+                    Action<int> a = {|IDE0390:async|} x => Console.WriteLine(x);
                 }
             }
             """;
@@ -1256,25 +1166,19 @@ public sealed class RemoveAsyncModifierTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
             TestCode = source,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(9,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                DiagnosticResult.CompilerWarning("CS1998").WithSpan(8, 33, 8, 35),
-            },
             FixedCode = source,
         }.RunAsync();
     }
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65380")]
-    public async Task TestCloseBraceTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCloseBraceTrivia()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
 
             public class Class1
             {
-                public async Task {|CS1998:Goo|}()
+                public {|IDE0390:async|} Task Goo()
                 {
                     //Hello 
                     Console.WriteLine("Goo");
@@ -1297,5 +1201,4 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 }

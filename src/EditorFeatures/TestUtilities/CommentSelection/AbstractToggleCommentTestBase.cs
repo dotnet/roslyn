@@ -20,78 +20,77 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
+namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection;
+
+public abstract class AbstractToggleCommentTestBase
 {
-    public abstract class AbstractToggleCommentTestBase
+    internal abstract AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(EditorTestWorkspace workspace);
+
+    internal abstract EditorTestWorkspace GetWorkspace(string markup, TestComposition composition);
+
+    protected void ToggleComment(string markup, string expected)
+        => ToggleCommentMultiple(markup, [expected]);
+
+    protected void ToggleCommentMultiple(string markup, string[] expectedText)
     {
-        internal abstract AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(EditorTestWorkspace workspace);
+        using var workspace = GetWorkspace(markup, composition: EditorTestCompositions.EditorFeatures);
+        var doc = workspace.Documents.First();
+        SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
-        internal abstract EditorTestWorkspace GetWorkspace(string markup, TestComposition composition);
+        var commandHandler = GetToggleCommentCommandHandler(workspace);
+        var textView = doc.GetTextView();
+        var textBuffer = doc.GetTextBuffer();
 
-        protected void ToggleComment(string markup, string expected)
-            => ToggleCommentMultiple(markup, [expected]);
-
-        protected void ToggleCommentMultiple(string markup, string[] expectedText)
+        for (var i = 0; i < expectedText.Length; i++)
         {
-            using var workspace = GetWorkspace(markup, composition: EditorTestCompositions.EditorFeatures);
-            var doc = workspace.Documents.First();
-            SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
-
-            var commandHandler = GetToggleCommentCommandHandler(workspace);
-            var textView = doc.GetTextView();
-            var textBuffer = doc.GetTextBuffer();
-
-            for (var i = 0; i < expectedText.Length; i++)
-            {
-                commandHandler.ExecuteCommand(textView, textBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
-                AssertCommentResult(doc.GetTextBuffer(), textView, expectedText[i]);
-            }
+            commandHandler.ExecuteCommand(textView, textBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
+            AssertCommentResult(doc.GetTextBuffer(), textView, expectedText[i]);
         }
+    }
 
-        protected void ToggleCommentWithProjectionBuffer(string surfaceBufferMarkup, string subjectBufferMarkup, string entireExpectedMarkup)
+    protected void ToggleCommentWithProjectionBuffer(string surfaceBufferMarkup, string subjectBufferMarkup, string entireExpectedMarkup)
+    {
+        using var workspace = GetWorkspace(subjectBufferMarkup, composition: EditorTestCompositions.EditorFeatures);
+        var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents);
+        SetupSelection(document.GetTextView(), document.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
+
+        var commandHandler = GetToggleCommentCommandHandler(workspace);
+        var textView = document.GetTextView();
+        var originalSubjectBuffer = GetBufferForContentType(ContentTypeNames.CSharpContentType, textView);
+
+        commandHandler.ExecuteCommand(textView, originalSubjectBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
+        AssertCommentResult(textView.TextBuffer, textView, entireExpectedMarkup);
+    }
+
+    private static ITextBuffer GetBufferForContentType(string contentTypeName, ITextView textView)
+        => textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(contentTypeName)).Single();
+
+    private static void AssertCommentResult(ITextBuffer textBuffer, IWpfTextView textView, string expectedText)
+    {
+        MarkupTestFile.GetSpans(expectedText, out var actualExpectedText, out var expectedSpans);
+
+        Assert.Equal(actualExpectedText, textBuffer.CurrentSnapshot.GetText());
+
+        if (!expectedSpans.IsEmpty)
         {
-            using var workspace = GetWorkspace(subjectBufferMarkup, composition: EditorTestCompositions.EditorFeatures);
-            var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents);
-            SetupSelection(document.GetTextView(), document.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
-
-            var commandHandler = GetToggleCommentCommandHandler(workspace);
-            var textView = document.GetTextView();
-            var originalSubjectBuffer = GetBufferForContentType(ContentTypeNames.CSharpContentType, textView);
-
-            commandHandler.ExecuteCommand(textView, originalSubjectBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
-            AssertCommentResult(textView.TextBuffer, textView, entireExpectedMarkup);
+            AssertEx.Equal(expectedSpans, textView.Selection.SelectedSpans.Select(snapshotSpan => TextSpan.FromBounds(snapshotSpan.Start, snapshotSpan.End)));
         }
+    }
 
-        private static ITextBuffer GetBufferForContentType(string contentTypeName, ITextView textView)
-            => textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(contentTypeName)).Single();
-
-        private static void AssertCommentResult(ITextBuffer textBuffer, IWpfTextView textView, string expectedText)
+    private static void SetupSelection(IWpfTextView textView, IEnumerable<Span> spans)
+    {
+        var snapshot = textView.TextSnapshot;
+        if (spans.Count() == 1)
         {
-            MarkupTestFile.GetSpans(expectedText, out var actualExpectedText, out var expectedSpans);
-
-            Assert.Equal(actualExpectedText, textBuffer.CurrentSnapshot.GetText());
-
-            if (!expectedSpans.IsEmpty)
-            {
-                AssertEx.Equal(expectedSpans, textView.Selection.SelectedSpans.Select(snapshotSpan => TextSpan.FromBounds(snapshotSpan.Start, snapshotSpan.End)));
-            }
+            textView.Selection.Select(new SnapshotSpan(snapshot, spans.Single()), isReversed: false);
+            textView.Caret.MoveTo(new SnapshotPoint(snapshot, spans.Single().End));
         }
-
-        private static void SetupSelection(IWpfTextView textView, IEnumerable<Span> spans)
+        else if (spans.Count() > 1)
         {
-            var snapshot = textView.TextSnapshot;
-            if (spans.Count() == 1)
-            {
-                textView.Selection.Select(new SnapshotSpan(snapshot, spans.Single()), isReversed: false);
-                textView.Caret.MoveTo(new SnapshotPoint(snapshot, spans.Single().End));
-            }
-            else if (spans.Count() > 1)
-            {
-                textView.Selection.Mode = TextSelectionMode.Box;
-                textView.Selection.Select(new VirtualSnapshotPoint(snapshot, spans.First().Start),
-                                          new VirtualSnapshotPoint(snapshot, spans.Last().End));
-                textView.Caret.MoveTo(new SnapshotPoint(snapshot, spans.Last().End));
-            }
+            textView.Selection.Mode = TextSelectionMode.Box;
+            textView.Selection.Select(new VirtualSnapshotPoint(snapshot, spans.First().Start),
+                                      new VirtualSnapshotPoint(snapshot, spans.Last().End));
+            textView.Caret.MoveTo(new SnapshotPoint(snapshot, spans.Last().End));
         }
     }
 }

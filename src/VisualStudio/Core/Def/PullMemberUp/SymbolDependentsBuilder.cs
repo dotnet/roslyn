@@ -31,7 +31,7 @@ internal static class SymbolDependentsBuilder
             }, cancellationToken));
     }
 
-    private class SymbolWalker : OperationWalker
+    private sealed class SymbolWalker : OperationWalker
     {
         private readonly ImmutableHashSet<ISymbol> _membersInType;
         private readonly Project _project;

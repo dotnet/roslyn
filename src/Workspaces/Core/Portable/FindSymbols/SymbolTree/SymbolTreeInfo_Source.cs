@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -137,7 +138,7 @@ internal sealed partial class SymbolTreeInfo
                 checksum,
                 unsortedBuilderNodes.ToImmutable(),
                 inheritanceMap: [],
-                receiverTypeNameToExtensionMethodMap: null);
+                receiverTypeNameToExtensionMemberMap: null);
         }
         finally
         {

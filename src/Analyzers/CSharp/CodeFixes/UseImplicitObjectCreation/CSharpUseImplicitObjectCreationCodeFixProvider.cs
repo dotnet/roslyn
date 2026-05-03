@@ -25,6 +25,8 @@ using static CSharpUseImplicitObjectCreationDiagnosticAnalyzer;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitObjectCreation), Shared]
+[ExtensionOrder(After = PredefinedCodeFixProviderNames.UseCollectionExpressionForNew)]
+[ExtensionOrder(After = PredefinedCodeFixProviderNames.UseCollectionInitializer)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpUseImplicitObjectCreationCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
@@ -35,10 +37,9 @@ internal sealed class CSharpUseImplicitObjectCreationCodeFixProvider() : SyntaxE
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.IsSuppressed;
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_new, nameof(CSharpAnalyzersResources.Use_new));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

@@ -45,12 +45,11 @@ public sealed class UseExpressionBodyForAccessorsTests
         await test.RunAsync();
     }
 
-    private static async Task TestWithUseExpressionBodyIncludingPropertiesAndIndexers(
+    private static Task TestWithUseExpressionBodyIncludingPropertiesAndIndexers(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion version = LanguageVersion.CSharp8)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = version == LanguageVersion.CSharp9 ? ReferenceAssemblies.Net.Net50 : ReferenceAssemblies.Default,
             TestCode = code,
@@ -63,14 +62,12 @@ public sealed class UseExpressionBodyForAccessorsTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible },
             }
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseBlockBodyIncludingPropertiesAndIndexers(
+    private static Task TestWithUseBlockBodyIncludingPropertiesAndIndexers(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion version = LanguageVersion.CSharp8)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = version == LanguageVersion.CSharp9 ? ReferenceAssemblies.Net.Net50 : ReferenceAssemblies.Default,
             TestCode = code,
@@ -83,12 +80,10 @@ public sealed class UseExpressionBodyForAccessorsTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUseExpressionBody1()
-    {
-        var code = """
+    public Task TestUseExpressionBody1()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Bar() { return 0; }
@@ -101,8 +96,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Bar() { return 0; }
@@ -112,15 +106,11 @@ public sealed class UseExpressionBodyForAccessorsTests
                     get => Bar();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUpdatePropertyInsteadOfAccessor()
-    {
-        // TODO: Should this test move to properties tests?
-        var code = """
+    public Task TestUpdatePropertyInsteadOfAccessor()
+        => TestWithUseExpressionBodyIncludingPropertiesAndIndexers("""
             class C
             {
                 int Bar() { return 0; }
@@ -133,22 +123,18 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }|}
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Bar() { return 0; }
 
                 int Goo => Bar();
             }
-            """;
-        await TestWithUseExpressionBodyIncludingPropertiesAndIndexers(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestOnIndexer1()
-    {
-        var code = """
+    public Task TestOnIndexer1()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Bar() { return 0; }
@@ -161,8 +147,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Bar() { return 0; }
@@ -172,15 +157,11 @@ public sealed class UseExpressionBodyForAccessorsTests
                     get => Bar();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUpdateIndexerIfIndexerAndAccessorCanBeUpdated()
-    {
-        // TODO: Should this test move to indexers tests?
-        var code = """
+    public Task TestUpdateIndexerIfIndexerAndAccessorCanBeUpdated()
+        => TestWithUseExpressionBodyIncludingPropertiesAndIndexers("""
             class C
             {
                 int Bar() { return 0; }
@@ -193,22 +174,18 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }|}
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Bar() { return 0; }
 
                 int this[int i] => Bar();
             }
-            """;
-        await TestWithUseExpressionBodyIncludingPropertiesAndIndexers(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestOnSetter1()
-    {
-        var code = """
+    public Task TestOnSetter1()
+        => TestWithUseExpressionBody("""
             class C
             {
                 void Bar() { }
@@ -221,8 +198,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Bar() { }
@@ -232,15 +208,11 @@ public sealed class UseExpressionBodyForAccessorsTests
                     set => Bar();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestOnInit1()
-    {
-        var code =
-            """
+    public Task TestOnInit1()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Goo
@@ -253,9 +225,7 @@ public sealed class UseExpressionBodyForAccessorsTests
 
                 int Bar() { return 0; }
             }
-            """;
-        var fixedCode =
-            """
+            """, """
             class C
             {
                 int Goo
@@ -265,14 +235,11 @@ public sealed class UseExpressionBodyForAccessorsTests
 
                 int Bar() { return 0; }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp9);
-    }
+            """, LanguageVersion.CSharp9);
 
     [Fact]
-    public async Task TestMissingWithOnlySetter()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TestMissingWithOnlySetter()
+        => VerifyCS.VerifyAnalyzerAsync("""
             class C
             {
                 void Bar() { }
@@ -283,13 +250,13 @@ public sealed class UseExpressionBodyForAccessorsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithOnlyInit()
-    {
-        var code =
-            """
+    public Task TestMissingWithOnlyInit()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            TestCode = """
             class C
             {
                 int Goo
@@ -299,20 +266,13 @@ public sealed class UseExpressionBodyForAccessorsTests
 
                 int Bar() { return 0; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUseExpressionBody3()
-    {
-        var code = """
+    public Task TestUseExpressionBody3()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -325,8 +285,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -336,14 +295,11 @@ public sealed class UseExpressionBodyForAccessorsTests
                     get => throw new NotImplementedException();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseExpressionBody4()
-    {
-        var code = """
+    public Task TestUseExpressionBody4()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -356,8 +312,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -367,14 +322,11 @@ public sealed class UseExpressionBodyForAccessorsTests
                     get => throw new NotImplementedException(); // comment
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59255")]
-    public async Task TestUseExpressionBody5()
-    {
-        var code = """
+    public Task TestUseExpressionBody5()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -392,8 +344,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -405,14 +356,11 @@ public sealed class UseExpressionBodyForAccessorsTests
                     remove => throw new NotImplementedException();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBody1()
-    {
-        var code = """
+    public Task TestUseBlockBody1()
+        => TestWithUseBlockBodyIncludingPropertiesAndIndexers("""
             class C
             {
                 int Bar() { return 0; }
@@ -422,8 +370,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     {|IDE0027:get => Bar();|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Bar() { return 0; }
@@ -436,14 +383,11 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBodyForSetter1()
-    {
-        var code = """
+    public Task TestUseBlockBodyForSetter1()
+        => TestWithUseBlockBodyIncludingPropertiesAndIndexers("""
             class C
             {
                 void Bar() { }
@@ -453,8 +397,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     {|IDE0027:set => Bar();|}
                     }
                 }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Bar() { }
@@ -467,15 +410,11 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBodyForInit1()
-    {
-        var code =
-            """
+    public Task TestUseBlockBodyForInit1()
+        => TestWithUseBlockBodyIncludingPropertiesAndIndexers("""
             class C
             {
                 int Goo
@@ -485,9 +424,7 @@ public sealed class UseExpressionBodyForAccessorsTests
 
                 int Bar() { return 0; }
                 }
-            """;
-        var fixedCode =
-            """
+            """, """
             class C
             {
                 int Goo
@@ -500,15 +437,11 @@ public sealed class UseExpressionBodyForAccessorsTests
 
                 int Bar() { return 0; }
                 }
-            """;
-
-        await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode, LanguageVersion.CSharp9);
-    }
+            """, LanguageVersion.CSharp9);
 
     [Fact]
-    public async Task TestUseBlockBody3()
-    {
-        var code = """
+    public Task TestUseBlockBody3()
+        => TestWithUseBlockBodyIncludingPropertiesAndIndexers("""
             using System;
 
             class C
@@ -518,8 +451,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     {|IDE0027:get => throw new NotImplementedException();|}
                     }
                 }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -532,14 +464,11 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBody4()
-    {
-        var code = """
+    public Task TestUseBlockBody4()
+        => TestWithUseBlockBodyIncludingPropertiesAndIndexers("""
             using System;
 
             class C
@@ -549,8 +478,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     {|IDE0027:get => throw new NotImplementedException();|} // comment
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -563,14 +491,13 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31308")]
-    public async Task TestUseBlockBody5()
-    {
-        var code = """
+    public Task TestUseBlockBody5()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 C this[int index]
@@ -578,10 +505,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     get => default;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.None },
@@ -589,12 +513,10 @@ public sealed class UseExpressionBodyForAccessorsTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.None },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59255")]
-    public async Task TestUseBlockBody6()
-    {
-        var code = """
+    public Task TestUseBlockBody6()
+        => TestWithUseBlockBodyIncludingPropertiesAndIndexers("""
             using System;
 
             class C
@@ -605,8 +527,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     {|IDE0027:remove => throw new NotImplementedException();|}
                     }
                 }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -624,22 +545,18 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
-    public async Task TestAccessorListFormatting()
-    {
-        var code = """
+    public Task TestAccessorListFormatting()
+        => TestWithUseBlockBodyIncludingPropertiesAndIndexers("""
             class C
             {
                 int Bar() { return 0; }
 
                 int Goo { {|IDE0027:get => Bar();|} }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Bar() { return 0; }
@@ -652,23 +569,13 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
-    }
+            """);
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
     public async Task TestAccessorListFormatting_FixAll1()
     {
-        var code = """
-            class C
-            {
-                int Bar() { return 0; }
-
-                int Goo { {|IDE0027:get => Bar();|} {|IDE0027:set => Bar();|} }
-            }
-            """;
         var fixedCode = """
             class C
             {
@@ -690,7 +597,14 @@ public sealed class UseExpressionBodyForAccessorsTests
             """;
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+                int Bar() { return 0; }
+
+                int Goo { {|IDE0027:get => Bar();|} {|IDE0027:set => Bar();|} }
+            }
+            """,
             FixedCode = fixedCode,
             BatchFixedCode = fixedCode,
             Options =
@@ -705,17 +619,18 @@ public sealed class UseExpressionBodyForAccessorsTests
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
-    public async Task TestAccessorListFormatting_FixAll2()
-    {
-        var code = """
+    public Task TestAccessorListFormatting_FixAll2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int Bar() { return 0; }
 
                 int Goo { {|IDE0027:get => Bar();|} {|IDE0027:set => Bar();|} }
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             class C
             {
                 int Bar() { return 0; }
@@ -729,8 +644,8 @@ public sealed class UseExpressionBodyForAccessorsTests
                     set => Bar();
                 }
             }
-            """;
-        var batchFixedCode = """
+            """,
+            BatchFixedCode = """
             class C
             {
                 int Bar() { return 0; }
@@ -748,12 +663,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
-            BatchFixedCode = batchFixedCode,
+            """,
             DiagnosticSelector = diagnostics => diagnostics[0],
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             Options =
@@ -771,22 +681,22 @@ public sealed class UseExpressionBodyForAccessorsTests
                 }
             },
         }.RunAsync();
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
-    public async Task TestAccessorListFormatting_FixAll3()
-    {
-        var code = """
+    public Task TestAccessorListFormatting_FixAll3()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int Bar() { return 0; }
 
                 int Goo { {|IDE0027:get => Bar();|} {|IDE0027:set => Bar();|} }
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             class C
             {
                 int Bar() { return 0; }
@@ -800,8 +710,8 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        var batchFixedCode = """
+            """,
+            BatchFixedCode = """
             class C
             {
                 int Bar() { return 0; }
@@ -819,12 +729,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
-            BatchFixedCode = batchFixedCode,
+            """,
             DiagnosticSelector = diagnostics => diagnostics[1],
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             Options =
@@ -842,22 +747,12 @@ public sealed class UseExpressionBodyForAccessorsTests
                 }
             },
         }.RunAsync();
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
     public async Task TestAccessorListFormatting_FixAll4()
     {
-        var code =
-            """
-            class C
-            {
-                int Goo { {|IDE0027:get => Bar();|} {|IDE0027:init => Bar();|} }
-
-                int Bar() { return 0; }
-            }
-            """;
         var fixedCode =
             """
             class C
@@ -882,7 +777,14 @@ public sealed class UseExpressionBodyForAccessorsTests
         await new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+                int Goo { {|IDE0027:get => Bar();|} {|IDE0027:init => Bar();|} }
+
+                int Bar() { return 0; }
+            }
+            """,
             FixedCode = fixedCode,
             BatchFixedCode = fixedCode,
             LanguageVersion = LanguageVersion.CSharp9,
@@ -896,16 +798,14 @@ public sealed class UseExpressionBodyForAccessorsTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
-    public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7()
-    {
-        var code = """
+    public Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7()
+        => TestWithUseExpressionBody("""
             using System;
             class C
             {
                 int Goo { {|IDE0027:get {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|} }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
             class C
             {
@@ -917,22 +817,18 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
-    }
+            """, LanguageVersion.CSharp6);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
-    public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7_FixAll()
-    {
-        var code = """
+    public Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7_FixAll()
+        => TestWithUseExpressionBody("""
             using System;
             class C
             {
                 int Goo { {|IDE0027:get {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|} }
                 int Bar { {|IDE0027:get {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|} }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
             class C
             {
@@ -951,7 +847,5 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
-    }
+            """, LanguageVersion.CSharp6);
 }

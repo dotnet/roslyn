@@ -8,22 +8,27 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens;
+
+using static CodeLensHelpers;
 
 /// <summary>
 /// This is used by new codelens API to get extra data from VS if it is needed.
@@ -31,7 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens;
 [Export(typeof(ICodeLensCallbackListener))]
 [ContentType(ContentTypeNames.CSharpContentType)]
 [ContentType(ContentTypeNames.VisualBasicContentType)]
-internal class CodeLensCallbackListener : ICodeLensCallbackListener, ICodeLensContext
+internal sealed class CodeLensCallbackListener :
+    ICodeLensCallbackListener, ICodeLensContext, IUnitTestingCodeLensContext
 {
     private const int DefaultMaxSearchResultsValue = 99;
 
@@ -39,6 +45,7 @@ internal class CodeLensCallbackListener : ICodeLensCallbackListener, ICodeLensCo
     private const string CodeLensMaxSearchResults = nameof(CodeLensMaxSearchResults);
 
     private readonly VisualStudioWorkspaceImpl _workspace;
+    private readonly IGlobalOptionService _globalOptionService;
     private readonly IServiceProvider _serviceProvider;
     private readonly IThreadingContext _threadingContext;
 
@@ -49,11 +56,13 @@ internal class CodeLensCallbackListener : ICodeLensCallbackListener, ICodeLensCo
     public CodeLensCallbackListener(
         IThreadingContext threadingContext,
         SVsServiceProvider serviceProvider,
-        VisualStudioWorkspaceImpl workspace)
+        VisualStudioWorkspaceImpl workspace,
+        IGlobalOptionService globalOptionService)
     {
         _threadingContext = threadingContext;
         _serviceProvider = serviceProvider;
         _workspace = workspace;
+        _globalOptionService = globalOptionService;
     }
 
     public async Task<ImmutableDictionary<Guid, string>> GetProjectVersionsAsync(ImmutableArray<Guid> projectGuids, CancellationToken cancellationToken)
@@ -78,10 +87,16 @@ internal class CodeLensCallbackListener : ICodeLensCallbackListener, ICodeLensCo
     public async Task<ReferenceCount?> GetReferenceCountAsync(
         CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, ReferenceCount? previousCount, CancellationToken cancellationToken)
     {
+        if (descriptorContext.ApplicableSpan is null)
+            return null;
+
         var solution = _workspace.CurrentSolution;
-        var (documentId, node) = await GetDocumentIdAndNodeAsync(
-            solution, descriptor, descriptorContext, cancellationToken).ConfigureAwait(false);
-        if (documentId == null)
+        var (document, node) = await GetDocumentAndNodeAsync(
+            solution, descriptor.ProjectGuid, descriptor.FilePath,
+            descriptorContext.ApplicableSpan.Value.ToTextSpan(),
+            GetSourceGeneratorDocumentId(descriptorContext.Properties),
+            cancellationToken).ConfigureAwait(false);
+        if (document == null)
         {
             return null;
         }
@@ -90,7 +105,7 @@ internal class CodeLensCallbackListener : ICodeLensCallbackListener, ICodeLensCo
         if (previousCount is not null)
         {
             // Avoid calculating results if we already have a result for the current project version
-            var currentProjectVersion = await service.GetProjectCodeLensVersionAsync(solution, documentId.ProjectId, cancellationToken).ConfigureAwait(false);
+            var currentProjectVersion = await service.GetProjectCodeLensVersionAsync(solution, document.Project.Id, cancellationToken).ConfigureAwait(false);
             if (previousCount.Value.Version == currentProjectVersion.ToString())
             {
                 return previousCount;
@@ -98,62 +113,78 @@ internal class CodeLensCallbackListener : ICodeLensCallbackListener, ICodeLensCo
         }
 
         var maxSearchResults = await GetMaxResultCapAsync(cancellationToken).ConfigureAwait(false);
-        return await service.GetReferenceCountAsync(solution, documentId, node, maxSearchResults, cancellationToken).ConfigureAwait(false);
+        return await service.GetReferenceCountAsync(solution, document.Id, node, maxSearchResults, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<(string projectVersion, ImmutableArray<ReferenceLocationDescriptor> references)?> FindReferenceLocationsAsync(
         CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
     {
+        if (descriptorContext.ApplicableSpan is null)
+            return null;
+
         var solution = _workspace.CurrentSolution;
-        var (documentId, node) = await GetDocumentIdAndNodeAsync(
-            solution, descriptor, descriptorContext, cancellationToken).ConfigureAwait(false);
-        if (documentId == null)
+        var (document, node) = await GetDocumentAndNodeAsync(
+            solution, descriptor.ProjectGuid, descriptor.FilePath,
+            descriptorContext.ApplicableSpan.Value.ToTextSpan(),
+            GetSourceGeneratorDocumentId(descriptorContext.Properties),
+            cancellationToken).ConfigureAwait(false);
+        if (document == null)
         {
             return null;
         }
 
         var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
-        var references = await service.FindReferenceLocationsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
+        var references = await service.FindReferenceLocationsAsync(solution, document.Id, node, cancellationToken).ConfigureAwait(false);
         if (!references.HasValue)
         {
             return null;
         }
 
-        var projectVersion = await service.GetProjectCodeLensVersionAsync(solution, documentId.ProjectId, cancellationToken).ConfigureAwait(false);
-        return (projectVersion.ToString(), references.Value);
+        var projectVersion = await service.GetProjectCodeLensVersionAsync(solution, document.Id.ProjectId, cancellationToken).ConfigureAwait(false);
+        return (projectVersion.ToString(), await service.MapReferenceLocationsAsync(solution, references.Value, _globalOptionService.GetClassificationOptions(document.Project.Language), cancellationToken).ConfigureAwait(false));
     }
 
     public async Task<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
         CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
     {
+        if (descriptorContext.ApplicableSpan is null)
+            return null;
+
+        return await FindReferenceMethodsAsync(
+            descriptor.ProjectGuid,
+            descriptor.FilePath,
+            descriptorContext.ApplicableSpan.Value.ToTextSpan(),
+            GetSourceGeneratorDocumentId(descriptorContext.Properties),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
+        Guid projectGuid, string filePath, TextSpan span, DocumentId? sourceGeneratorDocumentId, CancellationToken cancellationToken)
+    {
         var solution = _workspace.CurrentSolution;
-        var (documentId, node) = await GetDocumentIdAndNodeAsync(
-            solution, descriptor, descriptorContext, cancellationToken).ConfigureAwait(false);
-        if (documentId == null)
+        var (document, node) = await GetDocumentAndNodeAsync(
+            solution, projectGuid, filePath, span, sourceGeneratorDocumentId, cancellationToken).ConfigureAwait(false);
+        if (document == null)
         {
             return null;
         }
 
         var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
-        return await service.FindReferenceMethodsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
+        return await service.FindReferenceMethodsAsync(solution, document.Id, node, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<(DocumentId?, SyntaxNode?)> GetDocumentIdAndNodeAsync(
-        Solution solution, CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
+    private async Task<(Document?, SyntaxNode?)> GetDocumentAndNodeAsync(
+        Solution solution, Guid projectGuid, string filePath, TextSpan textSpan, DocumentId? sourceGeneratorDocumentId, CancellationToken cancellationToken)
     {
-        if (descriptorContext.ApplicableSpan is null)
-        {
-            return default;
-        }
 
-        var document = await GetDocumentAsync(solution, descriptor.ProjectGuid, descriptor.FilePath, descriptorContext).ConfigureAwait(false);
+        var document = await GetDocumentAsync(
+            solution, projectGuid, filePath, sourceGeneratorDocumentId, cancellationToken).ConfigureAwait(false);
         if (document == null)
         {
             return default;
         }
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var textSpan = descriptorContext.ApplicableSpan.Value.ToTextSpan();
 
         // TODO: This check avoids ArgumentOutOfRangeException but it's not clear if this is the right solution
         // https://github.com/dotnet/roslyn/issues/44639
@@ -162,7 +193,7 @@ internal class CodeLensCallbackListener : ICodeLensCallbackListener, ICodeLensCo
             return default;
         }
 
-        return (document.Id, root.FindNode(textSpan));
+        return (document, root.FindNode(textSpan));
     }
 
     private async Task<int> GetMaxResultCapAsync(CancellationToken cancellationToken)
@@ -203,40 +234,24 @@ internal class CodeLensCallbackListener : ICodeLensCallbackListener, ICodeLensCo
         }
     }
 
-    private Task<Document?> GetDocumentAsync(Solution solution, Guid projectGuid, string filePath, CodeLensDescriptorContext descriptorContext)
+    private async Task<Document?> GetDocumentAsync(
+        Solution solution, Guid projectGuid, string filePath, DocumentId? sourceGeneratorDocumentId, CancellationToken cancellationToken)
     {
         if (projectGuid == VSConstants.CLSID.MiscellaneousFilesProject_guid)
-        {
-            return SpecializedTasks.Default<Document>();
-        }
+            return null;
 
         foreach (var candidateId in solution.GetDocumentIdsWithFilePath(filePath))
         {
             if (_workspace.GetProjectGuid(candidateId.ProjectId) == projectGuid)
             {
                 var currentContextId = _workspace.GetDocumentIdInCurrentContext(candidateId);
-                return Task.FromResult(solution.GetDocument(currentContextId));
+                return solution.GetDocument(currentContextId);
             }
         }
 
         // If we couldn't find the document the usual way we did so, then maybe it's source generated; let's try locating it
         // with the DocumentId we have directly
-        if (TryGetGuid("RoslynDocumentIdGuid", out var documentIdGuid) &&
-            TryGetGuid("RoslynProjectIdGuid", out var projectIdGuid))
-        {
-            var projectId = ProjectId.CreateFromSerialized(projectIdGuid);
-            var documentId = DocumentId.CreateFromSerialized(projectId, documentIdGuid);
-            return _workspace.CurrentSolution.GetDocumentAsync(documentId, includeSourceGenerated: true).AsTask();
-        }
-
-        return SpecializedTasks.Default<Document>();
-
-        bool TryGetGuid(string key, out Guid guid)
-        {
-            guid = Guid.Empty;
-            return descriptorContext.Properties.TryGetValue(key, out var guidStringUntyped) &&
-                guidStringUntyped is string guidString &&
-                Guid.TryParse(guidString, out guid);
-        }
+        return await solution.GetDocumentAsync(
+            sourceGeneratorDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -4,8 +4,10 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
-using Nerdbank.Streams;
+using System.IO.Pipelines;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 using Xunit.Abstractions;
@@ -14,20 +16,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public abstract class AbstractLanguageServerHostTests : IDisposable
 {
-    protected TestOutputLogger TestOutputLogger { get; }
+    protected ILoggerFactory LoggerFactory { get; }
     protected TempRoot TempRoot { get; }
     protected TempDirectory MefCacheDirectory { get; }
 
     protected AbstractLanguageServerHostTests(ITestOutputHelper testOutputHelper)
     {
-        TestOutputLogger = new TestOutputLogger(testOutputHelper);
+        LoggerFactory = new LoggerFactory([new TestOutputLoggerProvider(testOutputHelper)]);
         TempRoot = new();
         MefCacheDirectory = TempRoot.CreateDirectory();
     }
 
     protected Task<TestLspServer> CreateLanguageServerAsync(bool includeDevKitComponents = true)
     {
-        return TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger, MefCacheDirectory.Path, includeDevKitComponents);
+        return TestLspServer.CreateAsync(new ClientCapabilities(), LoggerFactory, MefCacheDirectory.Path, includeDevKitComponents);
     }
 
     public void Dispose()
@@ -35,21 +37,21 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         TempRoot.Dispose();
     }
 
-    protected sealed class TestLspServer : IAsyncDisposable
+    protected sealed class TestLspServer : ILspClient, IAsyncDisposable
     {
         private readonly Task _languageServerHostCompletionTask;
         private readonly JsonRpc _clientRpc;
+        private readonly Pipe _clientToServerPipe;
+        private readonly Pipe _serverToClientPipe;
 
-        private ServerCapabilities? _serverCapabilities;
-
-        internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, string cacheDirectory, bool includeDevKitComponents = true)
+        internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, ILoggerFactory loggerFactory, string cacheDirectory, bool includeDevKitComponents = true, string[]? extensionPaths = null)
         {
-            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-                logger.Factory, includeDevKitComponents, cacheDirectory, out var _, out var assemblyLoader);
-            var testLspServer = new TestLspServer(exportProvider, logger, assemblyLoader);
+            var (exportProvider, assemblyLoader) = await LanguageServerTestComposition.CreateExportProviderAsync(
+                loggerFactory, includeDevKitComponents, cacheDirectory, extensionPaths);
+            var testLspServer = new TestLspServer(exportProvider, loggerFactory, assemblyLoader);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);
-            testLspServer._serverCapabilities = initializeResponse!.Capabilities;
+            testLspServer.ServerCapabilities = initializeResponse.Capabilities;
 
             await testLspServer.ExecuteRequestAsync<InitializedParams, object>(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
 
@@ -59,17 +61,24 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         internal LanguageServerHost LanguageServerHost { get; }
         public ExportProvider ExportProvider { get; }
 
-        internal ServerCapabilities ServerCapabilities => _serverCapabilities ?? throw new InvalidOperationException("Initialize has not been called");
+        internal ServerCapabilities ServerCapabilities { get => field ?? throw new InvalidOperationException("Initialize has not been called"); private set; }
 
-        private TestLspServer(ExportProvider exportProvider, TestOutputLogger logger, IAssemblyLoader assemblyLoader)
+        private TestLspServer(ExportProvider exportProvider, ILoggerFactory loggerFactory, IAssemblyLoader assemblyLoader)
         {
-            var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, logger.Factory);
+            var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, loggerFactory);
 
-            var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, logger, typeRefResolver);
+            _clientToServerPipe = new Pipe();
+            _serverToClientPipe = new Pipe();
+
+            var serverInputStream = _clientToServerPipe.Reader.AsStream();
+            var serverOutputStream = _serverToClientPipe.Writer.AsStream();
+            var clientOutputStream = _clientToServerPipe.Writer.AsStream();
+            var clientInputStream = _serverToClientPipe.Reader.AsStream();
+
+            LanguageServerHost = new LanguageServerHost(serverInputStream, serverOutputStream, exportProvider, loggerFactory, typeRefResolver);
 
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
-            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, messageFormatter))
+            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientOutputStream, clientInputStream, messageFormatter))
             {
                 AllowModificationWhileListening = true,
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
@@ -85,15 +94,35 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             ExportProvider = exportProvider;
         }
 
+        public Task ServerExitTask => _languageServerHostCompletionTask;
+
+        public Pipe ClientToServerPipe => _clientToServerPipe;
+        public Pipe ServerToClientPipe => _serverToClientPipe;
+
         public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
         {
             var result = await _clientRpc.InvokeWithParameterObjectAsync<TResponseType>(methodName, request, cancellationToken: cancellationToken);
             return result;
         }
 
+        public Task ExecuteNotificationAsync<RequestType>(string methodName, RequestType request) where RequestType : class
+        {
+            return _clientRpc.NotifyWithParameterObjectAsync(methodName, request);
+        }
+
+        public Task ExecuteNotification0Async(string methodName)
+        {
+            return _clientRpc.NotifyWithParameterObjectAsync(methodName);
+        }
+
         public void AddClientLocalRpcTarget(object target)
         {
             _clientRpc.AddLocalRpcTarget(target);
+        }
+
+        public void AddClientLocalRpcTarget(string methodName, Delegate handler)
+        {
+            _clientRpc.AddLocalRpcMethod(methodName, handler);
         }
 
         public async ValueTask DisposeAsync()

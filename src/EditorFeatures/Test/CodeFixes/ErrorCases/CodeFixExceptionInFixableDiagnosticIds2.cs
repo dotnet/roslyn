@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes.ErrorCases;
 
 public class ExceptionInFixableDiagnosticIds2 : CodeFixProvider
 {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => new ImmutableArray<string>();
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [];
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         => Task.FromResult(true);

@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -29,30 +28,29 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
         bool forCollectionExpressions,
         CancellationToken cancellationToken);
 
-    public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
+    public async Task AddInlineHintsAsync(
         Document document,
         TextSpan textSpan,
         InlineTypeHintsOptions options,
         SymbolDescriptionOptions displayOptions,
         bool displayAllOverride,
+        ArrayBuilder<InlineHint> result,
         CancellationToken cancellationToken)
     {
         var enabledForTypes = options.EnabledForTypes;
         if (!enabledForTypes && !displayAllOverride)
-            return [];
+            return;
 
         var forImplicitVariableTypes = enabledForTypes && options.ForImplicitVariableTypes;
         var forLambdaParameterTypes = enabledForTypes && options.ForLambdaParameterTypes;
         var forImplicitObjectCreation = enabledForTypes && options.ForImplicitObjectCreation;
         var forCollectionExpressions = enabledForTypes && options.ForCollectionExpressions;
         if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !forCollectionExpressions && !displayAllOverride)
-            return [];
+            return;
 
         var anonymousTypeService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-        using var _1 = ArrayBuilder<InlineHint>.GetInstance(out var result);
 
         foreach (var node in root.DescendantNodes(n => n.Span.IntersectsWith(textSpan)))
         {
@@ -96,10 +94,8 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
 
             result.Add(new InlineHint(
                 span, taggedText, textChange, ranking: InlineHintsConstants.TypeRanking,
-                InlineHintHelpers.GetDescriptionFunction(spanStart, type.GetSymbolKey(cancellationToken), displayOptions)));
+                InlineHintHelpers.GetDescriptionFunction(spanStart, type, displayOptions)));
         }
-
-        return result.ToImmutableAndClear();
     }
 
     private static void AddParts(

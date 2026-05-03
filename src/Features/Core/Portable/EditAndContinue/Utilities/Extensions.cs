@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -42,62 +44,104 @@ internal static partial class Extensions
     /// </summary>
     public static bool SupportsEditAndContinue(this Project project, TraceLog? log = null)
     {
-        if (project.FilePath == null)
+        if (project.IgnoreForEditAndContinue())
         {
-            log?.Write("Project '{0}' (id '{1}') doesn't support EnC: no file path", project.Name, project.Id);
+            LogReason("invalid file path");
+            return false;
+        }
+
+        if (!project.SupportsCompilation)
+        {
+            LogReason("no compilation");
             return false;
         }
 
         if (project.Services.GetService<IEditAndContinueAnalyzer>() == null)
         {
-            log?.Write("Project '{0}' doesn't support EnC: no EnC service", project.FilePath);
+            LogReason("no EnC service");
             return false;
         }
 
-        if (!project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory)
+        void LogReason(string message)
+            => log?.Write($"Project '{project.GetLogDisplay()}' doesn't support EnC: {message}");
+
+        return true;
+    }
+
+    /// <summary>
+    /// True if the project should be ignore for the purposes of Edit and Continue.
+    /// These are synthesized or misconfigured projects that don't produce an assembly.
+    /// </summary>
+    public static bool IgnoreForEditAndContinue(this Project project, TraceLog? log = null)
+    {
+        if (!PathUtilities.IsAbsolute(project.FilePath))
         {
-            log?.Write("Project '{0}' doesn't support EnC: no generated files output directory", project.FilePath);
+            LogReason("invalid file path");
+            return true;
+        }
+
+        if (project.SupportsCompilation && !project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory)
+        {
+            LogReason("no generated files output directory");
+            return true;
+        }
+
+        void LogReason(string message)
+            => log?.Write($"Project {project.GetLogDisplay()} ignored for EnC: {message}");
+
+        return false;
+    }
+
+    public static string GetLogDisplay(this Project project)
+        => project.FilePath != null
+            ? $"'{project.FilePath}'" + (project.State.NameAndFlavor.flavor is { } flavor ? $" ('{flavor}')" : "")
+            : $"'{project.Name}' ('{project.Id.DebugName}')";
+
+    public static bool SupportsEditAndContinue(this TextDocumentState textDocumentState)
+    {
+        if (textDocumentState.IgnoreForEditAndContinue())
+        {
+            return false;
+        }
+
+        if (textDocumentState is DocumentState { SupportsSyntaxTree: false })
+        {
             return false;
         }
 
         return true;
     }
 
-    public static bool SupportsEditAndContinue(this TextDocumentState textDocumentState)
+    public static bool IgnoreForEditAndContinue(this TextDocumentState textDocumentState)
     {
         if (textDocumentState.Attributes.DesignTimeOnly)
         {
-            return false;
+            return true;
         }
 
         if (!PathUtilities.IsAbsolute(textDocumentState.FilePath))
         {
-            return false;
+            return true;
         }
 
         if (textDocumentState is DocumentState documentState)
         {
-            if (!documentState.SupportsSyntaxTree)
-            {
-                return false;
-            }
-
             // WPF design time documents are added to the Workspace by the Project System as regular documents,
             // although they are not compiled into the binary.
             if (IsWpfDesignTimeOnlyDocument(textDocumentState.FilePath, documentState.LanguageServices.Language))
             {
-                return false;
+                return true;
             }
 
             // Razor generated documents are added to the Workspace by the Web Tools editor but aren't used at runtime,
             // so don't need to be considered for edit and continue.
-            if (IsRazorDesignTimeOnlyDocument(textDocumentState.FilePath))
+            if (IsRazorDesignTimeOnlyDocument(textDocumentState.FilePath, documentState.LanguageServices.Language))
             {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     private static bool IsWpfDesignTimeOnlyDocument(string filePath, string language)
@@ -108,29 +152,23 @@ internal static partial class Extensions
             _ => false
         };
 
-    private static bool IsRazorDesignTimeOnlyDocument(string filePath)
-        => filePath.EndsWith(".razor.g.cs", StringComparison.OrdinalIgnoreCase) ||
-            filePath.EndsWith(".cshtml.g.cs", StringComparison.OrdinalIgnoreCase);
+    private static bool IsRazorDesignTimeOnlyDocument(string filePath, string language)
+        => language switch
+        {
+            LanguageNames.CSharp =>
+                filePath.EndsWith(".razor.g.cs", StringComparison.OrdinalIgnoreCase) ||
+                filePath.EndsWith(".cshtml.g.cs", StringComparison.OrdinalIgnoreCase),
+            _ => false
+        };
 
-    public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ModuleUpdateStatus updateStatus, bool isRudeEdit)
+    public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ManagedHotReloadDiagnosticSeverity severity)
     {
         var fileSpan = data.DataLocation.MappedFileSpan;
 
         return new(
             data.Id,
             data.Message ?? FeaturesResources.Unknown_error_occurred,
-            isRudeEdit
-                ? data.DefaultSeverity switch
-                {
-                    DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RestartRequired,
-                    DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
-                    _ => throw ExceptionUtilities.UnexpectedValue(data.DefaultSeverity)
-                }
-                : updateStatus == ModuleUpdateStatus.RestartRequired
-                    ? ManagedHotReloadDiagnosticSeverity.RestartRequired
-                    : (data.Severity == DiagnosticSeverity.Error)
-                        ? ManagedHotReloadDiagnosticSeverity.Error
-                        : ManagedHotReloadDiagnosticSeverity.Warning,
+            severity,
             fileSpan.Path ?? "",
             fileSpan.Span.ToSourceSpan());
     }
@@ -240,4 +278,48 @@ internal static partial class Extensions
     /// </summary>
     public static bool HasExplicitlyImplementedInterfaceMember(this INamedTypeSymbol type)
         => type.GetMembers().Any(static member => member.ExplicitInterfaceImplementations().Any());
+
+    /// <summary>
+    /// Finds a node that corresponds to the given <paramref name="node"/> in the tree rooted at <paramref name="otherRoot"/>.
+    /// The trees must be identical except for trivia.
+    /// </summary>
+    public static SyntaxNode FindCorrespondingNodeInEquivalentTree(this SyntaxNode otherRoot, SyntaxNode node)
+    {
+        Contract.ThrowIfFalse(otherRoot.Parent == null);
+
+        using var _ = ArrayBuilder<int>.GetInstance(out var childIndices);
+
+        var parent = node.Parent;
+        while (parent != null)
+        {
+            childIndices.Add(GetChildIndex(parent, node));
+            node = parent;
+            parent = parent.Parent;
+        }
+
+        var otherNode = otherRoot;
+        for (var i = childIndices.Count - 1; i >= 0; i--)
+        {
+            otherNode = otherNode.ChildNodesAndTokens()[childIndices[i]].AsNode();
+            Contract.ThrowIfNull(otherNode);
+        }
+
+        return otherNode;
+
+        static int GetChildIndex(SyntaxNode parent, SyntaxNode node)
+        {
+            var i = 0;
+            foreach (var child in parent.ChildNodesAndTokens())
+            {
+                if (child == node)
+                {
+                    return i;
+                }
+
+                i++;
+            }
+
+            throw ExceptionUtilities.Unreachable();
+        }
+    }
 }

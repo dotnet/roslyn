@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 [Order(Before = PredefinedCommandHandlerNames.AutomaticCompletion)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal partial class EventHookupCommandHandler(
+internal sealed partial class EventHookupCommandHandler(
     IThreadingContext threadingContext,
     IInlineRenameService inlineRenameService,
     EventHookupSessionManager eventHookupSessionManager,

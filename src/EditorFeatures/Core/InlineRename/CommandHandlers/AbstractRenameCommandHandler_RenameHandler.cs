@@ -8,14 +8,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -45,11 +43,11 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
         }
 
         var token = listener.BeginAsyncOperation(nameof(ExecuteCommand));
-        _ = ExecuteCommandAsync(args, context.OperationContext).CompletesAsyncOperation(token);
+        _ = ExecuteCommandAsync(args).CompletesAsyncOperation(token);
         return true;
     }
 
-    private async Task ExecuteCommandAsync(RenameCommandArgs args, IUIThreadOperationContext editorOperationContext)
+    private async Task ExecuteCommandAsync(RenameCommandArgs args)
     {
         threadingContext.ThrowIfNotOnUIThread();
 
@@ -82,9 +80,8 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             }
             else
             {
-                // Otherwise, commit or cancel the existing session and start a new one.
-                // Set placeCaretAtTheEndOfIdentifier to false because a new rename session will be created based on caret's location.
-                CommitIfSynchronousOrCancelIfAsynchronous(args, editorOperationContext, placeCaretAtTheEndOfIdentifier: false);
+                // Otherwise, cancel the existing session and start a new one.
+                CancelRenameSession();
             }
         }
 

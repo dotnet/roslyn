@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using Roslyn.Utilities;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Emit;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Emit.EditAndContinue;
 
 namespace Microsoft.Cci
@@ -563,10 +563,7 @@ namespace Microsoft.Cci
             }
             else
             {
-                if (!typeMember.IsEncDeleted)
-                {
-                    this.Visit(typeMember.GetAttributes(Context));
-                }
+                this.Visit(typeMember.GetAttributes(Context));
 
                 typeMember.Dispatch(this);
             }

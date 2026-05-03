@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExtensionOrder(After = nameof(EnumAndCompletionListTagCompletionProvider))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
+internal sealed class CrefCompletionProvider(
+    KeywordCompletionProvider keywordCompletionProvider) : AbstractCrefCompletionProvider
 {
     private static readonly SymbolDisplayFormat QualifiedCrefFormat =
         new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
@@ -46,6 +47,7 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
     private static readonly SymbolDisplayFormat MinimalParameterTypeFormat =
         SymbolDisplayFormat.MinimallyQualifiedFormat.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.ExpandValueTuple);
 
+    private readonly KeywordCompletionProvider _keywordCompletionProvider = keywordCompletionProvider;
     private Action<SyntaxNode?>? _testSpeculativeNodeCallback;
 
     internal override string Language => LanguageNames.CSharp;
@@ -72,14 +74,11 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
             Contract.ThrowIfNull(semanticModel);
 
             context.IsExclusive = true;
+            context.AddItems(CreateCompletionItems(semanticModel, symbols, token, position));
 
-            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = GetCompletionItemSpan(text, position);
-            var serializedOptions = ImmutableArray.Create(KeyValuePairUtil.Create(HideAdvancedMembers, options.MemberDisplayOptions.HideAdvancedMembers.ToString()));
-
-            var items = CreateCompletionItems(semanticModel, symbols, token, position, serializedOptions);
-
-            context.AddItems(items);
+            // Because we took over completion entirely as an exclusive provider, we have to ensure that appropriate
+            // keywords are provided ourselves.
+            await _keywordCompletionProvider.ProvideCompletionsAsync(context).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
         {
@@ -107,7 +106,7 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
             parentNode, cancellationToken).ConfigureAwait(false);
 
         var symbols = GetSymbols(token, semanticModel, cancellationToken)
-            .FilterToVisibleAndBrowsableSymbols(options.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation);
+            .FilterToVisibleAndBrowsableSymbols(options.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true);
 
         return (token, semanticModel, symbols);
     }
@@ -224,17 +223,8 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
         return result.ToImmutableAndClear();
     }
 
-    private static TextSpan GetCompletionItemSpan(SourceText text, int position)
-    {
-        return CommonCompletionUtilities.GetWordSpan(
-            text,
-            position,
-            ch => CompletionUtilities.IsCompletionItemStartCharacter(ch) || ch == '{',
-            ch => CompletionUtilities.IsWordCharacter(ch) || ch is '{' or '}');
-    }
-
     private static IEnumerable<CompletionItem> CreateCompletionItems(
-        SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position, ImmutableArray<KeyValuePair<string, string>> options)
+        SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position)
     {
         using var _ = SharedPools.Default<StringBuilder>().GetPooledObject(out var builder);
 
@@ -248,23 +238,22 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
 
                 // For every symbol, we create an item that uses the regular CrefFormat,
                 // which uses intrinsic type keywords
-                yield return CreateItem(semanticModel, symbol, groupCount, token, position, builder, sortText, options, CrefFormat);
-                if (TryCreateSpecialTypeItem(semanticModel, symbol, token, position, builder, options, out var item))
+                yield return CreateItem(semanticModel, symbol, groupCount, token, position, builder, sortText, CrefFormat);
+                if (TryCreateSpecialTypeItem(semanticModel, symbol, token, position, builder, out var item))
                     yield return item;
             }
         }
     }
 
     private static bool TryCreateSpecialTypeItem(
-        SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
-        ImmutableArray<KeyValuePair<string, string>> options, [NotNullWhen(true)] out CompletionItem? item)
+        SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, [NotNullWhen(true)] out CompletionItem? item)
     {
         // If the type is a SpecialType, create an additional item using 
         // its actual name (as opposed to intrinsic type keyword)
         var typeSymbol = symbol as ITypeSymbol;
         if (typeSymbol.IsSpecialType())
         {
-            item = CreateItem(semanticModel, symbol, groupCount: 1, token, position, builder, builder.ToString(), options, QualifiedCrefFormat);
+            item = CreateItem(semanticModel, symbol, groupCount: 1, token, position, builder, builder.ToString(), QualifiedCrefFormat);
             return true;
         }
 
@@ -280,7 +269,6 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
         int position,
         StringBuilder builder,
         string sortText,
-        ImmutableArray<KeyValuePair<string, string>> options,
         SymbolDisplayFormat unqualifiedCrefFormat)
     {
         builder.Clear();
@@ -322,11 +310,11 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
             }
         }
 
-        return CreateItemFromBuilder(symbol, position, builder, sortText, options);
+        return CreateItemFromBuilder(symbol, position, builder, sortText);
     }
 
     private static CompletionItem CreateItemFromBuilder(
-        ISymbol symbol, int position, StringBuilder builder, string sortText, ImmutableArray<KeyValuePair<string, string>> options)
+        ISymbol symbol, int position, StringBuilder builder, string sortText)
     {
         var insertionText = builder
             .Replace('<', '{')
@@ -341,7 +329,6 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
             contextPosition: position,
             sortText: sortText,
             filterText: insertionText,
-            properties: options,
             rules: GetRules(insertionText));
     }
 

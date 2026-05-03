@@ -1,0 +1,14 @@
+﻿Source Location: (2:0,2 [39] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+  var myValue = "Expression value";
+|
+Generated Location: (987:28,2 [39] )
+|
+  var myValue = "Expression value";
+|
+
+Source Location: (86:3,42 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|myValue|
+Generated Location: (1208:37,42 [7] )
+|myValue|
+

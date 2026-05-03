@@ -16,7 +16,7 @@ using Nerdbank.Streams;
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
 [Export, Shared]
-internal class BrokeredServiceBridgeProvider
+internal sealed class BrokeredServiceBridgeProvider
 {
     private const string ServiceBrokerChannelName = "serviceBroker";
 
@@ -59,7 +59,7 @@ internal class BrokeredServiceBridgeProvider
                 .WithTraceSource(_brokeredServiceTraceSource)
                 .ConstructRpc(relayServiceBroker, profferedServiceBrokerChannel);
 
-            await relayServiceBroker.Completion;
+            await relayServiceBroker.Completion.WaitAsync(cancellationToken);
         }
 
         async Task ConsumeServicesFromRemoteAsync()
@@ -71,7 +71,7 @@ internal class BrokeredServiceBridgeProvider
 
             using (container.ProfferRemoteBroker(remoteClient, bridgeMxStream, ServiceSource.OtherProcessOnSameMachine, [.. Descriptors.RemoteServicesToRegister.Keys]))
             {
-                await consumingServiceBrokerChannel.Completion;
+                await consumingServiceBrokerChannel.Completion.WaitAsync(cancellationToken);
             }
         }
     }

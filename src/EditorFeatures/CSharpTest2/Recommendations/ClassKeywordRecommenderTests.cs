@@ -7,541 +7,438 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class ClassKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class ClassKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact]
-        public async Task TestAtRoot_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact]
-        public async Task TestAfterClass_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterGlobalStatement()
-        {
-            await VerifyKeywordAsync(
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-        }
 
-        [Fact]
-        public async Task TestInCompilationUnit()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestInCompilationUnit()
+        => VerifyKeywordAsync(
 @"$$");
-        }
 
-        [Fact]
-        public async Task TestAfterExtern()
-        {
-            await VerifyKeywordAsync(
-                """
-                extern alias Goo;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterExtern()
+        => VerifyKeywordAsync(
+            """
+            extern alias Goo;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterUsing()
-        {
-            await VerifyKeywordAsync(
-                """
-                using Goo;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterUsing()
+        => VerifyKeywordAsync(
+            """
+            using Goo;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterGlobalUsing()
-        {
-            await VerifyKeywordAsync(
-                """
-                global using Goo;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterGlobalUsing()
+        => VerifyKeywordAsync(
+            """
+            global using Goo;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterNamespace()
-        {
-            await VerifyKeywordAsync(
-                """
-                namespace N {}
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterNamespace()
+        => VerifyKeywordAsync(
+            """
+            namespace N {}
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterFileScopedNamespace()
-        {
-            await VerifyKeywordAsync(
-                """
-                namespace N;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterFileScopedNamespace()
+        => VerifyKeywordAsync(
+            """
+            namespace N;
+            $$
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
-        public async Task TestFileKeywordInsideNamespace()
-        {
-            await VerifyKeywordAsync(
-                """
-                namespace N {
-                file $$
-                }
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+    public Task TestFileKeywordInsideNamespace()
+        => VerifyKeywordAsync(
+            """
+            namespace N {
+            file $$
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
-        public async Task TestFileKeywordInsideNamespaceBeforeClass()
-        {
-            await VerifyKeywordAsync(
-                """
-                namespace N {
-                file $$
-                class C {}
-                }
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+    public Task TestFileKeywordInsideNamespaceBeforeClass()
+        => VerifyKeywordAsync(
+            """
+            namespace N {
+            file $$
+            class C {}
+            }
+            """);
 
-        [Fact]
-        public async Task TestAfterTypeDeclaration()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {}
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterTypeDeclaration()
+        => VerifyKeywordAsync(
+            """
+            class C {}
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterDelegateDeclaration()
-        {
-            await VerifyKeywordAsync(
-                """
-                delegate void Goo();
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterDelegateDeclaration()
+        => VerifyKeywordAsync(
+            """
+            delegate void Goo();
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterMethod()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                  void Goo() {}
-                  $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterMethod()
+        => VerifyKeywordAsync(
+            """
+            class C {
+              void Goo() {}
+              $$
+            """);
 
-        [Fact]
-        public async Task TestAfterField()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                  int i;
-                  $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterField()
+        => VerifyKeywordAsync(
+            """
+            class C {
+              int i;
+              $$
+            """);
 
-        [Fact]
-        public async Task TestAfterProperty()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                  int i { get; }
-                  $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterProperty()
+        => VerifyKeywordAsync(
+            """
+            class C {
+              int i { get; }
+              $$
+            """);
 
-        [Fact]
-        public async Task TestNotBeforeUsing()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
-                """
-                $$
-                using Goo;
-                """);
-        }
+    [Fact]
+    public Task TestNotBeforeUsing()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
+            """
+            $$
+            using Goo;
+            """);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
-        public async Task TestNotBeforeUsing_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                $$
-                using Goo;
-                """);
-        }
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+    public Task TestNotBeforeUsing_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            $$
+            using Goo;
+            """);
 
-        [Fact]
-        public async Task TestNotBeforeGlobalUsing()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
-                """
-                $$
-                global using Goo;
-                """);
-        }
+    [Fact]
+    public Task TestNotBeforeGlobalUsing()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
+            """
+            $$
+            global using Goo;
+            """);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
-        public async Task TestNotBeforeGlobalUsing_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                $$
-                global using Goo;
-                """);
-        }
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+    public Task TestNotBeforeGlobalUsing_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            $$
+            global using Goo;
+            """);
 
-        [Fact]
-        public async Task TestAfterAssemblyAttribute()
-        {
-            await VerifyKeywordAsync(
-                """
-                [assembly: goo]
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterAssemblyAttribute()
+        => VerifyKeywordAsync(
+            """
+            [assembly: goo]
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterRootAttribute()
-        {
-            await VerifyKeywordAsync(
-                """
-                [goo]
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterRootAttribute()
+        => VerifyKeywordAsync(
+            """
+            [goo]
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterNestedAttribute()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                  [goo]
-                  $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterNestedAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+              [goo]
+              $$
+            """);
 
-        [Fact]
-        public async Task TestInsideStruct()
-        {
-            await VerifyKeywordAsync(
-                """
-                struct S {
-                   $$
-                """);
-        }
+    [Fact]
+    public Task TestInsideStruct()
+        => VerifyKeywordAsync(
+            """
+            struct S {
+               $$
+            """);
 
-        [Fact]
-        public async Task TestInsideInterface()
-        {
-            await VerifyKeywordAsync("""
-                interface I {
-                   $$
-                """);
-        }
+    [Fact]
+    public Task TestInsideInterface()
+        => VerifyKeywordAsync("""
+            interface I {
+               $$
+            """);
 
-        [Fact]
-        public async Task TestInsideClass()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   $$
-                """);
-        }
+    [Fact]
+    public Task TestInsideClass()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               $$
+            """);
 
-        [Fact]
-        public async Task TestAfterPartial()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterPartial()
+        => VerifyKeywordAsync(
 @"partial $$");
-        }
 
-        [Fact]
-        public async Task TestAfterAbstract()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterAbstract()
+        => VerifyKeywordAsync(
 @"abstract $$");
-        }
 
-        [Fact]
-        public async Task TestAfterInternal()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterInternal()
+        => VerifyKeywordAsync(
 @"internal $$");
-        }
 
-        [Fact]
-        public async Task TestAfterStaticPublic()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterStaticPublic()
+        => VerifyKeywordAsync(
 @"static public $$");
-        }
 
-        [Fact]
-        public async Task TestAfterPublicStatic()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterPublicStatic()
+        => VerifyKeywordAsync(
 @"public static $$");
-        }
 
-        [Fact]
-        public async Task TestNotAfterInvalidPublic()
-            => await VerifyAbsenceAsync(@"virtual public $$");
+    [Fact]
+    public async Task TestNotAfterInvalidPublic()
+        => await VerifyAbsenceAsync(@"virtual public $$");
 
-        [Fact]
-        public async Task TestAfterPublic()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterPublic()
+        => VerifyKeywordAsync(
 @"public $$");
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
-        public async Task TestAfterFile()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+    public Task TestAfterFile()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"file $$");
-        }
 
-        [Fact]
-        public async Task TestAfterPrivate()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterPrivate()
+        => VerifyKeywordAsync(
 @"private $$");
-        }
 
-        [Fact]
-        public async Task TestAfterProtected()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterProtected()
+        => VerifyKeywordAsync(
 @"protected $$");
-        }
 
-        [Fact]
-        public async Task TestAfterSealed()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterSealed()
+        => VerifyKeywordAsync(
 @"sealed $$");
-        }
 
-        [Fact]
-        public async Task TestAfterStatic()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterStatic()
+        => VerifyKeywordAsync(
 @"static $$");
-        }
 
-        [Fact]
-        public async Task TestNotAfterStaticInUsingDirective()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotAfterStaticInUsingDirective()
+        => VerifyAbsenceAsync(
 @"using static $$");
-        }
 
-        [Fact]
-        public async Task TestNotAfterStaticInGlobalUsingDirective()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotAfterStaticInGlobalUsingDirective()
+        => VerifyAbsenceAsync(
 @"global using static $$");
-        }
 
-        [Fact]
-        public async Task TestNotAfterClass()
-            => await VerifyAbsenceAsync(@"class $$");
+    [Fact]
+    public async Task TestNotAfterClass()
+        => await VerifyAbsenceAsync(@"class $$");
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
-        public async Task TestNotBetweenUsings()
-        {
-            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
-                """
-                using Goo;
-                $$
-                using Bar;
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
+    public Task TestNotBetweenUsings()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
+            """
+            using Goo;
+            $$
+            using Bar;
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
-        public async Task TestNotBetweenGlobalUsings_01()
-        {
-            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
-                """
-                global using Goo;
-                $$
-                using Bar;
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
+    public Task TestNotBetweenGlobalUsings_01()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
+            """
+            global using Goo;
+            $$
+            using Bar;
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
-        public async Task TestNotBetweenGlobalUsings_02()
-        {
-            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
-                """
-                global using Goo;
-                $$
-                global using Bar;
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
+    public Task TestNotBetweenGlobalUsings_02()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
+            """
+            global using Goo;
+            $$
+            global using Bar;
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-        public async Task TestAfterClassTypeParameterConstraint()
-        {
-            await VerifyKeywordAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
+    public Task TestAfterClassTypeParameterConstraint()
+        => VerifyKeywordAsync(
 @"class C<T> where T : $$");
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-        public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint()
-        {
-            await VerifyAbsenceAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
+    public Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint()
+        => VerifyAbsenceAsync(
 @"class C<T> where T : IList<$$");
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-        public async Task TestAfterClassTypeParameterConstraint2()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C<T>
-                    where T : $$
-                    where U : U
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
+    public Task TestAfterClassTypeParameterConstraint2()
+        => VerifyKeywordAsync(
+            """
+            class C<T>
+                where T : $$
+                where U : U
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-        public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint2()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C<T>
-                    where T : IList<$$
-                    where U : U
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
+    public Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint2()
+        => VerifyAbsenceAsync(
+            """
+            class C<T>
+                where T : IList<$$
+                where U : U
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-        public async Task TestAfterMethodTypeParameterConstraint()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                    void Goo<T>()
-                      where T : $$
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
+    public Task TestAfterMethodTypeParameterConstraint()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                void Goo<T>()
+                  where T : $$
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-        public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C {
-                    void Goo<T>()
-                      where T : IList<$$
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
+    public Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo<T>()
+                  where T : IList<$$
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-        public async Task TestAfterMethodTypeParameterConstraint2()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                    void Goo<T>()
-                      where T : $$
-                      where U : T
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
+    public Task TestAfterMethodTypeParameterConstraint2()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                void Goo<T>()
+                  where T : $$
+                  where U : T
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-        public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint2()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C {
-                    void Goo<T>()
-                      where T : IList<$$
-                      where U : T
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
+    public Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint2()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo<T>()
+                  where T : IList<$$
+                  where U : T
+            """);
 
-        [Fact]
-        public async Task TestAfterNew()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                    new $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterNew()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                new $$
+            """);
 
-        [Fact]
-        public async Task TestAfterRecord()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterRecord()
+        => VerifyKeywordAsync(
 @"record $$");
-        }
 
-        [Fact]
-        public async Task TestAfterAttributeFileScopedNamespace()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterAttributeFileScopedNamespace()
+        => VerifyKeywordAsync(
 @"namespace NS; [Attr] $$");
-        }
-    }
+
+    [Fact]
+    public Task TestWithinExtension()
+        => VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
 }

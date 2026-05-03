@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -16,8 +17,10 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -62,14 +65,17 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
     /// <summary>
-    /// When we have to put a placeholder file on disk, we put it in a directory named by the GUID portion of the DocumentId.
-    /// We store the actual DocumentId (which includes the ProjectId) and some other textual information in
-    /// <see cref="_directoryInfoOnDiskByContainingDirectoryId"/>, so that way we don't have to pack the information into the path itself.
-    /// If we put the GUIDs and string names directly as components of the path, we quickly run into MAX_PATH. If we had a way to do virtual
-    /// monikers that don't run into MAX_PATH issues then we absolutely would want to get rid of this.
+    /// When we have to put a placeholder file on disk, we put it in a directory named by the GUID portion of the
+    /// DocumentId. We store the actual DocumentId (which includes the ProjectId) and some other textual information in
+    /// <see cref="_directoryInfoOnDiskByContainingDirectoryId"/>, so that way we don't have to pack the information
+    /// into the path itself. If we put the GUIDs and string names directly as components of the path, we quickly run
+    /// into MAX_PATH. If we had a way to do virtual monikers that don't run into MAX_PATH issues then we absolutely
+    /// would want to get rid of this.
     /// </summary>
-    /// <remarks>All accesses should be on the UI thread.</remarks>
-    private readonly Dictionary<Guid, SourceGeneratedDocumentIdentity> _directoryInfoOnDiskByContainingDirectoryId = [];
+    /// <remarks>
+    /// This can be accessed on any thread.
+    /// </remarks>
+    private readonly ConcurrentDictionary<Guid, SourceGeneratedDocumentIdentity> _directoryInfoOnDiskByContainingDirectoryId = [];
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -102,17 +108,26 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         openTextBufferProvider.AddListener(this);
     }
 
-    public Func<CancellationToken, Task<bool>> GetNavigationCallback(SourceGeneratedDocument document, TextSpan sourceSpan)
+    /// <summary>
+    /// Takes a <see cref="SourceGeneratedDocument"/> and maps it to a file path that can be opened in Visual Studio.
+    /// This works simply by creating an empty temporary file in a well known location that we will then listen to see
+    /// if visual studio opens it.  If so, we we can map that location on disk back to right <see
+    /// cref="SourceGeneratedDocumentIdentity"/> information for this document, find the contents in the workspace and
+    /// update the text buffer with those contents.
+    /// </summary>
+    /// <remarks>
+    /// This is all currently necessary because much of VS requires an actual file on disk to open a document, along
+    /// with special handling for file:// uris.  For example, navigating to a source generated document, or showing its
+    /// contents in the Navigate-To preview window.  Ideally we could just inform them of special handling of some
+    /// roslyn-specific uri schema (a-la VSCode), but that isn't currently possible.
+    /// </remarks>
+    public string MapSourceGeneratedDocumentToOpenableFilePath(SourceGeneratedDocument document)
     {
         // We will create an file name to represent this generated file; the Visual Studio shell APIs imply you can use a URI,
         // but most URIs are blocked other than file:// and http://; they also get extra handling to attempt to download the file so
         // those aren't really usable anyways.
         // The file name we create is <temp path>\<document id in GUID form>\<hint name>
-
-        if (!_directoryInfoOnDiskByContainingDirectoryId.ContainsKey(document.Id.Id))
-        {
-            _directoryInfoOnDiskByContainingDirectoryId.Add(document.Id.Id, document.Identity);
-        }
+        _directoryInfoOnDiskByContainingDirectoryId.TryAdd(document.Id.Id, document.Identity);
 
         // We must always ensure the file name portion of the path is just the hint name, which matches the compiler's choice so
         // debugging works properly.
@@ -122,13 +137,21 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             // Normalize hint name (it always contains forward slashes).
             document.HintName.Replace('/', Path.DirectorySeparatorChar));
 
-        Directory.CreateDirectory(Path.GetDirectoryName(temporaryFilePath));
-
-        // Don't write to the file if it's already there, as that potentially triggers a file reload
-        if (!File.Exists(temporaryFilePath))
+        IOUtilities.PerformIO(() =>
         {
-            File.WriteAllText(temporaryFilePath, "");
-        }
+            Directory.CreateDirectory(Path.GetDirectoryName(temporaryFilePath));
+
+            // Don't write to the file if it's already there, as that potentially triggers a file reload
+            if (!File.Exists(temporaryFilePath))
+                File.WriteAllText(temporaryFilePath, "");
+        });
+
+        return temporaryFilePath;
+    }
+
+    public Func<CancellationToken, Task<bool>> GetNavigationCallback(SourceGeneratedDocument document, TextSpan sourceSpan)
+    {
+        var temporaryFilePath = MapSourceGeneratedDocumentToOpenableFilePath(document);
 
         return async cancellationToken =>
         {
@@ -233,7 +256,6 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         private readonly SourceGeneratedFileManager _fileManager;
         private readonly ITextBuffer _textBuffer;
         private readonly SourceGeneratedDocumentIdentity _documentIdentity;
-        private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
         /// <summary>
         /// A read-only region that we create across the entire file to prevent edits unless we are the one making them.
@@ -261,6 +283,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         private VisualStudioInfoBar.InfoBarMessage? _currentInfoBarMessage;
 
         private InfoBarInfo? _infoToShow = null;
+        private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
         public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, SourceGeneratedDocumentIdentity documentIdentity)
         {
@@ -268,7 +291,6 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             _fileManager = fileManager;
             _textBuffer = textBuffer;
             _documentIdentity = documentIdentity;
-            _workspaceConfigurationService = this.Workspace.Services.GetService<IWorkspaceConfigurationService>();
 
             // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
             // while we're doing edits.
@@ -283,7 +305,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 readOnlyRegionEdit.Apply();
             }
 
-            this.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _workspaceChangedDisposer = this.Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
 
             _batchingWorkQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromSeconds(1),
@@ -310,7 +332,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             _fileManager._threadingContext.ThrowIfNotOnUIThread();
 
-            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
 
             // Disconnect the buffer from the workspace before making it eligible for edits
             DisconnectFromWorkspaceIfOpen();
@@ -421,7 +444,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             await EnsureWindowFrameInfoBarUpdatedAsync(cancellationToken).ConfigureAwait(true);
         }
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
         {
             var projectId = _documentIdentity.DocumentId.ProjectId;
 

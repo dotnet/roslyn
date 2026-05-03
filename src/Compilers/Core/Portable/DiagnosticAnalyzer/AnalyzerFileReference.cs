@@ -106,6 +106,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override int GetHashCode()
             => Hash.Combine(RuntimeHelpers.GetHashCode(_assemblyLoader), FullPath.GetHashCode());
 
+        public override string ToString()
+            => $"{nameof(AnalyzerFileReference)}({nameof(FullPath)} = {FullPath})";
+
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
             // This API returns duplicates of analyzers that support multiple languages.
@@ -259,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<string> result = [];
             foreach (CustomAttributeHandle customAttrHandle in typeDef.GetCustomAttributes())
             {
-                if (peModule.IsTargetAttribute(customAttrHandle, attributeType.Namespace!, attributeType.Name, ctor: out _))
+                if (peModule.IsTargetAttribute(customAttrHandle, attributeType.Namespace, attributeType.Name, ctor: out _))
                 {
                     if (languagesFunc(peModule, customAttrHandle) is { } attributeSupportedLanguages)
                     {

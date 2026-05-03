@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundUnconvertedCollectionExpression
     {
         public override object Display
-            => (Type is null) ? MessageID.IDS_FeatureCollectionExpressions.Localize() : base.Display;
+            => (Type is null) ? MessageID.IDS_CollectionExpression.Localize() : base.Display;
     }
 
     internal partial class BoundPassByCopy

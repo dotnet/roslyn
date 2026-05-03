@@ -77,10 +77,15 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
         };
 
+    private OptionsCollection NoBraces()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>(PreferBracesPreference.None, NotificationOption2.Suggestion) }
+        };
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
-    public async Task LocalFuncExtract()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task LocalFuncExtract()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 int Testing;
@@ -127,12 +132,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
-    public async Task TestPartialSelection()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPartialSelection()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -158,12 +161,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSelectionOfSwitchExpressionArm()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSelectionOfSwitchExpressionArm()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -186,12 +187,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestSelectionOfSwitchExpressionArmContainingVariables()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSelectionOfSwitchExpressionArmContainingVariables()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -228,12 +227,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionBodyWhenPossible()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionBodyWhenPossible()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -257,12 +254,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -286,12 +281,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -321,12 +314,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -355,12 +346,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -389,12 +378,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestExtractMethodInCtorInit()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractMethodInCtorInit()
+        => TestInRegularAndScriptAsync(
             """
             class Goo
             {
@@ -414,12 +401,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestExtractMethodInCtorInitWithOutVar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractMethodInCtorInitWithOutVar()
+        => TestInRegularAndScriptAsync(
             """
             class Goo
             {
@@ -439,12 +424,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestExtractMethodInCtorInitWithByRefVar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractMethodInCtorInitWithByRefVar()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -550,12 +533,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -584,12 +565,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
-    public async Task TestReadOfDataThatDoesNotFlowIn()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestReadOfDataThatDoesNotFlowIn()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -627,12 +606,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
-    public async Task TestOnGoto()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnGoto()
+        => TestInRegularAndScriptAsync(
             """
             delegate int del(int i);
 
@@ -671,12 +648,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
-    public async Task TestOnStatementAfterUnconditionalGoto()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnStatementAfterUnconditionalGoto()
+        => TestInRegularAndScriptAsync(
             """
             delegate int del(int i);
 
@@ -715,12 +690,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnNamespace()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMissingOnNamespace()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -744,12 +717,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMissingOnType()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -773,12 +744,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnBase()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMissingOnBase()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -802,12 +771,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545623")]
-    public async Task TestOnActionInvocation()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnActionInvocation()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -845,12 +812,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
-    public async Task DisambiguateCallSiteIfNecessary1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DisambiguateCallSiteIfNecessary1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -887,12 +852,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
-    public async Task DisambiguateCallSiteIfNecessary2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DisambiguateCallSiteIfNecessary2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -929,13 +892,11 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530709")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
-    public async Task DoNotOverparenthesize()
-    {
-        await TestAsync(
+    public Task DoNotOverparenthesize()
+        => TestAsync(
             """
             using System;
 
@@ -1030,14 +991,11 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """,
-
-parseOptions: TestOptions.Regular);
-    }
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
-    public async Task DoNotOverparenthesizeGenerics()
-    {
-        await TestAsync(
+    public Task DoNotOverparenthesizeGenerics()
+        => TestAsync(
             """
             using System;
 
@@ -1132,14 +1090,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """,
-
-parseOptions: TestOptions.Regular);
-    }
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
-    public async Task PreserveCommentsBeforeDeclaration_1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PreserveCommentsBeforeDeclaration_1()
+        => TestInRegularAndScriptAsync(
             """
             class Construct
             {
@@ -1179,12 +1134,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
-    public async Task PreserveCommentsBeforeDeclaration_2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PreserveCommentsBeforeDeclaration_2()
+        => TestInRegularAndScriptAsync(
             """
             class Construct
             {
@@ -1232,12 +1185,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
-    public async Task PreserveCommentsBeforeDeclaration_3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PreserveCommentsBeforeDeclaration_3()
+        => TestInRegularAndScriptAsync(
             """
             class Construct
             {
@@ -1282,13 +1233,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTuple()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTuple()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1314,13 +1263,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleDeclarationWithNames()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleDeclarationWithNames()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1346,13 +1293,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleDeclarationWithSomeNames()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleDeclarationWithSomeNames()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1378,13 +1323,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/18311")]
-    public async Task TestTupleWith1Arity()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleWith1Arity()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -1412,13 +1355,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleLiteralWithNames()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleLiteralWithNames()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1444,13 +1385,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleDeclarationAndLiteralWithNames()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleDeclarationAndLiteralWithNames()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1476,13 +1415,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleIntoVar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleIntoVar()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1508,13 +1445,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task RefactorWithoutSystemValueTuple()
-    {
-        await TestInRegularAndScript1Async(
+    public Task RefactorWithoutSystemValueTuple()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1540,14 +1475,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleWithNestedNamedTuple()
-    {
-        // This is not the best refactoring, but this is an edge case
-        await TestInRegularAndScript1Async(
+    public Task TestTupleWithNestedNamedTuple()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1573,12 +1505,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
-    public async Task TestDeconstruction()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDeconstruction()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1604,12 +1534,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
-    [Fact, CompilerTrait(CompilerFeature.Tuples)]
-    public async Task TestDeconstruction2()
-    {
-        await TestInRegularAndScript1Async(
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [CompilerTrait(CompilerFeature.Tuples)]
+    public Task TestDeconstruction2()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1637,13 +1566,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.OutVar)]
-    public async Task TestOutVar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOutVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1672,13 +1599,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
-    public async Task TestIsPattern()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIsPattern()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1707,13 +1632,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
-    public async Task TestOutVarAndIsPattern()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOutVarAndIsPattern()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1742,13 +1665,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
-    public async Task ConflictingOutVarLocals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ConflictingOutVarLocals()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1787,13 +1708,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
-    public async Task ConflictingPatternLocals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ConflictingPatternLocals()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1832,12 +1751,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15218")]
-    public async Task TestCancellationTokenGoesLast()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCancellationTokenGoesLast()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading;
@@ -1878,12 +1795,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15219")]
-    public async Task TestUseVar1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseVar1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1929,12 +1844,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """, new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.TrueWithSuggestionEnforcement)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15219")]
-    public async Task TestUseVar2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseVar2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1980,12 +1893,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """, new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-    public async Task ExtractLocalFunctionCall()
-    {
-        var code = """
+    public Task ExtractLocalFunctionCall()
+        => TestExactActionSetOfferedAsync("""
             class C
             {
                 public static void Main()
@@ -1994,14 +1905,11 @@ parseOptions: TestOptions.Regular);
                     [|Local();|]
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-    }
+            """, [FeaturesResources.Extract_local_function]);
 
     [Fact]
-    public async Task ExtractLocalFunctionCall_2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task ExtractLocalFunctionCall_2()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 public static void Main()
@@ -2025,12 +1933,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-    public async Task ExtractLocalFunctionCallWithCapture()
-    {
-        var code = """
+    public Task ExtractLocalFunctionCallWithCapture()
+        => TestExactActionSetOfferedAsync("""
             class C
             {
                 public static void Main(string[] args)
@@ -2039,14 +1945,11 @@ parseOptions: TestOptions.Regular);
                     [|Local();|]
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-    }
+            """, [FeaturesResources.Extract_local_function]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-    public async Task ExtractLocalFunctionDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task ExtractLocalFunctionDeclaration()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 public static void Main()
@@ -2056,12 +1959,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-    public async Task ExtractLocalFunctionInterior()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task ExtractLocalFunctionInterior()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 public static void Main()
@@ -2093,12 +1994,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-    public async Task Bug3790()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task Bug3790()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void method()
@@ -2135,12 +2034,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-    public async Task Bug3790_1()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task Bug3790_1()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void method()
@@ -2176,12 +2073,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-    public async Task Bug3790_2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task Bug3790_2()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void method()
@@ -2217,12 +2112,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyProperty()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyProperty()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 int field;
@@ -2243,12 +2136,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyIndexer()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyIndexer()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 int field;
@@ -2269,12 +2160,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyPropertyGetAccessor()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyPropertyGetAccessor()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 int field;
@@ -2303,12 +2192,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyPropertySetAccessor()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyPropertySetAccessor()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 int field;
@@ -2337,12 +2224,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyIndexerGetAccessor()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyIndexerGetAccessor()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 int field;
@@ -2371,12 +2256,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyIndexerSetAccessor()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyIndexerSetAccessor()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 int field;
@@ -2405,12 +2288,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTupleWithInferredNames()
-    {
-        await TestAsync("""
+    public Task TestTupleWithInferredNames()
+        => TestAsync("""
             class Program
             {
                 void M()
@@ -2436,13 +2317,11 @@ parseOptions: TestOptions.Regular);
                     return (a, b: 2);
                 }
             }
-            """, TestOptions.Regular7_1);
-    }
+            """, new(TestOptions.Regular7_1));
 
     [Fact]
-    public async Task TestDeconstruction4()
-    {
-        await TestAsync("""
+    public Task TestDeconstruction4()
+        => TestAsync("""
             class Program
             {
                 void M()
@@ -2467,13 +2346,11 @@ parseOptions: TestOptions.Regular);
                     var (x, y) = (1, 2);
                 }
             }
-            """, TestOptions.Regular7_1);
-    }
+            """, new(TestOptions.Regular7_1));
 
     [Fact]
-    public async Task TestDeconstruction5()
-    {
-        await TestAsync("""
+    public Task TestDeconstruction5()
+        => TestAsync("""
             class Program
             {
                 void M()
@@ -2498,13 +2375,11 @@ parseOptions: TestOptions.Regular);
                     (x, y) = (1, 2);
                 }
             }
-            """, TestOptions.Regular7_1);
-    }
+            """, new(TestOptions.Regular7_1));
 
     [Fact]
-    public async Task TestIndexExpression()
-    {
-        await TestInRegularAndScript1Async(TestSources.Index + """
+    public Task TestIndexExpression()
+        => TestInRegularAndScriptAsync(TestSources.Index + """
             class Program
             {
                 static void Main(string[] args)
@@ -2528,12 +2403,10 @@ class Program
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task TestRangeExpression_Empty()
-    {
-        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+    public Task TestRangeExpression_Empty()
+        => TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2557,12 +2430,10 @@ class Program
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task TestRangeExpression_Left()
-    {
-        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+    public Task TestRangeExpression_Left()
+        => TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2586,12 +2457,10 @@ class Program
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task TestRangeExpression_Right()
-    {
-        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+    public Task TestRangeExpression_Right()
+        => TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2615,12 +2484,10 @@ class Program
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task TestRangeExpression_Both()
-    {
-        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+    public Task TestRangeExpression_Both()
+        => TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2644,11 +2511,10 @@ class Program
     }
 }
 """);
-    }
 
     [Fact]
     public Task TestAnnotatedNullableReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2686,7 +2552,7 @@ class Program
 
     [Fact]
     public Task TestAnnotatedNullableParameters1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2725,7 +2591,7 @@ class Program
 
     [Fact]
     public Task TestAnnotatedNullableParameters2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2766,7 +2632,7 @@ class Program
 
     [Fact]
     public Task TestAnnotatedNullableParameters3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2803,7 +2669,7 @@ class Program
 
     [Fact]
     public Task TestAnnotatedNullableParameters4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2838,7 +2704,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2873,7 +2739,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2908,7 +2774,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2943,7 +2809,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters_MultipleStates()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -2993,7 +2859,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -3043,7 +2909,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -3091,7 +2957,7 @@ class Program
 
     [Fact]
     public Task TestFlowStateNullableParameters_RefNotNull()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -3143,7 +3009,7 @@ class Program
     // that the value is indeed not null.
     [Fact]
     public Task TestFlowNullableReturn_NotNull1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -3181,7 +3047,7 @@ class Program
 
     [Fact]
     public Task TestFlowNullableReturn_NotNull2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -3220,7 +3086,7 @@ class Program
             """);
     [Fact]
     public Task TestFlowNullable_Lambda()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -3272,7 +3138,7 @@ class Program
 
     [Fact]
     public Task TestFlowNullable_LambdaWithReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -3323,9 +3189,8 @@ class Program
             """);
 
     [Fact]
-    public async Task TestExtractReadOnlyMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractReadOnlyMethod()
+        => TestInRegularAndScriptAsync(
             """
             struct S1
             {
@@ -3351,12 +3216,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExtractReadOnlyMethodInReadOnlyStruct()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractReadOnlyMethodInReadOnlyStruct()
+        => TestInRegularAndScriptAsync(
             """
             readonly struct S1
             {
@@ -3382,12 +3245,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
+        => TestInRegularAndScriptAsync(
             """
             struct S1
             {
@@ -3413,11 +3274,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestExtractNullableObjectWithExplicitCast()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3456,7 +3316,7 @@ class Program
 
     [Fact]
     public Task TestExtractNotNullableObjectWithExplicitCast()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3495,7 +3355,7 @@ class Program
 
     [Fact]
     public Task TestExtractNotNullableWithExplicitCast()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3548,7 +3408,7 @@ class Program
 
     [Fact]
     public Task TestExtractNullableWithExplicitCast()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3601,7 +3461,7 @@ class Program
 
     [Fact]
     public Task TestExtractNotNullableWithExplicitCastSelected()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3640,7 +3500,7 @@ class Program
 
     [Fact]
     public Task TestExtractNullableWithExplicitCastSelected()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3678,7 +3538,7 @@ class Program
         """);
     [Fact]
     public Task TestExtractNullableNonNullFlowWithExplicitCastSelected()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3717,7 +3577,7 @@ class Program
 
     [Fact]
     public Task TestExtractNullableToNonNullableWithExplicitCastSelected()
-    => TestInRegularAndScript1Async(
+    => TestInRegularAndScriptAsync(
         """
         #nullable enable
 
@@ -3767,7 +3627,7 @@ class Program
             {
                 private Task<string> DoSomethingAsync() => Task.FromResult("");
 
-                public Task<string?> async M()
+                public async Task<string?> M()
                 {
                     [|string? x = await DoSomethingAsync();|]
                     x = null;
@@ -3785,7 +3645,7 @@ class Program
             {
                 private Task<string> DoSomethingAsync() => Task.FromResult("");
 
-                public Task<string?> async M()
+                public async Task<string?> M()
                 {
                     string? x = await {|Rename:NewMethod|}();
                     x = null;
@@ -3800,9 +3660,8 @@ class Program
             """);
 
     [Fact]
-    public async Task EnsureStaticLocalFunctionOptionHasNoEffect()
-    {
-        await TestInRegularAndScript1Async(
+    public Task EnsureStaticLocalFunctionOptionHasNoEffect()
+        => TestInRegularAndScriptAsync(
 """
 class Program
 {
@@ -3828,12 +3687,10 @@ class Program
     }
 }
 """, new TestParameters(options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOption2.FalseWithSuggestionEnforcement)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
-    public async Task ExtractLocalFunctionCallAndDeclaration()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task ExtractLocalFunctionCallAndDeclaration()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 public static void Main()
@@ -3863,12 +3720,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWhenOnlyLocalFunctionCallSelected()
-    {
-        var code = """
+    public Task TestMissingWhenOnlyLocalFunctionCallSelected()
+        => TestExactActionSetOfferedAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3879,14 +3734,11 @@ class Program
                     }
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-    }
+            """, [FeaturesResources.Extract_local_function]);
 
     [Fact]
-    public async Task TestOfferedWhenBothLocalFunctionCallAndDeclarationSelected()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestOfferedWhenBothLocalFunctionCallAndDeclarationSelected()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3916,12 +3768,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractNonAsyncMethodWithAsyncLocalFunction()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractNonAsyncMethodWithAsyncLocalFunction()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3947,12 +3797,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalse()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalse()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3976,12 +3824,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseNamedParameter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalseNamedParameter()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -4005,12 +3851,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOnNonTask()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalseOnNonTask()
+        => TestInRegularAndScriptAsync(
             """
             using System.Threading.Tasks
 
@@ -4038,12 +3882,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitTrue()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitTrue()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -4067,12 +3909,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitNonLiteral()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitNonLiteral()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -4096,12 +3936,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithNoConfigureAwait()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithNoConfigureAwait()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -4125,12 +3963,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLambda()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalseInLambda()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -4154,12 +3990,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod(bool includeUsing)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod(bool includeUsing)
+        => TestInRegularAndScriptAsync(
             $$"""
             {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
@@ -4189,12 +4023,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture1(bool includeUsing)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitMixture1(bool includeUsing)
+        => TestInRegularAndScriptAsync(
             $$"""
             {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
@@ -4224,12 +4056,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture2(bool includeUsing)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitMixture2(bool includeUsing)
+        => TestInRegularAndScriptAsync(
             $$"""
             {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
@@ -4259,12 +4089,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture3(bool includeUsing)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitMixture3(bool includeUsing)
+        => TestInRegularAndScriptAsync(
             $$"""
             {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
@@ -4294,12 +4122,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection(bool includeUsing)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection(bool includeUsing)
+        => TestInRegularAndScriptAsync(
             $$"""
             {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
@@ -4329,12 +4155,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
-    public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
-    {
-        var input = """
+    public Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4352,9 +4176,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -4374,15 +4196,11 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScript1Async(input, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
-    public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
-    {
-        var input = """
+    public Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4400,9 +4218,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -4425,10 +4241,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScript1Async(input, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDoNotApply()
@@ -4478,7 +4291,7 @@ class Program
             </Workspace>
             """;
 
-        await TestInRegularAndScript1Async(input, expected);
+        await TestInRegularAndScriptAsync(input, expected);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
@@ -4527,13 +4340,12 @@ class Program
             </Workspace>
             """;
 
-        await TestInRegularAndScript1Async(input, expected);
+        await TestInRegularAndScriptAsync(input, expected);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
-    public async Task TestOnInvalidUsingStatement_MultipleStatements()
-    {
-        var input = """
+    public Task TestOnInvalidUsingStatement_MultipleStatements()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4542,8 +4354,7 @@ class Program
                     using System;|]
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4557,14 +4368,11 @@ class Program
                     using System;
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(input, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
-    public async Task TestMissingOnInvalidUsingStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnInvalidUsingStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -4574,12 +4382,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19461")]
-    public async Task TestLocalFunction()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestLocalFunction()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -4617,12 +4423,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43834")]
-    public async Task TestRecursivePatternRewrite()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestRecursivePatternRewrite()
+        => TestInRegularAndScriptAsync("""
             using System;
             namespace N
             {
@@ -4678,12 +4482,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess1()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess1()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4713,12 +4515,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess2()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4748,12 +4548,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess3()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess3()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4783,12 +4581,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess4()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess4()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4818,12 +4614,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess5()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess5()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4853,12 +4647,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess6()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess6()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4888,12 +4680,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess7()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess7()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4923,38 +4713,36 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48453")]
     [InlineData("record")]
     [InlineData("record class")]
-    public async Task TestInRecord(string record)
-    {
-        await TestInRegularAndScript1Async($@"
-{record} Program
-{{
-    int field;
+    public Task TestInRecord(string record)
+        => TestInRegularAndScriptAsync($$"""
+            {{record}} Program
+            {
+                int field;
 
-    public int this[int i] => [|this.field|];
-}}",
-$@"
-{record} Program
-{{
-    int field;
+                public int this[int i] => [|this.field|];
+            }
+            """,
+            $$"""
+            {{record}} Program
+            {
+                int field;
 
-    public int this[int i] => {{|Rename:GetField|}}();
+                public int this[int i] => {|Rename:GetField|}();
 
-    private int GetField()
-    {{
-        return this.field;
-    }}
-}}");
-    }
+                private int GetField()
+                {
+                    return this.field;
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestInRecordStruct()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestInRecordStruct()
+        => TestInRegularAndScriptAsync("""
             record struct Program
             {
                 int field;
@@ -4975,23 +4763,19 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
-    public async Task TestMethodInNamespace()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestMethodInNamespace()
+        => TestMissingInRegularAndScriptAsync("""
             namespace TestNamespace
             {
                 private bool TestMethod() => [|false|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
-    public async Task TestMethodInInterface()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestMethodInInterface()
+        => TestInRegularAndScriptAsync("""
             interface TestInterface
             {
                 bool TestMethod() => [|false|];
@@ -5008,12 +4792,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
-    public async Task TestStaticMethodInInterface()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestStaticMethodInInterface()
+        => TestInRegularAndScriptAsync("""
             interface TestInterface
             {
                 static bool TestMethod() => [|false|];
@@ -5030,7 +4812,6 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/56969")]
@@ -5194,9 +4975,8 @@ $@"
     }
 
     [Fact, WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
-    public async Task TopLevelMethod_StaticMethod()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TopLevelMethod_StaticMethod()
+        => TestInRegularAndScriptAsync("""
             static void X(string s)
             {
                 [|s = s.Trim();|]
@@ -5214,12 +4994,10 @@ $@"
                 return s;
             }
             """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
-    }
 
     [Fact, WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
-    public async Task StaticMethod_ExtractStatementContainingParameter()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task StaticMethod_ExtractStatementContainingParameter()
+        => TestInRegularAndScriptAsync("""
             public class Class
             {
                 static void X(string s)
@@ -5243,12 +5021,10 @@ $@"
                 }
             }
             """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57428")]
-    public async Task AttributeArgumentWithLambdaBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task AttributeArgumentWithLambdaBody()
+        => TestInRegularAndScriptAsync(
             """
             using System.Runtime.InteropServices;
             class Program
@@ -5272,11 +5048,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
     public Task ExtractMethod_InsideBaseInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Base
             {
@@ -5321,7 +5096,7 @@ $@"
 
     [Fact]
     public Task ExtractMethod_InsideThisInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -5356,7 +5131,7 @@ $@"
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8439")]
     public Task TestRefReturn1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -5415,10 +5190,10 @@ $@"
                 }
             }
             """,
-            options: new(LanguageNames.CSharp)
+            new(options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement },
-            });
+            }));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
     public async Task TestPreferThisPreference_ForInstanceMethodWhenOn(ReportDiagnostic diagnostic)
@@ -5458,10 +5233,10 @@ $@"
                 }
             }
             """,
-            options: new(LanguageNames.CSharp)
+            new(options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.QualifyMethodAccess, new CodeStyleOption2<bool>(true, new(diagnostic, true)) },
-            });
+            }));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
@@ -5494,10 +5269,10 @@ $@"
                 }
             }
             """,
-            options: new(LanguageNames.CSharp)
+            new(options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
-            });
+            }));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
     public Task TestPreferThisPreference_NotForLocalFunctionWhenOn()
@@ -5530,10 +5305,10 @@ $@"
             }
             """,
             index: 1,
-            options: new(LanguageNames.CSharp)
+            new(options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
-            });
+            }));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleOutTuple1()
@@ -5592,7 +5367,7 @@ $@"
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleOutTuple_ExplicitEverywhere()
@@ -5651,7 +5426,7 @@ $@"
                 }
             }
             """,
-            options: ExplicitTypeEverywhere());
+            new(options: ExplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleOutTuple_ImplicitForBuiltInTypes()
@@ -5710,7 +5485,7 @@ $@"
                 }
             }
             """,
-            options: ImplicitForBuiltInTypes());
+            new(options: ImplicitForBuiltInTypes()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleRefCapture()
@@ -5760,7 +5535,7 @@ $@"
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleRefCapture_PartialCapture()
@@ -5811,7 +5586,7 @@ $@"
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleRefCapture_PartialCapture_InitializedInside()
@@ -5862,7 +5637,7 @@ $@"
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleRefCapture_PartialCapture_InitializedInside2()
@@ -5918,7 +5693,7 @@ $@"
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61555")]
     public async Task TestKnownNotNullParameter()
@@ -6015,7 +5790,8 @@ $@"
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
     public async Task TestPrimaryConstructorBaseList(bool withBody)
     {
         var source = $$"""
@@ -6030,7 +5806,7 @@ $@"
 
         // Only want 'extract method' not 'extract local function' here.
         await TestActionCountAsync(source, 1);
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             source,
             """
             class C1(int p1);
@@ -6050,9 +5826,8 @@ $@"
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38087")]
-    public async Task TestPartialSelectionOfArithmeticExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPartialSelectionOfArithmeticExpression()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6078,5 +5853,2936 @@ $@"
                 }
             }
             """);
-    }
+
+    [Fact]
+    public Task TestFlowControl_BreakAndBreak()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        {|Rename:NewMethod|}(v);
+                        break;
+                    }
+            
+                    return 0;
+                }
+
+                private static void NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+
+                    return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinue()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndReturn()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    return (flowControl: true, value: 1);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndFallThrough()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndBreak()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndContinue()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        {|Rename:NewMethod|}(v);
+                        continue;
+                    }
+            
+                    return 0;
+                }
+
+                private static void NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+
+                    return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndReturn()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        switch (flowControl)
+                        {
+                            case false: continue;
+                            case true: return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    return (flowControl: true, value: 1);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndFallThrough()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndBreak()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+
+                    return (flowControl: false, value: default);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndContinue()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        switch (flowControl)
+                        {
+                            case false: continue;
+                            case true: return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+
+                    return (flowControl: false, value: default);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndReturn()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 2;
+                        }
+                        
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        return {|Rename:NewMethod|}(v);
+                    }
+            
+                    return 0;
+                }
+
+                private static int NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return 2;
+                    }
+
+                    return 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndFallThrough()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: 1);
+                    }
+
+                    return (flowControl: true, value: default);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinueAndReturn()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        if (v == 1)
+                        {
+                            continue;
+                        }
+
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool? flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool? flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    if (v == 1)
+                    {
+                        return (flowControl: true, value: default);
+                    }
+
+                    return (flowControl: null, value: 1);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinueAndFallThrough()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        if (v == 1)
+                        {
+                            continue;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool? flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool? NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    if (v == 1)
+                    {
+                        return true;
+                    }
+
+                    return null;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndReturnAndFallThrough()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        
+                        if (v == 1)
+                        {
+                            return 1;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool? flowControl, int value) = {|Rename:NewMethod|}(v);
+                        switch (flowControl)
+                        {
+                            case false: continue;
+                            case true: return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool? flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    if (v == 1)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+
+                    return (flowControl: null, value: default);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough()
+        => TestInRegularAndScriptAsync(
+            """
+        class C
+        {
+            private string Repro(int[] x)
+            {
+                foreach (var v in x)
+                {
+                    [|if (v == 0)
+                    {
+                        break;
+                    }
+                        
+                    if (v == 1)
+                    {
+                        continue;
+                    }
+
+                    if (v == 2)
+                    {
+                        return "";
+                    }|]
+                }
+
+                return "x";
+            }
+        }
+        """,
+            """
+        class C
+        {
+            private string Repro(int[] x)
+            {
+                foreach (var v in x)
+                {
+                    (int flowControl, string value) = {|Rename:NewMethod|}(v);
+                    if (flowControl == 0)
+                    {
+                        break;
+                    }
+                    else if (flowControl == 1)
+                    {
+                        continue;
+                    }
+                    else if (flowControl == 2)
+                    {
+                        return value;
+                    }
+                }
+
+                return "x";
+            }
+
+            private static (int flowControl, string value) NewMethod(int v)
+            {
+                if (v == 0)
+                {
+                    return (flowControl: 0, value: null);
+                }
+
+                if (v == 1)
+                {
+                    return (flowControl: 1, value: null);
+                }
+
+                if (v == 2)
+                {
+                    return (flowControl: 2, value: "");
+                }
+
+                return (flowControl: 3, value: null);
+            }
+        }
+        """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndBreak_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        {|Rename:NewMethod|}(v);
+                        break;
+                    }
+            
+                    return 0;
+                }
+
+                private static void NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+
+                    return;
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinue_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_BreakAndReturn_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    return (flowControl: true, value: 1);
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_BreakAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var flowControl = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndBreak_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndContinue_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        {|Rename:NewMethod|}(v);
+                        continue;
+                    }
+            
+                    return 0;
+                }
+
+                private static void NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+
+                    return;
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndReturn_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
+                        switch (flowControl)
+                        {
+                            case false: continue;
+                            case true: return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    return (flowControl: true, value: 1);
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var flowControl = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndBreak_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+
+                    return (flowControl: false, value: default);
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndContinue_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
+                        switch (flowControl)
+                        {
+                            case false: continue;
+                            case true: return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+
+                    return (flowControl: false, value: default);
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndReturn_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 2;
+                        }
+                        
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        return {|Rename:NewMethod|}(v);
+                    }
+            
+                    return 0;
+                }
+
+                private static int NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return 2;
+                    }
+
+                    return 1;
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: 1);
+                    }
+
+                    return (flowControl: true, value: default);
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinueAndReturn_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        if (v == 1)
+                        {
+                            continue;
+                        }
+
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool? flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    if (v == 1)
+                    {
+                        return (flowControl: true, value: default);
+                    }
+
+                    return (flowControl: null, value: 1);
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinueAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        if (v == 1)
+                        {
+                            continue;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool? NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    if (v == 1)
+                    {
+                        return true;
+                    }
+
+                    return null;
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndReturnAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        
+                        if (v == 1)
+                        {
+                            return 1;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
+                        switch (flowControl)
+                        {
+                            case false: continue;
+                            case true: return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool? flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    if (v == 1)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+
+                    return (flowControl: null, value: default);
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                private string Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        if (v == 1)
+                        {
+                            continue;
+                        }
+
+                        if (v == 2)
+                        {
+                            return "";
+                        }|]
+                    }
+
+                    return "x";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private string Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
+                        if (flowControl == 0)
+                        {
+                            break;
+                        }
+                        else if (flowControl == 1)
+                        {
+                            continue;
+                        }
+                        else if (flowControl == 2)
+                        {
+                            return value;
+                        }
+                    }
+
+                    return "x";
+                }
+
+                private static (int flowControl, string value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: 0, value: null);
+                    }
+
+                    if (v == 1)
+                    {
+                        return (flowControl: 1, value: null);
+                    }
+
+                    if (v == 2)
+                    {
+                        return (flowControl: 2, value: "");
+                    }
+
+                    return (flowControl: 3, value: null);
+                }
+            }
+            """,
+            new(options: ImplicitTypeEverywhere()));
+
+    [Fact]
+    public Task TestFlowControl_BreakAndBreak_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        await {|Rename:NewMethod|}(v);
+                        break;
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+                    await Task.Delay(0);
+                    return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinue_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = await {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<bool> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+                    await Task.Delay(0);
+                    return true;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndReturn_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<(bool flowControl, int value)> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+                    await Task.Delay(0);
+                    return (flowControl: true, value: 1);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndFallThrough_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = await {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<bool> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+                    await Task.Delay(0);
+                    return true;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndBreak_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(0);
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = await {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<bool> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return true;
+                    }
+                    await Task.Delay(0);
+                    return false;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndContinue_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(0);
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        await {|Rename:NewMethod|}(v);
+                        continue;
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+                    await Task.Delay(0);
+                    return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndReturn_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(0);
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
+                        switch (flowControl)
+                        {
+                            case false: continue;
+                            case true: return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<(bool flowControl, int value)> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+                    await Task.Delay(0);
+                    return (flowControl: true, value: 1);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndFallThrough_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(0);|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = await {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<bool> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+                    await Task.Delay(0);
+                    return true;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndBreak_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        await Task.Delay(0);
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<(bool flowControl, int value)> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+                    await Task.Delay(0);
+                    return (flowControl: false, value: default);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndContinue_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        await Task.Delay(0);
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
+                        switch (flowControl)
+                        {
+                            case false: continue;
+                            case true: return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<(bool flowControl, int value)> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+                    await Task.Delay(0);
+                    return (flowControl: false, value: default);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndReturn_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 2;
+                        }
+                        await Task.Delay(0);
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        return await {|Rename:NewMethod|}(v);
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<int> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return 2;
+                    }
+                    await Task.Delay(0);
+                    return 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ReturnAndFallThrough_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        await Task.Delay(0);|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<(bool flowControl, int value)> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: 1);
+                    }
+                    await Task.Delay(0);
+                    return (flowControl: true, value: default);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinueAndReturn_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        if (v == 1)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(1);
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool? flowControl, int value) = await {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<(bool? flowControl, int value)> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+                    await Task.Delay(0);
+                    if (v == 1)
+                    {
+                        return (flowControl: true, value: default);
+                    }
+                    await Task.Delay(1);
+                    return (flowControl: null, value: 1);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinueAndFallThrough_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        if (v == 1)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(1);|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool? flowControl = await {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<bool?> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+                    await Task.Delay(0);
+                    if (v == 1)
+                    {
+                        return true;
+                    }
+                    await Task.Delay(1);
+                    return null;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_ContinueAndReturnAndFallThrough_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(0);
+                        if (v == 1)
+                        {
+                            return 1;
+                        }
+                        await Task.Delay(1);|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool? flowControl, int value) = await {|Rename:NewMethod|}(v);
+                        switch (flowControl)
+                        {
+                            case false: continue;
+                            case true: return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static async Task<(bool? flowControl, int value)> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+                    await Task.Delay(0);
+                    if (v == 1)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+                    await Task.Delay(1);
+                    return (flowControl: null, value: default);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<string> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        if (v == 1)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(1);
+                        if (v == 2)
+                        {
+                            return "";
+                        }
+                        await Task.Delay(2);|]
+                    }
+
+                    return "x";
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<string> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (int flowControl, string value) = await {|Rename:NewMethod|}(v);
+                        if (flowControl == 0)
+                        {
+                            break;
+                        }
+                        else if (flowControl == 1)
+                        {
+                            continue;
+                        }
+                        else if (flowControl == 2)
+                        {
+                            return value;
+                        }
+                    }
+
+                    return "x";
+                }
+
+                private static async Task<(int flowControl, string value)> NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: 0, value: null);
+                    }
+                    await Task.Delay(0);
+                    if (v == 1)
+                    {
+                        return (flowControl: 1, value: null);
+                    }
+                    await Task.Delay(1);
+                    if (v == 2)
+                    {
+                        return (flowControl: 2, value: "");
+                    }
+                    await Task.Delay(2);
+                    return (flowControl: 3, value: null);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_BreakAndBreak_NoBraces()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        {|Rename:NewMethod|}(v);
+                        break;
+                    }
+            
+                    return 0;
+                }
+
+                private static void NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+
+                    return;
+                }
+            }
+            """,
+            new(options: NoBraces()));
+
+    [Fact]
+    public Task TestFlowControl_BreakAndContinue_NoBraces()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                            continue;
+                        else
+                            break;
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """,
+            new(options: NoBraces()));
+
+    [Fact]
+    public Task TestFlowControl_BreakAndReturn_NoBraces()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                            return value;
+                        else
+                            break;
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    return (flowControl: true, value: 1);
+                }
+            }
+            """,
+            new(options: NoBraces()));
+
+    [Fact]
+    public Task TestFlowControl_BreakAndFallThrough_NoBraces()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                            break;
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """,
+            new(options: NoBraces()));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22597")]
+    public Task TestFullyExtractedTypeParameter()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private void Test()
+                {
+                    [|void Goo<T>(T bar) => Console.WriteLine(bar);
+                    Goo(3);|]
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private void Test()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private static void NewMethod()
+                {
+                    void Goo<T>(T bar) => Console.WriteLine(bar);
+                    Goo(3);
+                }
+            }
+            """);
 }

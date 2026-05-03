@@ -8,8 +8,8 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22,13 +22,12 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static CSharpCollectionExpressionRewriter;
-using static CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer;
 using static CSharpSyntaxTokens;
+using static CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForFluent), Shared]
@@ -61,10 +60,10 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentCodeFixProvi
 
         // We want to replace `new[] { 1, 2, 3 }.Concat(x).Add(y).ToArray()` with the new collection expression.  To do
         // this, we go through the following steps.  First, we replace the whole expression with `new(x, y) { 1, 2, 3 }`
-        // (a dummy object creation expression). We then call into our helper which replaces expressions with
-        // collection expressions.  The reason for the dummy object creation expression is that it serves as an actual
-        // node the rewriting code can attach an initializer to, by which it can figure out appropriate wrapping and
-        // indentation for the collection expression elements.
+        // (a dummy object creation expression). We then call into our helper which replaces expressions with collection
+        // expressions.  The reason for the dummy object creation expression is that it serves as an actual node the
+        // rewriting code can attach an initializer to, by which it can figure out appropriate wrapping and indentation
+        // for the collection expression elements.
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -121,17 +120,17 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentCodeFixProvi
                     {
                         if (element is SpreadElementSyntax spreadElement)
                         {
-                            result.Add(new(spreadElement.Expression, UseSpread: true));
+                            result.Add(new(spreadElement.Expression, UseSpread: true, UseKeyValue: false));
                         }
                         else if (element is ExpressionElementSyntax expressionElement)
                         {
-                            result.Add(new(expressionElement.Expression, UseSpread: false));
+                            result.Add(new(expressionElement.Expression, UseSpread: false, UseKeyValue: false));
                         }
                     }
                 }
                 else
                 {
-                    result.Add(new(argument.Expression, match.UseSpread));
+                    result.Add(new(argument.Expression, match.UseSpread, UseKeyValue: false));
                 }
             }
 
@@ -147,8 +146,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentCodeFixProvi
                 return default;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
-                CSharpSyntaxFormatting.Instance, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 

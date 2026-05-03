@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         MethodKind MethodKind { get; }
 
         /// <summary>
-        /// Returns the arity of this method, or the number of type parameters it takes.
+        /// Returns the arity of this method. Arity is the number of type parameters a method declares.
         /// A non-generic method has zero arity.
         /// </summary>
         int Arity { get; }
@@ -37,8 +37,14 @@ namespace Microsoft.CodeAnalysis
         bool IsGenericMethod { get; }
 
         /// <summary>
-        /// Returns true if this method is an extension method. 
+        /// Returns true if this method is a "classic" extension method (using the <see langword="this"/>
+        /// modifier in C# or <see cref="System.Runtime.CompilerServices.ExtensionAttribute"/> in VB).
         /// </summary>
+        /// <remarks>
+        /// Returns false for methods in <c>extension()</c> blocks.
+        /// To check if a method is a "new" extension method (a member of an <c>extension()</c> block),
+        /// check <see cref="INamedTypeSymbol.IsExtension"/> on the method's <see cref="ISymbol.ContainingType"/>.
+        /// </remarks>
         bool IsExtensionMethod { get; }
 
         /// <summary>
@@ -191,6 +197,12 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol? ReduceExtensionMethod(ITypeSymbol receiverType);
 
         /// <summary>
+        /// If this is a method of an extension block that can be applied to a receiver of the given type,
+        /// returns the method symbol in the substituted extension for that receiver type. Otherwise, returns null.
+        /// </summary>
+        IMethodSymbol? ReduceExtensionMember(ITypeSymbol receiverType);
+
+        /// <summary>
         /// Returns interface methods explicitly implemented by this method.
         /// </summary>
         /// <remarks>
@@ -293,5 +305,32 @@ namespace Microsoft.CodeAnalysis
         /// Returns a flag indicating whether this symbol has at least one applied/inherited conditional attribute.
         /// </summary>
         bool IsConditional { get; }
+
+        /// <summary>
+        /// Returns <see langword="true"/> if this method is a source method implemented as an iterator (either sync or async)
+        /// </summary>
+        bool IsIterator { get; }
+
+        /// <summary>
+        /// For a method/accessor/operator in an extension block, returns the corresponding implementation method if one exists.
+        /// Returns null otherwise.
+        /// 
+        /// For example, considering:
+        /// <code>
+        /// static class E
+        /// {
+        ///     extension(int i)
+        ///     {
+        ///         public void M() { }
+        ///     }
+        /// }
+        /// </code>
+        /// When given the method symbol for <c>E.extension(int i).M()</c>,
+        /// it returns the corresponding static implementation method <c>E.M(this int i)</c>.
+        ///
+        /// When given a generic extension member definition, it returns an implementation method constructed
+        /// with the extension member's type parameters.
+        /// </summary>
+        IMethodSymbol? AssociatedExtensionImplementation { get; }
     }
 }

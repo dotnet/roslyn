@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     //String and character literals can contain any Unicode character. They are not limited
                     //to valid UTF-16 characters. So if we get the SlidingTextWindow's sentinel value,
                     //double check that it was not real user-code contents. This will be rare.
-                    Debug.Assert(TextWindow.Width > 0);
+                    Debug.Assert(this.CurrentLexemeWidth > 0);
                     this.AddError(ErrorCode.ERR_NewlineInConst);
                     break;
                 }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (quoteCharacter == '\'')
             {
-                info.Text = TextWindow.GetText(intern: true);
+                info.Text = this.GetInternedLexemeText();
                 info.Kind = SyntaxKind.CharacterLiteralToken;
                 if (_builder.Length != 1)
                 {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     info.Kind = SyntaxKind.StringLiteralToken;
                 }
 
-                info.Text = TextWindow.GetText(intern: true);
+                info.Text = this.GetInternedLexemeText();
 
                 if (_builder.Length > 0)
                 {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 info.Kind = SyntaxKind.StringLiteralToken;
             }
 
-            info.Text = TextWindow.GetText(intern: false);
+            info.Text = this.GetNonInternedLexemeText();
             info.StringValue = _builder.ToString();
         }
 
@@ -268,8 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // /**/ comments, ' characters quotes, () parens
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
-            ScanInterpolatedStringLiteralTop(
+            ScanInterpolatedOrRawStringLiteralTop(
                 ref info,
+                isInterpolatedString: true,
                 out var error,
                 kind: out _,
                 openQuoteRange: out _,
@@ -278,19 +279,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AddError(error);
         }
 
-        internal void ScanInterpolatedStringLiteralTop(
+        internal void ScanInterpolatedOrRawStringLiteralTop(
             ref TokenInfo info,
+            bool isInterpolatedString,
             out SyntaxDiagnosticInfo? error,
             out InterpolatedStringKind kind,
             out Range openQuoteRange,
             ArrayBuilder<Interpolation>? interpolations,
             out Range closeQuoteRange)
         {
-            var subScanner = new InterpolatedStringScanner(this);
-            subScanner.ScanInterpolatedStringLiteralTop(out kind, out openQuoteRange, interpolations, out closeQuoteRange);
+            var subScanner = new InterpolatedOrRawStringScanner(this, isInterpolatedString);
+            subScanner.ScanStringLiteralTop(out kind, out openQuoteRange, interpolations, out closeQuoteRange);
             error = subScanner.Error;
             info.Kind = SyntaxKind.InterpolatedStringToken;
-            info.Text = TextWindow.GetText(intern: false);
+            info.Text = this.GetNonInternedLexemeText();
         }
 
         /// <summary>
@@ -311,22 +313,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 interpolatedString.GetLastToken().GetTrailingTrivia());
         }
 
+        /// <summary>
+        /// The type of string we are producing.  This should be named InterpolatedOrRawStringKind
+        /// </summary>
         internal enum InterpolatedStringKind
         {
             /// <summary>
-            /// Normal interpolated string that just starts with <c>$"</c>
+            /// Normal interpolated string that just starts with <c>$"</c>. Not ever produced in the raw-string case.
             /// </summary>
             Normal,
             /// <summary>
-            /// Verbatim interpolated string that starts with <c>$@"</c> or <c>@$"</c>
+            /// Verbatim interpolated string that starts with <c>$@"</c> or <c>@$"</c>. Not ever produced in the raw-string case.
             /// </summary>
             Verbatim,
             /// <summary>
-            /// Single-line raw interpolated string that starts with at least one <c>$</c>, and at least three <c>"</c>s.
+            /// Single-line raw or raw-interpolated string that can start with at least one <c>$</c>, and then at least three <c>"</c>s.
             /// </summary>
             SingleLineRaw,
             /// <summary>
-            /// Multi-line raw interpolated string that starts with at least one <c>$</c>, and at least three <c>"</c>s.
+            /// Multi-line raw or raw-interpolated string that can start with at least one <c>$</c>, and then at least three <c>"</c>s.
             /// </summary>
             MultiLineRaw,
         }
@@ -336,9 +341,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// recursing to process interpolated strings.
         /// </summary>
         [NonCopyable]
-        private ref struct InterpolatedStringScanner
+        private ref struct InterpolatedOrRawStringScanner
         {
             private readonly Lexer _lexer;
+            private readonly bool _isInterpolatedString;
 
             /// <summary>
             /// Error encountered while scanning.  If we run into an error, then we'll attempt to stop parsing at the
@@ -346,9 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// </summary>
             public SyntaxDiagnosticInfo? Error = null;
 
-            public InterpolatedStringScanner(Lexer lexer)
+            public InterpolatedOrRawStringScanner(Lexer lexer, bool isInterpolatedString)
             {
                 _lexer = lexer;
+                _isInterpolatedString = isInterpolatedString;
             }
 
             private bool IsAtEnd(InterpolatedStringKind kind)
@@ -370,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Error ??= error;
             }
 
-            internal void ScanInterpolatedStringLiteralTop(
+            internal void ScanStringLiteralTop(
                 out InterpolatedStringKind kind,
                 out Range openQuoteRange,
                 ArrayBuilder<Interpolation>? interpolations,
@@ -411,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 out int startingQuoteCount)
             {
                 // Handles reading the start of the interpolated string literal (up to where the content begins)
-                var window = _lexer.TextWindow;
+                ref var window = ref _lexer.TextWindow;
                 var start = window.Position;
 
                 if ((window.PeekChar(0), window.PeekChar(1), window.PeekChar(2)) is ('$', '@', '"') or ('@', '$', '"'))
@@ -445,12 +452,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // of some sort.
                 var prefixAtCount = _lexer.ConsumeAtSignSequence();
                 startingDollarSignCount = _lexer.ConsumeDollarSignSequence();
-                Debug.Assert(startingDollarSignCount > 0);
 
                 var suffixAtCount = _lexer.ConsumeAtSignSequence();
                 startingQuoteCount = _lexer.ConsumeQuoteSequence();
 
                 var totalAtCount = prefixAtCount + suffixAtCount;
+
+                if (_isInterpolatedString)
+                {
+                    Debug.Assert(startingDollarSignCount > 0);
+                }
+                else
+                {
+                    Debug.Assert(startingDollarSignCount == 0);
+                    Debug.Assert(totalAtCount == 0);
+                }
 
                 // We should only have gotten here if we had at least two characters that made us think we had an
                 // interpolated string. Note that we may enter here on just `@@` or `$$` (without seeing anything else),
@@ -484,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Now see if this was a single-line or multi-line raw literal.
 
                 var afterQuotePosition = window.Position;
-                _lexer.ConsumeWhitespace(builder: null);
+                _lexer.ConsumeWhitespace();
                 if (SyntaxFacts.IsNewLine(window.PeekChar()))
                 {
                     // We had whitespace followed by a newline.  That section is considered the open-quote section of
@@ -517,6 +533,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     Debug.Assert(kind is InterpolatedStringKind.SingleLineRaw or InterpolatedStringKind.MultiLineRaw);
                     ScanRawInterpolatedStringLiteralEnd(kind, startingQuoteCount);
+
+                    if (!_isInterpolatedString)
+                        _lexer.ScanUtf8Suffix();
                 }
 
                 // Note: this range may be empty.  For example, if we hit the end of a line for a single-line construct,
@@ -558,8 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         Debug.Assert(IsAtEnd(kind));
 
                         TrySetError(_lexer.MakeError(
-                            IsAtEnd(allowNewline: true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position,
-                            width: 1, ErrorCode.ERR_UnterminatedRawString));
+                            _lexer.TextWindow.Position,
+                            width: SyntaxFacts.IsNewLine(_lexer.TextWindow.PeekChar()) ? 1 : 0, ErrorCode.ERR_UnterminatedRawString));
                     }
                     else
                     {
@@ -593,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (IsAtEnd(kind))
                     {
                         TrySetError(_lexer.MakeError(
-                            _lexer.TextWindow.Position - 1, width: 1, ErrorCode.ERR_UnterminatedRawString));
+                            _lexer.TextWindow.Position, width: 0, ErrorCode.ERR_UnterminatedRawString));
                     }
                     else if (_lexer.TextWindow.PeekChar() == '"')
                     {
@@ -611,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else
                     {
                         _lexer.TextWindow.AdvancePastNewLine();
-                        _lexer.ConsumeWhitespace(builder: null);
+                        _lexer.ConsumeWhitespace();
 
                         var closeQuoteCount = _lexer.ConsumeQuoteSequence();
 
@@ -664,10 +683,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 return;
 
                             continue;
-                        case '}':
+                        case '}' when _isInterpolatedString:
                             HandleCloseBraceInContent(kind, startingDollarSignCount);
                             continue;
-                        case '{':
+                        case '{' when _isInterpolatedString:
                             HandleOpenBraceInContent(kind, startingDollarSignCount, interpolations);
                             continue;
                         case '\\':
@@ -701,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (kind == InterpolatedStringKind.MultiLineRaw)
                 {
-                    _lexer.ConsumeWhitespace(builder: null);
+                    _lexer.ConsumeWhitespace();
                     var beforeQuotesPosition = _lexer.TextWindow.Position;
                     var closeQuoteCount = _lexer.ConsumeQuoteSequence();
 
@@ -729,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (SyntaxFacts.IsNewLine(_lexer.TextWindow.PeekChar()))
                     {
                         _lexer.TextWindow.AdvancePastNewLine();
-                        _lexer.ConsumeWhitespace(builder: null);
+                        _lexer.ConsumeWhitespace();
                         var closeQuoteCount = _lexer.ConsumeQuoteSequence();
 
                         _lexer.TextWindow.Reset(startPosition);

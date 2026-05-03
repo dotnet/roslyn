@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
-public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
       => new CodeAnalysis.CSharp.ConvertLinq.CSharpConvertLinqQueryToForEachProvider();
@@ -23,9 +23,8 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
     #region Query Expressions
 
     [Fact]
-    public async Task Select()
-    {
-        var source = """
+    public Task Select()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -37,8 +36,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var r = [|from i in c select i+1|];
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -58,14 +56,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var r = enumerable();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task GroupBy01()
-    {
-        var source = """
+    public Task GroupBy01()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -77,16 +72,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r);
                 }
             }
-            """;
-
-        // Group by is not supported
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task GroupBy02()
-    {
-        var source = """
+    public Task GroupBy02()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -98,16 +88,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r);
                 }
             }
-            """;
-
-        // Group by is not supported
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task FromJoinSelect01()
-    {
-        var source = """
+    public Task FromJoinSelect01()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -121,8 +106,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                                   select x1+x2|];
                 }
             }
-            """;
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -148,14 +132,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var r = enumerable();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task FromJoinSelect02()
-    {
-        var source = """
+    public Task FromJoinSelect02()
+        => TestInRegularAndScriptAsync("""
             using System.Linq;
 
             class Program
@@ -168,8 +149,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                                 select x1 + 5|];
                 }
             }
-            """;
-        var output = """
+            """, """
             using System.Linq;
 
             class Program
@@ -198,14 +178,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var q1 = enumerable();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task FromJoinSelect03()
-    {
-        var source = """
+    public Task FromJoinSelect03()
+        => TestInRegularAndScriptAsync("""
             using System.Linq;
 
             class Program
@@ -219,8 +196,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                                 select x1 + 5|];
                 }
             }
-            """;
-        var output = """
+            """, """
             using System.Linq;
 
             class Program
@@ -256,14 +232,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var q1 = enumerable();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task OrderBy()
-    {
-        var source = """
+    public Task OrderBy()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -278,15 +251,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r);
                 }
             }
-            """;
-        // order by is not supported by foreach.
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task Let()
-    {
-        var source = """
+    public Task Let()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -304,8 +273,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                         Console.WriteLine(r1);
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -326,14 +294,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task GroupJoin()
-    {
-        var source = """
+    public Task GroupJoin()
+        => TestMissingAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -350,15 +315,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r1);
                 }
             }
-            """;
-        // GroupJoin is not supported
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task SelectFromType01()
-    {
-        var source = """
+    public Task SelectFromType01()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -371,8 +332,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
 
                 static IEnumerable<int> Select<T>(Func<int, T> f) { return null; }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
 
@@ -393,14 +353,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
 
                 static IEnumerable<int> Select<T>(Func<int, T> f) { return null; }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task SelectFromType02()
-    {
-        var source = """
+    public Task SelectFromType02()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -413,8 +370,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
 
                 static Func<Func<int, object>, IEnumerable<object>> Select = null;
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
 
@@ -435,14 +391,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
 
                 static Func<Func<int, object>, IEnumerable<object>> Select = null;
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task JoinClause()
-    {
-        var source = """
+    public Task JoinClause()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Linq;
             class Program
@@ -460,8 +413,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Linq;
             class Program
@@ -492,14 +444,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task WhereClause()
-    {
-        var source = """
+    public Task WhereClause()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Linq;
             class Program
@@ -520,9 +469,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     System.Console.Write(serializer.Trim());
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Linq;
             class Program
@@ -551,14 +498,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     System.Console.Write(serializer.Trim());
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task WhereDefinedInType()
-    {
-        var source = """
+    public Task WhereDefinedInType()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class Y
@@ -581,15 +525,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.Write(query);
                 }
             }
-            """;
-        //  should not provide a conversion because of the custom Where.
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task QueryContinuation()
-    {
-        var source = """
+    public Task QueryContinuation()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Linq;
             public class Test
@@ -603,8 +543,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select w|];
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Linq;
             public class Test
@@ -624,14 +563,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var q2 = enumerable();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task SelectInto()
-    {
-        var source = """
+    public Task SelectInto()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -645,8 +581,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select w+1|];
                 }
             }
-            """;
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -666,14 +601,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var q2 = enumerable();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ComputeQueryVariableType()
-    {
-        var source = """
+    public Task ComputeQueryVariableType()
+        => TestInRegularAndScriptAsync("""
             using System.Linq;
             public class Test
             {
@@ -685,8 +617,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select 5|];
                 }
             }
-            """;
-        var output = """
+            """, """
             using System.Linq;
             public class Test
             {
@@ -704,14 +635,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var q2 = enumerable();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task JoinIntoClause()
-    {
-        var source = """
+    public Task JoinIntoClause()
+        => TestMissingAsync("""
             using System;
             using System.Linq;
 
@@ -724,15 +652,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                                   select x8|];
                 }
             }
-            """;
-        // GroupJoin is not supported
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task SemanticErrorInQuery()
-    {
-        var source = """
+    public Task SemanticErrorInQuery()
+        => TestMissingAsync("""
             using System.Linq;
             class Program
             {
@@ -744,16 +668,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                                 select num|]; 
                 }
             }
-            """;
-
-        // Error: Range variable already being declared.
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task SelectFromVoid()
-    {
-        var source = """
+    public Task SelectFromVoid()
+        => TestMissingAsync("""
             using System.Linq;
             class Test
             {
@@ -766,19 +685,15 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var e1 = [|from i in V() select i|];
                 }
             }
-            """;
-
-        await TestMissingAsync(source);
-    }
+            """);
 
     #endregion
 
     #region Assignments, Declarations, Returns
 
     [Fact]
-    public async Task AssignExpression()
-    {
-        var source = """
+    public Task AssignExpression()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -796,9 +711,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
 
                 void N(IEnumerable<int> q) {}
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -825,14 +738,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
 
                 void N(IEnumerable<int> q) {}
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task MultipleAssignments()
-    {
-        var source = """
+    public Task MultipleAssignments()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -844,9 +754,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     q1 = q2 = [|from x in nums select x + 1|];
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -866,15 +774,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     q1 = q2 = enumerable();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task PropertyAssignment()
-    {
-        var source = """
+    public Task PropertyAssignment()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -891,9 +795,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     public IEnumerable<int> A { get; set; }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -918,15 +820,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     public IEnumerable<int> A { get; set; }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task MultipleDeclarationsFirst()
-    {
-        var source = """
+    public Task MultipleDeclarationsFirst()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -937,9 +835,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     IEnumerable<int> q1 = [|from x in nums select x + 1|], q2 = from x in nums select x + 1;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -958,15 +854,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     IEnumerable<int> q1 = enumerable(), q2 = from x in nums select x + 1;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task MultipleDeclarationsSecond()
-    {
-        var source = """
+    public Task MultipleDeclarationsSecond()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -977,9 +869,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     IEnumerable<int> q1 = from x in nums select x + 1, q2 = [|from x in nums select x + 1|];
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -998,16 +888,12 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     IEnumerable<int> q1 = from x in nums select x + 1, q2 = enumerable();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     // TODO support tuples in the test class, follow CodeGenTupleTests
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639")]
-    public async Task TupleDeclaration()
-    {
-        var source = """
+    public Task TupleDeclaration()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1018,9 +904,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var q = ([|from x in nums select x + 1|], from x in nums select x + 1);
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1039,15 +923,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var q = (enumerable(), from x in nums select x + 1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task AssignAndReturnIEnumerable()
-    {
-        var source = """
+    public Task AssignAndReturnIEnumerable()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1060,9 +940,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return q;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1084,15 +962,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return q;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task BlockBodiedProperty()
-    {
-        var source = """
+    public Task BlockBodiedProperty()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1100,9 +974,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
                 public IEnumerable<int> Query1 { get { return [|from x in _nums select x + 1|]; } }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1110,14 +982,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
                 public IEnumerable<int> Query1 { get { foreach (var x in _nums) { yield return x + 1; } yield break; } }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task AnonymousType()
-    {
-        var source = """
+    public Task AnonymousType()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1127,15 +996,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var q = [|from a in nums from b in nums select new { a, b }|];
                 }
             }
-            """;
-        // No conversion can be made because it expects to introduce a local function but the return type contains anonymous.
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task AnonymousTypeInternally()
-    {
-        var source = """
+    public Task AnonymousTypeInternally()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1145,15 +1010,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var q = [|from a in nums from b in nums select new { a, b } into c select c.a|];
                 }
             }
-            """;
-        // No conversion can be made because it expects to introduce a local function but the return type contains anonymous.
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task DuplicateIdentifiers()
-    {
-        var source = """
+    public Task DuplicateIdentifiers()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1163,15 +1024,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var q = [|from x in new[] { 1 } select x + 2 into x where x > 0 select 7 into y let x = "aaa" select x|];
                 }
             }
-            """;
-        // Duplicate identifiers are not allowed.
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnIEnumerable()
-    {
-        var source = """
+    public Task ReturnIEnumerable()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1183,9 +1040,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|];
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1203,15 +1058,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     yield break;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnIEnumerablePartialMethod()
-    {
-        var source = """
+    public Task ReturnIEnumerablePartialMethod()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             partial class C
@@ -1227,9 +1078,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|];
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             partial class C
@@ -1251,15 +1100,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     yield break;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnIEnumerableExtendedPartialMethod()
-    {
-        var source = """
+    public Task ReturnIEnumerableExtendedPartialMethod()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             partial class C
@@ -1275,9 +1120,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|];
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             partial class C
@@ -1299,15 +1142,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     yield break;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnIEnumerableWithOtherReturn()
-    {
-        var source = """
+    public Task ReturnIEnumerableWithOtherReturn()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1326,9 +1165,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1356,15 +1193,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnObject()
-    {
-        var source = """
+    public Task ReturnObject()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1376,9 +1209,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|];
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1399,15 +1230,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return enumerable();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ExtraParenthesis()
-    {
-        var source = """
+    public Task ExtraParenthesis()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1418,9 +1245,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return ([|from x in nums select x + 1|]);
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1436,15 +1261,12 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     yield break;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     // TODO support tuples in the test class
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639")]
-    public async Task InReturningTuple()
-    {
-        var source = """
+    public Task InReturningTuple()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1454,9 +1276,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return (([|from a in q select a * a|]), 1);
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1474,15 +1294,12 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return (enumerable(), 1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     // TODO support tuples in the test class
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639")]
-    public async Task InInvocationReturningInTuple()
-    {
-        var source = """
+    public Task InInvocationReturningInTuple()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1492,9 +1309,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return (([|from a in q select a * a|]).Count(), 1);
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1512,15 +1327,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return (enumerable().Count(), 1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task RangeVariables()
-    {
-        var source = """
+    public Task RangeVariables()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Linq;
             class Query
@@ -1538,8 +1349,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r1);
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Linq;
             class Query
@@ -1567,14 +1377,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task CallingMethodWithIEnumerable()
-    {
-        var source = """
+    public Task CallingMethodWithIEnumerable()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1590,9 +1397,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
 
                 void N(IEnumerable<int> q) {}
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1617,14 +1422,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
 
                 void N(IEnumerable<int> q) {}
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnFirstOrDefault()
-    {
-        var source = """
+    public Task ReturnFirstOrDefault()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1636,9 +1438,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|]).FirstOrDefault();
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1659,15 +1459,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return enumerable().FirstOrDefault();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task IncompleteQueryWithSyntaxErrors()
-    {
-        var source = """
+    public Task IncompleteQueryWithSyntaxErrors()
+        => TestMissingAsync("""
             using System.Linq;
 
             class Program
@@ -1680,15 +1476,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                                 select z.T|]
                 }
             }
-            """;
-
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task ErrorNameDoesNotExistsInContext()
-    {
-        var source = """
+    public Task ErrorNameDoesNotExistsInContext()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1698,15 +1490,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return [|from int n1 in nums select n1|];
                 }
             }
-            """;
-
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task InArrayInitialization()
-    {
-        var source = """
+    public Task InArrayInitialization()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1716,9 +1504,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return new[] { [|from a in q select a * a|] };
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1736,14 +1522,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return new[] { enumerable() };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task InCollectionInitialization()
-    {
-        var source = """
+    public Task InCollectionInitialization()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1753,9 +1536,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return new List<IEnumerable<int>> { [|from a in q select a * a|] };
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1773,14 +1554,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return new List<IEnumerable<int>> { enumerable() };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task InStructInitialization()
-    {
-        var source = """
+    public Task InStructInitialization()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1795,9 +1573,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return new X() { P = [|from a in q select a|] };
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1820,14 +1596,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return new X() { P = enumerable() };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task InClassInitialization()
-    {
-        var source = """
+    public Task InClassInitialization()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1842,9 +1615,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return new X() { P = [|from a in q select a|] };
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1867,14 +1638,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return new X() { P = enumerable() };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task InConstructor()
-    {
-        var source = """
+    public Task InConstructor()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1884,9 +1652,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return new List<int>([|from a in q select a * a|]);
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1904,14 +1670,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return new List<int>(collection());
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task InInlineConstructor()
-    {
-        var source = """
+    public Task InInlineConstructor()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1919,16 +1682,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 List<int> M(IEnumerable<int> q)
                     => new List<int>([|from a in q select a * a|]);
             }
-            """;
-
-        // No support for expression bodied constructors yet.
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task IninlineIf()
-    {
-        var source = """
+    public Task IninlineIf()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1941,9 +1699,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                         return null;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1966,18 +1722,15 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                         return null;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     #endregion
 
     #region In foreach
 
     [Fact]
-    public async Task UsageInForEach()
-    {
-        var source = """
+    public Task UsageInForEach()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1994,9 +1747,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2022,15 +1773,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task UsageInForEachSameVariableName()
-    {
-        var source = """
+    public Task UsageInForEachSameVariableName()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2047,9 +1794,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2075,14 +1820,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task QueryInForEach()
-    {
-        var source = """
+    public Task QueryInForEach()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2098,9 +1840,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2118,15 +1858,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task QueryInForEachSameVariableNameNoType()
-    {
-        var source = """
+    public Task QueryInForEachSameVariableNameNoType()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2142,9 +1878,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2161,14 +1895,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task QueryInForEachWithExpressionBody()
-    {
-        var source = """
+    public Task QueryInForEachWithExpressionBody()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2181,9 +1912,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                             select n1|]) Console.WriteLine(b);
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2201,15 +1930,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task QueryInForEachWithSameVariableNameAndDifferentType()
-    {
-        var source = """
+    public Task QueryInForEachWithSameVariableNameAndDifferentType()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2225,9 +1950,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2254,15 +1977,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task QueryInForEachWithSameVariableNameAndSameType()
-    {
-        var source = """
+    public Task QueryInForEachWithSameVariableNameAndSameType()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2278,9 +1997,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2299,15 +2016,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task QueryInForEachVariableUsedInBody()
-    {
-        var source = """
+    public Task QueryInForEachVariableUsedInBody()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2324,9 +2037,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -2352,15 +2063,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task QueryInForEachWithConvertedType()
-    {
-        var source = """
+    public Task QueryInForEachWithConvertedType()
+        => TestAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -2389,9 +2096,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
 
@@ -2428,14 +2133,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-        await TestAsync(source, output, parseOptions: null);
-    }
+            """, new(parseOptions: null));
 
     [Fact]
-    public async Task QueryInForEachWithSelectIdentifierButNotVariable()
-    {
-        var source = """
+    public Task QueryInForEachWithSelectIdentifierButNotVariable()
+        => TestAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -2464,9 +2166,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
 
@@ -2496,15 +2196,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        await TestAsync(source, output, parseOptions: null);
-    }
+            """, new(parseOptions: null));
 
     [Fact]
-    public async Task IQueryable()
-    {
-        var source = """
+    public Task IQueryable()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2515,15 +2211,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return [|from int n1 in nums.AsQueryable() select n1|];
                 }
             }
-            """;
-
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task IQueryableConvertedToIEnumerableInReturn()
-    {
-        var source = """
+    public Task IQueryableConvertedToIEnumerableInReturn()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2534,8 +2226,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return [|from int n1 in nums.AsQueryable() select n1|];
                 }
             }
-            """;
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2551,15 +2242,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     yield break;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task IQueryableConvertedToIEnumerableInAssignment()
-    {
-        var source = """
+    public Task IQueryableConvertedToIEnumerableInAssignment()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2570,9 +2257,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     IEnumerable<int> q = [|from int n1 in nums.AsQueryable() select n1|];
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2591,15 +2276,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     IEnumerable<int> q = queryable();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task IQueryableInInvocation()
-    {
-        var source = """
+    public Task IQueryableInInvocation()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2610,9 +2291,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     int c = ([|from int n1 in nums.AsQueryable() select n1|]).Count();
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2627,19 +2306,15 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     #endregion
 
     #region In ToList
 
     [Fact]
-    public async Task PropertyAssignmentInInvocation()
-    {
-        var source = """
+    public Task PropertyAssignmentInInvocation()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -2656,9 +2331,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     public List<int> A { get; set; }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -2681,15 +2354,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     public List<int> A { get; set; }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task NullablePropertyAssignmentInInvocation()
-    {
-        var source = """
+    public Task NullablePropertyAssignmentInInvocation()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -2706,9 +2375,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     public List<int> A { get; set; }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -2731,15 +2398,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     public List<int> A { get; set; }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task AssignList()
-    {
-        var source = """
+    public Task AssignList()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2752,9 +2415,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2773,15 +2434,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task AssignToListToParameter()
-    {
-        var source = """
+    public Task AssignToListToParameter()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2794,9 +2451,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2815,15 +2470,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task AssignToListToArrayElement()
-    {
-        var source = """
+    public Task AssignToListToArrayElement()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2835,9 +2486,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|]).ToList();
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2856,15 +2505,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     lists[0] = list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task AssignListWithTypeArgument()
-    {
-        var source = """
+    public Task AssignListWithTypeArgument()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2877,9 +2522,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2898,15 +2541,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task AssignListToObject()
-    {
-        var source = """
+    public Task AssignListToObject()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2919,9 +2558,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2941,15 +2578,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task AssignListWithNullableToList()
-    {
-        var source = """
+    public Task AssignListWithNullableToList()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2962,9 +2595,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2986,15 +2617,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnList()
-    {
-        var source = """
+    public Task ReturnList()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3006,9 +2633,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|]).ToList();
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3027,15 +2652,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnListNameGeneration()
-    {
-        var source = """
+    public Task ReturnListNameGeneration()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3048,9 +2669,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|]).ToList();
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3070,15 +2689,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return list1;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ToListTypeReplacement01()
-    {
-        var source = """
+    public Task ToListTypeReplacement01()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Linq;
             using C = System.Collections.Generic.List<int>;
@@ -3098,8 +2713,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r1);
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Linq;
             using C = System.Collections.Generic.List<int>;
@@ -3129,14 +2743,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ToListTypeReplacement02()
-    {
-        var source = """
+    public Task ToListTypeReplacement02()
+        => TestInRegularAndScriptAsync("""
             using System.Linq;
             using System;
             using C = System.Collections.Generic.List<int>;
@@ -3154,8 +2765,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r1);
                 }
             }
-            """;
-        var output = """
+            """, """
             using System.Linq;
             using System;
             using C = System.Collections.Generic.List<int>;
@@ -3181,14 +2791,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Console.WriteLine(r1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ToListOverloadAssignTo()
-    {
-        var source = """
+    public Task ToListOverloadAssignTo()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -3206,9 +2813,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -3234,14 +2839,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ToListRefOverload()
-    {
-        var source = """
+    public Task ToListRefOverload()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -3259,9 +2861,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -3287,18 +2887,15 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     #endregion
 
     #region In Count
 
     [Fact]
-    public async Task CountInMultipleDeclaration()
-    {
-        var source = """
+    public Task CountInMultipleDeclaration()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3311,9 +2908,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return cnt;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3335,15 +2930,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return cnt;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task CountInNonLocalDeclaration()
-    {
-        var source = """
+    public Task CountInNonLocalDeclaration()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -3359,9 +2950,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -3383,15 +2972,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task CountInDeclaration()
-    {
-        var source = """
+    public Task CountInDeclaration()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3404,9 +2989,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return cnt;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3425,15 +3008,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return cnt;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnCount()
-    {
-        var source = """
+    public Task ReturnCount()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3445,9 +3024,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|]).Count();
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3466,15 +3043,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return count;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnCountExtraParethesis()
-    {
-        var source = """
+    public Task ReturnCountExtraParethesis()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3486,9 +3059,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|]).Count());
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3507,15 +3078,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return count;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task CountAsArgument()
-    {
-        var source = """
+    public Task CountAsArgument()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3528,9 +3095,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|]).Count());
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3552,15 +3117,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     N(enumerable().Count());
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task CountAsArgumentExpressionBody()
-    {
-        var source = """
+    public Task CountAsArgumentExpressionBody()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3571,15 +3132,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              from int n2 in nums
                              select n1|]).Count());
             }
-            """;
-
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnCountNameGeneration()
-    {
-        var source = """
+    public Task ReturnCountNameGeneration()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3592,9 +3149,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|]).Count();
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3614,15 +3169,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return count1;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task CountNameUsedAfter()
-    {
-        var source = """
+    public Task CountNameUsedAfter()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3640,9 +3191,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return count;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3667,15 +3216,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return count;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task ReturnCountNameUsedBefore()
-    {
-        var source = """
+    public Task ReturnCountNameUsedBefore()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3692,9 +3237,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|]).Count();
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3718,15 +3261,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return count1;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task CountOverload()
-    {
-        var source = """
+    public Task CountOverload()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3739,9 +3278,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return cnt;
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3763,14 +3300,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     return cnt;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task CountOverloadAssignTo()
-    {
-        var source = """
+    public Task CountOverloadAssignTo()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -3788,9 +3322,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -3816,14 +3348,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task CountRefOverload()
-    {
-        var source = """
+    public Task CountRefOverload()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -3841,9 +3370,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -3869,18 +3396,15 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     #endregion
 
     #region Expression Bodied
 
     [Fact]
-    public async Task ExpressionBodiedProperty()
-    {
-        var source = """
+    public Task ExpressionBodiedProperty()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -3888,15 +3412,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
                 public IEnumerable<int> Query => [|from x in _nums select x + 1|];
             }
-            """;
-        // Cannot convert in expression bodied property
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task ExpressionBodiedField()
-    {
-        var source = """
+    public Task ExpressionBodiedField()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -3904,14 +3424,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 private static readonly int[] _nums = new int[] { 1, 2, 3, 4 };
                 public List<int> Query = ([|from x in _nums select x + 1|]).ToList();
             }
-            """;
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task Field()
-    {
-        var source = """
+    public Task Field()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -3919,14 +3436,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 private static readonly int[] _nums = new int[] { 1, 2, 3, 4 };
                 public IEnumerable<int> Query = [|from x in _nums select x + 1|];
             }
-            """;
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task ExpressionBodiedMethod()
-    {
-        var source = """
+    public Task ExpressionBodiedMethod()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -3934,15 +3448,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
                 public IEnumerable<int> Query() => [|from x in _nums select x + 1|];
             }
-            """;
-        // Cannot convert in expression bodied method
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task ExpressionBodiedMethodUnderInvocation()
-    {
-        var source = """
+    public Task ExpressionBodiedMethodUnderInvocation()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -3950,15 +3460,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
                 public List<int> Query() => ([|from x in _nums select x + 1|]).ToList();
             }
-            """;
-        // Cannot convert in expression bodied method
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task ExpressionBodiedenumerable()
-    {
-        var source = """
+    public Task ExpressionBodiedenumerable()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -3969,15 +3475,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     IEnumerable<int> Query() => [|from x in _nums select x + 1|];
                 }
             }
-            """;
-        // Cannot convert in expression bodied property
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task ExpressionBodiedAccessor()
-    {
-        var source = """
+    public Task ExpressionBodiedAccessor()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -3985,15 +3487,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
                 public IEnumerable<int> Query { get => [|from x in _nums select x + 1|]; }
             }
-            """;
-        // Cannot convert in expression bodied property
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task InInlineLambda()
-    {
-        var source = """
+    public Task InInlineLambda()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4004,8 +3502,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Func<IEnumerable<int>> lambda = () => [|from x in new int[] { 1 } select x|];
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4024,15 +3521,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Func<IEnumerable<int>> lambda = () => enumerable();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task InParameterLambda()
-    {
-        var source = """
+    public Task InParameterLambda()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4047,8 +3540,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 {
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4071,15 +3563,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 {
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task InParenthesizedLambdaWithBody()
-    {
-        var source = """
+    public Task InParenthesizedLambdaWithBody()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4090,9 +3578,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Func<IEnumerable<int>> lambda = () => { return [|from x in new int[] { 1 } select x|]; };
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4112,15 +3598,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                         return enumerable(); };
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task InSimplifiedLambdaWithBody()
-    {
-        var source = """
+    public Task InSimplifiedLambdaWithBody()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4131,9 +3613,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Func<int, IEnumerable<int>> lambda = n => { return [|from x in new int[] { 1 } select x|]; };
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4153,15 +3633,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                         return enumerable(); };
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task InAnonymousMethod()
-    {
-        var source = """
+    public Task InAnonymousMethod()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4172,9 +3648,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Func<IEnumerable<int>> a = delegate () { return [|from x in new int[] { 1 } select x|]; };
                 }
             }
-            """;
-
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4194,15 +3668,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                         return enumerable(); };
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task InWhen()
-    {
-        var source = """
+    public Task InWhen()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4218,19 +3688,15 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     }
                 }
             }
-            """;
-        // In when is not supported
-        await TestMissingAsync(source);
-    }
+            """);
 
     #endregion
 
     #region Comments and Preprocessor directives
 
     [Fact]
-    public async Task InlineComments()
-    {
-        var source = """
+    public Task InlineComments()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4242,15 +3708,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|];
                 }
             }
-            """;
-        // Cannot convert expressions with comments
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task Comments()
-    {
-        var source = """
+    public Task Comments()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4262,16 +3724,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|];
                 }
             }
-            """;
-        // Cannot convert expressions with comments
-        await TestMissingAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task PreprocessorDirectives()
-    {
-
-        var source = """
+    public Task PreprocessorDirectives()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4285,20 +3742,15 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                              select n1|];
                 }
             }
-            """;
-
-        // Cannot convert expressions with preprocessor directives
-        await TestMissingAsync(source);
-    }
+            """);
 
     #endregion
 
     #region Name Generation
 
     [Fact]
-    public async Task EnumerableFunctionDoesNotUseLocalFunctionName()
-    {
-        var source = """
+    public Task EnumerableFunctionDoesNotUseLocalFunctionName()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4312,8 +3764,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     void enumerable() { }
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4335,14 +3786,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     void enumerable() { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task EnumerableFunctionCanUseLocalFunctionParameterName()
-    {
-        var source = """
+    public Task EnumerableFunctionCanUseLocalFunctionParameterName()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4356,8 +3804,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     void M(IEnumerable<int> enumerable) { }
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4379,14 +3826,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     void M(IEnumerable<int> enumerable) { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact]
-    public async Task EnumerableFunctionDoesNotUseLambdaParameterNameWithCSharpLessThan8()
-    {
-        var source = """
+    public Task EnumerableFunctionDoesNotUseLambdaParameterNameWithCSharpLessThan8()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4400,8 +3844,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Action<int> myLambda = enumerable => { };
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4423,14 +3866,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Action<int> myLambda = enumerable => { };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output, parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp7_3));
-    }
+            """, new(parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp7_3)));
 
     [Fact]
-    public async Task EnumerableFunctionCanUseLambdaParameterNameInCSharp8()
-    {
-        var source = """
+    public Task EnumerableFunctionCanUseLambdaParameterNameInCSharp8()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4444,8 +3884,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Action<int> myLambda = enumerable => { };
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4467,17 +3906,14 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     Action<int> myLambda = enumerable => { };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output, parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp8));
-    }
+            """, new(parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp8)));
 
     #endregion
 
     #region CaretSelection
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task DeclarationSelection()
-    {
-        var source = """
+    public Task DeclarationSelection()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4489,8 +3925,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var r = [|from i in c select i+1;|]
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4510,14 +3945,11 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     var r = enumerable();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task LocalAssignmentSelection()
-    {
-        var source = """
+    public Task LocalAssignmentSelection()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4530,8 +3962,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     [|r = from i in c select i+1;|]
                 }
             }
-            """;
-        var output = """
+            """, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4552,9 +3983,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                     r = enumerable();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, output);
-    }
+            """);
 
     #endregion
 }

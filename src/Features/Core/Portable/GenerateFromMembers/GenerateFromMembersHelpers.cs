@@ -70,10 +70,10 @@ internal static class GenerateFromMembersHelpers
         };
 
     private static bool IsViableField(IFieldSymbol field)
-        => field.AssociatedSymbol == null;
+        => field is { AssociatedSymbol: null, CanBeReferencedByName: true };
 
     private static bool IsViableProperty(IPropertySymbol property)
-        => property.Parameters.IsEmpty;
+        => property is { Parameters.IsEmpty: true, CanBeReferencedByName: true };
 
     /// <summary>
     /// Returns an array of parameter symbols that correspond to selected member symbols.
@@ -81,11 +81,10 @@ internal static class GenerateFromMembersHelpers
     /// </summary>
     /// <param name="selectedMembers"></param>
     /// <param name="rules"></param>
-    /// <returns></returns>
-    public static ImmutableArray<IParameterSymbol> DetermineParameters(
+    public static ImmutableArray<(IParameterSymbol parameter, ISymbol fieldProperty)> DetermineParameters(
         ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
     {
-        using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
+        using var _ = ArrayBuilder<(IParameterSymbol parameter, ISymbol fieldProperty)>.GetInstance(out var parameters);
 
         foreach (var symbol in selectedMembers)
         {
@@ -95,19 +94,18 @@ internal static class GenerateFromMembersHelpers
 
             var identifierNameParts = IdentifierNameParts.CreateIdentifierNameParts(symbol, rules);
             if (identifierNameParts.BaseName == "")
-            {
                 continue;
-            }
 
             var parameterNamingRule = rules.Where(rule => rule.SymbolSpecification.AppliesTo(SymbolKind.Parameter, Accessibility.NotApplicable)).First();
             var parameterName = parameterNamingRule.NamingStyle.MakeCompliant(identifierNameParts.BaseName).First();
 
-            parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
+            parameters.Add((CodeGenerationSymbolFactory.CreateParameterSymbol(
                 attributes: default,
                 refKind: RefKind.None,
                 isParams: false,
                 type: type,
-                name: parameterName));
+                name: parameterName),
+                symbol));
         }
 
         return parameters.ToImmutableAndClear();

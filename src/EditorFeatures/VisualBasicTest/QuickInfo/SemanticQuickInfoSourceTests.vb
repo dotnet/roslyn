@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.QuickInfo
 
@@ -16,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Inherits AbstractSemanticQuickInfoSourceTests
 
         Protected Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
-            Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
+            Return TestWithReferencesAsync(markup, System.Array.Empty(Of String)(), expectedResults)
         End Function
 
         Protected Shared Async Function TestSharedAsync(workspace As EditorTestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
@@ -2355,7 +2354,7 @@ class X
     end sub
 end class",
                 MainDescription("Operator String.=(a As String, b As String) As Boolean"),
-                SymbolGlyph(Glyph.Operator))
+                SymbolGlyph(Glyph.OperatorPublic))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29703")>

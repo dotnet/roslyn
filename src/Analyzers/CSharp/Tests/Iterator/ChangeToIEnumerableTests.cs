@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
-public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public ChangeToIEnumerableTests(ITestOutputHelper logger)
        : base(logger)
@@ -25,10 +25,8 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
         => (null, new CSharpChangeToIEnumerableCodeFixProvider());
 
     [Fact]
-    public async Task TestChangeToIEnumerableObjectMethod()
-    {
-        var initial =
-            """
+    public Task TestChangeToIEnumerableObjectMethod()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -39,10 +37,7 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections.Generic;
 
@@ -53,15 +48,11 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestChangeToIEnumerableTupleMethod()
-    {
-        var initial =
-            """
+    public Task TestChangeToIEnumerableTupleMethod()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -72,10 +63,7 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections.Generic;
 
@@ -86,15 +74,11 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestChangeToIEnumerableListMethod()
-    {
-        var initial =
-            """
+    public Task TestChangeToIEnumerableListMethod()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -105,10 +89,7 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections.Generic;
 
@@ -119,15 +100,11 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestChangeToIEnumerableWithListReturningMethodWithNullableArgument()
-    {
-        var initial =
-            """
+    public Task TestChangeToIEnumerableWithListReturningMethodWithNullableArgument()
+        => TestInRegularAndScriptAsync("""
             #nullable enable
 
             using System;
@@ -140,10 +117,7 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return "";
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             #nullable enable
 
             using System;
@@ -156,15 +130,11 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return "";
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestChangeToIEnumerableGenericIEnumerableMethod()
-    {
-        var initial =
-            """
+    public Task TestChangeToIEnumerableGenericIEnumerableMethod()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -175,15 +145,11 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initial);
-    }
+            """);
 
     [Fact]
-    public async Task TestChangeToIEnumerableGenericIEnumeratorMethod()
-    {
-        var initial =
-            """
+    public Task TestChangeToIEnumerableGenericIEnumeratorMethod()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -194,15 +160,11 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initial);
-    }
+            """);
 
     [Fact]
-    public async Task TestChangeToIEnumerableIEnumeratorMethod()
-    {
-        var initial =
-            """
+    public Task TestChangeToIEnumerableIEnumeratorMethod()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -213,15 +175,11 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initial);
-    }
+            """);
 
     [Fact]
-    public async Task TestChangeToIEnumerableIEnumerableMethod()
-    {
-        var initial =
-            """
+    public Task TestChangeToIEnumerableIEnumerableMethod()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -232,15 +190,11 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initial);
-    }
+            """);
 
     [Fact]
-    public async Task TestChangeToIEnumerableVoidMethod()
-    {
-        var initial =
-            """
+    public Task TestChangeToIEnumerableVoidMethod()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -251,14 +205,11 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                     yield return 0;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initial);
-    }
+            """);
 
     [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-    public async Task TestChangeToIEnumerableProperty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestChangeToIEnumerableProperty()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -335,12 +286,10 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-    public async Task TestChangeToIEnumerableOperator()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestChangeToIEnumerableOperator()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections;
@@ -373,12 +322,10 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-    public async Task TestChangeToIEnumerableIndexer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestChangeToIEnumerableIndexer()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -413,5 +360,4 @@ public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUse
                 }
             }
             """);
-    }
 }

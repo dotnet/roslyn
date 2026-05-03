@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,29 +17,25 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class AddDocCommentNodesCodesFixProviderTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     private static readonly CSharpParseOptions Regular = new(kind: SourceCodeKind.Regular);
-
-    public AddDocCommentNodesCodesFixProviderTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
 
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpAddDocCommentNodesCodeFixProvider());
 
-    private async Task TestAsync(string initial, string expected)
+    private async Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initial,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected)
     {
         var parseOptions = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-        await TestAsync(initial, expected, parseOptions: parseOptions);
+        await TestAsync(initial, expected, new(parseOptions: parseOptions));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NoNodesBefore()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_NoNodesBefore()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -47,10 +44,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="j"></param>
                 public void Fizz(int [|i|], int j, int k) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -61,15 +55,11 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NoNodesAfter()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_NoNodesAfter()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -78,10 +68,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="j"></param>
                 public void Fizz(int i, int j, int [|k|]) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -92,15 +79,11 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NodesBeforeAndAfter()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_NodesBeforeAndAfter()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -110,10 +93,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int [|j|], int k) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -124,15 +104,11 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NodesBeforeAndAfter_RawTextInComment()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_NodesBeforeAndAfter_RawTextInComment()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -143,10 +119,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int [|j|], int k) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -158,15 +131,11 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NodesBeforeAndAfter_WithContent()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_NodesBeforeAndAfter_WithContent()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -176,10 +145,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k">Parameter <paramref name="k"/> does something else</param>
                 public void Fizz(int i, int [|j|], int k) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -190,15 +156,11 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k">Parameter <paramref name="k"/> does something else</param>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NestedInSummaryTag()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_NestedInSummaryTag()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -206,10 +168,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// </summary>
                 public void Fizz(int i, int j, int [|k|]) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -219,24 +178,17 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// </summary>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_BeforeNode_EverythingOnOneLine()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_BeforeNode_EverythingOnOneLine()
+        => TestAsync("""
             class Program
             {
                 /// <summary></summary> <param name="j"></param>
                 public void Fizz(int [|i|], int j, int k) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary></summary>
@@ -244,24 +196,17 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_AfterNode_EverythingOnOneLine()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_AfterNode_EverythingOnOneLine()
+        => TestAsync("""
             class Program
             {
                 /// <summary></summary> <param name="j"></param>
                 public void Fizz(int i, int j, int [|k|]) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary></summary>
@@ -269,24 +214,17 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_BeforeNode_JustParamNode()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_BeforeNode_JustParamNode()
+        => TestAsync("""
             class Program
             {
                 /// <param name="j"></param>
                 public void Fizz(int [|i|], int j, int k) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <param name="i"></param>
@@ -294,24 +232,17 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_AfterNode_JustParamNode()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_AfterNode_JustParamNode()
+        => TestAsync("""
             class Program
             {
                 /// <param name="j"></param>
                 public void Fizz(int i, int j, int [|k|]) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <param name="i"></param>
@@ -319,15 +250,11 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_MultipleDocComments()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_MultipleDocComments()
+        => TestAsync("""
             class Program
             {
                 /// <summary></summary>
@@ -338,10 +265,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="j"></param>
                 public void Fizz(int [|i|], int j, int k) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary></summary>
@@ -354,15 +278,11 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_Ctor()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_Ctor()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -371,10 +291,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="j"></param>
                 public Program(int [|i|], int j, int k) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -385,15 +302,11 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public Program(int i, int j, int k) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_Delegate()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_Delegate()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -402,10 +315,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="j"></param>
                 public delegate int Goo(int [|i|], int j, int k);
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -416,15 +326,11 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public delegate int Goo(int [|i|], int j, int k);
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_Operator()
-    {
-        var initial =
-            """
+    public Task AddsParamTag_Operator()
+        => TestAsync("""
             public struct MyStruct
             {
                 public int Val { get; }
@@ -444,10 +350,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                     return new MyStruct(s1.Val + s2.Val);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             public struct MyStruct
             {
                 public int Val { get; }
@@ -468,16 +371,12 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                     return new MyStruct(s1.Val + s2.Val);
                 }
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument_MultipleParamNodesInVariousPlaces()
-    {
-        var initial =
-            """
+    public Task TestFixAllInDocument_MultipleParamNodesInVariousPlaces()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -486,10 +385,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="k"></param>
                 public void Fizz(int i, int {|FixAllInDocument:j|}, int k, int l) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -501,16 +397,12 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                 /// <param name="l"></param>
                 public void Fizz(int i, int j, int k, int l) {}
             }
-            """;
-
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        var initial = """
+    public Task TestFixAllInDocument()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -561,9 +453,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -616,16 +506,12 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        var initial = """
+    public Task TestFixAllInProject()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -670,9 +556,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -719,16 +603,12 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        var initial = """
+    public Task TestFixAllInSolution()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -770,9 +650,7 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -818,24 +696,18 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/52738")]
-    public async Task AddsParamTag_Record()
-    {
-        var initial = """
+    public Task AddsParamTag_Record()
+        => TestAsync("""
             /// <summary>
             /// 
             /// </summary>
             /// <param name="Second"></param>
             record R(int [|First|], int Second, int Third);
-            """;
-
-        var expected = """
+            """, """
             /// <summary>
             /// 
             /// </summary>
@@ -843,22 +715,17 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
             /// <param name="Second"></param>
             /// <param name="Third"></param>
             record R(int First, int Second, int Third);
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_Class()
-    {
-        var initial = """
+    public Task AddsParamTag_Class()
+        => TestAsync("""
             /// <summary>
             /// 
             /// </summary>
             /// <param name="Second"></param>
             class R(int [|First|], int Second, int Third);
-            """;
-
-        var expected = """
+            """, """
             /// <summary>
             /// 
             /// </summary>
@@ -866,22 +733,17 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
             /// <param name="Second"></param>
             /// <param name="Third"></param>
             class R(int First, int Second, int Third);
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_Struct()
-    {
-        var initial = """
+    public Task AddsParamTag_Struct()
+        => TestAsync("""
             /// <summary>
             /// 
             /// </summary>
             /// <param name="Second"></param>
             struct R(int [|First|], int Second, int Third);
-            """;
-
-        var expected = """
+            """, """
             /// <summary>
             /// 
             /// </summary>
@@ -889,7 +751,5 @@ public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticP
             /// <param name="Second"></param>
             /// <param name="Third"></param>
             struct R(int First, int Second, int Third);
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(LspDidChangeWatchedFilesHandler)), Shared]
 [Method("workspace/didChangeWatchedFiles")]
-internal class LspDidChangeWatchedFilesHandler : ILspServiceNotificationHandler<DidChangeWatchedFilesParams>
+internal sealed class LspDidChangeWatchedFilesHandler : ILspServiceNotificationHandler<DidChangeWatchedFilesParams>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -23,10 +23,9 @@ internal class LspDidChangeWatchedFilesHandler : ILspServiceNotificationHandler<
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => false;
 
-    Task INotificationHandler<DidChangeWatchedFilesParams, RequestContext>.HandleNotificationAsync(DidChangeWatchedFilesParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    async Task INotificationHandler<DidChangeWatchedFilesParams, RequestContext>.HandleNotificationAsync(DidChangeWatchedFilesParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
         NotificationRaised?.Invoke(this, request);
-        return Task.CompletedTask;
     }
 
     public event EventHandler<DidChangeWatchedFilesParams>? NotificationRaised;

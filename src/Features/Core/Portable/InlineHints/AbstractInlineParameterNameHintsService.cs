@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineHints;
 
@@ -34,23 +32,24 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
     protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
     protected abstract string GetReplacementText(string parameterName);
 
-    public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
+    public async Task AddInlineHintsAsync(
         Document document,
         TextSpan textSpan,
         InlineParameterHintsOptions options,
         SymbolDescriptionOptions displayOptions,
         bool displayAllOverride,
+        ArrayBuilder<InlineHint> result,
         CancellationToken cancellationToken)
     {
         var enabledForParameters = displayAllOverride || options.EnabledForParameters;
         if (!enabledForParameters)
-            return [];
+            return;
 
         var literalParameters = displayAllOverride || options.ForLiteralParameters;
         var objectCreationParameters = displayAllOverride || options.ForObjectCreationParameters;
         var otherParameters = displayAllOverride || options.ForOtherParameters;
         if (!literalParameters && !objectCreationParameters && !otherParameters)
-            return [];
+            return;
 
         var indexerParameters = displayAllOverride || options.ForIndexerParameters;
         var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.SuppressForParametersThatDifferOnlyBySuffix;
@@ -61,8 +60,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        using var _1 = ArrayBuilder<InlineHint>.GetInstance(out var result);
-        using var _2 = ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
+        using var _ = ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
 
         foreach (var node in root.DescendantNodes(textSpan, n => n.Span.IntersectsWith(textSpan)))
         {
@@ -76,7 +74,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
             }
         }
 
-        return result.ToImmutableAndClear();
+        return;
 
         void AddHintsIfAppropriate(SyntaxNode node)
         {
@@ -106,21 +104,18 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
 
                 if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                 {
-                    var inlineHintText = GetReplacementText(parameter.Name);
                     var textSpan = new TextSpan(position, 0);
 
-                    TextChange? replacementTextChange = null;
-                    if (!parameter.IsParams)
-                    {
-                        replacementTextChange = new TextChange(textSpan, inlineHintText);
-                    }
+                    TextChange? replacementTextChange = parameter.IsParams
+                        ? null
+                        : new TextChange(textSpan, GetReplacementText(parameter.Name));
 
                     result.Add(new InlineHint(
                         textSpan,
                         [new TaggedText(TextTags.Text, parameter.Name + ": ")],
                         replacementTextChange,
                         ranking: InlineHintsConstants.ParameterRanking,
-                        InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
+                        InlineHintHelpers.GetDescriptionFunction(position, parameter, displayOptions)));
                 }
             }
         }

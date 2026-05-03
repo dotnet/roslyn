@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,8 +25,12 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
     protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTypes);
 
-    protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
-        bool keepVoid, IMethodSymbol methodSymbol, SyntaxNode node, KnownTaskTypes knownTypes, CancellationToken cancellationToken);
+    protected abstract SyntaxNode FixMethodSignature(
+        bool addAsyncModifier,
+        bool keepVoid,
+        IMethodSymbol methodSymbol,
+        SyntaxNode node,
+        KnownTaskTypes knownTypes);
 
     public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -120,7 +124,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         return NeedsRename()
             ? await RenameThenAddAsyncTokenAsync(keepVoid, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
-            : await AddAsyncTokenAsync(keepVoid, document, methodSymbol, knownTypes, node, cancellationToken).ConfigureAwait(false);
+            : await FixRelatedSignaturesAsync(keepVoid, document, methodSymbol, knownTypes, node, cancellationToken).ConfigureAwait(false);
 
         bool NeedsRename()
         {
@@ -175,13 +179,13 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         {
             var semanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var newMethod = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(newNode, cancellationToken);
-            return await AddAsyncTokenAsync(keepVoid, newDocument, newMethod, knownTypes, newNode, cancellationToken).ConfigureAwait(false);
+            return await FixRelatedSignaturesAsync(keepVoid, newDocument, newMethod, knownTypes, newNode, cancellationToken).ConfigureAwait(false);
         }
 
         return newSolution;
     }
 
-    private async Task<Solution> AddAsyncTokenAsync(
+    private async Task<Solution> FixRelatedSignaturesAsync(
         bool keepVoid,
         Document document,
         IMethodSymbol methodSymbol,
@@ -189,12 +193,25 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         SyntaxNode node,
         CancellationToken cancellationToken)
     {
-        var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbol, node, knownTypes, cancellationToken);
+        var newNode = FixMethodSignature(addAsyncModifier: true, keepVoid, methodSymbol, node, knownTypes);
 
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var newRoot = root.ReplaceNode(node, newNode);
+        var solution = document.Project.Solution;
+        var solutionEditor = new SolutionEditor(solution);
+        var mainDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
 
-        var newDocument = document.WithSyntaxRoot(newRoot);
-        return newDocument.Project.Solution;
+        mainDocumentEditor.ReplaceNode(node, newNode);
+
+        if (!keepVoid && methodSymbol.PartialDefinitionPart is { Locations: [{ } partialDefinitionLocation] })
+        {
+            var partialDefinitionNode = partialDefinitionLocation.FindNode(cancellationToken);
+            var fixedPartialDefinitionNode = FixMethodSignature(addAsyncModifier: false, keepVoid, methodSymbol, partialDefinitionNode, knownTypes);
+
+            var partialDefinitionDocument = solution.GetDocument(partialDefinitionNode.SyntaxTree);
+            Contract.ThrowIfNull(partialDefinitionDocument);
+            var partialDefinitionDocumentEditor = await solutionEditor.GetDocumentEditorAsync(partialDefinitionDocument.Id, cancellationToken).ConfigureAwait(false);
+            partialDefinitionDocumentEditor.ReplaceNode(partialDefinitionNode, fixedPartialDefinitionNode);
+        }
+
+        return solutionEditor.GetChangedSolution();
     }
 }

@@ -27,15 +27,17 @@ public class CSharpGoToBase : AbstractEditorTest
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"using System;
+            """
+            using System;
 
-class C
-{
-    public override string ToString()
-    {
-        return ""C"";
-    }
-}", HangMitigatingCancellationToken);
+            class C
+            {
+                public override string ToString()
+                {
+                    return "C";
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("ToString", charsOffset: -1, HangMitigatingCancellationToken);
         await TestServices.Editor.GoToBaseAsync(HangMitigatingCancellationToken);
         Assert.Equal("Object [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));

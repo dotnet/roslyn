@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -64,7 +63,7 @@ internal sealed partial class LightweightRenameLocations
             Options,
             Locations,
             implicitLocations,
-            referencedSymbols);
+            referencedSymbols!);
     }
 
     /// <summary>
@@ -72,6 +71,14 @@ internal sealed partial class LightweightRenameLocations
     /// </summary>
     public static async Task<LightweightRenameLocations> FindRenameLocationsAsync(
         ISymbol symbol, Solution solution, SymbolRenameOptions options, CancellationToken cancellationToken)
+        => await FindRenameLocationsAsync(symbol, solution, options, allowRenamesInRazorSourceGeneratedDocuments: false, cancellationToken).ConfigureAwait(false);
+
+    public static async Task<LightweightRenameLocations> FindRenameLocationsAsync(
+        ISymbol symbol,
+        Solution solution,
+        SymbolRenameOptions options,
+        bool allowRenamesInRazorSourceGeneratedDocuments,
+        CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(solution);
         Contract.ThrowIfNull(symbol);
@@ -87,7 +94,7 @@ internal sealed partial class LightweightRenameLocations
                 {
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
                         solution,
-                        (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, cancellationToken),
+                        (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, allowRenamesInRazorSourceGeneratedDocuments, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -107,7 +114,7 @@ internal sealed partial class LightweightRenameLocations
 
         // Couldn't effectively search in OOP. Perform the search in-proc.
         var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
-            symbol, solution, options, cancellationToken).ConfigureAwait(false);
+            symbol, solution, options, allowRenamesInRazorSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
         return new LightweightRenameLocations(
             solution, options, renameLocations.Locations,
@@ -115,8 +122,8 @@ internal sealed partial class LightweightRenameLocations
             renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
     }
 
-    public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, ImmutableArray<SymbolKey> nonConflictSymbolKeys, CancellationToken cancellationToken)
-        => ConflictResolver.ResolveLightweightConflictsAsync(symbol, this, replacementText, nonConflictSymbolKeys, cancellationToken);
+    public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, CancellationToken cancellationToken)
+        => ConflictResolver.ResolveLightweightConflictsAsync(symbol, this, replacementText, cancellationToken);
 
     public LightweightRenameLocations Filter(Func<DocumentId, TextSpan, bool> filter)
         => new(

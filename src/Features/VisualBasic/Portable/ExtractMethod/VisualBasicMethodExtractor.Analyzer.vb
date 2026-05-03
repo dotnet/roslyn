@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -25,19 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return False
                 End Function
 
-                Protected Overrides Function CreateFromSymbol(
-                        symbol As ISymbol,
-                        type As ITypeSymbol,
-                        style As VariableStyle,
-                        requiresDeclarationExpressionRewrite As Boolean) As VariableInfo
-                    If symbol.IsFunctionValue() AndAlso style.ParameterStyle.DeclarationBehavior <> DeclarationBehavior.None Then
-                        Contract.ThrowIfFalse(style.ParameterStyle.DeclarationBehavior = DeclarationBehavior.MoveIn OrElse style.ParameterStyle.DeclarationBehavior = DeclarationBehavior.SplitIn)
-                        style = AlwaysReturn(style)
-                    End If
-
-                    Return CreateFromSymbolCommon(symbol, type, style)
-                End Function
-
                 Protected Overrides Function GetRangeVariableType(symbol As IRangeVariableSymbol) As ITypeSymbol
                     Dim info = Me.SemanticModel.GetSpeculativeTypeInfo(Me.SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression)
                     If info.Type.IsErrorType() Then
@@ -47,17 +33,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return If(info.ConvertedType.IsObjectType(), info.ConvertedType, info.Type)
                 End Function
 
-                Protected Overrides Function ContainsReturnStatementInSelectedCode(exitPoints As ImmutableArray(Of SyntaxNode)) As Boolean
-                    Return exitPoints.Any(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax)
-                End Function
-
                 Protected Overrides Function ReadOnlyFieldAllowed() As Boolean
                     Dim methodBlock = Me.SelectionResult.GetContainingScopeOf(Of MethodBlockBaseSyntax)()
                     If methodBlock Is Nothing Then
                         Return True
                     End If
 
-                    Return Not TypeOf methodBlock.BlockStatement Is SubNewStatementSyntax
+                    Return TypeOf methodBlock.BlockStatement IsNot SubNewStatementSyntax
+                End Function
+
+                Protected Overrides Function GetStatementFlowControlInformation(
+                        controlFlowAnalysis As ControlFlowAnalysis) As ExtractMethodFlowControlInformation
+                    ' We do not currently support converting code with advanced flow control constructs in VB. So just
+                    ' provide basic information that produces consistent behavior with how extract method has always
+                    ' worked in VB.
+                    Return ExtractMethodFlowControlInformation.Create(
+                        Me.SemanticModel.Compilation,
+                        supportsComplexFlowControl:=False,
+                        breakStatementCount:=0,
+                        continueStatementCount:=0,
+                        returnStatementCount:=controlFlowAnalysis.ExitPoints.Count(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax),
+                        endPointIsReachable:=controlFlowAnalysis.EndPointIsReachable)
                 End Function
             End Class
         End Class

@@ -53,15 +53,14 @@ internal sealed class AddParameterDialogViewModel : AbstractNotifyPropertyChange
 
     public string? TypeName => TypeSymbol?.ToDisplayString(s_symbolDisplayFormat);
 
-    public bool TypeBinds => !TypeSymbol!.IsErrorType();
+    public bool TypeBinds => !TypeSymbol.IsErrorType();
 
-    private bool _isRequired;
     public bool IsRequired
     {
-        get => _isRequired;
+        get;
         set
         {
-            if (SetProperty(ref _isRequired, value))
+            if (SetProperty(ref field, value))
             {
                 NotifyPropertyChanged(nameof(IsOptional));
 
@@ -79,10 +78,10 @@ internal sealed class AddParameterDialogViewModel : AbstractNotifyPropertyChange
 
     public bool IsOptional
     {
-        get => !_isRequired;
+        get => !IsRequired;
         set
         {
-            if (_isRequired == value)
+            if (IsRequired == value)
             {
                 IsRequired = !value;
             }
@@ -103,18 +102,17 @@ internal sealed class AddParameterDialogViewModel : AbstractNotifyPropertyChange
     public Visibility TypeDoesNotParseOrInvalidTypeImage { get; set; }
     public Visibility TypeIsEmptyImage { get; set; }
 
-    private string _verbatimTypeName = string.Empty;
     public string VerbatimTypeName
     {
-        get => _verbatimTypeName;
+        get;
         set
         {
-            if (SetProperty(ref _verbatimTypeName, value))
+            if (SetProperty(ref field, value))
             {
                 SetCurrentTypeTextAndUpdateBindingStatus(value);
             }
         }
-    }
+    } = string.Empty;
 
     private bool _isVoidParameterType;
 

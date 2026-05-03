@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports SyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.SyntaxUtilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 

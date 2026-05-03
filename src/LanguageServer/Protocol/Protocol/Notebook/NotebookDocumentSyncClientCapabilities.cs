@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookDocumentSyncClientCapabilities : IDynamicRegistrationSetting
+internal sealed class NotebookDocumentSyncClientCapabilities : IDynamicRegistrationSetting
 {
     /// <summary>
     /// The client supports sending execution summary data per cell.

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                 Optional priority As CodeActionPriority? = Nothing,
                 Optional placeSystemFirst As Boolean = True) As Task
 
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
                 initialMarkup, expectedMarkup, index,
                 parameters:=New TestParameters(
                     options:=[Option](GenerationOptions.PlaceSystemNamespaceFirst, placeSystemFirst),

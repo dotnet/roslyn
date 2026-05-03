@@ -11,13 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class SByteKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class SByteKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.SByteKeyword)
 {
-    public SByteKeywordRecommender()
-        : base(SyntaxKind.SByteKeyword)
-    {
-    }
-
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;
@@ -47,8 +42,8 @@ internal class SByteKeywordRecommender : AbstractSpecialTypePreselectingKeywordR
             context.IsPossibleTupleContext ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
                 cancellationToken: cancellationToken);
     }
 

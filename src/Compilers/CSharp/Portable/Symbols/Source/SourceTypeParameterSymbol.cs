@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -400,29 +401,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal byte GetSynthesizedNullableAttributeValue()
-        {
-            if (this.HasReferenceTypeConstraint)
-            {
-                switch (this.ReferenceTypeConstraintIsNullable)
-                {
-                    case true:
-                        return NullableAnnotationExtensions.AnnotatedAttributeValue;
-                    case false:
-                        return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-                }
-            }
-            else if (this.HasNotNullConstraint)
-            {
-                return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-            }
-            else if (!this.HasValueTypeConstraint && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullable == false)
-            {
-                return NullableAnnotationExtensions.AnnotatedAttributeValue;
-            }
-            return NullableAnnotationExtensions.ObliviousAttributeValue;
-        }
-
         protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
@@ -432,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            ReportExplicitUseOfReservedAttributes(in arguments, ReservedAttributes.NullableAttribute);
+            ReportExplicitUseOfReservedAttributes(in arguments, ReservedAttributes.NullableAttribute | ReservedAttributes.ExtensionMarkerAttribute);
 
             base.DecodeWellKnownAttributeImpl(ref arguments);
         }

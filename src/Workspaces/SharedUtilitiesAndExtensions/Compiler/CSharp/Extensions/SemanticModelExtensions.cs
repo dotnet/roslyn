@@ -169,10 +169,10 @@ internal static partial class SemanticModelExtensions
             {
                 Contract.ThrowIfNull(@using.NamespaceOrType);
                 var symbolInfo = semanticModel.GetSymbolInfo(@using.NamespaceOrType);
-                if (symbolInfo.Symbol != null && symbolInfo.Symbol.Kind == SymbolKind.Namespace)
+                if (symbolInfo.Symbol is INamespaceSymbol namespaceSymbol)
                 {
                     result ??= [];
-                    result.Add((INamespaceSymbol)symbolInfo.Symbol);
+                    result.Add(namespaceSymbol);
                 }
             }
         }
@@ -204,8 +204,7 @@ internal static partial class SemanticModelExtensions
         //    as the interface type itself.
         if (type != null)
         {
-            if (type.Parent is BaseTypeSyntax baseType &&
-                baseType.Parent is BaseListSyntax baseList &&
+            if (type.Parent is BaseTypeSyntax { Parent: BaseListSyntax baseList } baseType &&
                 baseType.Type == type)
             {
                 var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken);

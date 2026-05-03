@@ -999,7 +999,7 @@ class Override : MetadataModifiers
                         Assert.False(method.IsSealed);
                         break;
                     default:
-                        Assert.False(true, "Unexpected enum value " + expectedVirtualness);
+                        Assert.Fail("Unexpected enum value " + expectedVirtualness);
                         break;
                 }
             });

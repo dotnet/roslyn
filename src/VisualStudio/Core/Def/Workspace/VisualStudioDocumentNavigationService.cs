@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
@@ -189,35 +188,22 @@ internal sealed class VisualStudioDocumentNavigationService(
         documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
         var solution = workspace.CurrentSolution;
-        var document = solution.GetDocument(documentId);
-        if (document == null)
+        var textDocument = await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+
+        if (textDocument is null)
         {
-            var project = solution.GetProject(documentId.ProjectId);
-            if (project is null)
-            {
-                // This is a source generated document shown in Solution Explorer, but is no longer valid since
-                // the configuration and/or platform changed since the last generation completed.
-                return null;
-            }
-
-            var generatedDocument = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-            if (generatedDocument == null)
-                return null;
-
-            return _sourceGeneratedFileManager.Value.GetNavigationCallback(
-                generatedDocument,
-                await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false));
+            return null;
         }
 
         // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
-        var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
-        if (spanMappingService != null)
+        if (textDocument is Document document &&
+            SpanMappingHelper.CanMapSpans(document))
         {
             var mappedSpanResult = await GetMappedSpanAsync(
-                spanMappingService,
                 document,
                 await getTextSpanForMappingAsync(document).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
+
             if (mappedSpanResult is { IsDefault: false } mappedSpan)
             {
                 // Check if the mapped file matches one already in the workspace.
@@ -239,6 +225,13 @@ internal sealed class VisualStudioDocumentNavigationService(
                 return await GetNavigableLocationForMappedFileAsync(
                     workspace, document, mappedSpan, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        if (textDocument is SourceGeneratedDocument generatedDocument)
+        {
+            return _sourceGeneratedFileManager.Value.GetNavigationCallback(
+                generatedDocument,
+                await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false));
         }
 
         return GetNavigationCallback(documentId, workspace, getVsTextSpan);
@@ -319,15 +312,20 @@ internal sealed class VisualStudioDocumentNavigationService(
         return cancellationToken => NavigateToTextBufferAsync(textBuffer, vsTextSpan, cancellationToken);
     }
 
-    private static async Task<MappedSpanResult?> GetMappedSpanAsync(
-        ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
+    private static async Task<MappedSpanResult?> GetMappedSpanAsync(Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
     {
-        var results = await spanMappingService.MapSpansAsync(
-            generatedDocument, [textSpan], cancellationToken).ConfigureAwait(false);
+        var results = await SpanMappingHelper.TryGetMappedSpanResultAsync(generatedDocument, [textSpan], cancellationToken).ConfigureAwait(false);
 
-        if (!results.IsDefaultOrEmpty)
+        if (results == null)
         {
-            return results.First();
+            return null;
+        }
+
+        var mappedSpans = results.GetValueOrDefault();
+
+        if (!mappedSpans.IsDefaultOrEmpty)
+        {
+            return mappedSpans.First();
         }
 
         return null;

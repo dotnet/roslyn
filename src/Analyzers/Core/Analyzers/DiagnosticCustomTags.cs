@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,59 +13,53 @@ internal static class DiagnosticCustomTags
 {
     private static readonly string s_enforceOnBuildNeverTag = EnforceOnBuild.Never.ToCustomTag();
 
-    private static readonly string[] s_microsoftCustomTags = [WellKnownDiagnosticTags.Telemetry];
-    private static readonly string[] s_editAndContinueCustomTags = [WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag];
-    private static readonly string[] s_unnecessaryCustomTags = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry];
-    private static readonly string[] s_notConfigurableCustomTags = [WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
-    private static readonly string[] s_unnecessaryAndNotConfigurableCustomTags = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
-
     public static string[] Microsoft
     {
         get
         {
-            Assert(s_microsoftCustomTags, WellKnownDiagnosticTags.Telemetry);
-            return s_microsoftCustomTags;
+            Assert(field, WellKnownDiagnosticTags.Telemetry);
+            return field;
         }
-    }
+    } = [WellKnownDiagnosticTags.Telemetry];
 
     public static string[] EditAndContinue
     {
         get
         {
-            Assert(s_editAndContinueCustomTags, WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag);
-            return s_editAndContinueCustomTags;
+            Assert(field, WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag);
+            return field;
         }
-    }
+    } = [WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag];
 
     public static string[] Unnecessary
     {
         get
         {
-            Assert(s_unnecessaryCustomTags, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry);
-            return s_unnecessaryCustomTags;
+            Assert(field, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry);
+            return field;
         }
-    }
+    } = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry];
 
     public static string[] NotConfigurable
     {
         get
         {
-            Assert(s_notConfigurableCustomTags, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry);
-            return s_notConfigurableCustomTags;
+            Assert(field, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry);
+            return field;
         }
-    }
+    } = [WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
 
     public static string[] UnnecessaryAndNotConfigurable
     {
         get
         {
-            Assert(s_unnecessaryAndNotConfigurableCustomTags, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry);
-            return s_unnecessaryAndNotConfigurableCustomTags;
+            Assert(field, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry);
+            return field;
         }
-    }
+    } = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
 
     [Conditional("DEBUG")]
-    private static void Assert(string[] customTags, params string[] tags)
+    private static void Assert(string[] customTags, params ReadOnlySpan<string> tags)
     {
         Debug.Assert(customTags.Length == tags.Length);
 

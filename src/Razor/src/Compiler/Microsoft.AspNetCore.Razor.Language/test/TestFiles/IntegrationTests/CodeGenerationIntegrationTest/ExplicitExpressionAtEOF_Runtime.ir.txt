@@ -1,0 +1,24 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ExplicitExpressionAtEOF - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (0:0,0 [18] ExplicitExpressionAtEOF.cshtml)
+                    LazyIntermediateToken - (0:0,0 [18] ExplicitExpressionAtEOF.cshtml) - Html - This is markup\n\n
+                CSharpExpression - (20:2,2 [0] ExplicitExpressionAtEOF.cshtml)
+                    LazyIntermediateToken - (20:2,2 [0] ExplicitExpressionAtEOF.cshtml) - CSharp - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

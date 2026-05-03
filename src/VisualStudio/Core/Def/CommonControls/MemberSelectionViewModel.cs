@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -18,16 +16,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 
-internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
+internal sealed class MemberSelectionViewModel : AbstractNotifyPropertyChanged
 {
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-    private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
+    private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>>? _symbolToDependentsMap;
     private readonly ImmutableDictionary<ISymbol, MemberSymbolViewModel> _symbolToMemberViewMap;
 
     public MemberSelectionViewModel(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ImmutableArray<MemberSymbolViewModel> members,
-        ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap,
+        ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>>? dependentsMap,
         TypeKind destinationTypeKind = TypeKind.Class,
         bool showDependentsButton = true,
         bool showPublicButton = true)
@@ -46,17 +44,16 @@ internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
 
     public bool ShowCheckDependentsButton { get; }
     public bool ShowPublicButton { get; }
-    public bool ShowMakeAbstract => _members.Any(m => m.IsMakeAbstractCheckable);
+    public bool ShowMakeAbstract => Members.Any(m => m.IsMakeAbstractCheckable);
     public ImmutableArray<MemberSymbolViewModel> CheckedMembers => Members.WhereAsArray(m => m.IsChecked && m.IsCheckable);
 
-    private ImmutableArray<MemberSymbolViewModel> _members;
     public ImmutableArray<MemberSymbolViewModel> Members
     {
-        get => _members;
+        get;
         set
         {
-            var oldMembers = _members;
-            if (SetProperty(ref _members, value))
+            var oldMembers = field;
+            if (SetProperty(ref field, value))
             {
                 // If we have registered for events before, remove the handlers
                 // to be a good citizen in the world 
@@ -68,7 +65,7 @@ internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
                     }
                 }
 
-                foreach (var member in _members)
+                foreach (var member in field)
                 {
                     member.PropertyChanged += MemberPropertyChangedHandler;
                 }
@@ -115,9 +112,10 @@ internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
                 showProgress: true,
                 context =>
                 {
-                    foreach (var member in Members)
+                    if (_symbolToDependentsMap != null)
                     {
-                        _symbolToDependentsMap[member.Symbol].Wait(context.UserCancellationToken);
+                        foreach (var member in Members)
+                            _symbolToDependentsMap[member.Symbol].Wait(context.UserCancellationToken);
                     }
                 });
 
@@ -133,8 +131,7 @@ internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
 
     public ImmutableArray<(ISymbol member, bool makeAbstract)> GetSelectedMembers()
         => Members.
-            Where(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable).
-            SelectAsArray(memberViewModel =>
+            SelectAsArray(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable, memberViewModel =>
                 (member: memberViewModel.Symbol,
                 makeAbstract: memberViewModel.IsMakeAbstractCheckable && memberViewModel.MakeAbstract));
 
@@ -180,11 +177,12 @@ internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
             var currentMember = queue.Dequeue();
             result.Add(currentMember);
             visited.Add(currentMember);
-            foreach (var dependent in _symbolToDependentsMap[currentMember].Result)
+            if (_symbolToDependentsMap != null)
             {
-                if (!visited.Contains(dependent))
+                foreach (var dependent in _symbolToDependentsMap[currentMember].Result)
                 {
-                    queue.Enqueue(dependent);
+                    if (!visited.Contains(dependent))
+                        queue.Enqueue(dependent);
                 }
             }
         }

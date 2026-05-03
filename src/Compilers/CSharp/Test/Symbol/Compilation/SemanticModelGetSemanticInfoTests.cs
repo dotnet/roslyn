@@ -282,7 +282,6 @@ class K
             Assert.Equal(SymbolKind.Field, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
@@ -401,8 +400,8 @@ namespace Test
 }";
             var semanticInfo = GetSemanticInfoForTest<NameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("Test.Base", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Test.Base", semanticInfo.ConvertedType.ToTestDisplayString());
 
             Assert.Equal("Test.Base", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
@@ -2610,8 +2609,8 @@ class A
 ";
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("A", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("A", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("A", semanticInfo.Symbol.ToTestDisplayString());
@@ -4211,8 +4210,8 @@ class C<T1>
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("C<T1>", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("C<T1>", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -5065,8 +5064,8 @@ class Class1
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("Class1", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Class1", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Class1", semanticInfo.Symbol.ToTestDisplayString());
@@ -5237,8 +5236,8 @@ class Class1
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("Class1", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Class1", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Class1", semanticInfo.Symbol.ToTestDisplayString());
@@ -6639,8 +6638,8 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("C", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("C", semanticInfo.Symbol.ToTestDisplayString());
@@ -7045,8 +7044,8 @@ struct Struct{
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("Struct", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Struct", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Struct", semanticInfo.Symbol.ToTestDisplayString());
@@ -7260,8 +7259,8 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<TypeSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("System.Func<System.Int32, System.Int32>", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Func<System.Int32, System.Int32>", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("System.Func<System.Int32, System.Int32>", semanticInfo.Symbol.ToTestDisplayString());
@@ -7816,8 +7815,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("C.MyDelegate", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("C.MyDelegate", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("C.MyDelegate", semanticInfo.Symbol.ToTestDisplayString());
@@ -7881,8 +7880,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("C.MyDelegate", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("C.MyDelegate", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("C.MyDelegate", semanticInfo.Symbol.ToTestDisplayString());
@@ -7947,8 +7946,8 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("System.Action", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("System.Action", semanticInfo.Symbol.ToTestDisplayString());
@@ -11186,8 +11185,8 @@ class Goo
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("Goo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Goo", semanticInfo.Symbol.ToTestDisplayString());
@@ -12150,8 +12149,8 @@ static class Stat { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("Stat", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Stat", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -12217,8 +12216,8 @@ interface X { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("X", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("X", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -12285,8 +12284,8 @@ class Program<T>
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("T", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("T", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -12353,8 +12352,8 @@ abstract class X { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("X", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("X", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -12389,8 +12388,8 @@ abstract class X
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("X", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("X", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -12451,8 +12450,8 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("dynamic", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("dynamic", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("dynamic", semanticInfo.Symbol.ToTestDisplayString());
@@ -14040,8 +14039,8 @@ public class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("InterfaceType", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("InterfaceType", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("InterfaceType", semanticInfo.Symbol.ToTestDisplayString());
@@ -14199,8 +14198,8 @@ public class MainClass
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("NonGenericInterfaceType", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("NonGenericInterfaceType", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("NonGenericInterfaceType", semanticInfo.Symbol.ToTestDisplayString());
@@ -14289,8 +14288,8 @@ public class MainClass
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("Wrapper.InterfaceType", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Wrapper.InterfaceType", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Wrapper.InterfaceType", semanticInfo.Symbol.ToTestDisplayString());
@@ -14416,8 +14415,8 @@ public class MainClass
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("InterfaceType", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("InterfaceType", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -14505,8 +14504,8 @@ public class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal("System.IFormattable", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.IFormattable", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -14803,8 +14802,8 @@ namespace Test
                 Assert.Equal(0, memberGroup.Length);
 
                 TypeInfo typeInfo = model.GetTypeInfo(creation.Type);
-                Assert.Null(typeInfo.Type);
-                Assert.Null(typeInfo.ConvertedType);
+                Assert.Equal("Test.C", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("Test.C", typeInfo.ConvertedType.ToTestDisplayString());
 
                 var conv = model.GetConversion(creation.Type);
                 Assert.True(conv.IsIdentity);
@@ -14899,8 +14898,8 @@ namespace Test
                 Assert.Equal(0, memberGroup.Length);
 
                 TypeInfo typeInfo = model.GetTypeInfo(creation.Type);
-                Assert.Null(typeInfo.Type);
-                Assert.Null(typeInfo.ConvertedType);
+                Assert.Equal("Test.I", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("Test.I", typeInfo.ConvertedType.ToTestDisplayString());
 
                 var conv = model.GetConversion(creation.Type);
                 Assert.True(conv.IsIdentity);
@@ -15010,8 +15009,8 @@ namespace Test
                 Assert.Equal(0, memberGroup.Length);
 
                 TypeInfo typeInfo = model.GetTypeInfo(creation.Type);
-                Assert.Null(typeInfo.Type);
-                Assert.Null(typeInfo.ConvertedType);
+                Assert.Equal("Test.I", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("Test.I", typeInfo.ConvertedType.ToTestDisplayString());
 
                 var conv = model.GetConversion(creation.Type);
                 Assert.True(conv.IsIdentity);
@@ -15303,7 +15302,7 @@ get
 ", parseOptions: TestOptions.Regular);
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
 
-            Assert.Null(semanticInfo.Type);
+            Assert.Equal("BaselineLog", semanticInfo.Type.ToTestDisplayString());
 
             Assert.Equal("BaselineLog", semanticInfo.Symbol.ToDisplayString());
             Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind);
@@ -15434,6 +15433,348 @@ class K
             var syntax = tree.GetCompilationUnitRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.ThisExpression);
             var info = model.GetSemanticInfoSummary(syntax);
             Assert.Equal("C", info.Type.Name);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion1()
+        {
+            string source = """
+                record R(int I);
+
+                class C
+                {
+                    public C Repro()
+                    {
+                        M(new R(1u));
+                        return new R(1u);
+                    }
+
+                    public static void M(C c) { }
+                    public static implicit operator C(R r) => throw null;
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+                var candidate = semanticInfo.CandidateSymbols[0];
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal("R..ctor(System.Int32 I)", candidate.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, candidate.Kind);
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion2()
+        {
+            string source = """
+                record R;
+
+                class C
+                {
+                    public C Repro()
+                    {
+                        M(new R(1u));
+                        return new R(1u);
+                    }
+
+                    public static void M(C c) { }
+                    public static implicit operator C(R r) => throw null;
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+                var candidate = semanticInfo.CandidateSymbols[0];
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal("R..ctor()", candidate.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, candidate.Kind);
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion3()
+        {
+            string source = """
+                record R(int I)
+                {
+                    public R(short s)
+                        : this((int)s) { }
+                }
+
+                class C
+                {
+                    public C Repro()
+                    {
+                        M(new R(1u));
+                        return new R(1u);
+                    }
+
+                    public static void M(C c) { }
+                    public static implicit operator C(R r) => throw null;
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
+
+                var candidate0 = semanticInfo.CandidateSymbols[0];
+                Assert.Equal("R..ctor(System.Int32 I)", candidate0.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, candidate0.Kind);
+
+                var candidate1 = semanticInfo.CandidateSymbols[1];
+                Assert.Equal("R..ctor(System.Int16 s)", candidate1.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, candidate1.Kind);
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion4()
+        {
+            string source = """
+                static class R;
+
+                class C
+                {
+                    public C Repro()
+                    {
+                        M(new R(1u));
+                        return new R(1u);
+                    }
+
+                    public static void M(C c) { }
+                    public static implicit operator C(R r) => throw null;
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+
+                var candidate = semanticInfo.CandidateSymbols[0];
+                Assert.Equal("R", candidate.ToTestDisplayString());
+                Assert.Equal(SymbolKind.NamedType, candidate.Kind);
+
+                Assert.Equal("R", semanticInfo.Type.ToTestDisplayString());
+                Assert.Equal(SymbolKind.NamedType, semanticInfo.Type.Kind);
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion5()
+        {
+            string source = """
+                record R(int I);
+
+                class C
+                {
+                    public C Repro()
+                    {
+                        M(new R(1));
+                        return new R(1);
+                    }
+
+                    public static void M(C c) { }
+                    public static implicit operator C(R r) => throw null;
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Empty(semanticInfo.CandidateSymbols);
+                Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+                Assert.Equal("R..ctor(System.Int32 I)", semanticInfo.Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion6()
+        {
+            string source = """
+                record R(int I);
+
+                class C
+                {
+                    public C Repro1()
+                    {
+                        M(new R(1));
+                        return new R(1);
+                    }
+
+                    public static void M(C c) { }
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Empty(semanticInfo.CandidateSymbols);
+                Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+                Assert.Equal("R..ctor(System.Int32 I)", semanticInfo.Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion7()
+        {
+            string source = """
+                record R(int I);
+
+                class C
+                {
+                    public C Repro1()
+                    {
+                        M(new R(1u));
+                        return new R(1u);
+                    }
+
+                    public static void M(C c) { }
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+                var candidate = semanticInfo.CandidateSymbols[0];
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal("R..ctor(System.Int32 I)", candidate.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, candidate.Kind);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78783")]
+        public void GetTypeInfo_ObjectCreation_01()
+        {
+            var src = """
+var c = new C();
+class C { }
+""";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var objectCreation = GetSyntax<ObjectCreationExpressionSyntax>(tree, "new C()");
+            var typeInfo = model.GetTypeInfo(objectCreation.Type);
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.Equal("C..ctor()", model.GetSymbolInfo(objectCreation).Symbol.ToTestDisplayString());
+            Assert.Equal("C", model.GetSymbolInfo(objectCreation.Type).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78783")]
+        public void GetTypeInfo_ObjectCreation_02()
+        {
+            var src = """
+var c = new C<int>();
+class C<T> { }
+""";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var objectCreation = GetSyntax<ObjectCreationExpressionSyntax>(tree, "new C<int>()");
+            var typeInfo = model.GetTypeInfo(objectCreation.Type);
+            Assert.Equal("C<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78783")]
+        public void GetTypeInfo_ObjectCreation_03()
+        {
+            var src = """
+var c = new N.C();
+
+namespace N
+{
+    class C { }
+}
+""";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var objectCreation = GetSyntax<ObjectCreationExpressionSyntax>(tree, "new N.C()");
+            var typeInfo = model.GetTypeInfo(objectCreation.Type);
+            Assert.Equal("N.C", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("N.C", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "N.C");
+            Assert.Equal("N.C", model.GetTypeInfo(qualifiedName.Right).Type.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78783")]
+        public void GetTypeInfo_ObjectCreation_04()
+        {
+            var src = """
+object c = new C();
+class C { }
+""";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var objectCreation = GetSyntax<ObjectCreationExpressionSyntax>(tree, "new C()");
+            var typeInfo = model.GetTypeInfo(objectCreation.Type);
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
         }
     }
 }

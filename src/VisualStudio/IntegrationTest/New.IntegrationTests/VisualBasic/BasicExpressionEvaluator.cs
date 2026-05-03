@@ -26,41 +26,43 @@ public class BasicExpressionEvaluator : AbstractEditorTest
         await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(BasicExpressionEvaluator), HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
 
-        await TestServices.Editor.SetTextAsync(@"Imports System
+        await TestServices.Editor.SetTextAsync("""
+            Imports System
 
-Module Module1
+            Module Module1
 
-    Sub Main()
-        Dim mySByte As SByte = SByte.MaxValue / 2
-        Dim myShort As Short = Short.MaxValue / 2
-        Dim myInt As Integer = Integer.MaxValue / 2
-        Dim myLong As Long = Long.MaxValue / 2
+                Sub Main()
+                    Dim mySByte As SByte = SByte.MaxValue / 2
+                    Dim myShort As Short = Short.MaxValue / 2
+                    Dim myInt As Integer = Integer.MaxValue / 2
+                    Dim myLong As Long = Long.MaxValue / 2
 
-        Dim myByte As Byte = Byte.MaxValue / 2
-        Dim myUShort As UShort = UShort.MaxValue / 2
-        Dim myUInt As UInteger = UInteger.MaxValue / 2
-        Dim myULong As ULong = ULong.MaxValue / 2
+                    Dim myByte As Byte = Byte.MaxValue / 2
+                    Dim myUShort As UShort = UShort.MaxValue / 2
+                    Dim myUInt As UInteger = UInteger.MaxValue / 2
+                    Dim myULong As ULong = ULong.MaxValue / 2
 
-        Dim myFloat As Single = Single.MaxValue / 2
-        Dim myDouble As Double = Double.MaxValue / 2
-        Dim myDecimal As Decimal = Decimal.MaxValue / 2
+                    Dim myFloat As Single = Single.MaxValue / 2
+                    Dim myDouble As Double = Double.MaxValue / 2
+                    Dim myDecimal As Decimal = Decimal.MaxValue / 2
 
-        Dim myChar As Char = ""A""c
-        Dim myBool As Boolean = True
+                    Dim myChar As Char = "A"c
+                    Dim myBool As Boolean = True
 
-        Dim myObject As Object = Nothing
-        Dim myString As String = String.Empty
+                    Dim myObject As Object = Nothing
+                    Dim myString As String = String.Empty
 
-        Dim myValueType As System.ValueType = myShort
-        Dim myEnum As System.Enum = Nothing
-        Dim myArray As System.Array = Nothing
-        Dim myDelegate As System.Delegate = Nothing
-        Dim myMulticastDelegate As System.MulticastDelegate = Nothing
+                    Dim myValueType As System.ValueType = myShort
+                    Dim myEnum As System.Enum = Nothing
+                    Dim myArray As System.Array = Nothing
+                    Dim myDelegate As System.Delegate = Nothing
+                    Dim myMulticastDelegate As System.MulticastDelegate = Nothing
 
-        System.Diagnostics.Debugger.Break()
-    End Sub
+                    System.Diagnostics.Debugger.Break()
+                End Sub
 
-End Module", HangMitigatingCancellationToken);
+            End Module
+            """, HangMitigatingCancellationToken);
     }
 
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
@@ -80,10 +82,14 @@ End Module", HangMitigatingCancellationToken);
         Assert.Equal(("Single", "1.70141173E+38"), await TestServices.LocalsWindow.GetEntryAsync(["myFloat"], HangMitigatingCancellationToken));
         Assert.Equal(("Double", "8.9884656743115785E+307"), await TestServices.LocalsWindow.GetEntryAsync(["myDouble"], HangMitigatingCancellationToken));
         Assert.Equal(("Decimal", "39614081257132168796771975168"), await TestServices.LocalsWindow.GetEntryAsync(["myDecimal"], HangMitigatingCancellationToken));
-        Assert.Equal(("Char", "\"A\"c"), await TestServices.LocalsWindow.GetEntryAsync(["myChar"], HangMitigatingCancellationToken));
+        Assert.Equal(("Char", """
+            "A"c
+            """), await TestServices.LocalsWindow.GetEntryAsync(["myChar"], HangMitigatingCancellationToken));
         Assert.Equal(("Boolean", "True"), await TestServices.LocalsWindow.GetEntryAsync(["myBool"], HangMitigatingCancellationToken));
         Assert.Equal(("Object", "Nothing"), await TestServices.LocalsWindow.GetEntryAsync(["myObject"], HangMitigatingCancellationToken));
-        Assert.Equal(("String", "\"\""), await TestServices.LocalsWindow.GetEntryAsync(["myString"], HangMitigatingCancellationToken));
+        Assert.Equal(("String", """
+            ""
+            """), await TestServices.LocalsWindow.GetEntryAsync(["myString"], HangMitigatingCancellationToken));
         Assert.Equal(("System.ValueType {Short}", "16384"), await TestServices.LocalsWindow.GetEntryAsync(["myValueType"], HangMitigatingCancellationToken));
         Assert.Equal(("System.Enum", "Nothing"), await TestServices.LocalsWindow.GetEntryAsync(["myEnum"], HangMitigatingCancellationToken));
         Assert.Equal(("System.Array", "Nothing"), await TestServices.LocalsWindow.GetEntryAsync(["myArray"], HangMitigatingCancellationToken));
@@ -99,9 +105,13 @@ End Module", HangMitigatingCancellationToken);
         // It is better to use the Immediate Window but DTE does not provide an access to it.
         await TestServices.Debugger.CheckExpressionAsync("myByte", "Byte", "128", HangMitigatingCancellationToken);
         await TestServices.Debugger.CheckExpressionAsync("myFloat", "Single", "1.70141173E+38", HangMitigatingCancellationToken);
-        await TestServices.Debugger.CheckExpressionAsync("myChar", "Char", "\"A\"c", HangMitigatingCancellationToken);
+        await TestServices.Debugger.CheckExpressionAsync("myChar", "Char", """
+            "A"c
+            """, HangMitigatingCancellationToken);
         await TestServices.Debugger.CheckExpressionAsync("myObject", "Object", "Nothing", HangMitigatingCancellationToken);
-        await TestServices.Debugger.CheckExpressionAsync("myString", "String", "\"\"", HangMitigatingCancellationToken);
+        await TestServices.Debugger.CheckExpressionAsync("myString", "String", """
+            ""
+            """, HangMitigatingCancellationToken);
     }
 
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
@@ -122,26 +132,28 @@ End Module", HangMitigatingCancellationToken);
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task StateMachineTypeParameters()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
-Imports System.Collections.Generic
+        await TestServices.Editor.SetTextAsync("""
 
-Module Module1
-    Sub Main()
-        For Each arg In I({ ""a"", ""b""})
-            Console.WriteLine(arg)
-        Next
-    End Sub
+            Imports System
+            Imports System.Collections.Generic
 
-    Iterator Function I(Of T)(tt As T()) As IEnumerable(Of T)
-        For Each item In tt
-            Stop
-            Yield item
-        Next
-    End Function
+            Module Module1
+                Sub Main()
+                    For Each arg In I({ "a", "b"})
+                        Console.WriteLine(arg)
+                    Next
+                End Sub
 
-End Module
-", HangMitigatingCancellationToken);
+                Iterator Function I(Of T)(tt As T()) As IEnumerable(Of T)
+                    For Each item In tt
+                        Stop
+                        Yield item
+                    Next
+                End Function
+
+            End Module
+
+            """, HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
         Assert.Equal(("", ""), await TestServices.LocalsWindow.GetEntryAsync(["Type variables"], HangMitigatingCancellationToken));
         Assert.Equal(("String", "String"), await TestServices.LocalsWindow.GetEntryAsync(["Type variables", "T"], HangMitigatingCancellationToken));

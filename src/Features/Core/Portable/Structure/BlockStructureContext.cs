@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure;
 
@@ -14,7 +13,7 @@ internal readonly struct BlockStructureContext(SyntaxTree syntaxTree, BlockStruc
 {
     // We keep our own ObjectPool of ArrayBuilders as we want to use ArrayBuilders for their ability to efficiently create ImmutableArrays, but don't
     // want the maximum capacity the default pool uses for dropping items from the pool.
-    private static readonly ObjectPool<ArrayBuilder<BlockSpan>> _blockSpanArrayBuilderPool = new ObjectPool<ArrayBuilder<BlockSpan>>(() => new ArrayBuilder<BlockSpan>());
+    private static readonly ObjectPool<ArrayBuilder<BlockSpan>> _blockSpanArrayBuilderPool = new(() => []);
 
     public readonly ArrayBuilder<BlockSpan> Spans = _blockSpanArrayBuilderPool.Allocate();
 

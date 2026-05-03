@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     HasGlobalAssemblyCache);
         }
 
-        private static readonly string s_hostDirectory = PathUtilities.GetDirectoryName(typeof(InteractiveHostPlatformInfo).Assembly.Location)!;
+        private static readonly string s_hostDirectory = PathUtilities.GetDirectoryName(typeof(InteractiveHostPlatformInfo).Assembly.Location);
 
         public readonly ImmutableArray<string> PlatformAssemblyPaths;
         public readonly bool HasGlobalAssemblyCache;

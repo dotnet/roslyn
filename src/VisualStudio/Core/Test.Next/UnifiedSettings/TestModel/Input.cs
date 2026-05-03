@@ -5,13 +5,12 @@
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionStorage;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record Input
+internal sealed record Input
 {
     [JsonPropertyName("store")]
     public string Store { get; init; }

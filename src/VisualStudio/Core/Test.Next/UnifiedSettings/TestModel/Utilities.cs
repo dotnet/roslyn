@@ -4,9 +4,9 @@
 
 using System;
 using System.Globalization;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.CSharp;
-using Roslyn.Utilities;
 using CSharpPackage = Microsoft.VisualStudio.LanguageServices.CSharp.VSPackage;
 using VisualBasicPackage = Microsoft.VisualStudio.LanguageServices.VisualBasic.VSPackage;
 

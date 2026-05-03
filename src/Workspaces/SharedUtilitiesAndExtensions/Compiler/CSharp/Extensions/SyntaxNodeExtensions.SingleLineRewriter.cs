@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal partial class SyntaxNodeExtensions
 {
-    internal class SingleLineRewriter : CSharpSyntaxRewriter
+    internal sealed class SingleLineRewriter : CSharpSyntaxRewriter
     {
         private static readonly Regex s_newlinePattern = new(@"[\r\n]+");
 

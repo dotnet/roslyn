@@ -33,10 +33,10 @@ internal static class ISemanticFactsExtensions
         // Second, check the type and converted type of the binary expression.
         // Are they the same?
         var innerTypeInfo = semanticModel.GetTypeInfo(innerBinary);
-        if (innerTypeInfo.Type != null && innerTypeInfo.ConvertedType != null)
+        if (innerTypeInfo is { Type: not null, ConvertedType: not null } &&
+            !innerTypeInfo.Type.Equals(innerTypeInfo.ConvertedType))
         {
-            if (!innerTypeInfo.Type.Equals(innerTypeInfo.ConvertedType))
-                return false;
+            return false;
         }
 
         // It's not safe to change associativity for dynamic variables as the actual type isn't known. See https://github.com/dotnet/roslyn/issues/47365

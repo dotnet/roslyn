@@ -11,14 +11,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
 /// <summary>
 /// Context for "Fix all occurrences" code fixes provided by a <see cref="FixAllProvider"/>.
 /// </summary>
-public partial class FixAllContext : IFixAllContext
+public partial class FixAllContext : IRefactorOrFixAllContext
 {
     internal FixAllState State { get; }
 
@@ -72,16 +71,14 @@ public partial class FixAllContext : IFixAllContext
     public IProgress<CodeAnalysisProgress> Progress { get; }
 
     #region IFixAllContext implementation
-    IFixAllState IFixAllContext.State => this.State;
+    IRefactorOrFixAllState IRefactorOrFixAllContext.State => this.State;
 
-    IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
+    IRefactorOrFixProvider IRefactorOrFixAllContext.Provider => this.CodeFixProvider;
 
-    object IFixAllContext.Provider => this.CodeFixProvider;
-
-    string IFixAllContext.GetDefaultFixAllTitle()
+    string IRefactorOrFixAllContext.GetDefaultTitle()
         => this.GetDefaultFixAllTitle();
 
-    IFixAllContext IFixAllContext.With(
+    IRefactorOrFixAllContext IRefactorOrFixAllContext.With(
         Optional<(Document? document, Project project)> documentAndProject,
         Optional<FixAllScope> scope,
         Optional<string?> codeActionEquivalenceKey,

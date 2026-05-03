@@ -17,7 +17,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class InlineValueVariableLookup
+internal sealed class InlineValueVariableLookup
 {
     /// <summary>
     /// The document range for which the inline value applies.

@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -20,51 +19,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
 public partial class ConvertAutoPropertyToFullPropertyTests
 {
     private OptionsCollection PreferExpressionBodiedAccessorsWhenPossible
-        => new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
+        => new(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
 
     private OptionsCollection PreferExpressionBodiedAccessorsWhenOnSingleLine
-        => new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement } };
+        => new(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement } };
 
     private OptionsCollection DoNotPreferExpressionBodiedAccessors
-        => new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement } };
+        => new(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement } };
 
     private OptionsCollection DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Properties },
         };
 
     private OptionsCollection DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Accessors },
         };
 
     private OptionsCollection PreferExpressionBodiesOnAccessorsAndMethods
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
         };
 
     private OptionsCollection UseCustomFieldName
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { NamingStyleOptions.NamingPreferences, CreateCustomFieldNamingStylePreference() },
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
         };
 
     private OptionsCollection UseUnderscorePrefixedFieldName
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { NamingStyleOptions.NamingPreferences, CreateUnderscorePrefixedFieldNamingStylePreference() },
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
         };
 
     private OptionsCollection UseCustomStaticFieldName
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { NamingStyleOptions.NamingPreferences, CreateCustomStaticFieldNamingStylePreference() },
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
@@ -141,7 +140,7 @@ public partial class ConvertAutoPropertyToFullPropertyTests
             "Name",
             [new SymbolKindOrTypeKind(SymbolKind.Field)],
             accessibilityList: default,
-            [new ModifierKind(DeclarationModifiers.Static)]);
+            [new ModifierKind(Modifiers.Static)]);
 
         var namingStyle = new NamingStyle(
             Guid.NewGuid(),

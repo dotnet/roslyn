@@ -4,7 +4,7 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
-internal class UseExpressionBodyForOperatorsHelper :
+internal sealed class UseExpressionBodyForOperatorsHelper :
     UseExpressionBodyHelper<OperatorDeclarationSyntax>
 {
     public static readonly UseExpressionBodyForOperatorsHelper Instance = new();
@@ -49,6 +49,6 @@ internal class UseExpressionBodyForOperatorsHelper :
     protected override OperatorDeclarationSyntax WithBody(OperatorDeclarationSyntax declaration, BlockSyntax body)
         => declaration.WithBody(body);
 
-    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, OperatorDeclarationSyntax declaration)
+    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, OperatorDeclarationSyntax declaration, CancellationToken cancellationToken)
         => true;
 }

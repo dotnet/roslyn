@@ -78,7 +78,7 @@ internal sealed class CSharpTransposeRecordKeywordCodeFixProvider() : SyntaxEdit
         return false;
     }
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var cancellationToken = context.CancellationToken;
 
@@ -88,11 +88,9 @@ internal sealed class CSharpTransposeRecordKeywordCodeFixProvider() : SyntaxEdit
         {
             RegisterCodeFix(context, CSharpCodeFixesResources.Fix_record_declaration, nameof(CSharpCodeFixesResources.Fix_record_declaration));
         }
-
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -114,7 +112,5 @@ internal sealed class CSharpTransposeRecordKeywordCodeFixProvider() : SyntaxEdit
                     });
             }
         }
-
-        return Task.CompletedTask;
     }
 }

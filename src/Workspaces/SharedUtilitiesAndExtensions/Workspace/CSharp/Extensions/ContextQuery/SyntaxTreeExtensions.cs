@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -354,7 +355,7 @@ internal static partial class SyntaxTreeExtensions
         var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
         var token = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-        // if we're after an attribute, restart the check at teh start of the attribute.
+        // if we're after an attribute, restart the check at the start of the attribute.
         if (token.Kind() == SyntaxKind.CloseBracketToken && token.Parent is AttributeListSyntax)
             return syntaxTree.IsLocalFunctionDeclarationContext(token.Parent.SpanStart, validModifiers, cancellationToken);
 
@@ -759,8 +760,8 @@ internal static partial class SyntaxTreeExtensions
                 position,
                 context: null,
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
                 cancellationToken: cancellationToken) ||
             syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
     }
@@ -1109,7 +1110,7 @@ internal static partial class SyntaxTreeExtensions
             parameter4 = token.Parent as ParameterSyntax;
             previousModifier = token.Kind();
         }
-        else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName)
+        else if (token.IsKind(SyntaxKind.IdentifierToken) && token is { Text: "scoped", Parent: IdentifierNameSyntax scopedIdentifierName })
         {
             parameter4 = scopedIdentifierName.Parent as ParameterSyntax;
             previousModifier = SyntaxKind.ScopedKeyword;
@@ -1127,7 +1128,7 @@ internal static partial class SyntaxTreeExtensions
         static bool IsSuitableParameterList(ParameterListSyntax parameterList, bool includeOperators)
             => parameterList.Parent switch
             {
-                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax => true,
+                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax or ParenthesizedLambdaExpressionSyntax or AnonymousMethodExpressionSyntax => true,
                 OperatorDeclarationSyntax or ConversionOperatorDeclarationSyntax when includeOperators => true,
                 _ => false,
             };
@@ -1266,7 +1267,7 @@ internal static partial class SyntaxTreeExtensions
         {
             parent = token.Parent.Parent;
         }
-        else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName && scopedIdentifierName.Parent.IsKind(SyntaxKind.Parameter))
+        else if (token.IsKind(SyntaxKind.IdentifierToken) && token is { Text: "scoped", Parent: IdentifierNameSyntax scopedIdentifierName } && scopedIdentifierName.Parent.IsKind(SyntaxKind.Parameter))
         {
             parent = scopedIdentifierName.Parent.Parent;
         }
@@ -2830,12 +2831,14 @@ internal static partial class SyntaxTreeExtensions
         // is/as/with are valid after expressions.
         if (token.IsLastTokenOfNode<ExpressionSyntax>(out var expression))
         {
-            // 'is/as/with' not allowed after a anonymous-method/lambda/method-group.
+            // 'is/as/with/switch' not allowed after a anonymous-method/lambda.
             if (expression is AnonymousFunctionExpressionSyntax)
                 return false;
 
+            // is/as/with/switch also not allowed after a naked method group reference (e.g. `this.ToString is`).
+            // They are allowed after a method invocation (e.g. `this.ToString() is`).
             var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol && expression is not InvocationExpressionSyntax)
                 return false;
 
             // However, many names look like expressions.  For example:
@@ -2985,6 +2988,19 @@ internal static partial class SyntaxTreeExtensions
         return false;
     }
 
+    public static bool IsBaseListContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+    {
+        // Options:
+        //  class E : |
+        //  class E : i|
+        //  class E : i, |
+        //  class E : i, j|
+
+        return
+            targetToken is (kind: SyntaxKind.ColonToken or SyntaxKind.CommaToken) &&
+            targetToken.Parent is BaseListSyntax { Parent: TypeDeclarationSyntax };
+    }
+
     public static bool IsEnumBaseListContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
     {
         // Options:
@@ -3055,7 +3071,6 @@ internal static partial class SyntaxTreeExtensions
     public static bool IsFunctionPointerCallingConventionContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
     {
         return targetToken.IsKind(SyntaxKind.AsteriskToken) &&
-               targetToken.Parent is FunctionPointerTypeSyntax functionPointerType &&
-               targetToken == functionPointerType.AsteriskToken;
+               targetToken.GetPreviousToken().IsKind(SyntaxKind.DelegateKeyword);
     }
 }

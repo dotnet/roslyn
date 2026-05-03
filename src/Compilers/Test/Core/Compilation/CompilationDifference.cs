@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int callerLine = 0,
             [CallerFilePath] string callerPath = null)
         {
-            string actualIL = ILDelta.GetMethodIL();
+            using var readerProvider = MetadataReaderProvider.FromMetadataImage(MetadataDelta);
+            string actualIL = ILValidation.DumpEncDeltaMethodBodies(ILDelta, [readerProvider.GetMetadataReader()]);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
@@ -162,6 +163,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+        }
+
+        internal static void VerifySynthesizedSymbols(IEnumerable<ISymbolInternal> actualSymbols, params string[] expected)
+        {
+            AssertEx.SetEqual(expected, actualSymbols.Select(v => v.GetISymbol().ToDisplayString(SymbolDisplayFormat.TestFormat)), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
         }
 
         public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)

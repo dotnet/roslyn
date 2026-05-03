@@ -298,43 +298,6 @@ Insert space before and after binary operators;</source>
         <target state="translated">變更換行的格式化選項;將區塊保留在同一行;將陳述式與成員宣告保留在同一行</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
-Show completion list after a character is typed;
-Show completion list after a character is deleted;
-Automatically show completion list in argument lists (experimental);
-Highlight matching portions of completion list items;
-Show completion item filters;
-Automatically complete statement on semicolon;
-Snippets behavior;
-Never include snippets;
-Always include snippets;
-Include snippets when ?-Tab is typed after an identifier;
-Enter key behavior;
-Never add new line on enter;
-Only add new line on enter after end of fully typed word;
-Always add new line on enter;
-Show name suggestions;
-Show items from unimported namespaces (experimental);</source>
-        <target state="translated">變更自動完成清單設定;預先選取最近使用的成員; 自動完成清單;
-在鍵入字元後顯示自動完成清單;
-在刪除字元後顯示自動完成清單;
-自動在引數清單中顯示自動完成清單 (實驗性);
-醒目提示自動完成清單項目的相符部分;
-顯示完成項目篩選;
-在遇到分號時自動完成陳述式;
-程式碼片段行為;
-一律不包含程式碼片段;
-一律包含程式碼片段;
-在識別碼後鍵入 ?-Tab 時包含程式碼片段;
-Enter 鍵行為;
-一律不在按下 Enter 鍵時新增一行程式碼;
-只在按下 Enter 鍵時，於完整鍵入的文字結尾後新增一行程式碼;
-一律在按下 Enter 鍵時新增一行程式碼;
-顯示名稱建議;
-顯示未匯入命名空間中的項目 (實驗性);</target>
-        <note>C# IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
         <target state="translated">格式化</target>

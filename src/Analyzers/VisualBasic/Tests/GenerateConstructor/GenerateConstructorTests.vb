@@ -1903,7 +1903,7 @@ End Class",
         Dim x As Integer = 1
         Dim obj As New C(x)
     End Sub
-End Class", options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
+End Class", New TestParameters(options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
@@ -1931,7 +1931,7 @@ Class A
     End Sub
 
     Shared Property _p As Integer
-End Class", options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
+End Class", New TestParameters(options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14077")>
@@ -1954,7 +1954,7 @@ End Class",
         Dim x As Integer = 1
         Dim obj As New C(x)
     End Sub
-End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix))
+End Class", New TestParameters(options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23807")>

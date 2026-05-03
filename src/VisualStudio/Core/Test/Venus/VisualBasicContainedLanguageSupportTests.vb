@@ -4,14 +4,14 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 Imports TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
@@ -695,7 +695,7 @@ End Class</text>.Value
                     targetDocument:=targetDocument,
                     cancellationToken:=Nothing) Then
 
-                    Assert.True(False, "should have succeeded")
+                    Assert.Fail("should have succeeded")
                 End If
 
                 Assert.Equal(expectedSpan, actualSpan)

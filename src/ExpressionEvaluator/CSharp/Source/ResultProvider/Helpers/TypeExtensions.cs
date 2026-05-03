@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;

@@ -586,15 +586,40 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
         comp.MakeMemberMissing(SpecialMember.System_Object__ToString);
 
-        // Although we don't use object.ToString() or char.ToString() in the final codegen we still need object.ToString() during lowering.
-        // Moreover, we previously reported these errors anyway, so this is not a behavioral change
-        comp.VerifyEmitDiagnostics(
-            // (13,47): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M1(string s, char c) => s + c;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(13, 47),
-            // (14,43): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M2(string s, char c) => c + s;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(14, 43));
+        // We don't use object.ToString() or char.ToString() in the final codegen.
+        var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "sccs" : null, verify: Verification.FailsPEVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Test.M1", """
+            {
+              // Code size       21 (0x15)
+              .maxstack  2
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.1
+              IL_0007:  stloc.0
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0014:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Test.M2", """
+            {
+              // Code size       21 (0x15)
+              .maxstack  2
+              .locals init (char V_0)
+              IL_0000:  ldarg.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0009:  ldarg.0
+              IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0014:  ret
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
@@ -1479,22 +1504,19 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               // Code size       50 (0x32)
               .maxstack  3
               .locals init (char V_0,
-                            char V_1,
-                            char V_2)
-              IL_0000:  ldc.i4.s   97
-              IL_0002:  stloc.0
-              IL_0003:  ldloca.s   V_0
-              IL_0005:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+                            char V_1)
+              IL_0000:  ldstr      "a"
+              IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000a:  ldarg.0
               IL_000b:  ldfld      "char C.c"
-              IL_0010:  stloc.1
-              IL_0011:  ldloca.s   V_1
+              IL_0010:  stloc.0
+              IL_0011:  ldloca.s   V_0
               IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0018:  ldarg.0
               IL_0019:  call       "ref char C.GetC()"
               IL_001e:  ldind.u2
-              IL_001f:  stloc.2
-              IL_0020:  ldloca.s   V_2
+              IL_001f:  stloc.1
+              IL_0020:  ldloca.s   V_1
               IL_0022:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0027:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_002c:  call       "void System.Console.Write(string)"
@@ -1546,23 +1568,20 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               .maxstack  4
               .locals init (char V_0, //c
                             char V_1,
-                            char V_2,
-                            char V_3)
+                            char V_2)
               IL_0000:  ldc.i4.s   97
               IL_0002:  stloc.0
-              IL_0003:  ldc.i4.s   97
-              IL_0005:  stloc.1
-              IL_0006:  ldloca.s   V_1
-              IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0003:  ldstr      "a"
+              IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000d:  ldloc.0
-              IL_000e:  stloc.2
-              IL_000f:  ldloca.s   V_2
+              IL_000e:  stloc.1
+              IL_000f:  ldloca.s   V_1
               IL_0011:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0016:  ldarg.0
               IL_0017:  ldloca.s   V_0
               IL_0019:  call       "char C.SneakyLocalChange(ref char)"
-              IL_001e:  stloc.3
-              IL_001f:  ldloca.s   V_3
+              IL_001e:  stloc.2
+              IL_001f:  ldloca.s   V_2
               IL_0021:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0026:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_002b:  ret
@@ -2117,24 +2136,80 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
         comp.MakeMemberMissing(SpecialMember.System_Object__ToString);
 
-        // Although we don't use object.ToString() or char.ToString() in the final codegen we still need object.ToString() during lowering.
-        // Moreover, we previously reported these errors anyway, so this is not a behavioral change
-        comp.VerifyEmitDiagnostics(
-            // (15,43): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M1(string s, char c) => c + s + s;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(15, 43),
-            // (16,47): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M2(string s, char c) => s + c + s;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(16, 47),
-            // (17,51): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M3(string s, char c) => s + s + c;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(17, 51),
-            // (18,43): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M4(string s, char c) => c + s + c;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(18, 43),
-            // (18,51): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M4(string s, char c) => c + s + c;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(18, 51));
+        var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "cssscsssccsc" : null, verify: Verification.FailsPEVerify);
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("Test.M1", """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  3
+              .locals init (char V_0)
+              IL_0000:  ldarg.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0009:  ldarg.0
+              IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_000f:  ldarg.0
+              IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001a:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M2", """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  3
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.1
+              IL_0007:  stloc.0
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_000f:  ldarg.0
+              IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001a:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M3", """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  3
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.0
+              IL_0007:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_000c:  ldarg.1
+              IL_000d:  stloc.0
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001a:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M4", """
+            {
+              // Code size       30 (0x1e)
+              .maxstack  3
+              .locals init (char V_0,
+                            char V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0009:  ldarg.0
+              IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_000f:  ldarg.1
+              IL_0010:  stloc.1
+              IL_0011:  ldloca.s   V_1
+              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0018:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001d:  ret
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
@@ -3369,28 +3444,25 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               .maxstack  4
               .locals init (char V_0,
                             char V_1,
-                            char V_2,
-                            char V_3)
-              IL_0000:  ldc.i4.s   97
-              IL_0002:  stloc.0
-              IL_0003:  ldloca.s   V_0
-              IL_0005:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+                            char V_2)
+              IL_0000:  ldstr      "a"
+              IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_000a:  ldarg.0
               IL_000b:  ldfld      "char C.c"
-              IL_0010:  stloc.1
-              IL_0011:  ldloca.s   V_1
+              IL_0010:  stloc.0
+              IL_0011:  ldloca.s   V_0
               IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0018:  ldarg.0
               IL_0019:  call       "ref char C.GetC()"
               IL_001e:  ldind.u2
-              IL_001f:  stloc.2
-              IL_0020:  ldloca.s   V_2
+              IL_001f:  stloc.1
+              IL_0020:  ldloca.s   V_1
               IL_0022:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0027:  ldarg.0
               IL_0028:  call       "ref char C.GetC2()"
               IL_002d:  ldind.u2
-              IL_002e:  stloc.3
-              IL_002f:  ldloca.s   V_3
+              IL_002e:  stloc.2
+              IL_002f:  ldloca.s   V_2
               IL_0031:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_0036:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_003b:  call       "void System.Console.Write(string)"
@@ -4754,39 +4826,158 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
         comp.MakeMemberMissing(SpecialMember.System_Object__ToString);
 
-        // Although we don't use object.ToString() or char.ToString() in the final codegen we still need object.ToString() during lowering.
-        // Moreover, we previously reported these errors anyway, so this is not a behavioral change
-        comp.VerifyEmitDiagnostics(
-            // (18,43): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M1(string s, char c) => c + s + s + s;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(18, 43),
-            // (19,47): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M2(string s, char c) => s + c + s + s;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(19, 47),
-            // (20,51): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M3(string s, char c) => s + s + c + s;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(20, 51),
-            // (21,55): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M4(string s, char c) => s + s + s + c;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(21, 55),
-            // (22,43): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M5(string s, char c) => c + s + c + s;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(22, 43),
-            // (22,51): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M5(string s, char c) => c + s + c + s;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(22, 51),
-            // (23,47): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M6(string s, char c) => s + c + s + c;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(23, 47),
-            // (23,55): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M6(string s, char c) => s + c + s + c;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(23, 55),
-            // (24,43): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M7(string s, char c) => c + s + s + c;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(24, 43),
-            // (24,55): error CS0656: Missing compiler required member 'System.Object.ToString'
-            //     static string M7(string s, char c) => c + s + s + c;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(24, 55));
+        // We don't use object.ToString() or char.ToString() in the final codegen.
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "csssscsssscssssccscsscsccssc" : null, verify: Verification.FailsPEVerify);
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("Test.M1", """
+            {
+              // Code size       33 (0x21)
+              .maxstack  4
+              .locals init (char V_0)
+              IL_0000:  ldarg.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0009:  ldarg.0
+              IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_000f:  ldarg.0
+              IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0015:  ldarg.0
+              IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0020:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Test.M2", """
+            {
+              // Code size       33 (0x21)
+              .maxstack  4
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.1
+              IL_0007:  stloc.0
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_000f:  ldarg.0
+              IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0015:  ldarg.0
+              IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0020:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Test.M3", """
+            {
+              // Code size       33 (0x21)
+              .maxstack  4
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.0
+              IL_0007:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_000c:  ldarg.1
+              IL_000d:  stloc.0
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0015:  ldarg.0
+              IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0020:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Test.M4", """
+            {
+              // Code size       33 (0x21)
+              .maxstack  4
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.0
+              IL_0007:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_000c:  ldarg.0
+              IL_000d:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0012:  ldarg.1
+              IL_0013:  stloc.0
+              IL_0014:  ldloca.s   V_0
+              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0020:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Test.M5", """
+            {
+              // Code size       36 (0x24)
+              .maxstack  4
+              .locals init (char V_0,
+                            char V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0009:  ldarg.0
+              IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_000f:  ldarg.1
+              IL_0010:  stloc.1
+              IL_0011:  ldloca.s   V_1
+              IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0018:  ldarg.0
+              IL_0019:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0023:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Test.M6", """
+            {
+              // Code size       36 (0x24)
+              .maxstack  4
+              .locals init (char V_0,
+                            char V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.1
+              IL_0007:  stloc.0
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_000f:  ldarg.0
+              IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0015:  ldarg.1
+              IL_0016:  stloc.1
+              IL_0017:  ldloca.s   V_1
+              IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0023:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Test.M7", """
+            {
+              // Code size       36 (0x24)
+              .maxstack  4
+              .locals init (char V_0,
+                            char V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_0009:  ldarg.0
+              IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_000f:  ldarg.0
+              IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0015:  ldarg.1
+              IL_0016:  stloc.1
+              IL_0017:  ldloca.s   V_1
+              IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0023:  ret
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]

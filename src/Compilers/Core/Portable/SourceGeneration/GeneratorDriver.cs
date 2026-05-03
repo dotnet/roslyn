@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
                     var pipelineContext = new IncrementalGeneratorInitializationContext(
-                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, compilation.CatchAnalyzerExceptions);
+                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, this.EmbeddedAttributeDefinition, compilation.CatchAnalyzerExceptions);
 
                     Exception? ex = null;
                     try
@@ -427,6 +427,15 @@ namespace Microsoft.CodeAnalysis
             ArrayBuilder<Diagnostic> filteredDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
             foreach (var diag in generatorDiagnostics)
             {
+                try
+                {
+                    DiagnosticAnalysisContextHelpers.VerifyArguments(diag, compilation, isSupportedDiagnostic: static (_, _) => true, cancellationToken);
+                }
+                catch (ArgumentException ex)
+                {
+                    throw new UserFunctionException(ex);
+                }
+
                 if (compilation.Options.FilterDiagnostic(diag, cancellationToken) is { } filtered &&
                     suppressMessageState.ApplySourceSuppressions(filtered) is { } effective)
                 {
@@ -461,6 +470,8 @@ namespace Microsoft.CodeAnalysis
         internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
 
         internal abstract string SourceExtension { get; }
+
+        internal abstract string EmbeddedAttributeDefinition { get; }
 
         internal abstract ISyntaxHelper SyntaxHelper { get; }
     }

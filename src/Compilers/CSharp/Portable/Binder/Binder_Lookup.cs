@@ -44,13 +44,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void LookupExtensionMethods(LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+#nullable enable
+        internal void LookupAllExtensions(LookupResult result, string? name, LookupOptions options)
         {
-            foreach (var scope in new ExtensionMethodScopes(this))
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            foreach (var scope in new ExtensionScopes(this))
             {
-                this.LookupExtensionMethodsInSingleBinder(scope, result, name, arity, options, ref useSiteInfo);
+                scope.Binder.LookupAllExtensionMembersInSingleBinder(
+                    result, name, arity: 0, options: options,
+                    originalBinder: this, useSiteInfo: ref discardedUseSiteInfo, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
             }
         }
+#nullable disable
 
         /// <summary>
         /// Look for any symbols in scope with the given name and arity.
@@ -176,6 +182,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+        private void LookupAllExtensionMembersInSingleBinder(LookupResult result, string? name,
+            int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
+        {
+            var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
+            EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, name, arity, options, originalBinder, ref useSiteInfo, ref classicExtensionUseSiteInfo);
+            foreach (var singleLookupResult in singleLookupResults)
+            {
+                result.MergeEqual(singleLookupResult);
+            }
+
+            singleLookupResults.Free();
+        }
+
+        internal void EnumerateAllExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result,
+            string? name, int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
+        {
+            var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
+            this.GetAllExtensionCandidatesInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
+
+            foreach (var candidate in extensionCandidates)
+            {
+                bool isExtensionMethod = candidate is MethodSymbol { IsExtensionMethod: true };
+                ref var useSiteInfoToUse = ref isExtensionMethod ? ref classicExtensionUseSiteInfo : ref useSiteInfo;
+                SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfoToUse);
+                if (resultOfThisMember.Kind == LookupResultKind.Empty)
+                {
+                    continue;
+                }
+
+                Debug.Assert(resultOfThisMember.Symbol is not null);
+                result.Add(resultOfThisMember);
+            }
+
+            extensionCandidates.Free();
+        }
+#nullable disable
+
         // Looks up a member of given name and arity in a particular type.
         protected void LookupMembersInType(LookupResult result, TypeSymbol type, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -205,6 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case TypeKind.Pointer:
                 case TypeKind.FunctionPointer:
+                case TypeKind.Extension:
                     result.Clear();
                     break;
 
@@ -449,27 +494,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SingleLookupResult resultOfThisMember = originalBinder.CheckViability(member, arity, options, null, diagnose, ref useSiteInfo);
                 result.MergeEqual(resultOfThisMember);
             }
-        }
-
-        /// <summary>
-        /// Lookup extension methods by name and arity in the given binder and
-        /// check viability in this binder. The lookup is performed on a single
-        /// binder because extension method search stops at the first applicable
-        /// method group from the nearest enclosing namespace.
-        /// </summary>
-        private void LookupExtensionMethodsInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            var methods = ArrayBuilder<MethodSymbol>.GetInstance();
-            var binder = scope.Binder;
-            binder.GetCandidateExtensionMethods(methods, name, arity, options, this);
-
-            foreach (var method in methods)
-            {
-                SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                result.MergeEqual(resultOfThisMember);
-            }
-
-            methods.Free();
         }
 
         #region "AttributeTypeLookup"
@@ -738,7 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        internal virtual bool SupportsExtensionMethods
+        internal virtual bool SupportsExtensions
         {
             get { return false; }
         }
@@ -746,11 +770,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return the extension methods from this specific binding scope that match the name and optional
         /// arity. Since the lookup of extension methods is iterative, proceeding one binding scope at a time,
-        /// GetCandidateExtensionMethods should not defer to the next binding scope. Instead, the caller is
+        /// <see cref="GetCandidateExtensionMethodsInSingleBinder"/> should not defer to the next binding scope. Instead, the caller is
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// </summary>
-        internal virtual void GetCandidateExtensionMethods(
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal virtual void GetCandidateExtensionMethodsInSingleBinder(
             ArrayBuilder<MethodSymbol> methods,
             string name,
             int arity,
@@ -758,6 +783,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder originalBinder)
         {
         }
+
+#nullable enable
+        /// <summary>
+        /// Return the extension members and methods from this specific binding scope
+        /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,
+        /// <see cref="GetAllExtensionCandidatesInSingleBinder"/> should not defer to the next binding scope. Instead, the caller is
+        /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
+        /// to search the available members list in binding types that represent types, namespaces, and usings.
+        /// An alternativeName should only be provided if a name is provided.
+        /// </summary>
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal virtual void GetAllExtensionCandidatesInSingleBinder(
+            ArrayBuilder<Symbol> members,
+            string? name,
+            string? alternativeName,
+            int arity,
+            LookupOptions options,
+            Binder originalBinder)
+        {
+        }
+#nullable disable
 
         // Does a member lookup in a single type, without considering inheritance.
         protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string name, int arity,
@@ -1399,6 +1445,10 @@ symIsHidden:;
             {
                 return LookupResult.Empty();
             }
+            else if ((options & LookupOptions.MustBeOperator) != 0 && unwrappedSymbol is not MethodSymbol { MethodKind: MethodKind.UserDefinedOperator })
+            {
+                return LookupResult.Empty();
+            }
             else if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
             {
                 return LookupResult.Empty();
@@ -1417,7 +1467,7 @@ symIsHidden:;
             {
                 return LookupResult.WrongArity(symbol, diagInfo);
             }
-            else if (!InCref && !unwrappedSymbol.CanBeReferencedByNameIgnoringIllegalCharacters)
+            else if (!InCref && !unwrappedSymbol.CanBeReferencedByNameIgnoringIllegalCharacters && (options & LookupOptions.MustBeOperator) == 0)
             {
                 // Strictly speaking, this test should actually check CanBeReferencedByName.
                 // However, we don't want to pay that cost in cases where the lookup is based
@@ -1713,14 +1763,14 @@ symIsHidden:;
                 case SymbolKind.Property:
                 case SymbolKind.NamedType:
                 case SymbolKind.Event:
-                    return !IsInvocableMember(symbol);
+                    return !IsInvocableMember(symbol, this.FieldsBeingBound);
 
                 default:
                     return false;
             }
         }
 
-        private bool IsInvocableMember(Symbol symbol)
+        internal static bool IsInvocableMember(Symbol symbol, ConsList<FieldSymbol> fieldsBeingBound)
         {
             // If a member is a method or event, or if it is a constant, field or property of 
             // either a delegate type or the type dynamic, then the member is said to be invocable.
@@ -1734,7 +1784,7 @@ symIsHidden:;
                     return true;
 
                 case SymbolKind.Field:
-                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).Type;
+                    type = ((FieldSymbol)symbol).GetFieldType(fieldsBeingBound).Type;
                     break;
 
                 case SymbolKind.Property:
@@ -1793,7 +1843,7 @@ symIsHidden:;
                     if (arity != 0 || (options & LookupOptions.AllMethodsOnArityZero) == 0)
                     {
                         MethodSymbol method = (MethodSymbol)symbol;
-                        if (method.Arity != arity)
+                        if (method.GetMemberArityIncludingExtension() != arity)
                         {
                             if (method.Arity == 0)
                             {
