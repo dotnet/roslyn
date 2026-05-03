@@ -366,7 +366,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool HasTryGetValueSignature(MethodSymbol method)
         {
-            // https://github.com/dotnet/roslyn/issues/82636: Cover individual conditions with tests
             return method is
             {
                 IsStatic: false,

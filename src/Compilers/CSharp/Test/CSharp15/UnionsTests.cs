@@ -31122,6 +31122,218 @@ class Program
                 );
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_21_NotPublic([CombinatorialValues("internal", "protected", "internal protected", "private protected")] string accessibility)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    bool IUnionMembers.TryGetValue(out int x) => throw null;
+    
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+        " + accessibility + @" abstract bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_22_NotPublic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+        private bool TryGetValue(out int x) => throw null;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_23_Generic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    bool IUnionMembers.TryGetValue<T>(out int x) => throw null;
+    
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+        public bool TryGetValue<T>(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_24_WrongParameterKind()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+    
+    object IUnionMembers.Value => _value;
+    bool IUnionMembers.TryGetValue() => throw null;
+    bool IUnionMembers.TryGetValue(out int x, out int y) => throw null;
+
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+        public bool TryGetValue();
+        public bool TryGetValue(out int x, out int y);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_25_Overloaded()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+    
+    object IUnionMembers.Value => throw null;
+    bool IUnionMembers.TryGetValue(out int x, out int y) => throw null;
+    bool IUnionMembers.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    bool IUnionMembers.TryGetValue() => throw null;
+
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+        public bool TryGetValue(out int x, out int y);
+        public bool TryGetValue(out int x);
+        public bool TryGetValue();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
         [Fact]
         public void NonBoxingUnionMatching_MemberProvider_Misc_01()
         {
@@ -43689,6 +43901,263 @@ class Program
                 //             _ = s switch { string => 1, bool => 3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 19)
                 );
+        }
+
+        [Fact]
+        public void TryGetValueMethod_45_Static()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public static bool TryGetValue(out int x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_46_NotPublic([CombinatorialValues("internal", "private")] string accessibility)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    " + accessibility + @" bool TryGetValue(out int x) => throw null;
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_47_NotPublic([CombinatorialValues("internal", "private", "protected", "private protected", "protected internal")] string accessibility)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    " + accessibility + @" bool TryGetValue(out int x) => throw null;
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1(null)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_48_Generic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public bool TryGetValue<T>(out int x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_49_WrongRefKind([CombinatorialValues("ref", "ref readonly")] string refModifier)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public " + refModifier + @" bool TryGetValue(out int x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_45_WrongRefKind([CombinatorialValues("", "in", "ref", "ref readonly")] string refModifier)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public bool TryGetValue(" + refModifier + @" int x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_46_WrongParameterCount()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public bool TryGetValue() => throw null;
+    public bool TryGetValue(out int x, out int y) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_47_Overloaded()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x, out int y) => throw null;
+    public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    public bool TryGetValue() => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
         }
 
         /// <summary>
