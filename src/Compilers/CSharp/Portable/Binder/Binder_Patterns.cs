@@ -208,13 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool hasHasValueSignature(PropertySymbol property)
             {
-                // https://github.com/dotnet/roslyn/issues/82636: Cover individual conditions with tests
                 return property is
                 {
                     IsStatic: false,
                     DeclaredAccessibility: Accessibility.Public,
                     GetMethod: not null,
-                    SetMethod: null,
                     RefKind: RefKind.None,
                     ParameterCount: 0,
                     Type.SpecialType: SpecialType.System_Boolean
