@@ -590,8 +590,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("D<T>", "T", "C").WithLocation(2, 14));
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
-        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
-        Assert.Equal(["D<T>"], subtypes.ToTestDisplayStrings());
+        Assert.False(classC.TryGetClosedSubtypes(out _));
     }
 
     [Fact]
@@ -633,8 +632,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<T>.D", "T", "C").WithLocation(5, 18));
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
-        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
-        Assert.Equal(["Outer<T>.D"], subtypes.ToTestDisplayStrings());
+        Assert.False(classC.TryGetClosedSubtypes(out _));
     }
 
     [Fact]
@@ -700,8 +698,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.Empty(subtypes);
 
         var classE = comp1.GetMember<NamedTypeSymbol>("E");
-        Assert.True(classE.TryGetClosedSubtypes(out subtypes));
-        Assert.Equal(["F<T>"], subtypes.ToTestDisplayStrings());
+        Assert.False(classE.TryGetClosedSubtypes(out _));
 
         Assert.True(comp1.GetMember<NamedTypeSymbol>("F").TryGetClosedSubtypes(out subtypes));
         Assert.Empty(subtypes);

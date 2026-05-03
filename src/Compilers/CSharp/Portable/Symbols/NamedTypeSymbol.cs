@@ -716,17 +716,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            // https://github.com/dotnet/csharplang/blob/3e15888c804dc632479c94589dcd02c341fd0a4f/proposals/closed-hierarchies.md#type-parameter-restriction
-            // If a closed type lacks type parameters, then, any valid subtype of it also lacks type parameters.
             var candidateSubtypes = CandidateClosedSubtypeDefinitions;
-            if (!IsGenericType)
+            if (candidateSubtypes.All(subtype => !subtype.IsGenericType))
             {
                 subtypes = candidateSubtypes;
                 return true;
             }
 
             var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
-            if (!tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder))
+            var baseTypeTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            this.FindTypeParameters(baseTypeTypeParameters);
+
+            var success = tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder, baseTypeTypeParameters);
+            baseTypeTypeParameters.Free();
+            if (!success)
             {
                 resultBuilder.Free();
                 subtypes = [];
@@ -736,29 +739,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             subtypes = resultBuilder.ToImmutableAndFree();
             return true;
 
-            static bool tryGetSpeakableSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes, ArrayBuilder<NamedTypeSymbol> resultBuilder)
+            static bool tryGetSpeakableSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes, ArrayBuilder<NamedTypeSymbol> resultBuilder, HashSet<TypeParameterSymbol> baseTypeTypeParameters)
             {
                 foreach (var candidateSubtype in candidateSubtypes)
                 {
                     if (TypeUnification.TryUnifyClosedSubtype(candidateSubtype, closedType: @this) is { } unifiedSubtype)
                     {
-                        // Check if 'closedSubtype' contains type parameters which are not present in '@this'.
-                        // This implies 'closedSubtype' was able to unify but is not speakable at the use site.
-                        var baseTypeTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-                        _ = @this.VisitType(static (type, inputTypeTypeParameters, isNested) =>
+                        if (unifiedSubtype.IsGenericType && unifiedSubtype.ContainsAdditionalTypeParameter(allowedTypeParameters: baseTypeTypeParameters))
                         {
-                            if (type is TypeParameterSymbol typeParameter)
-                                inputTypeTypeParameters.Add(typeParameter);
-
-                            return false;
-                        }, baseTypeTypeParameters);
-
-                        var unspeakableTypeParameter = unifiedSubtype.VisitType(
-                            (type, inputTypeTypeParameters, isNested) => type is TypeParameterSymbol typeParameter && !inputTypeTypeParameters.Contains(typeParameter),
-                            baseTypeTypeParameters);
-                        baseTypeTypeParameters.Free();
-                        if (unspeakableTypeParameter is not null)
-                        {
+                            // If 'closedSubtype' contains type parameters which are not present in '@this',
+                            // it implies 'closedSubtype' was able to unify but is not speakable at the use site.
                             return false;
                         }
 

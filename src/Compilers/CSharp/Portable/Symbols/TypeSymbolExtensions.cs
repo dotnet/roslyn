@@ -1270,6 +1270,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_containsTypeParametersPredicate =
             (type, parameters, unused) => type.TypeKind == TypeKind.TypeParameter && parameters.Contains((TypeParameterSymbol)type);
 
+        public static bool ContainsAdditionalTypeParameter(this TypeSymbol type, HashSet<TypeParameterSymbol> allowedTypeParameters)
+        {
+            var result = type.VisitType(
+                (type, allowedTypeParameters, isNested) => type is TypeParameterSymbol typeParameter && !allowedTypeParameters.Contains(typeParameter), allowedTypeParameters);
+            return result is object;
+        }
+
+        public static void FindTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> result)
+            => type.VisitType(s_typeParameterSymbolCollector, result, visitCustomModifiers: true);
+
+        public static void FindTypeParameters(this MethodSymbol method, HashSet<TypeParameterSymbol> result)
+        {
+            FindTypeParameters(method.ContainingType, result);
+
+            foreach (var typeArgument in method.TypeArgumentsWithAnnotations)
+            {
+                typeArgument.VisitType(type: null, typeWithAnnotationsPredicate: null, s_typeParameterSymbolCollector, result, visitCustomModifiers: true);
+            }
+        }
+
+        private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_typeParameterSymbolCollector = (typeSymbol, result, _) =>
+        {
+            if (typeSymbol is TypeParameterSymbol typeParameter)
+            {
+                result.Add(typeParameter);
+            }
+
+            return false;
+        };
+
         public static bool ContainsMethodTypeParameter(this TypeSymbol type)
         {
             var result = type.VisitType(s_containsMethodTypeParameterPredicate, null);
