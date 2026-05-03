@@ -27,6 +27,7 @@ internal partial class RazorEditService
             => member switch
             {
                 BaseMethodDeclarationSyntax method => new(method, GetComparisonSpan(method), sourceText),
+                TypeDeclarationSyntax typeDeclaration => new(typeDeclaration, GetComparisonSpan(typeDeclaration), sourceText),
                 PropertyDeclarationSyntax property => new(property, GetComparisonSpan(property), sourceText),
                 FieldDeclarationSyntax field => new(field, GetComparisonSpan(field), sourceText),
                 _ => null,
@@ -79,6 +80,14 @@ internal partial class RazorEditService
             // already exists. Keeping the comparison this narrow avoids treating accessor, initializer, or
             // modifier changes as additions.
             return property.Identifier.Span;
+        }
+
+        private static TextSpan GetComparisonSpan(TypeDeclarationSyntax typeDeclaration)
+        {
+            // Consider the type parameter list so types that differ only by generic arity remain distinct.
+            return TextSpan.FromBounds(
+                typeDeclaration.Identifier.SpanStart,
+                typeDeclaration.TypeParameterList?.Span.End ?? typeDeclaration.Identifier.Span.End);
         }
 
         private static TextSpan GetComparisonSpan(FieldDeclarationSyntax field)

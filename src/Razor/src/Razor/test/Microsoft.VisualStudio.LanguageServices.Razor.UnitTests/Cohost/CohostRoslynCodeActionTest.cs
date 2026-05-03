@@ -363,6 +363,189 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
             childActionIndex: 0);
 
     [Fact]
+    public Task GenerateType_NoCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        Component.$$MissingType value = null;
+                        return value;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                @code {
+                    internal class MissingType
+                    {
+                    }
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            childActionIndex: 0);
+
+    [Fact]
+    public async Task GenerateType_NoCodeBlock_CodeBlockBraceOnNextLine()
+    {
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });
+
+        await VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        Component.$$MissingType value = null;
+                        return value;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                @code
+                {
+                    internal class MissingType
+                    {
+                    }
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            childActionIndex: 0);
+    }
+
+    [Fact]
+    public Task GenerateType_ExistingCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        Component.$$MissingType value = null;
+                        return value;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+                }
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+
+                    internal class MissingType
+                    {
+                    }
+                }
+
+                The end.
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            childActionIndex: 0);
+
+    [Fact]
+    public Task GenerateType_ExistingCodeBlock_DifferentGenericArity()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        Component.$$MissingType<int> value = null;
+                        return value;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+
+                    internal class MissingType
+                    {
+                    }
+                }
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+
+                    internal class MissingType
+                    {
+                    }
+
+                    internal class MissingType<T>
+                    {
+                    }
+                }
+
+                The end.
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            childActionIndex: 0);
+
+    [Fact]
     public Task GenerateProperty_ExistingCodeBlock()
         => VerifyCodeActionAsync(
             csharpFile: """

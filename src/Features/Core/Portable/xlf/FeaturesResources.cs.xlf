@@ -2600,6 +2600,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Nahradit podmíněný výraz pomocí příkazů</target>
         <note />
       </trans-unit>
+      <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
+        <source>Represents the character '{0}' as a UTF-16 code unit.</source>
+        <target state="new">Represents the character '{0}' as a UTF-16 code unit.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Required">
         <source>required</source>
         <target state="translated">povinné</target>

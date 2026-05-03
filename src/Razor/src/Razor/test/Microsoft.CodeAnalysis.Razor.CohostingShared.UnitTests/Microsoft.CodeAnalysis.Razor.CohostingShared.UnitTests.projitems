@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateConstructorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateFieldTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GeneratePropertyTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\AddUsingTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CohostCodeActionsEndpointTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CreateComponentFromTagTests.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostLinkedEditingRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostOnAutoInsertEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostRenameEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSelectionRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSignatureHelpEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostWillRenameEndpointTest.cs" />

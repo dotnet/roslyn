@@ -919,6 +919,139 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """);
 
     [Fact]
+    public Task NewType_ExistingCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private object M()
+                    {
+                        return new MissingType();
+                    }|}
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private object M()
+                    {
+                        return new MissingType();
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private object M()
+                    {
+                        return new MissingType();
+                    }
+
+                    private class MissingType
+                    {
+                        public MissingType()
+                        {
+                        }
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private object M()
+                    {
+                        return new MissingType();
+                    }
+
+                    private class MissingType
+                    {
+                        public MissingType()
+                        {
+                        }
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task NewType_NoCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+          razorSource: """
+                <div></div>
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private class MissingType
+                    {
+                        public MissingType()
+                        {
+                        }
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                <div></div>
+                @code {
+                    private class MissingType
+                    {
+                        public MissingType()
+                        {
+                        }
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task ChangedTypeBody_ExistingCodeBlock_IsNotAdded()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+
+                    private class MissingType
+                    {
+                    }
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int M()
+                    {
+                        return 2;
+                    }
+
+                    private class MissingType
+                    {
+                        public int Value { get; }
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int M()
+                    {
+                        return 2;
+                    }
+                }
+                """);
+
+    [Fact]
     public Task NewProperty_ExistingCodeBlock()
       => TestAsync(
           csharpSource: """

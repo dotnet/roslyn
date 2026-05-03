@@ -97,6 +97,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
                 RangeFormatting = new() { DynamicRegistration = true },
                 References = new() { DynamicRegistration = true },
                 Rename = new() { DynamicRegistration = true },
+                SelectionRange = new() { DynamicRegistration = true },
                 SemanticTokens = new() { DynamicRegistration = true },
                 SignatureHelp = new() { DynamicRegistration = true },
                 Synchronization = new() { DynamicRegistration = true },

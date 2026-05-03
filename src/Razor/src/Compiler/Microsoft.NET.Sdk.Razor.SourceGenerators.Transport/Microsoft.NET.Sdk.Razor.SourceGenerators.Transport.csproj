@@ -19,6 +19,8 @@
   <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
     <ItemGroup>
       <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\netstandard2.0\*.*" Exclude="$(ArtifactsBinDir)**\*.pdb" PackagePath="\source-generators" />
+      <Content Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" PackagePath="\source-generators" />
+      <Content Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Utilities.Shared.xml" PackagePath="\source-generators" />
       <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Tooling.Internal\$(Configuration)\netstandard2.0\Microsoft.Extensions.ObjectPool.dll" PackagePath="\source-generators" />
     </ItemGroup>
   </Target>
