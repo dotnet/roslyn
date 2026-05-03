@@ -174,7 +174,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             int i = 0;
             using var builder = TemporaryArray<StateForCase>.GetInstance(switchArms.Length);
             foreach (BoundSwitchExpressionArm arm in switchArms)
+            {
                 builder.Add(MakeTestsForPattern(++i, arm.Syntax, rootIdentifier, arm.Pattern, arm.HasUnionMatching, arm.WhenClause, arm.Label));
+            }
 
             return MakeBoundDecisionDag(syntax, ref builder.AsRef());
         }
@@ -3114,7 +3116,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var hashCode = 0;
                 foreach (var value in x.Cases)
+                {
                     hashCode = Hash.Combine(value.GetHashCode(), hashCode);
+                }
 
                 return Hash.Combine(hashCode, x.Cases.Count);
             }
@@ -4109,7 +4113,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var builder = ArrayBuilder<Tests>.GetInstance(seq.Length);
                     foreach (var t in seq)
+                    {
                         builder.Add(Not.Create(t));
+                    }
 
                     return builder;
                 }
