@@ -203,8 +203,8 @@ public sealed class SerializableBytesTests
     {
         using var expected = new MemoryStream();
         expected.WriteByte(1);
-        expected.SetLength(10000);
-        expected.Position = 10000 - 1;
+        expected.SetLength(SharedPools.ByteBufferSize * 3);
+        expected.Position = SharedPools.ByteBufferSize * 3 - 1;
         expected.WriteByte(2);
         expected.SetLength(SharedPools.ByteBufferSize);
         expected.WriteByte(3);
@@ -213,8 +213,8 @@ public sealed class SerializableBytesTests
 
         using var stream = SerializableBytes.CreateWritableStream();
         stream.WriteByte(1);
-        stream.SetLength(10000);
-        stream.Position = 10000 - 1;
+        stream.SetLength(SharedPools.ByteBufferSize * 3);
+        stream.Position = SharedPools.ByteBufferSize * 3 - 1;
         stream.WriteByte(2);
         stream.SetLength(SharedPools.ByteBufferSize);
         stream.WriteByte(3);

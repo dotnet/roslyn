@@ -55,9 +55,9 @@ internal static class SharedPools
     /// </summary>
     public static readonly ObjectPool<byte[]> ByteArray = new(() => new byte[ByteBufferSize], ByteBufferCount);
 
-    // byte pooled memory : 4K * 512 = 2MB
-    public const int ByteBufferSize = 4 * 1024;
-    private const int ByteBufferCount = 512;
+    // byte pooled memory : 64K * 32 = 2MB
+    public const int ByteBufferSize = 64 * 1024;
+    private const int ByteBufferCount = 32;
 
     private static class DefaultBigPool<T> where T : class, new()
     {
