@@ -3839,8 +3839,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
+        CSharpCompilation createCompilation(CSharpCompilationOptions options)
+            => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(TargetFramework.Standard), options: options
+#if DEBUG
+                // https://github.com/dotnet/roslyn/issues/83549
+                , skipExtraValidation: true
+#endif
+                );
+
         // Without updated rules: M1 is in unsafe context, so it's a warning.
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+        createCompilation(TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (7,20): warning CS9077: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
             //         return ref x;
             Diagnostic(ErrorCode.WRN_RefReturnLocal, "x").WithArguments("x").WithLocation(7, 20),
@@ -3853,7 +3861,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         // With updated rules: M1's body should NOT be in unsafe context (unsafe on method has no interior meaning),
         // so ref-return of local should be an error (not downgraded to warning).
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        createCompilation(TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (7,20): error CS8168: Cannot return local 'x' by reference because it is not a ref local
             //         return ref x;
             Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(7, 20),
@@ -3895,8 +3903,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
+        CSharpCompilation createCompilation(CSharpCompilationOptions options)
+            => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(TargetFramework.Standard), options: options, skipExtraValidation: true);
+
         // Without updated rules: Local1 is in unsafe context, so it's a warning.
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+        createCompilation(TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (9,24): warning CS9077: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
             //             return ref x;
             Diagnostic(ErrorCode.WRN_RefReturnLocal, "x").WithArguments("x").WithLocation(9, 24),
@@ -3909,7 +3920,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         // With updated rules: Local1's body should NOT be in unsafe context (unsafe on local function has no interior meaning),
         // so ref-return of local should be an error (not downgraded to warning).
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        createCompilation(TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (9,24): error CS8168: Cannot return local 'x' by reference because it is not a ref local
             //             return ref x;
             Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(9, 24),
