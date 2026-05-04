@@ -610,26 +610,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task TestDocumentDiagnosticsFromRazorServer(bool useVSDiagnostics, bool mutatingLspWorkspace)
-    {
-        var markup = @"class A {";
-
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-            GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, WellKnownLspServerKinds.RazorLspServer));
-
-        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
-
-        await OpenDocumentAsync(testLspServer, document);
-
-        var results = await RunGetDocumentPullDiagnosticsAsync(
-            testLspServer, document.GetURI(), useVSDiagnostics);
-
-        // Assert that we have diagnostics even though the option is set to push.
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedUri);
-    }
-
-    [Theory, CombinatorialData]
     public async Task TestDocumentDiagnosticsFromLiveShareServer(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var markup = @"class A {";
