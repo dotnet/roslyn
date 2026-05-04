@@ -2602,7 +2602,7 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
         <source>Represents the character '{0}' as a UTF-16 code unit.</source>
-        <target state="new">Represents the character '{0}' as a UTF-16 code unit.</target>
+        <target state="translated">Representa el carácter "{0}" como una unidad de código UTF-16.</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

@@ -2602,7 +2602,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
         <source>Represents the character '{0}' as a UTF-16 code unit.</source>
-        <target state="new">Represents the character '{0}' as a UTF-16 code unit.</target>
+        <target state="translated">Reprezentuje znak „{0}” jako jednostkę kodu UTF-16.</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
