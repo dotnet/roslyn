@@ -1,0 +1,38 @@
+{
+  "directory": "Q:\\repos\\msbuild",
+  "output": "result-msbuild.html",
+  "queries": [
+    {
+      "type": "find-type-definition",
+      "name": "Project"
+    },
+    {
+      "type": "find-type-definition",
+      "name": "ProjectInstance"
+    },
+    {
+      "type": "find-type-definition",
+      "name": "TaskItem"
+    },
+    {
+      "type": "find-derived-types",
+      "name": "Task"
+    },
+    {
+      "type": "find-interface-implementation",
+      "name": "ITask"
+    },
+    {
+      "type": "find-member-definition",
+      "name": "Execute"
+    },
+    {
+      "type": "find-type-definition",
+      "name": "BuildManager"
+    },
+    {
+      "type": "find-member-definition",
+      "name": "Build"
+    }
+  ]
+}
