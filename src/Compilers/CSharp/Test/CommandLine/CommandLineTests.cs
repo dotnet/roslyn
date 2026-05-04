@@ -1460,7 +1460,6 @@ class C
         // The following test is failing in the Linux Debug test leg of CI.
         // This issue is being tracked by https://github.com/dotnet/roslyn/issues/58077
         [ConditionalFact(typeof(WindowsOrMacOSOnly))]
-        [ValidatePooledObjects(LeakReason = "Script argument parsing error path leaks PooledStringBuilder")]
         public void ArgumentParsing()
         {
             var sdkDirectory = SdkDirectory;

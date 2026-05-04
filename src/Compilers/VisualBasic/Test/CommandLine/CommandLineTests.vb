@@ -1398,7 +1398,6 @@ End Module").Path
         End Sub
 
         <Fact>
-        <ValidatePooledObjects(LeakReason:="Script argument parsing error path leaks PooledStringBuilder")>
         Public Sub ArgumentParsing()
             Dim parsedArgs = InteractiveParse({"a + b"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
@@ -7463,7 +7462,6 @@ End Module
         End Sub
 
         <Fact()>
-        <ValidatePooledObjects(LeakReason:="Error path leaks PooledStringBuilder")>
         Public Sub ReservedDeviceNameAsFileName2()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
 Module Module1

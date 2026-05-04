@@ -649,6 +649,7 @@ namespace Microsoft.CodeAnalysis
                 catch (Exception)
                 {
                     diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_OpenResponseFile, fullPath));
+                    stringBuilder.Free();
                     return;
                 }
 
