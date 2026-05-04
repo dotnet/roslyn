@@ -492,26 +492,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
-            return VisitImplicitIndexerAccess(node, isLeftOfAssignment: false);
+            return VisitImplicitIndexerAccess(node, isLeftOfAssignment: false, receiverIsKnownToBeCaptured: out _);
         }
 
-        private BoundExpression VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment)
+        private BoundExpression VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment, out bool receiverIsKnownToBeCaptured)
         {
             var argumentType = node.Argument.Type;
             if (Binder.IsWellKnownSystemIndex(argumentType, _compilation))
             {
-                return VisitIndexPatternIndexerAccess(node, isLeftOfAssignment: isLeftOfAssignment);
+                return VisitIndexPatternIndexerAccess(node, isLeftOfAssignment: isLeftOfAssignment, out receiverIsKnownToBeCaptured);
             }
             else
             {
                 Debug.Assert(Binder.IsWellKnownSystemRange(argumentType, _compilation));
                 Debug.Assert(!isLeftOfAssignment || node.IndexerOrSliceAccess.GetRefKind() == RefKind.Ref);
 
+                receiverIsKnownToBeCaptured = true;
                 return VisitRangePatternIndexerAccess(node);
             }
         }
 
-        private BoundExpression VisitIndexPatternIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment)
+        private BoundExpression VisitIndexPatternIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment, out bool receiverIsKnownToBeCaptured)
         {
             var locals = ArrayBuilder<LocalSymbol>.GetInstance(2);
             var sideeffects = ArrayBuilder<BoundExpression>.GetInstance(2);
@@ -520,7 +521,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node, isLeftOfAssignment,
                 isRegularAssignment: isLeftOfAssignment,
                 cacheAllArgumentsOnly: false,
-                sideeffects, locals);
+                sideeffects, locals,
+                out receiverIsKnownToBeCaptured);
 
             return _factory.Sequence(
                 locals.ToImmutableAndFree(),
@@ -534,7 +536,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isRegularAssignment,
             bool cacheAllArgumentsOnly,
             ArrayBuilder<BoundExpression> sideeffects,
-            ArrayBuilder<LocalSymbol> locals)
+            ArrayBuilder<LocalSymbol> locals,
+            out bool receiverIsKnownToBeCaptured)
         {
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
             Debug.Assert(node.IndexerOrSliceAccess is BoundIndexerAccess or BoundArrayAccess);
@@ -549,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = VisitExpression(node.Receiver);
 
-            bool receiverIsKnownToBeCaptured = false;
+            receiverIsKnownToBeCaptured = false;
             // Do not capture receiver if we're in an initializer
             if (!cacheAllArgumentsOnly)
             {

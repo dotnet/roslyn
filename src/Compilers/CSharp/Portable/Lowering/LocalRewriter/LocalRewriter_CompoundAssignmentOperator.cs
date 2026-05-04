@@ -557,7 +557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isLeftOfAssignment: true,
                 isRegularAssignment: false,
                 cacheAllArgumentsOnly: false,
-                stores, temps);
+                stores, temps,
+                receiverIsKnownToBeCaptured: out _); // PROTOTYPE likely need to use this for compound assignment scenarios
 
             if (access is BoundIndexerAccess indexerAccess)
             {
