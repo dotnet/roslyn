@@ -18,6 +18,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Completion\CohostCompletionListCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Completion\CohostDocumentCompletionEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Completion\CohostDocumentCompletionResolveEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CallHierarchy\CohostCallHierarchyIncomingCallsEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CallHierarchy\CohostCallHierarchyOutgoingCallsEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CallHierarchy\CohostPrepareCallHierarchyEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\CohostDocumentPullDiagnosticsEndpointBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentColor\CohostColorPresentationEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentColor\CohostDocumentColorEndpoint.cs" />
