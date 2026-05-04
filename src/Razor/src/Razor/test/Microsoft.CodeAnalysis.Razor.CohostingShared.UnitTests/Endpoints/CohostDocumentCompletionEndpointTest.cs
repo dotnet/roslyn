@@ -883,7 +883,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 #endif
     }
 
-    // Tests HTML attributes and DirectiveAttributeParameterCompletionItemProvider
+    // Tests that directive attribute parameter positions only show bind modifiers, not HTML attributes
     [Fact]
     public async Task HtmlAndDirectiveAttributeParameterNamesCompletion()
     {
@@ -901,8 +901,49 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["style", "dir", "culture", "event", "format", "get", "set", "after"],
-            htmlItemLabels: ["style", "dir"]);
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"]);
+    }
+
+    // Tests that cursor at end of parameter name before equals still shows bind modifiers
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeParameterNamesBeforeEqualsCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind:fo$$=""></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"]);
+    }
+
+    // Tests that cursor immediately after colon (no parameter text yet) shows bind modifiers
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeParameterNamesAfterColonCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind:$$></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"]);
     }
 
     [Fact]

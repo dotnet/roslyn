@@ -32,6 +32,44 @@ public partial class DirectiveAttributeCompletionItemProviderTest
     }
 
     [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeParameterEndBeforeEquals_ReturnsCompletions()
+    {
+        // Arrange - cursor at end of parameter name, right before the equals sign
+        var context = CreateRazorCompletionContext("""<input @bind:fo$$="" />""");
+
+        // Act
+        var completions = _provider.GetCompletionItems(context);
+
+        // Assert
+        Assert.Equal(6, completions.Length);
+        AssertContains(completions, "culture");
+        AssertContains(completions, "event");
+        AssertContains(completions, "format");
+        AssertContains(completions, "get");
+        AssertContains(completions, "set");
+        AssertContains(completions, "after");
+    }
+
+    [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeParameterImmediatelyAfterColon_ReturnsCompletions()
+    {
+        // Arrange - cursor right after the colon with no parameter text yet
+        var context = CreateRazorCompletionContext("<input @bind:$$  />");
+
+        // Act
+        var completions = _provider.GetCompletionItems(context);
+
+        // Assert
+        Assert.Equal(6, completions.Length);
+        AssertContains(completions, "culture");
+        AssertContains(completions, "event");
+        AssertContains(completions, "format");
+        AssertContains(completions, "get");
+        AssertContains(completions, "set");
+        AssertContains(completions, "after");
+    }
+
+    [Fact]
     public void GetAttributeParameterCompletions_NoDescriptorsForTag_ReturnsEmptyCollection()
     {
         // Arrange

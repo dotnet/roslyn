@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
+using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
@@ -261,6 +262,60 @@ internal static class DelegatedCompletionHelper
             }
 
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Returns true if the position is inside the parameter portion of a directive attribute
+    /// (e.g., the "format" in <c>@bind-Value:format</c>). In this context, only directive
+    /// attribute parameter completions are valid — HTML attribute completions should be excluded.
+    /// </summary>
+    public static bool IsInDirectiveAttributeParameterContext(RazorCodeDocument razorCodeDocument, int absoluteIndex)
+    {
+        // Use the tag-helper-rewritten tree so that directive attributes are represented as
+        // structured nodes (e.g. MarkupTagHelperDirectiveAttributeSyntax) with explicit Colon
+        // and ParameterName children, matching what the Razor completion providers see.
+        var syntaxTree = razorCodeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
+        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
+        if (owner is null)
+        {
+            return false;
+        }
+
+        // FindInnermostNode returns token.Parent, which can be:
+        // 1. The attribute node itself (when the token is a direct child like EqualsToken)
+        // 2. A child node like MarkupTextLiteralSyntax (when cursor is inside the Name)
+        // 3. The start tag (boundary case: cursor at exclusive end of last attribute)
+        if (HtmlFacts.TryGetAttributeName(owner, out _, out var name, out var nameLocation)
+            || (owner is MarkupTextLiteralSyntax && HtmlFacts.TryGetAttributeName(owner.Parent, out _, out name, out nameLocation)))
+        {
+            return IsAfterColon(name, nameLocation.Start, absoluteIndex);
+        }
+
+        // Boundary case: cursor is at the exclusive end of an attribute's span, so
+        // FindInnermostNode returns the containing start tag instead. Check the last
+        // attribute, which is the one adjacent to the cursor position.
+        if (owner is BaseMarkupStartTagSyntax startTag && startTag.Attributes.Count > 0)
+        {
+            var lastAttribute = startTag.Attributes[^1];
+            if (lastAttribute.Span.End == absoluteIndex
+                && HtmlFacts.TryGetAttributeName(lastAttribute, out _, out name, out nameLocation))
+            {
+                return IsAfterColon(name, nameLocation.Start, absoluteIndex);
+            }
+        }
+
+        return false;
+
+        static bool IsAfterColon(string? attributeName, int nameSpanStart, int absoluteIndex)
+        {
+            if (attributeName is null || attributeName.Length < 2 || attributeName[0] != '@')
+            {
+                return false;
+            }
+
+            var count = Math.Min(absoluteIndex - nameSpanStart, attributeName.Length);
+            return count > 0 && attributeName.IndexOf(':', 0, count) != -1;
         }
     }
 
