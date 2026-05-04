@@ -156,7 +156,7 @@ stages:
       displayName: Publish Assets
       inputs:
         filePath: 'eng\publish-assets.ps1'
-        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -prValidation'
+        arguments: '-configuration $(BuildConfiguration) -prValidation'
       condition: succeeded()
 
     # Publish OptProf configuration files
