@@ -2996,30 +2996,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return (int32Value == int64Value) ? int32Value : null;
                     }
                 case BinaryOperatorKind.IntUnsignedRightShift:
-                    return (int)(((uint)valueLeft.Int32Value) >> valueRight.Int32Value); // Switch to `valueLeft.Int32Value >>> valueRight.Int32Value` once >>> becomes available
+                    return valueLeft.Int32Value >>> valueRight.Int32Value;
                 case BinaryOperatorKind.NIntUnsignedRightShift:
                     {
-                        var int32Value = (int)(((uint)valueLeft.Int32Value) >> valueRight.Int32Value);
-                        var int64Value = (long)(((ulong)valueLeft.Int64Value) >> valueRight.Int32Value);
+                        var int32Value = valueLeft.Int32Value >>> valueRight.Int32Value;
+                        var int64Value = valueLeft.Int64Value >>> valueRight.Int32Value;
                         return (int32Value == int64Value) ? int32Value : null;
                     }
                 case BinaryOperatorKind.LongRightShift:
                     return valueLeft.Int64Value >> valueRight.Int32Value;
                 case BinaryOperatorKind.LongUnsignedRightShift:
-                    return (long)(((ulong)valueLeft.Int64Value) >> valueRight.Int32Value); // Switch to `valueLeft.Int64Value >>> valueRight.Int32Value` once >>> becomes available 
+                    return valueLeft.Int64Value >>> valueRight.Int32Value;
                 case BinaryOperatorKind.UIntRightShift:
-                case BinaryOperatorKind.UIntUnsignedRightShift:
                     return valueLeft.UInt32Value >> valueRight.Int32Value;
+                case BinaryOperatorKind.UIntUnsignedRightShift:
+                    return valueLeft.UInt32Value >>> valueRight.Int32Value;
                 case BinaryOperatorKind.NUIntRightShift:
-                case BinaryOperatorKind.NUIntUnsignedRightShift:
                     {
                         var uint32Value = valueLeft.UInt32Value >> valueRight.Int32Value;
                         var uint64Value = valueLeft.UInt64Value >> valueRight.Int32Value;
                         return (uint32Value == uint64Value) ? uint32Value : null;
                     }
+                case BinaryOperatorKind.NUIntUnsignedRightShift:
+                    {
+                        var uint32Value = valueLeft.UInt32Value >>> valueRight.Int32Value;
+                        var uint64Value = valueLeft.UInt64Value >>> valueRight.Int32Value;
+                        return (uint32Value == uint64Value) ? uint32Value : null;
+                    }
                 case BinaryOperatorKind.ULongRightShift:
-                case BinaryOperatorKind.ULongUnsignedRightShift:
                     return valueLeft.UInt64Value >> valueRight.Int32Value;
+                case BinaryOperatorKind.ULongUnsignedRightShift:
+                    return valueLeft.UInt64Value >>> valueRight.Int32Value;
                 case BinaryOperatorKind.BoolAnd:
                     return valueLeft.BooleanValue & valueRight.BooleanValue;
                 case BinaryOperatorKind.IntAnd:
