@@ -3709,7 +3709,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void UnsafeContext_ExteriorOnly_CallerUnsafeInSignature()
+    public void UnsafeContext_ExteriorOnly_CallerUnsafeInSignature_DefaultParameterValue()
     {
         var source = """
             public class Lib
@@ -3753,6 +3753,53 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             //     void M2(int x = Lib.UnsafeMethod()) { }
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "Lib.UnsafeMethod()").WithArguments("Lib.UnsafeMethod()").WithLocation(14, 21),
         ]);
+    }
+
+    [Fact]
+    public void UnsafeContext_ExteriorOnly_CallerUnsafeInSignature()
+    {
+        var source = """
+            using System;
+
+            class A : Attribute
+            {
+                unsafe public A() { }
+            }
+
+            interface I<T> where T : new();
+
+            class C
+            {
+                unsafe public C() { }
+            }
+
+            class Test
+            {
+                unsafe void M1(I<C> i) { }
+
+                [A] unsafe void M2() { }
+            }
+
+            unsafe class UnsafeTest
+            {
+                void M1(I<C> i) { }
+
+                [A] void M2() { }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (19,6): error CS9362: 'A.A()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            //     [A] unsafe void M2() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A").WithArguments("A.A()").WithLocation(19, 6),
+            // (22,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe class UnsafeTest
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "UnsafeTest").WithLocation(22, 14),
+            // (26,6): error CS9362: 'A.A()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            //     [A] void M2() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A").WithArguments("A.A()").WithLocation(26, 6));
     }
 
     [Fact]
