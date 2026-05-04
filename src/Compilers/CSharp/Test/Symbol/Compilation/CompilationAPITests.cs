@@ -1551,7 +1551,7 @@ var a = new C2();
         [WorkItem(537576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537576")]
         // Add already existing item
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
+        [ValidatePooledObjects(LeakReason = "Tests intentionally pass invalid arguments to AddSyntaxTrees/RemoveSyntaxTrees, causing ArgumentExceptions that leak PooledHashSet")]
         public void NegSynTree1()
         {
             var comp = CSharpCompilation.Create("Compilation");
@@ -1561,7 +1561,7 @@ var a = new C2();
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Invalid syntax tree operations leak PooledHashSet")]
+        [ValidatePooledObjects(LeakReason = "Tests intentionally pass invalid arguments to AddSyntaxTrees/RemoveSyntaxTrees, causing ArgumentExceptions that leak PooledHashSet")]
         public void NegSynTree()
         {
             var comp = CSharpCompilation.Create("Compilation");
