@@ -21,6 +21,19 @@ function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [s
   return Join-Path $ArtifactsDir "bin\$projectName\$configuration\$tfm\$ridDir$publishDir$fileName"
 }
 
+function GetPublishData() {
+  if (Test-Path variable:global:_PublishData) {
+    return $global:_PublishData
+  }
+
+  $publishDataFile = Join-Path $PSScriptRoot "config\PublishData.json"
+
+  Write-Host "Reading $publishDataFile"
+  $content = Get-Content -Path $publishDataFile -Raw
+
+  return $global:_PublishData = ConvertFrom-Json $content
+}
+
 function GetBranchPublishData() {
   $data = GetPublishData
 
