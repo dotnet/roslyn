@@ -3110,7 +3110,6 @@ public sealed class ClosedClassesTests : CSharpTestBase
     public void Exhaustiveness_Constraints_08()
     {
         // A union case type is a subtype of a closed type which violates constraints.
-        // TODO2: The suggestion to use 'C<int>' is undesired
         var source1 = """
             public closed class C<U1>;
             public closed class D1<V1> : C<V1> where V1 : class;
@@ -3118,6 +3117,78 @@ public sealed class ClosedClassesTests : CSharpTestBase
             public class D3<X1> : D1<X1> where X1 : class;
 
             public union U<T1>(D1<T1>) where T1 : class;
+            """;
+
+        var source2 = """
+            class Program
+            {
+            #line 100
+                public U<int> u = null!;
+
+                int M1()
+                {
+            #line 200
+                    return u switch
+                    {
+                    };
+                }
+
+                int M2()
+                {
+            #line 400
+                    return u switch
+                    {
+            #line 500
+                        D2<int> => 1,
+                    };
+                }
+
+                int M3()
+                {
+                    return u switch
+                    {
+            #line 600
+                        D1<int> => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (100,19): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'U<T1>'
+            //     public U<int> u = null!;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "u").WithArguments("U<T1>", "T1", "int").WithLocation(100, 19),
+            // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(200, 18),
+            // (400,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<int>' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<int>").WithLocation(400, 18),
+            // (500,16): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'W1' in the generic type or method 'D2<W1>'
+            //             D2<int> => 1,
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("D2<W1>", "W1", "int").WithLocation(500, 16),
+            // (600,16): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'V1' in the generic type or method 'D1<V1>'
+            //             D1<int> => 1,
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("D1<V1>", "V1", "int").WithLocation(600, 16));
+    }
+
+    [Theory]
+    [InlineData("C<T1>, D1<T1>")]
+    [InlineData("D1<T1>, C<T1>")]
+    [InlineData("C<T1>")]
+    public void Exhaustiveness_Constraints_09(string caseTypes)
+    {
+        // A union case type is a subtype of a closed type which violates constraints.
+        // Note that when a union has multiple case types in the same hierarchy, we try to keep the example pattern
+        // similar to the case where only the most base type out of the aforementioned case types is included.
+        var source1 = $$"""
+            public closed class C<U1>;
+            public closed class D1<V1> : C<V1> where V1 : class;
+            public class D2<W1> : D1<W1> where W1 : class;
+            public class D3<X1> : D1<X1> where X1 : class;
+
+            public union U<T1>({{caseTypes}}) where T1 : class;
             """;
 
         var source2 = """

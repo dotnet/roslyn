@@ -23,7 +23,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The set of types defining a union of types, instances of which could be in the value set.
         /// </summary>
-        private readonly ImmutableArray<TypeSymbol> _typesInUnion;
+        private readonly ImmutableArray<CaseInfo> _typesInUnion;
+
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+        internal readonly struct CaseInfo(TypeSymbol caseType, TypeSymbol? originalClosedBase)
+        {
+            internal TypeSymbol CaseType { get; } = caseType;
+
+            /// <summary>If <see cref="CaseType"/> was included in the set due to being a subtype of a closed type, this is the original closed type it was expanded from.</summary>
+            internal TypeSymbol? OriginalClosedBase { get; } = originalClosedBase;
+
+            private string GetDebuggerDisplay()
+            {
+                return $"(CaseType: {CaseType}, OriginalClosedBase: {OriginalClosedBase})";
+            }
+        }
 
         /// <summary>
         /// Root of a logical tree defining values contained in this value set.
@@ -45,24 +59,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool? _lazyIncludesNull;
 
         private TypeUnionValueSet(
-            ImmutableArray<TypeSymbol> typesInUnion,
+            ImmutableArray<CaseInfo> typesInUnion,
             Node root,
             ConversionsBase conversions)
         {
             Debug.Assert(!typesInUnion.IsEmpty);
-            Debug.Assert(!typesInUnion.Any(t => t.IsNullableType()));
-            Debug.Assert(typesInUnion.Distinct().Length == typesInUnion.Length);
+            Debug.Assert(!typesInUnion.Any(t => t.CaseType.IsNullableType()));
+            Debug.Assert(typesInUnion.Select(t => t.CaseType).Distinct().Count() == typesInUnion.Length);
             _typesInUnion = typesInUnion;
             _root = root;
             _conversions = conversions;
         }
 
-        internal static TypeUnionValueSet AllValues(ImmutableArray<TypeSymbol> typesInUnion, ConversionsBase conversions)
+        internal static TypeUnionValueSet AllValues(ImmutableArray<CaseInfo> typesInUnion, ConversionsBase conversions)
         {
             return new TypeUnionValueSet(typesInUnion, IsTrueNode.Instance, conversions);
         }
 
-        internal static TypeUnionValueSet FromTypeMatch(ImmutableArray<TypeSymbol> typesInUnion, TypeSymbol type, ConversionsBase conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static TypeUnionValueSet FromTypeMatch(ImmutableArray<CaseInfo> typesInUnion, TypeSymbol type, ConversionsBase conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (AnyTypeFromUnionMightMatch(typesInUnion, type, conversions, ref useSiteInfo))
             {
@@ -73,15 +87,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TypeUnionValueSet(typesInUnion, IsFalseNode.Instance, conversions);
         }
 
-        private static bool AnyTypeFromUnionMightMatch(ImmutableArray<TypeSymbol> typesInUnion, TypeSymbol type, ConversionsBase conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static bool AnyTypeFromUnionMightMatch(ImmutableArray<CaseInfo> typesInUnion, TypeSymbol type, ConversionsBase conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!typesInUnion.IsEmpty);
-            Debug.Assert(!typesInUnion.Any(TypeSymbolExtensions.IsNullableType));
-            Debug.Assert(typesInUnion.Distinct().Length == typesInUnion.Length);
+            Debug.Assert(!typesInUnion.Any(t => TypeSymbolExtensions.IsNullableType(t.CaseType)));
+            Debug.Assert(typesInUnion.Select(t => t.CaseType).Distinct().Count() == typesInUnion.Length);
 
             foreach (var t in typesInUnion)
             {
-                ConstantValue? matches = DecisionDagBuilder.ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(conversions, type, t, ref useSiteInfo);
+                ConstantValue? matches = DecisionDagBuilder.ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(conversions, type, t.CaseType, ref useSiteInfo);
                 if (matches == ConstantValue.False)
                 {
                     // If 'type' could never be 't'
@@ -95,12 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static TypeUnionValueSet FromNullMatch(ImmutableArray<TypeSymbol> typesInUnion, ConversionsBase conversions)
+        internal static TypeUnionValueSet FromNullMatch(ImmutableArray<CaseInfo> typesInUnion, ConversionsBase conversions)
         {
             return new TypeUnionValueSet(typesInUnion, IsNullNode.Instance, conversions);
         }
 
-        internal static TypeUnionValueSet FromNonNullMatch(ImmutableArray<TypeSymbol> typesInUnion, ConversionsBase conversions)
+        internal static TypeUnionValueSet FromNonNullMatch(ImmutableArray<CaseInfo> typesInUnion, ConversionsBase conversions)
         {
             return new TypeUnionValueSet(typesInUnion, new NotNode(IsNullNode.Instance), conversions);
         }
@@ -249,41 +263,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public TypeSymbol? SampleType(TypeSymbol inputType, Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public TypeSymbol? SampleType(Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (IsEmpty(ref useSiteInfo))
                 throw new ArgumentException();
 
             if (_lazyMightIncludeNonNull != false)
             {
-                var sampleType = TryGetSampleType(_root, ref useSiteInfo);
-                return walkUpInvalidClosedSubtypesIfNeeded(inputType, binder, sampleType, ref useSiteInfo);
+                var sample = TryGetSampleType(_root, ref useSiteInfo);
+                return walkUpInvalidClosedSubtypesIfNeeded(sample?.CaseType, sample?.OriginalClosedBase, binder, ref useSiteInfo);
             }
 
             return null;
 
-            static TypeSymbol? walkUpInvalidClosedSubtypesIfNeeded(TypeSymbol inputType, Binder binder, TypeSymbol? sampleType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            static TypeSymbol? walkUpInvalidClosedSubtypesIfNeeded(TypeSymbol? sampleType, TypeSymbol? originalClosedBase, Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                if (sampleType is null || sampleType is not NamedTypeSymbol namedType)
+                if (originalClosedBase is null || sampleType is not NamedTypeSymbol namedType)
                 {
                     return sampleType;
                 }
 
-                while (isInvalidClosedSubtype(inputType, binder, namedType, ref useSiteInfo))
+                while (isInvalidClosedSubtype(namedType, originalClosedBase, binder, ref useSiteInfo))
                     namedType = namedType.BaseTypeNoUseSiteDiagnostics;
 
                 return namedType;
 
-                static bool isInvalidClosedSubtype(TypeSymbol inputType, Binder binder, NamedTypeSymbol possibleClosedSubtype, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+                static bool isInvalidClosedSubtype(NamedTypeSymbol possibleClosedSubtype, TypeSymbol originalClosedBase, Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
                 {
-                    if (!possibleClosedSubtype.BaseTypeNoUseSiteDiagnostics.IsClosed)
+                    if (possibleClosedSubtype.BaseTypeNoUseSiteDiagnostics?.IsClosed is null or false)
                         return false;
 
-                    // Do not suggest matching a type which is "more base" than the pattern's input type.
-                    // TODO2: it seems like the pattern input type itself isn't what we want to compare against when matching a union.
-                    // It seems like in order to provide the "most desirable" type suggestion in all scenarios, we might need to remember which original closed type is associated with each expanded type.
-                    // Since a union could contain multiple closed types, or even multiple constructions of the same closed type or types within the same hierarchy, there could be some fairly subtle conditions to handle here.
-                    if (inputType.OriginalDefinition.Equals(possibleClosedSubtype.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                    // Do not suggest matching a type which is "more base" than original base type it was expanded from.
+                    if (originalClosedBase.OriginalDefinition.Equals(possibleClosedSubtype.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
                         return false;
 
                     if (!possibleClosedSubtype.CheckAllConstraints(binder.Compilation, binder.Conversions))
@@ -297,11 +308,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private TypeSymbol? TryGetSampleType(Node root, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private CaseInfo? TryGetSampleType(Node root, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             foreach (var t in _typesInUnion)
             {
-                if (EvaluateNodeForInputValue(root, t, ref useSiteInfo) != false)
+                if (EvaluateNodeForInputValue(root, t.CaseType, ref useSiteInfo) != false)
                     return t;
             }
 

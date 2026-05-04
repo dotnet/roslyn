@@ -21,27 +21,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _closedClass = closedClass;
             }
 
-            internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeSymbol> builder)
+            internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder)
             {
                 // PROTOTYPE(cc): A closed class with no subtypes, should probably expand into an empty type set.
                 // However, if we produce an empty type set as a result, we fail the non-empty assertion at 'TypeUnionValueSet..ctor' via 'SamplePatternForTemp().tryHandleTypeUnionLimits()'.
                 if (possibleClosedClass is not NamedTypeSymbol namedType || !namedType.TryGetClosedSubtypes(out var subtypes) || subtypes.IsEmpty)
                 {
-                    if (!builder.Contains(possibleClosedClass))
-                        builder.Add(possibleClosedClass);
-
+                    AddCaseInfo(builder, possibleClosedClass, originalClosedBase: null);
                     return;
                 }
 
+                ExpandClosedSubtypesCore(subtypes, originalBase: namedType, builder);
+            }
+
+            private static void ExpandClosedSubtypesCore(ImmutableArray<NamedTypeSymbol> subtypes, NamedTypeSymbol originalBase, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder)
+            {
+                Debug.Assert(!subtypes.IsDefaultOrEmpty);
                 foreach (var subtype in subtypes)
                 {
-                    ExpandClosedSubtypes(subtype, builder);
+                    if (!subtype.TryGetClosedSubtypes(out var innerSubtypes) || innerSubtypes.IsEmpty)
+                    {
+                        AddCaseInfo(builder, subtype, originalBase);
+                    }
+                    else
+                    {
+                        ExpandClosedSubtypesCore(innerSubtypes, originalBase, builder);
+                    }
                 }
             }
 
-            private ImmutableArray<TypeSymbol> ClosedSubtypes()
+            private static void AddCaseInfo(ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, TypeSymbol caseType, NamedTypeSymbol? originalClosedBase)
             {
-                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                var index = builder.FindIndex((existingCaseInfo, caseType) => existingCaseInfo.CaseType.Equals(caseType, TypeCompareKind.AllIgnoreOptions), caseType);
+                if (index != -1)
+                {
+                    // Subtype is already present, possibly with a different 'originalClosedBase'.
+                    // One scenario where this can occur is when a union contains multiple closed types in the same hierarchy.
+                    // In this case, apply the following rule:
+                    // - If one case is missing an 'originalClosedBase', pick the other 'originalClosedBase'.
+                    // - If both cases have an originalBase, pick the more base of the two.
+                    // This is thought to keep a similarity in behavior, between a union which includes both a base and derived type, and a union which includes only the base type.
+                    var existingCaseInfo = builder[index];
+                    var discardedInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    if (originalClosedBase is not null && (existingCaseInfo.OriginalClosedBase is null || existingCaseInfo.OriginalClosedBase.IsDerivedFrom(originalClosedBase, TypeCompareKind.AllIgnoreOptions, ref discardedInfo)))
+                    {
+                        builder[index] = new TypeUnionValueSet.CaseInfo(caseType, originalClosedBase);
+                    }
+                }
+                else
+                {
+                    builder.Add(new TypeUnionValueSet.CaseInfo(caseType, originalClosedBase));
+                }
+            }
+
+            private ImmutableArray<TypeUnionValueSet.CaseInfo> ClosedSubtypes()
+            {
+                var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
                 ExpandClosedSubtypes(_closedClass, builder);
                 return builder.ToImmutableAndFree();
             }

@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (remainingValues.IsEmpty(ref discardedInfo))
                         return null;
 
-                    if (remainingValues.SampleType(input.Type, binder, ref discardedInfo) is { } type)
+                    if (remainingValues.SampleType(binder, ref discardedInfo) is { } type)
                     {
                         return type.ToDisplayString();
                     }
