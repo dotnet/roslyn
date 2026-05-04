@@ -83,10 +83,12 @@ namespace Microsoft.CodeAnalysis.Operations
             [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
             get
             {
-                // PROTOTYPE: Add checks for 'IsUnion' type once the API is available on ITypeSymbol.
                 return MethodSymbol is
-                { MethodKind: MethodKind.Constructor } or
-                { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.TypeKind: TypeKind.Interface };
+                { MethodKind: MethodKind.Constructor, ContainingType.IsUnion: true } or
+                {
+                    MethodKind: MethodKind.Ordinary, IsStatic: true, Name: WellKnownMemberNames.UnionFactoryMethodName,
+                    ContainingType: { TypeKind: TypeKind.Interface, Name: WellKnownMemberNames.UnionMembersInterfaceName, Arity: 0, ContainingType.IsUnion: true }
+                };
             }
         }
 
