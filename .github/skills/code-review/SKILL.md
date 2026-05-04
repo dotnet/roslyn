@@ -298,6 +298,8 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Track deferred work with GitHub issues.** No `// TODO` comment should be added or merged. Instead use a comment like `// Tracked by <URL>: description` to link to a GitHub issue tracking the follow-up work.
 
+- **PROTOTYPE comments are allowed in feature branches.** Do not flag `// PROTOTYPE` comments when the PR targets a feature branch (any branch other than `main`). PROTOTYPE comments are intentionally used to mark temporary or experimental code in feature branches and are enforced by CI only when merging to `main`. If a PR targets `main`, PROTOTYPE comments must be removed or replaced before merging.
+
 - **Add XML doc comments on all new public APIs in product code.** These seed the official API documentation on learn.microsoft.com.
 
 ### Public API Requirements
