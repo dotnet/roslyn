@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var candidateSubtypes = CandidateClosedSubtypeDefinitions;
-            if (candidateSubtypes.All(subtype => !subtype.IsGenericType))
+            if (!IsGenericType && candidateSubtypes.All(subtype => !subtype.IsGenericType))
             {
                 subtypes = candidateSubtypes;
                 return true;

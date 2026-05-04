@@ -1906,6 +1906,95 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_Generic_NonGenericSubtypes_01()
+    {
+        // Base type is generic and subtypes are non-generic
+        var source = """
+            closed class C<T>;
+            class D1 : C<string>;
+            class D2 : C<int>;
+            
+            class Program
+            {
+                int Match1(C<int> c) =>
+            #line 100
+                    c switch
+                    {
+                    };
+
+                int Match2(C<int> c) =>
+                    c switch
+                    {
+                        D2 => 2,
+                    };
+
+                int Match3(C<int> c) =>
+                    c switch
+                    {
+            #line 200
+                        D1 => 2,
+                    };
+
+                int Match4(C<string> c) =>
+                    c switch
+                    {
+                        D1 => 2,
+                    };
+
+                int Match5(C<string> c) =>
+                    c switch
+                    {
+            #line 300
+                        D2 => 2,
+                    };
+
+                int Match6(C<object> c) =>
+            #line 400
+                    c switch
+                    {
+                    };
+
+                int Match7(C<object> c) =>
+                    c switch
+                    {
+                        C<object> => 1,
+                    };
+            }
+            """;
+
+        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (100,11): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
+            //         c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2").WithLocation(100, 11),
+            // (200,13): error CS8121: An expression of type 'C<int>' cannot be handled by a pattern of type 'D1'.
+            //             D1 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D1").WithArguments("C<int>", "D1").WithLocation(200, 13),
+            // (300,13): error CS8121: An expression of type 'C<string>' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("C<string>", "D2").WithLocation(300, 13),
+            // (400,11): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C<object>' is not covered.
+            //         c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C<object>").WithLocation(400, 11));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
+
+        var cOfInt = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32));
+        Assert.True(cOfInt.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["D2"], subtypes.ToTestDisplayStrings());
+
+        var cOfString = classC.Construct(comp.GetSpecialType(SpecialType.System_String));
+        Assert.True(cOfString.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["D1"], subtypes.ToTestDisplayStrings());
+
+        var cOfObject = classC.Construct(comp.GetSpecialType(SpecialType.System_Object));
+        Assert.True(cOfObject.TryGetClosedSubtypes(out subtypes));
+        Assert.Empty(subtypes);
+    }
+
+    [Fact]
     public void Exhaustiveness_NoSubtypes()
     {
         // Closed with no subtypes
