@@ -3244,5 +3244,78 @@ namespace Microsoft.CodeAnalysis
                 AnalyzerInvoked = true;
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class InfoSeverityAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor InfoRule = new DiagnosticDescriptor(
+                "INFO001",
+                "Info diagnostic",
+                "This is an info diagnostic",
+                "Test",
+                defaultSeverity: DiagnosticSeverity.Info,
+                isEnabledByDefault: true);
+
+            internal readonly ConcurrentSet<ISymbol> CallbackSymbols = new();
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(InfoRule);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(context =>
+                {
+                    CallbackSymbols.Add(context.Symbol);
+                    context.ReportDiagnostic(Diagnostic.Create(InfoRule, context.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class HiddenSeverityAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor HiddenRule = new DiagnosticDescriptor(
+                "HIDDEN001",
+                "Hidden diagnostic",
+                "This is a hidden diagnostic",
+                "Test",
+                defaultSeverity: DiagnosticSeverity.Hidden,
+                isEnabledByDefault: true);
+
+            internal readonly ConcurrentSet<ISymbol> CallbackSymbols = new();
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(HiddenRule);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(context =>
+                {
+                    CallbackSymbols.Add(context.Symbol);
+                    context.ReportDiagnostic(Diagnostic.Create(HiddenRule, context.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class InfoSeverityNotConfigurableAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor InfoRule = new DiagnosticDescriptor(
+                "INFONC001",
+                "Info not configurable diagnostic",
+                "This is an info diagnostic that is not configurable",
+                "Test",
+                defaultSeverity: DiagnosticSeverity.Info,
+                isEnabledByDefault: true,
+                customTags: [WellKnownDiagnosticTags.NotConfigurable]);
+
+            internal readonly ConcurrentSet<ISymbol> CallbackSymbols = new();
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(InfoRule);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(context =>
+                {
+                    CallbackSymbols.Add(context.Symbol);
+                    context.ReportDiagnostic(Diagnostic.Create(InfoRule, context.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
+            }
+        }
     }
 }
