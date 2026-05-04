@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -199,7 +199,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         var uri = item.Uri.GetRequiredParsedUri();
 
         var (mappedDocumentUri, mappedRange) = await DocumentMappingService
-            .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, item.Range.ToLinePositionSpan(), cancellationToken)
+            .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, item.Range, cancellationToken)
             .ConfigureAwait(false);
 
         if (_filePathService.IsVirtualCSharpFile(mappedDocumentUri))
@@ -208,7 +208,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         }
 
         var (mappedSelectionUri, mappedSelectionRange) = await DocumentMappingService
-            .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, item.SelectionRange.ToLinePositionSpan(), cancellationToken)
+            .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, item.SelectionRange, cancellationToken)
             .ConfigureAwait(false);
 
         if (_filePathService.IsVirtualCSharpFile(mappedSelectionUri))
@@ -223,8 +223,8 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             Tags = item.Tags,
             Detail = item.Detail,
             Uri = new(mappedDocumentUri),
-            Range = mappedRange.ToRange(),
-            SelectionRange = mappedSelectionRange.ToRange(),
+            Range = mappedRange,
+            SelectionRange = mappedSelectionRange,
             Data = item.Data,
         };
     }
@@ -235,7 +235,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         foreach (var range in ranges)
         {
             var (mappedDocumentUri, mappedRange) = await DocumentMappingService
-                .MapToHostDocumentUriAndRangeAsync(context.Snapshot, documentUri, range.ToLinePositionSpan(), cancellationToken)
+                .MapToHostDocumentUriAndRangeAsync(context.Snapshot, documentUri, range, cancellationToken)
                 .ConfigureAwait(false);
 
             if (_filePathService.IsVirtualCSharpFile(mappedDocumentUri))
@@ -243,7 +243,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
                 continue;
             }
 
-            builder.Add(mappedRange.ToRange());
+            builder.Add(mappedRange);
         }
 
         return builder.ToArray();
