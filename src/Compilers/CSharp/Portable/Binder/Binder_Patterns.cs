@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
 
                 var boundType = (BoundTypeExpression)convertedExpression;
-                bool isExplicitNotNullTest = !hasUnionMatching && boundType.Type.SpecialType == SpecialType.System_Object; // https://github.com/dotnet/roslyn/issues/82636: Add test coverage
+                bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, boundType.Type, hasErrors);
             }
         }
