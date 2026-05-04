@@ -1280,6 +1280,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static void FindTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> result)
             => type.VisitType(s_typeParameterSymbolCollector, result, visitCustomModifiers: true);
 
+        public static void FindTypeParameters(this TypeWithAnnotations type, HashSet<TypeParameterSymbol> result)
+            => type.VisitType(
+                    type: null,
+                    typeWithAnnotationsPredicate: null,
+                    typePredicate: s_typeParameterSymbolCollector,
+                    arg: result,
+                    visitCustomModifiers: true);
+
         public static void FindTypeParameters(this MethodSymbol method, HashSet<TypeParameterSymbol> result)
         {
             FindTypeParameters(method.ContainingType, result);
