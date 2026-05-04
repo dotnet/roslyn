@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -18,6 +19,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using InternalUtilities = Microsoft.Internal.VisualStudio.PlatformUI.Utilities;
 using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
@@ -71,11 +73,44 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
         _windowSearchHost = windowSearchHostFactory.CreateWindowSearchHost(SearchHost);
         _windowSearchHost.SetupSearch(this);
 
+        this.PreviewKeyDown += OnPreviewKeyDown;
         viewTracker.CaretMovedOrActiveViewChanged += ViewTracker_CaretMovedOrActiveViewChanged;
+    }
+
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+
+        if (e.Key == Key.Down || e.Key == Key.Tab && Keyboard.Modifiers == ModifierKeys.None)
+        {
+            // If focus is in the Commands toolbar, move it to the Search box on Down or Tab
+            if (Commands.IsKeyboardFocusWithin)
+            {
+                if (_windowSearchHost is not null)
+                {
+                    _windowSearchHost.Activate();
+                    e.Handled = true;
+                }
+            }
+
+            // If focus is in the Search box, move it to the SymbolTree on Down or Tab
+            if (SearchHost.IsKeyboardFocusWithin)
+            {
+                SymbolTree.Focus();
+                if (SymbolTree.Items.Count > 0)
+                {
+                    var firstItem = SymbolTree.ItemContainerGenerator.ContainerFromIndex(0) as TreeViewItem;
+                    firstItem?.Focus();
+                }
+
+                e.Handled = true;
+            }
+        }
     }
 
     public void Dispose()
     {
+        this.PreviewKeyDown -= OnPreviewKeyDown;
         _toolbarTrayHost.Close();
         _windowSearchHost.TerminateSearch();
         _viewTracker.CaretMovedOrActiveViewChanged -= ViewTracker_CaretMovedOrActiveViewChanged;
@@ -294,9 +329,13 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
             try
             {
                 var textView = _viewTracker.GetActiveView();
+
+                // Attempt to move the item to the center of the view.  The user selected the item explicitly, and this
+                // gives them a consistent location they can expect to see the result at.
                 textView.TryMoveCaretToAndEnsureVisible(
                     symbolModel.Data.SelectionRangeSpan.TranslateTo(textView.TextSnapshot, SpanTrackingMode.EdgeInclusive).Start,
-                    _outliningManagerService);
+                    _outliningManagerService,
+                    EnsureSpanVisibleOptions.AlwaysCenter);
             }
             finally
             {

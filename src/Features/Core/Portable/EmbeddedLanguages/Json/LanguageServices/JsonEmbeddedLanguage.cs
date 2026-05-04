@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 
-internal class JsonEmbeddedLanguage : IEmbeddedLanguage
+internal sealed class JsonEmbeddedLanguage : IEmbeddedLanguage
 {
     // No completion for embedded json currently.
     public EmbeddedLanguageCompletionProvider? CompletionProvider => null;

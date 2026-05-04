@@ -17,7 +17,7 @@ internal static class OmniSharpFindDefinitionService
     {
         var service = document.GetLanguageService<INavigableItemsService>();
         if (service is null)
-            return ImmutableArray<OmniSharpNavigableItem>.Empty;
+            return [];
 
         var result = await service.GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false);
         return await result.NullToEmpty().SelectAsArrayAsync(

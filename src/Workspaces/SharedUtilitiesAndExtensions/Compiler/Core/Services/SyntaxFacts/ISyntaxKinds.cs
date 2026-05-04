@@ -41,6 +41,8 @@ internal interface ISyntaxKinds
     int EndRegionDirectiveTrivia { get; }
     int RegionDirectiveTrivia { get; }
     int? ShebangDirectiveTrivia { get; }
+    int DefineDirectiveTrivia { get; }
+    int? UndefDirectiveTrivia { get; }
 
     #endregion
 
@@ -54,6 +56,7 @@ internal interface ISyntaxKinds
     int? GlobalStatement { get; }
     int IfKeyword { get; }
     int NewKeyword { get; }
+    int PartialKeyword { get; }
     int TrueKeyword { get; }
     int UsingKeyword { get; }
 
@@ -93,14 +96,16 @@ internal interface ISyntaxKinds
 
     #endregion
 
-    #region xml tokens
+    #region xml nodes and tokens
 
+    int XmlCrefAttribute { get; }
     int XmlTextLiteralToken { get; }
 
     #endregion
 
     #region names
 
+    int? AliasQualifiedName { get; }
     int GenericName { get; }
     int IdentifierName { get; }
     int QualifiedName { get; }
@@ -133,9 +138,11 @@ internal interface ISyntaxKinds
     int ArrayCreationExpression { get; }
     int AwaitExpression { get; }
     int BaseExpression { get; }
+    int? CollectionExpression { get; }
     int CollectionInitializerExpression { get; }
     int ConditionalAccessExpression { get; }
     int ConditionalExpression { get; }
+    int? FieldExpression { get; }
     int? ImplicitArrayCreationExpression { get; }
     int? ImplicitObjectCreationExpression { get; }
     int? IndexExpression { get; }
@@ -154,11 +161,15 @@ internal interface ISyntaxKinds
     int? RefExpression { get; }
     int ReferenceEqualsExpression { get; }
     int ReferenceNotEqualsExpression { get; }
+    int SimpleAssignmentExpression { get; }
     int SimpleMemberAccessExpression { get; }
+    int? SizeOfExpression { get; }
+    int? SuppressNullableWarningExpression { get; }
     int TernaryConditionalExpression { get; }
     int ThisExpression { get; }
     int? ThrowExpression { get; }
     int TupleExpression { get; }
+    int TypeOfExpression { get; }
 
     #endregion
 
@@ -224,10 +235,12 @@ internal interface ISyntaxKinds
 
     #region other
 
+    int? ExpressionElement { get; }
     int? ImplicitElementAccess { get; }
     int Interpolation { get; }
     int InterpolatedStringText { get; }
     int? IndexerMemberCref { get; }
+    int? PrimaryConstructorBaseType { get; }
 
     #endregion
 }

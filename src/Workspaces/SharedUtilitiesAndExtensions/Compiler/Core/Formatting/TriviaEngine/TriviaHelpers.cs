@@ -20,6 +20,6 @@ internal static class TriviaHelpers
         for (var i = startIndex; i <= endIndex; i++)
             builder.Add(triviaList[i]);
 
-        return new SyntaxTriviaList(builder);
+        return [.. builder];
     }
 }

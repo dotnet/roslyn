@@ -460,14 +460,14 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/67989")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67989")>
         Public Async Function TestAliasToPointer(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-using unsafe $$Alias = int*;
+using unsafe $${|Definition:Alias|} = int*;
 
 namespace N
 {
@@ -481,6 +481,48 @@ namespace N
         }
     }
 }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67989")>
+        Public Async Function TestAliasToPointer2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using unsafe $${|Definition:Alias|} = int*;
+
+namespace N
+{
+    internal unsafe class C
+    {
+        void M()
+        {
+            [|Alias|]* f = null;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/74384")>
+        Public Async Function TestAliasToPrimitive1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        using $$TBitMap = [|ulong|];
+
+        var size = sizeof([|TBitMap|]);
+        var array = new [|TBitMap|][10];
         </Document>
     </Project>
 </Workspace>

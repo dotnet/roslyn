@@ -4,14 +4,14 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <Nullable>enable</Nullable>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   
   <ItemGroup>
     <PackageReference Include="xunit.abstractions" />
     <PackageReference Include="xunit.runner.utility" />
     <PackageReference Include="xunit.extensibility.execution" />
-    <PackageReference Include="System.Private.Uri" />
-    <PackageReference Include="System.Net.Http" />
+    <PackageReference Include="Mono.Options" />
   </ItemGroup>
     
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">

@@ -10251,7 +10251,7 @@ public class Program
                 Assert.Null(type.GetMember(".cctor"));
             }
 
-            compVerifier.VerifyIL(qualifiedMethodName: "Program.M", sequencePoints: "Program.M", source: source,
+            compVerifier.VerifyIL(qualifiedMethodName: "Program.M", sequencePointDisplay: SequencePointDisplayMode.Enhanced,
 expectedIL: @"{
   // Code size      194 (0xc2)
   .maxstack  2

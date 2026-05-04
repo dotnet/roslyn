@@ -8,10 +8,10 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -35,28 +35,78 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public sealed class InvokeUtil
     {
-        internal void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadContext compilerContext, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName, IAnalyzerAssemblyResolver[] externalResolvers)
+        internal void Exec(
+            ITestOutputHelper testOutputHelper,
+            ImmutableArray<IAnalyzerPathResolver> pathResolvers,
+            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers,
+            AssemblyLoadTestFixture fixture,
+            AnalyzerTestKind kind,
+            string typeName,
+            string methodName,
+            object? state = null)
+        {
+            using var tempRoot = new TempRoot();
+            switch (kind)
+            {
+                case AnalyzerTestKind.LoadDirect:
+                    assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver];
+                    break;
+                case AnalyzerTestKind.LoadStream:
+                    assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver];
+                    break;
+                case AnalyzerTestKind.ShadowLoad:
+                    pathResolvers = [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path)];
+                    assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver];
+                    break;
+                default:
+                    throw ExceptionUtilities.Unreachable();
+            }
+
+            var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers, compilerLoadContext: null);
+
+            // Ensure that test infrastructure assemblies are already loaded before we
+            // take the snapshot below. These are lazily loaded on first use, and if
+            // that first use happens *after* the snapshot is taken then those assemblies
+            // show up as unexpected additions and the assertion at the end of this method
+            // fails intermittently.
+            TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.Test.Utilities", typeof(AssertEx).TypeHandle);
+            TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.CSharp.Test.Utilities", typeof(TestOptions).TypeHandle);
+
+            var compilerContextAssemblies = loader.CompilerLoadContext.Assemblies.SelectAsArray(a => a.FullName);
+            try
+            {
+                Exec(testOutputHelper, fixture, loader, typeName, methodName, state);
+            }
+            finally
+            {
+                // When using the actual compiler load context (the one shared by all of our unit tests) the test
+                // did not load any additional assemblies that could interfere with later tests.
+                //
+                // If this assertion fails due to a normal test assembly, like xunit.assert, being loaded after the snapshot, then 
+                // add that assembly to the list of assemblies loaded before the snapshot is taken.
+                AssertEx.SetEqual(compilerContextAssemblies, loader.CompilerLoadContext.Assemblies.SelectAsArray(a => a.FullName));
+            }
+        }
+
+        internal void Exec(
+            ITestOutputHelper testOutputHelper,
+            AssemblyLoadTestFixture fixture,
+            AnalyzerAssemblyLoader loader,
+            string typeName,
+            string methodName,
+            object? state = null)
         {
             // Ensure that the test did not load any of the test fixture assemblies into 
             // the default load context. That should never happen. Assemblies should either 
             // load into the compiler or directory load context.
             //
             // Not only is this bad behavior it also pollutes future test results.
-            var defaultContextCount = AssemblyLoadContext.Default.Assemblies.Count();
-            var compilerContextCount = compilerContext.Assemblies.Count();
-
+            var defaultContextAssemblies = AssemblyLoadContext.Default.Assemblies.SelectAsArray(a => a.FullName);
             using var tempRoot = new TempRoot();
-            using AnalyzerAssemblyLoader loader = kind switch
-            {
-                AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromDisk, externalResolvers.ToImmutableArray()),
-                AnalyzerTestKind.LoadStream => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromStream, externalResolvers.ToImmutableArray()),
-                AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(compilerContext, tempRoot.CreateDirectory().Path, externalResolvers.ToImmutableArray()),
-                _ => throw ExceptionUtilities.Unreachable()
-            };
 
             try
             {
-                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
+                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
             }
             finally
             {
@@ -71,19 +121,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     }
                 }
 
-                if (loader is ShadowCopyAnalyzerAssemblyLoader shadowLoader)
+                if (loader.AnalyzerPathResolvers.OfType<ShadowCopyAnalyzerPathResolver>().FirstOrDefault() is { } shadowResolver)
                 {
-                    testOutputHelper.WriteLine($"Shadow loader: {shadowLoader.BaseDirectory}");
+                    testOutputHelper.WriteLine($"{nameof(ShadowCopyAnalyzerPathResolver)}: {shadowResolver.BaseDirectory}");
                 }
 
                 testOutputHelper.WriteLine($"Loader path maps");
                 foreach (var pair in loader.GetPathMapSnapshot())
                 {
-                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.RealAssemblyPath}");
+                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.ResolvedAssemblyPath}");
                 }
 
-                Assert.Equal(defaultContextCount, AssemblyLoadContext.Default.Assemblies.Count());
-                Assert.Equal(compilerContextCount, compilerContext.Assemblies.Count());
+                AssertEx.SetEqual(defaultContextAssemblies, AssemblyLoadContext.Default.Assemblies.SelectAsArray(a => a.FullName));
             }
         }
     }
@@ -92,19 +141,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public sealed class InvokeUtil : MarshalByRefObject
     {
-        internal void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName, IAnalyzerAssemblyResolver[] externalResolvers)
+        internal void Exec(
+            ITestOutputHelper testOutputHelper,
+            AssemblyLoadTestFixture fixture,
+            AnalyzerTestKind kind,
+            string typeName,
+            string methodName,
+            IAnalyzerPathResolver[] pathResolvers,
+            object? state)
         {
             using var tempRoot = new TempRoot();
-            AnalyzerAssemblyLoader loader = kind switch
+            pathResolvers = kind switch
             {
-                AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(externalResolvers.ToImmutableArray()),
-                AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(tempRoot.CreateDirectory().Path, externalResolvers.ToImmutableArray()),
-                _ => throw ExceptionUtilities.Unreachable()
+                AnalyzerTestKind.LoadDirect => pathResolvers,
+                AnalyzerTestKind.ShadowLoad => [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path)],
+                _ => throw ExceptionUtilities.Unreachable(),
             };
+
+            var loader = new AnalyzerAssemblyLoader(pathResolvers.ToImmutableArray());
 
             try
             {
-                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
+                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
             }
             catch (TargetInvocationException ex) when (ex.InnerException is XunitException)
             {
@@ -121,15 +179,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     testOutputHelper.WriteLine($"\t{assembly.FullName} -> {assembly.Location}");
                 }
 
-                if (loader is ShadowCopyAnalyzerAssemblyLoader shadowLoader)
+                if (loader.AnalyzerPathResolvers.OfType<ShadowCopyAnalyzerPathResolver>().FirstOrDefault() is { } shadowResolver)
                 {
-                    testOutputHelper.WriteLine($"Shadow loader: {shadowLoader.BaseDirectory}");
+                    testOutputHelper.WriteLine($"{nameof(ShadowCopyAnalyzerPathResolver)}: {shadowResolver.BaseDirectory}");
                 }
 
                 testOutputHelper.WriteLine($"Loader path maps");
                 foreach (var pair in loader.GetPathMapSnapshot())
                 {
-                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.RealAssemblyPath}");
+                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.ResolvedAssemblyPath}");
                 }
             }
         }

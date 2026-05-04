@@ -14,14 +14,14 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 
 using static CSharpSyntaxTokens;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.EnableNullable), Shared]
-internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
 {
     private static readonly Func<DirectiveTriviaSyntax, bool> s_isNullableDirectiveTriviaPredicate =
         directive => directive.IsKind(SyntaxKind.NullableDirectiveTrivia);
@@ -267,7 +267,9 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         : CodeAction.SolutionChangeAction(
             CSharpFeaturesResources.Enable_nullable_reference_types_in_project,
             (progress, cancellationToken) => createChangedSolution(CodeActionPurpose.Apply, progress, cancellationToken),
-            nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_project))
+            nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_project),
+            CodeActionPriority.Default,
+            CodeActionCleanup.Default)
     {
         private readonly Func<CodeActionPurpose, IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> _createChangedSolution = createChangedSolution;
 

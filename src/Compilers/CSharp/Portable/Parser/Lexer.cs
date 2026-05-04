@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         Delimited = 1
     }
 
-    internal partial class Lexer : AbstractLexer
+    internal sealed partial class Lexer : AbstractLexer
     {
         private const int TriviaListInitialCapacity = 8;
 
@@ -88,6 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DocumentationCommentParser? _xmlParser;
         private DirectiveParser? _directiveParser;
+
+        private SyntaxListBuilder _leadingTriviaCache;
+        private SyntaxListBuilder _trailingTriviaCache;
+        private SyntaxListBuilder? _directiveTriviaCache;
 
         internal struct TokenInfo
         {
@@ -116,11 +120,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(options != null);
 
             _options = options;
-            _builder = new StringBuilder();
-            _identBuffer = new char[32];
-            _cache = new LexerCache();
             _allowPreprocessorDirectives = allowPreprocessorDirectives;
             _interpolationFollowedByColon = interpolationFollowedByColon;
+
+            // Obtain pooled items
+            _cache = LexerCache.GetInstance();
+            _builder = _cache.StringBuilder;
+            _identBuffer = _cache.IdentBuffer;
+            _leadingTriviaCache = _cache.LeadingTriviaCache;
+            _trailingTriviaCache = _cache.TrailingTriviaCache;
         }
 
         public override void Dispose()
@@ -281,39 +289,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
-        private SyntaxListBuilder _trailingTriviaCache = new SyntaxListBuilder(10);
-        private SyntaxListBuilder? _directiveTriviaCache;
-
-        private static int GetFullWidth(SyntaxListBuilder? builder)
-        {
-            int width = 0;
-
-            if (builder != null)
-            {
-                for (int i = 0; i < builder.Count; i++)
-                {
-                    width += builder[i]!.FullWidth;
-                }
-            }
-
-            return width;
-        }
-
         private SyntaxToken LexSyntaxToken()
         {
             _leadingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
+            this.LexSyntaxTrivia(isFollowingToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
             var leading = _leadingTriviaCache;
 
             var tokenInfo = default(TokenInfo);
 
             this.Start();
             this.ScanSyntaxToken(ref tokenInfo);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             _trailingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
+            this.LexSyntaxTrivia(isFollowingToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
             var trailing = _trailingTriviaCache;
 
             return Create(in tokenInfo, leading, trailing, errors);
@@ -322,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SyntaxTriviaList LexSyntaxLeadingTrivia()
         {
             _leadingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
+            this.LexSyntaxTrivia(isFollowingToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
             return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken),
                 _leadingTriviaCache.ToListNode(), position: 0, index: 0);
         }
@@ -330,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SyntaxTriviaList LexSyntaxTrailingTrivia()
         {
             _trailingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
+            this.LexSyntaxTrivia(isFollowingToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
             return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken),
                 _trailingTriviaCache.ToListNode(), position: 0, index: 0);
         }
@@ -459,26 +448,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '.':
+                    if (this.TextWindow.PeekChar(1) is >= '0' and <= '9')
+                    {
+                        var atDotPosition = this.TextWindow.Position;
+                        if (atDotPosition >= 1 &&
+                            atDotPosition == this.LexemeStartPosition)
+                        {
+                            // We have something like: .0
+                            //
+                            // This could be a fp number *except* the case where we have `..0` in that case, we want two
+                            // dots followed by an integer (which will be treated as a range expression).
+                            //
+                            // Move back one space to see what's before this dot and adjust accordingly.
+                            if (this.TextWindow.PreviousChar() is '.')
+                            {
+                                // We have two dots in a row.  Treat the second dot as a dot, not the start of a number literal.
+                                TextWindow.AdvanceChar();
+                                info.Kind = SyntaxKind.DotToken;
+                                break;
+                            }
+
+                            // Fall through naturally and scan the number out as a floating point number.
+                        }
+                    }
+
                     if (!this.ScanNumericLiteral(ref info))
                     {
                         TextWindow.AdvanceChar();
-                        if (TextWindow.TryAdvance('.'))
-                        {
-                            if (TextWindow.PeekChar() == '.')
-                            {
-                                // Triple-dot: explicitly reject this, to allow triple-dot
-                                // to be added to the language without a breaking change.
-                                // (without this, 0...2 would parse as (0)..(.2), i.e. a range from 0 to 0.2)
-                                this.AddError(ErrorCode.ERR_TripleDotNotAllowed);
-                            }
-
-                            info.Kind = SyntaxKind.DotDotToken;
-                        }
-                        else
-                        {
-                            info.Kind = SyntaxKind.DotToken;
-                        }
+                        info.Kind = SyntaxKind.DotToken;
                     }
+
                     break;
 
                 case ',':
@@ -622,12 +621,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             this.AddError(TextWindow.Position + 1, width: 1, ErrorCode.ERR_ExpectedVerbatimLiteral);
 
                             this.ScanToEndOfLine();
-                            info.Text = TextWindow.GetText(false);
+                            info.Text = this.GetNonInternedLexemeText();
                             break;
                         }
 
                         this.ConsumeAtSignSequence();
-                        info.Text = TextWindow.GetText(intern: true);
+                        info.Text = this.GetInternedLexemeText();
                         this.AddError(ErrorCode.ERR_ExpectedVerbatimLiteral);
                     }
                     break;
@@ -713,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // number of errors.
                     if (_badTokenCount++ <= 200)
                     {
-                        info.Text = TextWindow.GetText(intern: true);
+                        info.Text = this.GetInternedLexemeText();
                     }
                     else
                     {
@@ -767,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (TextWindow.PeekChar(1) is '$' or '@' or '"')
             {
                 // $$ - definitely starts a raw interpolated string.
-                // $@ - definitely starts an interplated string.
+                // $@ - definitely starts an interpolated string.
                 //
                 // This will also match for $@@.  This is an error case when the user thinks they can mix verbatim and raw
                 // interpolations together.  This will be properly handled in ScanInterpolatedStringLiteral
@@ -911,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     // Previously, in DebuggerSyntax mode, "123#" was a valid identifier.
                     TextWindow.AdvanceChar();
-                    info.StringValue = info.Text = TextWindow.GetText(intern: true);
+                    info.StringValue = info.Text = this.GetInternedLexemeText();
                     info.Kind = SyntaxKind.IdentifierToken;
                     this.AddError(MakeError(ErrorCode.ERR_LegacyObjectIdSyntax));
                     return true;
@@ -1034,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             info.Kind = SyntaxKind.NumericLiteralToken;
-            info.Text = TextWindow.GetText(true);
+            info.Text = this.GetInternedLexemeText();
             Debug.Assert(info.Text != null);
             var valueText = TextWindow.Intern(_builder);
             ulong val;
@@ -1327,21 +1326,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            var currentOffset = TextWindow.Offset;
-            var characterWindow = TextWindow.CharacterWindow;
-            var characterWindowCount = TextWindow.CharacterWindowCount;
-
-            var startOffset = currentOffset;
+            var textWindowCharSpan = this.TextWindow.CurrentWindowSpan;
+            var currentIndex = 0;
 
             while (true)
             {
-                if (currentOffset == characterWindowCount)
-                {
-                    // no more contiguous characters.  Fall back to slow path
+                // If we do not not have any more contiguous characters within the char span that we can look at,
+                // then fall back to slow path
+                if (currentIndex == textWindowCharSpan.Length)
                     return false;
-                }
 
-                switch (characterWindow[currentOffset])
+                switch (textWindowCharSpan[currentIndex])
                 {
                     case '&':
                         // CONSIDER: This method is performance critical, so
@@ -1391,13 +1386,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // All of the following characters are not valid in an 
                         // identifier.  If we see any of them, then we know we're
                         // done.
-                        var length = currentOffset - startOffset;
+                        var length = currentIndex;
                         TextWindow.AdvanceChar(length);
-                        info.Text = info.StringValue = TextWindow.Intern(characterWindow, startOffset, length);
+                        info.Text = info.StringValue = TextWindow.Intern(textWindowCharSpan[..length]);
                         info.IsVerbatim = false;
                         return true;
                     case >= '0' and <= '9':
-                        if (currentOffset == startOffset)
+                        if (currentIndex == 0)
                         {
                             return false;
                         }
@@ -1409,7 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case '_':
                         // All of these characters are valid inside an identifier.
                         // consume it and keep processing.
-                        currentOffset++;
+                        currentIndex++;
                         continue;
 
                     // case '@':  verbatim identifiers are handled in the slow path
@@ -1583,10 +1578,10 @@ top:
             }
 
 LoopExit:
-            var width = TextWindow.Width; // exact size of input characters
+            var width = this.CurrentLexemeWidth; // exact size of input characters
             if (_identLen > 0)
             {
-                info.Text = TextWindow.GetInternedText();
+                info.Text = GetInternedLexemeText();
 
                 // id buffer is identical to width in input
                 if (_identLen == width)
@@ -1792,18 +1787,18 @@ LoopExit:
                 // The text does not have to be interned (and probably shouldn't be
                 // if it contains entities (else-case).
 
-                var width = TextWindow.Width; // exact size of input characters
+                var width = this.CurrentLexemeWidth; // exact size of input characters
 
                 // id buffer is identical to width in input
                 if (_identLen == width)
                 {
-                    info.StringValue = TextWindow.GetInternedText();
+                    info.StringValue = this.GetInternedLexemeText();
                     info.Text = info.StringValue;
                 }
                 else
                 {
                     info.StringValue = TextWindow.Intern(_identBuffer, 0, _identLen);
-                    info.Text = TextWindow.GetText(intern: false);
+                    info.Text = this.GetNonInternedLexemeText();
                 }
 
                 return true;
@@ -1874,7 +1869,7 @@ LoopExit:
             }
         }
 
-        private void LexSyntaxTrivia(bool afterFirstToken, bool isTrailing, ref SyntaxListBuilder triviaList)
+        private void LexSyntaxTrivia(bool isFollowingToken, bool isTrailing, ref SyntaxListBuilder triviaList)
         {
             bool onlyWhitespaceOnLine = !isTrailing;
 
@@ -1980,7 +1975,33 @@ LoopExit:
                     case '#':
                         if (_allowPreprocessorDirectives)
                         {
-                            this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, ref triviaList);
+                            if (isTrailing || !onlyWhitespaceOnLine)
+                            {
+                                // Directives cannot be in trailing trivia.
+                                // We parse the directive (ignoring its effects like disabled text or defined symbols).
+                                // We extract the text corresponding to the parsed directive
+                                // and add it as a BadToken in SkippedTokensTrivia.
+
+                                var savePosition = TextWindow.Position;
+
+                                // All the `false` arguments affect only error reporting and the resulting node, both of which we discard.
+                                // However, passing `false` can skip some unnecessary checks.
+                                this.ParseDirective(isActive: false, endIsActive: false, isFollowingToken: false);
+
+                                var text = TextWindow.Text.GetSubText(TextSpan.FromBounds(savePosition, TextWindow.Position));
+
+                                var error = new SyntaxDiagnosticInfo(offset: 0, width: 1, code: ErrorCode.ERR_BadDirectivePlacement);
+
+                                var token = SyntaxFactory.BadToken(null, text.ToString(), null).WithDiagnosticsGreen([error]);
+
+                                this.AddTrivia(SyntaxFactory.SkippedTokensTrivia(token), ref triviaList);
+                            }
+                            else
+                            {
+                                this.LexDirectiveAndExcludedTrivia(isFollowingToken, ref triviaList);
+                            }
+
+                            onlyWhitespaceOnLine = true;
                             break;
                         }
                         else
@@ -2016,7 +2037,7 @@ LoopExit:
             void lexSingleLineComment(ref SyntaxListBuilder triviaList)
             {
                 this.ScanToEndOfLine();
-                var text = TextWindow.GetText(false);
+                var text = this.GetNonInternedLexemeText();
                 this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
             }
 
@@ -2030,7 +2051,7 @@ LoopExit:
                     this.AddError(ErrorCode.ERR_OpenEndedComment);
                 }
 
-                var text = TextWindow.GetText(false);
+                var text = this.GetNonInternedLexemeText();
                 this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
             }
         }
@@ -2126,9 +2147,9 @@ LoopExit:
                 this.TextWindow.AdvanceChar();
             }
 
-            if (this.TextWindow.Width > 0)
+            if (this.CurrentLexemeWidth > 0)
             {
-                this.AddTrivia(SyntaxFactory.DisabledText(TextWindow.GetText(false)), ref triviaList);
+                this.AddTrivia(SyntaxFactory.DisabledText(this.GetNonInternedLexemeText()), ref triviaList);
             }
 
             if (hitNextMarker)
@@ -2147,9 +2168,9 @@ LoopExit:
                 this.TextWindow.AdvanceChar();
             }
 
-            if (this.TextWindow.Width > 0)
+            if (this.CurrentLexemeWidth > 0)
             {
-                this.AddTrivia(SyntaxFactory.EndOfLine(TextWindow.GetText(false)), ref triviaList);
+                this.AddTrivia(SyntaxFactory.EndOfLine(this.GetNonInternedLexemeText()), ref triviaList);
             }
         }
 
@@ -2166,14 +2187,14 @@ LoopExit:
                 this.TextWindow.AdvanceChar();
             }
 
-            this.AddTrivia(SyntaxFactory.ConflictMarker(TextWindow.GetText(false)), ref triviaList);
+            this.AddTrivia(SyntaxFactory.ConflictMarker(this.GetNonInternedLexemeText()), ref triviaList);
         }
 
         private void AddTrivia(CSharpSyntaxNode trivia, [NotNull] ref SyntaxListBuilder? list)
         {
             if (this.HasErrors)
             {
-                trivia = trivia.WithDiagnosticsGreen(this.GetErrors(leadingTriviaWidth: 0));
+                trivia = trivia.WithDiagnosticsGreen(this.GetErrors());
             }
 
             if (list == null)
@@ -2253,6 +2274,8 @@ LoopExit:
         /// <returns>A trivia node with the whitespace text</returns>
         private SyntaxTrivia ScanWhitespace()
         {
+            Debug.Assert(SyntaxFacts.IsWhitespace(TextWindow.PeekChar()));
+
             int hashCode = Hash.FnvOffsetBias;  // FNV base
             bool onlySpaces = true;
 
@@ -2286,44 +2309,37 @@ top:
                     break;
             }
 
-            if (TextWindow.Width == 1 && onlySpaces)
+            Debug.Assert(this.CurrentLexemeWidth > 0);
+
+            if (this.CurrentLexemeWidth == 1 && onlySpaces)
             {
                 return SyntaxFactory.Space;
             }
             else
             {
-                var width = TextWindow.Width;
+                var width = this.CurrentLexemeWidth;
 
                 if (width < MaxCachedTokenSize)
                 {
-                    return _cache.LookupTrivia(
-                        TextWindow.CharacterWindow,
-                        TextWindow.LexemeRelativeStart,
-                        width,
-                        hashCode,
-                        CreateWhitespaceTrivia,
-                        TextWindow);
+                    return _cache.LookupWhitespaceTrivia(
+                        TextWindow,
+                        this.LexemeStartPosition,
+                        hashCode);
                 }
                 else
                 {
-                    return CreateWhitespaceTrivia(TextWindow);
+                    return SyntaxFactory.Whitespace(this.GetInternedLexemeText());
                 }
             }
         }
 
-        private static SyntaxTrivia CreateWhitespaceTrivia(SlidingTextWindow textWindow)
-        {
-            return SyntaxFactory.Whitespace(textWindow.GetText(intern: true));
-        }
-
         private void LexDirectiveAndExcludedTrivia(
-            bool afterFirstToken,
-            bool afterNonWhitespaceOnLine,
+            bool isFollowingToken,
             ref SyntaxListBuilder triviaList)
         {
-            var directive = this.LexSingleDirective(true, true, afterFirstToken, afterNonWhitespaceOnLine, ref triviaList);
+            var directive = this.LexSingleDirective(true, true, isFollowingToken, ref triviaList);
 
-            // also lex excluded stuff            
+            // also lex excluded stuff
             var branching = directive as BranchingDirectiveTriviaSyntax;
             if (branching != null && !branching.BranchTaken)
             {
@@ -2347,7 +2363,7 @@ top:
                     break;
                 }
 
-                var directive = this.LexSingleDirective(false, endIsActive, false, false, ref triviaList);
+                var directive = this.LexSingleDirective(false, endIsActive, false, ref triviaList);
                 var branching = directive as BranchingDirectiveTriviaSyntax;
                 if (directive.Kind == SyntaxKind.EndIfDirectiveTrivia || (branching != null && branching.BranchTaken))
                 {
@@ -2363,8 +2379,7 @@ top:
         private CSharpSyntaxNode LexSingleDirective(
             bool isActive,
             bool endIsActive,
-            bool afterFirstToken,
-            bool afterNonWhitespaceOnLine,
+            bool isFollowingToken,
             ref SyntaxListBuilder triviaList)
         {
             if (SyntaxFacts.IsWhitespace(TextWindow.PeekChar()))
@@ -2373,16 +2388,25 @@ top:
                 this.AddTrivia(this.ScanWhitespace(), ref triviaList);
             }
 
-            CSharpSyntaxNode directive;
+            CSharpSyntaxNode directive = ParseDirective(isActive, endIsActive, isFollowingToken);
+
+            this.AddTrivia(directive, ref triviaList);
+            _directives = directive.ApplyDirectives(_directives);
+            return directive;
+        }
+
+        private CSharpSyntaxNode ParseDirective(
+            bool isActive,
+            bool endIsActive,
+            bool isFollowingToken)
+        {
             var saveMode = _mode;
 
             _directiveParser ??= new DirectiveParser(this);
             _directiveParser.ReInitialize(_directives);
 
-            directive = _directiveParser.ParseDirective(isActive, endIsActive, afterFirstToken, afterNonWhitespaceOnLine);
+            CSharpSyntaxNode directive = _directiveParser.ParseDirective(isActive, endIsActive, isFollowingToken);
 
-            this.AddTrivia(directive, ref triviaList);
-            _directives = directive.ApplyDirectives(_directives);
             _mode = saveMode;
             return directive;
         }
@@ -2408,7 +2432,7 @@ top:
                         }
 
                         followedByDirective = false;
-                        return TextWindow.Width > 0 ? SyntaxFactory.DisabledText(TextWindow.GetText(false)) : null;
+                        return this.CurrentLexemeWidth > 0 ? SyntaxFactory.DisabledText(this.GetNonInternedLexemeText()) : null;
                     case '#':
                         if (!_allowPreprocessorDirectives) goto default;
                         followedByDirective = true;
@@ -2418,7 +2442,7 @@ top:
                         }
 
                         TextWindow.Reset(lastLineStart);  // reset so directive parser can consume the starting whitespace on this line
-                        return TextWindow.Width > 0 ? SyntaxFactory.DisabledText(TextWindow.GetText(false)) : null;
+                        return this.CurrentLexemeWidth > 0 ? SyntaxFactory.DisabledText(this.GetNonInternedLexemeText()) : null;
                     case '\r':
                     case '\n':
                         this.ScanEndOfLine();
@@ -2444,7 +2468,7 @@ top:
             this.Start();
             TokenInfo info = default(TokenInfo);
             this.ScanDirectiveToken(ref info);
-            var errors = this.GetErrors(leadingTriviaWidth: 0);
+            var errors = this.GetErrors();
 
             var directiveTriviaCache = _directiveTriviaCache;
             directiveTriviaCache?.Clear();
@@ -2458,7 +2482,7 @@ top:
             return token;
         }
 
-        public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
+        private string? LexOptionalPreprocessingMessage()
         {
             PooledStringBuilder? builder = null;
 
@@ -2482,10 +2506,11 @@ top:
                 this.TextWindow.AdvanceChar();
             }
 
-            var leading = builder == null
-                ? null
-                : SyntaxFactory.PreprocessingMessage(builder.ToStringAndFree());
+            return builder?.ToStringAndFree();
+        }
 
+        private SyntaxToken LexEndOfDirectiveAfterOptionalPreprocessingMessage(SyntaxTrivia? leading)
+        {
             // now try to consume the EOL if there.
             var directiveTriviaCache = _directiveTriviaCache;
             directiveTriviaCache?.Clear();
@@ -2498,6 +2523,23 @@ top:
             var endOfDirective = SyntaxFactory.Token(leading, SyntaxKind.EndOfDirectiveToken, trailing);
 
             return endOfDirective;
+        }
+
+        public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
+        {
+            var leading = this.LexOptionalPreprocessingMessage() is { } message
+                ? SyntaxFactory.PreprocessingMessage(message)
+                : null;
+
+            return this.LexEndOfDirectiveAfterOptionalPreprocessingMessage(leading);
+        }
+
+        public SyntaxToken LexEndOfDirectiveWithOptionalContent(out SyntaxToken? content)
+        {
+            content = this.LexOptionalPreprocessingMessage() is { } message
+                ? SyntaxToken.StringLiteral(message)
+                : null;
+            return this.LexEndOfDirectiveAfterOptionalPreprocessingMessage(null);
         }
 
         private bool ScanDirectiveToken(ref TokenInfo info)
@@ -2546,6 +2588,11 @@ top:
                 case '-':
                     TextWindow.AdvanceChar();
                     info.Kind = SyntaxKind.MinusToken;
+                    break;
+
+                case ':':
+                    TextWindow.AdvanceChar();
+                    info.Kind = SyntaxKind.ColonToken;
                     break;
 
                 case '!':
@@ -2608,7 +2655,7 @@ top:
                 case '9':
                     this.ScanInteger();
                     info.Kind = SyntaxKind.NumericLiteralToken;
-                    info.Text = TextWindow.GetText(true);
+                    info.Text = this.GetInternedLexemeText();
                     info.ValueKind = SpecialType.System_Int32;
                     info.IntValue = this.GetValueInt32(info.Text, false);
                     break;
@@ -2656,7 +2703,7 @@ top:
                         }
 
                         info.Kind = SyntaxKind.None;
-                        info.Text = TextWindow.GetText(true);
+                        info.Text = this.GetInternedLexemeText();
                     }
 
                     break;
@@ -2711,7 +2758,7 @@ top:
                     {
                         // normal single line comment
                         this.ScanToEndOfLine();
-                        var text = TextWindow.GetText(false);
+                        var text = this.GetNonInternedLexemeText();
                         trivia = SyntaxFactory.Comment(text);
                     }
 
@@ -2766,7 +2813,7 @@ top:
                 // The comment didn't end.  Report an error at the start point.
                 // NOTE: report this error even if the DocumentationMode is less than diagnose - the comment
                 // would be malformed as a non-doc comment as well.
-                this.AddError(TextWindow.LexemeStartPosition, TextWindow.Width, ErrorCode.ERR_OpenEndedComment);
+                this.AddError(this.LexemeStartPosition, this.CurrentLexemeWidth, ErrorCode.ERR_OpenEndedComment);
             }
 
             return docComment;
@@ -2784,7 +2831,7 @@ top:
 
             this.Start();
             this.ScanXmlToken(ref xmlTokenInfo);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in xmlTokenInfo, leading, null, errors);
         }
@@ -2845,7 +2892,7 @@ top:
         private void ScanXmlTextLiteralNewLineToken(ref TokenInfo info)
         {
             this.ScanEndOfLine();
-            info.StringValue = info.Text = TextWindow.GetText(intern: false);
+            info.StringValue = info.Text = this.GetNonInternedLexemeText();
             info.Kind = SyntaxKind.XmlTextLiteralNewLineToken;
             this.MutateLocation(XmlDocCommentLocation.Exterior);
         }
@@ -2987,7 +3034,7 @@ top:
                 if (MatchesProductionForXmlChar(charValue))
                 {
                     char lowSurrogate;
-                    char highSurrogate = SlidingTextWindow.GetCharsFromUtf32(charValue, out lowSurrogate);
+                    char highSurrogate = GetCharsFromUtf32(charValue, out lowSurrogate);
 
                     _builder.Append(highSurrogate);
                     if (lowSurrogate != SlidingTextWindow.InvalidCharacter)
@@ -3041,7 +3088,7 @@ top:
             // If we don't have a value computed from above, then we don't recognize the entity, in which
             // case we will simply use the text.
 
-            info.Text = TextWindow.GetText(true);
+            info.Text = this.GetInternedLexemeText();
             if (info.StringValue == null)
             {
                 info.StringValue = info.Text;
@@ -3072,7 +3119,7 @@ top:
             if (TextWindow.PeekChar() == ']' && TextWindow.PeekChar(1) == ']' && TextWindow.PeekChar(2) == '>')
             {
                 TextWindow.AdvanceChar(3);
-                info.StringValue = info.Text = TextWindow.GetText(false);
+                info.StringValue = info.Text = this.GetNonInternedLexemeText();
                 this.AddError(XmlParseErrorCode.XML_CDataEndTagNotAllowed);
                 return;
             }
@@ -3088,20 +3135,20 @@ top:
                             goto default;
                         }
 
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                         return;
                     case '&':
                     case '<':
                     case '\r':
                     case '\n':
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                         return;
 
                     case '*':
                         if (this.StyleIs(XmlDocCommentStyle.Delimited) && TextWindow.PeekChar(1) == '/')
                         {
                             // we're at the end of the comment, but don't lex it yet.
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -3110,7 +3157,7 @@ top:
                     case ']':
                         if (TextWindow.PeekChar(1) == ']' && TextWindow.PeekChar(2) == '>')
                         {
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -3140,7 +3187,7 @@ top:
 
             this.Start();
             this.ScanXmlElementTagToken(ref tagInfo);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             // PERF: De-dupe common XML element tags
             if (errors == null && tagInfo.ContextualKind == SyntaxKind.None && tagInfo.Kind == SyntaxKind.IdentifierToken)
@@ -3250,7 +3297,7 @@ top:
                     {
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.None;
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                     }
 
                     break;
@@ -3326,7 +3373,7 @@ top:
 
             this.Start();
             this.ScanXmlAttributeTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -3414,7 +3461,7 @@ top:
                     case '"':
                         if (this.ModeIs(LexerMode.XmlAttributeTextDoubleQuote))
                         {
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -3423,7 +3470,7 @@ top:
                     case '\'':
                         if (this.ModeIs(LexerMode.XmlAttributeTextQuote))
                         {
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -3433,7 +3480,7 @@ top:
                     case '<':
                     case '\r':
                     case '\n':
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                         return;
 
                     case SlidingTextWindow.InvalidCharacter:
@@ -3442,14 +3489,14 @@ top:
                             goto default;
                         }
 
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                         return;
 
                     case '*':
                         if (this.StyleIs(XmlDocCommentStyle.Delimited) && TextWindow.PeekChar(1) == '/')
                         {
                             // we're at the end of the comment, but don't lex it yet.
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -3480,7 +3527,7 @@ top:
 
             this.Start();
             this.ScanXmlCharacter(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -3536,7 +3583,7 @@ top:
 
             this.Start();
             this.ScanXmlCrefToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -3587,7 +3634,7 @@ top:
                     break;
 
                 case '<':
-                    info.Text = TextWindow.GetText(intern: false);
+                    info.Text = this.GetNonInternedLexemeText();
                     this.AddError(XmlParseErrorCode.XML_LessThanInAttributeValue, info.Text); //ErrorCode.WRN_XMLParseError
                     return true;
 
@@ -3751,7 +3798,7 @@ top:
                 Debug.Assert(info.StringValue == null, "Haven't tried to set it yet.");
 
                 string valueText = SyntaxFacts.GetText(info.Kind);
-                string actualText = TextWindow.GetText(intern: false);
+                string actualText = this.GetNonInternedLexemeText();
                 if (!string.IsNullOrEmpty(valueText) && actualText != valueText)
                 {
                     info.RequiresTextForXmlEntity = true;
@@ -3800,7 +3847,7 @@ top:
                         if (TextWindow.PeekChar() == '@')
                         {
                             TextWindow.NextChar();
-                            info.Text = TextWindow.GetText(intern: true);
+                            info.Text = this.GetInternedLexemeText();
                             info.StringValue = ""; // Can't be null for an identifier.
                         }
                         else
@@ -3820,7 +3867,7 @@ top:
                     else
                     {
                         char bad = TextWindow.NextChar();
-                        info.Text = TextWindow.GetText(intern: false);
+                        info.Text = this.GetNonInternedLexemeText();
 
                         // If it's valid in XML, then it was unexpected in cref mode.
                         // Otherwise, it's just bad XML.
@@ -3948,7 +3995,7 @@ top:
 
             this.Start();
             this.ScanXmlCDataSectionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -4016,7 +4063,7 @@ top:
                     case ']':
                         if (TextWindow.PeekChar(1) == ']' && TextWindow.PeekChar(2) == '>')
                         {
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -4024,7 +4071,7 @@ top:
 
                     case '\r':
                     case '\n':
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                         return;
 
                     case SlidingTextWindow.InvalidCharacter:
@@ -4033,14 +4080,14 @@ top:
                             goto default;
                         }
 
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                         return;
 
                     case '*':
                         if (this.StyleIs(XmlDocCommentStyle.Delimited) && TextWindow.PeekChar(1) == '/')
                         {
                             // we're at the end of the comment, but don't lex it yet.
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -4070,7 +4117,7 @@ top:
 
             this.Start();
             this.ScanXmlCommentTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -4146,7 +4193,7 @@ top:
                     case '-':
                         if (TextWindow.PeekChar(1) == '-')
                         {
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -4154,7 +4201,7 @@ top:
 
                     case '\r':
                     case '\n':
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                         return;
 
                     case SlidingTextWindow.InvalidCharacter:
@@ -4163,14 +4210,14 @@ top:
                             goto default;
                         }
 
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                         return;
 
                     case '*':
                         if (this.StyleIs(XmlDocCommentStyle.Delimited) && TextWindow.PeekChar(1) == '/')
                         {
                             // we're at the end of the comment, but don't lex it yet.
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -4200,7 +4247,7 @@ top:
 
             this.Start();
             this.ScanXmlProcessingInstructionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -4270,7 +4317,7 @@ top:
                     case '?':
                         if (TextWindow.PeekChar(1) == '>')
                         {
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -4278,7 +4325,7 @@ top:
 
                     case '\r':
                     case '\n':
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                         return;
 
                     case SlidingTextWindow.InvalidCharacter:
@@ -4287,14 +4334,14 @@ top:
                             goto default;
                         }
 
-                        info.StringValue = info.Text = TextWindow.GetText(false);
+                        info.StringValue = info.Text = this.GetNonInternedLexemeText();
                         return;
 
                     case '*':
                         if (this.StyleIs(XmlDocCommentStyle.Delimited) && TextWindow.PeekChar(1) == '/')
                         {
                             // we're at the end of the comment, but don't lex it yet.
-                            info.StringValue = info.Text = TextWindow.GetText(false);
+                            info.StringValue = info.Text = this.GetNonInternedLexemeText();
                             return;
                         }
 
@@ -4333,7 +4380,7 @@ top:
                     && TextWindow.PeekChar(3) != '*')
                 {
                     TextWindow.AdvanceChar(3);
-                    var text = TextWindow.GetText(true);
+                    var text = this.GetInternedLexemeText();
                     this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                     this.MutateLocation(XmlDocCommentLocation.Interior);
                     return;
@@ -4362,7 +4409,7 @@ top:
                             if (this.StyleIs(XmlDocCommentStyle.SingleLine) && TextWindow.PeekChar(1) == '/' && TextWindow.PeekChar(2) == '/' && TextWindow.PeekChar(3) != '/')
                             {
                                 TextWindow.AdvanceChar(3);
-                                var text = TextWindow.GetText(true);
+                                var text = this.GetInternedLexemeText();
                                 this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                                 this.MutateLocation(XmlDocCommentLocation.Interior);
                                 return;
@@ -4378,7 +4425,7 @@ top:
                                     TextWindow.AdvanceChar();
                                 }
 
-                                var text = TextWindow.GetText(true);
+                                var text = this.GetInternedLexemeText();
                                 if (!String.IsNullOrEmpty(text))
                                 {
                                     this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
@@ -4424,7 +4471,7 @@ top:
                             {
                                 Debug.Assert(this.StyleIs(XmlDocCommentStyle.Delimited));
 
-                                var text = TextWindow.GetText(true);
+                                var text = this.GetInternedLexemeText();
                                 if (!String.IsNullOrEmpty(text))
                                     this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                                 this.MutateLocation(XmlDocCommentLocation.Interior);
@@ -4439,7 +4486,7 @@ top:
                 if (TextWindow.PeekChar() == '*' && TextWindow.PeekChar(1) == '/')
                 {
                     TextWindow.AdvanceChar(2);
-                    var text = TextWindow.GetText(true);
+                    var text = this.GetInternedLexemeText();
                     this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                     this.MutateLocation(XmlDocCommentLocation.End);
                 }
@@ -4791,12 +4838,12 @@ top:
 
         private SyntaxDiagnosticInfo CreateIllegalEscapeDiagnostic(int start)
         {
-            return new SyntaxDiagnosticInfo(start - TextWindow.LexemeStartPosition,
+            return new SyntaxDiagnosticInfo(start - this.LexemeStartPosition,
                 TextWindow.Position - start,
                 ErrorCode.ERR_IllegalEscape);
         }
 
-        internal static char GetCharsFromUtf32(uint codepoint, out char lowSurrogate)
+        private static char GetCharsFromUtf32(uint codepoint, out char lowSurrogate)
         {
             if (codepoint < (uint)0x00010000)
             {

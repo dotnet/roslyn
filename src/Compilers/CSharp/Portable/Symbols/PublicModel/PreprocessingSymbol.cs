@@ -65,11 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         Accessibility ISymbol.DeclaredAccessibility => Accessibility.NotApplicable;
 
-        void ISymbol.Accept(SymbolVisitor visitor) => throw new System.NotSupportedException();
+        void ISymbol.Accept(SymbolVisitor visitor) => visitor.VisitPreprocessing(this);
 
-        TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor) => throw new System.NotSupportedException();
+        TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitPreprocessing(this)!;
 
-        TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument) => throw new System.NotSupportedException();
+        TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPreprocessing(this, argument);
 
         string? ISymbol.GetDocumentationCommentId() => null;
 

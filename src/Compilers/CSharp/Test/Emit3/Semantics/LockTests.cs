@@ -1926,7 +1926,6 @@ public class LockTests : CSharpTestBase
     public void AsyncMethod()
     {
         var source = """
-            #pragma warning disable 1998 // async method lacks 'await' operators
             using System.Threading;
             using System.Threading.Tasks;
 
@@ -2373,7 +2372,6 @@ public class LockTests : CSharpTestBase
     public void AsyncMethod_AwaitResource()
     {
         var source = """
-            #pragma warning disable 1998 // async method lacks 'await' operators
             using System.Threading;
             using System.Threading.Tasks;
 
@@ -2597,7 +2595,6 @@ public class LockTests : CSharpTestBase
     public void AsyncLocalFunction()
     {
         var source = """
-            #pragma warning disable 1998 // async method lacks 'await' operators
             using System.Threading;
 
             async void local()
@@ -3041,7 +3038,6 @@ public class LockTests : CSharpTestBase
     public void AsyncLambda()
     {
         var source = """
-            #pragma warning disable 1998 // async method lacks 'await' operators
             using System.Threading;
 
             var lam = async () =>

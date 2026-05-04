@@ -5,10 +5,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+
+internal abstract class FSharpInlineRenameServiceImplementation
 {
-    internal abstract class FSharpInlineRenameServiceImplementation
-    {
-        public abstract Task<FSharpInlineRenameInfo?> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
-    }
+    public abstract Task<FSharpInlineRenameInfo?> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
 }

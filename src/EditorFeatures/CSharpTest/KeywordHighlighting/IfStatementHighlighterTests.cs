@@ -13,15 +13,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
 [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(IfStatementHighlighter);
 
     [Fact]
-    public async Task TestIfStatementWithIfAndSingleElse1()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithIfAndSingleElse1()
+        => TestAsync(
             """
             public class C
             {
@@ -39,12 +38,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithIfAndSingleElse2()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithIfAndSingleElse2()
+        => TestAsync(
             """
             public class C
             {
@@ -62,12 +59,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithIfAndElseIfAndElse1()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithIfAndElseIfAndElse1()
+        => TestAsync(
             """
             public class C
             {
@@ -89,12 +84,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithIfAndElseIfAndElse2()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithIfAndElseIfAndElse2()
+        => TestAsync(
             """
             public class C
             {
@@ -116,12 +109,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithIfAndElseIfAndElse3()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithIfAndElseIfAndElse3()
+        => TestAsync(
             """
             public class C
             {
@@ -143,12 +134,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithElseIfOnDifferentLines1()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithElseIfOnDifferentLines1()
+        => TestAsync(
             """
             public class C
             {
@@ -171,12 +160,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithElseIfOnDifferentLines2()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithElseIfOnDifferentLines2()
+        => TestAsync(
             """
             public class C
             {
@@ -199,12 +186,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithElseIfOnDifferentLines3()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithElseIfOnDifferentLines3()
+        => TestAsync(
             """
             public class C
             {
@@ -227,12 +212,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithElseIfOnDifferentLines4()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithElseIfOnDifferentLines4()
+        => TestAsync(
             """
             public class C
             {
@@ -255,12 +238,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithIfAndElseIfAndElseTouching1()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithIfAndElseIfAndElseTouching1()
+        => TestAsync(
             """
             public class C
             {
@@ -281,12 +262,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithIfAndElseIfAndElseTouching2()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithIfAndElseIfAndElseTouching2()
+        => TestAsync(
             """
             public class C
             {
@@ -307,12 +286,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfStatementWithIfAndElseIfAndElseTouching3()
-    {
-        await TestAsync(
+    public Task TestIfStatementWithIfAndElseIfAndElseTouching3()
+        => TestAsync(
             """
             public class C
             {
@@ -333,12 +310,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExtraSpacesBetweenElseAndIf1()
-    {
-        await TestAsync(
+    public Task TestExtraSpacesBetweenElseAndIf1()
+        => TestAsync(
             """
             public class C
             {
@@ -360,12 +335,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExtraSpacesBetweenElseAndIf2()
-    {
-        await TestAsync(
+    public Task TestExtraSpacesBetweenElseAndIf2()
+        => TestAsync(
             """
             public class C
             {
@@ -387,12 +360,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExtraSpacesBetweenElseAndIf3()
-    {
-        await TestAsync(
+    public Task TestExtraSpacesBetweenElseAndIf3()
+        => TestAsync(
             """
             public class C
             {
@@ -414,12 +385,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCommentBetweenElseIf1()
-    {
-        await TestAsync(
+    public Task TestCommentBetweenElseIf1()
+        => TestAsync(
             """
             public class C
             {
@@ -441,12 +410,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCommentBetweenElseIf2()
-    {
-        await TestAsync(
+    public Task TestCommentBetweenElseIf2()
+        => TestAsync(
             """
             public class C
             {
@@ -468,12 +435,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCommentBetweenElseIf3()
-    {
-        await TestAsync(
+    public Task TestCommentBetweenElseIf3()
+        => TestAsync(
             """
             public class C
             {
@@ -495,12 +460,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCommentBetweenElseIf4()
-    {
-        await TestAsync(
+    public Task TestCommentBetweenElseIf4()
+        => TestAsync(
             """
             public class C
             {
@@ -522,12 +485,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedIfDoesNotHighlight1()
-    {
-        await TestAsync(
+    public Task TestNestedIfDoesNotHighlight1()
+        => TestAsync(
             """
             public class C
             {
@@ -554,12 +515,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedIfDoesNotHighlight2()
-    {
-        await TestAsync(
+    public Task TestNestedIfDoesNotHighlight2()
+        => TestAsync(
             """
             public class C
             {
@@ -586,12 +545,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedIfDoesNotHighlight3()
-    {
-        await TestAsync(
+    public Task TestNestedIfDoesNotHighlight3()
+        => TestAsync(
             """
             public class C
             {
@@ -618,12 +575,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             class C
             {
@@ -647,12 +602,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_1()
-    {
-        await TestAsync(
+    public Task TestExample2_1()
+        => TestAsync(
             """
             class C
             {
@@ -676,12 +629,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_2()
-    {
-        await TestAsync(
+    public Task TestExample2_2()
+        => TestAsync(
             """
             class C
             {
@@ -705,12 +656,10 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_3()
-    {
-        await TestAsync(
+    public Task TestExample2_3()
+        => TestAsync(
             """
             class C
             {
@@ -734,5 +683,4 @@ public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 }

@@ -276,4 +276,19 @@
   <data name="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose" xml:space="preserve">
     <value>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</value>
   </data>
+  <data name="Indentation_and_spacing" xml:space="preserve">
+    <value>Indentation and spacing</value>
+  </data>
+  <data name="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer" xml:space="preserve">
+    <value>Value too large to be represented as a 30 bit unsigned integer.</value>
+  </data>
+  <data name="A_language_name_cannot_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name cannot be specified for this option.</value>
+  </data>
+  <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name must be specified for this option.</value>
+  </data>
+  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
+    <value>Stream must support read and seek operations.</value>
+  </data>
 </root>

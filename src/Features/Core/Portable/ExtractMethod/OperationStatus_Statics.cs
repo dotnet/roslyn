@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal partial class OperationStatus
+internal sealed partial class OperationStatus
 {
     public static readonly OperationStatus SucceededStatus = new(succeeded: true, reason: null);
     public static readonly OperationStatus FailedWithUnknownReason = new(succeeded: false, reason: FeaturesResources.Unknown_error_occurred);

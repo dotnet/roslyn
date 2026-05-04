@@ -311,7 +311,6 @@ public sealed class CompletionItem : IComparable<CompletionItem>
     /// <param name="properties">Additional information.</param>
     /// <param name="tags">Descriptive tags that may influence how the item is displayed.</param>
     /// <param name="rules">The rules that declare how this item should behave.</param>
-    /// <returns></returns>
     [Obsolete("Use the Create overload that does not take a span", error: true)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static CompletionItem Create(
@@ -461,7 +460,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
     /// Creates a copy of this <see cref="CompletionItem"/> with the specified property.
     /// </summary>
     public CompletionItem AddProperty(string name, string value)
-        => With(properties: GetProperties().Add(KeyValuePairUtil.Create(name, value)));
+        => With(properties: GetProperties().Add(KeyValuePair.Create(name, value)));
 
     /// <summary>
     /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Tags"/> property changed.
@@ -543,7 +542,14 @@ public sealed class CompletionItem : IComparable<CompletionItem>
     }
 
     internal string GetEntireDisplayText()
-        => _lazyEntireDisplayText ??= DisplayTextPrefix + DisplayText + DisplayTextSuffix;
+    {
+        // Avoid allocating in common case where prefix and suffix are empty
+        _lazyEntireDisplayText ??= (DisplayTextPrefix.Length > 0 || DisplayTextSuffix.Length > 0)
+            ? DisplayTextPrefix + DisplayText + DisplayTextSuffix
+            : DisplayText;
+
+        return _lazyEntireDisplayText;
+    }
 
     public override string ToString() => GetEntireDisplayText();
 }

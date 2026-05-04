@@ -52,10 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me.GetNextTokenInState(ScannerState.VB)
 
             Else
-                Dim parser As New Parser(Me)
-
-                directiveTrivia = parser.ParseConditionalCompilationStatement()
-                directiveTrivia = parser.ConsumeStatementTerminatorAfterDirective(directiveTrivia)
+                Using parser = New Parser(Me)
+                    directiveTrivia = parser.ParseConditionalCompilationStatement()
+                    directiveTrivia = parser.ConsumeStatementTerminatorAfterDirective(directiveTrivia)
+                End Using
             End If
 
             Debug.Assert(directiveTrivia.FullWidth > 0, "should at least get #")

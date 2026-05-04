@@ -4,7 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _compilation = compilation;
 
             var typeMap = underlyingMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
-            typeMap.WithAlphaRename(underlyingMethod, this, out _typeParameters);
+            typeMap.WithAlphaRename(underlyingMethod, this, propagateAttributes: false, out _typeParameters);
 
             _underlyingMethod = underlyingMethod.ConstructIfGeneric(TypeArgumentsWithAnnotations);
             _parameters = SynthesizedParameterSymbol.DeriveParameters(_underlyingMethod, this);
@@ -58,6 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _parameters; }
         }
 
+        public override bool IsAsync => false;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+
         public override TypeWithAnnotations ReturnTypeWithAnnotations => _underlyingMethod.ReturnTypeWithAnnotations;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
@@ -78,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return _underlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
         }
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override bool IsNullableAnalysisEnabled()
         {
             return _underlyingMethod.IsNullableAnalysisEnabled();
@@ -87,17 +95,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
-            ParameterSymbol underlyingThisParameter;
+            ParameterSymbol? underlyingThisParameter;
             if (!_underlyingMethod.TryGetThisParameter(out underlyingThisParameter))
             {
                 thisParameter = null;
                 return false;
             }
 
-            thisParameter = (object)underlyingThisParameter != null
+            thisParameter = underlyingThisParameter is not null
                 ? new ThisParameterSymbol(this)
                 : null;
             return true;
+        }
+
+        internal override int TryGetOverloadResolutionPriority()
+        {
+            return _underlyingMethod.TryGetOverloadResolutionPriority();
         }
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
@@ -105,5 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             builderArgument = null;
             return false;
         }
+
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

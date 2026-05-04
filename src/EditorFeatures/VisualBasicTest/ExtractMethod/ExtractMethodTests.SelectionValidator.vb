@@ -459,7 +459,7 @@ End Module
             Public Async Function TestSelectionTest46() As Task
                 Dim code = <text>Module Program
     Sub Main(args As String())
-        Dim startingScores1(,) As Short = {|r:New Short(1, 2) {{|b:{10, 10, 10}|}, {10, 10, 10}}|}
+        Dim startingScores1(,) As Short = New Short(1, 2) {{|r:{|b:{10, 10, 10}|}|}, {10, 10, 10}}
        Dim ticTacToe = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
     End Sub
 End Module</text>
@@ -471,7 +471,7 @@ End Module</text>
                 Dim code = <text>Module Program
     Sub Main(args As String())
         Dim startingScores1(,) As Short = New Short(1, 2) {{10, 10, 10}, {10, 10, 10}}
-        Dim ticTacToe = {|r:{{|b:{0, 0, 0}|}, {0, 0, 0}, {0, 0, 0}}|}
+        Dim ticTacToe = {{|r:{|b:{0, 0, 0}|}|}, {0, 0, 0}, {0, 0, 0}}
     End Sub
 End Module</text>
                 Await TestSelectionAsync(code)
@@ -778,7 +778,7 @@ End Module</text>
             Public Async Function TestSelectGotoStatement() As Task
                 Dim code = <text>Class Program
     Function F(x As Integer) As Integer
-{|r:        {|b:If x >= 0 Then
+        {|r:{|b:If x >= 0 Then
             GoTo x
         End If|}|}
         x = -x
@@ -853,7 +853,7 @@ End Class</text>
             <Fact>
             Public Async Function TestSelectCollectionInitializer1() As Task
                 Dim code = <text>Class B
-    Dim list = New List(Of String) From {|r:{{|b:"abc"|}, "def", "ghi"}|}
+    Dim list = New List(Of String) From {{|r:{|b:"abc"|}|}, "def", "ghi"}
 End Class</text>
                 Await TestSelectionAsync(code)
             End Function
@@ -937,7 +937,7 @@ Imports System.Collections
 
 Class A
     Private Sub method()
-        Dim a As Integer() = {|r:new Integer({|b:1|}) { 1, 2 }|}
+        Dim a As Integer() = new Integer({|r:{|b:1|}|}) { 1, 2 }
     End Sub
 End Class</text>
                 Await TestSelectionAsync(code)
@@ -1064,9 +1064,9 @@ End Module
                 Dim code = <text>Module Program
     Sub Main(ByVal args() As String)
         Dim i As Integer
-{|r:        For {|b:i|} = 0 To 2
+        For {|r:{|b:i|}|} = 0 To 2
             System.Console.WriteLine("In the For Loop")
-        Next i|}
+        Next i
   End Sub
 End Module
 </text>
@@ -1079,8 +1079,8 @@ End Module
                 Dim code = <text>Module Program
     Sub Main(args As String())
         Dim i As Integer
-{|r:        For Each {|b:i|} In {1, 2}
-        Next i|}
+        For Each {|r:{|b:i|}|} In {1, 2}
+        Next i
     End Sub
 End Module
 </text>
@@ -1215,7 +1215,7 @@ Imports System.Linq
  
 Module Program
     Sub Main(args As String())
-{|r:        Dim ao = New With {.a = 1, .x = 1 +.a, {|b:H()|}}|}
+        Dim ao = New With {.a = 1, .x = 1 +.a, {|r:{|b:H()|}|}}
     End Sub
 
     Function H() As Integer
@@ -1654,7 +1654,7 @@ goo:
             Public Async Function TestInferredFieldInitializer() As Task
                 Dim code = <text>
         Dim loc = 2
-{|r:        Dim anon = New With {Key {|b:loc|}}|}
+        Dim anon = New With {Key {|r:{|b:loc|}|}}
 </text>
                 Await TestInMethodAsync(code)
             End Function
@@ -1701,7 +1701,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Dim i2 = {|r:From i10 In New Integer() {} Group By {|b:i10|} Into Count|}
+        Dim i2 = From i10 In New Integer() {} Group By {|r:{|b:i10|}|} Into Count
     End Sub
 End Module</text>
                 Await TestSelectionAsync(code)
@@ -1715,7 +1715,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Dim i2 = {|r:From i10 In New Integer() {} From i20 In New Integer() {} Select i10, {|b:i20|}|}
+        Dim i2 = From i10 In New Integer() {} From i20 In New Integer() {} Select i10, {|r:{|b:i20|}|}
     End Sub
 End Module</text>
                 Await TestSelectionAsync(code)
@@ -1749,9 +1749,9 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Dim arr1 = Enumerable.Range(3, 4)
-        Dim v1 = {|r:From x1 In arr1
+        Dim v1 = From x1 In arr1
                  From x4 In arr1
-                 Select x1, {|b:x4|}|}
+                 Select x1, {|r:{|b:x4|}|}
     End Sub
 End Module</text>
 

@@ -12,10 +12,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     Partial Friend Class VisualBasicPackage
         Implements IVBEntryPointProvider
 
-        Public Function GetFormEntryPointsList(<[In]> pHierarchy As Object,
-                                               cItems As Integer,
-                                               <Out> bstrList() As String,
-                                               <Out> ByVal pcActualItems As IntPtr) As Integer Implements IVBEntryPointProvider.GetFormEntryPointsList
+        Public Function GetFormEntryPointsList(
+                pHierarchy As Object,
+                cItems As Integer,
+                <Out> bstrList() As String,
+                <Out> pcActualItems As IntPtr) As Integer Implements IVBEntryPointProvider.GetFormEntryPointsList
 
             Dim workspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
             Dim hierarchy = CType(pHierarchy, IVsHierarchy)

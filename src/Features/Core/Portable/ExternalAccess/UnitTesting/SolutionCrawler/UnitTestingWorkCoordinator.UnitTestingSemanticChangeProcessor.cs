@@ -318,7 +318,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                     => UnitTestingWorkCoordinator.GetRequiredDocument(Project, _documentId, _document);
             }
 
-            private class UnitTestingProjectProcessor : UnitTestingIdleProcessor
+            private sealed class UnitTestingProjectProcessor : UnitTestingIdleProcessor
             {
                 private static readonly Func<int, ProjectId, string> s_enqueueLogger = (t, i) => string.Format("[{0}] {1}", t, i.ToString());
 

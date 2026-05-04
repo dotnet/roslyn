@@ -14,14 +14,13 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateComparisonOperators;
 
 using static CodeGenerationSymbolFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeRefactoringProviderNames.GenerateComparisonOperators), Shared]
-internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactoringProvider
 {
     private const string LeftName = "left";
     private const string RightName = "right";
@@ -63,8 +62,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
         if (comparableType == null)
             return;
 
-        var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
-        if (containingType == null)
+        if (semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol containingType)
             return;
 
         using var _1 = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var missingComparableTypes);
@@ -121,7 +119,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
 
     private static IMethodSymbol? TryGetCompareMethodImpl(INamedTypeSymbol containingType, ITypeSymbol comparableType)
     {
-        foreach (var member in comparableType.GetMembers(nameof(IComparable<int>.CompareTo)))
+        foreach (var member in comparableType.GetMembers(nameof(IComparable<>.CompareTo)))
         {
             if (member is IMethodSymbol method)
                 return (IMethodSymbol?)containingType.FindImplementationForInterfaceMember(method);

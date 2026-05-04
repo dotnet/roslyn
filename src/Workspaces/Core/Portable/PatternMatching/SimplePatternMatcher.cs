@@ -1,15 +1,16 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
 
 using System.Globalization;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
 
-internal partial class PatternMatcher
+internal abstract partial class PatternMatcher
 {
     internal sealed partial class SimplePatternMatcher : PatternMatcher
     {
@@ -18,13 +19,12 @@ internal partial class PatternMatcher
         public SimplePatternMatcher(
             string pattern,
             CultureInfo culture,
-            bool includeMatchedSpans,
-            bool allowFuzzyMatching)
-            : base(includeMatchedSpans, culture, allowFuzzyMatching)
+            bool includeMatchedSpans)
+            : base(includeMatchedSpans, culture)
         {
             pattern = pattern.Trim();
 
-            _fullPatternSegment = new PatternSegment(pattern, allowFuzzyMatching);
+            _fullPatternSegment = new PatternSegment(pattern);
             _invalidPattern = _fullPatternSegment.IsInvalid;
         }
 
@@ -40,24 +40,8 @@ internal partial class PatternMatcher
         /// </summary>
         /// <returns>If this was a match, a set of match types that occurred while matching the
         /// patterns. If it was not a match, it returns null.</returns>
-        public override bool AddMatches(string candidate, ref TemporaryArray<PatternMatch> matches)
-        {
-            if (SkipMatch(candidate))
-            {
-                return false;
-            }
+        protected override bool AddMatchesWorker(string candidate, ref TemporaryArray<PatternMatch> matches)
+            => MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches);
 
-            return MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, fuzzyMatch: false) ||
-                   MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, fuzzyMatch: true);
-        }
-
-        public TestAccessor GetTestAccessor()
-            => new(this);
-
-        public readonly struct TestAccessor(SimplePatternMatcher simplePatternMatcher)
-        {
-            public readonly bool LastCacheResultIs(bool areSimilar, string candidateText)
-                => simplePatternMatcher._fullPatternSegment.TotalTextChunk.SimilarityChecker.LastCacheResultIs(areSimilar, candidateText);
-        }
     }
 }

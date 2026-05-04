@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -24,31 +23,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.FindSymbols;
 
+using static FindSymbolsUtilities;
+
 [ExportLanguageService(typeof(IDeclaredSymbolInfoFactoryService), LanguageNames.CSharp), Shared]
-internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService<
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpDeclaredSymbolInfoFactoryService() : AbstractDeclaredSymbolInfoFactoryService<
     CompilationUnitSyntax,
     UsingDirectiveSyntax,
     BaseNamespaceDeclarationSyntax,
     TypeDeclarationSyntax,
     EnumDeclarationSyntax,
     MethodDeclarationSyntax,
+    PropertyDeclarationSyntax,
     MemberDeclarationSyntax,
     NameSyntax,
     QualifiedNameSyntax,
     IdentifierNameSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpDeclaredSymbolInfoFactoryService()
-    {
-    }
-
-    private static ImmutableArray<string> GetInheritanceNames(StringTable stringTable, BaseListSyntax baseList)
+    private static ImmutableArray<string> GetInheritanceNames(StringTable stringTable, BaseListSyntax? baseList)
     {
         if (baseList == null)
-        {
             return [];
-        }
 
         var builder = ArrayBuilder<string>.GetInstance(baseList.Types.Count);
 
@@ -106,7 +102,7 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
 
     private static void ProcessUsings(List<Dictionary<string, string>> aliasMaps, SyntaxList<UsingDirectiveSyntax> usings)
     {
-        Dictionary<string, string> aliasMap = null;
+        Dictionary<string, string>? aliasMap = null;
 
         foreach (var usingDecl in usings)
         {
@@ -218,6 +214,12 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
             return null;
         }
 
+        // Extensions don't declare a type of their own.  As they have no name, it's not something someone could search
+        // for with navigate-to.  Instead, they just act as a loose block around a set of actual extension members.  So
+        // just return null here to avoid creating anything in this case.
+        if (typeDeclaration.Kind() == SyntaxKind.ExtensionBlockDeclaration)
+            return null;
+
         return DeclaredSymbolInfo.Create(
             stringTable,
             typeDeclaration.Identifier.ValueText,
@@ -226,15 +228,7 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
             fullyQualifiedContainerName,
             typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
             typeDeclaration.AttributeLists.Any(),
-            typeDeclaration.Kind() switch
-            {
-                SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
-                SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
-                SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
-                SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
-                SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
-                _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
-            },
+            GetDeclaredSymbolInfoKind(typeDeclaration),
             GetAccessibility(container, typeDeclaration.Modifiers),
             typeDeclaration.Identifier.Span,
             GetInheritanceNames(stringTable, typeDeclaration.BaseList),
@@ -504,12 +498,10 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
     private static string GetIndexerSuffix(IndexerDeclarationSyntax indexer)
         => GetSuffix('[', ']', indexer.ParameterList.Parameters);
 
-    private static string GetTypeParameterSuffix(TypeParameterListSyntax typeParameterList)
+    private static string? GetTypeParameterSuffix(TypeParameterListSyntax? typeParameterList)
     {
         if (typeParameterList == null)
-        {
             return null;
-        }
 
         var pooledBuilder = PooledStringBuilder.GetInstance();
 
@@ -594,51 +586,7 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
     protected override string GetFullyQualifiedContainerName(MemberDeclarationSyntax node, string rootNamespace)
         => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
 
-    private static Accessibility GetAccessibility(SyntaxNode container, SyntaxTokenList modifiers)
-    {
-        var sawInternal = false;
-        foreach (var modifier in modifiers)
-        {
-            switch (modifier.Kind())
-            {
-                case SyntaxKind.PublicKeyword: return Accessibility.Public;
-                case SyntaxKind.PrivateKeyword: return Accessibility.Private;
-                case SyntaxKind.ProtectedKeyword: return Accessibility.Protected;
-                case SyntaxKind.InternalKeyword:
-                    sawInternal = true;
-                    continue;
-            }
-        }
-
-        if (sawInternal)
-            return Accessibility.Internal;
-
-        // No accessibility modifiers:
-        switch (container.Kind())
-        {
-            case SyntaxKind.ClassDeclaration:
-            case SyntaxKind.RecordDeclaration:
-            case SyntaxKind.StructDeclaration:
-            case SyntaxKind.RecordStructDeclaration:
-                // Anything without modifiers is private if it's in a class/struct declaration.
-                return Accessibility.Private;
-            case SyntaxKind.InterfaceDeclaration:
-                // Anything without modifiers is public if it's in an interface declaration.
-                return Accessibility.Public;
-            case SyntaxKind.CompilationUnit:
-                // Things are private by default in script
-                if (((CSharpParseOptions)container.SyntaxTree.Options).Kind == SourceCodeKind.Script)
-                    return Accessibility.Private;
-
-                return Accessibility.Internal;
-
-            default:
-                // Otherwise it's internal
-                return Accessibility.Internal;
-        }
-    }
-
-    private static string GetTypeName(TypeSyntax type)
+    private static string? GetTypeName(TypeSyntax? type)
     {
         if (type is SimpleNameSyntax simpleName)
         {
@@ -683,7 +631,7 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
         return false;
     }
 
-    protected override string GetReceiverTypeName(MethodDeclarationSyntax methodDeclaration)
+    protected override string GetExtensionReceiverTypeName(MethodDeclarationSyntax methodDeclaration)
     {
         Debug.Assert(IsExtensionMethod(methodDeclaration));
 
@@ -692,7 +640,20 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
         return CreateReceiverTypeString(targetTypeName, isArray);
     }
 
-    private static bool TryGetSimpleTypeName(SyntaxNode node, ImmutableArray<string>? typeParameterNames, out string simpleTypeName, out bool isArray)
+    protected override string? GetExtensionReceiverTypeName(TypeDeclarationSyntax node)
+    {
+        if (node is not ExtensionBlockDeclarationSyntax { ParameterList.Parameters: [{ Type: var parameterType }, ..] } extensionBlockDeclaration)
+            return null;
+
+        var typeParameterNames = extensionBlockDeclaration.TypeParameterList?.Parameters.SelectAsArray(p => p.Identifier.Text);
+        TryGetSimpleTypeName(parameterType, typeParameterNames, out var targetTypeName, out var isArray);
+        return CreateReceiverTypeString(targetTypeName, isArray);
+    }
+
+    private static bool TryGetSimpleTypeName(
+        SyntaxNode? node, ImmutableArray<string>? typeParameterNames,
+        [NotNullWhen(true)] out string? simpleTypeName,
+        out bool isArray)
     {
         isArray = false;
 
@@ -743,7 +704,7 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
         return false;
     }
 
-    private static string GetSpecialTypeName(PredefinedTypeSyntax predefinedTypeNode)
+    private static string? GetSpecialTypeName(PredefinedTypeSyntax predefinedTypeNode)
     {
         var kind = predefinedTypeNode.Keyword.Kind();
         return kind switch

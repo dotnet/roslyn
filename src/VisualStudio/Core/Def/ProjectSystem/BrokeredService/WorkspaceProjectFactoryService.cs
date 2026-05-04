@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
 
-internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService
+internal sealed class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService
 {
     private readonly IWorkspaceProjectContextFactory _workspaceProjectContextFactory;
 

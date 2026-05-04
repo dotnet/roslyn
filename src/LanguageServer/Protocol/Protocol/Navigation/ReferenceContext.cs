@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#referenceContext">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal class ReferenceContext
+internal sealed class ReferenceContext
 {
     /// <summary>
     /// Include the declaration of the current symbol.

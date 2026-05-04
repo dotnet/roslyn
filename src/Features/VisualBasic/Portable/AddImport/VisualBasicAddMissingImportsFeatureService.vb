@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddMissingImports
     <ExportLanguageService(GetType(IAddMissingImportsFeatureService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicAddMissingImportsFeatureService
+    Friend NotInheritable Class VisualBasicAddMissingImportsFeatureService
         Inherits AbstractAddMissingImportsFeatureService
 
         <ImportingConstructor>

@@ -546,7 +546,7 @@ class C
 class C
 {
     int field = 0;
-    public ref readonly int this[in int arg] => ref field;
+    public ref readonly int this[in int arg] => ref @field;
 }");
             comp.VerifyDiagnostics();
 
@@ -574,7 +574,7 @@ class C
 class C
 {
     int field = 0;
-    public ref readonly int this[in int arg] => ref field;
+    public ref readonly int this[in int arg] => ref @field;
 }");
             comp.VerifyDiagnostics();
 

@@ -3,13 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class ReadOnlyRegionsChangedEventSource : AbstractTaggerEventSource
+    private sealed class ReadOnlyRegionsChangedEventSource : AbstractTaggerEventSource
     {
         private readonly ITextBuffer _subjectBuffer;
 

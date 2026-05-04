@@ -28,12 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodArgumentInfo GetEnumeratorInfo;
         public readonly MethodSymbol CurrentPropertyGetter;
         public readonly MethodArgumentInfo MoveNextInfo;
+        public readonly BoundAwaitableInfo? MoveNextAwaitableInfo;
 
         // True if the enumerator needs disposal once used. 
         // Will be either IDisposable/IAsyncDisposable, or use DisposeMethod below if set
         // Computed during initial binding so that we can expose it in the semantic model.
         public readonly bool NeedsDisposal;
 
+        /// <summary>
+        /// True if this was written as an 'await foreach'. This does not guarantee that <see cref="MoveNextAwaitableInfo"/> is not null, as there
+        /// may be other errors.
+        /// </summary>
         public readonly bool IsAsync;
 
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
@@ -56,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodArgumentInfo getEnumeratorInfo,
             MethodSymbol currentPropertyGetter,
             MethodArgumentInfo moveNextInfo,
+            BoundAwaitableInfo? moveNextAwaitableInfo,
             bool isAsync,
             bool needsDisposal,
             BoundAwaitableInfo? disposeAwaitableInfo,
@@ -74,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(inlineArraySpanType == WellKnownType.Unknown ||
                          (collectionType.HasInlineArrayAttribute(out _) && collectionType.TryGetInlineArrayElementField() is FieldSymbol elementField && elementType.Equals(elementField.TypeWithAnnotations, TypeCompareKind.ConsiderEverything)));
             Debug.Assert(!inlineArrayUsedAsValue || inlineArraySpanType != WellKnownType.Unknown);
+            Debug.Assert(!isAsync || moveNextAwaitableInfo != null);
 
             this.CollectionType = collectionType;
             this.InlineArraySpanType = inlineArraySpanType;
@@ -82,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetEnumeratorInfo = getEnumeratorInfo;
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextInfo = moveNextInfo;
+            this.MoveNextAwaitableInfo = moveNextAwaitableInfo;
             this.IsAsync = isAsync;
             this.NeedsDisposal = needsDisposal;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
@@ -104,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MethodArgumentInfo? GetEnumeratorInfo;
             public MethodSymbol CurrentPropertyGetter;
             public MethodArgumentInfo? MoveNextInfo;
+            public BoundAwaitableInfo? MoveNextAwaitableInfo;
 
             public bool IsAsync;
             public bool NeedsDisposal;
@@ -130,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetEnumeratorInfo,
                     CurrentPropertyGetter,
                     MoveNextInfo,
+                    MoveNextAwaitableInfo,
                     IsAsync,
                     NeedsDisposal,
                     DisposeAwaitableInfo,
@@ -141,6 +151,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool IsIncomplete
                 => GetEnumeratorInfo is null || MoveNextInfo is null || CurrentPropertyGetter is null;
+
+            public readonly void ReportDiagnosticsIfUnsafeMemberAccess(Binder binder, SyntaxNodeOrToken node, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+            {
+                var getEnumeratorMethod = this.GetEnumeratorInfo?.Method;
+                if (getEnumeratorMethod is not null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getEnumeratorMethod, node);
+                var moveNextMethod = this.MoveNextInfo?.Method;
+                if (moveNextMethod is not null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, moveNextMethod, node);
+                var currentPropertyGetter = this.CurrentPropertyGetter;
+                if (currentPropertyGetter is not null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, currentPropertyGetter, node);
+
+                // Diagnostics for pattern-based Dispose method are reported elsewhere.
+                if (this.NeedsDisposal && this.PatternDisposeInfo?.Method is null &&
+                    LocalRewriter.TryGetDisposeMethod(binder.Compilation, syntax, this.IsAsync, BindingDiagnosticBag.Discarded, out var disposeMethod))
+                {
+                    binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, node);
+                }
+            }
         }
     }
 }

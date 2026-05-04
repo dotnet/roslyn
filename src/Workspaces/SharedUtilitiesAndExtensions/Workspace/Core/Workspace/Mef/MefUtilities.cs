@@ -7,22 +7,21 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
-namespace Microsoft.CodeAnalysis.Host.Mef
+namespace Microsoft.CodeAnalysis.Host.Mef;
+
+internal static class MefUtilities
 {
-    internal static class MefUtilities
+    public static void DisposeWithExceptionTracking<T>(T instance, [NotNullIfNotNull("exceptions")] ref List<Exception>? exceptions)
+        where T : IDisposable
     {
-        public static void DisposeWithExceptionTracking<T>(T instance, [NotNullIfNotNull("exceptions")] ref List<Exception>? exceptions)
-            where T : IDisposable
+        try
         {
-            try
-            {
-                instance.Dispose();
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
-                exceptions ??= new List<Exception>();
-                exceptions.Add(ex);
-            }
+            instance.Dispose();
+        }
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+        {
+            exceptions ??= [];
+            exceptions.Add(ex);
         }
     }
 }

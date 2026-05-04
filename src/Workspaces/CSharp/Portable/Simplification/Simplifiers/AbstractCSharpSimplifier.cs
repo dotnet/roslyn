@@ -60,12 +60,8 @@ internal abstract class AbstractCSharpSimplifier<TSyntax, TSimplifiedSyntax>
         if (kind != SyntaxKind.None)
             return SyntaxFactory.Token(kind);
 
-        if (specialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr &&
-            semanticModel.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9 &&
-                semanticModel.Compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
-        {
+        if (specialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr && semanticModel.UnifiesNativeIntegers())
             return SyntaxFactory.Identifier(specialType == SpecialType.System_IntPtr ? "nint" : "nuint");
-        }
 
         return null;
     }
@@ -142,7 +138,7 @@ internal abstract class AbstractCSharpSimplifier<TSyntax, TSimplifiedSyntax>
 
         // an alias can only replace a type or namespace
         if (symbol == null ||
-            (symbol.Kind != SymbolKind.Namespace && symbol.Kind != SymbolKind.NamedType))
+            symbol is { Kind: not SymbolKind.Namespace and not SymbolKind.NamedType })
         {
             return false;
         }

@@ -5,18 +5,17 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
+
+[DataContract]
+internal readonly struct PythiaRemoteServiceCallbackIdWrapper
 {
-    [DataContract]
-    internal readonly struct PythiaRemoteServiceCallbackIdWrapper
-    {
-        [DataMember(Order = 0)]
-        internal RemoteServiceCallbackId UnderlyingObject { get; }
+    [DataMember(Order = 0)]
+    internal RemoteServiceCallbackId UnderlyingObject { get; }
 
-        public PythiaRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId underlyingObject)
-            => UnderlyingObject = underlyingObject;
+    public PythiaRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId underlyingObject)
+        => UnderlyingObject = underlyingObject;
 
-        public static implicit operator PythiaRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId id)
-            => new(id);
-    }
+    public static implicit operator PythiaRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId id)
+        => new(id);
 }

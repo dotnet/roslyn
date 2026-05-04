@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQExplicitInterfaceMemberName(RQType interfaceType, RQOrdinaryMethodPropertyOrEventName name) : RQMethodPropertyOrEventName
+internal sealed class RQExplicitInterfaceMemberName(RQType interfaceType, RQOrdinaryMethodPropertyOrEventName name) : RQMethodPropertyOrEventName
 {
     public readonly RQType InterfaceType = interfaceType;
     public readonly RQOrdinaryMethodPropertyOrEventName Name = name;

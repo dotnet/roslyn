@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.SQLite.v2;
 
 namespace Microsoft.CodeAnalysis.Storage;
 
-internal partial class AbstractPersistentStorageService
+internal abstract partial class AbstractPersistentStorageService
 {
     internal TestAccessor GetTestAccessor()
         => new(this);

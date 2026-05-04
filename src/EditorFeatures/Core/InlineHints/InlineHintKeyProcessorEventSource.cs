@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 
-internal partial class InlineHintsDataTaggerProvider
+internal partial class InlineHintsDataTaggerProvider<TAdditionalInformation>
 {
     private sealed class InlineHintKeyProcessorEventSource(IInlineHintKeyProcessor? inlineHintKeyProcessor) : AbstractTaggerEventSource
     {

@@ -6,14 +6,11 @@
 #nullable enable
 
 using System;
-using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -25,10 +22,17 @@ internal sealed class NoValue
     public static NoValue Instance = new();
 }
 
-internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
+internal sealed class QueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
+
+    /// <summary>
+    /// True if this queue item has actually started handling the request
+    /// by delegating to the handler.  False while the item is still being
+    /// processed by the queue.
+    /// </summary>
+    private bool _requestHandlingStarted = false;
 
     /// <summary>
     /// A task completion source representing the result of this queue item's work.
@@ -42,7 +46,7 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 
     public object? SerializedRequest { get; }
 
-    private QueueItem(
+    internal QueueItem(
         string methodName,
         object? serializedRequest,
         ILspServices lspServices,
@@ -63,7 +67,7 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName);
     }
 
-    public static (IQueueItem<TRequestContext>, Task<object?>) Create(
+    public static (QueueItem<TRequestContext>, Task<object?>) Create(
         string methodName,
         object? serializedRequest,
         ILspServices lspServices,
@@ -103,7 +107,7 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
     /// <summary>
     /// Deserializes the request into the concrete type.  If the deserialization fails we will fail the request and call TrySetException on the <see cref="_completionSource"/>
     /// so that the client can observe the failure.  If this is a mutating request, we will also let the exception bubble up so that the queue can handle it.
-    /// 
+    ///
     /// The caller is expected to return immediately and stop processing the request if this returns false.
     /// </summary>
     private bool TryDeserializeRequest<TRequest>(
@@ -136,7 +140,6 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 
             // End the request - the caller will return immediately if it cannot deserialize.
             _requestTelemetryScope?.Dispose();
-            _logger.LogEndContext($"{MethodName}");
 
             // If the request is mutating, bubble the exception out so the queue shuts down.
             if (isMutating)
@@ -156,9 +159,11 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
     /// representing the task that the client is waiting for, then re-thrown so that
     /// the queue can correctly handle them depending on the type of request.
     /// </summary>
-    public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, string language, CancellationToken cancellationToken)
+    public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, CancellationToken cancellationToken)
     {
-        _logger.LogStartContext($"{MethodName}");
+        _requestHandlingStarted = true;
+
+        _logger.LogDebug("Starting request handler");
 
         try
         {
@@ -212,12 +217,14 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
             {
                 throw new NotImplementedException($"Unrecognized {nameof(IMethodHandler)} implementation {handler.GetType()}.");
             }
+
+            _logger.LogDebug("Request handler completed successfully.");
         }
         catch (OperationCanceledException ex)
         {
             // Record logs + metrics on cancellation.
             _requestTelemetryScope?.RecordCancellation();
-            _logger.LogInformation($"{MethodName} - Canceled");
+            _logger.LogDebug($"Request was cancelled.");
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }
@@ -226,18 +233,44 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
             // Record logs and metrics on the exception.
             // It's important that this can NEVER throw, or the queue will hang.
             _requestTelemetryScope?.RecordException(ex);
-            _logger.LogException(ex);
+
+            if (ex is LocalRpcException { ErrorCode: LspErrorCodes.ContentModified })
+            {
+                // ContentModified exceptions are expected to be thrown during normal operation
+                // when the client is out of date with the server.  Log them as debug messages
+                // so we don't alarm users.
+                _logger.LogDebug(ex.ToString());
+            }
+            else
+            {
+                _logger.LogException(ex);
+            }
 
             _completionSource.TrySetException(ex);
         }
         finally
         {
             _requestTelemetryScope?.Dispose();
-            _logger.LogEndContext($"{MethodName}");
         }
 
         // Return the result of this completion source to the caller
         // so it can decide how to handle the result / exception.
         await _completionSource.Task.ConfigureAwait(false);
+    }
+
+    public void FailRequest(string message)
+    {
+        // This is not valid to call after StartRequestAsync starts as they both access the same state.
+        // StartRequestAsync handles any failures internally once it runs.
+        if (_requestHandlingStarted)
+        {
+            throw new InvalidOperationException("Cannot manually fail queue item after it has started");
+        }
+        var exception = new LocalRpcException(message) { ErrorCode = RoslynLspErrorCodes.NonFatalRequestFailure };
+        _requestTelemetryScope?.RecordException(exception);
+        _logger.LogException(exception);
+
+        _completionSource.TrySetException(exception);
+        _requestTelemetryScope?.Dispose();
     }
 }

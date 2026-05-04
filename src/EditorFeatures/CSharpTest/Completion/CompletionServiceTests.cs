@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class CompletionServiceTests
+public sealed class CompletionServiceTests
 {
     [Fact]
     public void AcquireCompletionService()
@@ -93,7 +93,7 @@ public class CompletionServiceTests
         public Type Type => typeof(int);
         public object DefaultValue => 0;
         public bool IsPerLanguage => true;
-        public ImmutableArray<OptionStorageLocation> StorageLocations => ImmutableArray<OptionStorageLocation>.Empty;
+        public ImmutableArray<OptionStorageLocation> StorageLocations => [];
     }
 
     /// <summary>

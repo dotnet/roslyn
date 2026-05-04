@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
@@ -255,6 +254,66 @@ class var<T> { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79100")>
+        Public Async Function TestNamedType_TypeOfOperator_Name(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:Celsius|}
+        {
+            public {|Definition:Celsius|}()
+            {
+                System.Type t = typeof({|ValueUsageInfo.Name:[|$$Celsius|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79100")>
+        Public Async Function TestNamedType_SizeOfOperator_Name(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:Celsius|}
+        {
+            public {|Definition:Celsius|}()
+            {
+                int t = sizeof({|ValueUsageInfo.Name:[|$$Celsius|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79100")>
+        Public Async Function TestNamedType_NameOfOperator_Name(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class {|Definition:Celsius|}
+        {
+            public {|Definition:Celsius|}()
+            {
+                string t = nameof({|ValueUsageInfo.Name:[|$$Celsius|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_InaccessibleType(kind As TestKind, host As TestHost) As Task
@@ -387,7 +446,7 @@ class A
             private C<T> c2;
             private C<int> c3;
             private C<C<T>> c4;
-            private [|C|]<int,string> c5;
+            private C<int,string> c5;
         }
         class C<T>
         {
@@ -2544,5 +2603,182 @@ namespace N
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindUnionType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class Cat { }
+union {|Definition:$$Pet|}(Dog, Cat) { }
+
+class C
+{
+    void M([|Pet|] p) { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindTypeInUnionParameterList(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class {|Definition:$$Dog|} { }
+class Cat { }
+union Pet([|Dog|], Cat) { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindSecondTypeInUnionParameterList(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class {|Definition:$$Cat|} { }
+union Pet(Dog, [|Cat|]) { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindGenericUnionType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+union {|Definition:$$Result|}<T1, T2>(T1, T2) { }
+
+class C
+{
+    [|Result|]<int, string> M() => default;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindTypeParameterInUnion(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+union Result<{|Definition:$$T1|}, T2>([|T1|], T2) { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindUnionTypeFromUsage(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class Cat { }
+union {|Definition:Pet|}(Dog, Cat) { }
+
+class C
+{
+    void M([|$$Pet|] p) { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindTypeInUnionParameterListFromUsage(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class {|Definition:Dog|} { }
+class Cat { }
+union Pet([|$$Dog|], Cat) { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_NonDependentProject(kind As TestKind, host As TestHost) As Task
+            ' Union defined in one project, referenced by name in a non-dependent project.
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class Cat { }
+public union {|Definition:$$Pet|}(Dog, Cat) { }
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSharpAssembly2" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class C
+{
+    private Pet p;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_InDependentProject(kind As TestKind, host As TestHost) As Task
+            ' Union defined in one project, used in a dependent project via ProjectReference.
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class Cat { }
+public union {|Definition:$$Pet|}(Dog, Cat) { }
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSharpAssembly2" CommonReferences="true" LanguageVersion="preview">
+        <ProjectReference>CSharpAssembly1</ProjectReference>
+        <Document><![CDATA[
+class C
+{
+    private [|Pet|] p;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
     End Class
 End Namespace

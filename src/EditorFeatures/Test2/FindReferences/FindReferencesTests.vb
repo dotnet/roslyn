@@ -6,17 +6,16 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Test.Utilities.FindUsages
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
 
@@ -113,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                    d.Name, d.AnnotatedSpans(key).ToList())).ToList()
                         Dim valueUsageInfoField = key.Substring(ValueUsageInfoKey.Length)
                         Dim actual = GetFileNamesAndSpans(
-                            context.References.Where(Function(r) r.SymbolUsageInfo.ValueUsageInfoOpt?.ToString() = valueUsageInfoField).Select(Function(r) r.SourceSpan))
+                            context.References.SelectAsArray(Function(r) r.SymbolUsageInfo.ValueUsageInfoOpt?.ToString() = valueUsageInfoField, Function(r) r.SourceSpan))
 
                         Assert.Equal(expected, actual)
                     Next
@@ -258,9 +257,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                         Dim project = document.Project
                         result = result.Concat(
-                            Await SymbolFinder.TestAccessor.FindReferencesAsync(
+                            Await SymbolFinder.FindReferencesAsync(
                                 symbol, project.Solution,
-                                progress:=Nothing, documents:=scope, options, CancellationToken.None))
+                                progress:=DirectCast(Nothing, IFindReferencesProgress),
+                                documents:=scope, options, CancellationToken.None))
                     End If
 
                     Dim actualDefinitions =
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                         Dim actual = actualDefinitions(GetFilePathAndProjectLabel(doc)).Order()
 
                         If Not TextSpansMatch(expected, actual) Then
-                            Assert.True(False, PrintSpans(expected, actual, workspace.CurrentSolution.GetDocument(doc.Id), "{|Definition:", "|}"))
+                            Assert.Fail(PrintSpans(expected, actual, workspace.CurrentSolution.GetDocument(doc.Id), "{|Definition:", "|}"))
                         End If
                     Next
 
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                             Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(doc)).Order()
 
                             If Not TextSpansMatch(expectedSpans, actualSpans) Then
-                                Assert.True(False, PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), $"{{|{key}:", "|}"))
+                                Assert.Fail(PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), $"{{|{key}:", "|}"))
                             End If
                         Next
                     Next
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                             Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(doc)).Order()
 
                             If Not TextSpansMatch(expectedSpans, actualSpans) Then
-                                Assert.True(False, PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), $"{{|{key}:", "|}"))
+                                Assert.Fail(PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), $"{{|{key}:", "|}"))
                             End If
                         Next
                     Next
@@ -359,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                 Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(doc)).Order()
 
                                 If Not TextSpansMatch(expectedSpans, actualSpans) Then
-                                    Assert.True(False, PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), $"{{|{annotationKey}:", "|}"))
+                                    Assert.Fail(PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), $"{{|{annotationKey}:", "|}"))
                                 End If
                             Next
                         Next

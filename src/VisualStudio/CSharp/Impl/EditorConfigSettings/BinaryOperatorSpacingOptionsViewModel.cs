@@ -8,37 +8,36 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings;
+
+internal sealed class BinaryOperatorSpacingOptionsViewModel : EnumSettingViewModel<BinaryOperatorSpacingOptions>
 {
-    internal class BinaryOperatorSpacingOptionsViewModel : EnumSettingViewModel<BinaryOperatorSpacingOptions>
+    private readonly Setting _setting;
+
+    public BinaryOperatorSpacingOptionsViewModel(Setting setting)
     {
-        private readonly Setting _setting;
+        _setting = setting;
+    }
 
-        public BinaryOperatorSpacingOptionsViewModel(Setting setting)
+    protected override void ChangePropertyTo(BinaryOperatorSpacingOptions newValue)
+    {
+        _setting.SetValue(newValue);
+    }
+
+    protected override BinaryOperatorSpacingOptions GetCurrentValue()
+    {
+        return (BinaryOperatorSpacingOptions)_setting.GetValue()!;
+    }
+
+    protected override IReadOnlyDictionary<string, BinaryOperatorSpacingOptions> GetValuesAndDescriptions()
+    {
+        return EnumerateOptions().ToDictionary(x => x.description, x => x.value);
+
+        static IEnumerable<(string description, BinaryOperatorSpacingOptions value)> EnumerateOptions()
         {
-            _setting = setting;
-        }
-
-        protected override void ChangePropertyTo(BinaryOperatorSpacingOptions newValue)
-        {
-            _setting.SetValue(newValue);
-        }
-
-        protected override BinaryOperatorSpacingOptions GetCurrentValue()
-        {
-            return (BinaryOperatorSpacingOptions)_setting.GetValue()!;
-        }
-
-        protected override IReadOnlyDictionary<string, BinaryOperatorSpacingOptions> GetValuesAndDescriptions()
-        {
-            return EnumerateOptions().ToDictionary(x => x.description, x => x.value);
-
-            static IEnumerable<(string description, BinaryOperatorSpacingOptions value)> EnumerateOptions()
-            {
-                yield return (CSharpVSResources.Ignore_spaces_around_binary_operators, BinaryOperatorSpacingOptions.Ignore);
-                yield return (CSharpVSResources.Remove_spaces_before_and_after_binary_operators, BinaryOperatorSpacingOptions.Remove);
-                yield return (CSharpVSResources.Insert_space_before_and_after_binary_operators, BinaryOperatorSpacingOptions.Single);
-            }
+            yield return (CSharpVSResources.Ignore_spaces_around_binary_operators, BinaryOperatorSpacingOptions.Ignore);
+            yield return (CSharpVSResources.Remove_spaces_before_and_after_binary_operators, BinaryOperatorSpacingOptions.Remove);
+            yield return (CSharpVSResources.Insert_space_before_and_after_binary_operators, BinaryOperatorSpacingOptions.Single);
         }
     }
 }

@@ -248,6 +248,14 @@ internal struct StackFrameParser
     ///                                 ^----^--------------- "Local" is the name of the local function
     ///                                      ^---^----------- "|0_0" is suffix information such as slot 
     ///                                           ^--------^- "(String s)" identifiers the method paramters
+    ///     3. StateMachineMethodName
+    ///             Program.$lt;Main$gt;d__6.MoveNext()
+    ///                     ^---------------------------- Beginning of generated name
+    ///                         ^---^-------------------- Encapsulating method name
+    ///                                 ^---------------- "d__6" identifies this as a state machine method
+    ///                                      ^-------^--- "MoveNext" is the name of the method in the state machine
+    ///                     
+    ///                     
     /// </code>
     /// </summary>
     private Result<StackFrameGeneratedNameNode> TryScanGeneratedName()
@@ -284,39 +292,69 @@ internal struct StackFrameParser
 
         // Check for generated name kinds we can handle
         // See https://github.com/dotnet/roslyn/blob/main/src/Compilers/CSharp/Portable/Symbols/Synthesized/GeneratedNameKind.cs 
-        if (currentChar == 'g')
+        switch (currentChar)
         {
-            // Local function
-            var encapsulatingMethod = new StackFrameGeneratedMethodNameNode(lessThanToken, identifier.Value, greaterThanToken, dollarToken: null);
-            var (success, generatedNameSeparator) = _lexer.TryScanRequiredGeneratedNameSeparator();
-            if (!success)
-            {
-                return Result<StackFrameGeneratedNameNode>.Abort;
-            }
+            case 'g': // Local function
+                return TryParseLocalMethodName(lessThanToken, identifier.Value, greaterThanToken);
 
-            var generatedIdentifier = _lexer.TryScanIdentifier();
-            if (!generatedIdentifier.HasValue)
-            {
-                return Result<StackFrameGeneratedNameNode>.Abort;
-            }
+            case 'd': // State Machine (such as async methods)
+                return TryParseStateMachineMethodName(lessThanToken, identifier.Value, greaterThanToken);
 
-            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.PipeToken, out var suffixSeparator))
-            {
+            default:
                 return Result<StackFrameGeneratedNameNode>.Abort;
-            }
-
-            (success, var suffix) = _lexer.TryScanRequiredGeneratedNameSuffix();
-            if (!success)
-            {
-                return Result<StackFrameGeneratedNameNode>.Abort;
-            }
-
-            return new StackFrameLocalMethodNameNode(encapsulatingMethod, generatedNameSeparator, generatedIdentifier.Value, suffixSeparator, suffix);
         }
-        else
+    }
+
+    private Result<StackFrameGeneratedNameNode> TryParseLocalMethodName(StackFrameToken lessThanToken, StackFrameToken identifier, StackFrameToken greaterThanToken)
+    {
+        var encapsulatingMethod = new StackFrameGeneratedMethodNameNode(lessThanToken, identifier, greaterThanToken, dollarToken: null);
+        var (success, generatedNameSeparator) = _lexer.TryScanRequiredGeneratedNameSeparator();
+        if (!success)
         {
             return Result<StackFrameGeneratedNameNode>.Abort;
         }
+
+        var generatedIdentifier = _lexer.TryScanIdentifier();
+        if (!generatedIdentifier.HasValue)
+        {
+            return Result<StackFrameGeneratedNameNode>.Abort;
+        }
+
+        if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.PipeToken, out var suffixSeparator))
+        {
+            return Result<StackFrameGeneratedNameNode>.Abort;
+        }
+
+        (success, var suffix) = _lexer.TryScanRequiredGeneratedNameSuffix();
+        if (!success)
+        {
+            return Result<StackFrameGeneratedNameNode>.Abort;
+        }
+
+        return new StackFrameLocalMethodNameNode(encapsulatingMethod, generatedNameSeparator, generatedIdentifier.Value, suffixSeparator, suffix);
+    }
+
+    private Result<StackFrameGeneratedNameNode> TryParseStateMachineMethodName(StackFrameToken lessThanToken, StackFrameToken identifier, StackFrameToken greaterThanToken)
+    {
+        var encapsulatingMethod = new StackFrameGeneratedMethodNameNode(lessThanToken, identifier, greaterThanToken, dollarToken: null);
+        var (success, generatedNameSeparator) = _lexer.TryScanRequiredGeneratedNameSeparator(scanNumericsAfter: true);
+        if (!success)
+        {
+            return Result<StackFrameGeneratedNameNode>.Abort;
+        }
+
+        if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
+        {
+            return Result<StackFrameGeneratedNameNode>.Abort;
+        }
+
+        var generatedIdentifier = _lexer.TryScanIdentifier();
+        if (!generatedIdentifier.HasValue)
+        {
+            return Result<StackFrameGeneratedNameNode>.Abort;
+        }
+
+        return new StackFrameStateMachineMethodNameNode(encapsulatingMethod, generatedNameSeparator, dotToken, generatedIdentifier.Value);
     }
 
     /// <summary>

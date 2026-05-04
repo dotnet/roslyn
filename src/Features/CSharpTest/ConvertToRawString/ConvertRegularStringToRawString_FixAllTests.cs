@@ -2,26 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeActionTest_NoEditor
 {
+    private static string NewLineEscape { get; } = Environment.NewLine == "\r\n" ? @"\r\n" : @"\n";
+
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertStringToRawStringCodeRefactoringProvider();
 
     [Fact]
-    public async Task FixAllInDocument_SingleLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_SingleLine()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -106,12 +109,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task FixAllInDocument_MultiLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_MultiLine()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -153,7 +154,7 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
         select x2";
             }
         }
-        """,
+        """.Replace(@"\r\n", NewLineEscape),
         """"
         class C
         {
@@ -214,12 +215,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
             }
         }
         """");
-    }
 
     [Fact]
-    public async Task FixAllInDocument_MultiLineWithoutLeadingWhitespace()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument_MultiLineWithoutLeadingWhitespace()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -270,10 +269,7 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 var singleLine1 = "a";
                 var singleLine2 = @"goo""bar";
 
-                var multiLine1 = """
-                    goo
-                    bar
-                    """;
+                var multiLine1 = "goo\r\nbar";
                 var multiLine2 = """
                     goo
                     bar
@@ -296,10 +292,7 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 var singleLine1 = "a";
                 var singleLine2 = @"goo""bar";
 
-                var multiLine1 = """
-                    goo
-                    bar
-                    """;
+                var multiLine1 = "goo\r\nbar";
                 var multiLine2 = """
                     goo
                     bar
@@ -318,12 +311,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
             }
         }
         """", index: 1);
-    }
 
     [Fact]
-    public async Task FixAllInProject()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInProject()
+        => TestInRegularAndScriptAsync(
         """
         <Workspace>
             <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -400,12 +391,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
             </Project>
         </Workspace>
         """");
-    }
 
     [Fact]
-    public async Task FixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInSolution()
+        => TestInRegularAndScriptAsync(
         """
         <Workspace>
             <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -482,12 +471,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
             </Project>
         </Workspace>
         """");
-    }
 
     [Fact]
-    public async Task FixAllInContainingMember()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInContainingMember()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -538,12 +525,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
             }
         }
         """");
-    }
 
     [Fact]
-    public async Task FixAllInContainingType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInContainingType()
+        => TestInRegularAndScriptAsync(
         """
         partial class C
         {
@@ -612,12 +597,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
             }
         }
         """");
-    }
 
     [Fact]
-    public async Task FixAllInContainingType_AcrossFiles()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInContainingType_AcrossFiles()
+        => TestInRegularAndScriptAsync(
         """
         <Workspace>
             <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -724,12 +707,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
             </Project>
         </Workspace>
         """");
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -764,12 +745,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern1_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern1_B()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -802,12 +781,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -844,12 +821,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern2_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern2_B()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -884,12 +859,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -928,12 +901,10 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task FixAllCommonRoslynTestPattern3_B()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllCommonRoslynTestPattern3_B()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -970,5 +941,111 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 }
             }
             """", index: 1);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
+    public Task FixAllInDocument_MultiLineShouldNotImpactExplicitEscapedString()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var description = {|FixAllInDocument:|}@"
+
+            ";
+
+                    var second = Regex.Replace(description, "(\r?\n)", "$1$1");
+                }
+            }
+            """,
+            """"
+            class C
+            {
+                void M()
+                {
+                    var description = """
+
+
+            
+                        """;
+            
+                    var second = Regex.Replace(description, "(\r?\n)", "$1$1");
+                }
+            }
+            """");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
+    public Task FixAllInDocument_EscapedCanAffectMultiLine()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var description = @"
+
+            ";
+
+                    var second = Regex.Replace(description, {|FixAllInDocument:|}"(\r\n)", "$1$1");
+                }
+            }
+            """.Replace(@"\r\n", NewLineEscape),
+            """"
+            class C
+            {
+                void M()
+                {
+                    var description = """
+
+
+
+                        """;
+            
+                    var second = Regex.Replace(description, """
+                        (
+                        )
+                        """, "$1$1");
+                }
+            }
+            """");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
+    public Task FixAllInDocument_EscapedCanAffectMultiLine2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var description = @"
+
+            ";
+
+                    var second = Regex.Replace(description, {|FixAllInDocument:|}"(\r\n)", "$1$1");
+                    var third = Regex.Replace(description, "(\r\n)", "$1$1");
+                }
+            }
+            """.Replace(@"\r\n", NewLineEscape),
+            """"
+            class C
+            {
+                void M()
+                {
+                    var description = """
+
+
+
+                        """;
+            
+                    var second = Regex.Replace(description, """
+                        (
+                        )
+                        """, "$1$1");
+                    var third = Regex.Replace(description, """
+                        (
+                        )
+                        """, "$1$1");
+                }
+            }
+            """");
 }

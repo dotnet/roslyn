@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class MultilineCommentBlockStructureProvider : AbstractSyntaxTriviaStructureProvider
+internal sealed class MultilineCommentBlockStructureProvider : AbstractSyntaxTriviaStructureProvider
 {
     public override void CollectBlockSpans(
         SyntaxTrivia trivia,

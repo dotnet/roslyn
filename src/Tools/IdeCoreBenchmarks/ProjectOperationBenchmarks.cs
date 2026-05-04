@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace IdeCoreBenchmarks
 {
-    public class ProjectOperationBenchmarks
+    public static class ProjectOperationBenchmarks
     {
         private static readonly SourceText s_newText = SourceText.From("text");
 

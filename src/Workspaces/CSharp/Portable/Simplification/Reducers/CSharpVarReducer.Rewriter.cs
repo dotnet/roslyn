@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-internal partial class CSharpVarReducer
+internal sealed partial class CSharpVarReducer
 {
-    private class Rewriter : AbstractReductionRewriter
+    private sealed class Rewriter : AbstractReductionRewriter
     {
         public Rewriter(ObjectPool<IReductionRewriter> pool)
             : base(pool)
@@ -39,10 +39,8 @@ internal partial class CSharpVarReducer
             var typeStyle = CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(
                 typeSyntax, this.SemanticModel, this.Options, this.CancellationToken);
 
-            if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
-            {
+            if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert)
                 return typeSyntax;
-            }
 
             return SyntaxFactory.IdentifierName("var")
                 .WithLeadingTrivia(typeSyntax.GetLeadingTrivia())

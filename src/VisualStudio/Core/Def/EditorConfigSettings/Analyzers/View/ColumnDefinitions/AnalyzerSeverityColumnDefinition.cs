@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Windows;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
@@ -17,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Severity)]
-internal class AnalyzerSeverityColumnDefinition : TableColumnDefinitionBase
+internal sealed class AnalyzerSeverityColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,11 +42,11 @@ internal class AnalyzerSeverityColumnDefinition : TableColumnDefinitionBase
 
         content = setting.Severity switch
         {
-            CodeAnalysis.ReportDiagnostic.Suppress => ServicesVSResources.Disabled,
-            CodeAnalysis.ReportDiagnostic.Hidden => ServicesVSResources.Refactoring_Only,
-            CodeAnalysis.ReportDiagnostic.Info => ServicesVSResources.Suggestion,
-            CodeAnalysis.ReportDiagnostic.Warn => ServicesVSResources.Warning,
-            CodeAnalysis.ReportDiagnostic.Error => ServicesVSResources.Error,
+            ReportDiagnostic.Suppress => ServicesVSResources.Disabled,
+            ReportDiagnostic.Hidden => WorkspacesResources.Refactoring_Only,
+            ReportDiagnostic.Info => WorkspacesResources.Suggestion,
+            ReportDiagnostic.Warn => WorkspacesResources.Warning,
+            ReportDiagnostic.Error => WorkspacesResources.Error,
             _ => string.Empty,
         };
         return true;

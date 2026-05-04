@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
 
         public const string DiagnosticIdPropertyName = "DiagnosticId";
         public const string UrlFormatPropertyName = "UrlFormat";
+        public const string MessagePropertyName = "Message";
 
         public ObsoleteAttributeData(ObsoleteAttributeKind kind, string? message, bool isError, string? diagnosticId, string? urlFormat)
         {

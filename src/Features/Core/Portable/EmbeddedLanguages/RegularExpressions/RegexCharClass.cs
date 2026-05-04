@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 // LICENSING NOTE: The license for this file is from the originating 
 // source and not the general https://github.com/dotnet/roslyn license.
 // See https://github.com/dotnet/runtime/blob/5b5bd46c03c86f8545f2c4c8628ac25d875210fe/src/libraries/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
@@ -190,12 +188,7 @@ internal static class RegexCharClass
 
     public static bool IsBoundaryWordChar(VirtualChar r)
     {
-        // unicode characters that do not fit in 16bits are not supported by 
-        // .net regex system.
-        if (r.Value > char.MaxValue)
-            return false;
-
-        var ch = (char)r.Value;
+        var ch = (char)r;
 
         // According to UTS#18 Unicode Regular Expressions (http://www.unicode.org/reports/tr18/)
         // RL 1.4 Simple Word Boundaries  The class of <word_character> includes all Alphabetic

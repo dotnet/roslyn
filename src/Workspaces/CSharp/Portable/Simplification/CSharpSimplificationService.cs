@@ -16,24 +16,24 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
 [ExportLanguageService(typeof(ISimplificationService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpSimplificationService()
+internal sealed partial class CSharpSimplificationService()
     : AbstractSimplificationService<CompilationUnitSyntax, ExpressionSyntax, StatementSyntax, CrefSyntax>(s_reducers)
 {
-    // 1. the cast simplifier should run earlier then everything else to minimize the type expressions
-    // 2. Extension method reducer may insert parentheses.  So run it before the parentheses remover.
+    // 1. Prefer 'var' simplification first.  In other words we like `var v = (int)x` vs `int v = x`
+    // 2. the cast simplifier should run earlier then everything else to minimize the type expressions
+    // 3. Extension method reducer may insert parentheses.  So run it before the parentheses remover.
     private static readonly ImmutableArray<AbstractReducer> s_reducers =
         [
             new CSharpVarReducer(),
+            new CSharpCastReducer(),
             new CSharpNameReducer(),
             new CSharpNullableAnnotationReducer(),
-            new CSharpCastReducer(),
             new CSharpExtensionMethodReducer(),
             new CSharpParenthesizedExpressionReducer(),
             new CSharpParenthesizedPatternReducer(),

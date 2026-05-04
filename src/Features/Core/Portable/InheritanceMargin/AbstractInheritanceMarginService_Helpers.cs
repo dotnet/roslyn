@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TypeHierarchy;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin;
@@ -56,12 +56,19 @@ internal abstract partial class AbstractInheritanceMarginService
         }
 
         var solution = project.Solution;
+        var typeHierarchyService = project.GetRequiredLanguageService<ITypeHierarchyService>();
         using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
         foreach (var (symbol, lineNumber) in symbolAndLineNumbers)
         {
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
+                await AddInheritanceMemberItemsForNamedTypeAsync(
+                    solution,
+                    typeHierarchyService,
+                    namedTypeSymbol,
+                    lineNumber,
+                    builder,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             if (symbol is IEventSymbol or IPropertySymbol or IMethodSymbol)
@@ -132,7 +139,7 @@ internal abstract partial class AbstractInheritanceMarginService
         var (remappedProject, symbolAndLineNumbers) = await GetMemberSymbolsAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
 
         // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
-        // the originating project), then we're in teh same project and we should try to get global import
+        // the originating project), then we're in the same project and we should try to get global import
         // information to display.
         var remapped = remappedProject != document.Project;
 
@@ -280,13 +287,14 @@ internal abstract partial class AbstractInheritanceMarginService
 
     private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
         Solution solution,
+        ITypeHierarchyService typeHierarchyService,
         INamedTypeSymbol memberSymbol,
         int lineNumber,
         ArrayBuilder<InheritanceMarginItem> builder,
         CancellationToken cancellationToken)
     {
         // Get all base types.
-        var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
+        var allBaseSymbols = typeHierarchyService.GetBaseTypesAndInterfaces(memberSymbol, transitive: true);
 
         // Filter out
         // 1. System.Object. (otherwise margin would be shown for all classes)
@@ -300,9 +308,10 @@ internal abstract partial class AbstractInheritanceMarginService
             .WhereAsArray(symbol => !symbol.IsErrorType() && symbol.SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum));
 
         // Get all derived types
-        var allDerivedSymbols = await GetDerivedTypesAndImplementationsAsync(
+        var allDerivedSymbols = await typeHierarchyService.GetDerivedTypesAndImplementationsAsync(
             solution,
             memberSymbol,
+            transitive: true,
             cancellationToken).ConfigureAwait(false);
 
         // Ensure the user won't be able to see symbol outside the solution for derived symbols.
@@ -357,7 +366,8 @@ internal abstract partial class AbstractInheritanceMarginService
 
             if (implementingSymbols.Any())
             {
-                var item = await CreateInheritanceMemberItemForInterfaceMemberAsync(solution,
+                var item = await CreateInheritanceMemberItemForInterfaceMemberAsync(
+                    solution,
                     memberSymbol,
                     lineNumber,
                     implementingMembers: implementingSymbols,
@@ -371,7 +381,7 @@ internal abstract partial class AbstractInheritanceMarginService
             var allOverridingSymbols = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // Go up the inheritance chain to find all overridden targets
-            var overriddenSymbols = GetOverriddenSymbols(memberSymbol);
+            var overriddenSymbols = GetOverriddenSymbols(memberSymbol, allowLooseMatch: true);
 
             // Go up the inheritance chain to find all the implemented targets.
             var implementedSymbols = GetImplementedSymbolsForTypeMember(memberSymbol, overriddenSymbols);
@@ -416,7 +426,8 @@ internal abstract partial class AbstractInheritanceMarginService
         var derivedTypeItems = await derivedTypesSymbols
             .SelectAsArray(symbol => symbol.OriginalDefinition)
             .Distinct()
-            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(solution,
+            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
+                solution,
                 symbol,
                 InheritanceRelationship.ImplementingType,
                 cancellationToken), solution, cancellationToken)
@@ -430,7 +441,7 @@ internal abstract partial class AbstractInheritanceMarginService
             topLevelDisplayText: null,
             FindUsagesHelpers.GetDisplayParts(interfaceSymbol),
             interfaceSymbol.GetGlyph(),
-            nonNullBaseSymbolItems.Concat(nonNullDerivedTypeItems));
+            [.. nonNullBaseSymbolItems, .. nonNullDerivedTypeItems]);
     }
 
     private static async ValueTask<InheritanceMarginItem?> CreateInheritanceMemberItemForInterfaceMemberAsync(
@@ -447,7 +458,8 @@ internal abstract partial class AbstractInheritanceMarginService
                 solution,
                 symbol,
                 InheritanceRelationship.ImplementingMember,
-                cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                cancellationToken), solution, cancellationToken)
+            .ConfigureAwait(false);
 
         var nonNullImplementedMemberItems = GetNonNullTargetItems(implementedMemberItems);
         return InheritanceMarginItem.CreateOrdered(
@@ -475,12 +487,14 @@ internal abstract partial class AbstractInheritanceMarginService
                 solution,
                 symbol,
                 symbol.IsInterfaceType() ? InheritanceRelationship.ImplementedInterface : InheritanceRelationship.BaseType,
-                cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                cancellationToken), solution, cancellationToken)
+            .ConfigureAwait(false);
 
         var derivedTypeItems = await derivedTypesSymbols
             .SelectAsArray(symbol => symbol.OriginalDefinition)
             .Distinct()
-            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(solution,
+            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => CreateInheritanceItemAsync(
+                solution,
                 symbol,
                 InheritanceRelationship.DerivedType,
                 cancellationToken), solution, cancellationToken)
@@ -494,7 +508,7 @@ internal abstract partial class AbstractInheritanceMarginService
             topLevelDisplayText: null,
             FindUsagesHelpers.GetDisplayParts(memberSymbol),
             memberSymbol.GetGlyph(),
-            nonNullBaseSymbolItems.Concat(nonNullDerivedTypeItems));
+            [.. nonNullBaseSymbolItems, .. nonNullDerivedTypeItems]);
     }
 
     private static async ValueTask<InheritanceMarginItem?> CreateInheritanceMemberItemForClassOrStructMemberAsync(
@@ -513,7 +527,8 @@ internal abstract partial class AbstractInheritanceMarginService
                 solution,
                 symbol,
                 InheritanceRelationship.ImplementedMember,
-                cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                cancellationToken), solution, cancellationToken)
+            .ConfigureAwait(false);
 
         var overriddenMemberItems = await overriddenMembers
             .SelectAsArray(symbol => symbol.OriginalDefinition)
@@ -522,7 +537,8 @@ internal abstract partial class AbstractInheritanceMarginService
                 solution,
                 symbol,
                 InheritanceRelationship.OverriddenMember,
-                cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                cancellationToken), solution, cancellationToken)
+            .ConfigureAwait(false);
 
         var overridingMemberItems = await overridingMembers
             .SelectAsArray(symbol => symbol.OriginalDefinition)
@@ -531,7 +547,8 @@ internal abstract partial class AbstractInheritanceMarginService
                 solution,
                 symbol,
                 InheritanceRelationship.OverridingMember,
-                cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+                cancellationToken), solution, cancellationToken)
+            .ConfigureAwait(false);
 
         var nonNullImplementedMemberItems = GetNonNullTargetItems(implementedMemberItems);
         var nonNullOverriddenMemberItems = GetNonNullTargetItems(overriddenMemberItems);
@@ -542,7 +559,7 @@ internal abstract partial class AbstractInheritanceMarginService
             topLevelDisplayText: null,
             FindUsagesHelpers.GetDisplayParts(memberSymbol),
             memberSymbol.GetGlyph(),
-            nonNullImplementedMemberItems.Concat(nonNullOverriddenMemberItems, nonNullOverridingMemberItems));
+            [.. nonNullImplementedMemberItems, .. nonNullOverriddenMemberItems, .. nonNullOverridingMemberItems]);
     }
 
     private static async ValueTask<InheritanceTargetItem?> CreateInheritanceItemAsync(
@@ -555,11 +572,9 @@ internal abstract partial class AbstractInheritanceMarginService
         targetSymbol = symbolInSource ?? targetSymbol;
 
         // Right now the targets are not shown in a classified way.
-        var definition = ToSlimDefinitionItem(targetSymbol, solution);
+        var definition = await ToSlimDefinitionItemAsync(solution, targetSymbol, cancellationToken).ConfigureAwait(false);
         if (definition == null)
-        {
             return null;
-        }
 
         var displayName = targetSymbol.ToDisplayString(s_displayFormat);
 
@@ -650,56 +665,20 @@ internal abstract partial class AbstractInheritanceMarginService
     /// <summary>
     /// Get overridden members the <param name="memberSymbol"/>.
     /// </summary>
-    private static ImmutableArray<ISymbol> GetOverriddenSymbols(ISymbol memberSymbol)
+    private static ImmutableArray<ISymbol> GetOverriddenSymbols(ISymbol memberSymbol, bool allowLooseMatch)
     {
         if (memberSymbol is INamedTypeSymbol)
-        {
             return [];
-        }
-        else
-        {
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
-            for (var overriddenMember = memberSymbol.GetOverriddenMember();
-                overriddenMember != null;
-                overriddenMember = overriddenMember.GetOverriddenMember())
-            {
-                builder.Add(overriddenMember.OriginalDefinition);
-            }
 
-            return builder.ToImmutableArray();
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
+        for (var overriddenMember = memberSymbol.GetOverriddenMember(allowLooseMatch);
+             overriddenMember != null;
+             overriddenMember = overriddenMember.GetOverriddenMember(allowLooseMatch))
+        {
+            builder.Add(overriddenMember.OriginalDefinition);
         }
-    }
 
-    /// <summary>
-    /// Get the derived interfaces and derived classes for <param name="typeSymbol"/>.
-    /// </summary>
-    private static async Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
-        Solution solution,
-        INamedTypeSymbol typeSymbol,
-        CancellationToken cancellationToken)
-    {
-        if (typeSymbol.IsInterfaceType())
-        {
-            var allDerivedInterfaces = await SymbolFinder.FindDerivedInterfacesArrayAsync(
-                typeSymbol,
-                solution,
-                transitive: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            var allImplementations = await SymbolFinder.FindImplementationsArrayAsync(
-                typeSymbol,
-                solution,
-                transitive: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            return allDerivedInterfaces.Concat(allImplementations);
-        }
-        else
-        {
-            return await SymbolFinder.FindDerivedClassesArrayAsync(
-                typeSymbol,
-                solution,
-                transitive: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -709,15 +688,17 @@ internal abstract partial class AbstractInheritanceMarginService
     /// Otherwise, create the full non-classified DefinitionItem. Because in such case we want to display all the locations to the user
     /// by reusing the FAR window.
     /// </summary>
-    private static DefinitionItem? ToSlimDefinitionItem(ISymbol symbol, Solution solution)
+    private static async Task<DefinitionItem?> ToSlimDefinitionItemAsync(
+        Solution solution, ISymbol symbol, CancellationToken cancellation)
     {
         var locations = symbol.Locations;
         if (locations.Length > 1)
         {
-            return symbol.ToNonClassifiedDefinitionItem(
+            return await symbol.ToNonClassifiedDefinitionItemAsync(
                 solution,
                 FindReferencesSearchOptions.Default with { UnidirectionalHierarchyCascade = true },
-                includeHiddenLocations: false);
+                includeHiddenLocations: false,
+                cancellation).ConfigureAwait(false);
         }
 
         if (locations is [var location])

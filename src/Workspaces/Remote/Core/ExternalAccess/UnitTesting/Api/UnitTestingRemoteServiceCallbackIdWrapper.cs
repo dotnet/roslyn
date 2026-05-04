@@ -5,18 +5,17 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+[DataContract]
+internal readonly struct UnitTestingRemoteServiceCallbackIdWrapper
 {
-    [DataContract]
-    internal readonly struct UnitTestingRemoteServiceCallbackIdWrapper
-    {
-        [DataMember(Order = 0)]
-        internal RemoteServiceCallbackId UnderlyingObject { get; }
+    [DataMember(Order = 0)]
+    internal RemoteServiceCallbackId UnderlyingObject { get; }
 
-        public UnitTestingRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId underlyingObject)
-            => UnderlyingObject = underlyingObject;
+    public UnitTestingRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId underlyingObject)
+        => UnderlyingObject = underlyingObject;
 
-        public static implicit operator UnitTestingRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId id)
-            => new(id);
-    }
+    public static implicit operator UnitTestingRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId id)
+        => new(id);
 }

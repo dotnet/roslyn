@@ -12,12 +12,12 @@ internal static class RoslynExperiments
     internal const string NullableDisabledSemanticModel = "RSEXPERIMENTAL001";
     internal const string NullableDisabledSemanticModel_Url = "https://github.com/dotnet/roslyn/issues/70609";
 
-    internal const string Interceptors = "RSEXPERIMENTAL002";
-    internal const string Interceptors_Url = "https://github.com/dotnet/csharplang/issues/7009";
-
-    internal const string SyntaxTokenParser = "RSEXPERIMENTAL003";
-    internal const string SyntaxTokenParser_Url = "https://github.com/dotnet/roslyn/issues/73002";
-
     internal const string GeneratorHostOutputs = "RSEXPERIMENTAL004";
     internal const string GeneratorHostOutputs_Url = "https://github.com/dotnet/roslyn/issues/74753";
+
+    // The UrlFormat property is customized per-api to point at a public API tracking issue for the feature, not a single general issue.
+    internal const string PreviewLanguageFeatureApi = "RSEXPERIMENTAL006";
+
+    // Previously taken: RSEXPERIMENTAL003 - https://github.com/dotnet/roslyn/issues/73002 (SyntaxTokenParser)
+    // Previously taken: RSEXPERIMENTAL005 - https://github.com/dotnet/roslyn/issues/77697
 }

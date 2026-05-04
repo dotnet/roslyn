@@ -107,9 +107,7 @@ internal static class ListExtensions
         for (var i = 0; i < list.Count; i++)
         {
             if (predicate(list[i]))
-            {
                 return i;
-            }
         }
 
         return -1;
@@ -120,9 +118,7 @@ internal static class ListExtensions
         for (var i = 0; i < list.Count; i++)
         {
             if (predicate(list[i], arg))
-            {
                 return i;
-            }
         }
 
         return -1;

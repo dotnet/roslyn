@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -15,17 +14,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 [Export, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration)
+internal sealed class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration)
 {
     private static readonly string s_hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
 
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
 
-    public record TelemetryInfo
+    public sealed record TelemetryInfo
     {
         public ImmutableArray<CommandLineReference> MetadataReferences { get; init; }
         public OutputKind OutputKind { get; init; }
         public bool IsSdkStyle { get; init; }
+        public bool HasSolutionFile { get; init; }
+        public bool IsFileBasedProgram { get; init; }
+        public bool IsMiscellaneousFile { get; init; }
     }
 
     /// <summary>
@@ -59,7 +61,7 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
                 return;
             }
 
-            var projectId = await GetProjectIdAsync(projectToLoad);
+            var projectId = await GetProjectIdAsync(projectToLoad, projectFileInfo);
             var targetFrameworks = GetTargetFrameworks(projectFileInfos.Keys);
 
             var projectCapabilities = projectFileInfo.ProjectCapabilities;
@@ -77,7 +79,10 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
                 References: hashedReferences,
                 FileExtensions: fileCounts.Keys,
                 FileCounts: fileCounts.Values,
-                SdkStyleProject: isSdkStyleProject);
+                SdkStyleProject: isSdkStyleProject,
+                HasSolutionFile: telemetryInfo.HasSolutionFile,
+                IsFileBasedProgram: telemetryInfo.IsFileBasedProgram,
+                IsMiscellaneousFile: telemetryInfo.IsMiscellaneousFile);
 
             await ReportEventAsync(projectEvent, cancellationToken);
         }
@@ -103,8 +108,7 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
         var sourceFiles = projectFileInfo.Documents
             .Concat(projectFileInfo.AdditionalDocuments)
             .Concat(projectFileInfo.AnalyzerConfigDocuments)
-            .Where(d => !d.IsGenerated)
-            .SelectAsArray(d => d.FilePath);
+            .SelectAsArray(d => !d.IsGenerated, d => d.FilePath);
         var allFiles = contentFiles.Concat(sourceFiles);
         var fileCounts = new Dictionary<string, int>();
         foreach (var file in allFiles)
@@ -131,7 +135,7 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
     /// This reads the solution file project id or hashes the contents+path
     /// Matches O# implementation - https://github.com/OmniSharp/omnisharp-roslyn/blob/master/src/OmniSharp.MSBuild/ProjectLoadListener.cs#L88
     /// </summary>
-    private static async Task<string> GetProjectIdAsync(ProjectToLoad projectToLoad)
+    private static async Task<string> GetProjectIdAsync(ProjectToLoad projectToLoad, ProjectFileInfo projectFileInfo)
     {
         if (projectToLoad.ProjectGuid is not null)
         {
@@ -143,14 +147,27 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
             return projectGuid;
         }
 
-        var content = await File.ReadAllTextAsync(projectToLoad.Path);
+        var projectPath = projectToLoad.Path;
+        // The projectToLoad.Path might be a virtual document (misc file), attempt to fall back to the actual file path from the loaded project info.
+        if (!File.Exists(projectPath) && projectFileInfo.FilePath is not null)
+        {
+            projectPath = projectFileInfo.FilePath;
+        }
+
+        if (!File.Exists(projectPath))
+        {
+            // We have no file path at all and so cannot compute a contents hash, just return a sentinel value.
+            return "MISSING";
+        }
+
+        var content = await File.ReadAllTextAsync(projectPath);
         // This should exactly match O# to ensure we get the same hashes.
         return VsReferenceHashingAlgorithm.HashInput($"Filename: {Path.GetFileName(projectToLoad.Path)}\n{content}");
     }
 
     private static ImmutableArray<string> GetTargetFrameworks(IEnumerable<ProjectFileInfo> projectFileInfos)
     {
-        return projectFileInfos.Select(p => GetTargetFramework(p)?.ToLower()).WhereNotNull().ToImmutableArray();
+        return [.. projectFileInfos.Select(p => GetTargetFramework(p)?.ToLower()).WhereNotNull()];
 
         string? GetTargetFramework(ProjectFileInfo projectFileInfo)
             => projectFileInfo.TargetFramework ?? projectFileInfo.TargetFrameworkVersion;

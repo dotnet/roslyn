@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -23,24 +24,22 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences;
 
 [UseExportProvider]
-public class FindReferencesCommandHandlerTests
+public sealed class FindReferencesCommandHandlerTests
 {
-    private class MockFindUsagesContext : FindUsagesContext
+    private sealed class MockFindUsagesContext : FindUsagesContext
     {
         public readonly List<DefinitionItem> Result = [];
 
-        public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+        public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {
             lock (Result)
             {
                 Result.Add(definition);
             }
-
-            return default;
         }
     }
 
-    private class MockStreamingFindUsagesPresenter : IStreamingFindUsagesPresenter
+    private sealed class MockStreamingFindUsagesPresenter : IStreamingFindUsagesPresenter
     {
         private readonly FindUsagesContext _context;
 
@@ -65,9 +64,11 @@ public class FindReferencesCommandHandlerTests
         var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
         var handler = new FindReferencesCommandHandler(
-            presenter,
-            workspace.GlobalOptions,
-            listenerProvider);
+            new FindReferencesNavigationService(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                presenter,
+                listenerProvider,
+                workspace.GlobalOptions));
 
         var textView = workspace.Documents[0].GetTextView();
         textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));

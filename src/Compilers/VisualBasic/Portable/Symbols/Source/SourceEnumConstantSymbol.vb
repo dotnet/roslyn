@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -144,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If Not otherValue.IsBad Then
                     Dim overflowKind = EnumConstantHelper.OffsetValue(otherValue, _otherConstantOffset, value)
                     If overflowKind = EnumOverflowKind.OverflowReport Then
-                        diagnostics.Add(ERRID.ERR_ExpressionOverflow1, Locations(0), Me)
+                        diagnostics.Add(ERRID.ERR_ExpressionOverflow1, GetFirstLocation(), Me)
                     End If
                 End If
 

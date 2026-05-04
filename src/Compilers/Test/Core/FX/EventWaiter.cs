@@ -5,11 +5,7 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Roslyn.Test.Utilities
 {
@@ -43,6 +39,25 @@ namespace Roslyn.Test.Utilities
                 try
                 {
                     input(sender, args);
+                }
+                catch (Exception ex)
+                {
+                    _capturedException = ex;
+                }
+                finally
+                {
+                    _eventSignal.Set();
+                }
+            };
+        }
+
+        public Action<TEventArgs> Wrap<TEventArgs>(Action<TEventArgs> input)
+        {
+            return args =>
+            {
+                try
+                {
+                    input(args);
                 }
                 catch (Exception ex)
                 {

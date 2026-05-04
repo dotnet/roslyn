@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -460,17 +459,18 @@ class Goo
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If (Not doc.CursorPosition.HasValue) Then
-                    Assert.True(False, "Missing caret location in document.")
+                    Assert.Fail("Missing caret location in document.")
                 End If
 
                 Dim tree = Await workspaceDoc.GetSyntaxTreeAsync()
                 Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.Services.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
 
+                Dim document = Await SemanticDocument.CreateAsync(workspaceDoc, CancellationToken.None)
                 Dim viewModel = New ChangeSignatureDialogViewModel(
+                    document,
                     ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)).ToImmutableArray(), symbol.IsExtensionMethod(), selectedIndex:=0),
                     symbol,
-                    workspaceDoc,
                     positionForTypeBinding:=0,
                     workspace.ExportProvider.GetExportedValue(Of IClassificationFormatMapService)().GetClassificationFormatMap("text"),
                     workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)())

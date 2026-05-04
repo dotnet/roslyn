@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
-internal class MoveToNamespaceOptionsResult
+internal sealed class MoveToNamespaceOptionsResult
 {
     public static readonly MoveToNamespaceOptionsResult Cancelled = new();
 

@@ -34,14 +34,16 @@ public class CSharpInteractiveBoxSelection : AbstractInteractiveWindowTest
         await TestServices.InteractiveWindow.PlaceCaretAsync("x", 0, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["__", VirtualKeyCode.ESCAPE, "|"], HangMitigatingCancellationToken);
 
-        Assert.Equal(@"__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__|234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __|234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -52,14 +54,16 @@ __|234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync(">", 1, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["__", VirtualKeyCode.ESCAPE, "|"], HangMitigatingCancellationToken);
 
-        Assert.Equal(@"__|234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            __|234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -70,14 +74,16 @@ __234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync("x", -2, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["__", VirtualKeyCode.ESCAPE, "|"], HangMitigatingCancellationToken);
 
-        Assert.Equal(@"__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__|234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __|234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -88,14 +94,16 @@ __|234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync(">", 3, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["__", VirtualKeyCode.ESCAPE, "|"], HangMitigatingCancellationToken);
 
-        Assert.Equal(@"__|234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            __|234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -106,14 +114,16 @@ __234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync("e", 1, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["__", VirtualKeyCode.ESCAPE, "|"], HangMitigatingCancellationToken);
 
-        Assert.Equal(@"1234567890ABCDEF
-1234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__|234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __|234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -124,14 +134,16 @@ __|234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync("s", -1, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["__", VirtualKeyCode.ESCAPE, "|"], HangMitigatingCancellationToken);
 
-        Assert.Equal(@"1234567890ABCDEF
-1234567890ABCDEF
-__|234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            __|234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -142,14 +154,16 @@ __234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync("e", -1, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["__", VirtualKeyCode.ESCAPE, "|"], HangMitigatingCancellationToken);
 
-        Assert.Equal(@"1234567890ABCDEF
-1234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__|234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __|234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -160,14 +174,16 @@ __|234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync("s", 1, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["__", VirtualKeyCode.ESCAPE, "|"], HangMitigatingCancellationToken);
 
-        Assert.Equal(@"1234567890ABCDEF
-1234567890ABCDEF
-__|234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-__234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            __|234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            __234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -178,14 +194,16 @@ __234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync("e", 2, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync("_", HangMitigatingCancellationToken);
 
-        Assert.Equal(@"1234567890ABCDEF
-1234567890ABCDEF
-_34567890ABCDEF
-_34567890ABCDEF
-_34567890ABCDEF
-_34567890ABCDEF
-_34567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            _34567890ABCDEF
+            _34567890ABCDEF
+            _34567890ABCDEF
+            _34567890ABCDEF
+            _34567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -229,14 +247,16 @@ _34567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync("e", -1, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync("__", HangMitigatingCancellationToken);
 
-        Assert.Equal(@"1234567890ABCDEF
-1234567890ABCDEF
-__s234567890ABCDEF
-__1234567890ABCDEF
-__1234567890ABCDEF
-__1234567890ABCDEF
-__e234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            __s234567890ABCDEF
+            __1234567890ABCDEF
+            __1234567890ABCDEF
+            __1234567890ABCDEF
+            __e234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -247,14 +267,16 @@ __e234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync("e", -1, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync("__", HangMitigatingCancellationToken);
 
-        Assert.Equal(@"1234567890ABCDEF
-1234567890ABCDEF
-__s234567890ABCDEF
-__1234567890ABCDEF
-__1234567890ABCDEF
-__1234567890ABCDEF
-__e234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            __s234567890ABCDEF
+            __1234567890ABCDEF
+            __1234567890ABCDEF
+            __1234567890ABCDEF
+            __e234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -265,14 +287,16 @@ __e234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync("e", 0, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.BACK, VirtualKeyCode.BACK], HangMitigatingCancellationToken);
 
-        Assert.Equal(@"1CDEF
-1CDEF
-1CDEF
-1CDEF
-1CDEF
-1CDEF
-1CDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            1CDEF
+            1CDEF
+            1CDEF
+            1CDEF
+            1CDEF
+            1CDEF
+            1CDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -283,14 +307,16 @@ __e234567890ABCDEF
         await TestServices.InteractiveWindow.PlaceCaretAsync("e", 0, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.BACK, VirtualKeyCode.BACK], HangMitigatingCancellationToken);
 
-        Assert.Equal(@"CDEF
-CDEF
-CDEF
-CDEF
-CDEF
-CDEF
-CDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+        Assert.Equal("""
+            CDEF
+            CDEF
+            CDEF
+            CDEF
+            CDEF
+            CDEF
+            CDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]
@@ -326,63 +352,65 @@ CDEF
         Assert.Equal(@"__4567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
-    private async Task InsertInputWithXAtLeftAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-x234567890ABCDEF
-1234567890ABCDEF", cancellationToken);
-    }
+    private Task InsertInputWithXAtLeftAsync(CancellationToken cancellationToken)
+        => TestServices.InteractiveWindow.InsertCodeAsync("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            x234567890ABCDEF
+            1234567890ABCDEF
+            """, cancellationToken);
 
-    private async Task InsertInputWithSAndEAtLeftAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"1234567890ABCDEF
-1234567890ABCDEF
-s234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-e234567890ABCDEF
-1234567890ABCDEF", cancellationToken);
-    }
+    private Task InsertInputWithSAndEAtLeftAsync(CancellationToken cancellationToken)
+        => TestServices.InteractiveWindow.InsertCodeAsync("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            s234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            e234567890ABCDEF
+            1234567890ABCDEF
+            """, cancellationToken);
 
-    private async Task InsertInputWithSAndEInTheMiddleAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"12s4567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890AeCDEF
-1234567890ABCDEF", cancellationToken);
-    }
+    private Task InsertInputWithSAndEInTheMiddleAsync(CancellationToken cancellationToken)
+        => TestServices.InteractiveWindow.InsertCodeAsync("""
+            12s4567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890AeCDEF
+            1234567890ABCDEF
+            """, cancellationToken);
 
-    private async Task InsertInputWithEInTheMiddleAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890AeCDEF
-1234567890ABCDEF", cancellationToken);
-    }
+    private Task InsertInputWithEInTheMiddleAsync(CancellationToken cancellationToken)
+        => TestServices.InteractiveWindow.InsertCodeAsync("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890AeCDEF
+            1234567890ABCDEF
+            """, cancellationToken);
 
     private async Task VerifyOriginalCodeWithSAndEAtLeftAsync(CancellationToken cancellationToken)
     {
-        Assert.Equal(@"1234567890ABCDEF
-1234567890ABCDEF
-s234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-1234567890ABCDEF
-e234567890ABCDEF
-1234567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(cancellationToken));
+        Assert.Equal("""
+            1234567890ABCDEF
+            1234567890ABCDEF
+            s234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            1234567890ABCDEF
+            e234567890ABCDEF
+            1234567890ABCDEF
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(cancellationToken));
     }
 }

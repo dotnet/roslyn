@@ -683,9 +683,9 @@ class Program
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
-                // (4,24): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'name' attribute'
+                // (4,25): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'name' attribute'
                 //     /// <param name="x" name="y"/>
-                Diagnostic(ErrorCode.WRN_XMLParseError, @" name=""y").WithArguments("name"));
+                Diagnostic(ErrorCode.WRN_XMLParseError, @"name=""y""").WithArguments("name").WithLocation(4, 25));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var nameSyntaxes = GetNameAttributeValues(compilation).ToArray();

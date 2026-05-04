@@ -10,11 +10,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -92,57 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// A binder suitable for performing overload resolution to synthesize a call to a helper method.
-        /// </summary>
-        private Binder? _binder;
-
-        private BoundExpression MakeInvocationExpression(
-            BinderFlags flags,
-            SyntaxNode node,
-            BoundExpression receiver,
-            string methodName,
-            bool disallowExpandedNonArrayParams,
-            ImmutableArray<BoundExpression> args,
-            BindingDiagnosticBag diagnostics,
-            ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
-            bool ignoreNormalFormIfHasValidParamsParameter = false)
-        {
-            if (_binder is null || _binder.Flags != flags)
-            {
-                _binder = new SyntheticBinderImpl(this).WithFlags(flags);
-            }
-
-            return _binder.MakeInvocationExpression(
-                node,
-                receiver,
-                methodName,
-                args,
-                diagnostics,
-                typeArgs: typeArgs.IsDefault ? default(ImmutableArray<TypeWithAnnotations>) : typeArgs.SelectAsArray(t => TypeWithAnnotations.Create(t)),
-                allowFieldsAndProperties: false,
-                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
-                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
-        }
-
-        /// <summary>
-        /// A binder used only for performing overload resolution of runtime helper methods.
-        /// </summary>
-        private sealed class SyntheticBinderImpl : BuckStopsHereBinder
-        {
-            private readonly SyntheticBoundNodeFactory _factory;
-            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation, associatedFileIdentifier: null)
-            {
-                _factory = factory;
-            }
-
-            internal override Symbol? ContainingMemberOrLambda { get { return _factory.CurrentFunction; } }
-            internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved)
-            {
-                return AccessCheck.IsSymbolAccessible(symbol, _factory.CurrentType, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo, basesBeingResolved);
-            }
-        }
-
-        /// <summary>
         /// Create a bound node factory. Note that the use of the factory to get special or well-known members
         /// that do not exist will result in an exception of type <see cref="MissingPredefinedMember"/> being thrown.
         /// </summary>
@@ -199,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // It is only valid to call this on a bound node factory with a module builder.
             Debug.Assert(ModuleBuilderOpt is { });
-            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentType, nestedType.GetCciAdapter());
+            ModuleBuilderOpt.AddSynthesizedDefinition(nestedType.ContainingType, nestedType.GetCciAdapter());
         }
 
         public void OpenNestedType(NamedTypeSymbol nestedType)
@@ -234,6 +183,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public StateMachineFieldSymbol StateMachineFieldForRegularParameter(TypeSymbol type, string name, ParameterSymbol parameter, bool isPublic)
+        {
+            Debug.Assert(CurrentType is { });
+            var result = new StateMachineFieldSymbolForRegularParameter(CurrentType, TypeWithAnnotations.Create(type), name, parameter, isPublic);
+            AddField(CurrentType, result);
+            return result;
+        }
+
         public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex)
         {
             Debug.Assert(CurrentType is { });
@@ -264,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundThisReference This()
         {
-            Debug.Assert(CurrentFunction is { IsStatic: false });
+            Debug.Assert(CurrentFunction is { IsStatic: false, ThisParameter: { } });
             return new BoundThisReference(Syntax, CurrentFunction.ThisParameter.Type) { WasCompilerGenerated = true };
         }
 
@@ -523,6 +480,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
+            return Block(locals, ImmutableArray<MethodSymbol>.CastUp(localFunctions), statements);
+        }
+
+        public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<MethodSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
+        {
             return new BoundBlock(Syntax, locals, localFunctions, hasUnsafeModifier: false, instrumentation: null, statements) { WasCompilerGenerated = true };
         }
 
@@ -560,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (epilogue != null) ? Concat(innerInstrumentation.Epilogue, epilogue) : innerInstrumentation.Epilogue)
                 : new BoundBlockInstrumentation(
                     Syntax,
-                    OneOrMany.OneOrNone(local),
+                    (local != null) ? [local] : [],
                     prologue,
                     epilogue);
         }
@@ -588,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statements.Add(statement);
             }
 
-            return Block(instrumentation.Locals.ToImmutable(), statements.ToImmutableAndClear());
+            return Block(instrumentation.Locals, statements.ToImmutableAndClear());
         }
 
         public BoundReturnStatement Return(BoundExpression? expression = null)
@@ -607,14 +569,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentFunction.ReturnType, isChecked: false, ref useSiteInfo);
                 Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
+                CodeGen.CodeGenerator.AssertIsEmitConversionKind(conversion.Kind);
                 if (conversion.Kind != ConversionKind.Identity)
                 {
                     Debug.Assert(CurrentFunction.RefKind == RefKind.None);
-                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, CurrentFunction.ReturnType);
+                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, explicitCastInCode: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, ConstantValue.NotAvailable, CurrentFunction.ReturnType);
                 }
             }
 
-            return new BoundReturnStatement(Syntax, CurrentFunction.RefKind, expression, @checked: false) { WasCompilerGenerated = true };
+            return new BoundReturnStatement(Syntax, CurrentFunction.RefKind != RefKind.None ? RefKind.Ref : RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
         }
 
         public void CloseMethod(BoundStatement body)
@@ -723,7 +686,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression IsNotNullReference(BoundExpression value)
         {
             var objectType = SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
-            return ObjectNotEqual(Convert(objectType, value, allowBoxingByRefLikeTypeParametersToObject: true), Null(objectType));
+
+            Conversion c;
+            if (value.Type is TypeParameterSymbol { AllowsRefLikeType: true })
+            {
+                c = Conversion.Boxing;
+            }
+            else
+            {
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                c = Compilation.Conversions.ClassifyConversionFromExpression(value, objectType, isChecked: false, ref useSiteInfo);
+            }
+
+            Debug.Assert(c.IsImplicit);
+            Debug.Assert(c.IsBoxing || c.IsReference || c.IsIdentity);
+
+            return ObjectNotEqual(Convert(objectType, value, c), Null(objectType));
         }
 
         public BoundBinaryOperator ObjectNotEqual(BoundExpression left, BoundExpression right)
@@ -833,22 +811,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, params BoundExpression[] args)
-        {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args.ToImmutableArray(), this.Diagnostics);
-        }
-
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, ImmutableArray<BoundExpression> args, bool ignoreNormalFormIfHasValidParamsParameter)
-        {
-            return MakeInvocationExpression(
-                BinderFlags.None, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args, this.Diagnostics, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
-        }
-
-        public BoundExpression StaticCall(BinderFlags flags, TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
-        {
-            return MakeInvocationExpression(flags, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args.ToImmutableArray(), this.Diagnostics, typeArgs);
-        }
-
         public BoundExpression StaticCall(TypeSymbol receiver, MethodSymbol method, params BoundExpression[] args)
         {
             if (method is null)
@@ -868,6 +830,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder.ReportUseSite(methodSymbol, Diagnostics, Syntax);
             Debug.Assert(methodSymbol.IsStatic);
             return Call(null, methodSymbol, args);
+        }
+
+        public BoundExpression StaticCall(WellKnownMember method, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
+        {
+            MethodSymbol methodSymbol = WellKnownMethod(method);
+            Binder.ReportUseSite(methodSymbol, Diagnostics, Syntax);
+            Debug.Assert(methodSymbol.IsStatic);
+            Debug.Assert(methodSymbol.IsGenericMethod);
+            Debug.Assert(methodSymbol.Arity == typeArgs.Length);
+
+            return Call(null, methodSymbol.Construct(typeArgs), args);
         }
 
         public BoundExpression StaticCall(SpecialMember method, params BoundExpression[] args)
@@ -906,35 +879,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(
                 Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
-                argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: getArgumentRefKinds(method, useStrictArgumentRefKinds), isDelegateCall: false, expanded: false,
+                argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: ArgumentRefKindsFromParameterRefKinds(method, useStrictArgumentRefKinds), isDelegateCall: false, expanded: false,
                 invokedAsExtensionMethod: false, argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable,
                 type: method.ReturnType, hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
+        }
 
-            static ImmutableArray<RefKind> getArgumentRefKinds(MethodSymbol method, bool useStrictArgumentRefKinds)
+        public static ImmutableArray<RefKind> ArgumentRefKindsFromParameterRefKinds(MethodSymbol method, bool useStrictArgumentRefKinds)
+        {
+            var result = method.ParameterRefKinds;
+
+            if (!result.IsDefaultOrEmpty && (result.Contains(RefKind.RefReadOnlyParameter) ||
+                (useStrictArgumentRefKinds && result.Contains(RefKind.In))))
             {
-                var result = method.ParameterRefKinds;
+                var builder = ArrayBuilder<RefKind>.GetInstance(result.Length);
 
-                if (!result.IsDefaultOrEmpty && (result.Contains(RefKind.RefReadOnlyParameter) ||
-                    (useStrictArgumentRefKinds && result.Contains(RefKind.In))))
+                foreach (var refKind in result)
                 {
-                    var builder = ArrayBuilder<RefKind>.GetInstance(result.Length);
-
-                    foreach (var refKind in result)
-                    {
-                        builder.Add(refKind switch
-                        {
-                            RefKind.In or RefKind.RefReadOnlyParameter when useStrictArgumentRefKinds => RefKindExtensions.StrictIn,
-                            RefKind.RefReadOnlyParameter => RefKind.In,
-                            _ => refKind
-                        });
-                    }
-
-                    return builder.ToImmutableAndFree();
+                    builder.Add(ArgumentRefKindFromParameterRefKind(refKind, useStrictArgumentRefKinds));
                 }
 
-                return result;
+                return builder.ToImmutableAndFree();
             }
+
+            return result;
+        }
+
+        public static RefKind ArgumentRefKindFromParameterRefKind(RefKind refKind, bool useStrictArgumentRefKinds)
+        {
+            return refKind switch
+            {
+                RefKind.In or RefKind.RefReadOnlyParameter when useStrictArgumentRefKinds => RefKindExtensions.StrictIn,
+                RefKind.RefReadOnlyParameter => RefKind.In,
+                _ => refKind
+            };
         }
 
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<RefKind> refKinds, ImmutableArray<BoundExpression> args)
@@ -1239,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement BaseInitialization()
         {
             // TODO: add diagnostics for when things fall apart
-            Debug.Assert(CurrentFunction is { });
+            Debug.Assert(CurrentFunction is { ThisParameter: { } });
             NamedTypeSymbol baseType = CurrentFunction.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics;
             var ctor = baseType.InstanceConstructors.Single(c => c.ParameterCount == 0);
             return new BoundExpressionStatement(Syntax, Call(Base(baseType), ctor)) { WasCompilerGenerated = true };
@@ -1515,43 +1493,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CodeAnalysis.WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle2);
         }
 
-        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, bool allowBoxingByRefLikeTypeParametersToObject = false)
+        /// <summary>
+        /// It is intentional that there is no 'Convert' helper that calls this method automatically
+        /// and then calls <see cref="Convert(TypeSymbol, BoundExpression, Conversion, bool, bool)"/>.
+        /// For the benefit of clarity and readability, consumer is expected to assert at the use-site
+        /// what specific conversions are expected as the result of classification.
+        /// </summary>
+        public Conversion ClassifyEmitConversion(BoundExpression arg, TypeSymbol destination)
         {
-            Debug.Assert(!allowBoxingByRefLikeTypeParametersToObject || type.IsObjectType());
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, destination, isChecked: false, ref useSiteInfo);
+
+            CodeGen.CodeGenerator.AssertIsEmitConversionKind(c.Kind);
+
+            return c;
+        }
+
+        /// <summary>
+        /// Note, this API is expected to be called only for <paramref name="conversion"/> that is natively supported by Emit layer.
+        /// </summary>
+        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, Conversion conversion, bool isChecked = false, bool explicitCastInCode = true)
+        {
+            CodeGen.CodeGenerator.AssertIsEmitConversionKind(conversion.Kind);
 
             if (TypeSymbol.Equals(type, arg.Type, TypeCompareKind.ConsiderEverything2))
             {
                 return arg;
-            }
-
-            var useSiteInfo =
-#if DEBUG
-                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
-#else
-                    CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-#endif 
-            Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, isChecked: false, ref useSiteInfo);
-
-            if (allowBoxingByRefLikeTypeParametersToObject && !c.Exists &&
-                arg.Type is TypeParameterSymbol { AllowsRefLikeType: true } && type.IsObjectType())
-            {
-                c = Conversion.Boxing;
-            }
-
-            Debug.Assert(c.Exists);
-            // The use-site diagnostics should be reported earlier, and we shouldn't get to lowering if they're errors.
-            Debug.Assert(!useSiteInfo.HasErrors);
-
-            return Convert(type, arg, c);
-        }
-
-        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, Conversion conversion, bool isChecked = false)
-        {
-            // NOTE: We can see user-defined conversions at this point because there are places in the bound tree where
-            // the binder stashes Conversion objects for later consumption (e.g. foreach, nullable, increment).
-            if (conversion.Method is { } && !TypeSymbol.Equals(conversion.Method.Parameters[0].Type, arg.Type, TypeCompareKind.ConsiderEverything2))
-            {
-                arg = Convert(conversion.Method.Parameters[0].Type, arg);
             }
 
             if (conversion.Kind == ConversionKind.ImplicitReference && arg.IsLiteralNull())
@@ -1560,16 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(arg.Type is { });
-            if (conversion.Kind == ConversionKind.ExplicitNullable &&
-                arg.Type.IsNullableType() &&
-                arg.Type.GetNullableUnderlyingType().Equals(type, TypeCompareKind.AllIgnoreOptions))
-            {
-                // A conversion to unbox a nullable value is produced when binding a pattern-matching
-                // operation from an operand of type T? to a pattern of type T.
-                return this.Call(arg, this.SpecialMethod(CodeAnalysis.SpecialMember.System_Nullable_T_get_Value).AsMember((NamedTypeSymbol)arg.Type));
-            }
-
-            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: true, conversionGroupOpt: null, null, type) { WasCompilerGenerated = true };
+            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, null, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)
@@ -1708,8 +1666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case RefKind.In:
-                    if (!Binder.HasHome(argument,
-                                        Binder.AddressKind.ReadOnly,
+                    if (!CodeGenerator.HasHome(argument,
+                                        CodeGenerator.AddressKind.ReadOnly,
                                         containingMethod,
                                         Compilation.IsPeVerifyCompatEnabled,
                                         stackLocalsOpt: null))

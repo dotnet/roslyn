@@ -3066,10 +3066,9 @@ scoped readonly ref struct C { }
                 // (3,12): error CS1031: Type expected
                 // scoped ref struct B { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(3, 12),
-                // (4,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (4,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 8)
-                );
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(4, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3119,10 +3118,7 @@ scoped readonly ref struct C { }
                 }
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
+                    N(SyntaxKind.ScopedKeyword);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
@@ -3561,11 +3557,10 @@ partial ext X
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
                 // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "partial").WithLocation(2, 1),
                 // (2,14): error CS1002: ; expected
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14));
 
             N(SyntaxKind.CompilationUnit);
             {

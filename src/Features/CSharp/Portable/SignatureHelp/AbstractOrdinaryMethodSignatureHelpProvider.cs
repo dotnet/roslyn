@@ -40,8 +40,9 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
             GetMethodGroupPreambleParts(method, semanticModel, position),
             GetSeparatorParts(),
             GetMethodGroupPostambleParts(),
-            method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList(),
-            descriptionParts: descriptionParts);
+            [.. method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))],
+            descriptionParts: descriptionParts,
+            static symbol => symbol is null ? null : SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
     }
 
     private static IList<SymbolDisplayPart> GetMethodGroupPreambleParts(
@@ -78,7 +79,7 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
             result.Add(Space());
         }
 
-        result.AddRange(method.ToMinimalDisplayParts(semanticModel, position, MinimallyQualifiedWithoutParametersFormat));
+        result.AddRange(SymbolDisplay.ToMinimalDisplayParts(method, semanticModel, position, MinimallyQualifiedWithoutParametersFormat));
         result.Add(Punctuation(SyntaxKind.OpenParenToken));
 
         return result;

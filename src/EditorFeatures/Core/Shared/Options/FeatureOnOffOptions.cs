@@ -26,8 +26,6 @@ internal sealed class FeatureOnOffOptions
 
     public static readonly Option2<bool?> OfferRemoveUnusedReferences = new("dotnet_offer_remove_unused_references", defaultValue: true);
 
-    public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new("dotnet_offer_remove_unused_references_feature_flag", defaultValue: false);
-
     /// <summary>
     /// Not used by Roslyn but exposed in C# and VB option UI. Used by TestWindow and Project System.
     /// TODO: remove https://github.com/dotnet/roslyn/issues/57253

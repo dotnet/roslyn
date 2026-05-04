@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -57,7 +56,7 @@ internal sealed partial class RemoteSemanticClassificationService : BrokeredServ
                 _workQueue.AddWork((document, type, options));
             }
 
-            return SerializableClassifiedSpans.Dehydrate([.. temp]);
+            return SerializableClassifiedSpans.Dehydrate(temp);
         }, cancellationToken);
     }
 }

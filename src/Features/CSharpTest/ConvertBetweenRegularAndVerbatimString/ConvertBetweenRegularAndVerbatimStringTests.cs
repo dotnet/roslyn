@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString;
@@ -14,15 +15,16 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertBetweenRegularAndVerbatimString;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
-public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeActionTest_NoEditor
 {
+    private static string NewLineEscape { get; } = Environment.NewLine == "\r\n" ? @"\r\n" : @"\n";
+
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider();
 
     [Fact]
-    public async Task EmptyRegularString()
-    {
-        await TestMissingAsync("""
+    public Task EmptyRegularString()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -31,12 +33,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithMissingCloseQuote()
-    {
-        await TestMissingAsync("""
+    public Task RegularStringWithMissingCloseQuote()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -45,12 +45,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task VerbatimStringWithMissingCloseQuote()
-    {
-        await TestMissingAsync("""
+    public Task VerbatimStringWithMissingCloseQuote()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -59,12 +57,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task EmptyVerbatimString()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task EmptyVerbatimString()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -82,12 +78,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLeadingAndTrailingTrivia()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestLeadingAndTrailingTrivia()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -109,12 +103,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithBasicText()
-    {
-        await TestMissingAsync("""
+    public Task RegularStringWithBasicText()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -123,12 +115,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task VerbatimStringWithBasicText()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task VerbatimStringWithBasicText()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -146,12 +136,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithUnicodeEscape()
-    {
-        await TestMissingAsync("""
+    public Task RegularStringWithUnicodeEscape()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -160,12 +148,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithEscapedNewLine()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task RegularStringWithEscapedNewLine()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -173,7 +159,7 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                     var v = "[||]a\r\nb";
                 }
             }
-            """,
+            """.Replace(@"\r\n", NewLineEscape),
             """
             class Test
             {
@@ -184,12 +170,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task VerbatimStringWithNewLine()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task VerbatimStringWithNewLine()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -207,13 +191,11 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                     var v = "a\r\nb";
                 }
             }
-            """);
-    }
+            """.Replace(@"\r\n", NewLineEscape));
 
     [Fact]
-    public async Task RegularStringWithEscapedNull()
-    {
-        await TestMissingAsync("""
+    public Task RegularStringWithEscapedNull()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -222,12 +204,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithEscapedQuote()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task RegularStringWithEscapedQuote()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -245,12 +225,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task VerbatimStringWithEscapedQuote()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task VerbatimStringWithEscapedQuote()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -268,12 +246,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotEscapeCurlyBracesInRegularString()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task DoNotEscapeCurlyBracesInRegularString()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -281,7 +257,7 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                     var v = "[||]a\r\n{1}";
                 }
             }
-            """,
+            """.Replace(@"\r\n", NewLineEscape),
             """
             class Test
             {
@@ -292,12 +268,10 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotEscapeCurlyBracesInVerbatimString()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task DoNotEscapeCurlyBracesInVerbatimString()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -315,6 +289,5 @@ public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeAct
                     var v = "a\r\n{1}";
                 }
             }
-            """);
-    }
+            """.Replace(@"\r\n", NewLineEscape));
 }

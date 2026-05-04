@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Elfie.Model;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
@@ -14,7 +12,7 @@ internal interface IAddReferenceDatabaseWrapper
     AddReferenceDatabase Database { get; }
 }
 
-internal class AddReferenceDatabaseWrapper(AddReferenceDatabase database) : IAddReferenceDatabaseWrapper
+internal sealed class AddReferenceDatabaseWrapper(AddReferenceDatabase database) : IAddReferenceDatabaseWrapper
 {
     public AddReferenceDatabase Database { get; } = database;
 }

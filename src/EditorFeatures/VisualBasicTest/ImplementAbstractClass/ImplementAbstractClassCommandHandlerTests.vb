@@ -2,10 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Options
@@ -205,8 +205,10 @@ End Class</text>
 
             view.Caret.MoveTo(New SnapshotPoint(snapshot, cursorPosition))
 
-            Dim commandHandler As ICommandHandler(Of ReturnKeyCommandArgs) =
-                New ImplementAbstractClassCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService), workspace.GetService(Of IGlobalOptionService))
+            Dim commandHandler = New ImplementAbstractClassCommandHandler(
+                workspace.GetService(Of IThreadingContext),
+                workspace.GetService(Of IEditorOperationsFactoryService),
+                workspace.GetService(Of IGlobalOptionService))
             commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), nextHandler, TestCommandExecutionContext.Create())
 
             Dim text = view.TextBuffer.CurrentSnapshot.AsText().ToString()

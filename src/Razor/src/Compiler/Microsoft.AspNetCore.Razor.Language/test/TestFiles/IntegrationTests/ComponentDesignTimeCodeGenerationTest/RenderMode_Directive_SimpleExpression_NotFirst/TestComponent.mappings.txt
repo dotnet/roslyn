@@ -1,0 +1,16 @@
+﻿Source Location: (8:1,1 [55] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public int Count { get; set; }
+|
+Generated Location: (1107:31,1 [55] )
+|
+    [Parameter]
+    public int Count { get; set; }
+|
+
+Source Location: (80:5,14 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+Generated Location: (1828:50,14 [64] )
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+

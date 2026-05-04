@@ -8,6 +8,7 @@
 using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
+
 internal abstract class AbstractRequestScope(string name) : IDisposable
 {
     public string Name { get; } = name;

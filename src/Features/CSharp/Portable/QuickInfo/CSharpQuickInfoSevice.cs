@@ -11,23 +11,12 @@ using Microsoft.CodeAnalysis.QuickInfo;
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
 [ExportLanguageServiceFactory(typeof(QuickInfoService), LanguageNames.CSharp), Shared]
-internal class CSharpQuickInfoServiceFactory : ILanguageServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpQuickInfoServiceFactory() : ILanguageServiceFactory
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpQuickInfoServiceFactory()
-    {
-    }
-
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         => new CSharpQuickInfoService(languageServices.LanguageServices);
-}
 
-internal class CSharpQuickInfoService : QuickInfoServiceWithProviders
-{
-    internal CSharpQuickInfoService(LanguageServices services)
-        : base(services)
-    {
-    }
+    private sealed class CSharpQuickInfoService(LanguageServices services) : QuickInfoServiceWithProviders(services);
 }
-

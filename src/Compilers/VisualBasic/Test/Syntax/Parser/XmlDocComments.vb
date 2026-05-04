@@ -2,8 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -574,7 +572,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -594,7 +592,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -622,7 +620,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -665,7 +663,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -691,7 +689,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -718,7 +716,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -749,7 +747,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -774,7 +772,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -799,7 +797,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
 End Class

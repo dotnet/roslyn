@@ -10,11 +10,11 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The params sent in a 'typeHierarchy/supertypes' request.
 /// <para>
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#typeHierarchySubtypesParams">Language Server Protocol specification</see> for additional information.
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#typeHierarchySupertypesParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class TypeHierarchySupertypesParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<TypeHierarchyItem[]>
+internal sealed class TypeHierarchySupertypesParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<TypeHierarchyItem[]>
 {
     /// <summary>
     /// The <see cref="TypeHierarchyItem"/> for which to return supertypes

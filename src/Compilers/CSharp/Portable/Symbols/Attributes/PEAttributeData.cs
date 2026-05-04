@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void EnsureAttributeArgumentsAreLoaded()
         {
-            if (_lazyConstructorArguments.IsDefault || _lazyNamedArguments.IsDefault)
+            if (RoslynImmutableInterlocked.VolatileRead(in _lazyConstructorArguments).IsDefault || RoslynImmutableInterlocked.VolatileRead(in _lazyNamedArguments).IsDefault)
             {
                 TypedConstant[]? lazyConstructorArguments = null;
                 KeyValuePair<string, TypedConstant>[]? lazyNamedArguments = null;

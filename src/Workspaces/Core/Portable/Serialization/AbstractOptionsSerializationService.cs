@@ -142,7 +142,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
                 var key = reader.ReadString();
                 var value = (ReportDiagnostic)reader.ReadInt32();
 
-                specificDiagnosticOptionsList.Add(KeyValuePairUtil.Create(key, value));
+                specificDiagnosticOptionsList.Add(KeyValuePair.Create(key, value));
             }
         }
 
@@ -159,7 +159,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
         var xmlReferenceResolver = XmlFileResolver.Default;
         var sourceReferenceResolver = SourceFileResolver.Default;
         var assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default;
-        var strongNameProvider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, Path.GetTempPath());
+        var strongNameProvider = new DesktopStrongNameProvider([], Path.GetTempPath());
 
         return (
             outputKind,
@@ -228,7 +228,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
                 var key = reader.ReadString();
                 var value = reader.ReadString();
 
-                featuresList.Add(KeyValuePairUtil.Create(key, value));
+                featuresList.Add(KeyValuePair.Create(key, value));
             }
         }
 

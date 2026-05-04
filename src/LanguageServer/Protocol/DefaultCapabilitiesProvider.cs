@@ -11,126 +11,201 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.TextDocumentContent;
+using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+/// <summary>
+/// Implementation of <see cref="ICapabilitiesProvider"/> that provides all the capabilities that Roslyn supports via LSP.
+/// </summary>
+[Export(typeof(DefaultCapabilitiesProvider)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.Any)]
+internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 {
-    [Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
-    internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
+    private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
+    private readonly ImmutableArray<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
+    private readonly IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> _renameListeners;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DefaultCapabilitiesProvider(
+        [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
+        [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
+        [ImportMany] IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> renameListeners)
     {
-        private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
+        _completionProviders = [.. completionProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
+        _signatureHelpProviders = [.. signatureHelpProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
+        _renameListeners = renameListeners;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ExperimentalCapabilitiesProvider(
-            [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
-        {
-            _completionProviders = completionProviders
-                .Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)
-                .ToImmutableArray();
-        }
+    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices)
+    {
+        var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
+        var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new VSInternalServerCapabilities();
 
-        public void Initialize()
+        var commitCharacters = CompletionResultFactory.DefaultCommitCharactersArray;
+        var triggerCharacters = _completionProviders.SelectMany(
+            lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
+
+        capabilities.DefinitionProvider = true;
+        capabilities.TypeDefinitionProvider = true;
+        capabilities.DocumentHighlightProvider = true;
+        capabilities.RenameProvider = new RenameOptions
         {
-            // Force completion providers to resolve in initialize, because it means MEF parts will be loaded.
-            // We need to do this before GetCapabilities is called as that is on the UI thread, and loading MEF parts
-            // could cause assembly loads, which we want to do off the UI thread.
-            foreach (var completionProvider in _completionProviders)
+            PrepareProvider = true,
+        };
+        capabilities.ImplementationProvider = true;
+        capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = [CodeActionKind.QuickFix, CodeActionKind.Refactor], ResolveProvider = true };
+        capabilities.CompletionProvider = new Roslyn.LanguageServer.Protocol.CompletionOptions
+        {
+            ResolveProvider = true,
+            AllCommitCharacters = commitCharacters,
+            TriggerCharacters = triggerCharacters,
+        };
+
+        var signatureHelpTriggerCharacters = _signatureHelpProviders.SelectMany(
+            lz => lz.Value.TriggerCharacters).Distinct().Select(c => c.ToString()).ToArray();
+        var signatureHelpRetriggerCharacters = _signatureHelpProviders.SelectMany(
+            lz => lz.Value.RetriggerCharacters).Distinct().Select(c => c.ToString()).ToArray();
+
+        capabilities.SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = signatureHelpTriggerCharacters, RetriggerCharacters = signatureHelpRetriggerCharacters };
+        capabilities.DocumentSymbolProvider = true;
+        capabilities.WorkspaceSymbolProvider = true;
+        capabilities.DocumentFormattingProvider = true;
+        capabilities.DocumentRangeFormattingProvider = true;
+        capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = [";", "\n"] };
+        capabilities.ReferencesProvider = new ReferenceOptions
+        {
+            WorkDoneProgress = true,
+        };
+
+        capabilities.FoldingRangeProvider = true;
+        capabilities.SelectionRangeProvider = true;
+        capabilities.CallHierarchyProvider = true;
+        capabilities.TypeHierarchyProvider = true;
+        capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = [] };
+        capabilities.TextDocumentSync = new TextDocumentSyncOptions
+        {
+            Change = TextDocumentSyncKind.Incremental,
+            OpenClose = true,
+            Save = new SaveOptions
             {
-                _ = completionProvider.Value;
+                IncludeText = false,
             }
+        };
+
+        capabilities.HoverProvider = true;
+
+        // Using only range handling has shown to be more performant than using a combination of full/edits/range
+        // handling, especially for larger files. With range handling, we only need to compute tokens for whatever
+        // is in view, while with full/edits handling we need to compute tokens for the entire file and then
+        // potentially run a diff between the old and new tokens. Therefore, we only enable full handling if
+        // the client does not support ranges.
+        var rangeCapabilities = clientCapabilities.TextDocument?.SemanticTokens?.Requests?.Range;
+        var supportsSemanticTokensRange = rangeCapabilities?.Value is not (false or null);
+        capabilities.SemanticTokensOptions = new SemanticTokensOptions
+        {
+            Full = !supportsSemanticTokensRange,
+            Range = true,
+            Legend = new SemanticTokensLegend
+            {
+                TokenTypes = [.. SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes],
+                TokenModifiers = SemanticTokensSchema.TokenModifiers
+            }
+        };
+
+        capabilities.CodeLensProvider = new CodeLensOptions
+        {
+            ResolveProvider = true,
+            // TODO - Code lens should support streaming
+            // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730465
+            WorkDoneProgress = false,
+        };
+
+        capabilities.InlayHintOptions = new InlayHintOptions
+        {
+            ResolveProvider = true,
+            WorkDoneProgress = false,
+        };
+
+        // Using VS server capabilities because we have our own custom client.
+        capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["'", "/", "\n", "\""] };
+
+        var diagnosticDynamicRegistationCapabilities = clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration;
+        if (diagnosticDynamicRegistationCapabilities is false)
+        {
+            capabilities.DiagnosticOptions = new DiagnosticOptions()
+            {
+                InterFileDependencies = true
+            };
         }
 
-        public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+        capabilities.Workspace = new WorkspaceServerCapabilities
         {
-            var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
-            var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new VSInternalServerCapabilities();
+            FileOperations = GetWorkspaceFileOperationsCapabilities(),
+            TextDocumentContent = GetTextDocumentContentCapabilities(),
+        };
 
-            var commitCharacters = AbstractLspCompletionResultCreationService.DefaultCommitCharactersArray;
-            var triggerCharacters = _completionProviders.SelectMany(
-                lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
+        return capabilities;
 
-            capabilities.DefinitionProvider = true;
-            capabilities.DocumentHighlightProvider = true;
-            capabilities.RenameProvider = new RenameOptions
+        WorkspaceFileOperationsServerCapabilities? GetWorkspaceFileOperationsCapabilities()
+        {
+            if (clientCapabilities.Workspace?.FileOperations is null)
+                return null;
+
+            // Register for file rename notifications based on the registered rename listeners.
+            using var _ = PooledObjects.ArrayBuilder<FileOperationFilter>.GetInstance(out var filters);
+            foreach (var listener in _renameListeners)
             {
-                PrepareProvider = true,
-            };
-            capabilities.ImplementationProvider = true;
-            capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = [CodeActionKind.QuickFix, CodeActionKind.Refactor], ResolveProvider = true };
-            capabilities.CompletionProvider = new Roslyn.LanguageServer.Protocol.CompletionOptions
-            {
-                ResolveProvider = true,
-                AllCommitCharacters = commitCharacters,
-                TriggerCharacters = triggerCharacters,
-            };
-
-            capabilities.SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = ["(", ","] };
-            capabilities.DocumentSymbolProvider = true;
-            capabilities.WorkspaceSymbolProvider = true;
-            capabilities.DocumentFormattingProvider = true;
-            capabilities.DocumentRangeFormattingProvider = true;
-            capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = [";", "\n"] };
-            capabilities.ReferencesProvider = new ReferenceOptions
-            {
-                WorkDoneProgress = true,
-            };
-
-            capabilities.FoldingRangeProvider = true;
-            capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = [] };
-            capabilities.TextDocumentSync = new TextDocumentSyncOptions
-            {
-                Change = TextDocumentSyncKind.Incremental,
-                OpenClose = true
-            };
-
-            capabilities.HoverProvider = true;
-
-            // Using only range handling has shown to be more performant than using a combination of full/edits/range
-            // handling, especially for larger files. With range handling, we only need to compute tokens for whatever
-            // is in view, while with full/edits handling we need to compute tokens for the entire file and then
-            // potentially run a diff between the old and new tokens.
-            capabilities.SemanticTokensOptions = new SemanticTokensOptions
-            {
-                Full = false,
-                Range = true,
-                Legend = new SemanticTokensLegend
+                filters.Add(new FileOperationFilter
                 {
-                    TokenTypes = [.. SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes],
-                    TokenModifiers = SemanticTokensSchema.TokenModifiers
+                    Pattern = new FileOperationPattern { Glob = listener.Metadata.Glob }
+                });
+            }
+
+            if (filters.Count == 0)
+                return null;
+
+            return new WorkspaceFileOperationsServerCapabilities()
+            {
+                WillRename = new FileOperationRegistrationOptions()
+                {
+                    Filters = filters.ToArray()
                 }
             };
-
-            capabilities.CodeLensProvider = new CodeLensOptions
-            {
-                ResolveProvider = true,
-                // TODO - Code lens should support streaming
-                // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730465
-                WorkDoneProgress = false,
-            };
-
-            capabilities.InlayHintOptions = new InlayHintOptions
-            {
-                ResolveProvider = true,
-                WorkDoneProgress = false,
-            };
-
-            // Using VS server capabilities because we have our own custom client.
-            capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["'", "/", "\n"] };
-
-            return capabilities;
         }
 
-        private static VSInternalServerCapabilities GetVSServerCapabilities()
-            => new()
-            {
-                ProjectContextProvider = true,
-                BreakableRangeProvider = true,
+        TextDocumentContentOptions? GetTextDocumentContentCapabilities()
+        {
+            if (clientCapabilities.Workspace?.TextDocumentContent is null)
+                return null;
 
-                // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
-                SupportsDiagnosticRequests = false,
+            // Client supports textDocumentContent - register the schemes from all providers so the client
+            // can use workspace/textDocumentContent to retrieve virtual document contents.
+            var schemes = lspServices.GetRequiredServices<ITextDocumentContentProvider>().Select(p => p.Scheme).ToArray();
+            if (schemes.Length == 0)
+                return null;
+
+            return new TextDocumentContentOptions
+            {
+                Schemes = schemes
             };
+        }
     }
+
+    private static VSInternalServerCapabilities GetVSServerCapabilities()
+        => new()
+        {
+            ProjectContextProvider = true,
+            BreakableRangeProvider = true,
+
+            // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
+            SupportsDiagnosticRequests = false,
+        };
 }

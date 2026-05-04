@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -77,9 +78,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        protected override SourceMemberMethodSymbol? BoundAttributesSource => (SourceMemberMethodSymbol?)PartialDefinitionPart;
+
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            return OneOrMany.Create(GetSyntax().AttributeLists);
+            Debug.Assert(PartialImplementationPart is null);
+
+            // If this is a partial event, the corresponding partial definition cannot have any accessor attributes
+            // (there are no explicit accessors in source on the definition part - it has a field-like syntax).
+            Debug.Assert(PartialDefinitionPart is null
+                or SourceEventAccessorSymbol { AssociatedEvent.MemberSyntax: EventFieldDeclarationSyntax });
+
+            return OneOrMany.Create(this.AttributeDeclarationSyntaxList);
+        }
+
+        internal SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+        {
+            get
+            {
+                if (this.AssociatedEvent.containingType.AnyMemberHasAttributes)
+                {
+                    return this.GetSyntax().AttributeLists;
+                }
+
+                return default;
+            }
         }
 
         public override bool IsImplicitlyDeclared

@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+public sealed class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     protected override TestComposition Composition => base.Composition
             .AddParts(typeof(LocaleTestHandler));
@@ -41,10 +41,10 @@ public class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguage
             Locale = "ja"
         });
 
-        await using var testLspServerTwo = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        await using var testLspServerTwo = await CreateTestLspServerAsync(testLspServerOne.TestWorkspace, new InitializationOptions
         {
             Locale = "zh"
-        });
+        }, LanguageNames.CSharp);
 
         var resultOne = await testLspServerOne.ExecuteRequestAsync<Request, Response>(LocaleTestHandler.MethodName, new Request(), CancellationToken.None);
         var resultTwo = await testLspServerTwo.ExecuteRequestAsync<Request, Response>(LocaleTestHandler.MethodName, new Request(), CancellationToken.None);
@@ -80,7 +80,7 @@ public class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguage
 
     [ExportCSharpVisualBasicStatelessLspService(typeof(LocaleTestHandler)), PartNotDiscoverable, Shared]
     [Method(MethodName)]
-    internal class LocaleTestHandler : ILspServiceRequestHandler<Request, Response>
+    internal sealed class LocaleTestHandler : ILspServiceRequestHandler<Request, Response>
     {
         public const string MethodName = nameof(LocaleTestHandler);
 
@@ -93,13 +93,13 @@ public class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguage
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task<Response> HandleRequestAsync(Request request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<Response> HandleRequestAsync(Request request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new Response(CultureInfo.CurrentUICulture.Name));
+            return new Response(CultureInfo.CurrentUICulture.Name);
         }
     }
 
-    internal record Request();
+    internal sealed record Request();
 
-    internal record Response(string HandlerCulture);
+    internal sealed record Response(string HandlerCulture);
 }

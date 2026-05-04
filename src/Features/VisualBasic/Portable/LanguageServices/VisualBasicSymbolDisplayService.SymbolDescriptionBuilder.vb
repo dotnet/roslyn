@@ -5,14 +5,13 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     Partial Friend Class VisualBasicSymbolDisplayService
-        Protected Class SymbolDescriptionBuilder
+        Protected NotInheritable Class SymbolDescriptionBuilder
             Inherits AbstractSymbolDescriptionBuilder
 
             Private Shared ReadOnly s_minimallyQualifiedFormat As SymbolDisplayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat _
@@ -165,13 +164,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 Return Nothing
             End Function
 
-            Protected Overrides Sub AddCaptures(symbol As ISymbol)
+            Protected Overrides Sub AddCaptures(semanticModel As SemanticModel, symbol As ISymbol, typeDisplayInfo As StructuralTypeDisplayInfo)
                 Dim method = TryCast(symbol, IMethodSymbol)
                 If method IsNot Nothing AndAlso method.ContainingSymbol.IsKind(SymbolKind.Method) Then
-                    Dim syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()
-                    AddCaptures(syntax)
+                    Dim syntax = method.DeclaringSyntaxReferences.FirstOrDefault(Function(r) r.SyntaxTree Is semanticModel.SyntaxTree)?.GetSyntax()
+                    AddCaptures(semanticModel, syntax, typeDisplayInfo)
                 End If
             End Sub
+
+            Protected Overrides Function GetCommentText(trivia As SyntaxTrivia) As String
+                Return trivia.ToFullString().Substring(1)
+            End Function
 
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat = s_minimallyQualifiedFormat
 

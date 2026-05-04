@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End If
 
             Dim containingStatement = token.GetAncestors(Of StatementSyntax) _
-                                           .Where(Function(a) Not TypeOf a Is LambdaHeaderSyntax) _
+                                           .Where(Function(a) TypeOf a IsNot LambdaHeaderSyntax) _
                                            .FirstOrDefault()
 
             Dim containingTypeStatement = TryCast(containingStatement, TypeStatementSyntax)

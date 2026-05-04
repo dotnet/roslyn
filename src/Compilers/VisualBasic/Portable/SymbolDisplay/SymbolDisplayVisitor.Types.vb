@@ -160,12 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If containingType IsNot Nothing Then
                     visitedParents = True
                     containingType.Accept(Me.NotFirstVisitor())
-
-                    If Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) Then
-                        AddOperator(SyntaxKind.PlusToken)
-                    Else
-                        AddOperator(SyntaxKind.DotToken)
-                    End If
+                    AddNestedTypeSeparator()
                 End If
             End If
 
@@ -191,6 +186,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         invokeMethod.ReturnType.Accept(Me.NotFirstVisitor())
                     End If
                 End If
+            End If
+        End Sub
+
+        Private Sub AddNestedTypeSeparator()
+            If Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) Then
+                AddOperator(SyntaxKind.PlusToken)
+            Else
+                AddOperator(SyntaxKind.DotToken)
             End If
         End Sub
 
@@ -239,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If symbolName Is Nothing Then
-                symbolName = symbol.Name
+                symbolName = If(symbol.IsExtension, symbol.ExtensionGroupingName, symbol.Name)
             End If
 
             If Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
@@ -252,7 +255,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case symbol.TypeKind
                 Case TypeKind.Class,
-                     TypeKind.Submission
+                     TypeKind.Submission,
+                     TypeKind.Extension
                     partKind = SymbolDisplayPartKind.ClassName
                 Case TypeKind.Delegate
                     partKind = SymbolDisplayPartKind.DelegateName
@@ -276,11 +280,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim isMissingMetadataType As Boolean = TypeOf symbol Is MissingMetadataTypeSymbol
 
             If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes) Then
-                ' Only the compiler can set the internal option and the compiler doesn't use other implementations of INamedTypeSymbol.
-                If DirectCast(symbol, NamedTypeSymbol).MangleName Then
-                    Debug.Assert(symbol.Arity > 0)
-                    Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, Nothing,
-                                           MetadataHelpers.GenericTypeNameManglingChar & symbol.Arity.ToString(), False))
+                If symbol.Arity > 0 Then
+                    Dim suffix As String = MetadataHelpers.GetAritySuffix(symbol.Arity)
+                    Dim vbNamedType = TryCast(symbol, NamedTypeSymbol)
+
+                    If If(vbNamedType IsNot Nothing, vbNamedType.MangleName, symbol.MetadataName.Equals(symbol.Name + suffix)) Then
+                        Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, Nothing,
+                                           suffix, False))
+                    End If
                 End If
             ElseIf symbol.Arity > 0 AndAlso Format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters) AndAlso Not skipTypeArguments Then
                 If isMissingMetadataType OrElse symbol.IsUnboundGenericType Then
@@ -577,5 +584,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Friend Sub AddExtensionMarkerName(extension As INamedTypeSymbol)
+            Debug.Assert(extension.IsExtension)
+            AddNestedTypeSeparator()
+            Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, extension, extension.ExtensionMarkerName, False))
+        End Sub
     End Class
 End Namespace

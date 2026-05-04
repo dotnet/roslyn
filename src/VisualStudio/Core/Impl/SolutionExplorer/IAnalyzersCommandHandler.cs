@@ -4,12 +4,11 @@
 
 using Microsoft.Internal.VisualStudio.PlatformUI;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal interface IAnalyzersCommandHandler
 {
-    internal interface IAnalyzersCommandHandler
-    {
-        IContextMenuController AnalyzerFolderContextMenuController { get; }
-        IContextMenuController AnalyzerContextMenuController { get; }
-        IContextMenuController DiagnosticContextMenuController { get; }
-    }
+    IContextMenuController AnalyzerFolderContextMenuController { get; }
+    IContextMenuController AnalyzerContextMenuController { get; }
+    IContextMenuController DiagnosticContextMenuController { get; }
 }

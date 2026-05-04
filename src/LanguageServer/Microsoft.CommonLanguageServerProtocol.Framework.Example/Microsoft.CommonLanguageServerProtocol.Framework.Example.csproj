@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>$(NetVS);netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynAll);netstandard2.0</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <IsPackable>false</IsPackable>
     <PackageDescription>An example implementation of the Common Language Server Protocol Framework.</PackageDescription>
@@ -21,7 +21,5 @@
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.UnitTests" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="NullableAttributes.cs" />
-  </ItemGroup>
+  <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTypeTests;
 
-public partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+public sealed partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
 {
     public GenerateTypeWithUnboundAnalyzerTests(ITestOutputHelper logger)
        : base(logger)
@@ -33,21 +33,23 @@ public partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagno
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13211")]
-    public async Task TestGenerateOffOfIncompleteMember()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Class
-{
-    public [|Goo|]
-}",
-@"class Class
-{
-    public Goo
-}
+    public Task TestGenerateOffOfIncompleteMember()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                public [|Goo|]
+            }
+            """,
+            """
+            class Class
+            {
+                public Goo
+            }
 
-internal class Goo
-{
-}",
-index: 1);
-    }
+            internal class Goo
+            {
+            }
+            """,
+            index: 1);
 }

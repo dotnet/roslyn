@@ -5,14 +5,14 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-
-    Partial Friend Class VisualBasicTypeInferenceService
-        Private Class TypeInferrer
+    Partial Friend NotInheritable Class VisualBasicTypeInferenceService
+        Private NotInheritable Class TypeInferrer
             Inherits AbstractTypeInferrer
 
             Public Sub New(semanticModel As SemanticModel, cancellationToken As CancellationToken)
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Protected Overrides Function GetTypes_DoNotCallDirectly(node As SyntaxNode, objectAsDefault As Boolean) As IEnumerable(Of TypeInferenceInfo)
                 If node IsNot Nothing Then
-                    Dim info = SemanticModel.GetTypeInfo(node)
+                    Dim info = SemanticModel.GetTypeInfo(node, CancellationToken)
                     If info.Type IsNot Nothing AndAlso info.Type.TypeKind <> TypeKind.Error Then
                         Return CreateResult(info.Type)
                     End If
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
-                Dim typeSymbol = SemanticModel.GetTypeInfo(expressionType).Type
+                Dim typeSymbol = SemanticModel.GetTypeInfo(expressionType, CancellationToken).Type
                 If TypeOf typeSymbol IsNot INamedTypeSymbol Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                         End If
 
-                        Dim info = SemanticModel.GetSymbolInfo(invocation)
+                        Dim info = SemanticModel.GetSymbolInfo(invocation, CancellationToken)
                         ' Check all the methods that have at least enough arguments to support being
                         ' called with argument at this position.  Note: if they're calling an extension
                         ' method then it will need one more argument in order for us to call it.
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             If targetExpression IsNot Nothing Then
-                                Dim expressionType = SemanticModel.GetTypeInfo(targetExpression)
+                                Dim expressionType = SemanticModel.GetTypeInfo(targetExpression, CancellationToken)
                                 If TypeOf expressionType.Type Is IArrayTypeSymbol Then
                                     Return CreateResult(Compilation.GetSpecialType(SpecialType.System_Int32))
                                 End If
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '
                         ' etc.
                         Dim creation = TryCast(argumentList.Parent, ObjectCreationExpressionSyntax)
-                        Dim info = SemanticModel.GetSymbolInfo(creation.Type)
+                        Dim info = SemanticModel.GetSymbolInfo(creation.Type, CancellationToken)
                         Dim namedType = TryCast(info.Symbol, INamedTypeSymbol)
                         If namedType IsNot Nothing Then
                             If namedType.TypeKind = TypeKind.Delegate Then
@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                         End If
 
-                        Dim info = SemanticModel.GetSymbolInfo(attribute)
+                        Dim info = SemanticModel.GetSymbolInfo(attribute, CancellationToken)
                         Dim symbols = info.GetBestOrAllSymbols()
                         If symbols.Any() Then
                             Dim methods = symbols.OfType(Of IMethodSymbol)()
@@ -983,7 +983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If node.IsKind(SyntaxKind.IdentifierName) Then
                     Dim identifier = DirectCast(node, IdentifierNameSyntax)
                     If CaseInsensitiveComparison.Equals(parameterName, identifier.Identifier.ValueText) AndAlso
-                       SemanticModel.GetSymbolInfo(identifier.Identifier).Symbol?.Kind = SymbolKind.Parameter Then
+                       SemanticModel.GetSymbolInfo(identifier.Identifier, CancellationToken).Symbol?.Kind = SymbolKind.Parameter Then
                         Return InferTypes(identifier).FirstOrDefault().InferredType
                     End If
                 Else
@@ -1001,12 +1001,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax) As IEnumerable(Of TypeInferenceInfo)
-                Dim right = SemanticModel.GetTypeInfo(initializer.Name).Type
+                Dim right = SemanticModel.GetTypeInfo(initializer.Name, CancellationToken).Type
                 If right IsNot Nothing AndAlso TypeOf right IsNot IErrorTypeSymbol Then
                     Return CreateResult(right)
                 End If
 
-                Return CreateResult(SemanticModel.GetTypeInfo(initializer.Expression).Type)
+                Return CreateResult(SemanticModel.GetTypeInfo(initializer.Expression, CancellationToken).Type)
             End Function
 
             Public Function InferTypeInCaseStatement(caseStatement As CaseStatementSyntax) As IEnumerable(Of TypeInferenceInfo)

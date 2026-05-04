@@ -5,7 +5,6 @@
 Imports System.Windows.Data
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
@@ -892,7 +891,7 @@ End Class
         Private Sub AddUnusedValueOptions(optionStore As OptionStore, expressionPreferencesGroupTitle As String)
             Dim unusedValuePreferences = New List(Of CodeStylePreference) From
             {
-                New CodeStylePreference(BasicVSResources.Unused_local, isChecked:=True)
+                New CodeStylePreference(ServicesVSResources.Unused_local, isChecked:=True)
             }
 
             Dim enumValues =

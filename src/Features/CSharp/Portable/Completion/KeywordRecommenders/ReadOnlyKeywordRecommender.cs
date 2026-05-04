@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ReadOnlyKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ReadOnlyKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ReadOnlyKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -22,11 +22,6 @@ internal class ReadOnlyKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
             SyntaxKind.PrivateKeyword,
             SyntaxKind.StaticKeyword,
         };
-
-    public ReadOnlyKeywordRecommender()
-        : base(SyntaxKind.ReadOnlyKeyword)
-    {
-    }
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {

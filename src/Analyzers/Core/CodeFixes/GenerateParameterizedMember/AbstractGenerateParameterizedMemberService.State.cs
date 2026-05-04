@@ -13,11 +13,10 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
-internal partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
+internal abstract partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
     internal abstract class State
     {
@@ -58,7 +57,7 @@ internal partial class AbstractGenerateParameterizedMemberService<TService, TSim
         protected async Task<bool> TryFinishInitializingStateAsync(TService service, SemanticDocument document, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+            TypeToGenerateIn = await SymbolFinderInternal.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
             if (TypeToGenerateIn.IsErrorType())
             {
                 return false;
@@ -69,7 +68,11 @@ internal partial class AbstractGenerateParameterizedMemberService<TService, TSim
                 return false;
             }
 
-            if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken))
+            var codeGenerationContext = new CodeGenerationContext(
+                afterThisLocation: Location,
+                generateMethodBodies: TypeToGenerateIn.TypeKind != TypeKind.Interface,
+                allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
+            if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, codeGenerationContext, cancellationToken))
             {
                 return false;
             }
@@ -82,7 +85,7 @@ internal partial class AbstractGenerateParameterizedMemberService<TService, TSim
                 .GetMembers(IdentifierToken.ValueText)
                 .OfType<IMethodSymbol>();
 
-            var destinationProvider = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language);
+            var destinationProvider = document.Project.Solution.GetExtendedLanguageServices(TypeToGenerateIn.Language);
 
             var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
             var syntaxFactory = destinationProvider.GetService<SyntaxGenerator>();

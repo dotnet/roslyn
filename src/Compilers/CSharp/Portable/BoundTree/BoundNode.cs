@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ParamsArrayOrCollection = 1 << 9,
 
+            /// <summary>
+            /// Set after checking if the property access should use the backing field directly.
+            /// </summary>
+            WasPropertyBackingFieldAccessChecked = 1 << 10,
+
             AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection,
         }
 
@@ -325,6 +330,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        public bool WasPropertyBackingFieldAccessChecked
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.WasPropertyBackingFieldAccessChecked) != 0;
+            }
+            set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.WasPropertyBackingFieldAccessChecked) == 0, "should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.WasPropertyBackingFieldAccessChecked;
+                }
+            }
+        }
 #endif
 
         public bool IsParamsArrayOrCollection
@@ -433,6 +454,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return boundConversion.Conversion;
                     }
 
+                    ConversionGroup? conversionGroupOpt = boundConversion.ConversionGroupOpt;
+                    if (conversionGroupOpt?.Conversion.IsUserDefined == true)
+                    {
+                        BoundConversion? possiblyUserDefined = boundConversion;
+                        while (possiblyUserDefined?.Conversion.IsUserDefined == false)
+                        {
+                            possiblyUserDefined = possiblyUserDefined.Operand as BoundConversion;
+                        }
+
+                        if (possiblyUserDefined is not null)
+                        {
+                            Debug.Assert(possiblyUserDefined.Conversion.IsUserDefined);
+                            var operand = possiblyUserDefined.Operand;
+
+                            while (operand is BoundConversion operandAsConversion && operandAsConversion.ConversionGroupOpt == conversionGroupOpt)
+                            {
+                                operand = operandAsConversion.Operand;
+                            }
+
+                            if ((object)operand == placeholder)
+                            {
+                                return possiblyUserDefined.Conversion;
+                            }
+                        }
+
+                        throw ExceptionUtilities.UnexpectedValue(conversion);
+                    }
+
+                    if (conversionGroupOpt?.Conversion.IsUnion == true) // https://github.com/dotnet/roslyn/issues/82636: Add coverage
+                    {
+                        BoundConversion? possiblyUnion = boundConversion;
+                        while (possiblyUnion?.Conversion.IsUnion == false)
+                        {
+                            possiblyUnion = possiblyUnion.Operand as BoundConversion;
+                        }
+
+                        if (possiblyUnion is not null)
+                        {
+                            Debug.Assert(possiblyUnion.Conversion.IsUnion);
+                            var operand = possiblyUnion.Operand;
+
+                            while (operand is BoundConversion operandAsConversion && operandAsConversion.ConversionGroupOpt == conversionGroupOpt)
+                            {
+                                operand = operandAsConversion.Operand;
+                            }
+
+                            if ((object)operand == placeholder)
+                            {
+                                return possiblyUnion.Conversion;
+                            }
+                        }
+
+                        throw ExceptionUtilities.UnexpectedValue(conversion);
+                    }
+
                     if (!boundConversion.Conversion.IsUserDefined)
                     {
                         boundConversion = (BoundConversion)boundConversion.Operand;
@@ -440,6 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (boundConversion.Conversion.IsUserDefined)
                     {
+                        Debug.Assert((boundConversion.InConversionGroupFlags & InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree) != 0);
                         BoundConversion next;
 
                         if ((object)boundConversion.Operand == placeholder ||

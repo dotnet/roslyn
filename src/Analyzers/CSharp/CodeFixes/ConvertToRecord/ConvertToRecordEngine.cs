@@ -218,24 +218,28 @@ internal static class ConvertToRecordEngine
 
         foreach (var method in typeDeclaration.Members.OfType<MethodDeclarationSyntax>())
         {
-            var methodSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
-            var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(method, cancellationToken);
+            var methodSymbol = semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
 
             if (methodSymbol.Name == "Clone")
             {
                 // remove clone method as clone is a reserved method name in records
                 documentEditor.RemoveNode(method);
             }
-            else if (ConvertToRecordHelpers.IsSimpleHashCodeMethod(
-                semanticModel.Compilation, methodSymbol, operation, expectedFields))
+            else if (method is { Body: not null })
             {
-                documentEditor.RemoveNode(method);
-            }
-            else if (ConvertToRecordHelpers.IsSimpleEqualsMethod(
-                semanticModel.Compilation, methodSymbol, operation, expectedFields))
-            {
-                // the Equals method implementation is fundamentally equivalent to the generated one
-                documentEditor.RemoveNode(method);
+                var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(method, cancellationToken);
+
+                if (ConvertToRecordHelpers.IsSimpleHashCodeMethod(
+                    semanticModel.Compilation, methodSymbol, operation, expectedFields))
+                {
+                    documentEditor.RemoveNode(method);
+                }
+                else if (ConvertToRecordHelpers.IsSimpleEqualsMethod(
+                    semanticModel.Compilation, methodSymbol, operation, expectedFields))
+                {
+                    // the Equals method implementation is fundamentally equivalent to the generated one
+                    documentEditor.RemoveNode(method);
+                }
             }
         }
 

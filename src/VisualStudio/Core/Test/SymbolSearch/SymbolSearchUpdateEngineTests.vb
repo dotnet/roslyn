@@ -6,12 +6,9 @@ Imports System.IO
 Imports System.IO.Compression
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Elfie.Model
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServices.Storage
-Imports Microsoft.VisualStudio.RemoteControl
 Imports Moq
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
@@ -258,7 +255,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 ' Simulate Elfie throwing when trying to make a database from the contents of that response
-                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                factoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Throws(New NotImplementedException())
 
                 ' Because the parsing failed we will expect to call into the 'UpdateFailedDelay' to
@@ -303,7 +300,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Successfully create a database from that response.
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                factoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Expect that we'll write the database to disk successfully.
@@ -352,13 +349,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Create a database from the client response.
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                factoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
 
                 ' Write the temp file out to disk.
-                ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsAny(Of String), It.IsAny(Of Byte())))
+                ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsAny(Of String), It.IsAny(Of ArraySegment(Of Byte))))
 
                 ' Simulate a failure doing the first 'replace' of the database file.
                 ioMock.Setup(Sub(s) s.Replace(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Boolean))).
@@ -402,10 +399,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
                 ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Function(s) s.OpenRead(It.IsAny(Of String))).Returns(New MemoryStream())
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch that says things are up to date.
@@ -446,11 +444,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
                 ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Function(s) s.OpenRead(It.IsAny(Of String))).Returns(New MemoryStream())
                 ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch that says things are too old.
@@ -500,11 +499,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
                 ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Function(s) s.OpenRead(It.IsAny(Of String))).Returns(New MemoryStream())
                 ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch with contents.
@@ -560,11 +560,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
                 ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Function(s) s.OpenRead(It.IsAny(Of String))).Returns(New MemoryStream())
                 ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch with contents.
@@ -606,10 +607,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
         Private Shared Sub SetupWritesDatabaseSuccessfullyToDisk(ioMock As Mock(Of IIOService))
             ' Expect that we'll write out the temp file.
-            ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of Byte())))
+            ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of ArraySegment(Of Byte))))
 
             ' Expect that we'll replace the existing file with the temp file.
-            ioMock.Setup(Sub(s) s.Replace(It.IsRegex(".*tmp"), It.IsRegex(".*txt"), Nothing, It.IsAny(Of Boolean)))
+            ioMock.Setup(Sub(s) s.Replace(It.IsRegex(".*tmp"), It.IsRegex(".*(txt|bin)"), Nothing, It.IsAny(Of Boolean)))
         End Sub
 
         Private Shared Function CreatefileDownloaderFactoryMock(

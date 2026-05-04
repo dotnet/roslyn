@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// Represents a collection of <see cref="CodeFix"/>es supplied by a given fix provider
 /// (such as <see cref="CodeFixProvider"/> or <see cref="IConfigurationFixProvider"/>).
 /// </summary>
-internal class CodeFixCollection(
+internal sealed class CodeFixCollection(
     object provider,
     TextSpan span,
     ImmutableArray<CodeFix> fixes,
-    FixAllState fixAllState,
+    FixAllState? fixAllState,
     ImmutableArray<FixAllScope> supportedScopes,
-    Diagnostic firstDiagnostic)
+    ImmutableArray<Diagnostic> diagnostics)
 {
     public object Provider { get; } = provider;
     public TextSpan TextSpan { get; } = span;
@@ -28,7 +27,17 @@ internal class CodeFixCollection(
     /// <summary>
     /// Optional fix all context, which is non-null if the given <see cref="Provider"/> supports fix all occurrences code fix.
     /// </summary>
-    public FixAllState FixAllState { get; } = fixAllState;
+    public FixAllState? FixAllState { get; } = fixAllState;
     public ImmutableArray<FixAllScope> SupportedScopes { get; } = supportedScopes.NullToEmpty();
-    public Diagnostic FirstDiagnostic { get; } = firstDiagnostic;
+
+    /// <summary>
+    /// Diagnostics this collection of fixes can fix. This is guaranteed to be non-empty.
+    /// </summary>
+    public ImmutableArray<Diagnostic> Diagnostics { get; } = ThrowIfDefaultOrEmpty(diagnostics);
+
+    private static ImmutableArray<Diagnostic> ThrowIfDefaultOrEmpty(ImmutableArray<Diagnostic> diagnostics)
+    {
+        Contract.ThrowIfTrue(diagnostics.IsDefaultOrEmpty);
+        return diagnostics;
+    }
 }

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         ICollection<string> IAssemblySymbol.NamespaceNames => UnderlyingAssemblySymbol.NamespaceNames;
 
-        bool IAssemblySymbol.MightContainExtensionMethods => UnderlyingAssemblySymbol.MightContainExtensionMethods;
+        bool IAssemblySymbol.MightContainExtensionMethods => UnderlyingAssemblySymbol.MightContainExtensions;
 
         AssemblyMetadata IAssemblySymbol.GetMetadata() => UnderlyingAssemblySymbol.GetMetadata();
 
@@ -81,9 +81,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
                 AssemblyIdentity identity = UnderlyingAssemblySymbol.Identity;
 
+                // Avoid using the identity to obtain the public key if possible to avoid the allocations associated
+                // with identity creation
+                ImmutableArray<byte> publicKey = (assemblyWantingAccess is AssemblySymbol assemblyWantingAccessAssemblySymbol)
+                    ? assemblyWantingAccessAssemblySymbol.UnderlyingAssemblySymbol.PublicKey.NullToEmpty()
+                    : assemblyWantingAccess.Identity.PublicKey;
+
                 foreach (var key in myKeys)
                 {
-                    IVTConclusion conclusion = identity.PerformIVTCheck(assemblyWantingAccess.Identity.PublicKey, key);
+                    IVTConclusion conclusion = identity.PerformIVTCheck(publicKey, key);
                     Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
                     if (conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot)
                     {

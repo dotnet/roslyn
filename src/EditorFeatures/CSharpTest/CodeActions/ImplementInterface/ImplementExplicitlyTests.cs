@@ -28,9 +28,8 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
         => FlattenActions(actions);
 
     [Fact]
-    public async Task TestSingleMember()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSingleMember()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { void Goo1(); void Goo2(); }
             interface IBar { void Bar(); }
@@ -57,12 +56,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 public void Bar() { }
             }
             """, index: SingleMember);
-    }
 
     [Fact]
-    public async Task TestSameInterface()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSameInterface()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { void Goo1(); void Goo2(); }
             interface IBar { void Bar(); }
@@ -89,12 +86,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 public void Bar() { }
             }
             """, index: SameInterface);
-    }
 
     [Fact]
-    public async Task TestAllInterfaces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAllInterfaces()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { void Goo1(); void Goo2(); }
             interface IBar { void Bar(); }
@@ -121,12 +116,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 void IBar.Bar() { }
             }
             """, index: AllInterfaces);
-    }
 
     [Fact]
-    public async Task TestProperty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestProperty()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { int Goo1 { get; } }
 
@@ -143,12 +136,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 int IGoo.Goo1 { get { } }
             }
             """, index: SingleMember);
-    }
 
     [Fact]
-    public async Task TestEvent()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEvent()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { event Action E; }
 
@@ -165,12 +156,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 event Action IGoo.E { add { } remove { } }
             }
             """, index: SingleMember);
-    }
 
     [Fact]
-    public async Task TestNotOnExplicitMember()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnExplicitMember()
+        => TestMissingAsync(
             """
             interface IGoo { void Goo1(); }
 
@@ -179,12 +168,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 void IGoo.[||]Goo1() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnUnboundImplicitImpl()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnUnboundImplicitImpl()
+        => TestMissingAsync(
             """
             interface IGoo { void Goo1(); }
 
@@ -193,12 +180,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 public void [||]Goo1() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUpdateReferences_InsideDeclarations_Explicit()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateReferences_InsideDeclarations_Explicit()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
@@ -221,12 +206,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 event Action IGoo.Ev { add { ((IGoo)this).Ev += value; } remove { ((IGoo)this).Ev -= value; } }
             }
             """, index: SameInterface);
-    }
 
     [Fact]
-    public async Task TestUpdateReferences_InsideDeclarations_Implicit()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateReferences_InsideDeclarations_Implicit()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
@@ -249,12 +232,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 event Action IGoo.Ev { add { ((IGoo)this).Ev += value; } remove { ((IGoo)this).Ev -= value; } }
             }
             """, index: SameInterface);
-    }
 
     [Fact]
-    public async Task TestUpdateReferences_InternalImplicit()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateReferences_InternalImplicit()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
@@ -307,12 +288,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """, index: SameInterface);
-    }
 
     [Fact]
-    public async Task TestUpdateReferences_InternalExplicit()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateReferences_InternalExplicit()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
@@ -365,12 +344,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """, index: SameInterface);
-    }
 
     [Fact]
-    public async Task TestUpdateReferences_External()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateReferences_External()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
@@ -439,12 +416,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """, index: SameInterface);
-    }
 
     [Fact]
-    public async Task TestUpdateReferences_CrossLanguage()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateReferences_CrossLanguage()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="A1">
@@ -519,12 +494,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 </Project>
             </Workspace>
             """, index: SameInterface);
-    }
 
     [Fact]
-    public async Task TestMemberWhichImplementsMultipleMembers()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMemberWhichImplementsMultipleMembers()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { int M(int i); }
             interface IBar { int M(int i); }
@@ -553,12 +526,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """, index: SingleMember);
-    }
 
     [Fact]
-    public async Task TestMemberWhichImplementsMultipleMembers2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMemberWhichImplementsMultipleMembers2()
+        => TestInRegularAndScriptAsync(
             """
             interface IGoo { int M(int i); }
             interface IBar { int M(int i); }
@@ -587,12 +558,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """, index: SingleMember);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
-    public async Task TestWithContraints()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithContraints()
+        => TestInRegularAndScriptAsync(
             """
             interface IRepro
             {
@@ -619,12 +588,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
-    public async Task TestWithDefaultParameterValues()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithDefaultParameterValues()
+        => TestInRegularAndScriptAsync(
             """
             interface IRepro
             {
@@ -651,12 +618,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
-    public async Task TestWithMismatchedDefaultParameterValues()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithMismatchedDefaultParameterValues()
+        => TestInRegularAndScriptAsync(
             """
             interface IRepro
             {
@@ -683,12 +648,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
-    public async Task TestWithMismatchedDefault1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithMismatchedDefault1()
+        => TestInRegularAndScriptAsync(
             """
             interface IRepro
             {
@@ -715,12 +678,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
-    public async Task TestWithMismatchedDefault2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithMismatchedDefault2()
+        => TestInRegularAndScriptAsync(
             """
             interface IRepro
             {
@@ -747,12 +708,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPreserveReadOnly()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPreserveReadOnly()
+        => TestInRegularAndScriptAsync(
             """
             interface IRepro
             {
@@ -779,12 +738,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
-    public async Task TestFieldEvent()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFieldEvent()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -807,12 +764,10 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 void IGoo.M() { }
             }
             """, index: SameInterface);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
-    public async Task TestPropertyEvent()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPropertyEvent()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -833,5 +788,4 @@ public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
                 event Action IGoo.E { add { } remove { } };
             }
             """, index: SingleMember);
-    }
 }

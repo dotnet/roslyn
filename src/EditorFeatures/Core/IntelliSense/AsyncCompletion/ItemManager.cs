@@ -50,7 +50,7 @@ internal sealed partial class ItemManager : IAsyncCompletionItemManager2
         throw new NotImplementedException();
     }
 
-    public Task<CompletionList<VSCompletionItem>> SortCompletionItemListAsync(
+    public async Task<CompletionList<VSCompletionItem>> SortCompletionItemListAsync(
         IAsyncCompletionSession session,
         AsyncCompletionSessionInitialDataSnapshot data,
         CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ internal sealed partial class ItemManager : IAsyncCompletionItemManager2
         }
 
         AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
-        return Task.FromResult(itemList);
+        return itemList;
     }
 
     private static void SortCompletionItems(List<VSCompletionItem> list, AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
@@ -190,7 +190,7 @@ internal sealed partial class ItemManager : IAsyncCompletionItemManager2
             var yRoslyn = y is not null ? CompletionItemData.GetOrAddDummyRoslynItem(y) : null;
 
             // Sort by default comparer of Roslyn CompletionItem
-            return Comparer<RoslynCompletionItem>.Default.Compare(xRoslyn, yRoslyn);
+            return Comparer<RoslynCompletionItem?>.Default.Compare(xRoslyn, yRoslyn);
         }
     }
 }

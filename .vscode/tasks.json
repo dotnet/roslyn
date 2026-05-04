@@ -26,22 +26,6 @@
         "group": "build"
     },
     {
-        "label": "build with analyzers",
-        "command": "./build.sh",
-        "type": "shell",
-        "args": [
-          "--runAnalyzers"
-        ],
-        "windows": {
-          "command": "${workspaceFolder}/build.cmd",
-          "args": [
-            "-runAnalyzers"
-          ],
-        },
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
-    {
         "label": "build csc",
         "command": "dotnet",
         "type": "shell",
@@ -70,7 +54,7 @@
         "group": "build"
     },
     {
-        "label": "build Roslyn.sln",
+        "label": "build Roslyn.slnx",
         "command": "dotnet",
         "type": "shell",
         "args": [
@@ -78,7 +62,21 @@
           "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
           "-tl:off",
-          "Roslyn.sln"
+          "Roslyn.slnx"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build Roslyn.slnx with analyzers",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=true",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Roslyn.slnx"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
@@ -95,6 +93,19 @@
           "${file}",
           "-msbuildEngine",
           "dotnet"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build toolset",
+        "type": "shell",
+        "command": "dotnet",
+        "args": [
+          "build",
+          "-p:InnerTargets=CopyFilesForDebugging",
+          "-p:GenerateFullPaths=true",
+          "${workspaceFolder}/src/NuGet/Microsoft.Net.Compilers.Toolset/AnyCpu/Microsoft.Net.Compilers.Toolset.Package.csproj"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
@@ -121,8 +132,9 @@
         "command": "dotnet",
         "type": "shell",
         "args": [
-          "pwsh",
-          "${workspaceFolder}/eng/generate-compiler-code.ps1"
+          "run",
+          "--file",
+          "${workspaceFolder}/eng/generate-compiler-code.cs"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
@@ -159,7 +171,7 @@
       "type": "process",
       "options": {
         "env": {
-          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net8.0/Microsoft.CodeAnalysis.LanguageServer.dll"
+          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net10.0/Microsoft.CodeAnalysis.LanguageServer.dll"
         }
       },
       "dependsOn": [ "build language server" ]

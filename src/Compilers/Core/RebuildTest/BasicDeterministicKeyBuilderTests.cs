@@ -210,19 +210,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""checksumAlgorithm"": ""Sha256"",
       ""encodingName"": ""Unicode (UTF-8)""
     },
-    ""parseOptions"": {
-      ""kind"": ""Regular"",
-      ""specifiedKind"": ""Regular"",
-      ""documentationMode"": ""None"",
-      ""language"": ""Visual Basic"",
-      ""features"": {},
-      ""languageVersion"": ""VisualBasic15"",
-      ""specifiedLanguageVersion"": ""VisualBasic15"",
-      ""preprocessorSymbols"": {
-        ""TARGET"": ""exe"",
-        ""VBC_VER"": ""16.9""
-      }
-    }
+    ""parseOptionsIndex"": 0
   }
 ]
 ", compiler);
@@ -274,6 +262,20 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""globalImports"": [],
       ""parseOptions"": null
     },
+    ""parseOptions"": [
+      {
+        ""kind"": ""Regular"",
+        ""specifiedKind"": ""Regular"",
+        ""documentationMode"": ""Parse"",
+        ""language"": ""Visual Basic"",
+        ""features"": {},
+        ""languageVersion"": ""VisualBasic15"",
+        ""specifiedLanguageVersion"": ""VisualBasic15"",
+        ""preprocessorSymbols"": {
+          ""_MYTYPE"": ""Empty""
+        }
+      }
+    ],
     ""syntaxTrees"": [
       {
         ""fileName"": """",
@@ -282,18 +284,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""checksumAlgorithm"": ""Sha1"",
           ""encodingName"": null
         },
-        ""parseOptions"": {
-          ""kind"": ""Regular"",
-          ""specifiedKind"": ""Regular"",
-          ""documentationMode"": ""Parse"",
-          ""language"": ""Visual Basic"",
-          ""features"": {},
-          ""languageVersion"": ""VisualBasic15"",
-          ""specifiedLanguageVersion"": ""VisualBasic15"",
-          ""preprocessorSymbols"": {
-            ""_MYTYPE"": ""Empty""
-          }
-        }
+        ""parseOptionsIndex"": 0
       }
     ]
   }
@@ -306,6 +297,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void FeatureFlag()
         {
+            Assert.Equal("debug-determinism", CodeAnalysis.Feature.DebugDeterminism);
             var compiler = TestableCompiler.CreateBasicNetCoreApp("test.vb", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", @"-define:_MYTYPE=""Empty""", "-debug:portable");
             var sourceFile = compiler.AddSourceFile("test.vb", @"' this is a test file");
             compiler.AddOutputFile("test.dll");
@@ -356,15 +348,33 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         ""features"": {{
           ""debug-determinism"": ""true""
         }},
-        ""languageVersion"": ""VisualBasic16_9"",
+        ""languageVersion"": ""VisualBasic17_13"",
         ""specifiedLanguageVersion"": ""Default"",
         ""preprocessorSymbols"": {{
           ""TARGET"": ""library"",
-          ""VBC_VER"": ""16.9"",
+          ""VBC_VER"": ""17.13"",
           ""_MYTYPE"": ""Empty""
         }}
       }}
     }},
+    ""parseOptions"": [
+      {{
+        ""kind"": ""Regular"",
+        ""specifiedKind"": ""Regular"",
+        ""documentationMode"": ""None"",
+        ""language"": ""Visual Basic"",
+        ""features"": {{
+          ""debug-determinism"": ""true""
+        }},
+        ""languageVersion"": ""VisualBasic17_13"",
+        ""specifiedLanguageVersion"": ""Default"",
+        ""preprocessorSymbols"": {{
+          ""TARGET"": ""library"",
+          ""VBC_VER"": ""17.13"",
+          ""_MYTYPE"": ""Empty""
+        }}
+      }}
+    ],
     ""syntaxTrees"": [
       {{
         ""fileName"": ""{Roslyn.Utilities.JsonWriter.EscapeString(sourceFile.FilePath)}"",
@@ -373,22 +383,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""checksumAlgorithm"": ""Sha256"",
           ""encodingName"": ""Unicode (UTF-8)""
         }},
-        ""parseOptions"": {{
-          ""kind"": ""Regular"",
-          ""specifiedKind"": ""Regular"",
-          ""documentationMode"": ""None"",
-          ""language"": ""Visual Basic"",
-          ""features"": {{
-            ""debug-determinism"": ""true""
-          }},
-          ""languageVersion"": ""VisualBasic16_9"",
-          ""specifiedLanguageVersion"": ""Default"",
-          ""preprocessorSymbols"": {{
-            ""TARGET"": ""library"",
-            ""VBC_VER"": ""16.9"",
-            ""_MYTYPE"": ""Empty""
-          }}
-        }}
+        ""parseOptionsIndex"": 0
       }}
     ]
   }},
@@ -413,11 +408,43 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""pdbChecksumAlgorithm"": ""SHA256"",
     ""runtimeMetadataVersion"": null,
     ""defaultSourceFileEncoding"": null,
-    ""fallbackSourceFileEncoding"": null
-  }}
+    ""fallbackSourceFileEncoding"": null,
+    ""sourceLink"": null
+  }},
+  ""resources"": []
 }}
 ";
             AssertJson(expected, json, "toolsVersions", "references", "extensions");
+        }
+
+        [Fact]
+        public void ParseOptionsDeduplication()
+        {
+            // Trees with different ParseOptions produce multiple entries in the parseOptions array;
+            // trees with the same options share an index.
+            var options1 = VisualBasicParseOptions.Default.WithPreprocessorSymbols(new KeyValuePair<string, object>("DEBUG", true));
+            var options2 = VisualBasicParseOptions.Default.WithPreprocessorSymbols(new KeyValuePair<string, object>("RELEASE", true));
+
+            var tree1 = VisualBasicSyntaxTree.ParseText("Class A\nEnd Class", path: "a.vb", options: options1);
+            var tree2 = VisualBasicSyntaxTree.ParseText("Class B\nEnd Class", path: "b.vb", options: options2);
+            var tree3 = VisualBasicSyntaxTree.ParseText("Class C\nEnd Class", path: "c.vb", options: options1);
+
+            var compilation = VisualBasicCompilation.Create(
+                "test",
+                new[] { tree1, tree2, tree3 },
+                NetCoreApp.References.ToArray(),
+                options: BasicOptions);
+            var key = compilation.GetDeterministicKey(options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            // Two distinct ParseOptions → two entries in the parseOptions array.
+            var parseOptionsArray = (Newtonsoft.Json.Linq.JArray)GetJsonProperty(key, "compilation.parseOptions").Value;
+            Assert.Equal(2, parseOptionsArray.Count);
+
+            // tree1 and tree3 share options1 (index 0); tree2 has options2 (index 1).
+            var syntaxTreesArray = (Newtonsoft.Json.Linq.JArray)GetJsonProperty(key, "compilation.syntaxTrees").Value;
+            Assert.Equal(0, syntaxTreesArray[0].Value<int>("parseOptionsIndex"));
+            Assert.Equal(1, syntaxTreesArray[1].Value<int>("parseOptionsIndex"));
+            Assert.Equal(0, syntaxTreesArray[2].Value<int>("parseOptionsIndex"));
         }
     }
 }

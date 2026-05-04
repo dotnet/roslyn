@@ -52,8 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var typeOrNamespace in GetUsings(basesBeingResolved: null))
             {
-                var fullName = typeOrNamespace.NamespaceOrType + "." + name;
-                var result = GetForwardedToAssembly(fullName, diagnostics, location);
+                var result = GetForwardedToAssembly(
+                    MetadataTypeName.FromNamespaceAndTypeName(typeOrNamespace.NamespaceOrType.ToString(), name),
+                    diagnostics,
+                    location);
                 if (result != null)
                 {
                     qualifierOpt = typeOrNamespace.NamespaceOrType;
@@ -64,66 +66,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
         }
 
-        internal override bool SupportsExtensionMethods
+        internal override bool SupportsExtensions
         {
             get { return true; }
         }
 
-        internal override void GetCandidateExtensionMethods(
-            ArrayBuilder<MethodSymbol> methods,
-            string name,
-            int arity,
-            LookupOptions options,
-            Binder originalBinder)
+        internal override void GetAllExtensionCandidatesInSingleBinder(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
-            Debug.Assert(methods.Count == 0);
+            Debug.Assert(members.Count == 0);
 
             bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
 
-            // We need to avoid collecting multiple candidates for an extension method imported both through a namespace and a static class
+            // We need to avoid collecting multiple candidates for an extension declaration imported both through a namespace and a static class
             // We will look for duplicates only if both of the following flags are set to true
-            bool seenNamespaceWithExtensionMethods = false;
-            bool seenStaticClassWithExtensionMethods = false;
+            bool seenNamespaceWithExtensions = false;
+            bool seenStaticClassWithExtensions = false;
 
             foreach (var nsOrType in this.GetUsings(basesBeingResolved: null))
             {
-                switch (nsOrType.NamespaceOrType.Kind)
+                if (nsOrType.NamespaceOrType is NamespaceSymbol ns)
                 {
-                    case SymbolKind.Namespace:
-                        {
-                            var count = methods.Count;
-                            ((NamespaceSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, name, arity, options);
-
-                            // If we found any extension methods, then consider this using as used.
-                            if (methods.Count != count)
-                            {
-                                MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
-                                seenNamespaceWithExtensionMethods = true;
-                            }
-
-                            break;
-                        }
-
-                    case SymbolKind.NamedType:
-                        {
-                            var count = methods.Count;
-                            ((NamedTypeSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, name, arity, options);
-
-                            // If we found any extension methods, then consider this using as used.
-                            if (methods.Count != count)
-                            {
-                                MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
-                                seenStaticClassWithExtensionMethods = true;
-                            }
-
-                            break;
-                        }
+                    var count = members.Count;
+                    ns.GetAllExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
+                    // If we found any extension declarations, then consider this using as used.
+                    if (members.Count != count)
+                    {
+                        MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
+                        seenNamespaceWithExtensions = true;
+                    }
+                }
+                else if (nsOrType.NamespaceOrType is NamedTypeSymbol namedType)
+                {
+                    var count = members.Count;
+                    namedType.GetAllExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
+                    // If we found any extension declarations, then consider this using as used.
+                    if (members.Count != count)
+                    {
+                        MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
+                        seenStaticClassWithExtensions = true;
+                    }
                 }
             }
 
-            if (seenNamespaceWithExtensionMethods && seenStaticClassWithExtensionMethods)
+            if (seenNamespaceWithExtensions && seenStaticClassWithExtensions)
             {
-                methods.RemoveDuplicates();
+                members.RemoveDuplicates();
             }
         }
 
@@ -160,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsValidLookupCandidateInUsings(Symbol symbol)
         {
+            Debug.Assert(!symbol.IsExtensionBlockMember());
             switch (symbol.Kind)
             {
                 // lookup via "using namespace" ignores namespaces inside

@@ -9,13 +9,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ElseKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ElseKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ElseKeyword, isValidInPreprocessorContext: true)
 {
-    public ElseKeywordRecommender()
-        : base(SyntaxKind.ElseKeyword, isValidInPreprocessorContext: true)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         if (context.IsPreProcessorKeywordContext)

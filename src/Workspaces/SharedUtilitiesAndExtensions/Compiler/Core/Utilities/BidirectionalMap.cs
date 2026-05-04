@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Roslyn.Utilities;
 
-internal class BidirectionalMap<TKey, TValue> : IBidirectionalMap<TKey, TValue>
+internal sealed class BidirectionalMap<TKey, TValue> : IBidirectionalMap<TKey, TValue>
     where TKey : notnull
     where TValue : notnull
 {
@@ -22,13 +22,13 @@ internal class BidirectionalMap<TKey, TValue> : IBidirectionalMap<TKey, TValue>
 
     public BidirectionalMap(IEnumerable<KeyValuePair<TKey, TValue>> pairs, IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TValue>? valueComparer = null)
         : this(forwardMap: ImmutableDictionary.CreateRange(keyComparer, pairs),
-               backwardMap: ImmutableDictionary.CreateRange(valueComparer, pairs.Select(static p => KeyValuePairUtil.Create(p.Value, p.Key))))
+               backwardMap: ImmutableDictionary.CreateRange(valueComparer, pairs.Select(static p => KeyValuePair.Create(p.Value, p.Key))))
     {
     }
 
     public BidirectionalMap(IEnumerable<(TKey key, TValue value)> pairs, IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TValue>? valueComparer = null)
-        : this(forwardMap: ImmutableDictionary.CreateRange(keyComparer, pairs.Select(static p => KeyValuePairUtil.Create(p.key, p.value))),
-               backwardMap: ImmutableDictionary.CreateRange(valueComparer, pairs.Select(static p => KeyValuePairUtil.Create(p.value, p.key))))
+        : this(forwardMap: ImmutableDictionary.CreateRange(keyComparer, pairs.Select(static p => KeyValuePair.Create(p.key, p.value))),
+               backwardMap: ImmutableDictionary.CreateRange(valueComparer, pairs.Select(static p => KeyValuePair.Create(p.value, p.key))))
     {
     }
 

@@ -67,23 +67,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool SupportsExtensionMethods
+        internal override bool SupportsExtensions
         {
             get { return true; }
         }
 
-        internal override void GetCandidateExtensionMethods(
-            ArrayBuilder<MethodSymbol> methods,
-            string name,
-            int arity,
-            LookupOptions options,
-            Binder originalBinder)
+#nullable enable
+        internal override void GetAllExtensionCandidatesInSingleBinder(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
-            if (_container.Kind == SymbolKind.Namespace)
+            if (_container is NamespaceSymbol ns)
             {
-                ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
+                ns.GetAllExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
             }
         }
+#nullable disable
 
         internal override TypeWithAnnotations GetIteratorElementType()
         {

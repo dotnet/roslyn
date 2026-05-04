@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -24,19 +23,16 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
     public async Task Test()
     {
         var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
-        var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
-        var source3 = "class C { void M<T>() { System.Console.WriteLine(2); } }";
-        var source4 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
-
         var dir = Temp.CreateDirectory();
         var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1, Encoding.UTF8);
-        var moduleId = EmitLibrary(source1, sourceFileA.Path, assemblyName: "Proj");
 
         using var workspace = CreateWorkspace(out var solution, out var encService);
 
         var projectP = solution.
             AddTestProject("P").
             WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
+
+        var moduleId = EmitLibrary(projectP.Id, source1, sourceFileA.Path, assemblyName: "Proj");
 
         solution = projectP.Solution;
 
@@ -54,19 +50,16 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
         var sessionId = hotReload.GetTestAccessor().SessionId;
         var session = encService.GetTestAccessor().GetDebuggingSession(sessionId);
         var matchingDocuments = session.LastCommittedSolution.Test_GetDocumentStates();
-        AssertEx.Equal(
-        [
-            "(A, MatchesBuildOutput)"
-        ], matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+        Assert.Empty(matchingDocuments);
 
         // Valid change
-        solution = solution.WithDocumentText(documentIdA, CreateText(source2));
+        solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { System.Console.WriteLine(2); } }"));
 
         var result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
         Assert.Empty(result.diagnostics);
         Assert.Equal(1, result.updates.Length);
 
-        solution = solution.WithDocumentText(documentIdA, CreateText(source3));
+        solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M<T>() { System.Console.WriteLine(2); } }"));
 
         // Rude edit
         result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
@@ -77,7 +70,7 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
         Assert.Empty(result.updates);
 
         // Syntax error is reported in the diagnostics:
-        solution = solution.WithDocumentText(documentIdA, CreateText(source4));
+        solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }"));
 
         result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
         Assert.Equal(1, result.diagnostics.Length);

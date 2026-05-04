@@ -2,8 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
@@ -302,7 +300,7 @@ class D
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
                 Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
-                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal(2, sourceReferences.Length)
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
                 AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
@@ -344,7 +342,7 @@ class D
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
                 Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
-                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal(2, sourceReferences.Length)
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
                 AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
@@ -386,7 +384,7 @@ class D
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
                 Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
-                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal(2, sourceReferences.Length)
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
                 AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
@@ -428,7 +426,7 @@ class D
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
                 Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
-                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal(2, sourceReferences.Length)
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
                 AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})

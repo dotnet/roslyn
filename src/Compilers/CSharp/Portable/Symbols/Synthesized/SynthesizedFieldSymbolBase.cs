@@ -24,16 +24,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedFieldSymbolBase(
             NamedTypeSymbol containingType,
             string name,
-            bool isPublic,
+            DeclarationModifiers accessibility,
             bool isReadOnly,
             bool isStatic)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!string.IsNullOrEmpty(name));
+            Debug.Assert((accessibility & DeclarationModifiers.AccessibilityMask) != 0);
+            Debug.Assert((accessibility & ~DeclarationModifiers.AccessibilityMask) == 0);
 
             _containingType = containingType;
             _name = name;
-            _modifiers = (isPublic ? DeclarationModifiers.Public : DeclarationModifiers.Private) |
+            _modifiers = (accessibility & DeclarationModifiers.AccessibilityMask) |
                 (isReadOnly ? DeclarationModifiers.ReadOnly : DeclarationModifiers.None) |
                 (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
         }
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

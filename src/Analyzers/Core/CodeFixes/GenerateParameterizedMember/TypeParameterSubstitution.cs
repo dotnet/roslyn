@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
-internal partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
+internal abstract partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
     private static async ValueTask<ITypeSymbol> ReplaceTypeParametersBasedOnTypeConstraintsAsync(
         Project project,
@@ -82,7 +80,7 @@ internal partial class AbstractGenerateParameterizedMemberService<TService, TSim
                 Substitutions.Add(symbol, commonDerivedType);
         }
 
-        private async ValueTask<ITypeSymbol> DetermineCommonDerivedTypeAsync(ITypeParameterSymbol symbol)
+        private async ValueTask<ITypeSymbol?> DetermineCommonDerivedTypeAsync(ITypeParameterSymbol symbol)
         {
             if (!symbol.ConstraintTypes.All(t => t is INamedTypeSymbol))
                 return null;

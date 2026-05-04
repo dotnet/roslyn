@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             public InteractiveHostPlatformInfo Deserialize()
                 => new InteractiveHostPlatformInfo(
-                    PlatformAssemblyPaths.ToImmutableArray(),
+                    [.. PlatformAssemblyPaths],
                     HasGlobalAssemblyCache);
         }
 
-        private static readonly string s_hostDirectory = PathUtilities.GetDirectoryName(typeof(InteractiveHostPlatformInfo).Assembly.Location)!;
+        private static readonly string s_hostDirectory = PathUtilities.GetDirectoryName(typeof(InteractiveHostPlatformInfo).Assembly.Location);
 
         public readonly ImmutableArray<string> PlatformAssemblyPaths;
         public readonly bool HasGlobalAssemblyCache;
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             => new Data()
             {
                 HasGlobalAssemblyCache = HasGlobalAssemblyCache,
-                PlatformAssemblyPaths = PlatformAssemblyPaths.ToArray(),
+                PlatformAssemblyPaths = [.. PlatformAssemblyPaths],
             };
 
         public static InteractiveHostPlatformInfo GetCurrentPlatformInfo()
             => new InteractiveHostPlatformInfo(
-                RuntimeMetadataReferenceResolver.GetTrustedPlatformAssemblyPaths().Where(IsNotHostAssembly).ToImmutableArray(),
+                [.. RuntimeMetadataReferenceResolver.GetTrustedPlatformAssemblyPaths().Where(IsNotHostAssembly)],
                 GacFileResolver.IsAvailable);
 
         private static bool IsNotHostAssembly(string path)

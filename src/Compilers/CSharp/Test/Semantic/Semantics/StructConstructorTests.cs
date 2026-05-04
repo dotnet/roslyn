@@ -2039,7 +2039,7 @@ class Program
   // sequence point: }
   IL_000e:  ret
 }
-", sequencePoints: "S0..ctor", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -2783,7 +2783,7 @@ S3 { X = , Y = 3 }
   IL_0009:  box        ""int""
   IL_000e:  stfld      ""object S1.X""
   IL_0013:  ret
-}", sequencePoints: "S1..ctor", source: source);
+}", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
 
             verifier.VerifyIL("S2..ctor", @"
 {
@@ -2799,7 +2799,7 @@ S3 { X = , Y = 3 }
   IL_0009:  box        ""int""
   IL_000e:  stfld      ""object S2.<X>k__BackingField""
   IL_0013:  ret
-}", sequencePoints: "S2..ctor", source: source);
+}", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
 
             verifier.VerifyIL("S3..ctor", @"
 {
@@ -2815,7 +2815,7 @@ S3 { X = , Y = 3 }
   IL_0009:  box        ""int""
   IL_000e:  stfld      ""object S3.<Y>k__BackingField""
   IL_0013:  ret
-}", sequencePoints: "S3..ctor", source: source);
+}", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -3721,15 +3721,9 @@ ref struct Example
                 // (5,38): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Field = stackalloc int[512];
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 38),
-                // (5,38): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //     public ReadOnlySpan<int> Field = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 38),
                 // (6,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(6, 50),
-                // (6,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(6, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(6, 50));
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
@@ -3808,10 +3802,7 @@ struct Example
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50),
-                // (5,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
@@ -3838,10 +3829,7 @@ record struct Example()
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50),
-                // (5,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
@@ -3868,10 +3856,7 @@ class Example
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50),
-                // (5,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
@@ -4483,8 +4468,7 @@ public struct S
   IL_0014:  ret
 }
 ",
-                sequencePoints: "S..ctor",
-                source: source);
+                sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -4523,8 +4507,7 @@ public struct S
   IL_0013:  ret
 }
 ",
-                sequencePoints: "S..ctor",
-                source: source);
+                sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]

@@ -16,9 +16,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 
-internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
+internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
 {
-    private partial class GenerateEqualsAndGetHashCodeAction(
+    private sealed partial class GenerateEqualsAndGetHashCodeAction(
         Document document,
         SyntaxNode typeDeclaration,
         INamedTypeSymbol containingType,
@@ -212,7 +212,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
             => generateEquals
                 ? generateGetHashCode
                     ? FeaturesResources.Generate_Equals_and_GetHashCode
-                    : FeaturesResources.Generate_Equals_object
+                    : FeaturesResources.Generate_Equals
                 : FeaturesResources.Generate_GetHashCode;
     }
 }

@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal partial class AbstractMetadataAsSourceService
+internal abstract partial class AbstractMetadataAsSourceService
 {
-    private class WrappedEventSymbol(IEventSymbol eventSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(eventSymbol, canImplementImplicitly, docCommentFormattingService), IEventSymbol
+    private sealed class WrappedEventSymbol(IEventSymbol eventSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(eventSymbol, canImplementImplicitly, docCommentFormattingService), IEventSymbol
     {
         private readonly IEventSymbol _symbol = eventSymbol;
 
@@ -32,5 +32,8 @@ internal partial class AbstractMetadataAsSourceService
         public IMethodSymbol? RemoveMethod => _symbol.RemoveMethod;
         public ITypeSymbol Type => _symbol.Type;
         public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
+        public IEventSymbol? PartialDefinitionPart => _symbol.PartialDefinitionPart;
+        public IEventSymbol? PartialImplementationPart => _symbol.PartialImplementationPart;
+        public bool IsPartialDefinition => _symbol.IsPartialDefinition;
     }
 }

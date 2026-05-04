@@ -25,7 +25,7 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IReplaceMethodWithPropertyService), LanguageNames.CSharp), Shared]
-internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService<MethodDeclarationSyntax>, IReplaceMethodWithPropertyService
+internal sealed class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService<MethodDeclarationSyntax>, IReplaceMethodWithPropertyService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -287,7 +287,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
         return (TNode)rewriter.Visit(node);
     }
 
-    private class Rewriter(SemanticModel semanticModel, IParameterSymbol parameter) : CSharpSyntaxRewriter
+    private sealed class Rewriter(SemanticModel semanticModel, IParameterSymbol parameter) : CSharpSyntaxRewriter
     {
         private readonly SemanticModel _semanticModel = semanticModel;
         private readonly IParameterSymbol _parameter = parameter;

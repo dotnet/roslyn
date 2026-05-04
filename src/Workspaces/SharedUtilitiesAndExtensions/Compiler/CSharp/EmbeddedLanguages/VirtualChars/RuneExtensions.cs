@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
@@ -15,12 +13,15 @@ internal static class Extensions
         => TryGetEscapeCharacter(ch.Value, out escapedChar);
 
     public static bool TryGetEscapeCharacter(this Rune rune, out char escapedChar)
-        => TryGetEscapeCharacter(rune.Value, out escapedChar);
+    {
+        escapedChar = '\0';
+        return rune.Utf16SequenceLength == 1 && TryGetEscapeCharacter((char)rune.Value, out escapedChar);
+    }
 
-    private static bool TryGetEscapeCharacter(int value, out char escapedChar)
+    private static bool TryGetEscapeCharacter(char ch, out char escapedChar)
     {
         // Keep in sync with CSharpVirtualCharService.TryAddSingleCharacterEscape
-        switch (value)
+        switch (ch)
         {
             // Note: we don't care about single quote as that doesn't need to be escaped when
             // producing a normal C# string literal.

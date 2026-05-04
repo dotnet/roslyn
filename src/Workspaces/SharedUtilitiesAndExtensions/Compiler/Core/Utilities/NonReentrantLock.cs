@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 
 #if WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Log;

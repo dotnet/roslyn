@@ -18,11 +18,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(GetType(IdentifierNameSyntax))
 
-        Public Overrides Sub AddClassifications(syntax As SyntaxNode, textSpan As TextSpan, semanticModel As SemanticModel, options As ClassificationOptions, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Public Overrides Sub AddClassifications(
+                syntax As SyntaxNode,
+                textSpan As TextSpan,
+                semanticModel As SemanticModel,
+                options As ClassificationOptions,
+                result As SegmentedList(Of ClassifiedSpan),
+                cancellationToken As CancellationToken)
             Dim identifierName = DirectCast(syntax, IdentifierNameSyntax)
             Dim identifier = identifierName.Identifier
             If CaseInsensitiveComparison.Equals(identifier.ValueText, s_awaitText) Then
-                Dim symbolInfo = semanticModel.GetSymbolInfo(identifier)
+                Dim symbolInfo = semanticModel.GetSymbolInfo(identifier, cancellationToken)
                 If symbolInfo.GetAnySymbol() Is Nothing Then
                     result.Add(New ClassifiedSpan(ClassificationTypeNames.Keyword, identifier.Span))
                     Return

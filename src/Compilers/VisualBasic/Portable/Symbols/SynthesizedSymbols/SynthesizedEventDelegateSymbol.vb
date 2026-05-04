@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -274,6 +275,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsExtensibleInterfaceNoUseSiteDiagnostics As Boolean
             Get
                 Return False
@@ -419,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_VariancePreventsSynthesizedEvents2,
                                                                       CustomSymbolDisplayFormatter.QualifiedName(outermostVariantInterface),
                                                                       AssociatedSymbol.Name),
-                                                Locations(0)))
+                                                GetFirstLocation()))
             End If
 
             DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreIntegerAndDiagnostics(_reportedAllDeclarationErrors, 1, 0, diagnostics)

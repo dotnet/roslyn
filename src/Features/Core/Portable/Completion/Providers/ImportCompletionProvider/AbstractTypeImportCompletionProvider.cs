@@ -159,7 +159,7 @@ internal abstract class AbstractTypeImportCompletionProvider<AliasDeclarationTyp
         }
     }
 
-    private class TelemetryCounter
+    private sealed class TelemetryCounter
     {
         private readonly SharedStopwatch _elapsedTime;
 

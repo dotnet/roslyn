@@ -22,6 +22,6 @@ internal sealed class NoOpFixAllProvider : FixAllProvider
     {
     }
 
-    public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-        => Task.FromResult<CodeAction?>(null);
+    public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        => null;
 }

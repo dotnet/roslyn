@@ -5,9 +5,9 @@
 Imports System.IO
 Imports System.Text
 Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     ''' <summary>
@@ -1181,6 +1181,67 @@ Lambda(
   type: System.Func`2[Type03,System.Single]
 )
 ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub CharArrayToStringConversion()
+
+            Dim source = <compilation>
+                             <%= _exprTesting %>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Public Class TestClass
+    Public Sub Test()
+        Dim exprtree1 As Expression(Of Func(Of Char(), String)) = Function(c) c
+        Console.WriteLine(exprtree1.Dump)
+    End Sub
+End Class
+
+Module Form1
+    Sub Main()
+        Dim inst As New TestClass()
+        inst.Test()
+    End Sub
+End Module
+]]></file>
+                         </compilation>
+
+            Dim expected = <![CDATA[
+Lambda(
+  Parameter(
+    c
+    type: System.Char[]
+  )
+  body {
+    New(
+      Void .ctor(Char[])(
+        Parameter(
+          c
+          type: System.Char[]
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.Char[],System.String]
+)
+]]>
+
+            CompileAndVerify(source,
+                          references:={Net40.References.SystemCore},
+                          options:=TestOptions.ReleaseExe.WithOverflowChecks(True),
+                          expectedOutput:=expected
+            )
+
+            CompileAndVerify(source,
+                        references:={Net40.References.SystemCore},
+                        options:=TestOptions.ReleaseExe.WithOverflowChecks(False),
+                        expectedOutput:=expected
+            )
+
         End Sub
 
 #Region "Conversions: User Defined Types"
@@ -6588,19 +6649,19 @@ End Namespace
                 Dim emitResult = compilation.Emit(stream)
                 Assert.False(emitResult.Success)
                 CompilationUtils.AssertTheseDiagnostics(emitResult.Diagnostics, <expected>
-BC30456: 'Lambda' is not a member of 'Expression'.
+BC35000: Requested operation is not available because the runtime library function 'System.Linq.Expressions.Expression.Lambda' is not defined.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                             ~~~~~~~~~~~~~~~~~~~~
-BC30456: 'Parameter' is not a member of 'Expression'.
+BC35000: Requested operation is not available because the runtime library function 'System.Linq.Expressions.Expression.Parameter' is not defined.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                             ~~~~~~~~~~~~~~~~~~~~
-BC30456: 'Parameter' is not a member of 'Expression'.
+BC35000: Requested operation is not available because the runtime library function 'System.Linq.Expressions.Expression.Parameter' is not defined.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                             ~~~~~~~~~~~~~~~~~~~~
-BC30456: 'AddChecked' is not a member of 'Expression'.
+BC35000: Requested operation is not available because the runtime library function 'System.Linq.Expressions.Expression.AddChecked' is not defined.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                                            ~~~~~
-                                                                           </expected>)
+                                                                                </expected>)
             End Using
         End Sub
 
@@ -8038,16 +8099,19 @@ Namespace System.Collections.Generic
 End Namespace
 Namespace System.Linq.Expressions
     Public Class Expression
-        Public Shared Function [New](t As Type) As Expression
+        Public Shared Function [New](t As Type) As NewExpression
             Return Nothing
         End Function
-        Public Shared Function Lambda(Of T)(e As Expression, args As Expression()) As Expression(Of T)
+        Public Shared Function Lambda(Of T)(e As Expression, args As ParameterExpression()) As Expression(Of T)
             Return Nothing
         End Function
     End Class
     Public Class Expression(Of T)
     End Class
     Public Class ParameterExpression
+        Inherits Expression
+    End Class
+    Public Class NewExpression
         Inherits Expression
     End Class
 End Namespace
@@ -8103,16 +8167,19 @@ Namespace System.Collections.Generic
 End Namespace
 Namespace System.Linq.Expressions
     Public Class Expression
-        Public Shared Function Field(e As Expression, f As FieldInfo) As Expression
+        Public Shared Function Field(e As Expression, f As FieldInfo) As MemberExpression
             Return Nothing
         End Function
-        Public Shared Function Lambda(Of T)(e As Expression, args As Expression()) As Expression(Of T)
+        Public Shared Function Lambda(Of T)(e As Expression, args As ParameterExpression()) As Expression(Of T)
             Return Nothing
         End Function
     End Class
     Public Class Expression(Of T)
     End Class
     Public Class ParameterExpression
+        Inherits Expression
+    End Class
+    Public Class MemberExpression
         Inherits Expression
     End Class
 End Namespace
@@ -8186,25 +8253,37 @@ Namespace System.Collections.Generic
 End Namespace
 Namespace System.Linq.Expressions
     Public Class Expression
-        Public Shared Function [Call](e As Expression, m As MethodInfo, args As Expression()) As Expression
+        Public Shared Function [Call](e As Expression, m As MethodInfo, args As Expression()) As MethodCallExpression
             Return Nothing
         End Function
-        Public Shared Function Constant(o As Object, t As Type) As Expression
+        Public Shared Function Constant(o As Object, t As Type) As ConstantExpression
             Return Nothing
         End Function
-        Public Shared Function Convert(e As Expression, t As Type) As Expression
+        Public Shared Function Convert(e As Expression, t As Type) As UnaryExpression
             Return Nothing
         End Function
-        Public Shared Function Lambda(Of T)(e As Expression, args As Expression()) As Expression(Of T)
+        Public Shared Function Lambda(Of T)(e As Expression, args As ParameterExpression()) As Expression(Of T)
             Return Nothing
         End Function
-        Public Shared Function [New](c As ConstructorInfo, args As IEnumerable(Of Expression)) As Expression
+        Public Shared Function [New](c As ConstructorInfo, args As Expression()) As NewExpression
             Return Nothing
         End Function
     End Class
     Public Class Expression(Of T)
     End Class
     Public Class ParameterExpression
+        Inherits Expression
+    End Class
+    Public Class UnaryExpression
+        Inherits Expression
+    End Class
+    Public Class ConstantExpression
+        Inherits Expression
+    End Class
+    Public Class NewExpression
+        Inherits Expression
+    End Class
+    Public Class MethodCallExpression
         Inherits Expression
     End Class
 End Namespace
@@ -8727,6 +8806,81 @@ End Class
                  expectedOutput:=<![CDATA[
 42
 value(Module1)
+]]>).VerifyDiagnostics()
+
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79130")>
+        <Fact>
+        Public Sub ConstrainedTypeParameter()
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Class Program
+    Shared Sub Main()
+        Dim expressionCreatedDirectly = ExpressionBuilder(Of ClassWithIntProperty).OrderBy(Function(x) x.IntProperty)
+        Dim expressionViaGenericMethodConstrainedToClass = CreateExpressionConstrainedToClass(Of ClassWithIntProperty)()
+        Dim expressionViaGenericMethodConstrainedToInterface = CreateExpressionConstrainedToInterface(Of ClassWithIntProperty)()
+        Dim expressionViaGenericMethodConstrainedToInterfaceAndClass = CreateExpressionConstrainedToInterfaceAndClass(Of ClassWithIntProperty)()
+
+        AssertIsMemberExpressionWithParameterExpression(expressionCreatedDirectly)
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToClass)
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToInterface)
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToInterfaceAndClass)
+    End Sub
+
+    Shared Function CreateExpressionConstrainedToClass(Of T As ClassWithIntProperty)() As Expression(Of Func(Of T, Integer))
+        Return ExpressionBuilder(Of T).OrderBy(Function(x) x.IntProperty)
+    End Function
+
+    Shared Function CreateExpressionConstrainedToInterface(Of T As IWithIntProperty)() As Expression(Of Func(Of T, Integer))
+        Return ExpressionBuilder(Of T).OrderBy(Function(x) x.IntProperty)
+    End Function
+
+    Shared Function CreateExpressionConstrainedToInterfaceAndClass(Of T As {Class, IWithIntProperty})() As Expression(Of Func(Of T, Integer))
+        Return ExpressionBuilder(Of T).OrderBy(Function(x) x.IntProperty)
+    End Function
+
+    Shared Sub AssertIsMemberExpressionWithParameterExpression(Of T)(expression As Expression(Of Func(Of T, Integer)))
+        Dim memberExpression = CType(expression.Body, MemberExpression)
+        Dim nestedExpression = memberExpression.Expression
+        Console.WriteLine(nestedExpression.NodeType.ToString())
+        Console.WriteLine(memberExpression)
+    End Sub
+End Class
+
+NotInheritable Class ExpressionBuilder(Of TSource)
+    Public Shared Function OrderBy(Of TKey)(keySelector As Expression(Of Func(Of TSource, TKey))) As Expression(Of Func(Of TSource, TKey))
+        Return keySelector
+    End Function
+End Class
+
+Public Interface IWithIntProperty
+    ReadOnly Property IntProperty As Integer
+End Interface
+
+Class ClassWithIntProperty
+    Implements IWithIntProperty
+
+    Public Property IntProperty As Integer Implements IWithIntProperty.IntProperty
+End Class
+                            ]]></file>
+                         </compilation>
+
+            CompileAndVerify(source,
+                 options:=TestOptions.DebugExe,
+                 expectedOutput:=<![CDATA[
+Parameter
+x.IntProperty
+Parameter
+x.IntProperty
+Parameter
+x.IntProperty
+Parameter
+x.IntProperty
 ]]>).VerifyDiagnostics()
 
         End Sub

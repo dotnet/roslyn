@@ -11,14 +11,19 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
+using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddParameter;
 
 internal static class AddParameterService
 {
+    private static readonly SyntaxAnnotation s_annotation = new();
+
     /// <summary>
     /// Checks if there are indications that there might be more than one declarations that need to be fixed.
     /// The check does not look-up if there are other declarations (this is done later in the CodeAction).
@@ -69,16 +74,17 @@ internal static class AddParameterService
     /// Adds a parameter to a method.
     /// </summary>
     /// <param name="newParameterIndex"><see langword="null"/> to add as the final parameter</param>
-    /// <returns></returns>
-    public static async Task<Solution> AddParameterAsync(
+    public static async Task<Solution> AddParameterAsync<TExpressionSyntax>(
         Document invocationDocument,
         IMethodSymbol method,
         ITypeSymbol newParameterType,
         RefKind refKind,
-        string parameterName,
+        ParameterName parameterName,
+        Argument<TExpressionSyntax>? argument,
         int? newParameterIndex,
         bool fixAllReferences,
         CancellationToken cancellationToken)
+        where TExpressionSyntax : SyntaxNode
     {
         var solution = invocationDocument.Project.Solution;
 
@@ -91,8 +97,8 @@ internal static class AddParameterService
 
         // Indexing Locations[0] is valid because IMethodSymbols have one location at most
         // and IsFromSource() tests if there is at least one location.
-        var locationsByDocument = locationsInSource.ToLookup(declarationLocation
-            => solution.GetRequiredDocument(declarationLocation.Locations[0].SourceTree!));
+        var locationsByDocument = locationsInSource.ToLookup(
+            declarationLocation => solution.GetRequiredDocument(declarationLocation.Locations[0].SourceTree!));
 
         foreach (var documentLookup in locationsByDocument)
         {
@@ -103,12 +109,13 @@ internal static class AddParameterService
             if (syntaxFacts is null)
                 continue;
 
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(syntaxRoot, solution.Services);
             var generator = editor.Generator;
-            foreach (var methodDeclaration in documentLookup)
+            foreach (var currentMethodToUpdate in documentLookup)
             {
-                var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan, getInnermostNodeForTie: true);
+                var methodNode = syntaxRoot.FindNode(currentMethodToUpdate.Locations[0].SourceSpan, getInnermostNodeForTie: true);
                 var existingParameters = generator.GetParameters(methodNode);
                 var insertionIndex = newParameterIndex ?? existingParameters.Count;
 
@@ -118,30 +125,90 @@ internal static class AddParameterService
                     syntaxFacts.GetDefaultOfParameter(existingParameters[insertionIndex - 1]) != null;
 
                 var parameterSymbol = CreateParameterSymbol(
-                    methodDeclaration, newParameterType, refKind, parameterMustBeOptional, parameterName);
+                    currentMethodToUpdate, newParameterType, refKind, parameterMustBeOptional, parameterName.BestNameForParameter);
 
                 var argumentInitializer = parameterMustBeOptional ? generator.DefaultExpression(newParameterType) : null;
-                var parameterDeclaration = generator.ParameterDeclaration(parameterSymbol, argumentInitializer)
-                                                    .WithAdditionalAnnotations(Formatter.Annotation);
-                if (anySymbolReferencesNotInSource && methodDeclaration == method)
+                var parameterDeclaration = generator
+                    .ParameterDeclaration(parameterSymbol, argumentInitializer)
+                    .WithAdditionalAnnotations(Formatter.Annotation, s_annotation);
+
+                if (anySymbolReferencesNotInSource && currentMethodToUpdate == method)
                 {
                     parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(
                         ConflictAnnotation.Create(CodeFixesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                 }
 
                 if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
-                {
                     insertionIndex++;
-                }
 
-                AddParameterEditor.AddParameter(syntaxFacts, editor, methodNode, insertionIndex, parameterDeclaration, cancellationToken);
+                AddParameterEditor.AddParameter(
+                    syntaxFacts, editor, methodNode, insertionIndex, parameterDeclaration, cancellationToken);
             }
 
             var newRoot = editor.GetChangedRoot();
             solution = solution.WithDocumentSyntaxRoot(document.Id, newRoot);
         }
 
+        // Now that we've added the parameter to the method, see if we added to a constructor that we then want to
+        // assign that parameter to a field/property to as well.
+        solution = await AddConstructorAssignmentsAsync(solution).ConfigureAwait(false);
+
         return solution;
+
+        async Task<Solution> AddConstructorAssignmentsAsync(Solution rewrittenSolution)
+        {
+            var finalSolution = await TryAddConstructorAssignmentsAsync(rewrittenSolution).ConfigureAwait(false);
+            return finalSolution ?? rewrittenSolution;
+        }
+
+        async Task<Solution?> TryAddConstructorAssignmentsAsync(Solution rewrittenSolution)
+        {
+            // If we weren't adding a parameter to a constructor, we have nothing to do here.
+            if (method.MethodKind != MethodKind.Constructor)
+                return null;
+
+            // If we didn't have an argument indicating what was passed to the constructor, then we have nothing to do.
+            if (argument is null)
+                return null;
+
+            // Only want to do this if we updated a single constructor in a single document.
+            var documentsUpdated = locationsByDocument.Select(g => g.Key).ToSet();
+            if (documentsUpdated.Count != 1)
+                return null;
+
+            var documentId = documentsUpdated.Single().Id;
+
+            // Now go find the constructor after the parameter was added to it.
+            var rewrittenDocument = rewrittenSolution.GetRequiredDocument(documentId);
+            var rewrittenSyntaxRoot = await rewrittenDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var parameterDeclaration = rewrittenSyntaxRoot.GetAnnotatedNodes(s_annotation).SingleOrDefault();
+            if (parameterDeclaration is null)
+                return null;
+
+            var semanticDocument = await SemanticDocument.CreateAsync(rewrittenDocument, cancellationToken).ConfigureAwait(false);
+            if (semanticDocument.SemanticModel.GetDeclaredSymbol(parameterDeclaration, cancellationToken) is not IParameterSymbol parameter)
+                return null;
+
+            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, DeclaringSyntaxReferences: [var reference] } constructor)
+                return null;
+
+            var (_, parameterToExistingMember, _, _) = await GenerateConstructorHelpers.GetParametersAsync(
+                semanticDocument,
+                constructor.ContainingType,
+                [argument.Value],
+                [parameter.Type],
+                [new ParameterName(parameter.Name, isFixed: true)],
+                cancellationToken).ConfigureAwait(false);
+
+            var memberToAssignTo = parameterToExistingMember.FirstOrDefault().Value;
+            if (memberToAssignTo is null)
+                return null;
+
+            var initializeParameterService = rewrittenDocument.GetRequiredLanguageService<IInitializeParameterService>();
+            return await initializeParameterService.AddAssignmentAsync(
+                rewrittenDocument, parameter, memberToAssignTo, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(
@@ -150,10 +217,9 @@ internal static class AddParameterService
         var referencedSymbols = await SymbolFinder.FindReferencesAsync(
             method, invocationDocument.Project.Solution, cancellationToken).ConfigureAwait(false);
 
-        return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
+        return [.. referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
                                 .OfType<IMethodSymbol>()
-                                .Distinct()
-                                .ToImmutableArray();
+                                .Distinct()];
     }
 
     private static IParameterSymbol CreateParameterSymbol(

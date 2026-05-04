@@ -11,9 +11,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
-internal partial class AbstractGenerateConversionService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
+internal abstract partial class AbstractGenerateConversionService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
-    protected new class State : AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>.State
+    protected new sealed class State : AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>.State
     {
         public static async Task<State> GenerateConversionStateAsync(
            TService service,
@@ -30,7 +30,7 @@ internal partial class AbstractGenerateConversionService<TService, TSimpleNameSy
             return state;
         }
 
-        private Task<bool> TryInitializeConversionAsync(
+        private async ValueTask<bool> TryInitializeConversionAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
@@ -40,18 +40,18 @@ internal partial class AbstractGenerateConversionService<TService, TSimpleNameSy
             {
                 if (!TryInitializeImplicitConversion(service, document, node, cancellationToken))
                 {
-                    return SpecializedTasks.False;
+                    return false;
                 }
             }
             else if (service.IsExplicitConversionGeneration(node))
             {
                 if (!TryInitializeExplicitConversion(service, document, node, cancellationToken))
                 {
-                    return SpecializedTasks.False;
+                    return false;
                 }
             }
 
-            return TryFinishInitializingStateAsync(service, document, cancellationToken);
+            return await TryFinishInitializingStateAsync(service, document, cancellationToken).ConfigureAwait(false);
         }
 
         private bool TryInitializeExplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)

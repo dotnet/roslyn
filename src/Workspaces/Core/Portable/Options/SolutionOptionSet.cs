@@ -78,8 +78,12 @@ internal sealed class SolutionOptionSet : OptionSet
 
     internal (ImmutableArray<KeyValuePair<OptionKey2, object?>> internallyDefined, ImmutableArray<KeyValuePair<OptionKey, object?>> externallyDefined) GetChangedOptions()
     {
-        var internallyDefined = _changedOptionKeys.Where(key => key.Option is IOption2).SelectAsArray(key => KeyValuePairUtil.Create(new OptionKey2((IOption2)key.Option, key.Language), _values[key]));
-        var externallyDefined = _changedOptionKeys.Where(key => key.Option is not IOption2).SelectAsArray(key => KeyValuePairUtil.Create(key, _values[key]));
+        var internallyDefined = _changedOptionKeys.SelectAsArray(
+            predicate: key => key.Option is IOption2,
+            selector: key => KeyValuePair.Create(new OptionKey2((IOption2)key.Option, key.Language), _values[key]));
+        var externallyDefined = _changedOptionKeys.SelectAsArray(
+            predicate: key => key.Option is not IOption2,
+            selector: key => KeyValuePair.Create(key, _values[key]));
         return (internallyDefined, externallyDefined);
     }
 }

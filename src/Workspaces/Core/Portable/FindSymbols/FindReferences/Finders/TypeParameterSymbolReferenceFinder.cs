@@ -12,8 +12,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal sealed class TypeParameterSymbolReferenceFinder : AbstractTypeParameterSymbolReferenceFinder
 {
+    public static readonly TypeParameterSymbolReferenceFinder Instance = new();
+
+    private TypeParameterSymbolReferenceFinder()
+    {
+    }
+
     protected override bool CanFind(ITypeParameterSymbol symbol)
-        => symbol.TypeParameterKind != TypeParameterKind.Method;
+        => symbol.TypeParameterKind == TypeParameterKind.Type;
 
     protected override Task DetermineDocumentsToSearchAsync<TData>(
         ITypeParameterSymbol symbol,
@@ -32,6 +38,8 @@ internal sealed class TypeParameterSymbolReferenceFinder : AbstractTypeParameter
         // parameter has a different name in different parts that we won't find it.  However,
         // this only happens in error situations.  It is not legal in C# to use a different
         // name for a type parameter in different parts.
-        return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name, symbol.ContainingType.Name);
+        return symbol.ContainingType is { IsExtension: true, ContainingType.Name: var staticClassName }
+            ? FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name, staticClassName)
+            : FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name, symbol.ContainingType.Name);
     }
 }

@@ -2,15 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
+Imports Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
-    Friend Class VisualBasicAddAccessibilityModifiers
-        Inherits AbstractAddAccessibilityModifiers(Of StatementSyntax)
+Namespace Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers
+    Friend Class VisualBasicAddOrRemoveAccessibilityModifiers
+        Inherits AbstractAddOrRemoveAccessibilityModifiers(Of StatementSyntax)
 
-        Public Shared ReadOnly Instance As New VisualBasicAddAccessibilityModifiers()
+        Public Shared ReadOnly Instance As New VisualBasicAddOrRemoveAccessibilityModifiers()
 
         Protected Sub New()
         End Sub

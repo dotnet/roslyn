@@ -4,6 +4,7 @@
 
 Imports System.IO
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -135,7 +136,7 @@ End Class
                 CompilationName,
                 {DirectCast(tree, VisualBasicSyntaxTree)},
                 References,
-                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions({KeyValuePairUtil.Create("BC0219", ReportDiagnostic.Suppress)}))
+                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions({KeyValuePair.Create("BC0219", ReportDiagnostic.Suppress)}))
         End Function
 
         Protected Overrides Function CompilationSucceeded(compilation As Compilation, temporaryStream As Stream) As Boolean

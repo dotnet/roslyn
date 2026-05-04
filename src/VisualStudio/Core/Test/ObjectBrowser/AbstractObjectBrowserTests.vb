@@ -3,10 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.ExceptionServices
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
@@ -47,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
                 Dim mockComponentModel = New MockComponentModel(workspace.ExportProvider)
                 mockComponentModel.ProvideService(Of VisualStudioWorkspace)(vsWorkspace)
                 Dim mockServiceProvider = workspace.ExportProvider.GetExportedValue(Of MockServiceProvider)
-                Dim libraryManager = CreateLibraryManager(mockServiceProvider, mockComponentModel, vsWorkspace)
+                Dim libraryManager = CreateLibraryManager(mockServiceProvider, mockComponentModel)
 
                 result = New TestState(workspace, vsWorkspace, libraryManager)
             Finally
@@ -59,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
             Return result
         End Function
 
-        Friend MustOverride Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace) As AbstractObjectBrowserLibraryManager
+        Friend MustOverride Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel) As AbstractObjectBrowserLibraryManager
 
         Friend Function ProjectNode(name As String) As NavInfoNodeDescriptor
             Return New NavInfoNodeDescriptor With {.Kind = ObjectListKind.Projects, .Name = name}

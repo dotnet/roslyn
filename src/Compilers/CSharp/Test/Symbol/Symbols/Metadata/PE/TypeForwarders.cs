@@ -1354,6 +1354,29 @@ namespace NS
         }
 
         [ClrOnlyFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79894")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78963")]
+        public void Extensions_01()
+        {
+            var source1 = @"
+public static class Extensions
+{
+    extension(int)
+    {
+    }
+}";
+
+            var source2 = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Extensions))]
+";
+
+            // The grouping and marker types should be among the forwarded types since they are public.
+            // They also should be among exported types for library built from source1. Type symbols
+            // representing extensions from the language perspective should not be in either set.
+            CheckForwarderEmit(source1, source2, "Extensions", "Extensions+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", "Extensions+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69+<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69");
+        }
+
+        [ClrOnlyFact]
         public void EmitForwarder_Nested_Private()
         {
             var source1 = @"
@@ -1502,19 +1525,33 @@ namespace NS
                 Assert.Equal(topLevelTypes.OrderBy(s => s), GetNamesOfForwardedTypes(assembly));
             };
 
-            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator, sourceSymbolValidator: metadataValidator);
+            checkForwarderEmit(comp2);
 
-            using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
+            checkForwarderEmit(comp2);
+
+            var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+            comp1 = comp1.AddReferences(comp3.EmitToImageReference());
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
+            checkForwarderEmit(comp2);
+
+            void checkForwarderEmit(CSharpCompilation comp2)
             {
-                var metadataReader = metadata.Module.GetMetadataReader();
+                var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator, sourceSymbolValidator: metadataValidator);
 
-                Assert.Equal(forwardedTypeFullNames.Length, metadataReader.GetTableRowCount(TableIndex.ExportedType));
-
-                int i = 0;
-                foreach (var exportedType in metadataReader.ExportedTypes)
+                using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
                 {
-                    ValidateExportedTypeRow(exportedType, metadataReader, forwardedTypeFullNames[i]);
-                    i++;
+                    var metadataReader = metadata.Module.GetMetadataReader();
+
+                    Assert.Equal(forwardedTypeFullNames.Length, metadataReader.GetTableRowCount(TableIndex.ExportedType));
+
+                    int i = 0;
+                    foreach (var exportedType in metadataReader.ExportedTypes)
+                    {
+                        ValidateExportedTypeRow(exportedType, metadataReader, forwardedTypeFullNames[i]);
+                        i++;
+                    }
                 }
             }
         }

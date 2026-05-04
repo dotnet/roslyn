@@ -152,5 +152,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _underlyingMethod.HasSetsRequiredMembers
             End Get
         End Property
+
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return _underlyingMethod.GetOverloadResolutionPriority()
+        End Function
     End Class
 End Namespace

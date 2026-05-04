@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp;
 
 [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+public sealed class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
 {
     internal override Type GetSignatureHelpProviderType()
         => typeof(ElementAccessExpressionSignatureHelpProvider);
@@ -26,7 +26,12 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
     [Fact]
     public async Task TestInvocationWithParametersOn1()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class C
             {
                 public string this[int a]
@@ -44,20 +49,18 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     var x = [|c[$$|]];
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24311")]
     public async Task TestInvocationWithParametersOn1_WithRefReturn()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("ref int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class C
             {
                 public ref int this[int a]
@@ -69,20 +72,18 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     [|c[$$]|]
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("ref int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24311")]
     public async Task TestInvocationWithParametersOn1_WithRefReadonlyReturn()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("ref readonly int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class C
             {
                 public ref readonly int this[int a]
@@ -94,20 +95,18 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     [|c[$$]|]
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("ref readonly int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")]
     public async Task TestInvocationOnExpression()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class C
             {
                 public string this[int a]
@@ -125,20 +124,18 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     c[0][$$
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersXmlCommentsOn1()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("string C[int a]", "Summary for this.", "Param a", currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class C
             {
                 /// <summary>
@@ -160,20 +157,18 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     var x = [|c[$$|]];
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("string C[int a]", "Summary for this.", "Param a", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersOn2()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
+        };
+
+        await TestAsync("""
             class C
             {
                 public string this[int a, bool b]
@@ -191,19 +186,18 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     var x = [|c[22, $$|]];
                 }
             }
-            """;
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersXmlComentsOn2()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("string C[int a, bool b]", "Summary for this.", "Param b", currentParameterIndex: 1)
+        };
+
+        await TestAsync("""
             class C
             {
                 /// <summary>
@@ -226,21 +220,18 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     var x = [|c[22, $$|]];
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("string C[int a, bool b]", "Summary for this.", "Param b", currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationWithoutClosingBracketWithParameters()
     {
-        var markup =
-            """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class C
             {
                 public string this[int a]
@@ -258,20 +249,18 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     var x = [|c[$$
                 |]}
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationWithoutClosingBracketWithParametersOn2()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
+        };
+
+        await TestAsync("""
             class C
             {
                 public string this[int a, bool b]
@@ -289,14 +278,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     var x = [|c[22, $$
                 |]}
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     #endregion
@@ -304,9 +286,8 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
     #region "Current Parameter Name"
 
     [Fact]
-    public async Task TestCurrentParameterName()
-    {
-        var markup = """
+    public Task TestCurrentParameterName()
+        => VerifyCurrentParameterNameAsync("""
             class C
             {
                 public string this[int a, bool b]
@@ -324,10 +305,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     var x = [|c[b: false, a: $$42|]];
                 }
             }
-            """;
-
-        await VerifyCurrentParameterNameAsync(markup, "a");
-    }
+            """, "a");
 
     #endregion
 
@@ -336,7 +314,12 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
     [Fact]
     public async Task TestInvocationOnTriggerBracket()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class C
             {
                 public string this[int a]
@@ -354,20 +337,18 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     var x = [|c[$$|]];
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+            """, expectedOrderedItems, usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task TestInvocationOnTriggerComma()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
+        };
+
+        await TestAsync("""
             class C
             {
                 public string this[int a, bool b]
@@ -385,20 +366,14 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     var x = [|c[42,$$|]];
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+            """, expectedOrderedItems, usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task TestNoInvocationOnSpace()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>();
+        await TestAsync("""
             class C
             {
                 public string this[int a, bool b]
@@ -416,10 +391,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     var x = [|c[42, $$|]];
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>();
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+            """, expectedOrderedItems, usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -461,7 +433,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -498,12 +470,12 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
             """;
         var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                             referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                            expectedOrderedItemsMetadataReference: [],
                                             expectedOrderedItemsSameSolution: expectedOrderedItemsMetadataReference,
                                             sourceLanguage: LanguageNames.CSharp,
                                             referencedLanguage: LanguageNames.CSharp);
@@ -535,12 +507,12 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
             referencedCode: referencedCode,
-            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+            expectedOrderedItemsMetadataReference: [],
             expectedOrderedItemsSameSolution: expectedOrderedItems,
             sourceLanguage: LanguageNames.CSharp,
             referencedLanguage: LanguageNames.CSharp,
@@ -588,13 +560,13 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
 
         var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[double d]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[double d]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[double d]", string.Empty, string.Empty, currentParameterIndex: 0),
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0),
+            new("int Goo[double d]", string.Empty, string.Empty, currentParameterIndex: 0),
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0),
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -631,7 +603,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -668,7 +640,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -706,7 +678,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -767,12 +739,12 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
 
         var metadataItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string CCC.IndexProp[int p1]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("string CCC.IndexProp[int p1]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         var projectReferenceItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string CCC.IndexProp[int p1]", "An index property from VB", "p1 is an integer index", currentParameterIndex: 0)
+            new("string CCC.IndexProp[int p1]", "An index property from VB", "p1 is an integer index", currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -788,7 +760,15 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
     [Fact]
     public async Task FieldUnavailableInOneLinkedFile()
     {
-        var markup = """
+        var expectedDescription = new SignatureHelpTestItem($"""
+            int C[int z]
+
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """, currentParameterIndex: 0);
+        await VerifyItemWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -815,15 +795,21 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                 </Project>
             </Workspace>
-            """;
-        var expectedDescription = new SignatureHelpTestItem($"int C[int z]\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
+            """, [expectedDescription], false);
     }
 
     [Fact]
     public async Task ExcludeFilesWithInactiveRegions()
     {
-        var markup = """
+        var expectedDescription = new SignatureHelpTestItem($"""
+            int C[int z]
+
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """, currentParameterIndex: 0);
+        await VerifyItemWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO,BAR">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -856,14 +842,11 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedDescription = new SignatureHelpTestItem($"int C[int z]\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
+            """, [expectedDescription], false);
     }
 
     [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-    public class IncompleteElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+    public sealed class IncompleteElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
         internal override Type GetSignatureHelpProviderType()
             => typeof(ElementAccessExpressionSignatureHelpProvider);
@@ -871,7 +854,12 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")]
         public async Task TestInvocation()
         {
-            var markup = """
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
+
+            await TestAsync("""
                 class C
                 {
                     public string this[int a]
@@ -889,20 +877,18 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                         c[$$]
                     }
                 }
-                """;
-
-            var expectedOrderedItems = new List<SignatureHelpTestItem>
-            {
-                new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
-            };
-
-            await TestAsync(markup, expectedOrderedItems);
+                """, expectedOrderedItems);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939417")]
         public async Task ConditionalIndexer()
         {
-            var markup = """
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new("int P[int z]", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
+
+            await TestAsync("""
                 public class P
                 {
                     public int this[int z]
@@ -919,14 +905,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                         p?[$$]
                     }
                 }
-                """;
-
-            var expectedOrderedItems = new List<SignatureHelpTestItem>
-            {
-                new SignatureHelpTestItem("int P[int z]", string.Empty, string.Empty, currentParameterIndex: 0)
-            };
-
-            await TestAsync(markup, expectedOrderedItems);
+                """, expectedOrderedItems);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32")]
@@ -983,19 +962,14 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-        public async Task InvokedWithNoToken()
-        {
-            var markup = """
+        public Task InvokedWithNoToken()
+            => TestAsync("""
                 // goo[$$
-                """;
-
-            await TestAsync(markup);
-        }
+                """);
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2482")]
-        public async Task WhereExpressionLooksLikeArrayTypeSyntaxOfQualifiedName()
-        {
-            var markup = """
+        public Task WhereExpressionLooksLikeArrayTypeSyntaxOfQualifiedName()
+            => TestAsync("""
                 class WithIndexer
                 {
                     public int this[int index] { get { return 0; } }
@@ -1011,14 +985,11 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                         tc.Item[$$]
                     }
                 }
-                """;
-            await TestAsync(markup, [new SignatureHelpTestItem("int WithIndexer[int index]")], usePreviousCharAsTrigger: true);
-        }
+                """, [new SignatureHelpTestItem("int WithIndexer[int index]")], usePreviousCharAsTrigger: true);
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20507")]
-        public async Task InConditionalIndexingFollowedByMemberAccess()
-        {
-            var markup = """
+        public Task InConditionalIndexingFollowedByMemberAccess()
+            => TestAsync("""
                 class Indexable
                 {
                     public Indexable this[int x] { get => null; }
@@ -1031,14 +1002,11 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                         x?[$$].Count;
                     }
                 }
-                """;
-            await TestAsync(markup, [new SignatureHelpTestItem("Indexable Indexable[int x]")], usePreviousCharAsTrigger: false);
-        }
+                """, [new SignatureHelpTestItem("Indexable Indexable[int x]")], usePreviousCharAsTrigger: false);
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20507")]
-        public async Task InConditionalIndexingFollowedByConditionalAccess()
-        {
-            var markup = """
+        public Task InConditionalIndexingFollowedByConditionalAccess()
+            => TestAsync("""
                 class Indexable
                 {
                     public Indexable this[int x] { get => null; }
@@ -1051,8 +1019,6 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                         x?[$$].Count?.Count;
                     }
                 }
-                """;
-            await TestAsync(markup, [new SignatureHelpTestItem("Indexable Indexable[int x]")], usePreviousCharAsTrigger: false);
-        }
+                """, [new SignatureHelpTestItem("Indexable Indexable[int x]")], usePreviousCharAsTrigger: false);
     }
 }

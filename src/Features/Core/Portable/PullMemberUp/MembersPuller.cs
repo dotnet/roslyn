@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -48,10 +49,7 @@ internal static class MembersPuller
             return null;
         }
 
-        var title = selectedMembers.IsSingle()
-            ? string.Format(FeaturesResources.Pull_0_up_to_1, selectedMembers.Single().Name, result.Destination.Name)
-            : string.Format(FeaturesResources.Pull_selected_members_up_to_0, result.Destination.Name);
-
+        var title = result.Destination.Name;
         return SolutionChangeAction.Create(
             title,
             cancellationToken => PullMembersUpAsync(document, result, cancellationToken),
@@ -98,8 +96,8 @@ internal static class MembersPuller
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);
         var codeGenerationService = document.Project.Services.GetRequiredService<ICodeGenerationService>();
-        var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-            solution, pullMemberUpOptions.Destination, location: null, cancellationToken).ConfigureAwait(false);
+        var destinationSyntaxNode = codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclaration(
+            solution, pullMemberUpOptions.Destination, location: null, cancellationToken);
         var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
         var symbolsToPullUp = pullMemberUpOptions.MemberAnalysisResults.SelectAsArray(GetSymbolsToPullUp);
 
@@ -152,7 +150,7 @@ internal static class MembersPuller
     {
         var member = analysisResult.Member;
         // We don't support generating static interface members, so we need to update to non-static before generating.
-        var modifier = DeclarationModifiers.From(member).WithIsStatic(false);
+        var modifier = DeclarationModifiers.From(member).WithIsStatic(false).WithPartial(false);
         if (member is IPropertySymbol propertySymbol)
         {
             // Property is treated differently since we need to make sure it gives right accessor symbol to ICodeGenerationService,
@@ -250,10 +248,7 @@ internal static class MembersPuller
                 accessibility: Accessibility.Public,
                 modifiers: modifiers);
 
-            var eventGenerationInfo = info.WithContext(new CodeGenerationContext(
-                null,
-                null,
-                generateMethodBodies: false));
+            var eventGenerationInfo = info.WithContext(new CodeGenerationContext(generateMethodBodies: false));
 
             var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, CodeGenerationDestination.ClassType, eventGenerationInfo, cancellationToken);
             // Insert a new declaration and remove the original declaration
@@ -277,8 +272,8 @@ internal static class MembersPuller
         var solutionEditor = new SolutionEditor(solution);
         var codeGenerationService = document.Project.Services.GetRequiredService<ICodeGenerationService>();
 
-        var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-            solution, result.Destination, location: null, cancellationToken).ConfigureAwait(false);
+        var destinationSyntaxNode = codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclaration(
+            solution, result.Destination, location: null, cancellationToken);
 
         var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
             solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
@@ -374,7 +369,7 @@ internal static class MembersPuller
             RemoveLeadingTriviaBeforeFirstMember(root, syntaxFacts));
 
         destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (node, generator) => addImportsService.AddImports(
-            destinationEditor.SemanticModel.Compilation,
+            destinationEditor.SemanticModel,
             node,
             node.GetAnnotatedNodes(s_destinationNodeAnnotation).FirstOrDefault(),
             sourceImports,
@@ -439,10 +434,9 @@ internal static class MembersPuller
     {
         return start.AncestorsAndSelf()
             .Where(node => node is ICompilationUnitSyntax || syntaxFacts.IsBaseNamespaceDeclaration(node))
-            .SelectMany(node => node is ICompilationUnitSyntax
+            .SelectManyAsArray(node => node is ICompilationUnitSyntax
                 ? syntaxFacts.GetImportsOfCompilationUnit(node)
-                : syntaxFacts.GetImportsOfBaseNamespaceDeclaration(node))
-            .ToImmutableArray();
+                : syntaxFacts.GetImportsOfBaseNamespaceDeclaration(node));
     }
 
     private static ISymbol MakeAbstractVersion(ISymbol member)
@@ -495,14 +489,9 @@ internal static class MembersPuller
     /// </summary>
     private static bool IsSelectedMemberDeclarationAlreadyInDestination(ISymbol selectedMember, INamedTypeSymbol destination)
     {
-        if (destination.TypeKind == TypeKind.Interface)
-        {
-            return IsSelectedMemberDeclarationAlreadyInDestinationInterface(selectedMember, destination);
-        }
-        else
-        {
-            return IsSelectedMemberDeclarationAlreadyInDestinationClass(selectedMember, destination);
-        }
+        return destination.TypeKind == TypeKind.Interface
+            ? IsSelectedMemberDeclarationAlreadyInDestinationInterface(selectedMember, destination)
+            : IsSelectedMemberDeclarationAlreadyInDestinationClass(selectedMember, destination);
     }
 
     private static bool IsSelectedMemberDeclarationAlreadyInDestinationClass(ISymbol selectedMember, INamedTypeSymbol destination)

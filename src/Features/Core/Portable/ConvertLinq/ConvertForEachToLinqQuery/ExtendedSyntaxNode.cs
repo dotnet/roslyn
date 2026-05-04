@@ -15,9 +15,9 @@ internal readonly struct ExtendedSyntaxNode(
 {
     public SyntaxNode Node { get; } = node;
 
-    public ImmutableArray<SyntaxTrivia> ExtraLeadingComments { get; } = extraLeadingComments.ToImmutableArray();
+    public ImmutableArray<SyntaxTrivia> ExtraLeadingComments { get; } = [.. extraLeadingComments];
 
-    public ImmutableArray<SyntaxTrivia> ExtraTrailingComments { get; } = extraTrailingComments.ToImmutableArray();
+    public ImmutableArray<SyntaxTrivia> ExtraTrailingComments { get; } = [.. extraTrailingComments];
 
     public ExtendedSyntaxNode(
         SyntaxNode node,

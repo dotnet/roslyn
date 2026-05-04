@@ -2,10 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Roslyn.Test.Utilities
 Imports Basic.Reference.Assemblies
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -4334,10 +4334,16 @@ Namespace GenMethod4140
             Overridable Function fun1(Of T)(ByRef t1 As T) As Object
                 Return Nothing
             End Function
+            Overridable Function fun2(ByRef t1 As UShort) As Object
+                Return Nothing
+            End Function
         End Class
         Class Derived
             Inherits Base
             Overrides Function fun1(Of T)(ByRef t2 As T) As Object
+                Return Nothing
+            End Function
+            Overrides Function fun2(ByRef t2 As UShort) As Object
                 Return Nothing
             End Function
         End Class
@@ -4346,6 +4352,7 @@ Namespace GenMethod4140
             Dim c3 As New Derived
 
             c3.fun1(t1:=3US)
+            c3.fun2(t1:=3US)
 
         End Sub
     End Module
@@ -4373,6 +4380,12 @@ BC30455: Argument not specified for parameter 't2' of 'Public Overrides Function
                ~~~~
 BC30272: 't1' is not a parameter of 'Public Overrides Function fun1(Of T)(ByRef t2 As T) As Object'.
             c3.fun1(t1:=3US)
+                    ~~
+BC30455: Argument not specified for parameter 't2' of 'Public Overrides Function fun2(ByRef t2 As UShort) As Object'.
+            c3.fun2(t1:=3US)
+               ~~~~
+BC30272: 't1' is not a parameter of 'Public Overrides Function fun2(ByRef t2 As UShort) As Object'.
+            c3.fun2(t1:=3US)
                     ~~
 </expected>)
         End Sub

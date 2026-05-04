@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             End If
 
             Dim codepoint = AscW(c)
-            Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
+            Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString(Globalization.CultureInfo.InvariantCulture)) & ")"
         End Function
 
         Private Function EscapeQuote(c As Char) As String
@@ -437,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                             End If
 
                             Dim codepoint = AscW(c)
-                            For Each digit In If(useHexadecimalNumbers, codepoint.ToString("X"), codepoint.ToString())
+                            For Each digit In If(useHexadecimalNumbers, codepoint.ToString("X"), codepoint.ToString(Globalization.CultureInfo.InvariantCulture))
                                 Yield Number(digit)
                             Next
 

@@ -1290,9 +1290,9 @@ public partial class C
                 // (5,24): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
                 //     public static void M()
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(5, 24),
-                // (14,11): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
+                // (14,11): error CS0121: The call is ambiguous between the following methods or properties: 'C.M() [0.cs(5)]' and 'C.M() [1.cs(5)]'
                 //         C.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(14, 11));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M() [0.cs(5)]", "C.M() [1.cs(5)]").WithLocation(14, 11));
 
             var cs = comp.GetMember("C");
             var syntaxReferences = cs.DeclaringSyntaxReferences;

@@ -15,5 +15,5 @@ namespace Roslyn.Test.Utilities;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class TestWorkspaceConfigurationService() : IWorkspaceConfigurationService
 {
-    public WorkspaceConfigurationOptions Options { get; set; }
+    public WorkspaceConfigurationOptions Options { get; set; } = WorkspaceConfigurationOptions.Default;
 }

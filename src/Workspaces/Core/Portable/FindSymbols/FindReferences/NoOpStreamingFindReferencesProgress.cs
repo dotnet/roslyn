@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// A does-nothing version of the <see cref="IStreamingFindReferencesProgress"/>. Useful for
 /// clients that have no need to report progress as they work.
 /// </summary>
-internal class NoOpStreamingFindReferencesProgress : IStreamingFindReferencesProgress
+internal sealed class NoOpStreamingFindReferencesProgress : IStreamingFindReferencesProgress
 {
     public static readonly IStreamingFindReferencesProgress Instance =
         new NoOpStreamingFindReferencesProgress();
@@ -30,7 +29,7 @@ internal class NoOpStreamingFindReferencesProgress : IStreamingFindReferencesPro
     public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken) => default;
     public ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken) => default;
 
-    private class NoOpProgressTracker : IStreamingProgressTracker
+    private sealed class NoOpProgressTracker : IStreamingProgressTracker
     {
         public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken) => default;
         public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken) => default;

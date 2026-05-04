@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 
@@ -39,7 +38,7 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
             isEnabledByDefault: true,
             warningLevel: 0,
             projectId: document.Project.Id,
-            customTags: ImmutableArray<string>.Empty,
+            customTags: [],
             properties: ImmutableDictionary<string, string?>.Empty,
             location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, linePosSpan), document.Id),
             language: document.Project.Language);

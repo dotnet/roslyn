@@ -82,6 +82,11 @@
         <target state="translated">Osadzone instrukcje muszą znajdować się w osobnym wierszu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement">
+        <source>Implement</source>
+        <target state="translated">Wdróż</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">Indeksowanie można uprościć</target>
@@ -95,6 +100,11 @@
       <trans-unit id="Lambda_expression_can_be_removed">
         <source>Lambda expression can be removed</source>
         <target state="translated">Wyrażenie lambda można usunąć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_simplified">
+        <source>Lambda expression can be simplified</source>
+        <target state="translated">Wyrażenie lambda można uprościć</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_anonymous_function_static">
@@ -167,6 +177,11 @@
         <target state="translated">Ustaw preferencje na sprawdzanie wartości „null” zamiast sprawdzania typu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Property_accessor_can_be_simplified">
+        <source>Property accessor can be simplified</source>
+        <target state="translated">Akcesor właściwości można uprościć</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_pattern_can_be_simplified">
         <source>Property pattern can be simplified</source>
         <target state="translated">Wzorzec właściwości można uprościć</target>
@@ -212,6 +227,11 @@
         <target state="translated">Uprość wywołanie delegata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_property_accessor">
+        <source>Simplify property accessor</source>
+        <target state="translated">Uprość akcesor właściwości</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_property_pattern">
         <source>Simplify property pattern</source>
         <target state="translated">Uprość wzorzec właściwości</target>
@@ -239,7 +259,7 @@
       </trans-unit>
       <trans-unit id="Use_System_Threading_Lock">
         <source>Use 'System.Threading.Lock'</source>
-        <target state="new">Use 'System.Threading.Lock'</target>
+        <target state="translated">Użyj typu „System.Threading.Lock”</target>
         <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
@@ -352,6 +372,11 @@
         <target state="translated">Użyj niejawnego typu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_implicitly_typed_lambda">
+        <source>Use implicitly typed lambda</source>
+        <target state="translated">Użyj wyrażenia lambda o niejawnie określonym typie</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_index_operator">
         <source>Use index operator</source>
         <target state="translated">Użyj operatora indeksu</target>
@@ -420,6 +445,11 @@
       <trans-unit id="Use_tuple_to_swap_values">
         <source>Use tuple to swap values</source>
         <target state="translated">Użyj krotki do zamiany wartości</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_unbound_generic_type">
+        <source>Use unbound generic type</source>
+        <target state="translated">Użyj niepowiązanego typu ogólnego</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">

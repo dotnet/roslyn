@@ -9,18 +9,18 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
-using System.IO;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 if (Previous == null)
                 {
-                    var corLib = MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly);
+                    var corLib = CreateFromAssembly(typeof(object).GetTypeInfo().Assembly, default, Options.CreateFromFileFunc);
                     references.Add(corLib);
 
                     if (GlobalsType != null)
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                         // the host has to add reference to the metadata where globals type is located explicitly.
                         if (MetadataReference.HasMetadata(globalsAssembly))
                         {
-                            references.Add(MetadataReference.CreateFromAssemblyInternal(globalsAssembly, HostAssemblyReferenceProperties));
+                            references.Add(CreateFromAssembly(globalsAssembly, HostAssemblyReferenceProperties, Options.CreateFromFileFunc));
                         }
                     }
 
@@ -308,6 +308,32 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             return GetCompilation().HasSubmissionResult();
         }
+
+        internal static MetadataImageReference CreateFromAssembly(
+            Assembly assembly,
+            MetadataReferenceProperties properties,
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> createFromFileFunc)
+        {
+            // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
+            // which might also lock the file until the reference is GC'd.
+            var filePath = MetadataReference.GetAssemblyFilePath(assembly, properties);
+            return createFromFileFunc(filePath, PEStreamOptions.Default, properties);
+        }
+
+        /// <summary>
+        /// <see cref="MetadataReference.CreateFromFile(string, PEStreamOptions, MetadataReferenceProperties, DocumentationProvider)"/>
+        /// </summary>
+        /// <remarks>
+        /// This API exists as the default for reading <see cref="MetadataReference"/> from files. It is handy 
+        /// to have this separate method when trying to track down unit tests that aren't going through the 
+        /// proper helpers in ScriptTestBase to hook loading from file. Can set a breakpoint here, debug the 
+        /// tests and fix any hits.
+        /// </remarks>
+        internal static MetadataImageReference CreateFromFile(
+            string filePath,
+            PEStreamOptions options,
+            MetadataReferenceProperties properties) =>
+            MetadataReference.CreateFromFile(filePath, options, properties);
     }
 
     public sealed class Script<T> : Script

@@ -90,6 +90,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overrides Function GetConstraints() As ImmutableArray(Of TypeParameterConstraint)
             EnsureAllConstraintsAreResolved()
             Return _lazyConstraints
@@ -183,7 +189,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     constraintType.AddUseSiteInfo(useSiteInfo)
 
                     If Not diagnostics.Add(location, useSiteInfo) Then
-                        constraintType.CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, containingAssembly))
+                        constraintType.CheckAllConstraints(
+                            DeclaringCompilation.LanguageVersion,
+                            location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, containingAssembly))
                     End If
                 End If
             Next

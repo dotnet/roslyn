@@ -9,11 +9,24 @@ using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if NET
+using Microsoft.CodeAnalysis.Diagnostics;
+using System.Runtime.Loader;
+#endif
+
 namespace Microsoft.CodeAnalysis.Host;
 
 internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 {
     IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; }
+
+#if NET
+    /// <summary>
+    /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/>s and <see
+    /// cref="ISourceGenerator"/>s in a fresh <see cref="AssemblyLoadContext"/>.
+    /// </summary>
+    IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader();
+#endif
 }
 
 /// <summary>
@@ -22,30 +35,62 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 /// </summary>
 internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
 {
-    private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
+#if NET
     private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
+    private readonly ImmutableArray<IAnalyzerAssemblyResolver> _assemblyResolvers;
+    private readonly ImmutableArray<IAnalyzerPathResolver> _assemblyPathResolvers;
 
-    public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> assemblyResolvers, IEnumerable<IAnalyzerPathResolver> assemblyPathResolvers)
     {
-        _externalResolvers = externalResolvers.ToImmutableArray();
-        _shadowCopyLoader = new(CreateShadowCopyLoader);
+        _assemblyResolvers = [.. assemblyResolvers];
+        _shadowCopyLoader = new(CreateNewShadowCopyLoader);
+        _assemblyPathResolvers = [.. assemblyPathResolvers];
     }
 
     public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
         => _shadowCopyLoader.Value;
 
-    private IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader()
-        => this.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
+    public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
+        => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
                 Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
-                _externalResolvers));
+                _assemblyPathResolvers,
+                _assemblyResolvers));
+#else
+    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
+
+    public AbstractAnalyzerAssemblyLoaderProvider()
+    {
+        _shadowCopyLoader = new(CreateNewShadowCopyLoader);
+    }
+
+    public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
+        => _shadowCopyLoader.Value;
+
+    public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
+        => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
+                Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
+                pathResolvers: default));
+#endif
 
     protected virtual IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal loader)
         => loader;
 }
 
 [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultAnalyzerAssemblyLoaderProvider(
-    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers);
+internal sealed class DefaultAnalyzerAssemblyLoaderProvider : AbstractAnalyzerAssemblyLoaderProvider
+{
+#if NET
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DefaultAnalyzerAssemblyLoaderProvider([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> assemblyResolvers, [ImportMany] IEnumerable<IAnalyzerPathResolver> assemblyPathResolvers)
+        : base(assemblyResolvers, assemblyPathResolvers)
+    {
+    }
+#else
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DefaultAnalyzerAssemblyLoaderProvider()
+    {
+    }
+#endif
+}

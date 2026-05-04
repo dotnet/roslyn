@@ -87,14 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
 
-        Private Shared Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
-            Dim symbolType = If(TryCast(symbol, IFieldSymbol)?.Type,
-                             If(TryCast(symbol, ILocalSymbol)?.Type,
-                             If(TryCast(symbol, IParameterSymbol)?.Type,
-                                TryCast(symbol, IPropertySymbol)?.Type)))
-            Return symbolType
-        End Function
-
         ' PERF: Cached values for GetDisplayAndInsertionText. Cuts down on the number of calls to ToMinimalDisplayString for large enums.
         Private ReadOnly _gate As New Object()
         Private _cachedDisplayAndInsertionTextContainingType As INamedTypeSymbol

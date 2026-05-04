@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.GenerateType;
@@ -38,7 +36,7 @@ internal enum TypeKindOptions
     GenericInCompatibleTypes = Enum | Module
 }
 
-internal class TypeKindOptionsHelper
+internal sealed class TypeKindOptionsHelper
 {
     public static bool IsClass(TypeKindOptions option)
         => (option & TypeKindOptions.Class) != 0 ? true : false;
@@ -58,7 +56,7 @@ internal class TypeKindOptionsHelper
     public static bool IsModule(TypeKindOptions option)
         => (option & TypeKindOptions.Module) != 0 ? true : false;
 
-    public static TypeKindOptions RemoveOptions(TypeKindOptions fromValue, params TypeKindOptions[] removeValues)
+    public static TypeKindOptions RemoveOptions(TypeKindOptions fromValue, params ReadOnlySpan<TypeKindOptions> removeValues)
     {
         var tempReturnValue = fromValue;
         foreach (var removeValue in removeValues)

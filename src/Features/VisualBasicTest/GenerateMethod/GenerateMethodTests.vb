@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateMethod
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1151,7 +1151,7 @@ Private Shared Sub Goo()
     Throw New NotImplementedException()
 End Sub
 ",
-            parseOptions:=GetScriptOptions())
+            New TestParameters(parseOptions:=GetScriptOptions()))
         End Function
 
         <Fact>
@@ -1585,8 +1585,8 @@ End Module",
         Throw New NotImplementedException()
     End Function
 End Module",
-parseOptions:=Nothing,
-compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"), GlobalImport.Parse("System.Collections.Generic")))
+New TestParameters(parseOptions:=Nothing,
+compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"), GlobalImport.Parse("System.Collections.Generic"))))
         End Function
 
         <Fact>
@@ -1607,8 +1607,8 @@ End Module",
         Throw New NotImplementedException()
     End Function
 End Module",
-parseOptions:=Nothing,
-compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"), GlobalImport.Parse("System.Collections.Generic")))
+New TestParameters(parseOptions:=Nothing,
+compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"), GlobalImport.Parse("System.Collections.Generic"))))
         End Function
 
         <Fact>
@@ -1633,8 +1633,8 @@ End Module",
         Throw New NotImplementedException()
     End Function
 End Module",
-parseOptions:=Nothing,
-compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System")))
+New TestParameters(parseOptions:=Nothing,
+compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"))))
         End Function
 
         <Fact>
@@ -1655,8 +1655,8 @@ End Module",
         Throw New NotImplementedException()
     End Function
 End Module",
-parseOptions:=Nothing,
-compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System")))
+New TestParameters(parseOptions:=Nothing,
+compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("System"))))
         End Function
 
         <Fact>

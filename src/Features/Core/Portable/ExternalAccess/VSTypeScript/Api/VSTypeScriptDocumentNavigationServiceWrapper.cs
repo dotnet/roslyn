@@ -32,7 +32,7 @@ internal readonly struct VSTypeScriptDocumentNavigationServiceWrapper(
         return _threadingProvider.Service.Run(async () =>
         {
             var location = await obj.GetLocationForPositionAsync(
-                workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
+                workspace, documentId, position, virtualSpace, allowInvalidPosition: false, cancellationToken).ConfigureAwait(false);
             return location != null &&
                 await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
         });
@@ -44,7 +44,7 @@ internal readonly struct VSTypeScriptDocumentNavigationServiceWrapper(
         return _threadingProvider.Service.Run(async () =>
         {
             var location = await obj.GetLocationForPositionAsync(
-                workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
+                workspace, documentId, position, virtualSpace, allowInvalidPosition: false, cancellationToken).ConfigureAwait(false);
             return location != null &&
                 await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
         });

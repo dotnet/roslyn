@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 
-internal class SyncNamespaceDocumentsNotInSolutionException(ImmutableArray<DocumentId> documentIds) : Exception
+internal sealed class SyncNamespaceDocumentsNotInSolutionException(ImmutableArray<DocumentId> documentIds) : Exception
 {
     private readonly ImmutableArray<DocumentId> _documentIds = documentIds;
 

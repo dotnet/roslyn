@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting;
 [ExportLanguageService(typeof(IDocumentHighlightsService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpDocumentHighlightsService(
+internal sealed class CSharpDocumentHighlightsService(
     [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services)
     : AbstractDocumentHighlightsService(
         LanguageNames.CSharp,

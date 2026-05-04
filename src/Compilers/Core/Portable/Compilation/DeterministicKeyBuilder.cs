@@ -5,8 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -127,12 +128,19 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             EmitOptions? emitOptions,
+            Stream? sourceLinkStream,
+            ImmutableArray<ResourceDescription> resources,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(!syntaxTrees.IsDefault);
+            Debug.Assert(!references.IsDefault);
+            Debug.Assert(!publicKey.IsDefault);
+
             additionalTexts = additionalTexts.NullToEmpty();
             analyzers = analyzers.NullToEmpty();
             generators = generators.NullToEmpty();
+            resources = resources.NullToEmpty();
 
             var (writer, builder) = CreateWriter();
 
@@ -147,7 +155,9 @@ namespace Microsoft.CodeAnalysis
             writer.WriteKey("generators");
             writeGenerators();
             writer.WriteKey("emitOptions");
-            WriteEmitOptions(writer, emitOptions, pathMap, options);
+            WriteEmitOptions(writer, emitOptions, pathMap, sourceLinkStream, options);
+            writer.WriteKey("resources");
+            writeResources();
 
             writer.WriteObjectEnd();
 
@@ -186,9 +196,39 @@ namespace Microsoft.CodeAnalysis
                 foreach (var generator in generators)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    WriteType(writer, generator.GetType());
+                    WriteType(writer, generator.GetGeneratorType());
                 }
                 writer.WriteArrayEnd();
+            }
+
+            void writeResources()
+            {
+                writer.WriteArrayStart();
+                foreach (ResourceDescription resource in resources)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    writer.WriteObjectStart();
+                    writer.Write("resourceName", resource.ResourceName);
+                    writer.Write("fileName", resource.FileName);
+                    writer.Write("isPublic", resource.IsPublic);
+                    writer.WriteKey("content");
+                    writeResourceContent(writer, resource);
+                    writer.WriteObjectEnd();
+                }
+                writer.WriteArrayEnd();
+            }
+
+            void writeResourceContent(JsonWriter writer, ResourceDescription resource)
+            {
+                if (resource.IsEmbedded)
+                {
+                    using Stream stream = resource.DataProvider();
+                    WriteStream(writer, stream);
+                }
+                else
+                {
+                    writer.WriteNull();
+                }
             }
         }
 
@@ -211,12 +251,33 @@ namespace Microsoft.CodeAnalysis
             writer.WriteKey("options");
             WriteCompilationOptions(writer, compilationOptions);
 
+            // Collect unique ParseOptions from all syntax trees and write them as a top-level array.
+            // Each syntax tree will reference its ParseOptions by index into this array, avoiding
+            // repetition when all (or most) trees share the same options.
+            var parseOptionsList = new List<ParseOptions>();
+            foreach (var syntaxTree in syntaxTrees)
+            {
+                var treeOptions = syntaxTree.Options;
+                if (!parseOptionsList.Contains(treeOptions))
+                {
+                    parseOptionsList.Add(treeOptions);
+                }
+            }
+
+            writer.WriteKey("parseOptions");
+            writer.WriteArrayStart();
+            foreach (var parseOptions in parseOptionsList)
+            {
+                WriteParseOptions(writer, parseOptions);
+            }
+            writer.WriteArrayEnd();
+
             writer.WriteKey("syntaxTrees");
             writer.WriteArrayStart();
             foreach (var syntaxTree in syntaxTrees)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                WriteSyntaxTree(writer, syntaxTree, pathMap, options, cancellationToken);
+                WriteSyntaxTree(writer, syntaxTree, parseOptionsList.IndexOf(syntaxTree.Options), pathMap, options, cancellationToken);
             }
             writer.WriteArrayEnd();
 
@@ -253,6 +314,7 @@ namespace Microsoft.CodeAnalysis
         private void WriteSyntaxTree(
             JsonWriter writer,
             SyntaxTreeKey syntaxTree,
+            int parseOptionsIndex,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
@@ -261,12 +323,11 @@ namespace Microsoft.CodeAnalysis
             WriteFilePath(writer, "fileName", syntaxTree.FilePath, pathMap, options);
             writer.WriteKey("text");
             WriteSourceText(writer, syntaxTree.GetText(cancellationToken));
-            writer.WriteKey("parseOptions");
-            WriteParseOptions(writer, syntaxTree.Options);
+            writer.Write("parseOptionsIndex", parseOptionsIndex);
             writer.WriteObjectEnd();
         }
 
-        private void WriteSourceText(JsonWriter writer, SourceText? sourceText)
+        private static void WriteSourceText(JsonWriter writer, SourceText? sourceText)
         {
             if (sourceText is null)
             {
@@ -278,6 +339,22 @@ namespace Microsoft.CodeAnalysis
             WriteByteArrayValue(writer, "checksum", sourceText.GetChecksum().AsSpan());
             writer.Write("checksumAlgorithm", sourceText.ChecksumAlgorithm);
             writer.Write("encodingName", sourceText.Encoding?.EncodingName);
+            writer.WriteObjectEnd();
+        }
+
+        private static void WriteStream(JsonWriter writer, Stream? stream)
+        {
+            if (stream is null)
+            {
+                writer.WriteNull();
+                return;
+            }
+
+            writer.WriteObjectStart();
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
+            var checksum = SourceText.CalculateChecksum(stream, checksumAlgorithm);
+            WriteByteArrayValue(writer, "checksum", checksum.AsSpan());
+            writer.Write("checksumAlgorithm", checksumAlgorithm);
             writer.WriteObjectEnd();
         }
 
@@ -317,7 +394,6 @@ namespace Microsoft.CodeAnalysis
 
                 writer.WriteKey("properties");
                 writeMetadataReferenceProperties(writer, reference.Properties);
-
             }
             else if (reference is CompilationReference compilationReference)
             {
@@ -383,6 +459,7 @@ namespace Microsoft.CodeAnalysis
             JsonWriter writer,
             EmitOptions? options,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
+            Stream? sourceLinkStream,
             DeterministicKeyOptions deterministicKeyOptions)
         {
             if (options is null)
@@ -417,6 +494,8 @@ namespace Microsoft.CodeAnalysis
             writer.Write("runtimeMetadataVersion", options.RuntimeMetadataVersion);
             writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
             writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
+            writer.WriteKey("sourceLink");
+            WriteStream(writer, sourceLinkStream);
             writer.WriteObjectEnd();
 
             static void writeSubsystemVersion(JsonWriter writer, SubsystemVersion version)

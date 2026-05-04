@@ -4,13 +4,12 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal partial class SemanticMap
+internal sealed partial class SemanticMap
 {
-    private class Walker(SemanticModel semanticModel, SemanticMap map, CancellationToken cancellationToken)
+    private sealed class Walker(SemanticModel semanticModel, SemanticMap map, CancellationToken cancellationToken)
     {
         public void Visit(SyntaxNode node)
         {

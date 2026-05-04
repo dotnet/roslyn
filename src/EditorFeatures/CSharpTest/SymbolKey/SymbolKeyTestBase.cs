@@ -268,7 +268,7 @@ public abstract class SymbolKeyTestBase : CSharpTestBase
 
     #endregion
 
-    private class LocalSymbolDumper
+    private sealed class LocalSymbolDumper
     {
         private readonly CSharpCompilation _compilation;
         public LocalSymbolDumper(CSharpCompilation compilation)

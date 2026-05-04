@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal class AnnotatedSymbolMapping(
+internal sealed class AnnotatedSymbolMapping(
     ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
     Solution annotatedSolution,
     ImmutableDictionary<DocumentId, ImmutableArray<ISymbol>> documentIdsToSymbolMap,

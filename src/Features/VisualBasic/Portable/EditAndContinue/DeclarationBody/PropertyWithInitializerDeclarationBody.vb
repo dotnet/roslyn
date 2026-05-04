@@ -2,8 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -38,10 +37,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Public Overrides Function GetActiveTokens() As IEnumerable(Of SyntaxToken)
+        Public Overrides Function GetActiveTokens(getDescendantTokens As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))) As IEnumerable(Of SyntaxToken)
             ' Property: Attributes Modifiers [|Identifier$ Initializer|] ImplementsClause
             Return SpecializedCollections.SingletonEnumerable(PropertyStatement.Identifier).Concat(
-                    If(PropertyStatement.AsClause?.DescendantTokens(), Array.Empty(Of SyntaxToken))).Concat(PropertyStatement.Initializer.DescendantTokens())
+                    If(PropertyStatement.AsClause IsNot Nothing, getDescendantTokens(PropertyStatement.AsClause), Array.Empty(Of SyntaxToken))).
+                        Concat(getDescendantTokens(PropertyStatement.Initializer))
+        End Function
+
+        Public Overrides Function GetUserCodeTokens(getDescendantTokens As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))) As IEnumerable(Of SyntaxToken)
+            Return getDescendantTokens(PropertyStatement.Initializer.Value)
         End Function
     End Class
 End Namespace

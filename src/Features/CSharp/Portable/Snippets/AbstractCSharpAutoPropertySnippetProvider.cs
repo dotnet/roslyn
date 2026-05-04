@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,6 +30,8 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
 
     protected virtual AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
         => (AccessorDeclarationSyntax)generator.SetAccessorDeclaration();
+
+    protected virtual SyntaxToken[] GetAdditionalPropertyModifiers(CSharpSyntaxContext? syntaxContext) => [];
 
     protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
@@ -58,28 +61,30 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
             modifiers = SyntaxTokenList.Create(PublicKeyword);
         }
 
+        modifiers = modifiers.AddRange(GetAdditionalPropertyModifiers(syntaxContext));
+
         return SyntaxFactory.PropertyDeclaration(
             attributeLists: default,
             modifiers: modifiers,
             type: compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
             explicitInterfaceSpecifier: null,
             identifier: identifierName.ToIdentifierToken(),
-            accessorList: SyntaxFactory.AccessorList([.. accessors.Where(a => a is not null)!]));
+            accessorList: SyntaxFactory.AccessorList([.. (IEnumerable<AccessorDeclarationSyntax>)accessors.Where(a => a is not null)]));
     }
 
     protected override int GetTargetCaretPosition(PropertyDeclarationSyntax propertyDeclaration, SourceText sourceText)
         => propertyDeclaration.AccessorList!.CloseBraceToken.Span.End;
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(PropertyDeclarationSyntax propertyDeclaration, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
+        Document document, PropertyDeclarationSyntax propertyDeclaration, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         var identifier = propertyDeclaration.Identifier;
         var type = propertyDeclaration.Type;
 
-        return
-        [
+        return new([
             new SnippetPlaceholder(type.ToString(), type.SpanStart),
             new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart),
-        ];
+        ]);
     }
 
     protected override PropertyDeclarationSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)

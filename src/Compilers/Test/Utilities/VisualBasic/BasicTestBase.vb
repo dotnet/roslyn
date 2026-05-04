@@ -12,6 +12,18 @@ Imports Xunit
 Public MustInherit Class BasicTestBase
     Inherits CommonTestBase
 
+    Public Const CompilerLoweringPreserveAttributeDefinition As String = "
+Namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Class, Inherited:= false)>
+    Public Class CompilerLoweringPreserveAttribute
+        Inherits Attribute
+        
+        Sub New()
+        End Sub
+    End Class
+End Namespace
+"
+
     Public Function XCDataToString(Optional data As XCData = Nothing) As String
         Return data?.Value.Replace(vbLf, Environment.NewLine)
     End Function

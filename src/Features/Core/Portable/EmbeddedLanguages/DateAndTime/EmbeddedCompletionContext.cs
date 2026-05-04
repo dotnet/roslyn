@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime;
 
-internal partial class DateAndTimeEmbeddedCompletionProvider
+internal sealed partial class DateAndTimeEmbeddedCompletionProvider
 {
     private readonly struct EmbeddedCompletionContext
     {
@@ -62,9 +62,9 @@ internal partial class DateAndTimeEmbeddedCompletionProvider
             foreach (var ch in virtualChars)
             {
                 if (ch.Span.End <= startPosition)
-                    ch.AppendTo(prefix);
+                    prefix.Append(ch);
                 else if (ch.Span.Start >= endPosition)
-                    ch.AppendTo(suffix);
+                    suffix.Append(ch);
             }
 
             return (prefix.ToString(), suffix.ToString());

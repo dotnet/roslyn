@@ -22,19 +22,19 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 
 [UseExportProvider]
-public class CompletionServiceTests
+public sealed class CompletionServiceTests
 {
     [Fact]
     public async Task TestNuGetCompletionProvider()
     {
-        var code = @"
-using System.Diagnostics;
-class Test {
-    void Method() {
-        Debug.Assert(true, ""$$"");
-    }
-}
-";
+        var code = """
+            using System.Diagnostics;
+            class Test {
+                void Method() {
+                    Debug.Assert(true, "$$");
+                }
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(code, openDocuments: true);
 
@@ -58,7 +58,7 @@ class Test {
 
         Assert.NotEmpty(completions.ItemsList);
 
-        var item = Assert.Single(completions.ItemsList.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));
+        var item = Assert.Single(completions.ItemsList, item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName);
         Assert.Equal(nameof(DebugAssertTestCompletionProvider), item.DisplayText);
 
         var expectedDescriptionText = nameof(DebugAssertTestCompletionProvider);
@@ -70,7 +70,7 @@ class Test {
         Assert.Equal(expectedChange, actualChange);
     }
 
-    private class MockAnalyzerReference : AnalyzerReference, ICompletionProviderFactory
+    private sealed class MockAnalyzerReference : AnalyzerReference, ICompletionProviderFactory
     {
         private readonly CompletionProvider _completionProvider;
 
@@ -83,13 +83,13 @@ class Test {
         public override object Id => nameof(MockAnalyzerReference);
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public ImmutableArray<CompletionProvider> GetCompletionProviders()
-            => ImmutableArray.Create(_completionProvider);
+            => [_completionProvider];
     }
 
     private sealed class DebugAssertTestCompletionProvider : CompletionProvider
@@ -116,14 +116,14 @@ class Test {
             context.CompletionListSpan = await GetTextChangeSpanAsync(context.Document, context.CompletionListSpan, context.CancellationToken).ConfigureAwait(false);
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            return Task.FromResult(CompletionDescription.FromText(nameof(DebugAssertTestCompletionProvider)));
+            return CompletionDescription.FromText(nameof(DebugAssertTestCompletionProvider));
         }
 
-        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
-            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, nameof(DebugAssertTestCompletionProvider))));
+            return CompletionChange.Create(new TextChange(item.Span, nameof(DebugAssertTestCompletionProvider)));
         }
 
         private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, TextSpan startSpan, CancellationToken cancellationToken)

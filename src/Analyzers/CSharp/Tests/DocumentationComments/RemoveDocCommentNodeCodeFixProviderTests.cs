@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     private static readonly CSharpParseOptions Regular = new(kind: SourceCodeKind.Regular);
 
@@ -31,14 +31,12 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
     private async Task TestAsync(string initial, string expected)
     {
         var parseOptions = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-        await TestAsync(initial, expected, parseOptions: parseOptions);
+        await TestAsync(initial, expected, new(parseOptions: parseOptions));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesDuplicateParamTag()
-    {
-        var initial =
-            """
+    public Task RemovesDuplicateParamTag()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -48,10 +46,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param [|name="value"|]></param>
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -60,39 +55,28 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param name="value"></param>
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesDuplicateParamTag_OnlyParamTags()
-    {
-        var initial =
-            """
+    public Task RemovesDuplicateParamTag_OnlyParamTags()
+        => TestAsync("""
             class Program
             {
                 /// <param name="value"></param>
                 /// <param [|name="value"|]></param>
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <param name="value"></param>
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesDuplicateParamTag_TagBelowOffendingParamTag()
-    {
-        var initial =
-            """
+    public Task RemovesDuplicateParamTag_TagBelowOffendingParamTag()
+        => TestAsync("""
             class Program
             {
                 /// <param name="value"></param>
@@ -100,25 +84,18 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <returns></returns>
                 public int Fizz(int value) { return 0; }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <param name="value"></param>
                 /// <returns></returns>
                 public int Fizz(int value) { return 0; }
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_DocCommentTagBetweenThem()
-    {
-        var initial =
-            """
+    public Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_DocCommentTagBetweenThem()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -127,10 +104,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param name="value"></param>    /// <param [|name="value"|]></param>
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -139,15 +113,11 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param name="value"></param>
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_WhitespaceBetweenThem()
-    {
-        var initial =
-            """
+    public Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_WhitespaceBetweenThem()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -156,10 +126,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param name="value"></param>     <param [|name="value"|]></param>
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -168,15 +135,11 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param name="value"></param>
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_NothingBetweenThem1()
-    {
-        var initial =
-            """
+    public Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_NothingBetweenThem1()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -185,10 +148,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param name="value"></param><param [|name="value"|]></param>
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -197,16 +157,12 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param name="value"></param>
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13436")]
-    public async Task RemovesTag_BothParamTagsOnSameLine_NothingBetweenThem2()
-    {
-        var initial =
-            """
+    public Task RemovesTag_BothParamTagsOnSameLine_NothingBetweenThem2()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -215,10 +171,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param [|name="a"|]></param><param name="value"></param>
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -227,16 +180,12 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param name="value"></param>
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13436")]
-    public async Task RemovesTag_TrailingTextAfterTag()
-    {
-        var initial =
-            """
+    public Task RemovesTag_TrailingTextAfterTag()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -245,10 +194,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param [|name="a"|]></param> a
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -257,15 +203,11 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 ///  a
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesDuplicateParamTag_RawTextBeforeAndAfterNode()
-    {
-        var initial =
-            """
+    public Task RemovesDuplicateParamTag_RawTextBeforeAndAfterNode()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -275,10 +217,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// some comment<param [|name="value"|]></param>out of the XML nodes
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -288,15 +227,11 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// some commentout of the XML nodes
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesDuplicateTypeparamTag()
-    {
-        var initial =
-            """
+    public Task RemovesDuplicateTypeparamTag()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -306,10 +241,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <typeparam [|name="T"|]></typeparam>
                 public void Fizz<T>() { }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -318,15 +250,11 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <typeparam name="T"></typeparam>
                 public void Fizz<T>() { }
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesParamTagWithNoMatchingParameter()
-    {
-        var initial =
-            """
+    public Task RemovesParamTagWithNoMatchingParameter()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -335,10 +263,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// <param name="[|val|]"></param>
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -346,15 +271,11 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// </summary>
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesParamTag_NestedInSummaryTag()
-    {
-        var initial =
-            """
+    public Task RemovesParamTag_NestedInSummaryTag()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -363,10 +284,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// </summary>
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -374,15 +292,11 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// </summary>
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public async Task RemovesParamTag_NestedInSummaryTag_WithChildren()
-    {
-        var initial =
-            """
+    public Task RemovesParamTag_NestedInSummaryTag_WithChildren()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -393,10 +307,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// </summary>
                 public void Fizz(int value) {}
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 /// <summary>
@@ -404,15 +315,12 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                 /// </summary>
                 public void Fizz(int value) {}
             }
-            """;
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllTypeparamInDocument_DoesNotFixDuplicateParamTags()
-    {
-        var initial = """
+    public Task TestFixAllTypeparamInDocument_DoesNotFixDuplicateParamTags()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -469,9 +377,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -526,16 +432,12 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        var initial = """
+    public Task TestFixAllInDocument()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -586,9 +488,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -637,16 +537,12 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        var initial = """
+    public Task TestFixAllInProject()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -689,9 +585,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -732,16 +626,12 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestAsync(initial, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        var initial = """
+    public Task TestFixAllInSolution()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -784,9 +674,7 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -826,8 +714,5 @@ public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestAsync(initial, expected);
-    }
+            """);
 }

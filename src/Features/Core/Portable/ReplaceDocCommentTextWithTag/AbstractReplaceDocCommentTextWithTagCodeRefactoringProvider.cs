@@ -28,7 +28,13 @@ internal abstract class AbstractReplaceDocCommentTextWithTagCodeRefactoringProvi
         var token = root.FindToken(span.Start, findInsideTrivia: true);
 
         if (!IsXmlTextToken(token))
-            return;
+        {
+            token = root.FindTokenFromEnd(span.Start, findInsideTrivia: true);
+            if (!IsXmlTextToken(token))
+            {
+                return;
+            }
+        }
 
         if (!token.FullSpan.Contains(span))
             return;

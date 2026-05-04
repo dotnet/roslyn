@@ -17,7 +17,7 @@ internal sealed class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEve
     protected override bool CanFind(IEventSymbol symbol)
         => true;
 
-    protected sealed override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+    protected sealed override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         IEventSymbol symbol,
         Solution solution,
         FindReferencesSearchOptions options,
@@ -32,7 +32,18 @@ internal sealed class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEve
                                                         .WhereAsArray(n => symbol.Equals(n.AssociatedSymbol))
                                                         .CastArray<ISymbol>();
 
-        return new(backingFields.Concat(associatedNamedTypes));
+        return [.. GetOtherPartsOfPartial(symbol), .. backingFields, .. associatedNamedTypes];
+    }
+
+    private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IEventSymbol symbol)
+    {
+        if (symbol.PartialDefinitionPart != null)
+            return [symbol.PartialDefinitionPart];
+
+        if (symbol.PartialImplementationPart != null)
+            return [symbol.PartialImplementationPart];
+
+        return [];
     }
 
     protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(

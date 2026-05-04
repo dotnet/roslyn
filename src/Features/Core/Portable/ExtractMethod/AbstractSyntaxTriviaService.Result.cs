@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal abstract partial class AbstractSyntaxTriviaService
 {
-    private class Result : ITriviaSavedResult
+    private sealed class Result : ITriviaSavedResult
     {
         private static readonly AnnotationResolver s_defaultAnnotationResolver = ResolveAnnotation;
         private static readonly TriviaResolver s_defaultTriviaResolver = ResolveTrivia;

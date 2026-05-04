@@ -5,6 +5,9 @@
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Threading;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServiceRequestHandler<RestoreParams, RestorePartialResult[]>
+internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFactory loggerFactory) : ILspServiceRequestHandler<RestoreParams, RestoreResult>
 {
     internal const string MethodName = "workspace/_roslyn_restore";
 
@@ -25,28 +28,72 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
 
     public bool RequiresLSPSolution => true;
 
-    public async Task<RestorePartialResult[]> HandleRequestAsync(RestoreParams request, RequestContext context, CancellationToken cancellationToken)
+    private readonly ILogger<RestoreHandler> _logger = loggerFactory.CreateLogger<RestoreHandler>();
+
+    public async Task<RestoreResult> HandleRequestAsync(RestoreParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
-        using var progress = BufferedProgress.Create(request.PartialResultToken);
-
-        progress.Report(new RestorePartialResult(LanguageServerResources.Restore, LanguageServerResources.Restore_started));
 
         var restorePaths = GetRestorePaths(request, context.Solution, context);
         if (restorePaths.IsEmpty)
         {
-            progress.Report(new RestorePartialResult(LanguageServerResources.Restore, LanguageServerResources.Nothing_found_to_restore));
-            return progress.GetValues() ?? [];
+            _logger.LogDebug($"Restore was requested but no paths were provided.");
+            return new RestoreResult(true);
         }
 
-        await RestoreAsync(restorePaths, progress, cancellationToken);
+        var workDoneProgressManager = context.GetRequiredService<WorkDoneProgressManager>();
+        _logger.LogDebug($"Running restore on {restorePaths.Length} paths, starting with '{restorePaths.First()}'.");
 
-        progress.Report(new RestorePartialResult(LanguageServerResources.Restore, $"{LanguageServerResources.Restore_complete}{Environment.NewLine}"));
-        return progress.GetValues() ?? [];
+        // We let cancellation here bubble up to the client as this is a client initiated operation.
+        var didSucceed = await RestoreAsync(restorePaths, workDoneProgressManager, dotnetCliHelper, _logger, enableProgressReporting: true, cancellationToken);
+
+        if (didSucceed)
+        {
+            _logger.LogDebug($"Restore completed successfully.");
+        }
+        else
+        {
+            _logger.LogError($"Restore completed with errors.");
+        }
+
+        return new RestoreResult(didSucceed);
     }
 
-    private async Task RestoreAsync(ImmutableArray<string> pathsToRestore, BufferedProgress<RestorePartialResult> progress, CancellationToken cancellationToken)
+    /// <returns>True if all restore invocations exited with code 0. Otherwise, false.</returns>
+    public static async Task<bool> RestoreAsync(
+        ImmutableArray<string> pathsToRestore,
+        WorkDoneProgressManager workDoneProgressManager,
+        DotnetCliHelper dotnetCliHelper,
+        ILogger logger,
+        bool enableProgressReporting,
+        CancellationToken cancellationToken)
     {
+        using var progress = await workDoneProgressManager.CreateWorkDoneProgressAsync(reportProgressToClient: enableProgressReporting, cancellationToken);
+        // Ensure we're observing cancellation token from the work done progress (to allow client cancellation).
+        cancellationToken = progress.CancellationToken;
+        return await RestoreCoreAsync(pathsToRestore, progress, dotnetCliHelper, logger, cancellationToken);
+
+    }
+
+    private static async Task<bool> RestoreCoreAsync(
+        ImmutableArray<string> pathsToRestore,
+        IWorkDoneProgressReporter progress,
+        DotnetCliHelper dotnetCliHelper,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        // Report the start of the work done progress to the client.
+        progress.Report(new WorkDoneProgressBegin()
+        {
+            Title = LanguageServerResources.Restore,
+            // Adds a cancel button to the client side progress UI.
+            // Cancellation here is fine, it just means the restore will be incomplete (same as a cntrl+C for a CLI restore).
+            Cancellable = true,
+            Message = LanguageServerResources.Restore_started,
+            Percentage = 0,
+        });
+
+        var success = true;
         foreach (var path in pathsToRestore)
         {
             var arguments = new string[] { "restore", path };
@@ -61,8 +108,8 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
                 process?.Kill();
             });
 
-            process.OutputDataReceived += (sender, args) => ReportProgress(progress, stageName, args.Data);
-            process.ErrorDataReceived += (sender, args) => ReportProgress(progress, stageName, args.Data);
+            process.OutputDataReceived += (sender, args) => ReportProgressInEvent(progress, stageName, args.Data);
+            process.ErrorDataReceived += (sender, args) => ReportProgressInEvent(progress, stageName, args.Data);
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
@@ -71,15 +118,47 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
             if (process.ExitCode != 0)
             {
                 ReportProgress(progress, stageName, string.Format(LanguageServerResources.Failed_to_run_restore_on_0, path));
+                success = false;
             }
         }
 
-        static void ReportProgress(BufferedProgress<RestorePartialResult> progress, string stage, string? restoreOutput)
-        {
-            if (restoreOutput != null)
+        // Report work done progress completion
+        progress.Report(
+            new WorkDoneProgressEnd()
             {
-                progress.Report(new RestorePartialResult(stage, restoreOutput));
+                Message = LanguageServerResources.Restore_complete
+            });
+
+        logger.LogInformation(LanguageServerResources.Restore_complete);
+        return success;
+
+        void ReportProgressInEvent(IWorkDoneProgressReporter progress, string stage, string? restoreOutput)
+        {
+            if (restoreOutput == null)
+                return;
+
+            try
+            {
+                ReportProgress(progress, stage, restoreOutput);
             }
+            catch (Exception)
+            {
+                // Catch everything to ensure the exception doesn't escape the event handler.
+                // Errors already reported via ReportNonFatalErrorUnlessCancelledAsync.
+            }
+        }
+
+        void ReportProgress(IWorkDoneProgressReporter progress, string stage, string message)
+        {
+            logger.LogInformation("{stage}: {Output}", stage, message);
+            var report = new WorkDoneProgressReport()
+            {
+                Message = stage,
+                Percentage = null,
+                Cancellable = true,
+            };
+
+            progress.Report(report);
         }
     }
 
@@ -106,7 +185,7 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
             .Distinct()
             .ToImmutableArray();
 
-        context.TraceInformation($"Found {projects.Length} restorable projects from {solution.Projects.Count()} projects in solution");
+        context.TraceDebug($"Found {projects.Length} restorable projects from {solution.Projects.Count()} projects in solution");
         return projects;
     }
 }

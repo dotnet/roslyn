@@ -220,6 +220,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
+
+                if (AdaptedPropertySymbol.IsExtensionBlockMember())
+                {
+                    var containingType = AdaptedPropertySymbol.ContainingType;
+                    return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
+                }
+
                 return AdaptedPropertySymbol.ContainingType.GetCciAdapter();
             }
         }
@@ -240,6 +247,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ITypeReference ITypeMemberReference.GetContainingType(EmitContext context)
         {
             CheckDefinitionInvariant();
+
+            if (AdaptedPropertySymbol.IsExtensionBlockMember())
+            {
+                var containingType = AdaptedPropertySymbol.ContainingType;
+                return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
+            }
+
             return AdaptedPropertySymbol.ContainingType.GetCciAdapter();
         }
 

@@ -14,12 +14,10 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
-    IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IDiagnosticsRefresher diagnosticRefresher,
     IDiagnosticSourceManager diagnosticSourceManager,
     IGlobalOptionService globalOptions)
     : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
-        diagnosticAnalyzerService,
         diagnosticRefresher,
         globalOptions), ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
     where TDiagnosticsParams : IPartialResultParams<TReport>
@@ -28,7 +26,7 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
 
     public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
 
-    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(TDiagnosticsParams diagnosticsParams, string? requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken)
+    protected override async ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(TDiagnosticsParams diagnosticsParams, string? requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken)
     {
         // Note: context.Document may be null in the case where the client is asking about a document that we have
         // since removed from the workspace.  In this case, we don't really have anything to process.
@@ -36,19 +34,19 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
         //
         // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
         // handler treats those as separate worlds that they are responsible for.
-        var textDocument = context.TextDocument;
-        if (textDocument is null)
+        var identifier = GetTextDocumentIdentifier(diagnosticsParams);
+        if (identifier is null || context.TextDocument is null)
         {
-            context.TraceInformation("Ignoring diagnostics request because no text document was provided");
-            return new([]);
+            context.TraceDebug("Ignoring diagnostics request because no text document was provided");
+            return [];
         }
 
-        if (!context.IsTracking(textDocument.GetURI()))
+        if (!context.IsTracking(identifier.DocumentUri))
         {
-            context.TraceWarning($"Ignoring diagnostics request for untracked document: {textDocument.GetURI()}");
-            return new([]);
+            context.TraceWarning($"Ignoring diagnostics request for untracked document: {identifier.DocumentUri}");
+            return [];
         }
 
-        return DiagnosticSourceManager.CreateDocumentDiagnosticSourcesAsync(context, requestDiagnosticCategory, cancellationToken);
+        return await DiagnosticSourceManager.CreateDocumentDiagnosticSourcesAsync(context, requestDiagnosticCategory, cancellationToken).ConfigureAwait(false);
     }
 }

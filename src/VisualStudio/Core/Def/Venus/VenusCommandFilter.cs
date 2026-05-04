@@ -6,6 +6,8 @@
 
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -13,7 +15,6 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 
@@ -43,14 +44,13 @@ internal class VenusCommandFilter : AbstractVsTextViewFilter
     protected override ITextBuffer GetSubjectBufferContainingCaret()
         => _subjectBuffer;
 
-    protected override int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
+    protected override async Task<(string pbstrText, int result)> GetDataTipTextImplAsync(TextSpan[] pSpan)
     {
         var textViewModel = WpfTextView.TextViewModel;
         if (textViewModel == null)
         {
             Debug.Assert(WpfTextView.IsClosed);
-            pbstrText = null;
-            return VSConstants.E_FAIL;
+            return (null, VSConstants.E_FAIL);
         }
 
         // We need to map the TextSpan from the DataBuffer to our subject buffer.
@@ -72,7 +72,7 @@ internal class VenusCommandFilter : AbstractVsTextViewFilter
             // Next, we'll check to see if there is actually a DataTip for this candidate.
             // If there is, we'll map this span back to the DataBuffer and return it.
             var subjectBufferSpanData = new TextSpan[] { candidateSpan.ToVsTextSpan() };
-            var hr = GetDataTipTextImpl(_subjectBuffer, subjectBufferSpanData, out pbstrText);
+            var (pbstrText, hr) = await GetDataTipTextImplAsync(_subjectBuffer, subjectBufferSpanData).ConfigureAwait(true);
             if (ErrorHandler.Succeeded(hr))
             {
                 var subjectSpan = _subjectBuffer.CurrentSnapshot.GetSpan(subjectBufferSpanData[0]);
@@ -85,18 +85,14 @@ internal class VenusCommandFilter : AbstractVsTextViewFilter
                     .SingleOrDefault(x => x.IntersectsWith(span));
 
                 if (surfaceSpan == default)
-                {
-                    pbstrText = null;
-                    return VSConstants.E_FAIL;
-                }
+                    return (null, VSConstants.E_FAIL);
 
                 // pSpan is an in/out parameter
                 pSpan[0] = surfaceSpan.ToVsTextSpan();
-                return hr;
+                return (pbstrText, hr);
             }
         }
 
-        pbstrText = null;
-        return VSConstants.E_FAIL;
+        return (null, VSConstants.E_FAIL);
     }
 }

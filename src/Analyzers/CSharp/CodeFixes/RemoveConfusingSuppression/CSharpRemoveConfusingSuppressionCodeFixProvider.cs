@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression;
 
@@ -31,7 +30,7 @@ internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider() 
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var document = context.Document;
         var diagnostics = context.Diagnostics;
@@ -50,8 +49,6 @@ internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider() 
                 c => FixAllAsync(document, diagnostics, negate: true, c),
                 NegateExpression),
             context.Diagnostics);
-
-        return Task.CompletedTask;
     }
 
     private static async Task<Document> FixAllAsync(

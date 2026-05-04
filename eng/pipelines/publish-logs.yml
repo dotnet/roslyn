@@ -7,6 +7,18 @@ parameters:
   default: 'Debug'
 
 steps:
+  - task: PowerShell@2
+    displayName: Generate Complog on Build Failure
+    inputs:
+      targetType: 'inline'
+      script: |
+        Set-Location -Path "$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}\"
+        Get-ChildItem -Filter "*.binlog" | ForEach-Object {
+          dnx --yes complog create $_.FullName
+        }
+    continueOnError: true
+    condition: failed()
+
   - task: CopyFiles@2
     displayName: Copy Test Artifacts to Logs
     inputs:

@@ -5,9 +5,7 @@
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.OLE.Interop
 Imports System.Runtime.InteropServices
-Imports Microsoft.VisualStudio.Shell
 Imports Roslyn.Utilities
-Imports System.IO
 Imports Moq
 Imports Microsoft.VisualStudio.LanguageServices.ProjectSystem
 

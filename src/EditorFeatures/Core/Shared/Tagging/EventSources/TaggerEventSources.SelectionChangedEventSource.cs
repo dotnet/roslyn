@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class SelectionChangedEventSource(ITextView textView) : AbstractTaggerEventSource
+    private sealed class SelectionChangedEventSource(ITextView textView) : AbstractTaggerEventSource
     {
         private readonly ITextView _textView = textView;
 

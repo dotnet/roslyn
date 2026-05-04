@@ -16,32 +16,34 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 
-internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TValue> : ISettingsProvider<TData>
+internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TValue>(
+    IThreadingContext threadingContext,
+    string fileName,
+    TOptionsUpdater settingsUpdater,
+    Workspace workspace,
+    IGlobalOptionService globalOptions) : ISettingsProvider<TData>
     where TOptionsUpdater : ISettingUpdater<TOption, TValue>
 {
     private readonly List<TData> _snapshot = [];
     private static readonly object s_gate = new();
     private ISettingsEditorViewModel? _viewModel;
-    protected readonly string FileName;
-    protected readonly TOptionsUpdater SettingsUpdater;
-    protected readonly Workspace Workspace;
-    public readonly IGlobalOptionService GlobalOptions;
 
-    protected abstract void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope);
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    protected readonly string FileName = fileName;
+    protected readonly TOptionsUpdater SettingsUpdater = settingsUpdater;
+    protected readonly Workspace Workspace = workspace;
+    public readonly IGlobalOptionService GlobalOptions = globalOptions;
 
-    protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
-    {
-        FileName = fileName;
-        SettingsUpdater = settingsUpdater;
-        Workspace = workspace;
-        GlobalOptions = globalOptions;
-    }
+    protected abstract Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken);
 
     protected void Update()
     {
@@ -60,7 +62,8 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             return;
         }
 
-        var configFileDirectoryOptions = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, CancellationToken.None);
+        var cancellationToken = _threadingContext.DisposalToken;
+        var configFileDirectoryOptions = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, cancellationToken);
         var projectDirectoryOptions = project.GetAnalyzerConfigOptions();
 
         // TODO: Support for multiple languages https://github.com/dotnet/roslyn/issues/65859
@@ -70,7 +73,8 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             language: LanguageNames.CSharp,
             editorConfigFileName: FileName);
 
-        UpdateOptions(options, projects);
+        _ = UpdateOptionsAsync(options, projects, cancellationToken)
+            .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText)
@@ -112,10 +116,10 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
 
         public override NamingStylePreferences GetNamingStylePreferences()
         {
-            var preferences = _fileDirectoryConfigData.ConfigOptions.GetNamingStylePreferences();
+            var preferences = _fileDirectoryConfigData.ConfigOptionsWithoutFallback.GetNamingStylePreferences();
             if (preferences.IsEmpty && _projectDirectoryConfigData.HasValue)
             {
-                preferences = _projectDirectoryConfigData.Value.ConfigOptions.GetNamingStylePreferences();
+                preferences = _projectDirectoryConfigData.Value.ConfigOptionsWithoutFallback.GetNamingStylePreferences();
             }
 
             return preferences;
@@ -123,7 +127,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
 
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
         {
-            if (_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out value))
+            if (_fileDirectoryConfigData.ConfigOptionsWithoutFallback.TryGetValue(key, out value))
             {
                 return true;
             }
@@ -134,7 +138,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
                 return false;
             }
 
-            if (_projectDirectoryConfigData.Value.ConfigOptions.TryGetValue(key, out value))
+            if (_projectDirectoryConfigData.Value.ConfigOptionsWithoutFallback.TryGetValue(key, out value))
             {
                 return true;
             }
@@ -156,23 +160,23 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
         {
             get
             {
-                foreach (var key in _fileDirectoryConfigData.ConfigOptions.Keys)
+                foreach (var key in _fileDirectoryConfigData.ConfigOptionsWithoutFallback.Keys)
                     yield return key;
 
                 if (!_projectDirectoryConfigData.HasValue)
                     yield break;
 
-                foreach (var key in _projectDirectoryConfigData.Value.ConfigOptions.Keys)
+                foreach (var key in _projectDirectoryConfigData.Value.ConfigOptionsWithoutFallback.Keys)
                 {
-                    if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out _))
+                    if (!_fileDirectoryConfigData.ConfigOptionsWithoutFallback.TryGetValue(key, out _))
                         yield return key;
                 }
 
                 foreach (var (key, severity) in _projectDirectoryConfigData.Value.TreeOptions)
                 {
                     var diagnosticKey = "dotnet_diagnostic." + key + ".severity";
-                    if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(diagnosticKey, out _) &&
-                        !_projectDirectoryConfigData.Value.ConfigOptions.TryGetValue(diagnosticKey, out _))
+                    if (!_fileDirectoryConfigData.ConfigOptionsWithoutFallback.TryGetValue(diagnosticKey, out _) &&
+                        !_projectDirectoryConfigData.Value.ConfigOptionsWithoutFallback.TryGetValue(diagnosticKey, out _))
                     {
                         yield return diagnosticKey;
                     }

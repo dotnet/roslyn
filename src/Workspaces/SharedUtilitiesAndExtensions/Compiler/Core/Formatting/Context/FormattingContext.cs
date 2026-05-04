@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// this class maintain contextual information such as 
 /// indentation of current position, based token to follow in current position and etc.
 /// </summary>
-internal partial class FormattingContext
+internal sealed partial class FormattingContext
 {
     private readonly AbstractFormatEngine _engine;
 

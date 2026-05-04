@@ -114,4 +114,30 @@ internal readonly struct BlockSpan(
         return new BlockSpan(
             newType, newIsCollapsible, newTextSpan, newHintSpan, newPrimarySpans, newBannerText, newAutoCollapse, newIsDefaultCollapsed);
     }
+
+    internal bool IsOverlappingBlockSpan(TextLineCollection lines, BlockSpan? other)
+    {
+        // Compare collapse region related properties to decide should two block span be consider as one.
+        // We only want one block span (inner block) for case like:
+        // M1(M2(
+        // ))
+        if (other is null)
+            return false;
+
+        if (this.AutoCollapse != other.Value.AutoCollapse
+            || this.IsCollapsible != other.Value.IsCollapsible
+            || this.IsDefaultCollapsed != other.Value.IsDefaultCollapsed)
+        {
+            return false;
+        }
+
+        var startLine = lines.GetLinePosition(this.TextSpan.Start).Line;
+        var otherStartLine = lines.GetLinePosition(other.Value.TextSpan.Start).Line;
+        if (startLine != otherStartLine)
+            return false;
+
+        var endLine = lines.GetLinePosition(this.TextSpan.End).Line;
+        var otherEndLine = lines.GetLinePosition(other.Value.TextSpan.End).Line;
+        return endLine == otherEndLine;
+    }
 }

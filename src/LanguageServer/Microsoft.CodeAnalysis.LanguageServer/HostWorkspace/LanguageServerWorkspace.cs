@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -36,7 +38,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// it will use the local information it has outside of the workspace to ensure it is always matched with the lsp
 /// client.
 /// </summary>
-internal class LanguageServerWorkspace : Workspace, ILspWorkspace
+[DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+internal sealed class LanguageServerWorkspace : Workspace, ILspWorkspace
 {
     /// <summary>
     /// Will be set by LanguageServerProjectSystem immediately after creating this instance.  Can't be passed into the
@@ -44,8 +47,8 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
     /// </summary>
     public ProjectSystemProjectFactory ProjectSystemProjectFactory { private get; set; } = null!;
 
-    public LanguageServerWorkspace(HostServices host)
-        : base(host, WorkspaceKind.Host)
+    public LanguageServerWorkspace(HostServices host, string workspaceKind)
+        : base(host, workspaceKind)
     {
     }
 
@@ -106,7 +109,9 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
                 {
                     TextLoader loader;
                     var document = textDocument as Document;
-                    if (document?.DocumentState.Attributes.DesignTimeOnly == true)
+
+                    // 'DesignTimeOnly == true' or 'filePath' not being absolute indicates the document is for a virtual file (in-memory, not on-disk).
+                    if (document is not null && (document.DocumentState.Attributes.DesignTimeOnly || !PathUtilities.IsAbsolute(filePath)))
                     {
                         // Dynamic files don't exist on disk so if we were to use the FileTextLoader we'd effectively be emptying out the document.
                         // We also assume they're not user editable, and hence can't have "unsaved" changes that are expected to go away on close.
@@ -132,5 +137,10 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
                 }
             },
             cancellationToken);
+    }
+
+    private string GetDebuggerDisplay()
+    {
+        return $"""LanguageServerWorkspace(Kind: "{Kind}")""";
     }
 }

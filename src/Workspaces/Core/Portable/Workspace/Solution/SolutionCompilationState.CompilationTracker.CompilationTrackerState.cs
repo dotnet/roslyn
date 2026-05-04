@@ -12,9 +12,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
-    private partial class RegularCompilationTracker
+    private sealed partial class RegularCompilationTracker
     {
         /// <summary>
         /// The base type of all <see cref="RegularCompilationTracker"/> states. The state of a <see

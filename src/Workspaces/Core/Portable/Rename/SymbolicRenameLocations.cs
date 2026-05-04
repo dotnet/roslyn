@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -39,7 +38,7 @@ internal sealed partial class SymbolicRenameLocations
         ImmutableArray<ReferenceLocation> implicitLocations,
         ImmutableArray<ISymbol> referencedSymbols)
     {
-        Debug.Assert(locations.Distinct().Count() == locations.Length, "Locations should be unique");
+        Debug.Assert(locations.Distinct().Length == locations.Length, "Locations should be unique");
         Contract.ThrowIfTrue(locations.IsDefault);
         Contract.ThrowIfTrue(implicitLocations.IsDefault);
         Contract.ThrowIfTrue(referencedSymbols.IsDefault);
@@ -57,6 +56,14 @@ internal sealed partial class SymbolicRenameLocations
     /// </summary>
     public static async Task<SymbolicRenameLocations> FindLocationsInCurrentProcessAsync(
         ISymbol symbol, Solution solution, SymbolRenameOptions options, CancellationToken cancellationToken)
+        => await FindLocationsInCurrentProcessAsync(symbol, solution, options, allowRenamesInRazorSourceGeneratedDocuments: false, cancellationToken).ConfigureAwait(false);
+
+    public static async Task<SymbolicRenameLocations> FindLocationsInCurrentProcessAsync(
+        ISymbol symbol,
+        Solution solution,
+        SymbolRenameOptions options,
+        bool allowRenamesInRazorSourceGeneratedDocuments,
+        CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(symbol);
         using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
@@ -64,7 +71,7 @@ internal sealed partial class SymbolicRenameLocations
             symbol = await RenameUtilities.FindDefinitionSymbolAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
             // First, find the direct references just to the symbol being renamed.
-            var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, allowRenamesInRazorSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
             // Next, find references to overloads, if the user has asked to rename those as well.
             var overloadsResult = options.RenameOverloads ? await GetOverloadsAsync(symbol, solution, cancellationToken).ConfigureAwait(false) :
@@ -117,7 +124,7 @@ internal sealed partial class SymbolicRenameLocations
         using var _ = ArrayBuilder<SearchResult>.GetInstance(out var overloadsResult);
 
         foreach (var overloadedSymbol in RenameUtilities.GetOverloadedSymbols(symbol))
-            overloadsResult.Add(await AddLocationsReferenceSymbolsAsync(overloadedSymbol, solution, cancellationToken).ConfigureAwait(false));
+            overloadsResult.Add(await AddLocationsReferenceSymbolsAsync(overloadedSymbol, solution, allowRenamesInRazorSourceGeneratedDocuments: false, cancellationToken).ConfigureAwait(false));
 
         return overloadsResult.ToImmutableAndClear();
     }
@@ -125,6 +132,7 @@ internal sealed partial class SymbolicRenameLocations
     private static async Task<SearchResult> AddLocationsReferenceSymbolsAsync(
         ISymbol symbol,
         Solution solution,
+        bool allowRenamesInRazorSourceGeneratedDocuments,
         CancellationToken cancellationToken)
     {
         var locations = ImmutableHashSet.CreateBuilder<RenameLocation>();
@@ -134,16 +142,17 @@ internal sealed partial class SymbolicRenameLocations
         foreach (var referencedSymbol in referenceSymbols)
         {
             locations.AddAll(
-                await ReferenceProcessing.GetRenamableDefinitionLocationsAsync(referencedSymbol.Definition, symbol, solution, cancellationToken).ConfigureAwait(false));
+                await ReferenceProcessing.GetRenamableDefinitionLocationsAsync(referencedSymbol.Definition, symbol, solution, allowRenamesInRazorSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false));
 
             locations.AddAll(
                 await referencedSymbol.Locations.SelectManyInParallelAsync(
-                    (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(referencedSymbol.Definition, symbol, l, solution, c),
+                    (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(
+                        referencedSymbol.Definition, symbol, l, solution, allowRenamesInRazorSourceGeneratedDocuments, c),
                     cancellationToken).ConfigureAwait(false));
         }
 
-        var implicitLocations = referenceSymbols.SelectMany(refSym => refSym.Locations).Where(loc => loc.IsImplicit).ToImmutableArray();
-        var referencedSymbols = referenceSymbols.Select(r => r.Definition).Where(r => !r.Equals(symbol)).ToImmutableArray();
+        var implicitLocations = referenceSymbols.SelectMany(refSym => refSym.Locations).WhereAsArray(loc => loc.IsImplicit);
+        var referencedSymbols = referenceSymbols.Select(r => r.Definition).WhereAsArray(r => !r.Equals(symbol));
 
         return new SearchResult(locations.ToImmutable(), implicitLocations, referencedSymbols);
     }

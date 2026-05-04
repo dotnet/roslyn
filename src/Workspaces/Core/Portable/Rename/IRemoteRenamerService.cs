@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,13 +28,13 @@ internal interface IRemoteRenamerService
         SerializableSymbolAndProjectId symbolAndProjectId,
         string replacementText,
         SymbolRenameOptions options,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
 
     ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
         Checksum solutionChecksum,
         SerializableSymbolAndProjectId symbolAndProjectId,
         SymbolRenameOptions options,
+        bool allowRenamesInRazorSourceGeneratedDocuments,
         CancellationToken cancellationToken);
 
     ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
@@ -45,7 +42,6 @@ internal interface IRemoteRenamerService
         SerializableSymbolAndProjectId symbolAndProjectId,
         SerializableRenameLocations renameLocationSet,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
 }
 
@@ -91,7 +87,9 @@ internal readonly struct SerializableRenameLocation(
 
     public async ValueTask<RenameLocation> RehydrateAsync(Solution solution, CancellationToken cancellation)
     {
-        var document = solution.GetRequiredDocument(DocumentId);
+        var document = await solution.GetRequiredDocumentAsync(DocumentId, includeSourceGenerated: true, cancellation).ConfigureAwait(false);
+        Contract.ThrowIfTrue(DocumentId.IsSourceGenerated && !document.IsRazorSourceGeneratedDocument());
+
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellation).ConfigureAwait(false);
 
         return new RenameLocation(
@@ -105,7 +103,7 @@ internal readonly struct SerializableRenameLocation(
     }
 }
 
-internal partial class LightweightRenameLocations
+internal sealed partial class LightweightRenameLocations
 {
     public SerializableRenameLocations Dehydrate()
         => new(
@@ -115,7 +113,7 @@ internal partial class LightweightRenameLocations
             _referencedSymbols);
 }
 
-internal partial class SymbolicRenameLocations
+internal sealed partial class SymbolicRenameLocations
 {
     internal static async Task<SymbolicRenameLocations?> TryRehydrateAsync(
         ISymbol symbol, Solution solution, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
@@ -139,7 +137,7 @@ internal partial class SymbolicRenameLocations
             serializableLocations.Options,
             locations,
             implicitLocations,
-            referencedSymbols);
+            referencedSymbols!);
     }
 }
 

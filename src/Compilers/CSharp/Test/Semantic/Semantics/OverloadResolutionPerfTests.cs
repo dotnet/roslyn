@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = builder.ToString();
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (3,29): error CS0034: Operator '+' is ambiguous on operands of type 'C' and '<null>'
+                // (3,31): error CS9342: Operator resolution is ambiguous between the following members: 'C.operator +(C, C0)' and 'C.operator +(C, C1)'
                 //     static object F(C x) => x + null;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + null").WithArguments("+", "C", "<null>").WithLocation(3, 29));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C.operator +(C, C0)", "C.operator +(C, C1)").WithLocation(3, 31));
         }
 
         [ConditionalFact(typeof(IsRelease))]
@@ -1060,6 +1060,34 @@ class C
             var exprs = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToImmutableArray();
             var containingTypes = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol.ContainingSymbol).ToTestDisplayStrings();
             Assert.Equal(new[] { "A", "B", "B", "A", "B", "B" }, containingTypes);
+        }
+
+        [ConditionalFact(typeof(IsRelease))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76568")]
+        public void NullableAnalysis_ObjectCreationExpression()
+        {
+            const int n = 200000;
+            var builder = new StringBuilder();
+            builder.AppendLine("""
+                #nullable enable
+                class A { }
+                class B
+                {
+                    static void Main()
+                    {
+                        A a;
+                """);
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine("        a = new A();");
+            }
+            builder.AppendLine("""
+                    }
+                }
+                """);
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

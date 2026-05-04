@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
         Protected Overloads Overrides Sub AddHighlights(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             Dim methodBlock = node.GetAncestor(Of MethodBlockBaseSyntax)()
-            If methodBlock Is Nothing OrElse Not TypeOf methodBlock.BlockStatement Is OperatorStatementSyntax Then
+            If methodBlock Is Nothing OrElse TypeOf methodBlock.BlockStatement IsNot OperatorStatementSyntax Then
                 Return
             End If
 

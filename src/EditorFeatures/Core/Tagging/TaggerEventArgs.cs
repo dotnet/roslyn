@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging;
 /// Information provided to the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> when 
 /// <see cref="ITaggerEventSource.Changed"/> fires.
 /// </summary>
-internal class TaggerEventArgs : EventArgs
+internal sealed class TaggerEventArgs : EventArgs
 {
     public static new readonly TaggerEventArgs Empty = new();
 

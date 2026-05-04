@@ -585,7 +585,7 @@ End Class]]></Text>.NormalizedValue()
 
 #Region "Code Refactoring"
         <Fact>
-        Public Async Function ReorderIndexerParameters_CodeRefactoring_InMethodDeclaration() As Threading.Tasks.Task
+        Public Async Function ReorderIndexerParameters_CodeRefactoring_InMethodDeclaration() As Task
             Dim markup = <Text><![CDATA[
 Class C
     Sub Goo(x As Integer[||], y As Integer)
@@ -602,7 +602,7 @@ End Class]]></Text>.NormalizedValue()
         End Function
 
         <Fact>
-        Public Async Function ReorderIndexerParameters_CodeRefactoring_NotInMethodBody() As Threading.Tasks.Task
+        Public Async Function ReorderIndexerParameters_CodeRefactoring_NotInMethodBody() As Task
             Dim markup = <Text><![CDATA[
 Class C
     Sub Goo(x As Integer, y As Integer)
@@ -635,7 +635,7 @@ End Class]]></Text>.NormalizedValue()
         End Function
 
         <Fact>
-        Public Async Function ReorderIndexerParameters_CodeRefactoring_InCallSite_ViaCodeAction() As Threading.Tasks.Task
+        Public Async Function ReorderIndexerParameters_CodeRefactoring_InCallSite_ViaCodeAction() As Task
             Dim markup = <Text><![CDATA[
 Class C
     Sub Goo(x As Integer, y As Integer)

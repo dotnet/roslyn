@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             If nextToken.IsKindOrHasMatchingText(SyntaxKind.DotToken) Then
-                If Not TypeOf objectCreationExpression.Type Is PredefinedTypeSyntax Then
+                If TypeOf objectCreationExpression.Type IsNot PredefinedTypeSyntax Then
                     Return False
                 End If
             End If

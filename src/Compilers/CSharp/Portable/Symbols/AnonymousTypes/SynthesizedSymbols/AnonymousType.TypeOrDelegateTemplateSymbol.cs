@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -120,7 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+            internal sealed override bool HasCompilerLoweringPreserveAttribute => false;
+
+            internal override bool IsUnionTypeCore => false;
+
             internal sealed override bool IsInterpolatedStringHandlerType => false;
+
+            internal sealed override ParameterSymbol? ExtensionParameter => null;
 
             internal sealed override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
             {
@@ -162,6 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            internal sealed override string? ExtensionGroupingName => null;
+
+            internal sealed override string? ExtensionMarkerName => null;
+
             public sealed override bool IsReadOnly
             {
                 get { return false; }
@@ -172,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return true; }
             }
 
-            public sealed override bool MightContainExtensionMethods
+            public sealed override bool MightContainExtensions
             {
                 get { return false; }
             }

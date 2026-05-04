@@ -2,69 +2,67 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
+
 /// <summary>
 /// An implementation of the brokered service <see cref="IWorkspaceProjectFactoryService"/> that just maps calls to the underlying project system.
 /// </summary>
-[ExportBrokeredService("Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService", null, Audience = ServiceAudience.Local)]
-internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService, IExportedBrokeredService
+internal sealed class WorkspaceProjectFactoryService(
+    LanguageServerWorkspaceFactory workspaceFactory,
+    ProjectInitializationHandler projectInitializationHandler,
+    ILoggerFactory loggerFactory) : IWorkspaceProjectFactoryService
 {
-    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
-    private readonly ProjectInitializationHandler _projectInitializationHandler;
-    private readonly ILogger _logger;
+    private readonly LanguageServerWorkspaceFactory _workspaceFactory = workspaceFactory;
+    private readonly ProjectInitializationHandler _projectInitializationHandler = projectInitializationHandler;
+    private readonly ILogger _logger = loggerFactory.CreateLogger(nameof(WorkspaceProjectFactoryService));
+    private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WorkspaceProjectFactoryService(LanguageServerWorkspaceFactory workspaceFactory, ProjectInitializationHandler projectInitializationHandler, ILoggerFactory loggerFactory)
+    public async Task InitializeAsync(CancellationToken cancellationToken)
+        => await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
+
+    public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        _workspaceFactory = workspaceFactory;
-        _projectInitializationHandler = projectInitializationHandler;
-        _logger = loggerFactory.CreateLogger(nameof(WorkspaceProjectFactoryService));
-    }
-
-    ServiceRpcDescriptor IExportedBrokeredService.Descriptor => WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor;
-
-    async Task IExportedBrokeredService.InitializeAsync(CancellationToken cancellationToken)
-    {
-        await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
-    }
-
-    public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)
-    {
-        _logger.LogInformation(string.Format(LanguageServerResources.Project_0_loaded_by_CSharp_Dev_Kit, creationInfo.FilePath));
-
-        if (creationInfo.BuildSystemProperties.TryGetValue("SolutionPath", out var solutionPath))
+        VSCodeRequestTelemetryLogger.ReportProjectLoadStarted();
+        try
         {
-            _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionPath;
+            if (creationInfo.BuildSystemProperties.TryGetValue("SolutionPath", out var solutionPath))
+            {
+                _workspaceFactory.HostProjectFactory.SolutionPath = solutionPath;
+            }
+
+            var project = await _workspaceFactory.HostProjectFactory.CreateAndAddToWorkspaceAsync(
+                creationInfo.DisplayName,
+                creationInfo.Language,
+                new Workspaces.ProjectSystem.ProjectSystemProjectCreationInfo { FilePath = creationInfo.FilePath },
+                _workspaceFactory.ProjectSystemHostInfo,
+                cancellationToken).ConfigureAwait(false);
+
+            // We have now created the project and added it to the solution -- we are committed at this point
+            // to returning a project or else we would never have a way to remove this project we created.
+            cancellationToken = CancellationToken.None;
+
+            var workspaceProject = new WorkspaceProject(project, _workspaceFactory.HostWorkspace.Services.SolutionServices, _workspaceFactory.TargetFrameworkManager, _loggerFactory);
+
+            // We've created a new project, so initialize properties we have
+            await workspaceProject.SetBuildSystemPropertiesAsync(creationInfo.BuildSystemProperties, CancellationToken.None);
+
+            _logger.LogInformation(string.Format(LanguageServerResources.Project_0_loaded_by_CSharp_Dev_Kit, creationInfo.FilePath));
+
+            return workspaceProject;
         }
-
-        var project = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
-            creationInfo.DisplayName,
-            creationInfo.Language,
-            new Workspaces.ProjectSystem.ProjectSystemProjectCreationInfo { FilePath = creationInfo.FilePath },
-            _workspaceFactory.ProjectSystemHostInfo);
-
-        var workspaceProject = new WorkspaceProject(project, _workspaceFactory.Workspace.Services.SolutionServices, _workspaceFactory.TargetFrameworkManager);
-
-        // We've created a new project, so initialize properties we have
-        await workspaceProject.SetBuildSystemPropertiesAsync(creationInfo.BuildSystemProperties, CancellationToken.None);
-
-        return workspaceProject;
+        catch (Exception e) when (LanguageServerFatalError.ReportAndLogAndPropagate(e, _logger, $"Failed to create project {creationInfo.DisplayName}"))
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 
-    public Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken _)
+    public async Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken _)
     {
         // TODO: implement
-        return Task.FromResult((IReadOnlyCollection<string>)ImmutableArray<string>.Empty);
+        return [];
     }
 }
-#pragma warning restore RS0030 // Do not used banned APIs

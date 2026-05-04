@@ -63,13 +63,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override ScopedKind DeclaredScope => _originalParam.DeclaredScope;
+
         internal sealed override ScopedKind EffectiveScope => _originalParam.EffectiveScope;
 
         internal override bool HasUnscopedRefAttribute => _originalParam.HasUnscopedRefAttribute;
 
         internal sealed override bool UseUpdatedEscapeRules => _originalParam.UseUpdatedEscapeRules;
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+#nullable enable
+        internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get
             {
@@ -78,10 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ConstantValue DefaultValueFromAttributes
+        internal override ConstantValue? DefaultValueFromAttributes
         {
             get { return _originalParam.DefaultValueFromAttributes; }
         }
+#nullable disable
 
         #region Forwarded
 
@@ -123,6 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _originalParam.RefCustomModifiers; }
+        }
+
+        internal sealed override bool HasEnumeratorCancellationAttribute
+        {
+            get { return _originalParam.HasEnumeratorCancellationAttribute; }
         }
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation

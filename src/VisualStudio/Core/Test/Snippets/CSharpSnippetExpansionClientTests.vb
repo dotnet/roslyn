@@ -386,7 +386,7 @@ using G=   H.I;
 
                 Dim formattingOptions = CSharpSyntaxFormattingOptions.Default
 
-                Dim updatedDocument = expansionClient.GetTestAccessor().LanguageHelper.AddImports(
+                Dim updatedDocument = Await expansionClient.GetTestAccessor().LanguageHelper.AddImportsAsync(
                     document,
                     addImportOptions,
                     formattingOptions,

@@ -4,8 +4,9 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -32,17 +33,16 @@ internal abstract partial class AbstractObjectBrowserLibraryManager
         return searchText;
     }
 
-    public IVsSimpleObjectList2 GetSearchList(
+    public async Task<IVsSimpleObjectList2> GetSearchListAsync(
         ObjectListKind listKind,
         uint flags,
         VSOBSEARCHCRITERIA2[] pobSrch,
-        ImmutableHashSet<Tuple<ProjectId, IAssemblySymbol>> projectAndAssemblySet)
+        ImmutableHashSet<(ProjectId, IAssemblySymbol)> projectAndAssemblySet,
+        CancellationToken cancellationToken)
     {
         var searchText = GetSearchText(pobSrch);
         if (searchText == null)
-        {
             return null;
-        }
 
         // TODO: Support wildcards (e.g. *xyz, *xyz* and xyz*) like the old language service did.
 
@@ -72,11 +72,9 @@ internal abstract partial class AbstractObjectBrowserLibraryManager
                         var projectId = projectIdAndAssembly.Item1;
                         var assemblySymbol = projectIdAndAssembly.Item2;
 
-                        var compilation = this.GetCompilation(projectId);
+                        var compilation = await this.GetCompilationAsync(projectId, cancellationToken).ConfigureAwait(true);
                         if (compilation == null)
-                        {
                             return null;
-                        }
 
                         CollectTypeListItems(assemblySymbol, compilation, projectId, builder, searchText);
                     }
@@ -93,11 +91,9 @@ internal abstract partial class AbstractObjectBrowserLibraryManager
                         var projectId = projectIdAndAssembly.Item1;
                         var assemblySymbol = projectIdAndAssembly.Item2;
 
-                        var compilation = this.GetCompilation(projectId);
+                        var compilation = await this.GetCompilationAsync(projectId, cancellationToken).ConfigureAwait(true);
                         if (compilation == null)
-                        {
                             return null;
-                        }
 
                         CollectMemberListItems(assemblySymbol, compilation, projectId, builder, searchText);
                     }

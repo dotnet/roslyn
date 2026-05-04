@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 [TagType(typeof(IClassificationTag))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RenameClassificationTaggerProvider(
+internal sealed class RenameClassificationTaggerProvider(
     InlineRenameService renameService,
     IClassificationTypeRegistryService classificationTypeRegistryService) : ITaggerProvider
 {

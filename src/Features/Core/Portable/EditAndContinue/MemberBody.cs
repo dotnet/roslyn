@@ -2,12 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
+/// <summary>
+/// Represents a declaration of a member with executable code directly inside.
+/// </summary>
+/// <remarks>
+/// Executable code here is code that a user might set breakpoints in. For example, a normal type with no primary constructor would not have any directly-nested
+/// executable code, but a record with a primary constructor might.
+/// </remarks>
 internal abstract class MemberBody : DeclarationBody
 {
     /// <summary>
@@ -30,7 +38,15 @@ internal abstract class MemberBody : DeclarationBody
     /// <summary>
     /// All tokens of the body that may be part of an active statement.
     /// </summary>
-    public abstract IEnumerable<SyntaxToken>? GetActiveTokens();
+    public abstract IEnumerable<SyntaxToken>? GetActiveTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens);
+
+    public IEnumerable<SyntaxToken>? GetActiveTokens()
+        => GetActiveTokens(static node => node.DescendantTokens());
+
+    /// <summary>
+    /// All tokens of the body representing user code. This may be empty sequence if the entire body is synthesized.
+    /// </summary>
+    public abstract IEnumerable<SyntaxToken> GetUserCodeTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens);
 
     /// <summary>
     /// Finds an active statement at given span within this body and the corresponding partner statement in 

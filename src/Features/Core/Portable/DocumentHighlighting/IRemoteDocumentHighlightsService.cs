@@ -25,8 +25,8 @@ internal readonly struct SerializableDocumentHighlights(DocumentId documentId, I
     [DataMember(Order = 1)]
     public readonly ImmutableArray<HighlightSpan> HighlightSpans = highlightSpans;
 
-    public async ValueTask<DocumentHighlights> RehydrateAsync(Solution solution)
-        => new(await solution.GetRequiredDocumentAsync(DocumentId, includeSourceGenerated: true).ConfigureAwait(false), HighlightSpans);
+    public async ValueTask<DocumentHighlights> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        => new(await solution.GetRequiredDocumentAsync(DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false), HighlightSpans);
 
     public static SerializableDocumentHighlights Dehydrate(DocumentHighlights highlights)
         => new(highlights.Document.Id, highlights.HighlightSpans);

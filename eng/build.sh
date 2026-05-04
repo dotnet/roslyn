@@ -21,6 +21,7 @@ usage()
   echo "  --rebuild                  Rebuild all projects"
   echo "  --pack                     Build nuget packages"
   echo "  --publish                  Publish build artifacts"
+  echo "  --sign                     Sign build artifacts"
   echo "  --help                     Print help and exit"
   echo ""
   echo "Test actions:"
@@ -28,6 +29,7 @@ usage()
   echo "  --testMono                 Run unit tests on Mono"
   echo "  --testCompilerOnly         Run only the compiler unit tests"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
+  echo "  --testRuntimeAsync         Run unit tests with runtime async validation enabled"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
@@ -36,8 +38,11 @@ usage()
   echo "  --skipDocumentation        Skip generation of XML documentation files"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
-  echo "  --sourceBuild              Simulate building for source-build"
-  echo "  --solution                 Soluton to build (Default is Compilers.slnf)"
+  echo "  --warnNotAsError <codes>   Suppress specific warnings from being treated as errors (semi-colon delimited)"
+  echo "  --sourceBuild              Build the repository in source-only mode"
+  echo "  --productBuild             Build the repository in product-build mode."
+  echo "  --fromVMR                  Build the repository in product-build mode."
+  echo "  --solution                 Solution to build (default is Roslyn.slnx)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -58,10 +63,12 @@ restore=false
 build=false
 rebuild=false
 pack=false
+sign=false
 publish=false
 test_core_clr=false
 test_mono=false
 test_ioperation=false
+test_runtime_async=false
 test_compiler_only=false
 
 configuration="Debug"
@@ -76,10 +83,12 @@ run_analyzers=false
 skip_documentation=false
 prepare_machine=false
 warn_as_error=false
-properties=""
+warn_not_as_error=""
+properties=()
 source_build=false
-restoreUseStaticGraphEvaluation=true
-solution_to_build="Compilers.slnf"
+product_build=false
+from_vmr=false
+solution_to_build="Roslyn.slnx"
 
 args=""
 
@@ -124,6 +133,9 @@ while [[ $# > 0 ]]; do
     --publish)
       publish=true
       ;;
+    --sign)
+      sign=true
+      ;;
     --testcoreclr|--test|-t)
       test_core_clr=true
       ;;
@@ -135,6 +147,9 @@ while [[ $# > 0 ]]; do
       ;;
     --testioperation)
       test_ioperation=true
+      ;;
+    --testruntimeasync)
+      test_runtime_async=true
       ;;
     --ci)
       ci=true
@@ -169,10 +184,20 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --sourcebuild)
+    --warnnotaserror)
+      warn_not_as_error=$2
+      args="$args $1"
+      shift
+      ;;
+    --sourcebuild|--source-build|-sb)
       source_build=true
-      # RestoreUseStaticGraphEvaluation will cause prebuilts
-      restoreUseStaticGraphEvaluation=false
+      product_build=true
+      ;;
+    --productbuild|--product-build|-pb)
+      product_build=true
+      ;;
+    --fromvmr|--from-vmr)
+      from_vmr=true
       ;;
     --solution)
       solution_to_build=$2
@@ -180,7 +205,7 @@ while [[ $# > 0 ]]; do
       shift
       ;;
     /p:*)
-      properties="$properties $1"
+      properties+=("$1")
       ;;
     *)
       echo "Invalid argument: $1"
@@ -204,7 +229,7 @@ function MakeBootstrapBuild {
   mkdir -p $dir
 
   local package_name="Microsoft.Net.Compilers.Toolset"
-  local project_path=src/NuGet/$package_name/$package_name.Package.csproj
+  local project_path=src/NuGet/$package_name/AnyCpu/$package_name.Package.csproj
 
   dotnet pack -nologo "$project_path" -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir" -bl:"$log_dir/Bootstrap.binlog"
   unzip "$dir/$package_name.*.nupkg" -d "$dir"
@@ -251,6 +276,14 @@ function BuildSolution {
     fi
   fi
 
+  if [[ "$test_runtime_async" == true ]]; then
+    export DOTNET_RuntimeAsync="1"
+
+    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
+      test_core_clr=true
+    fi
+  fi
+
   local test=false
   local test_runtime=""
   local mono_tool=""
@@ -269,6 +302,16 @@ function BuildSolution {
     test_runtime_args="--debug"
   fi
 
+  local msbuild_warn_as_error=""
+  if [[ "$warn_as_error" == true ]]; then
+    msbuild_warn_as_error="/warnAsError"
+  fi
+
+  local msbuild_warn_not_as_error=""
+  if [[ "$warn_not_as_error" != "" && "$warn_as_error" == true ]]; then
+    msbuild_warn_not_as_error="/warnNotAsError:$warn_not_as_error"
+  fi
+
   local generate_documentation_file=""
   if [[ "$skip_documentation" == true ]]; then
     generate_documentation_file="/p:GenerateDocumentationFile=false"
@@ -279,16 +322,6 @@ function BuildSolution {
     roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
   fi
 
-  local source_build_args=""
-  if [[ "$source_build" == true ]]; then
-    source_build_args="/p:DotNetBuildSourceOnly=true \
-                       /p:DotNetBuildRepo=true"
-  fi
-
-  # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
-  # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
-  # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
-  # Warnings reported from other msbuild tasks are not treated as errors for now.
   MSBuild $toolset_build_proj \
     $bl \
     /p:Configuration=$configuration \
@@ -300,18 +333,22 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
+    /p:Sign=$sign \
     /p:RunAnalyzersDuringBuild=$run_analyzers \
-    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
-    /p:TreatWarningsAsErrors=true \
+    /p:TreatWarningsAsErrors=$warn_as_error \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
-    $source_build_args \
+    /p:DotNetBuildSourceOnly=$source_build \
+    /p:DotNetBuild=$product_build \
+    /p:DotNetBuildFromVMR=$from_vmr \
     $test_runtime \
     $mono_tool \
+    $msbuild_warn_as_error \
+    $msbuild_warn_not_as_error \
     $generate_documentation_file \
     $roslyn_use_hard_links \
-    $properties
+    ${properties[@]+"${properties[@]}"}
 }
 
 function GetCompilerTestAssembliesIncludePaths {
@@ -323,6 +360,7 @@ function GetCompilerTestAssembliesIncludePaths {
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
@@ -331,6 +369,7 @@ function GetCompilerTestAssembliesIncludePaths {
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
   assemblies+=" --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.Build\.Tasks\.CodeAnalysis\.UnitTests$'"
   echo "$assemblies"
 }
 
@@ -339,9 +378,8 @@ if [[ "$restore" == true || "$test_core_clr" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
-# Check the dev switch --source-build as well as ensure that source only switches were not passed in via extra properties
 # Source only builds would not have 'dotnet' ambiently available.
-if [[ "$restore" == true && "$source_build" != true && $properties != *"DotNetBuildSourceOnly=true"* ]]; then
+if [[ "$restore" == true && "$source_build" != true ]]; then
   dotnet tool restore
 fi
 
@@ -358,7 +396,7 @@ fi
 if [[ "$test_core_clr" == true ]]; then
   runtests_args=""
 
-  if [[ -n "$test_compiler_only" ]]; then
+  if [[ "$test_compiler_only" == true ]]; then
     runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
   fi
 
@@ -377,6 +415,6 @@ if [[ "$test_core_clr" == true ]]; then
   if [[ "$ci" != true ]]; then
     runtests_args="$runtests_args --html"
   fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net8.0/RunTests.dll" --runtime core --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net10.0/RunTests.dll" --runtime core --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
 fi
 ExitWithExitCode 0

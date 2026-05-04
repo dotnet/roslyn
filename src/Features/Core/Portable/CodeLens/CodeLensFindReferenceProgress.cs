@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -32,7 +30,7 @@ internal sealed class CodeLensFindReferencesProgress(
     private readonly CancellationTokenSource _aggregateCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
     private readonly SyntaxNode _queriedNode = queriedNode;
     private readonly ISymbol _queriedSymbol = queriedDefinition;
-    private readonly ConcurrentSet<Location> _locations = new ConcurrentSet<Location>(LocationComparer.Instance);
+    private readonly ConcurrentSet<Location> _locations = new(LocationComparer.Instance);
 
     /// <remarks>
     /// If the cap is 0, then there is no cap.

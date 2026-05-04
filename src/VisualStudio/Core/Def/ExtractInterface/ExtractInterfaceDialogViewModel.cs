@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -18,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface;
 
-internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
 {
     private readonly INotificationService _notificationService;
 
@@ -27,11 +24,12 @@ internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         INotificationService notificationService,
         string defaultInterfaceName,
-        List<string> conflictingTypeNames,
+        ImmutableArray<string> conflictingTypeNames,
         ImmutableArray<LanguageServices.Utilities.MemberSymbolViewModel> memberViewModels,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
-        string languageName)
+        string languageName,
+        bool canAddDocument)
     {
         _notificationService = notificationService;
 
@@ -48,8 +46,9 @@ internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
             languageName,
             defaultNamespace,
             generatedNameTypeParameterSuffix,
-            conflictingTypeNames.ToImmutableArray(),
-            syntaxFactsService);
+            conflictingTypeNames,
+            syntaxFactsService,
+            canAddDocument);
     }
 
     internal bool TrySubmit()

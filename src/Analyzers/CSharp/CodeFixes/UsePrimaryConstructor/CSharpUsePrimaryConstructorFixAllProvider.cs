@@ -4,6 +4,7 @@
 
 // Ignore Spelling: loc kvp
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 
-internal partial class CSharpUsePrimaryConstructorCodeFixProvider
+internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider
 {
 #if !CODE_STYLE // Currently depends on helpers only available in workspace layer.
 

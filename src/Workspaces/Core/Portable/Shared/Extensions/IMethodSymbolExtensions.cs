@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -84,6 +80,6 @@ internal static partial class IMethodSymbolExtensions
         // "C<int>.Goo(int t)" (method2).
         p1 = method1.OriginalDefinition.Parameters;
         p2 = method2.OriginalDefinition.Parameters;
-        return p1.Select(p => p.Type).ToList().AreMoreSpecificThan(p2.Select(p => p.Type).ToList());
+        return p1.Select(p => p.Type).ToList().AreMoreSpecificThan([.. p2.Select(p => p.Type)]);
     }
 }

@@ -12,15 +12,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-internal partial class UnitTestingSolutionCrawlerRegistrationService
+internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 {
-    internal partial class UnitTestingWorkCoordinator
+    internal sealed partial class UnitTestingWorkCoordinator
     {
         private abstract class UnitTestingAsyncWorkItemQueue<TKey>(UnitTestingSolutionCrawlerProgressReporter progressReporter) : IDisposable
             where TKey : class
         {
             private readonly object _gate = new();
-            private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 0);
+            private readonly SemaphoreSlim _semaphore = new(initialCount: 0);
             private bool _disposed;
 
             private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter = progressReporter;

@@ -6,12 +6,13 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-public class FileModifierParsingTests : ParsingTests
+public sealed class FileModifierParsingTests : ParsingTests
 {
     public FileModifierParsingTests(ITestOutputHelper output) : base(output) { }
 
@@ -722,12 +723,14 @@ public class FileModifierParsingTests : ParsingTests
     [Fact]
     public void FileModifier_18()
     {
-        UsingNode("""
+        var src = """
             class C
             {
                 file delegate*<int, void> M();
             }
-            """,
+            """;
+        UsingNode(src,
+            options: TestOptions.Regular14,
             expectedBindingDiagnostics: new[]
             {
                 // (3,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -740,6 +743,18 @@ public class FileModifierParsingTests : ParsingTests
                 //     file delegate*<int, void> M();
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("C.M()").WithLocation(3, 31)
             });
+
+        var expectedPreviewDiagnostics = new[]
+        {
+            // (3,31): error CS0106: The modifier 'file' is not valid for this item
+            //     file delegate*<int, void> M();
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("file").WithLocation(3, 31),
+            // (3,31): error CS0501: 'C.M()' must declare a body because it is not marked abstract, extern, or partial
+            //     file delegate*<int, void> M();
+            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("C.M()").WithLocation(3, 31),
+        };
+        CreateCompilation(src).VerifyDiagnostics(expectedPreviewDiagnostics);
+        CreateCompilation(src, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1008,9 +1023,6 @@ public class FileModifierParsingTests : ParsingTests
             // (3,21): error CS0106: The modifier 'file' is not valid for this item
             //     async file void M() { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("file").WithLocation(3, 21),
-            // (3,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-            //     async file void M() { }
-            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(3, 21)
         });
         N(SyntaxKind.CompilationUnit);
         {
@@ -1818,9 +1830,6 @@ public class FileModifierParsingTests : ParsingTests
                 // (7,18): error CS0106: The modifier 'file' is not valid for this item
                 //     public file* _ptr;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_ptr").WithArguments("file").WithLocation(7, 18),
-                // (7,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('?')
-                //     public file* _ptr;
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "_ptr").WithArguments("?").WithLocation(7, 18),
                 // (8,16): error CS1031: Type expected
                 //     public file? _nullable;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "?").WithLocation(8, 16),
@@ -3592,6 +3601,108 @@ public class FileModifierParsingTests : ParsingTests
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75992")]
+    public void TestFileModifierAfterIncompleteBaseList1()
+    {
+        UsingTree("""
+            class C : B
+            file class D
+            {
+            }
+            """,
+            // (1,12): error CS1514: { expected
+            // class C : B
+            Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 12),
+            // (1,12): error CS1513: } expected
+            // class C : B
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 12));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "B");
+                        }
+                    }
+                }
+                M(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.FileKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "D");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75992")]
+    public void TestFileModifierAfterIncompleteBaseList2()
+    {
+        UsingTree("""
+            class C : B, file
+            {
+            }
+
+            class file
+            {
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "B");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "file");
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "file");
+                N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);

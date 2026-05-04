@@ -15,7 +15,9 @@ Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Threading
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
@@ -29,7 +31,6 @@ Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Roslyn.Test.Utilities.TestGenerators
 Imports Roslyn.Utilities
 Imports TestResources.Analyzers
-Imports Basic.Reference.Assemblies
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Private Shared ReadOnly s_basicCompilerExecutable As String = Path.Combine(
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
-        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMono, "mono", String.Empty)
+        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMonoDesktop, "mono", String.Empty)
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
@@ -1158,180 +1159,165 @@ End Module").Path
         End Sub
 
         <Fact>
-        Public Sub ParseResourceDescription()
+        Public Sub TryParseResourceDescription()
             Dim diags = New List(Of Diagnostic)()
-            Dim desc As ResourceDescription
+            Dim resource As CommandLineResource
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someName", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someName", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName,public", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName,public", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someName", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someName", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
             ' use file name in place of missing resource name
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
             ' quoted accessibility is fine
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,""private""", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,,""private""", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
             ' leading commas are ignored...
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", ",,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", ",,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
             ' ...as long as there's no whitespace between them
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", ", ,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", ", ,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
             ' trailing commas are ignored...
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
             ' ...even if there's whitespace between them
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private, ,", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private, ,", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName,publi", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName,publi", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", "publi"))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "D:rive\relative\path,someName,public", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "D:rive\relative\path,someName,public", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("D:rive\relative\path"))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "inva\l*d?path,someName,public", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "inva\l*d?path,someName,public", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("inva\l*d?path"))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", Nothing, _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", Nothing, _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("resource", ":<resinfo>"))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("resource", ":<resinfo>"))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " , ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path, ", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path, ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("path", desc.FileName)
-            Assert.Equal("path", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("path", resource.LinkedResourceFileName)
+            Assert.Equal("path", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " ,name", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , , ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " , , ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path, , ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path, , ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name, ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " ,name, ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , ,private", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " , ,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path,name,", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path,name,", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("path", desc.FileName)
-            Assert.Equal("name", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("path", resource.LinkedResourceFileName)
+            Assert.Equal("name", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path,name,,", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path,name,,", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("path", desc.FileName)
-            Assert.Equal("name", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("path", resource.LinkedResourceFileName)
+            Assert.Equal("name", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path,name, ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path,name, ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path, ,private", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path, ,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("path", desc.FileName)
-            Assert.Equal("path", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("path", resource.LinkedResourceFileName)
+            Assert.Equal("path", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name,private", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " ,name,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
             Dim longI = New String("i"c, 260)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("", String.Format("{0},e,private", longI), _baseDirectory, diags, embedded:=False)
-            ' // error BC2032: File name 'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-            diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii").WithLocation(1, 1))
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("", String.Format("{0},e,private", longI), _baseDirectory, diags, isEmbedded:=False, resource))
+            ' // error BC2032: File name '...' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+            diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(longI).WithLocation(1, 1))
         End Sub
 
         <Fact>
@@ -1529,6 +1515,10 @@ End Module").Path
             parsedArgs = DefaultParse({"/langVERSION:16.9", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic16_9, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:17.13", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic17_13, parsedArgs.ParseOptions.LanguageVersion)
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -1873,6 +1863,10 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal("Unicode (UTF-8)", parsedArgs.Encoding.EncodingName)
 
+            parsedArgs = DefaultParse({"/CodePage:1252", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(1252, parsedArgs.Encoding.CodePage)
+
             ' errors 
             parsedArgs = DefaultParse({"/codepage:0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments("0"))
@@ -1908,6 +1902,16 @@ End Module").Path
             parsedArgs = DefaultParse({"/checksumAlgorithm:sha256", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
+
+            parsedArgs = DefaultParse({"/checksumAlgorithm:sHa384", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(SourceHashAlgorithm.Sha384, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
+
+            parsedArgs = DefaultParse({"/checksumAlgorithm:sha512", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(SourceHashAlgorithm.Sha512, parsedArgs.ChecksumAlgorithm)
             Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             parsedArgs = DefaultParse({"a.cs"}, _baseDirectory)
@@ -2052,10 +2056,8 @@ End Module").Path
         <Fact>
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
-            ' - update the "UpgradeProject" codefixer (not yet supported in VB)
             ' - update all the tests that call this canary
-            ' - update the command-line documentation (CommandLine.md)
-            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "latest"},
+            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "17.13", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
         End Sub
@@ -2077,7 +2079,8 @@ End Module").Path
                 "15.3",
                 "15.5",
                 "16",
-                "16.9"
+                "16.9",
+                "17.13"
              }
 
             AssertEx.SetEqual(versions, errorCodes)
@@ -2098,6 +2101,8 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.VisualBasic16_9.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic17_13, LanguageVersion.VisualBasic17_13.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic17_13, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -2121,6 +2126,7 @@ End Module").Path
             InlineData("16", True, LanguageVersion.VisualBasic16),
             InlineData("16.0", True, LanguageVersion.VisualBasic16),
             InlineData("16.9", True, LanguageVersion.VisualBasic16_9),
+            InlineData("17.13", True, LanguageVersion.VisualBasic17_13),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),
@@ -3454,16 +3460,16 @@ print Goodbye, World"
 
             parsedArgs = DefaultParse({"/pathmap:K1=V1", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K1" & s, "V1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K1" & s, "V1" & s), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({$"/pathmap:abc{s}=/", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("abc" & s, "/"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("abc" & s, "/"), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({"/pathmap:K1=V1,K2=V2", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K1" & s, "V1" & s), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("K2" & s, "V2" & s), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePair.Create("K1" & s, "V1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K2" & s, "V2" & s), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:,", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
@@ -3496,28 +3502,28 @@ print Goodbye, World"
 
             parsedArgs = DefaultParse({"/pathmap:""supporting spaces=is hard""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("supporting spaces" & s, "is hard" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("supporting spaces" & s, "is hard" & s), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({"/pathmap:""K 1=V 1"",""K 2=V 2""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K 1" & s, "V 1" & s), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("K 2" & s, "V 2" & s), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePair.Create("K 1" & s, "V 1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K 2" & s, "V 2" & s), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:""K 1""=""V 1"",""K 2""=""V 2""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K 1" & s, "V 1" & s), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("K 2" & s, "V 2" & s), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePair.Create("K 1" & s, "V 1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K 2" & s, "V 2" & s), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:""a ==,,b""=""1,,== 2"",""x ==,,y""=""3 4"",", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("a =,b" & s, "1,= 2" & s), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("x =,y" & s, "3 4" & s), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePair.Create("a =,b" & s, "1,= 2" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("x =,y" & s, "3 4" & s), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:C:\temp\=/_1/,C:\temp\a\=/_2/,C:\temp\a\b\=/_3/", "a.cs", "a\b.cs", "a\b\c.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("C:\temp\a\b\", "/_3/"), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("C:\temp\a\", "/_2/"), parsedArgs.PathMap(1))
-            Assert.Equal(KeyValuePairUtil.Create("C:\temp\", "/_1/"), parsedArgs.PathMap(2))
+            Assert.Equal(KeyValuePair.Create("C:\temp\a\b\", "/_3/"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("C:\temp\a\", "/_2/"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePair.Create("C:\temp\", "/_1/"), parsedArgs.PathMap(2))
         End Sub
 
         ' PathMapKeepsCrossPlatformRoot and PathMapInconsistentSlashes should be in an
@@ -3683,6 +3689,7 @@ End Module
 
             ' Legacy feature flag
             Using dir As New DisposableDirectory(Temp)
+                Assert.Equal("pdb-path-determinism", Feature.PdbPathDeterminism)
                 Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
                 assertPdbEmit(dir, "a.pdb", {"/features:pdb-path-determinism"})
             End Using
@@ -5019,7 +5026,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub UnableWriteOutput()
+        Public Sub UnableWriteOutput_OutputFileIsDirectory()
             Dim tempFolder = Temp.CreateDirectory()
             Dim baseDirectory = tempFolder.ToString()
             Dim subFolder = tempFolder.CreateDirectory("temp.dll")
@@ -5031,6 +5038,34 @@ End Class
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/preferreduilang:en", "/t:library", "/out:" & subFolder.ToString(), src.ToString()}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
             Assert.True(outWriter.ToString().Contains("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ")) ' Cannot create a file when that file already exists.
+
+            CleanupAllGeneratedFiles(src.Path)
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub UnableWriteOutput_OutputFileLocked()
+            Dim tempFolder = Temp.CreateDirectory()
+            Dim baseDirectory = tempFolder.ToString()
+            Dim filePath = tempFolder.CreateFile("temp.dll").Path
+
+            Dim src = Temp.CreateFile("a.vb")
+            src.WriteAllText("Imports System")
+
+            Using New FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.None)
+                Dim currentProcess = Process.GetCurrentProcess()
+
+                Dim outWriter As New StringWriter()
+                Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/preferreduilang:en", "/t:library", "/out:" & filePath, src.ToString()}).Run(outWriter, Nothing)
+                Assert.Equal(1, exitCode)
+                Dim output = outWriter.ToString().Trim()
+
+                Dim pattern = "vbc : error BC2012: can't open '(?<path>.*)' for writing: (?<message>.*); file may be locked by '(?<app>.*)' \((?<pid>.*)\)"
+                Dim match = Regex.Match(output, pattern)
+                Assert.True(match.Success, $"Expected pattern:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}")
+                Assert.Equal(filePath, match.Groups("path").Value)
+                Assert.Contains("testhost", match.Groups("app").Value)
+                Assert.Equal(currentProcess.Id, Integer.Parse(match.Groups("pid").Value))
+            End Using
 
             CleanupAllGeneratedFiles(src.Path)
         End Sub
@@ -7722,8 +7757,8 @@ End Class
             args = DefaultParse({"/features:Test", "a.vb", "/Features:Experiment"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.ParseOptions.Features.Count)
-            Assert.True(args.ParseOptions.Features.ContainsKey("Test"))
-            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"))
+            Assert.True(args.ParseOptions.HasFeature("Test"))
+            Assert.True(args.ParseOptions.HasFeature("Experiment"))
 
             args = DefaultParse({"/features:Test=false,Key=value", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
@@ -8922,7 +8957,7 @@ End Class
                 Nothing,
                 _baseDirectory,
                 {"/reportanalyzer", "/t:library", source},
-                analyzers:={New WarningDiagnosticAnalyzer()},
+                analyzers:={New WarningDiagnosticAnalyzer(), New ConcurrentAnalyzer({"C"}), New DiagnosticSuppressorForId("Warning01", "Suppressor01")},
                 generators:={New DoNothingGenerator().AsSourceGenerator()})
             Dim outWriter = New StringWriter()
             Dim exitCode = vbc.Run(outWriter, Nothing)
@@ -8930,8 +8965,44 @@ End Class
             Dim output = outWriter.ToString()
             Assert.Contains(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+            Assert.Contains($"{NameOf(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal)
             Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal)
             Assert.Contains(GetType(DoNothingGenerator).FullName, output, StringComparison.Ordinal)
+
+            Assert.DoesNotContain(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal)
+            Dim nonConcurrentSection = output.Substring(output.IndexOf(CodeAnalysisResources.NonConcurrentAnalyzersHeader))
+            Assert.Contains(NameOf(WarningDiagnosticAnalyzer), nonConcurrentSection, StringComparison.Ordinal)
+            Assert.DoesNotContain(NameOf(DiagnosticSuppressorForId), nonConcurrentSection, StringComparison.Ordinal)
+            Assert.DoesNotContain(GetType(ConcurrentAnalyzer).Assembly.FullName, nonConcurrentSection, StringComparison.Ordinal)
+            Assert.DoesNotContain(NameOf(ConcurrentAnalyzer), nonConcurrentSection, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
+        Public Sub ReportAnalyzerOutput_AllConcurrentAnalyzers()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(
+                Nothing,
+                _baseDirectory,
+                {"/reportanalyzer", "/t:library", source},
+                analyzers:={New ConcurrentAnalyzer({"C"}), New DiagnosticSuppressorForId("Warning01", "Suppressor01")},
+                generators:={New DoNothingGenerator().AsSourceGenerator()})
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+            Assert.DoesNotContain(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            Assert.Contains($"{NameOf(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal)
+            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal)
+            Assert.Contains(GetType(DoNothingGenerator).FullName, output, StringComparison.Ordinal)
+
+            Assert.DoesNotContain(CodeAnalysisResources.NonConcurrentAnalyzersHeader, output, StringComparison.Ordinal)
+            Assert.Contains(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal)
             CleanupAllGeneratedFiles(source)
         End Sub
 
@@ -9650,7 +9721,7 @@ End Module
             ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
             Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
-            Assert.Equal(
+            AssertEx.Equal(
                 $"Could not load file or assembly '{GetType(VisualBasicCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
 
@@ -9658,8 +9729,8 @@ End Module
             dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
-            Assert.Equal(
-                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+            AssertEx.Equal(
+                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
         End Sub
 
@@ -10685,6 +10756,114 @@ End Class")
             Directory.Delete(dir.Path, True)
         End Sub
 
+        <Theory>
+        <InlineData({"/out:checksum.exe", "/debug:portable", "/checksumAlgorithm:SHA256"})>
+        <InlineData({"/out:checksum.exe", "/debug:portable"})>
+        Public Sub SourceGenerators_ChecksumAlgorithm(ParamArray additionalFlags As String())
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb")
+            src.WriteAllText("Class C : End Class")
+
+            Dim genPath1 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.vb")
+            Dim genPath2 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.vb")
+
+            Dim generator = New TestSourceGenerator() With {
+                .ExecuteImpl = Sub(context)
+                                   context.AddSource("hint1",
+"Class G1
+    Sub F()
+    End Sub
+End Class")
+                                   context.AddSource("hint2", SourceText.From(
+"Class G2
+    Sub F()
+    End Sub
+End Class", Encoding.UTF8, checksumAlgorithm:=SourceHashAlgorithm.Sha1))
+                               End Sub
+            }
+
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference:=False,
+                additionalFlags:=additionalFlags,
+                generators:={generator},
+                analyzers:=Nothing)
+
+            Using peStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.exe")), pdbStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.pdb"))
+                PdbValidation.VerifyPdb(peStream, pdbStream, $"
+<symbols>
+  <files>
+    <file id=""1"" name=""{src.Path}"" language=""VB"" checksumAlgorithm=""SHA256"" checksum=""06-9C-3E-BB-78-B9-FA-FD-74-2B-65-88-0E-04-4D-DE-94-05-2C-30-B5-95-1E-A9-03-94-64-D0-BD-56-C3-B9"" />
+    <file id=""2"" name=""{genPath1}"" language=""VB"" checksumAlgorithm=""SHA256"" checksum=""99-23-2B-FF-51-23-DE-B6-19-58-ED-05-25-F7-1C-73-08-28-53-A3-04-98-F3-77-7A-69-C0-D6-98-E6-BF-30""><![CDATA[﻿Class G1
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""3"" name=""{genPath2}"" language=""VB"" checksumAlgorithm=""SHA256"" checksum=""FA-30-AB-86-18-EA-08-F8-C0-B8-9E-D2-46-A7-2E-D3-22-D3-91-8C-AB-DB-F4-FA-60-C3-9C-B5-3B-44-84-58""><![CDATA[﻿Class G2
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""4"" name="""" language=""VB"" />
+  </files>
+</symbols>", PdbValidationOptions.ExcludeMethods)
+            End Using
+
+            Directory.Delete(dir.Path, True)
+        End Sub
+
+        <Fact>
+        Public Sub SourceGenerators_ChecksumAlgorithm_Sha1()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb")
+            src.WriteAllText("Class C : End Class")
+
+            Dim genPath1 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.vb")
+            Dim genPath2 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.vb")
+
+            Dim generator = New TestSourceGenerator() With {
+                .ExecuteImpl = Sub(context)
+                                   context.AddSource("hint1",
+"Class G1
+    Sub F()
+    End Sub
+End Class")
+                                   context.AddSource("hint2", SourceText.From(
+"Class G2
+    Sub F()
+    End Sub
+End Class", Encoding.UTF8, checksumAlgorithm:=SourceHashAlgorithm.Sha256))
+                               End Sub
+            }
+
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference:=False,
+                additionalFlags:={"/out:checksum.exe", "/debug:portable", "/checksumAlgorithm:SHA1"},
+                generators:={generator},
+                analyzers:=Nothing)
+
+            Using peStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.exe")), pdbStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.pdb"))
+                PdbValidation.VerifyPdb(peStream, pdbStream, $"
+<symbols>
+  <files>
+    <file id=""1"" name=""{src.Path}"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""ED-80-C6-0D-E5-21-AE-E8-37-DF-7C-7E-CB-32-A5-3E-6E-5E-41-99"" />
+    <file id=""2"" name=""{genPath1}"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""33-BB-2D-D5-0D-9F-72-84-25-14-83-D7-5F-5F-34-B7-F1-36-5C-8B""><![CDATA[﻿Class G1
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""3"" name=""{genPath2}"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""58-43-AA-2E-95-BE-21-5B-C4-74-EF-BA-1D-82-DF-77-77-73-16-46""><![CDATA[﻿Class G2
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""4"" name="""" language=""VB"" />
+  </files>
+</symbols>", PdbValidationOptions.ExcludeMethods)
+            End Using
+
+            Directory.Delete(dir.Path, True)
+        End Sub
+
         <Fact>
         Public Sub ExperimentalWithWhitespaceDiagnosticID_WarnForInvalidDiagID()
             Dim dir = Temp.CreateDirectory()
@@ -10817,6 +10996,54 @@ dotnet_diagnostic.BC42380.severity = warning")
             Assert.Equal(0, exitCode)
             ' Note: the behavior differs from C# in that the editorconfig rule is applied
             Assert.Contains("warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithValidDiagnosticID_WarnForExperimentalWithMessage()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Public Class D
+    Public Sub M(c As C)
+    End Sub
+End Class
+
+<System.Diagnostics.CodeAnalysis.Experimental(""DiagID"", Message:=""use CCC"")>
+Public Class C
+    Public Shared Sub M()
+    End Sub
+End Class
+
+Namespace System.Diagnostics.CodeAnalysis
+    Public NotInheritable Class ExperimentalAttribute
+        Inherits Attribute
+
+        Public Sub New(ByVal diagnosticId As String)
+        End Sub
+
+        Property Message As String
+    End Class
+End Namespace
+")
+
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.BC42509.severity = warning")
+
+            Assert.Equal(DirectCast(42509, ERRID), ERRID.WRN_ExperimentalWithMessage)
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            ' Note: the behavior differs from C# in that the editorconfig rule is applied
+            Assert.Contains("warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates: 'use CCC'.", outWriter.ToString())
         End Sub
 
         Private Function EmitGenerator(ByVal targetFramework As String) As String

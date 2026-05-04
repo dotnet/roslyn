@@ -281,6 +281,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             string? urlFormat = null;
+            string? message = null;
+
             foreach (var (name, value) in this.CommonNamedArguments)
             {
                 if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName && IsStringProperty(ObsoleteAttributeData.UrlFormatPropertyName))
@@ -288,13 +290,18 @@ namespace Microsoft.CodeAnalysis
                     urlFormat = value.ValueInternal as string;
                 }
 
-                if (urlFormat is not null)
+                if (message is null && name == ObsoleteAttributeData.MessagePropertyName && IsStringProperty(ObsoleteAttributeData.MessagePropertyName))
+                {
+                    message = value.ValueInternal as string;
+                }
+
+                if (urlFormat is not null && message is not null)
                 {
                     break;
                 }
             }
 
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId, urlFormat);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: message, isError: false, diagnosticId, urlFormat);
         }
 
         /// <summary>
@@ -391,7 +398,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static void DecodeMethodImplAttribute<T, TAttributeSyntaxNode, TAttributeData, TAttributeLocation>(
             ref DecodeWellKnownAttributeArguments<TAttributeSyntaxNode, TAttributeData, TAttributeLocation> arguments,
-            CommonMessageProvider messageProvider)
+            CommonMessageProvider messageProvider,
+            ITypeSymbolInternal appliedToSymbol)
             where T : CommonMethodWellKnownAttributeData, new()
             where TAttributeSyntaxNode : SyntaxNode
             where TAttributeData : AttributeData
@@ -417,6 +425,18 @@ namespace Microsoft.CodeAnalysis
                 {
                     messageProvider.ReportInvalidAttributeArgument(arguments.Diagnostics, arguments.AttributeSyntaxOpt, 0, attribute);
                     options = options & ~(MethodImplOptions)3;
+                }
+
+                if ((options & MethodImplOptions.Async) != 0)
+                {
+                    // Error if [MethodImpl(MethodImplOptions.Async)] is used directly on a method
+                    // We give an exception to the AsyncHelpers special type, as it manually implements the pattern as part of the
+                    // runtime's async support
+                    if ((InternalSpecialType)appliedToSymbol.ExtendedSpecialType != InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers)
+                    {
+                        arguments.Diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MethodImplAttributeAsyncCannotBeUsed, arguments.AttributeSyntaxOpt.Location));
+                        options &= ~MethodImplOptions.Async;
+                    }
                 }
             }
             else

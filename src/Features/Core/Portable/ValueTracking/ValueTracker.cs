@@ -177,7 +177,7 @@ internal static partial class ValueTracker
         CancellationToken cancellationToken)
     {
         var containingSymbol = parameterSymbol.ContainingSymbol;
-        var findReferenceProgressCollector = new FindReferencesProgress(collector);
+        var findReferenceProgressCollector = new FindReferencesProgress(collector, parameterSymbol);
         await SymbolFinder.FindReferencesAsync(
             containingSymbol,
             collector.Solution,
@@ -273,7 +273,7 @@ internal static partial class ValueTracker
             // the symbol for that identifier
             if (syntaxFacts.IsArgument(selectedNode))
             {
-                selectedNode = syntaxFacts.GetExpressionOfArgument(selectedNode)!;
+                selectedNode = syntaxFacts.GetExpressionOfArgument(selectedNode);
                 selectedSymbol = semanticModel.GetSymbolInfo(selectedNode, cancellationToken).Symbol;
             }
         }

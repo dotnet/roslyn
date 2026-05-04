@@ -6,345 +6,287 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class ExternKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class ExternKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact]
-        public async Task TestAtRoot()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAtRoot()
+        => VerifyKeywordAsync(
 @"$$");
-        }
 
-        [Fact]
-        public async Task TestAfterClass()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterClass()
+        => VerifyKeywordAsync(
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterGlobalStatement()
-        {
-            await VerifyKeywordAsync(
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterGlobalVariableDeclaration()
-        {
-            await VerifyKeywordAsync(
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterGlobalVariableDeclaration()
+        => VerifyKeywordAsync(
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestInEmptyStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestInEmptyStatement(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestAfterStaticInStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestAfterStaticInStatement(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
 @"static $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestAfterAttributesInStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestAfterAttributesInStatement(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
 @"[Attr] $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestAfterAttributesInSwitchCase(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                switch (c)
-                {
-                    case 0:
-                         [Goo]
-                         $$
-                }
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestAfterAttributesInSwitchCase(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (c)
+            {
+                case 0:
+                     [Goo]
+                     $$
+            }
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestAfterAttributesAndStaticInStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestAfterAttributesAndStaticInStatement(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
 @"[Attr] static $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestBetweenAttributesAndReturnStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                [Attr]
-                $$
-                return x;
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestBetweenAttributesAndReturnStatement(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            [Attr]
+            $$
+            return x;
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestBetweenAttributesAndLocalDeclarationStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                [Attr]
-                $$
-                x y = bar();
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestBetweenAttributesAndLocalDeclarationStatement(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            [Attr]
+            $$
+            x y = bar();
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestBetweenAttributesAndAwaitExpression(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                [Attr]
-                $$
-                await bar;
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestBetweenAttributesAndAwaitExpression(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            [Attr]
+            $$
+            await bar;
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestBetweenAttributesAndAssignmentStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                [Goo]
-                $$
-                y = bar();
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestBetweenAttributesAndAssignmentStatement(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            [Goo]
+            $$
+            y = bar();
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestBetweenAttributesAndCallStatement1(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                [Goo]
-                $$
-                bar();
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestBetweenAttributesAndCallStatement1(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            [Goo]
+            $$
+            bar();
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestBetweenAttributesAndCallStatement2(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                [Goo1]
-                [Goo2]
-                $$
-                bar();
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestBetweenAttributesAndCallStatement2(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            [Goo1]
+            [Goo2]
+            $$
+            bar();
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestNotAfterExternInStatement(bool topLevelStatement)
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestNotAfterExternInStatement(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"extern $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Fact]
-        public async Task TestNotAfterExternKeyword()
-            => await VerifyAbsenceAsync(@"extern $$");
+    [Fact]
+    public async Task TestNotAfterExternKeyword()
+        => await VerifyAbsenceAsync(@"extern $$");
 
-        [Fact]
-        public async Task TestAfterPreviousExternAlias()
-        {
-            await VerifyKeywordAsync(
-                """
-                extern alias Goo;
+    [Fact]
+    public Task TestAfterPreviousExternAlias()
+        => VerifyKeywordAsync(
+            """
+            extern alias Goo;
+            $$
+            """);
+
+    [Fact]
+    public Task TestAfterUsing()
+        => VerifyKeywordAsync("""
+            using Goo;
+            $$
+            """);
+
+    [Fact]
+    public Task TestAfterGlobalUsing()
+        => VerifyKeywordAsync(
+            """
+            global using Goo;
+            $$
+            """);
+
+    [Fact]
+    public Task TestAfterNamespace()
+        => VerifyKeywordAsync("""
+            namespace N {}
+            $$
+            """);
+
+    [Fact]
+    public Task TestInsideNamespace()
+        => VerifyKeywordAsync(
+            """
+            namespace N {
                 $$
-                """);
-        }
+            """);
 
-        [Fact]
-        public async Task TestAfterUsing()
-        {
-            await VerifyKeywordAsync("""
+    [Fact]
+    public Task TestInsideFileScopedNamespace()
+        => VerifyKeywordAsync(
+@"namespace N;$$");
+
+    [Fact]
+    public Task TestNotAfterExternKeyword_InsideNamespace()
+        => VerifyAbsenceAsync("""
+            namespace N {
+                extern $$
+            """);
+
+    [Fact]
+    public Task TestAfterPreviousExternAlias_InsideNamespace()
+        => VerifyKeywordAsync(
+            """
+            namespace N {
+               extern alias Goo;
+               $$
+            """);
+
+    [Fact]
+    public Task TestNotAfterUsing_InsideNamespace()
+        => VerifyAbsenceAsync("""
+            namespace N {
                 using Goo;
                 $$
-                """);
-        }
+            """);
 
-        [Fact]
-        public async Task TestAfterGlobalUsing()
-        {
-            await VerifyKeywordAsync(
-                """
-                global using Goo;
+    [Fact]
+    public Task TestNotAfterMember_InsideNamespace()
+        => VerifyAbsenceAsync("""
+            namespace N {
+                class C {}
                 $$
-                """);
-        }
+            """);
 
-        [Fact]
-        public async Task TestAfterNamespace()
-        {
-            await VerifyKeywordAsync("""
+    [Fact]
+    public Task TestNotAfterNamespace_InsideNamespace()
+        => VerifyAbsenceAsync("""
+            namespace N {
                 namespace N {}
                 $$
-                """);
-        }
+            """);
 
-        [Fact]
-        public async Task TestInsideNamespace()
-        {
-            await VerifyKeywordAsync(
-                """
-                namespace N {
+    [Fact]
+    public Task TestInClass()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                $$
+            """);
+
+    [Fact]
+    public Task TestInStruct()
+        => VerifyKeywordAsync(
+            """
+            struct S {
+                $$
+            """);
+
+    [Fact]
+    public Task TestInInterface()
+        => VerifyKeywordAsync(
+            """
+            interface I {
+                $$
+            """);
+
+    [Fact]
+    public Task TestNotAfterAbstract()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                abstract $$
+            """);
+
+    [Fact]
+    public Task TestNotAfterExtern()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                extern $$
+            """);
+
+    [Fact]
+    public Task TestAfterPublic()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                public $$
+            """);
+
+    [Fact]
+    public Task TestWithinExtension()
+        => VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
                     $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestInsideFileScopedNamespace()
-        {
-            await VerifyKeywordAsync(
-@"namespace N;$$");
-        }
-
-        [Fact]
-        public async Task TestNotAfterExternKeyword_InsideNamespace()
-        {
-            await VerifyAbsenceAsync("""
-                namespace N {
-                    extern $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestAfterPreviousExternAlias_InsideNamespace()
-        {
-            await VerifyKeywordAsync(
-                """
-                namespace N {
-                   extern alias Goo;
-                   $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestNotAfterUsing_InsideNamespace()
-        {
-            await VerifyAbsenceAsync("""
-                namespace N {
-                    using Goo;
-                    $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestNotAfterMember_InsideNamespace()
-        {
-            await VerifyAbsenceAsync("""
-                namespace N {
-                    class C {}
-                    $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestNotAfterNamespace_InsideNamespace()
-        {
-            await VerifyAbsenceAsync("""
-                namespace N {
-                    namespace N {}
-                    $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestInClass()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                    $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestInStruct()
-        {
-            await VerifyKeywordAsync(
-                """
-                struct S {
-                    $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestInInterface()
-        {
-            await VerifyKeywordAsync(
-                """
-                interface I {
-                    $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestNotAfterAbstract()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C {
-                    abstract $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestNotAfterExtern()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C {
-                    extern $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestAfterPublic()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                    public $$
-                """);
-        }
-    }
+                }
+            }
+            """, CSharpNextParseOptions);
 }

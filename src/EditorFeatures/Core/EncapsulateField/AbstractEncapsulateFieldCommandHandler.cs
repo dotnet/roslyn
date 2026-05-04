@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -18,7 +17,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EncapsulateField;
 
@@ -75,7 +73,7 @@ internal abstract class AbstractEncapsulateFieldCommandHandler(
         var document = await subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context).ConfigureAwait(false);
         Contract.ThrowIfNull(document);
 
-        var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
+        var service = document.GetRequiredLanguageService<IEncapsulateFieldService>();
 
         var result = await service.EncapsulateFieldsInSpanAsync(
             document, span.Span.ToTextSpan(), useDefaultBehavior: true, cancellationToken).ConfigureAwait(false);
@@ -111,13 +109,13 @@ internal abstract class AbstractEncapsulateFieldCommandHandler(
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             finalSolution = previewService.PreviewChanges(
-                string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
+                 string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
                  "vs.csharp.refactoring.preview",
-                EditorFeaturesResources.Encapsulate_Field_colon,
-                result.Name,
-                result.Glyph,
-                finalSolution,
-                solution);
+                 EditorFeaturesResources.Encapsulate_Field_colon,
+                 result.Name,
+                 result.Glyph,
+                 finalSolution,
+                 solution);
         }
 
         if (finalSolution == null)

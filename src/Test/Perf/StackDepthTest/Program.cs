@@ -4,16 +4,16 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 namespace OverflowSensitivity
 {
-    public class Program
+    public static class Program
     {
         [DllImport("kernel32.dll")]
         private static extern ErrorModes SetErrorMode(ErrorModes uMode);

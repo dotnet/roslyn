@@ -5,60 +5,59 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+internal sealed class TheoryDataKeywordsIndicatingLocalFunction : IEnumerable<object[]>
 {
-    internal class TheoryDataKeywordsIndicatingLocalFunction : IEnumerable<object[]>
+    public IEnumerator<object[]> GetEnumerator()
     {
-        public IEnumerator<object[]> GetEnumerator()
-        {
-            yield return new object[] { "extern" };
-            yield return new object[] { "static extern" };
-            yield return new object[] { "extern static" };
-            yield return new object[] { "async" };
-            yield return new object[] { "static async" };
-            yield return new object[] { "async static" };
-            yield return new object[] { "unsafe" };
-            yield return new object[] { "static unsafe" };
-            yield return new object[] { "unsafe static" };
-            yield return new object[] { "async unsafe" };
-            yield return new object[] { "unsafe async" };
-            yield return new object[] { "unsafe extern" };
-            yield return new object[] { "extern unsafe" };
-            yield return new object[] { "extern unsafe async static" };
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        yield return new object[] { "extern" };
+        yield return new object[] { "static extern" };
+        yield return new object[] { "extern static" };
+        yield return new object[] { "async" };
+        yield return new object[] { "static async" };
+        yield return new object[] { "async static" };
+        yield return new object[] { "unsafe" };
+        yield return new object[] { "static unsafe" };
+        yield return new object[] { "unsafe static" };
+        yield return new object[] { "async unsafe" };
+        yield return new object[] { "unsafe async" };
+        yield return new object[] { "unsafe extern" };
+        yield return new object[] { "extern unsafe" };
+        yield return new object[] { "extern unsafe async static" };
     }
 
-    internal class TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync : IEnumerable<object[]>
-    {
-        public IEnumerator<object[]> GetEnumerator()
-        {
-            yield return new object[] { "extern" };
-            yield return new object[] { "static extern" };
-            yield return new object[] { "extern static" };
-            yield return new object[] { "unsafe" };
-            yield return new object[] { "static unsafe" };
-            yield return new object[] { "unsafe static" };
-            yield return new object[] { "unsafe extern" };
-            yield return new object[] { "extern unsafe" };
-        }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+internal sealed class TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync : IEnumerable<object[]>
+{
+    public IEnumerator<object[]> GetEnumerator()
+    {
+        yield return new object[] { "extern" };
+        yield return new object[] { "static extern" };
+        yield return new object[] { "extern static" };
+        yield return new object[] { "unsafe" };
+        yield return new object[] { "static unsafe" };
+        yield return new object[] { "unsafe static" };
+        yield return new object[] { "unsafe extern" };
+        yield return new object[] { "extern unsafe" };
     }
 
-    internal class TheoryDataKeywordsIndicatingLocalFunctionWithAsync : IEnumerable<object[]>
-    {
-        public IEnumerator<object[]> GetEnumerator()
-        {
-            yield return new object[] { "async" };
-            yield return new object[] { "static async" };
-            yield return new object[] { "async static" };
-            yield return new object[] { "async unsafe" };
-            yield return new object[] { "unsafe async" };
-            yield return new object[] { "extern unsafe async static" };
-        }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+internal sealed class TheoryDataKeywordsIndicatingLocalFunctionWithAsync : IEnumerable<object[]>
+{
+    public IEnumerator<object[]> GetEnumerator()
+    {
+        yield return new object[] { "async" };
+        yield return new object[] { "static async" };
+        yield return new object[] { "async static" };
+        yield return new object[] { "async unsafe" };
+        yield return new object[] { "unsafe async" };
+        yield return new object[] { "extern unsafe async static" };
     }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

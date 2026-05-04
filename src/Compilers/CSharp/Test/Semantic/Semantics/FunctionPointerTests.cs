@@ -14,6 +14,7 @@ using static Microsoft.CodeAnalysis.CSharp.UnitTests.FunctionPointerUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.Unsafe)]
     public class FunctionPointerTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)
@@ -607,7 +608,8 @@ unsafe class C
 
                 var typeInfo = model.GetTypeInfo(decl);
                 var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
-                Assert.Equal(conversion, classifiedConversion);
+                Assert.Equal(conversion.Kind, classifiedConversion.Kind);
+                Assert.Equal(conversion.Method, classifiedConversion.Method);
             }
         }
 
@@ -3163,14 +3165,7 @@ unsafe class C
             comp.VerifyDiagnostics(
                 // (7,12): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
                 //         ptr?.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(7, 12),
-                // (8,17): error CS8977: 'delegate*<void>' cannot be made nullable.
-                //         ptr = c?.GetPtr();
-                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".GetPtr()").WithArguments("delegate*<void>").WithLocation(8, 17),
-                // (9,12): error CS8977: 'delegate*<void>' cannot be made nullable.
-                //         (c?.GetPtr())();
-                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".GetPtr()").WithArguments("delegate*<void>").WithLocation(9, 12)
-            );
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(7, 12));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -3200,44 +3195,39 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[1],
                 expectedSyntax: "c?.GetPtr()",
-                expectedType: "?",
+                expectedType: "delegate*<System.Void>",
                 expectedConvertedType: "delegate*<System.Void>",
                 expectedSymbol: null,
                 expectedSymbolCandidates: null);
 
             VerifyOperationTreeForNode(comp, model, invocations[1], expectedOperationTree: @"
-IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'c?.GetPtr()')
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: delegate*<System.Void>) (Syntax: 'c?.GetPtr()')
   Operation:
-    IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'c')
-      Children(1):
-          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   WhenNotNull:
-    IInvocationOperation ( delegate*<System.Void> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.Void>, IsInvalid) (Syntax: '.GetPtr()')
+    IInvocationOperation ( delegate*<System.Void> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.Void>) (Syntax: '.GetPtr()')
       Instance Receiver:
         IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
-      Arguments(0)
-");
+      Arguments(0)");
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[2].Parent!.Parent!,
                 expectedSyntax: "(c?.GetPtr())()",
-                expectedType: "?",
-                expectedSymbol: null,
+                expectedType: "System.Void",
+                expectedSymbol: "delegate*<System.Void>",
                 expectedSymbolCandidates: null);
 
             VerifyOperationTreeForNode(comp, model, invocations[2].Parent!.Parent!, expectedOperationTree: @"
-IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '(c?.GetPtr())()')
-  Children(1):
-      IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'c?.GetPtr()')
-        Operation:
-          IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'c')
-            Children(1):
-                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
-        WhenNotNull:
-          IInvocationOperation ( delegate*<System.Void> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.Void>, IsInvalid) (Syntax: '.GetPtr()')
-            Instance Receiver:
-              IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
-            Arguments(0)
-");
+IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Type: System.Void) (Syntax: '(c?.GetPtr())()')
+  Target:
+    IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: delegate*<System.Void>) (Syntax: 'c?.GetPtr()')
+      Operation:
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+      WhenNotNull:
+        IInvocationOperation ( delegate*<System.Void> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.Void>) (Syntax: '.GetPtr()')
+          Instance Receiver:
+            IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
+          Arguments(0)
+  Arguments(0)");
 
         }
 
@@ -3299,37 +3289,35 @@ unsafe class C
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[0],
                 expectedSyntax: "c?.GetPtr()",
-                expectedType: "System.Void",
+                expectedType: "delegate*<System.String>",
                 expectedSymbol: null,
                 expectedSymbolCandidates: null);
 
             VerifyOperationTreeForNode(comp, model, invocations[0], expectedOperationTree: @"
-IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Void) (Syntax: 'c?.GetPtr()')
-  Operation: 
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: delegate*<System.String>) (Syntax: 'c?.GetPtr()')
+  Operation:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  WhenNotNull: 
+  WhenNotNull:
     IInvocationOperation ( delegate*<System.String> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.String>) (Syntax: '.GetPtr()')
-      Instance Receiver: 
+      Instance Receiver:
         IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
-      Arguments(0)
-");
+      Arguments(0)");
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[1],
                 expectedSyntax: "c?.GetPtr()",
-                expectedType: "System.Void",
+                expectedType: "delegate*<System.String>",
                 expectedSymbol: null,
                 expectedSymbolCandidates: null);
 
             VerifyOperationTreeForNode(comp, model, invocations[1], expectedOperationTree: @"
-IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Void) (Syntax: 'c?.GetPtr()')
-  Operation: 
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: delegate*<System.String>) (Syntax: 'c?.GetPtr()')
+  Operation:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  WhenNotNull: 
+  WhenNotNull:
     IInvocationOperation ( delegate*<System.String> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.String>) (Syntax: '.GetPtr()')
-      Instance Receiver: 
+      Instance Receiver:
         IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
-      Arguments(0)
-");
+      Arguments(0)");
         }
 
         [Fact]
@@ -4151,6 +4139,55 @@ public class C
                 //     public unsafe void M(delegate*<void>? f) {
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "f").WithArguments("delegate*<void>").WithLocation(5, 43)
             );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75933")]
+        public void BoolLiteralInvocation_01()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    static unsafe void M()
+                    {
+                        int i = 0;
+                        ((delegate*<int, void>)true)(i);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,10): error CS0030: Cannot convert type 'bool' to 'delegate*<int, void>'
+                //         ((delegate*<int, void>)true)(i);
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate*<int, void>)true").WithArguments("bool", "delegate*<int, void>").WithLocation(8, 10)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75933")]
+        public void BoolLiteralInvocation_02()
+        {
+            var source = """
+                #nullable enable
+
+                using System;
+
+                class C
+                {
+                    static unsafe void M()
+                    {
+                        var d = delegate (object? o, IntPtr f) { return ((delegate* managed<object?, long>)false)(o); };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,58): error CS0030: Cannot convert type 'bool' to 'delegate*<object?, long>'
+                //         var d = delegate (object? o, IntPtr f) { return ((delegate* managed<object?, long>)false)(o); };
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate* managed<object?, long>)false").WithArguments("bool", "delegate*<object?, long>").WithLocation(9, 58)
+                );
         }
     }
 }

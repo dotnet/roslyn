@@ -197,10 +197,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not local.IsFunctionValue AndAlso Not String.IsNullOrEmpty(local.Name) Then
                 If _writtenVariables.Contains(local) Then
                     If local.IsConst Then
-                        Me.diagnostics.Add(ERRID.WRN_UnusedLocalConst, local.Locations(0), If(local.Name, "dummy"))
+                        Me.diagnostics.Add(ERRID.WRN_UnusedLocalConst, local.GetFirstLocation(), If(local.Name, "dummy"))
                     End If
                 Else
-                    Me.diagnostics.Add(ERRID.WRN_UnusedLocal, local.Locations(0), If(local.Name, "dummy"))
+                    Me.diagnostics.Add(ERRID.WRN_UnusedLocal, local.GetFirstLocation(), If(local.Name, "dummy"))
                 End If
             End If
         End Sub

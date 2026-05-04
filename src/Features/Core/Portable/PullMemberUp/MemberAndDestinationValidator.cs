@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.  
 
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -43,8 +44,9 @@ internal static class MemberAndDestinationValidator
         // 2. Dialog box (Allow modifers may cause error and will provide fixing)
         return member switch
         {
-            IMethodSymbol methodSymbol => methodSymbol.MethodKind == MethodKind.Ordinary,
-            _ => member.IsKind(SymbolKind.Property) || member.IsKind(SymbolKind.Event) || member.IsKind(SymbolKind.Field),
+            IMethodSymbol { MethodKind: MethodKind.Ordinary } => true,
+            IPropertySymbol or IEventSymbol or IFieldSymbol => true,
+            _ => false,
         };
     }
 }

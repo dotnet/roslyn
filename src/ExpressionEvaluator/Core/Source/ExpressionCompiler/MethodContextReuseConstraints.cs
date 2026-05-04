@@ -7,37 +7,36 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal readonly struct MethodContextReuseConstraints
     {
-        private readonly Guid _moduleVersionId;
+        private readonly ModuleId _moduleId;
         private readonly int _methodToken;
         private readonly int _methodVersion;
         private readonly ILSpan _span;
 
-        internal MethodContextReuseConstraints(Guid moduleVersionId, int methodToken, int methodVersion, ILSpan span)
+        internal MethodContextReuseConstraints(ModuleId moduleId, int methodToken, int methodVersion, ILSpan span)
         {
-            Debug.Assert(moduleVersionId != Guid.Empty);
+            Debug.Assert(moduleId.Id != Guid.Empty);
             Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
             Debug.Assert(methodVersion >= 1);
 
-            _moduleVersionId = moduleVersionId;
+            _moduleId = moduleId;
             _methodToken = methodToken;
             _methodVersion = methodVersion;
             _span = span;
         }
 
-        public bool AreSatisfied(Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset)
+        public bool AreSatisfied(ModuleId moduleId, int methodToken, int methodVersion, int ilOffset)
         {
-            Debug.Assert(moduleVersionId != Guid.Empty);
+            Debug.Assert(moduleId.Id != Guid.Empty);
             Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
             Debug.Assert(methodVersion >= 1);
             Debug.Assert(ilOffset >= 0);
 
-            return moduleVersionId == _moduleVersionId &&
+            return moduleId.Id == _moduleId.Id &&
                 methodToken == _methodToken &&
                 methodVersion == _methodVersion &&
                 _span.Contains(ilOffset);
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public override string ToString()
         {
-            return $"0x{_methodToken:x8}v{_methodVersion} from {_moduleVersionId} {_span}";
+            return $"0x{_methodToken:x8}v{_methodVersion} from {_moduleId.Id} {_span}";
         }
 
         /// <summary>

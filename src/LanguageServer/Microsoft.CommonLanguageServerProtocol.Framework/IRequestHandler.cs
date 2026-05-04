@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
+
 internal interface IRequestHandler<TRequest, TResponse, TRequestContext> : IMethodHandler
 {
     /// <summary>

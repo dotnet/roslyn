@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Roslyn.Test.Utilities
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class SyntaxEquivalenceTests
@@ -270,6 +272,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
 
             tree2 = tree1.WithReplaceFirst("Hello", "World")
+            VerifyEquivalent(tree1, tree2, topLevel:=True)
+            VerifyNotEquivalent(tree1, tree2, topLevel:=False)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75231")>
+        Public Sub TestXmlLiteral_Text()
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Goo() \n Dim x = <x>Text1</x> \n end sub \n end class \n end namespace"))
+            Dim tree2 = tree1.WithReplaceFirst("Text1", "Text2")
+            VerifyEquivalent(tree1, tree2, topLevel:=True)
+            VerifyNotEquivalent(tree1, tree2, topLevel:=False)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75231")>
+        Public Sub TestXmlLiteral_AttributeValue()
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Goo() \n Dim x = <x a=""attr1"">Text</x> \n end sub \n end class \n end namespace"))
+            Dim tree2 = tree1.WithReplaceFirst("attr1", "attr2")
+            VerifyEquivalent(tree1, tree2, topLevel:=True)
+            VerifyNotEquivalent(tree1, tree2, topLevel:=False)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75231")>
+        Public Sub TestXmlLiteral_AttributeName()
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Goo() \n Dim x = <x attr1=""v"">Text</x> \n end sub \n end class \n end namespace"))
+            Dim tree2 = tree1.WithReplaceFirst("attr1", "attr2")
+            VerifyEquivalent(tree1, tree2, topLevel:=True)
+            VerifyNotEquivalent(tree1, tree2, topLevel:=False)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75231")>
+        Public Sub TestXmlLiteral_CDATA()
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Goo() \n Dim a = <x><![CDATA[Text1]]></x> \n end sub \n end class \n end namespace"))
+            Dim tree2 = tree1.WithReplaceFirst("Text1", "Text2")
+            VerifyEquivalent(tree1, tree2, topLevel:=True)
+            VerifyNotEquivalent(tree1, tree2, topLevel:=False)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75231")>
+        Public Sub TestXmlLiteral_Comment()
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Goo() \n Dim a = <x><!--Text1--></x> \n end sub \n end class \n end namespace"))
+            Dim tree2 = tree1.WithReplaceFirst("Text1", "Text2")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
         End Sub

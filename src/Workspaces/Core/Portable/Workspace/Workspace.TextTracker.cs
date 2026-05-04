@@ -15,7 +15,7 @@ public partial class Workspace
     /// <summary>
     /// A class that responds to text buffer changes
     /// </summary>
-    private class TextTracker
+    private sealed class TextTracker
     {
         private readonly Workspace _workspace;
         private readonly DocumentId _documentId;

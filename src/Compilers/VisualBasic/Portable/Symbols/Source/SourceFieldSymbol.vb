@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -32,8 +33,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyExpandedDocComment As String
         Private _lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
-        ' Set to 1 when the compilation event has been produced
-        Private _eventProduced As Integer
+        ''' <summary>
+        ''' See <see cref="StateFlags"/>
+        ''' </summary>
+        Protected _lazyState As Integer
+
+        <Flags>
+        Protected Enum StateFlags As Integer
+            TypeConstraintsChecked = &H1
+
+            EventProduced = &H2
+        End Enum
 
         Protected Sub New(container As SourceMemberContainerTypeSymbol,
                           syntaxRef As SyntaxReference,
@@ -51,15 +61,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_memberFlags = memberFlags
         End Sub
 
-        Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
+        Protected Overridable Sub GenerateDeclarationErrorsImpl(cancellationToken As CancellationToken)
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
             Dim unusedType = Me.Type
             GetConstantValue(ConstantFieldsInProgress.Empty)
+        End Sub
+
+        Friend NotOverridable Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
+            GenerateDeclarationErrorsImpl(cancellationToken)
 
             ' We want declaration events to be last, after all compilation analysis is done, so we produce them here
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-            If Interlocked.CompareExchange(_eventProduced, 1, 0) = 0 AndAlso Not Me.IsImplicitlyDeclared Then
+            If ThreadSafeFlagOperations.Set(_lazyState, StateFlags.EventProduced) AndAlso Not Me.IsImplicitlyDeclared Then
                 sourceModule.DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
         End Sub
@@ -230,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If startsCycle Then
                     diagnostics.Clear()
-                    diagnostics.Add(ERRID.ERR_CircularEvaluation1, Locations(0), CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                    diagnostics.Add(ERRID.ERR_CircularEvaluation1, GetFirstLocation(), CustomSymbolDisplayFormatter.ShortErrorName(Me))
                 End If
 
                 SetLazyConstantTuple(constantTuple, diagnostics)
@@ -517,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' We sort fields that belong to the same compilation by location to process cycles in deterministic order.
                 ' Relative order between compilations is not important, cycles do not cross compilation boundaries. 
                 fieldsInvolvedInCycles.AddRange(graph.Keys.GroupBy(Function(f) f.DeclaringCompilation).
-                    SelectMany(Function(g) g.OrderByDescending(Function(f1, f2) g.Key.CompareSourceLocations(f1.Locations(0), f2.Locations(0)))))
+                    SelectMany(Function(g) g.OrderByDescending(Function(f1, f2) g.Key.CompareSourceLocations(f1.GetFirstLocation(), f2.GetFirstLocation()))))
             End If
 
             Do
@@ -659,7 +673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _lazyCustomAttributesBag = attributeData
         End Sub
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If Me.IsConst Then

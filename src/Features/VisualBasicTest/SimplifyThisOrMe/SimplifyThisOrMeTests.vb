@@ -346,7 +346,7 @@ End Class]]>
             Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,
-                options:=options)
+                New TestParameters(options:=options))
         End Function
     End Class
 End Namespace

@@ -12,9 +12,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Emit.UnitTests;
 
-public class CompilationOutputsTests
+public sealed class CompilationOutputsTests
 {
-    private class TestCompilationOutputs : CompilationOutputs
+    private sealed class TestCompilationOutputs : CompilationOutputs
     {
         private readonly Func<Stream?>? _openAssemblyStream;
         private readonly Func<Stream?>? _openPdbStream;
@@ -77,7 +77,7 @@ public class CompilationOutputsTests
 
         using (var pdb = outputs.OpenPdb())
         {
-            var encReader = pdb!.CreateEditAndContinueMethodDebugInfoReader();
+            var encReader = pdb!.CreateEditAndContinueDebugInfoReader();
             Assert.Equal(format != DebugInformationFormat.Pdb, encReader.IsPortable);
             var localSig = encReader.GetLocalSignature(MetadataTokens.MethodDefinitionHandle(1));
             Assert.Equal(MetadataTokens.StandaloneSignatureHandle(1), localSig);

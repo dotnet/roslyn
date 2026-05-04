@@ -15,15 +15,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
-public class InvertConditionalTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class InvertConditionalTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpInvertConditionalCodeRefactoringProvider();
 
     [Fact]
-    public async Task InvertConditional1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InvertConditional1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -42,12 +41,10 @@ public class InvertConditionalTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InvertConditional2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InvertConditional2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -66,12 +63,10 @@ public class InvertConditionalTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -94,12 +89,10 @@ public class InvertConditionalTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -122,15 +115,10 @@ public class InvertConditionalTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        // We currently do not move trivia along with the true/false parts.  We could consider
-        // trying to intelligently do that in the future.  It would require moving the comments,
-        // but preserving the whitespace/newlines.
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -153,12 +141,10 @@ public class InvertConditionalTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStartOfConditional()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStartOfConditional()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -177,12 +163,10 @@ public class InvertConditionalTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestAfterCondition()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAfterCondition()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -201,5 +185,4 @@ public class InvertConditionalTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 }

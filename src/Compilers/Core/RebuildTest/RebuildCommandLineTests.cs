@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             FilePathToStreamMap.Add(Path.Combine(BuildPaths.WorkingDirectory, filePath), new TestableFile(content));
         }
 
-        private void AddReference(string filePath, byte[] imageBytes)
-        {
-            FilePathToStreamMap.Add(Path.Combine(BuildPaths.SdkDirectory!, filePath), new TestableFile(imageBytes));
-        }
-
         private void AddOutputFile(ref string? filePath)
         {
             if (filePath is object)
@@ -107,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 errorLoggerOpt: null,
                 analyzerConfigOptions: default,
                 globalConfigOptions: default);
-            AssertEx.NotNull(compilation);
+            Assert.NotNull(compilation);
             RoundTripUtil.VerifyCompilationOptions(commonCompiler.Arguments.CompilationOptions, compilation.Options);
 
             RoundTripUtil.VerifyRoundTrip(

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-internal class TestRequestContext
+internal sealed class TestRequestContext
 {
-    internal class Factory : AbstractRequestContextFactory<TestRequestContext>
+    internal sealed class Factory : AbstractRequestContextFactory<TestRequestContext>
     {
         public static readonly Factory Instance = new();
 
-        public override Task<TestRequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<TestRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
-            => Task.FromResult(new TestRequestContext());
+        public override async Task<TestRequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<TestRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+            => new TestRequestContext();
     }
 }

@@ -5,32 +5,44 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 public abstract class EditingTestBase : CSharpTestBase
 {
-    public static readonly string ReloadableAttributeSrc = @"
-using System.Runtime.CompilerServices;
-namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }
-";
+    public static readonly string ReloadableAttributeDefSrc =
+        "namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }";
 
-    internal static CSharpEditAndContinueAnalyzer CreateAnalyzer()
-    {
-        return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
-    }
+    public static readonly string ReloadableAttributeSrc = $"""
+
+        using System.Runtime.CompilerServices;
+        {ReloadableAttributeDefSrc}
+
+        """;
+
+    public static readonly string RestartRequiredOnMetadataUpdateAttributeDefSrc = """
+
+        namespace System.Runtime.CompilerServices { class RestartRequiredOnMetadataUpdateAttribute : Attribute {} }
+
+        """;
+
+    public static readonly string RestartRequiredOnMetadataUpdateAttributeSrc = $"""
+
+        using System.Runtime.CompilerServices;
+        {RestartRequiredOnMetadataUpdateAttributeDefSrc}
+        """;
 
     internal enum MethodKind
     {
@@ -62,7 +74,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             "class" => FeaturesResources.class_,
             "interface" => FeaturesResources.interface_,
             "delegate" => FeaturesResources.delegate_,
-            "struct" => CSharpFeaturesResources.struct_,
+            "struct" => FeaturesResources.struct_,
             "record" or "record class" => CSharpFeaturesResources.record_,
             "record struct" => CSharpFeaturesResources.record_struct,
             "static constructor" => FeaturesResources.static_constructor,
@@ -87,9 +99,14 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             "where clause" => CSharpFeaturesResources.where_clause,
             "select clause" => CSharpFeaturesResources.select_clause,
             "groupby clause" => CSharpFeaturesResources.groupby_clause,
+            "orderby clause" => CSharpFeaturesResources.orderby_clause,
+            "join clause" => CSharpFeaturesResources.join_clause,
+            "from clause" => CSharpFeaturesResources.from_clause,
+            "let clause" => CSharpFeaturesResources.let_clause,
             "top-level statement" => CSharpFeaturesResources.top_level_statement,
             "top-level code" => CSharpFeaturesResources.top_level_code,
             "class with explicit or sequential layout" => string.Format(FeaturesResources.class_with_explicit_or_sequential_layout),
+            "extension block" => FeaturesResources.extension_block,
             _ => null
         };
 
@@ -98,8 +115,11 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
     internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
         => new(rudeEditKind, squiggle, arguments, firstLine: null);
 
-    internal static RuntimeRudeEditDescription RuntimeRudeEdit(int marker, RudeEditKind rudeEditKind, (int displayLine, int displayColumn) position, params string[] arguments)
-        => new(marker, rudeEditKind, new LinePosition(position.displayLine - 1, position.displayColumn - 1), arguments);
+    internal static RuntimeRudeEditDescription RuntimeRudeEdit(int marker, RudeEditKind rudeEditKind, LinePosition position, params string[] arguments)
+        => new(marker, rudeEditKind, position, arguments);
+
+    internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, SyntaxMapDescription.Mapping? syntaxMap, IEnumerable<RuntimeRudeEditDescription>? rudeEdits = null, string? partialType = null)
+        => SemanticEdit(kind, symbolProvider, syntaxMap?.Spans, rudeEdits, partialType);
 
     internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<(TextSpan, TextSpan)>? syntaxMap, IEnumerable<RuntimeRudeEditDescription>? rudeEdits = null, string? partialType = null)
         => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap, rudeEdits, hasSyntaxMap: syntaxMap != null, deletedSymbolContainerProvider: null);
@@ -122,11 +142,19 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
     private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
         => SyntaxFactory.ParseSyntaxTree(
             SourceMarkers.Clear(markedSource),
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
             path: GetDocumentFilePath(documentIndex));
 
-    internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)
+    internal static EditScriptDescription GetTopEdits(string methodBody1, string methodBody2, MethodKind kind)
+        => GetTopEdits(WrapMethodBodyWithClass(methodBody1, kind), WrapMethodBodyWithClass(methodBody2, kind));
+
+    internal static EditScriptDescription GetTopEdits(string src1, string src2, int documentIndex = 0)
     {
+        // Normalize line endings to \r\n so that character offsets in VerifyEdits
+        // assertions are consistent across Windows and Unix.
+        src1 = src1.NormalizeLineEndings();
+        src2 = src2.NormalizeLineEndings();
+
         var tree1 = ParseSource(src1, documentIndex);
         var tree2 = ParseSource(src2, documentIndex);
 
@@ -134,10 +162,10 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         tree2.GetDiagnostics().Verify();
 
         var match = SyntaxComparer.TopLevel.ComputeMatch(tree1.GetRoot(), tree2.GetRoot());
-        return match.GetTreeEdits();
+        return new(src1, src2, match.GetTreeEdits());
     }
 
-    public static EditScript<SyntaxNode> GetTopEdits(EditScript<SyntaxNode> methodEdits)
+    internal static EditScriptDescription GetTopEdits(EditScriptDescription methodEdits)
     {
         var oldMethodSource = methodEdits.Match.OldRoot.ToFullString();
         var newMethodSource = methodEdits.Match.NewRoot.ToFullString();
@@ -148,10 +176,13 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
     /// <summary>
     /// Gets method edits on the current level of the source hierarchy. This means that edits on lower labeled levels of the hierarchy are not expected to be returned.
     /// </summary>
-    internal static EditScript<SyntaxNode> GetMethodEdits(string src1, string src2, MethodKind kind = MethodKind.Regular)
+    internal static EditScriptDescription GetMethodEdits(string src1, string src2, MethodKind kind = MethodKind.Regular)
     {
+        src1 = src1.NormalizeLineEndings();
+        src2 = src2.NormalizeLineEndings();
+
         var match = GetMethodMatch(src1, src2, kind);
-        return match.GetTreeEdits();
+        return new(src1, src2, match.GetTreeEdits());
     }
 
     internal static Match<SyntaxNode> GetMethodMatch(string src1, string src2, MethodKind kind = MethodKind.Regular)
@@ -174,7 +205,8 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
     internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, MethodKind kind = MethodKind.Regular)
     {
         var methodMatch = GetMethodMatch(src1, src2, kind);
-        return EditAndContinueTestVerifier.GetMethodMatches(CreateAnalyzer(), methodMatch);
+        var analyzer = EditAndContinueTestVerifier.CreateAnalyzer(faultInjector: null, LanguageNames.CSharp);
+        return EditAndContinueTestVerifier.GetMethodMatches(analyzer, methodMatch);
     }
 
     public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
@@ -187,6 +219,10 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         string bodySource,
         MethodKind kind = MethodKind.Regular)
     {
+        // Normalize line endings to \r\n so that character offsets in VerifyEdits
+        // assertions are consistent across Windows and Unix.
+        bodySource = bodySource.NormalizeLineEndings();
+
         var source = WrapMethodBodyWithClass(bodySource, kind);
 
         var tree = ParseSource(source);
@@ -222,12 +258,12 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
          };
 
     internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[]? flags = null, int documentIndex = 0)
-        => new(oldSource, newSource, source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex)), flags);
+        => new(oldSource.NormalizeLineEndings(), newSource.NormalizeLineEndings(), source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex)), flags);
 
     internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
-        => new(oldSource, newSource);
+        => new(oldSource.NormalizeLineEndings(), newSource.NormalizeLineEndings());
 
-    internal static void VerifyPreserveLocalVariables(EditScript<SyntaxNode> edits, bool preserveLocalVariables)
+    internal static void VerifyPreserveLocalVariables(EditScriptDescription edits, bool preserveLocalVariables)
     {
         var oldDeclaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.OldRoot).Members[0]).Members[0];
         var oldBody = SyntaxUtilities.TryGetDeclarationBody(oldDeclaration, symbol: null);

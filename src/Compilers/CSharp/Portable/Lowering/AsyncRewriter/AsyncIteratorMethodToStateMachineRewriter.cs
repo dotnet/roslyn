@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Where should we jump to to continue the execution of disposal path.
         ///
         /// Initially, this is the method's return value label (<see cref="AsyncMethodToStateMachineRewriter._exprReturnLabel"/>).
-        /// Inside a `try` or `catch` with a `finally`, we'll use the label directly preceding the `finally`.
+        /// Inside a `try` or `catch` with a `finally`, we'll use the label directly following the `finally`.
         /// Inside a `try` or `catch` with an extracted `finally`, we will use the label preceding the extracted `finally`.
         /// Inside a `finally`, we'll have no/null label (disposal continues without a jump).
         /// </summary>
@@ -54,13 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol? instanceIdField,
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
+            ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
             : base(method, methodOrdinal, asyncMethodBuilderMemberCollection, F,
-                  state, builder, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals,
+                  state, builder, instanceIdField, hoistedVariables, nonReusableLocalProxies, nonReusableFieldsForCleanup, synthesizedLocalOrdinals,
                   stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             Debug.Assert(asyncIteratorInfo != null);
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var asyncDispatch = base.GenerateMissingStateDispatch();
 
-            var iteratorDispatch = _iteratorStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod);
+            var iteratorDispatch = _iteratorStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), HotReloadExceptionCode.CannotResumeSuspendedIteratorMethod);
             if (iteratorDispatch == null)
             {
                 return asyncDispatch;
@@ -87,11 +89,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (asyncDispatch != null) ? F.Block(asyncDispatch, iteratorDispatch) : iteratorDispatch;
         }
+
+        protected override BoundStatement GenerateCleanupForExit(ImmutableArray<StateMachineFieldSymbol> rootHoistedLocals)
+        {
+            // We need to clean nested hoisted local variables too (not just top-level ones)
+            // as they are not cleaned when exiting a block if we exit using a `yield break`
+            // or if the caller interrupts the enumeration after we reached a `yield return`.
+            // So we clean both top-level and nested hoisted local variables
+            return GenerateAllHoistedLocalsCleanup();
+        }
 #nullable disable
         protected override BoundStatement GenerateSetResultCall()
         {
             // ... _exprReturnLabel: ...
             // ... this.state = FinishedState; ...
+            // ... hoisted locals cleanup ...
 
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             // _current = default;
@@ -316,6 +328,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Goto(_currentDisposalLabel));
         }
 
+        protected override BoundStatement MakeAwaitPreamble()
+        {
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
+            var field = _asyncIteratorInfo.CurrentField;
+            bool isManaged = field.Type.IsManagedType(ref useSiteInfo);
+            F.Diagnostics.Add(field.GetFirstLocationOrNone(), useSiteInfo);
+
+            if (isManaged)
+            {
+                // _current = default;
+                return GenerateClearCurrent();
+            }
+
+            return null;
+        }
+
         private BoundExpressionStatement SetDisposeMode(bool value)
         {
             return F.Assignment(F.InstanceField(_asyncIteratorInfo.DisposeModeField), F.Literal(value));
@@ -323,7 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// An async-iterator state machine has a flag indicating "dispose mode".
-        /// We enter dispose mode by calling DisposeAsync() when the state machine is paused on a `yield return`.
+        /// We enter dispose mode by calling DisposeAsync() when the state machine is paused on a `yield return`,
+        /// or by reaching a `yield break`.
         /// DisposeAsync() will resume execution of the state machine from that state (using existing dispatch mechanism
         /// to restore execution from a given state, without executing other code to get there).
         ///
@@ -338,21 +367,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var savedDisposalLabel = _currentDisposalLabel;
+            LabelSymbol afterFinally = null;
             if (node.FinallyBlockOpt is object)
             {
-                var finallyEntry = F.GenerateLabel("finallyEntry");
-                _currentDisposalLabel = finallyEntry;
-
-                // Add finallyEntry label:
-                //  try
-                //  {
-                //      ...
-                //      finallyEntry:
-                //  }
-
-                node = node.Update(
-                    tryBlock: F.Block(node.TryBlock, F.Label(finallyEntry)),
-                    node.CatchBlocks, node.FinallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
+                afterFinally = F.GenerateLabel("afterFinally");
+                _currentDisposalLabel = afterFinally;
             }
             else if (node.FinallyLabelOpt is object)
             {
@@ -360,6 +379,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = (BoundStatement)base.VisitTryStatement(node);
+
+            if (afterFinally != null)
+            {
+                // Append a label immediately after the try-catch-finally statement,
+                // which disposal within `try`/`catch` blocks jumps to in order to pass control flow to the `finally` block implicitly:
+                //  tryEnd:
+                result = F.Block(result, F.Label(afterFinally));
+            }
 
             _currentDisposalLabel = savedDisposalLabel;
 

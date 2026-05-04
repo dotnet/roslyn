@@ -19,6 +19,127 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_StructLayout : CSharpTestBase
     {
+        private const string ExtendedLayoutMinimalCoreLibrary = """
+            #pragma warning disable 0169,9113
+            namespace System
+            {
+                public class Object
+                {
+                }
+
+                public abstract class ValueType : Object
+                {
+                }
+
+                public abstract class Enum : ValueType
+                {
+                }
+
+                public class Attribute : Object
+                {
+                }
+
+                public struct Void
+                {
+                }
+
+                public sealed class String
+                {
+                }
+
+                public enum AttributeTargets
+                {
+                    Class = 0x0004,
+                    Struct = 0x0008,
+                    Field = 0x0100,
+                }
+
+                [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+                public sealed class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets validOn) { }
+                    public AttributeUsageAttribute(AttributeTargets validOn, bool allowMultiple, bool inherited) {}
+                    public bool Inherited { get; set; }
+                    public bool AllowMultiple { get; set; }
+                }
+
+                public struct UInt16
+                {
+                    private ushort m_value;
+                }
+
+                public struct Int32
+                {
+                    private int m_value;
+                }
+
+                public struct Boolean
+                {
+                    private bool m_value;
+                }
+
+                public struct Single
+                {
+                    private float m_value;
+                }
+            }
+
+            namespace System.Runtime.InteropServices
+            {
+                [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
+                public sealed class StructLayoutAttribute(LayoutKind kind): Attribute
+                {
+                    public StructLayoutAttribute(ushort kind) : this((LayoutKind)kind){}
+                }
+            
+                public enum LayoutKind
+                {
+                    Sequential = 0,
+                    Extended = 1,
+                    Explicit = 2, 
+                    Auto = 3
+                }
+            
+                [AttributeUsage(AttributeTargets.Field, Inherited = false)]
+                public sealed class FieldOffsetAttribute : Attribute
+                {
+                    public FieldOffsetAttribute(int offset)
+                    {
+                    }
+                    public int Value { get { return 0; } }
+                }
+            
+                [AttributeUsage(AttributeTargets.Struct)]
+                #pragma warning disable CS9113
+                public sealed class ExtendedLayoutAttribute(ExtendedLayoutKind kind): Attribute;
+                #pragma warning restore CS9113
+            
+                public enum ExtendedLayoutKind
+                {
+                    CStruct,
+                    CUnion
+                }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Struct)]
+                #pragma warning disable CS9113
+                public sealed class InlineArrayAttribute(int repeat): Attribute;
+                #pragma warning restore CS9113
+            }
+            """;
+
+        private const string ExtendedLayoutAttributeMinimalCoreLibName = "mscorlib";
+
+        private static readonly MetadataReference s_extendedLayoutAttributeMinimalCoreLibrary =
+            CreateEmptyCompilation(
+                ExtendedLayoutMinimalCoreLibrary,
+                options: new CSharpCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary, moduleName: $"{ExtendedLayoutAttributeMinimalCoreLibName}.dll"),
+                assemblyName: ExtendedLayoutAttributeMinimalCoreLibName)
+            .EmitToImageReference(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"));
+
         [Fact]
         public void Pack()
         {
@@ -721,6 +842,475 @@ partial struct C
             VerifyStructLayout(@"struct S { int f; }", hasInstanceFields: true);
             VerifyStructLayout(@"struct S { int P { get; set; } }", hasInstanceFields: true);
             VerifyStructLayout(@"delegate void D(); struct S { event D D; }", hasInstanceFields: true);
+        }
+
+        [Fact]
+        public void ExtendedLayoutAttribute_UnusedFields_NoDiagnostic()
+        {
+            string source = """
+                using System.Runtime.InteropServices;
+
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                struct StructWithExtendedLayout
+                {
+                    public int i;
+                }
+                """;
+
+            CompileAndVerify(
+                CreateEmptyCompilation(
+                    source,
+                    references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
+                symbolValidator: module =>
+                {
+                    var type = module.GlobalNamespace.GetTypeMember("StructWithExtendedLayout");
+                    var expectedLayout = new TypeLayout(LayoutKind.Extended, 0, 0);
+                    Assert.Equal(expectedLayout, type.Layout);
+                },
+                verify: Verification.Skipped)
+            .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExtendedLayoutAttribute_ImpliesExtendedLayout()
+        {
+            string source = """
+                using System.Runtime.InteropServices;
+
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                struct StructWithExtendedLayout
+                {
+                    public int i;
+                }
+                """;
+
+            CompileAndVerify(CreateEmptyCompilation(
+                source,
+                references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
+                symbolValidator: module =>
+                {
+                    var type = module.GlobalNamespace.GetTypeMember("StructWithExtendedLayout");
+                    var expectedLayout = new TypeLayout(LayoutKind.Extended, 0, 0);
+                    Assert.Equal(expectedLayout, type.Layout);
+                    Assert.Single(type.GetAttributes(AttributeDescription.ExtendedLayoutAttribute));
+                },
+                verify: Verification.Skipped)
+            .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExtendedLayout_Partials()
+        {
+            string source = """
+                using System.Runtime.InteropServices;
+
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]  // error
+                partial struct C
+                {
+                    public int x;
+                }
+
+                partial struct C
+                {
+                    public int y;
+                }
+                
+                partial struct D
+                {
+                    public int x;
+                }
+                
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]  // error
+                partial struct D
+                {
+                    public int y;
+                }
+
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]  // ok
+                partial struct E
+                {
+                    public int x;
+                }
+
+                partial struct E
+                {
+                    public static int y;
+                }
+                
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)] // ok
+                partial struct F
+                {
+                    public const int x = 2;
+                }
+                
+                partial struct F
+                {
+                    public int y;
+                }
+
+                partial struct G
+                {
+                    public const int x = 2;
+                }
+                
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)] // ok
+                partial struct G
+                {
+                    public int y;
+                }
+                """;
+
+            CompileAndVerify(
+                CreateEmptyCompilation(
+                    source,
+                    references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
+                symbolValidator: module =>
+                {
+                    Assert.Equal(LayoutKind.Extended, module.GlobalNamespace.GetTypeMember("C").Layout.Kind);
+                    Assert.Equal(LayoutKind.Extended, module.GlobalNamespace.GetTypeMember("D").Layout.Kind);
+                    Assert.Equal(LayoutKind.Extended, module.GlobalNamespace.GetTypeMember("E").Layout.Kind);
+                    Assert.Equal(LayoutKind.Extended, module.GlobalNamespace.GetTypeMember("F").Layout.Kind);
+                    Assert.Equal(LayoutKind.Extended, module.GlobalNamespace.GetTypeMember("G").Layout.Kind);
+                },
+                verify: Verification.Skipped
+            )
+            .VerifyDiagnostics(
+                // (5,15): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'C'. To specify an ordering, all instance fields must be in the same declaration.
+                Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "C").WithArguments("C"),
+                // (15,15): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'D'. To specify an ordering, all instance fields must be in the same declaration.
+                Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "D").WithArguments("D"));
+        }
+
+        [Fact]
+        public void ExtendedLayout_AssignedButUnusedNoWarning()
+        {
+            var src = """
+                using System.Runtime.InteropServices;
+
+                var c = new C();
+                return c.PublicProperty;
+
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                public struct C
+                {
+                    private int _privateField = 111;
+
+                    public C()
+                    {
+                    }
+
+                    public int PublicProperty => 1;
+                }
+                """;
+
+            CompileAndVerify(
+                CreateEmptyCompilation(
+                    src,
+                    references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
+                symbolValidator: module =>
+                {
+                    Assert.Equal(LayoutKind.Extended, module.GlobalNamespace.GetTypeMember("C").Layout.Kind);
+                },
+                verify: Verification.Skipped
+            )
+            .VerifyDiagnostics(
+                // No warning CS0414: The field 'C._privateField' is assigned but its value is never used
+                );
+        }
+
+        [Fact]
+        public void ExtendedLayout_FieldOffset_Errors()
+        {
+            string source = """
+                using System.Runtime.InteropServices;
+
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                struct C
+                {
+                    [FieldOffset(4)]
+                    int a;
+                }
+
+                [ExtendedLayout(ExtendedLayoutKind.CUnion)]
+                struct D
+                {
+                    [FieldOffset(0)]
+                    int a;
+                }
+                """;
+
+            var comp = CreateEmptyCompilation(
+                source,
+                references: [s_extendedLayoutAttributeMinimalCoreLibrary]);
+
+            Assert.Equal(LayoutKind.Extended, comp.GlobalNamespace.GetTypeMember("C").Layout.Kind);
+            Assert.Equal(LayoutKind.Extended, comp.GlobalNamespace.GetTypeMember("D").Layout.Kind);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [FieldOffset(4)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(6, 6),
+                // (13,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [FieldOffset(0)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(13, 6)
+                );
+        }
+
+        [Fact]
+        public void ExtendedLayoutAttribute_OtherLayoutKind_Errors()
+        {
+            string source = """
+                using System.Runtime.InteropServices;
+                
+                [StructLayout(LayoutKind.Sequential)]
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                struct C
+                {
+                    public float f;
+                }
+
+                [StructLayout(LayoutKind.Explicit)]
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                struct D
+                {
+                    [FieldOffset(0)]
+                    public float f;
+                }
+
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                [StructLayout(LayoutKind.Sequential)]
+                struct E
+                {
+                    public float f;
+                }
+                """;
+
+            CreateEmptyCompilation(
+                source,
+                references: [s_extendedLayoutAttributeMinimalCoreLibrary])
+            .VerifyEmitDiagnostics(
+                // (5,8): error CS9351: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // struct C
+                Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "C").WithLocation(5, 8),
+                // (12,8): error CS9351: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // struct D
+                Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "D").WithLocation(12, 8),
+                // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [FieldOffset(0)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(14, 6),
+                // (20,8): error CS9351: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // struct E
+                Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "E").WithLocation(20, 8)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_ExtendedLayout()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+                
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                [System.Runtime.CompilerServices.InlineArray(10)]
+                struct Buffer
+                {
+                    private int _element0;
+                }
+                """;
+
+            CreateEmptyCompilation(
+                source,
+                references: [s_extendedLayoutAttributeMinimalCoreLibrary])
+            .VerifyEmitDiagnostics(
+                // (6,8): error CS9168: Inline array struct must have sequential or auto layout.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayLayout, "Buffer").WithLocation(5, 8)
+                );
+        }
+
+        [Fact]
+        public void Explicitly_Specified_LayoutKind_Extended_Errors()
+        {
+            string source = """
+                using System.Runtime.InteropServices;
+                
+                [StructLayout((LayoutKind)1 /* LayoutKind.Extended */)]
+                struct C
+                {
+                }
+
+                [StructLayout((LayoutKind)1 /* LayoutKind.Extended */)]
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                struct D
+                {
+                }
+                """;
+
+            CreateEmptyCompilation(
+                source,
+                references: [s_extendedLayoutAttributeMinimalCoreLibrary])
+            .VerifyEmitDiagnostics(
+                // (3,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
+                // [StructLayout((LayoutKind)1 /* LayoutKind.Extended */)]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)1").WithArguments("StructLayout").WithLocation(3, 15),
+                // (8,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
+                // [StructLayout((LayoutKind)1 /* LayoutKind.Extended */)]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)1").WithArguments("StructLayout").WithLocation(8, 15)
+                );
+        }
+
+        [Fact]
+        public void ExtendedLayout_Emit()
+        {
+            string source = """
+                using System.Runtime.InteropServices;
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                struct S
+                {
+                    public int i;
+                }
+                """;
+
+            CompileAndVerify(
+                CreateEmptyCompilation(
+                    source,
+                    references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
+                emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.3100.0"),
+                symbolValidator: module =>
+                {
+                    var type = module.GlobalNamespace.GetTypeMember("S");
+                    Assert.Equal(LayoutKind.Extended, type.Layout.Kind);
+                },
+                verify: Verification.Skipped)
+            .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExtendedLayout_ZeroFields_Emit()
+        {
+            string source = """
+                using System.Runtime.InteropServices;
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                struct S
+                {
+                }
+                """;
+
+            CompileAndVerify(
+                CreateEmptyCompilation(
+                    source,
+                    references: [s_extendedLayoutAttributeMinimalCoreLibrary]),
+                emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.3100.0"),
+                validator: (assembly) =>
+                {
+                    // We specifically validate that we emit 0 size and 0 packing size here.
+                    // The compiler does not read the struct size and packing size from metadata
+                    // for ExtendedLayout structs (by design) so we can't validate this case with
+                    // a symbol validator.
+                    var reader = assembly.GetMetadataReader();
+                    var type = reader.TypeDefinitions
+                        .Select(handle => reader.GetTypeDefinition(handle))
+                        .Single(typeDef => reader.GetString(typeDef.Name) == "S");
+
+                    Assert.Equal(0, type.GetLayout().Size);
+                    Assert.Equal(0, type.GetLayout().PackingSize);
+
+                    Assert.Equal(TypeAttributes.ExtendedLayout, type.Attributes & TypeAttributes.LayoutMask);
+                },
+                verify: Verification.Skipped)
+            .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExtendedLayout_OtherAssemblyDefinition_Fails()
+        {
+            string source = """
+                using System.Runtime.InteropServices;
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                struct S
+                {
+                }
+
+                namespace System.Runtime.InteropServices
+                {
+                    public enum ExtendedLayoutKind
+                    {
+                        CStruct = 0,
+                        CUnion = 1
+                    }
+                    [AttributeUsage(AttributeTargets.Struct)]
+                    #pragma warning disable CS9113
+                    public sealed class ExtendedLayoutAttribute(ExtendedLayoutKind kind): Attribute;
+                    #pragma warning restore CS9113
+                }
+                """;
+
+            CreateCompilation(source)
+            .VerifyEmitDiagnostics(
+                // (3,8): error CS9352: The target runtime does not support extended layout types.
+                // struct S
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes, "S").WithLocation(3, 8));
+        }
+
+        [Fact]
+        public void ExtendedLayout_InvalidIL()
+        {
+            string ilSource = $$"""
+                .assembly InvalidExtendedLayout
+                {
+                    .ver 0:0:0:0
+                }
+
+                .assembly extern {{ExtendedLayoutAttributeMinimalCoreLibName}}
+                {
+                    .ver 0:0:0:0
+                }
+
+                .class public sequential ansi sealed beforefieldinit AttributeNoMetadata
+                    extends [{{ExtendedLayoutAttributeMinimalCoreLibName}}]System.ValueType
+                {
+                    .custom instance void [{{ExtendedLayoutAttributeMinimalCoreLibName}}]System.Runtime.InteropServices.ExtendedLayoutAttribute::.ctor(valuetype [{{ExtendedLayoutAttributeMinimalCoreLibName}}]System.Runtime.InteropServices.ExtendedLayoutKind) = { int32(1) }
+                
+                    .field public int32 i
+                }
+
+                // The ilasm version we are using currently doesn't support extended layout.
+                // Set the metadata bits manually
+                .class flags(0x{{(int)TypeAttributes.ExtendedLayout:x}}) value public ansi sealed beforefieldinit MetadataNoAttribute
+                    extends [{{ExtendedLayoutAttributeMinimalCoreLibName}}]System.ValueType
+                {
+                    .field public int32 i
+                }
+                """;
+
+            string cSharpSource = """
+                using System.Runtime.InteropServices;
+
+                [StructLayout(LayoutKind.Sequential)]
+                struct Test
+                {
+                    public AttributeNoMetadata A;
+                    public MetadataNoAttribute B;
+                }
+                """;
+
+            CompileAndVerify(
+                CreateEmptyCompilation(cSharpSource,
+                    references: [s_extendedLayoutAttributeMinimalCoreLibrary,
+                                 CompileIL(ilSource, prependDefaultHeader: false)]),
+                symbolValidator: module =>
+                {
+                    var testType = module.GlobalNamespace.GetTypeMember("Test");
+
+                    // When importing from metadata, prefer the metadata bit. Don't consider the attribute.
+                    // Roslyn does not care about the specific extended layout kinds, so the compiler doesn't need to inspect the attribute itself.
+                    var attrNoMetaType = testType.GetField("A").Type;
+                    Assert.Equal(LayoutKind.Sequential, Assert.IsAssignableFrom<Symbols.NamedTypeSymbol>(attrNoMetaType).Layout.Kind);
+                    var metadataNoAttrType = testType.GetField("B").Type;
+                    Assert.Equal(LayoutKind.Extended, Assert.IsAssignableFrom<Symbols.NamedTypeSymbol>(metadataNoAttrType).Layout.Kind);
+                },
+                verify: Verification.Skipped)
+            .VerifyDiagnostics();
         }
     }
 }

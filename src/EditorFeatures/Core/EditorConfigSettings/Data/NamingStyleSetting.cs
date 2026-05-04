@@ -43,7 +43,7 @@ internal class NamingStyleSetting
         {
             Style = namingStyleOption.NamingScheme.AsNamingStyle(),
             Type = namingStyleOption.ApplicableSymbolInfo.AsSymbolSpecification(),
-            Severity = namingStyleOption.Severity,
+            Severity = namingStyleOption.Severity.Value,
             Location = new SettingLocation(LocationKind.EditorConfig, namingStyleOption.Section.FilePath)
         };
     }
@@ -52,7 +52,7 @@ internal class NamingStyleSetting
     internal SymbolSpecification? Type { get; set; }
 
     public string StyleName => Style.Name;
-    public string[] AllStyles => _allStyles.Select(style => style.Name).ToArray();
+    public string[] AllStyles => [.. _allStyles.Select(style => style.Name)];
     public string TypeName => Type?.Name ?? string.Empty;
     public ReportDiagnostic Severity { get; private set; }
     public SettingLocation? Location { get; protected set; }

@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
-internal partial class AbstractStructuralTypeDisplayService
+internal abstract partial class AbstractStructuralTypeDisplayService
 {
-    private class StructuralTypeCollectorVisitor(Dictionary<INamedTypeSymbol, (int order, int count)> namedTypes) : SymbolVisitor
+    private sealed class StructuralTypeCollectorVisitor(Dictionary<INamedTypeSymbol, (int order, int count)> namedTypes) : SymbolVisitor
     {
         private readonly ISet<INamedTypeSymbol> _seenTypes = new HashSet<INamedTypeSymbol>();
         private readonly Dictionary<INamedTypeSymbol, (int order, int count)> _namedTypes = namedTypes;

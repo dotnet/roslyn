@@ -5,13 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -27,7 +26,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 
@@ -80,15 +78,19 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost
         return textViewOpt.BufferGraph.MapDownToFirstMatch(textViewOpt.Selection.Start.Position, PointTrackingMode.Positive, b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
     }
 
-    protected override void AddSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
+    protected override bool TryAddSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         // Note: this may return no snapshot spans.  We have to be resilient to that
         // when processing the TaggerContext<>.SpansToTag below.
         foreach (var buffer in textViewOpt.BufferGraph.GetTextBuffers(b => IsSupportedContentType(b.ContentType)))
             result.Add(buffer.CurrentSnapshot.GetFullSpan());
+
+        // Fine to always return 'true' here.  If we get no spans to tag, we can move ourselves to the no-tags state and
+        // update the editor.
+        return true;
     }
 
-    protected override Task ProduceTagsAsync(
+    protected override async Task ProduceTagsAsync(
         TaggerContext<NavigableHighlightTag> context, CancellationToken cancellationToken)
     {
         // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
@@ -97,7 +99,7 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost
         // don't generate all the tags then the user will cycle through an incorrect subset.
         if (context.CaretPosition == null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         var caretPosition = context.CaretPosition.Value;
@@ -106,13 +108,13 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost
         var document = context.SpansToTag.FirstOrDefault(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
         if (document == null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         // Don't produce tags if the feature is not enabled.
         if (!this.GlobalOptions.GetOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, document.Project.Language))
         {
-            return Task.CompletedTask;
+            return;
         }
 
         // See if the user is just moving their caret around in an existing tag.  If so, we don't want to actually go
@@ -123,12 +125,12 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost
         if (onExistingTags)
         {
             context.SetSpansTagged([]);
-            return Task.CompletedTask;
+            return;
         }
 
         // Otherwise, we need to go produce all tags.
         var options = this.GlobalOptions.GetHighlightingOptions(document.Project.Language);
-        return ProduceTagsAsync(context, caretPosition, document, options, cancellationToken);
+        await ProduceTagsAsync(context, caretPosition, document, options, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task ProduceTagsAsync(

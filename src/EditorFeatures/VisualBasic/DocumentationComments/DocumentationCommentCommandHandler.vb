@@ -3,15 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports Microsoft.CodeAnalysis.DocumentationComments
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     <Export(GetType(ICommandHandler))>
@@ -28,9 +26,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             uiThreadOperationExecutor As IUIThreadOperationExecutor,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
             editorOperationsFactoryService As IEditorOperationsFactoryService,
-            editorOptionsService As EditorOptionsService)
+            editorOptionsService As EditorOptionsService,
+            generateDocumentationCommentManager As CopilotGenerateDocumentationCommentManager)
 
-            MyBase.New(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
+            MyBase.New(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService, generateDocumentationCommentManager)
         End Sub
 
         Protected Overrides ReadOnly Property ExteriorTriviaText As String

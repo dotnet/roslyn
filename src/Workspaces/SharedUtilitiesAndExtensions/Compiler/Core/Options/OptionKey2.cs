@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
@@ -31,7 +30,7 @@ internal readonly partial record struct OptionKey2
         Debug.Assert(option.IsPerLanguage);
         if (language == null)
         {
-            throw new ArgumentNullException(WorkspacesResources.A_language_name_must_be_specified_for_this_option);
+            throw new ArgumentNullException(CompilerExtensionsResources.A_language_name_must_be_specified_for_this_option);
         }
 
         this.Option = option ?? throw new ArgumentNullException(nameof(option));

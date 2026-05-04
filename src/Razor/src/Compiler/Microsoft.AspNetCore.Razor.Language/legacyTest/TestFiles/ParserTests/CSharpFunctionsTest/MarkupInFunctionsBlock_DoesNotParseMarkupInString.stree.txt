@@ -1,0 +1,39 @@
+﻿RazorDocument - [0..81)::81 - [LF@functions {LF    void Announcment(string message) => "<h3>@message</h3>";LF}LF]
+    MarkupBlock - [0..81)::81
+        MarkupTextLiteral - [0..2)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
+        CSharpCodeBlock - [2..81)::79
+            RazorDirective - [2..79)::77 - Directive:{functions;CodeBlock;Unrestricted}
+                CSharpTransition - [2..3)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                RazorDirectiveBody - [3..79)::76
+                    RazorMetaCode - [3..12)::9 - Gen<None> - SpanEditHandler;Accepts:None
+                        Identifier;[functions];
+                    CSharpCodeBlock - [12..79)::67
+                        UnclassifiedTextLiteral - [12..13)::1 - [ ] - Gen<None> - SpanEditHandler;Accepts:AllWhitespace
+                            Whitespace;[ ];
+                        RazorMetaCode - [13..14)::1 - Gen<None> - AutoCompleteEditHandler;Accepts:None,AutoComplete:[<null>];AtEnd
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [14..78)::64
+                            CSharpStatementLiteral - [14..78)::64 - [LF    void Announcment(string message) => "<h3>@message</h3>";LF] - Gen<Stmt> - CodeBlockEditHandler;Accepts:Any;CodeBlock
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[void];
+                                Whitespace;[ ];
+                                Identifier;[Announcment];
+                                LeftParenthesis;[(];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[message];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                GreaterThanEqual;[=>];
+                                Whitespace;[ ];
+                                StringLiteral;["<h3>@message</h3>"];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [78..79)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                            RightBrace;[}];
+            RazorMetaCode - [79..81)::2 - Gen<None> - SpanEditHandler;Accepts:Any
+                NewLine;[LF];
+    EndOfFile;[];

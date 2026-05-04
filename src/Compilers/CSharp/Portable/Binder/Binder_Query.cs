@@ -676,6 +676,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression? ExtractCastInvocation(BoundCall invocation)
         {
+            if (invocation.IsErroneousNode)
+            {
+                return null;
+            }
+
             int index = invocation.InvokedAsExtensionMethod ? 1 : 0;
             var c1 = invocation.Arguments[index] as BoundConversion;
             var l1 = c1 != null ? c1.Operand as BoundLambda : null;
@@ -811,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      );
 
             AnonymousTypeManager manager = this.Compilation.AnonymousTypeManager;
-            NamedTypeSymbol anonymousType = manager.ConstructAnonymousTypeSymbol(typeDescriptor);
+            NamedTypeSymbol anonymousType = manager.ConstructAnonymousTypeSymbol(typeDescriptor, diagnostics);
             return MakeConstruction(node, anonymousType, ImmutableArray.Create(field1Value, field2Value), diagnostics);
 
             AnonymousTypeField createField(string fieldName, BoundExpression fieldValue) =>
@@ -928,6 +933,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver.Type is object || ultimateReceiver.Type is null);
             if ((object?)ultimateReceiver.Type == null)
             {
+                Debug.Assert(ultimateReceiver.Kind != BoundKind.MethodGroup || ultimateReceiver.HasAnyErrors);
+
                 if (ultimateReceiver.HasAnyErrors || node.HasErrors)
                 {
                     // report no additional errors
@@ -952,24 +959,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
                     diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, MessageID.IDS_AnonMethod.Localize(), methodName);
-                }
-                else if (ultimateReceiver.Kind == BoundKind.MethodGroup)
-                {
-                    var methodGroup = (BoundMethodGroup)ultimateReceiver;
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
-                    diagnostics.Add(node, useSiteInfo);
-                    diagnostics.AddRange(resolution.Diagnostics);
-                    if (resolution.HasAnyErrors)
-                    {
-                        receiver = this.BindMemberAccessBadResult(methodGroup);
-                    }
-                    else
-                    {
-                        Debug.Assert(!resolution.IsEmpty);
-                        diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, MessageID.IDS_SK_METHOD.Localize(), methodName);
-                    }
-                    resolution.Free();
                 }
 
                 receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(receiver), CreateErrorType());

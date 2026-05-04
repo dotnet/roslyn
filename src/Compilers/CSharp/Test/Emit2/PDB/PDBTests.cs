@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -19,9 +18,11 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             outputCompilation.VerifyPdb($@"
 <symbols>
   <files>
-    <file id=""1"" name=""{path1}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""D8-87-89-A3-FE-EA-FD-AB-49-31-5A-25-B0-05-6B-6F-00-00-C2-DD"" />
+    <file id=""1"" name=""{path1}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""FC-9C-F6-B3-BB-61-93-0E-1E-03-A2-62-0B-B5-D9-CE-1D-C9-40-79-72-4F-3A-6A-C6-5D-F3-84-69-5F-62-10"" />
     <file id=""2"" name=""{path2}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""64-A9-4B-81-04-84-18-CD-73-F7-F8-3B-06-32-4B-9C-F9-36-D4-7A-7B-D0-2F-34-ED-8C-B7-AA-48-43-55-35"" />
   </files>
 </symbols>", options: PdbValidationOptions.ExcludeMethods);
@@ -365,6 +366,87 @@ public class C
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("xxx"));
 
             Assert.False(result.Success);
+        }
+
+        /// <summary>
+        /// Verifies the constant <c>SymUnmanagedWriterImpl.CustomMetadataByteLimit</c> against the external sym writer library we depend on.
+        /// </summary>
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
+        [CombinatorialData]
+        public void NativeWriterLimit_Under([CombinatorialRange(SymUnmanagedWriterImpl.CustomMetadataByteLimit - 9, 10)] int length)
+        {
+            CompileWithMockedCustomMetadata(length).Diagnostics.Verify();
+        }
+
+        /// <summary>
+        /// Verifies the constant <c>SymUnmanagedWriterImpl.CustomMetadataByteLimit</c> against the external sym writer library we depend on.
+        /// </summary>
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
+        [CombinatorialData]
+        public void NativeWriterLimit_Over([CombinatorialRange(SymUnmanagedWriterImpl.CustomMetadataByteLimit + 1, 10)] int length)
+        {
+            CompileWithMockedCustomMetadata(length).Diagnostics.Verify(
+                // error CS0041: Unexpected error writing debug information -- 'Cannot emit native PDB for method 'C.M()' because its debug metadata size 65505 is over the limit 65504.'
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "C.M()", length, 65504)).WithLocation(1, 1));
+        }
+
+        private static EmitResult CompileWithMockedCustomMetadata(int length)
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    void M() { }
+                }
+                """);
+            return comp.Emit(
+                peStream: new MemoryStream(),
+                metadataPEStream: null,
+                pdbStream: new MemoryStream(),
+                xmlDocumentationStream: null,
+                cancellationToken: default,
+                win32Resources: null,
+                manifestResources: null,
+                options: null,
+                debugEntryPoint: null,
+                sourceLinkStream: null,
+                embeddedTexts: null,
+                rebuildData: null,
+                testData: new CompilationTestData
+                {
+                    SymWriterFactory = metadataProvider =>
+                    {
+                        var writer = SymWriterTestUtilities.CreateUnmanagedWriter(metadataProvider);
+                        return new CustomMetadataSymUnmanagedWriter(writer, new byte[length]);
+                    },
+                });
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
+        public void NativeWriterLimit_EndToEnd()
+        {
+            var locals = Enumerable.Range(0, 14_000)
+                .Select(i => $"""
+                    var local{i} = {i};
+                    M2(local{i});
+                    """)
+                .Join(Environment.NewLine);
+            var source = $$"""
+                namespace N;
+                class C
+                {
+                    void M1()
+                    {
+                        {{locals}}
+                    }
+                    void M2(int x) { }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.DebugDll).VerifyEmitDiagnostics(
+                // error CS0041: Unexpected error writing debug information -- 'Cannot emit native PDB for method 'N.C.M1()' because its debug metadata size 69096 is over the limit 65504.'
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "N.C.M1()", 69096, 65504)).WithLocation(1, 1));
         }
 
         [WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
@@ -1497,7 +1579,7 @@ class Program
   IL_0003:  br.s       IL_0005
  -IL_0005:  ldloc.0
   IL_0006:  ret
-}", sequencePoints: "Program.Main");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyPdb("Program.Main", @"
 <symbols>
@@ -1552,7 +1634,7 @@ class C
   IL_0003:  br.s       IL_0005
  -IL_0005:  ldloc.0
   IL_0006:  ret
-}", sequencePoints: "C.get_P");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyPdb("C.get_P", @"
 <symbols>
@@ -1601,7 +1683,7 @@ class Program
  -IL_0000:  nop
  -IL_0001:  br.s       IL_0003
  -IL_0003:  ret
-}", sequencePoints: "Program.Main");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -1622,7 +1704,7 @@ class Program
   .maxstack  1
  -IL_0000:  ldc.i4.1
   IL_0001:  ret
-}", sequencePoints: "Program.Main");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -1674,7 +1756,7 @@ class Program
   }
  -IL_0012:  ldloc.0
   IL_0013:  ret
-}", sequencePoints: "Program.Main");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyPdb("Program.Main", @"
 <symbols>
@@ -2286,7 +2368,7 @@ public class C
   IL_0055:  ble.s      IL_0024
  -IL_0057:  ret
 }
-", sequencePoints: "C.Main");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -2369,7 +2451,7 @@ class Program
   IL_004f:  nop
   IL_0050:  ret
 }
-", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
 
             v.VerifyPdb(@"<symbols>
   <files>
@@ -2480,7 +2562,7 @@ class C
   // sequence point: }
   IL_0016:  ret
 }
-", sequencePoints: "C.M", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -2565,7 +2647,7 @@ class Program
   IL_004f:  nop
   IL_0050:  ret
 }
-", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -2613,7 +2695,7 @@ class Program
   // sequence point: }
   IL_0011:  ret
 }
-", sequencePoints: "Program.Test", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -2704,7 +2786,7 @@ class Program
   IL_0061:  nop
   IL_0062:  ret
 }
-", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
 
             v.VerifyPdb(@"<symbols>
   <files>
@@ -2826,7 +2908,7 @@ class Program
   // sequence point: }
   IL_001a:  ret
 }
-", sequencePoints: "Program.Test", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
 
             v.VerifyPdb(@"<symbols>
   <files>
@@ -3002,7 +3084,7 @@ class C
   IL_00a6:  ble.s      IL_003c
  -IL_00a8:  ret
 }
-", sequencePoints: "C.Main");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -3073,7 +3155,7 @@ public class C
   }
  -IL_003a:  ret
 }
-", sequencePoints: "C.Main");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [WorkItem(718501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718501")]
@@ -3243,7 +3325,7 @@ public class C
   // sequence point: }
   IL_0045:  ret
 }
-", sequencePoints: "C.Main", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
 
             v.VerifyPdb(@"
 <symbols>
@@ -3638,7 +3720,7 @@ class Program
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "1M2");
 
-            verifier.VerifyIL(qualifiedMethodName: "Program.M1", sequencePoints: "Program.M1", source: source,
+            verifier.VerifyIL(qualifiedMethodName: "Program.M1", sequencePointDisplay: SequencePointDisplayMode.Enhanced,
 expectedIL: @"{
   // Code size       17 (0x11)
   .maxstack  1
@@ -3662,7 +3744,7 @@ expectedIL: @"{
   // sequence point: }
   IL_0010:  ret
 }");
-            verifier.VerifyIL(qualifiedMethodName: "Program.M2", sequencePoints: "Program.M2", source: source,
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2", sequencePointDisplay: SequencePointDisplayMode.Enhanced,
 expectedIL: @"{
   // Code size       29 (0x1d)
   .maxstack  1
@@ -3760,7 +3842,7 @@ class Program
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "1234");
 
-            verifier.VerifyIL(qualifiedMethodName: "Program.M1<T>", sequencePoints: "Program.M1", source: source,
+            verifier.VerifyIL(qualifiedMethodName: "Program.M1<T>", sequencePointDisplay: SequencePointDisplayMode.Enhanced,
 expectedIL: @"{
   // Code size       60 (0x3c)
   .maxstack  1
@@ -3805,7 +3887,7 @@ expectedIL: @"{
   // sequence point: }
   IL_003b:  ret
 }");
-            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePointDisplay: SequencePointDisplayMode.Enhanced,
 expectedIL: @"{
   // Code size       58 (0x3a)
   .maxstack  1
@@ -3926,7 +4008,7 @@ class Program
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "66");
 
-            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePointDisplay: SequencePointDisplayMode.Enhanced,
 expectedIL: @"{
   // Code size       17 (0x11)
   .maxstack  1
@@ -4040,7 +4122,7 @@ internal class Program
       // sequence point: }
       IL_003b:  ret
     }
-", sequencePoints: "Program.Main", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -4294,7 +4376,7 @@ class B : Node { }
       IL_0191:  nop
       IL_0192:  ret
     }
-", sequencePoints: "Program+<M>d__1.MoveNext", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -4431,7 +4513,7 @@ public class C
       IL_00a0:  nop
       IL_00a1:  ret
     }
-", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -5614,7 +5696,7 @@ class Test
   }
  -IL_0058:  ret
 }
-", sequencePoints: "Test.Main");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyPdb("Test.Main", @"
 <symbols>
@@ -5723,7 +5805,7 @@ class Test
   }
  -IL_0020:  ret
 }
-", sequencePoints: "Test.Main");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyPdb("Test.Main", @"<symbols>
   <files>
@@ -5812,7 +5894,7 @@ class Test
   }
  -IL_0020:  ret
 }
-", sequencePoints: "Test.Main");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyPdb("Test.Main", @"<symbols>
   <files>
@@ -5893,7 +5975,7 @@ class Test
   }
  -IL_0019:  ret
 }
-", sequencePoints: "Test.Main");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyPdb("Test.Main", @"<symbols>
   <files>
@@ -6022,7 +6104,7 @@ class C
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
-            v.VerifyIL("C.Main", sequencePoints: "C.Main", source: source, expectedIL: @"
+            v.VerifyIL("C.Main", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
  {
    // Code size       53 (0x35)
    .maxstack  1
@@ -6139,7 +6221,7 @@ class C
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
-            v.VerifyIL("C.Main", sequencePoints: "C.Main", source: source, expectedIL: @"
+            v.VerifyIL("C.Main", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       55 (0x37)
   .maxstack  1
@@ -6326,7 +6408,7 @@ class C
   IL_002a:  ldloc.s    V_4
   IL_002c:  ret
 }
-", sequencePoints: "C.F", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
@@ -6423,7 +6505,7 @@ class C
   IL_002c:  ldloc.s    V_4
   IL_002e:  ret
 }
-", sequencePoints: "C.F", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
@@ -6484,7 +6566,7 @@ class C
   // sequence point: }
   IL_001e:  ret
 }
-", sequencePoints: "C.F", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
@@ -6545,7 +6627,7 @@ class C
   // sequence point: }
   IL_001e:  ret
 }
-", sequencePoints: "C.F", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
@@ -6628,7 +6710,7 @@ class C
   // sequence point: }
   IL_0039:  ret
 }
-", sequencePoints: "C.F", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         #endregion
@@ -6657,7 +6739,7 @@ class C
             // TODO: https://github.com/dotnet/roslyn/issues/37417
             // Duplicate sequence point at `}`
 
-            v.VerifyIL("C.Main", sequencePoints: "C.Main", source: source, expectedIL: @"
+            v.VerifyIL("C.Main", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       45 (0x2d)
   .maxstack  1
@@ -6772,7 +6854,7 @@ class C
             // TODO: https://github.com/dotnet/roslyn/issues/37417
             // Duplicate sequence point at `}`
 
-            v.VerifyIL("C.Main", sequencePoints: "C.Main", source: source, expectedIL: @"
+            v.VerifyIL("C.Main", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       31 (0x1f)
   .maxstack  1
@@ -6875,7 +6957,7 @@ class C
             // In this case the sequence point `}` is not emitted on the leave instruction,
             // but to a nop instruction following the disposal.
 
-            v.VerifyIL("C.Main", sequencePoints: "C.Main", source: source, expectedIL: @"
+            v.VerifyIL("C.Main", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       46 (0x2e)
   .maxstack  1
@@ -8612,7 +8694,7 @@ class Program
             var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
-            verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
+            verifier.VerifyIL("Program.Main", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size      448 (0x1c0)
   .maxstack  3
@@ -8850,7 +8932,7 @@ class Program
   IL_01bd:  ldloc.s    V_21
   IL_01bf:  ret
 }
-", source: source);
+");
 
             verifier.VerifyPdb("Program.Main", @"   
 <symbols>
@@ -9011,7 +9093,7 @@ class Program
 
             // note no sequence points emitted within the switch expression
 
-            verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
+            verifier.VerifyIL("Program.Main", sequencePointDisplay: SequencePointDisplayMode.Minimal, expectedIL: @"
 {
   // Code size      454 (0x1c6)
   .maxstack  3
@@ -9376,7 +9458,7 @@ class Program
             var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
-            verifier.VerifyIL("Program.M", sequencePoints: "Program.M", expectedIL: @"
+            verifier.VerifyIL("Program.M", sequencePointDisplay: SequencePointDisplayMode.Minimal, expectedIL: @"
 {
   // Code size      301 (0x12d)
   .maxstack  3
@@ -9604,7 +9686,7 @@ public class C
 ");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(c);
-            verifier.VerifyIL("C.M", sequencePoints: "C.M", source: source, expectedIL: @"
+            verifier.VerifyIL("C.M", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
     {
       // Code size      472 (0x1d8)
       .maxstack  2
@@ -10447,7 +10529,7 @@ public class C
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(c);
 
-            verifier.VerifyIL("C.M", sequencePoints: "C.M", source: source, expectedIL: @"
+            verifier.VerifyIL("C.M", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
     {
       // Code size      171 (0xab)
       .maxstack  2
@@ -10618,7 +10700,7 @@ public class C
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(c);
 
-            verifier.VerifyIL("C.M1", sequencePoints: "C.M1", source: source, expectedIL: @"
+            verifier.VerifyIL("C.M1", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
     {
       // Code size       26 (0x1a)
       .maxstack  2
@@ -10636,7 +10718,7 @@ public class C
       IL_0019:  ret
     }
 ");
-            verifier.VerifyIL("C.M2", sequencePoints: "C.M2", source: source, expectedIL: @"
+            verifier.VerifyIL("C.M2", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
     {
       // Code size       40 (0x28)
       .maxstack  2
@@ -10800,7 +10882,7 @@ public class C
 ";
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(c);
-            verifier.VerifyIL("C.M", sequencePoints: "C.M", source: source, expectedIL: @"
+            verifier.VerifyIL("C.M", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
     {
       // Code size       31 (0x1f)
       .maxstack  2
@@ -10886,7 +10968,7 @@ public class C
     }
 }");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            CompileAndVerify(c).VerifyIL(qualifiedMethodName: "Program.M", sequencePoints: "Program.M", source: source,
+            CompileAndVerify(c).VerifyIL(qualifiedMethodName: "Program.M", sequencePointDisplay: SequencePointDisplayMode.Enhanced,
 expectedIL: @"{
   // Code size      123 (0x7b)
   .maxstack  2
@@ -11228,7 +11310,7 @@ public class C
   // sequence point: }
   IL_001c:  ret
 }
-", sequencePoints: "C.Main", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -11650,7 +11732,7 @@ class C
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             var v = CompileAndVerify(c);
-            v.VerifyIL("C..ctor", sequencePoints: "C..ctor", expectedIL: @"
+            v.VerifyIL("C..ctor", sequencePointDisplay: SequencePointDisplayMode.Minimal, expectedIL: @"
 {
   // Code size       90 (0x5a)
   .maxstack  4
@@ -12520,7 +12602,7 @@ class Program
   IL_0052:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
   IL_0057:  nop
   IL_0058:  ret
-}", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+}", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -12602,7 +12684,7 @@ class Program
   IL_0051:  nop
   IL_0052:  ret
 }
-", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -12693,7 +12775,7 @@ class Program
   IL_0061:  nop
   IL_0062:  ret
 }
-", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -12787,7 +12869,7 @@ class Program
   IL_006b:  nop
   IL_006c:  ret
 }
-", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]

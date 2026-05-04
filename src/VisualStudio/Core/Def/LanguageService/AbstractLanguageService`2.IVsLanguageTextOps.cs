@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -41,7 +42,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
     private int FormatWorker(IVsTextLayer textLayer, TextSpan[] selections, CancellationToken cancellationToken)
     {
-        var textBuffer = this.EditorAdaptersFactoryService.GetDataBuffer((IVsTextBuffer)textLayer);
+        var editorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+        var textBuffer = editorAdaptersFactoryService.GetDataBuffer((IVsTextBuffer)textLayer);
         if (textBuffer == null)
         {
             return VSConstants.E_UNEXPECTED;
@@ -56,7 +58,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
         var text = documentSyntax.Text;
         var root = documentSyntax.Root;
-        var formattingOptions = textBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: true);
+        var editorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
+        var formattingOptions = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: true);
 
         var ts = selections.Single();
         var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
@@ -65,7 +68,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         // Since we know we are on the UI thread, lets get the base indentation now, so that there is less
         // cleanup work to do later in Venus.
-        var ruleFactory = Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+        var ruleFactory = Workspace.Value.Services.GetService<IHostDependentFormattingRuleFactoryService>();
 
         // use formatting that return text changes rather than tree rewrite which is more expensive
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();

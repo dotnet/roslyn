@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 internal static class QuickInfoUtilities
 {
     public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
-        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, options, onTheFlyDocsElement: null, cancellationToken);
+        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, nullabilityInfo: null, interceptorDisplayParts: default, options, onTheFlyDocsInfo: null, cancellationToken);
 
     public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
         SolutionServices services,
@@ -28,9 +28,10 @@ internal static class QuickInfoUtilities
         ImmutableArray<ISymbol> symbols,
         SupportedPlatformData? supportedPlatforms,
         bool showAwaitReturn,
-        NullableFlowState flowState,
+        string? nullabilityInfo,
+        ImmutableArray<TaggedText> interceptorDisplayParts,
         SymbolDescriptionOptions options,
-        OnTheFlyDocsElement? onTheFlyDocsElement,
+        OnTheFlyDocsInfo? onTheFlyDocsInfo,
         CancellationToken cancellationToken)
     {
         var descriptionService = services.GetRequiredLanguageService<ISymbolDisplayService>(semanticModel.Language);
@@ -72,10 +73,7 @@ internal static class QuickInfoUtilities
         if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty)
         {
             AddSection(QuickInfoSectionKinds.DocumentationComments, docParts);
-            if (onTheFlyDocsElement != null)
-            {
-                onTheFlyDocsElement.HasComments = true;
-            }
+            onTheFlyDocsInfo?.HasComments = true;
         }
 
         if (options.QuickInfoOptions.ShowRemarksInQuickInfo &&
@@ -134,16 +132,20 @@ internal static class QuickInfoUtilities
         if (usageTextBuilder.Count > 0)
             AddSection(QuickInfoSectionKinds.Usage, usageTextBuilder.ToImmutable());
 
-        var nullableMessage = flowState switch
-        {
-            NullableFlowState.MaybeNull => string.Format(FeaturesResources._0_may_be_null_here, symbol.Name),
-            NullableFlowState.NotNull => string.Format(FeaturesResources._0_is_not_null_here, symbol.Name),
-            _ => null
-        };
+        if (nullabilityInfo != null)
+            AddSection(QuickInfoSectionKinds.NullabilityAnalysis, [new TaggedText(TextTags.Text, nullabilityInfo)]);
 
-        if (nullableMessage != null)
+        if (!interceptorDisplayParts.IsDefaultOrEmpty)
         {
-            AddSection(QuickInfoSectionKinds.NullabilityAnalysis, [new TaggedText(TextTags.Text, nullableMessage)]);
+            var defaultSymbol = "{0}";
+            var symbolIndex = FeaturesResources.Intercepted_by_0.IndexOf(defaultSymbol);
+
+            var builder = ImmutableArray.CreateBuilder<TaggedText>();
+            builder.AddText(FeaturesResources.Intercepted_by_0[..symbolIndex]);
+            builder.AddRange(interceptorDisplayParts);
+            builder.AddText(FeaturesResources.Intercepted_by_0[(symbolIndex + defaultSymbol.Length)..]);
+
+            AddSection(QuickInfoSectionKinds.InterceptedBy, builder.ToImmutable());
         }
 
         if (TryGetGroupText(SymbolDescriptionGroups.Exceptions, out var exceptionsText))
@@ -156,7 +158,7 @@ internal static class QuickInfoUtilities
         if (supportedPlatforms?.HasValidAndInvalidProjects() == true)
             tags = tags.Add(WellKnownTags.Warning);
 
-        return QuickInfoItem.Create(span, tags, sections.ToImmutable(), relatedSpans: default, onTheFlyDocsElement);
+        return QuickInfoItem.Create(span, tags, sections.ToImmutable(), relatedSpans: default, onTheFlyDocsInfo);
 
         bool TryGetGroupText(SymbolDescriptionGroups group, out ImmutableArray<TaggedText> taggedParts)
             => groups.TryGetValue(group, out taggedParts) && !taggedParts.IsDefaultOrEmpty;

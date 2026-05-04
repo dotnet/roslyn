@@ -5,130 +5,119 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax>
 {
-    protected class VariableInfo(
-        VariableSymbol variableSymbol,
-        VariableStyle variableStyle,
-        bool useAsReturnValue = false) : IComparable<VariableInfo>
+    internal abstract partial class MethodExtractor
     {
-        private readonly VariableSymbol _variableSymbol = variableSymbol;
-        private readonly VariableStyle _variableStyle = variableStyle;
-        private readonly bool _useAsReturnValue = useAsReturnValue;
-
-        public bool UseAsReturnValue
+        protected sealed class VariableInfo(
+            VariableSymbol variableSymbol,
+            VariableStyle variableStyle,
+            bool useAsReturnValue) : IComparable<VariableInfo>
         {
-            get
-            {
-                Contract.ThrowIfFalse(!_useAsReturnValue || _variableStyle.ReturnStyle.ReturnBehavior != ReturnBehavior.None);
-                return _useAsReturnValue;
-            }
-        }
+            private readonly VariableSymbol _variableSymbol = variableSymbol;
+            private readonly VariableStyle _variableStyle = variableStyle;
+            private readonly bool _useAsReturnValue = useAsReturnValue;
 
-        public bool CanBeUsedAsReturnValue
-        {
-            get
+            public bool UseAsReturnValue
             {
-                return _variableStyle.ReturnStyle.ReturnBehavior != ReturnBehavior.None;
-            }
-        }
-
-        public bool UseAsParameter
-        {
-            get
-            {
-                return (!_useAsReturnValue && _variableStyle.ParameterStyle.ParameterBehavior != ParameterBehavior.None) ||
-                       (_useAsReturnValue && _variableStyle.ReturnStyle.ParameterBehavior != ParameterBehavior.None);
-            }
-        }
-
-        public ParameterBehavior ParameterModifier
-        {
-            get
-            {
-                return _useAsReturnValue ? _variableStyle.ReturnStyle.ParameterBehavior : _variableStyle.ParameterStyle.ParameterBehavior;
-            }
-        }
-
-        public DeclarationBehavior GetDeclarationBehavior(CancellationToken cancellationToken)
-        {
-            if (_useAsReturnValue)
-            {
-                return _variableStyle.ReturnStyle.DeclarationBehavior;
-            }
-
-            if (_variableSymbol.GetUseSaferDeclarationBehavior(cancellationToken))
-            {
-                return _variableStyle.ParameterStyle.SaferDeclarationBehavior;
-            }
-
-            return _variableStyle.ParameterStyle.DeclarationBehavior;
-        }
-
-        public ReturnBehavior ReturnBehavior
-        {
-            get
-            {
-                if (_useAsReturnValue)
+                get
                 {
-                    return _variableStyle.ReturnStyle.ReturnBehavior;
+                    Contract.ThrowIfFalse(!_useAsReturnValue || _variableStyle.ReturnStyle.ReturnBehavior != ReturnBehavior.None);
+                    return _useAsReturnValue;
                 }
-
-                return ReturnBehavior.None;
             }
+
+            public bool CanBeUsedAsReturnValue
+            {
+                get
+                {
+                    return _variableStyle.ReturnStyle.ReturnBehavior != ReturnBehavior.None;
+                }
+            }
+
+            public bool UseAsParameter
+            {
+                get
+                {
+                    return (!_useAsReturnValue && _variableStyle.ParameterStyle.ParameterBehavior != ParameterBehavior.None) ||
+                           (_useAsReturnValue && _variableStyle.ReturnStyle.ParameterBehavior != ParameterBehavior.None);
+                }
+            }
+
+            public ParameterBehavior ParameterModifier
+            {
+                get
+                {
+                    return _useAsReturnValue ? _variableStyle.ReturnStyle.ParameterBehavior : _variableStyle.ParameterStyle.ParameterBehavior;
+                }
+            }
+
+            public DeclarationBehavior GetDeclarationBehavior()
+                => _useAsReturnValue
+                    ? _variableStyle.ReturnStyle.DeclarationBehavior
+                    : _variableStyle.ParameterStyle.DeclarationBehavior;
+
+            public ReturnBehavior ReturnBehavior
+            {
+                get
+                {
+                    if (_useAsReturnValue)
+                    {
+                        return _variableStyle.ReturnStyle.ReturnBehavior;
+                    }
+
+                    return ReturnBehavior.None;
+                }
+            }
+
+            public static VariableInfo CreateReturnValue(VariableInfo variable)
+            {
+                Contract.ThrowIfNull(variable);
+                Contract.ThrowIfFalse(variable.CanBeUsedAsReturnValue);
+                Contract.ThrowIfFalse(variable.ParameterModifier is ParameterBehavior.Out or ParameterBehavior.Ref);
+
+                return new VariableInfo(variable._variableSymbol, variable._variableStyle, useAsReturnValue: true);
+            }
+
+            public void AddIdentifierTokenAnnotationPair(
+                MultiDictionary<SyntaxToken, SyntaxAnnotation> annotations, CancellationToken cancellationToken)
+            {
+                _variableSymbol.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
+            }
+
+            public string Name => _variableSymbol.Name;
+
+            /// <summary>
+            /// Returns true, if the variable could be either passed as a parameter
+            /// to the new local function or the local function can capture the variable.
+            /// </summary>
+            public bool CanBeCapturedByLocalFunction
+                => _variableSymbol.CanBeCapturedByLocalFunction;
+
+            public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.SymbolType.ContainsAnonymousType();
+
+            public ITypeSymbol SymbolType => _variableSymbol.SymbolType;
+
+            public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
+                => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
+
+            public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
+                => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
+
+            public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
+
+            public int CompareTo(VariableInfo other)
+                => this._variableSymbol.CompareTo(other._variableSymbol);
         }
-
-        public static VariableInfo CreateReturnValue(VariableInfo variable)
-        {
-            Contract.ThrowIfNull(variable);
-            Contract.ThrowIfFalse(variable.CanBeUsedAsReturnValue);
-            Contract.ThrowIfFalse(variable.ParameterModifier is ParameterBehavior.Out or ParameterBehavior.Ref);
-
-            return new VariableInfo(variable._variableSymbol, variable._variableStyle, useAsReturnValue: true);
-        }
-
-        public void AddIdentifierTokenAnnotationPair(
-            List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken)
-        {
-            _variableSymbol.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
-        }
-
-        public string Name => _variableSymbol.Name;
-
-        /// <summary>
-        /// Returns true, if the variable could be either passed as a parameter
-        /// to the new local function or the local function can capture the variable.
-        /// </summary>
-        public bool CanBeCapturedByLocalFunction
-            => _variableSymbol.CanBeCapturedByLocalFunction;
-
-        public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
-
-        public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
-
-        public ITypeSymbol GetVariableType()
-            => _variableSymbol.OriginalType;
-
-        public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
-            => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
-
-        public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
-            => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
-
-        public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
-
-        public static void SortVariables(ArrayBuilder<VariableInfo> variables)
-            => variables.Sort();
-
-        public int CompareTo(VariableInfo other)
-            => VariableSymbol.Compare(this._variableSymbol, other._variableSymbol);
     }
 }

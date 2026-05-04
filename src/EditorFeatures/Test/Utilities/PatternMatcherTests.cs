@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,8 +11,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
-public class PatternMatcherTests
+public sealed class PatternMatcherTests
 {
     [Fact]
     public void BreakIntoCharacterParts_EmptyIdentifier()
@@ -191,7 +191,12 @@ public class PatternMatcherTests
     [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseInsensitive)]
     [InlineData("Com[|bin|]e", "bin", PatternMatchKind.LowercaseSubstring, CaseSensitive)]
     [InlineData("Combine[|Bin|]ary", "bin", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+
+    [InlineData("_ABC_[|Abc|]_", "Abc", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+    [InlineData("[|C|]reate[|R|]ange", "CR", PatternMatchKind.CamelCaseExact, CaseSensitive)]
+
     [WorkItem("https://github.com/dotnet/roslyn/issues/51029")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/17275")]
     internal void TestNonFuzzyMatch(
         string candidate, string pattern, PatternMatchKind matchKind, bool isCaseSensitive)
     {
@@ -416,14 +421,14 @@ public class PatternMatcherTests
     [Fact]
     public void TestCachingOfPriorResult()
     {
-        using var matcher = PatternMatcher.CreatePatternMatcher("Goo", includeMatchedSpans: true, allowFuzzyMatching: true);
+        using var matcher = PatternMatcher.CreatePatternMatcher("Goo", includeMatchedSpans: true, PatternMatcherKind.Fuzzy);
         matcher.Matches("Go");
 
         // Ensure that the above call ended up caching the result.
-        Assert.True(((PatternMatcher.SimplePatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: true, candidateText: "Go"));
+        Assert.True(((PatternMatcher.FuzzyPatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: true, candidateText: "Go"));
 
         matcher.Matches("DefNotAMatch");
-        Assert.True(((PatternMatcher.SimplePatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: false, candidateText: "DefNotAMatch"));
+        Assert.True(((PatternMatcher.FuzzyPatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: false, candidateText: "DefNotAMatch"));
     }
 
     private static ImmutableArray<string> PartListToSubstrings(string identifier, in TemporaryArray<TextSpan> parts)
@@ -453,7 +458,7 @@ public class PatternMatcherTests
     {
         MarkupTestFile.GetSpans(candidate, out candidate, out var spans);
 
-        var match = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: false)
+        var match = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true)
             .GetFirstMatch(candidate);
 
         if (match == null)

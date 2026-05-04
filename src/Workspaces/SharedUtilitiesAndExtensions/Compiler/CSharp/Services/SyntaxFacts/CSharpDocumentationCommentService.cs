@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
-internal class CSharpDocumentationCommentService : AbstractDocumentationCommentService<
+internal sealed class CSharpDocumentationCommentService() : AbstractDocumentationCommentService<
     DocumentationCommentTriviaSyntax,
     XmlNodeSyntax,
     XmlAttributeSyntax,
@@ -19,13 +19,8 @@ internal class CSharpDocumentationCommentService : AbstractDocumentationCommentS
     XmlEmptyElementSyntax,
     XmlCrefAttributeSyntax,
     XmlNameAttributeSyntax,
-    XmlTextAttributeSyntax>
+    XmlTextAttributeSyntax>(CSharpSyntaxFacts.Instance)
 {
-    private CSharpDocumentationCommentService()
-        : base(CSharpSyntaxFacts.Instance)
-    {
-    }
-
     public static readonly IDocumentationCommentService Instance = new CSharpDocumentationCommentService();
 
     protected override SyntaxList<XmlAttributeSyntax> GetAttributes(XmlEmptyElementSyntax xmlEmpty)

@@ -17,6 +17,9 @@ internal static class ClassificationExtensions
             TypeKind.Delegate => ClassificationTypeNames.DelegateName,
             TypeKind.TypeParameter => ClassificationTypeNames.TypeParameterName,
             TypeKind.Dynamic => ClassificationTypeNames.Keyword,
+            TypeKind.Array => ClassificationTypeNames.ArrayName,
+            TypeKind.Pointer => ClassificationTypeNames.PointerName,
+            TypeKind.FunctionPointer => ClassificationTypeNames.FunctionPointerName,
             _ => null,
         };
 }

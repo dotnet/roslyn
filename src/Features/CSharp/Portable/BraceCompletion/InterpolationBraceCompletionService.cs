@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 [ExportBraceCompletionService(LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class InterpolationBraceCompletionService() : AbstractCSharpBraceCompletionService
+internal sealed class InterpolationBraceCompletionService() : AbstractCSharpBraceCompletionService
 {
     protected override char OpeningBrace => CurlyBrace.OpenCharacter;
     protected override char ClosingBrace => CurlyBrace.CloseCharacter;

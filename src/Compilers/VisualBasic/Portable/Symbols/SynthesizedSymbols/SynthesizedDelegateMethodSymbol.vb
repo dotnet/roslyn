@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ''' <summary>
-        ''' Returns the arity of this method, or the number of type parameters it takes.
+        ''' Returns the arity of this method. Arity is the number of type parameters a method declares.
         ''' A non-generic method has zero arity.
         ''' </summary>
         Public Overrides ReadOnly Property Arity As Integer
@@ -205,6 +205,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End Get
         End Property
+
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return 0
+        End Function
 
         ''' <summary>
         ''' Gets a value indicating whether this instance is overridable.
@@ -432,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             ' Dev11 emits DebuggerNonUserCodeAttribute on methods of anon delegates but not of user defined delegates.

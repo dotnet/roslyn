@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Protected MustOverride ReadOnly Property Kind As SyntaxKind
 
         Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As T, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
-            Return ValueTaskFactory.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New BinaryConditionalExpressionDocumentation(), New TernaryConditionalExpressionDocumentation()})
+            Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New BinaryConditionalExpressionDocumentation(), New TernaryConditionalExpressionDocumentation()})
         End Function
 
         Protected Overrides Function IsTriggerToken(token As SyntaxToken) As Boolean
@@ -24,13 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                    token.Parent.Kind = Kind
         End Function
 
-        Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
-            Return ch = "("c OrElse ch = ","c
-        End Function
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create("("c, ","c)
 
-        Public Overrides Function IsRetriggerCharacter(ch As Char) As Boolean
-            Return ch = ")"c
-        End Function
+        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create(")"c)
 
         Protected Overrides Function IsArgumentListToken(node As T, token As SyntaxToken) As Boolean
             Return node.Span.Contains(token.SpanStart) AndAlso

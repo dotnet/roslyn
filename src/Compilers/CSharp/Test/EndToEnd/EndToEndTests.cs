@@ -4,21 +4,24 @@
 
 #nullable disable
 
-using Roslyn.Test.Utilities;
 using System;
-using System.Text;
-using Xunit;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Threading.Tasks;
-using System.Threading;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Test.Utilities.TestGenerators;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 
             if (exception is object)
             {
-                throw exception;
+                Assert.Fail(exception.ToString());
             }
         }
 
@@ -411,9 +414,9 @@ public class Test
             int nestingLevel = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
                 (4, ExecutionConfiguration.Debug) => 310,
-                (4, ExecutionConfiguration.Release) => 1650,
+                (4, ExecutionConfiguration.Release) => 1400,
                 (8, ExecutionConfiguration.Debug) => 200,
-                (8, ExecutionConfiguration.Release) => 780,
+                (8, ExecutionConfiguration.Release) => 474,
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
@@ -447,6 +450,95 @@ $@"        if (F({i}))
                     var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                     comp.VerifyDiagnostics();
                 });
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72393")]
+        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [InlineData(2)]
+#if DEBUG
+        [InlineData(2000)]
+#else
+        [InlineData(5000)]
+#endif
+        public void NestedIfElse(int n)
+        {
+            var builder = new System.Text.StringBuilder();
+            builder.AppendLine("""
+                #nullable enable
+                class Program
+                {
+                    static void F(int i)
+                    {
+                        if (i == 0) { }
+                """);
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($$"""
+                            else if (i == {{i}}) { }
+                    """);
+            }
+            builder.AppendLine("""
+                    }
+                }
+                """);
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            // Avoid using ControlFlowGraphVerifier.GetControlFlowGraph() since that calls
+            // TestOperationVisitor.VerifySubTree() which has quadratic behavior using
+            // MemberSemanticModel.GetEnclosingBinderInternalWithinRoot().
+            var operation = (Microsoft.CodeAnalysis.Operations.IMethodBodyOperation)model.GetOperation(node);
+            var graph = Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(operation);
+
+            if (n == 2)
+            {
+                var symbol = model.GetDeclaredSymbol(node);
+                ControlFlowGraphVerifier.VerifyGraph(comp, """
+                    Block[B0] - Entry
+                        Statements (0)
+                        Next (Regular) Block[B1]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B2]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 0')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Next (Regular) Block[B4]
+                    Block[B2] - Block
+                        Predecessors: [B1]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B3]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 0')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Next (Regular) Block[B4]
+                    Block[B3] - Block
+                        Predecessors: [B2]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B4]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 1')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        Next (Regular) Block[B4]
+                    Block[B4] - Exit
+                        Predecessors: [B1] [B2] [B3*2]
+                        Statements (0)
+                    """,
+                    graph, symbol);
             }
         }
 
@@ -549,7 +641,9 @@ $@"        if (F({i}))
                 builder.AppendLine("C.M();");
             }
 
-            files.Add((builder.ToString(), "Program.cs"));
+            var program = (builder.ToString(), "Program.cs");
+            var locations = getInterceptableLocations(program);
+            files.Add(program);
 
             files.Add(("""
                 class C
@@ -561,20 +655,21 @@ $@"        if (F({i}))
                 {
                     public class InterceptsLocationAttribute : Attribute
                     {
-                        public InterceptsLocationAttribute(string path, int line, int column) { }
+                        public InterceptsLocationAttribute(int version, string data) { }
                     }
                 }
                 """, "C.cs"));
 
             for (int i = 0; i < numberOfInterceptors; i++)
             {
+                var location = locations[i];
                 files.Add(($$"""
                     using System;
                     using System.Runtime.CompilerServices;
 
                     class C{{i}}
                     {
-                        [InterceptsLocation("Program.cs", {{i + 1}}, 3)]
+                        [InterceptsLocation({{location.Version}}, "{{location.Data}}")]
                         public static void M()
                         {
                             Console.WriteLine({{i}});
@@ -583,7 +678,7 @@ $@"        if (F({i}))
                     """, $"C{i}.cs"));
             }
 
-            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global"), expectedOutput: makeExpectedOutput());
+            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature(Feature.InterceptorsNamespaces, "global"), expectedOutput: makeExpectedOutput());
             verifier.VerifyDiagnostics();
 
             string makeExpectedOutput()
@@ -594,6 +689,16 @@ $@"        if (F({i}))
                     builder.AppendLine($"{i}");
                 }
                 return builder.ToString();
+            }
+
+            ImmutableArray<InterceptableLocation> getInterceptableLocations(CSharpTestSource source)
+            {
+                var comp = CreateCompilation(source);
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+
+                var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().SelectAsArray(node => model.GetInterceptableLocation(node));
+                return nodes;
             }
         }
 
@@ -716,12 +821,288 @@ $@"        if (F({i}))
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [generator],
+                parseOptions: parseOptions,
+                driverOptions: TestOptions.GeneratorDriverOptions);
+
             driver = driver.RunGenerators(compilation);
             var runResult = driver.GetRunResult().Results[0];
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
                 step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
+        }
+
+        [Theory]
+        [InlineData("or", "1")]
+        [InlineData("and not", "0")]
+        public void ManyBinaryPatterns_01(string pattern, string expectedOutput)
+        {
+            const string preamble = $"""
+                int i = 2;
+
+                System.Console.Write(i is
+                """;
+            string append = $"""
+
+                {pattern} 
+                """;
+            const string postscript = """
+
+                ? 1 : 0);
+                """;
+
+            const int numBinaryExpressions = 5_000;
+
+            var builder = new StringBuilder(preamble.Length + postscript.Length + append.Length * numBinaryExpressions + 5 /* Max num digit characters */ * numBinaryExpressions);
+
+            builder.AppendLine(preamble);
+
+            builder.Append(0.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+            for (int i = 1; i < numBinaryExpressions; i++)
+            {
+                builder.Append(append);
+                // Make sure the emitter has to handle lots of nodes
+                builder.Append((i * 2).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+
+            builder.AppendLine(postscript);
+
+            var source = builder.ToString();
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithConcurrentBuild(false));
+                CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+                var tree = comp.SyntaxTrees[0];
+                var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+                var model = comp.GetSemanticModel(tree);
+                var operation = model.GetOperation(isPattern);
+                Assert.NotNull(operation);
+
+                for (; operation.Parent is not null; operation = operation.Parent) { }
+
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
+            });
+        }
+
+        [Fact]
+        public void ManyBinaryPatterns_02()
+        {
+            const int numOfEnumMembers = 5_000;
+            var capacity = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 97973 : 87960;
+
+            var builder = new StringBuilder(capacity);
+
+            builder.Append("""
+#nullable enable
+
+class ErrorFacts
+{
+    static bool Test(E code)
+    {
+        return code switch
+        {
+            E._0
+""");
+
+            for (int i = 1; i < numOfEnumMembers; i++)
+            {
+                builder.Append($"""
+
+or E._{i}
+""");
+            }
+
+            builder.Append("""
+                    => false,
+        };
+    }
+}
+
+enum E
+{
+    _0,
+""");
+
+            for (int i = 1; i < numOfEnumMembers; i++)
+            {
+                builder.Append($"""
+
+_{i},
+""");
+            }
+
+            builder.Append("""
+}
+""");
+
+            Assert.Equal(capacity, builder.Length);
+
+            var source = builder.ToString();
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+                var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First();
+                Assert.Equal("E._0", model.GetSymbolInfo(node1).Symbol.ToTestDisplayString());
+                var node2 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last();
+                Assert.Equal($"E._{numOfEnumMembers - 1}", model.GetSymbolInfo(node2).Symbol.ToTestDisplayString());
+
+                var operation = model.GetOperation(node1);
+                Assert.NotNull(operation);
+
+                for (; operation.Parent is not null; operation = operation.Parent) { }
+
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
+
+                model.GetDiagnostics().Verify(
+                    // (7,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(E)5000' is not covered.
+                    //         return code switch
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(E)" + numOfEnumMembers).WithLocation(7, 21)
+                    );
+            });
+        }
+
+        [Fact]
+        public void ManyBinaryPatterns_03()
+        {
+            const int numOfEnumMembers = 4_000;
+            var capacity = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 47065 : 43055;
+
+            var builder = new StringBuilder(capacity);
+
+            builder.Append("""
+#nullable enable
+
+class ErrorFacts
+{
+    static bool Test(E code)
+    {
+        return code switch
+        {
+            E._0
+""");
+
+            for (int i = 1; i < numOfEnumMembers; i++)
+            {
+                builder.Append($"""
+
+or E._{i}
+""");
+            }
+
+            builder.Append("""
+                    => false,
+        };
+    }
+}
+""");
+
+            Assert.Equal(capacity, builder.Length);
+
+            var source = builder.ToString();
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+                var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First();
+                SymbolInfo symbolInfo = model.GetSymbolInfo(node1);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                var node2 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last();
+                symbolInfo = model.GetSymbolInfo(node2);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+
+                var operation = model.GetOperation(node1);
+                Assert.NotNull(operation);
+
+                for (; operation.Parent is not null; operation = operation.Parent) { }
+
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
+            });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/83087")]
+        public void ManyUnreferencedSuppressMessageAttributes()
+        {
+            // Stress test for SuppressMessageAttributeState: a large number of
+            // assembly-level SuppressMessageAttributes should not cause excessive work
+            // when only one of the suppressed diagnostic IDs is ever queried.
+            // Only one suppression targets a real type and a real diagnostic ID;
+            // the rest reference IDs that are never produced by any analyzer and
+            // targets that don't resolve to any symbol in the compilation.
+            const int unreferencedSuppressionCount = 50_000;
+            const string realSuppression = $"""[assembly: SuppressMessage("Test", "{ReportOnTypeAnalyzer.DiagnosticId}", Scope = "type", Target = "~T:Targeted")]""";
+
+            var attributesBuilder = new StringBuilder(capacity: 40 + realSuppression.Length + 2 + unreferencedSuppressionCount * 107);
+            attributesBuilder.AppendLine("using System.Diagnostics.CodeAnalysis;");
+            attributesBuilder.AppendLine();
+
+            // The one real suppression we expect to be honored.
+            attributesBuilder.AppendLine(realSuppression);
+            for (int i = 0; i < unreferencedSuppressionCount; i++)
+            {
+                // Use a unique fake diagnostic ID per suppression so that querying
+                // any single ID resolves at most one target. The targets reference
+                // types that don't exist so resolution would fail if it were ever
+                // attempted.
+                attributesBuilder.AppendLine(
+                    $$"""[assembly: SuppressMessage("Test", "FAKE{{i:D5}}", Scope = "type", Target = "~T:DoesNotExist{{i:D5}}")]""");
+            }
+
+            var attributesSource = attributesBuilder.ToString();
+            var typesSource = """
+                public class Targeted { }
+                public class NotTargeted { }
+                """;
+
+            RunInThread(() =>
+            {
+                var compilation = CreateCompilation(
+                    [attributesSource, typesSource],
+                    options: TestOptions.DebugDll.WithConcurrentBuild(false));
+                compilation.VerifyDiagnostics();
+
+                var analyzers = new DiagnosticAnalyzer[] { new ReportOnTypeAnalyzer() };
+                var analyzerDiagnostics = compilation.GetAnalyzerDiagnostics(analyzers);
+
+                // Only the diagnostic on 'NotTargeted' should remain; the one on 'Targeted'
+                // is suppressed by the SuppressMessageAttribute and filtered out.
+                analyzerDiagnostics.Verify(
+                    Diagnostic("MY00001", "NotTargeted").WithArguments("NotTargeted").WithLocation(2, 14)
+                );
+            }, timeout: TimeSpan.FromMinutes(2));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private sealed class ReportOnTypeAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "MY00001";
+
+            private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
+                DiagnosticId, "Title", "Type {0}", "Test",
+                DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+                context.EnableConcurrentExecution();
+                context.RegisterSymbolAction(c =>
+                {
+                    var symbol = c.Symbol;
+                    c.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, symbol.Locations[0], symbol.Name));
+                }, SymbolKind.NamedType);
+            }
         }
     }
 }

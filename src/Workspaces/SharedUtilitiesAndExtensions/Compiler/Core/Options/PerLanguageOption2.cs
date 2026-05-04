@@ -25,7 +25,7 @@ internal interface IPerLanguageValuedOption<T> : IPerLanguageValuedOption
 /// An option that can be specified once per language.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-internal partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T>
+internal sealed partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T>
 {
     public OptionDefinition<T> Definition { get; }
     public IPublicOption? PublicOption { get; }
@@ -64,7 +64,7 @@ internal partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T>
     OptionDefinition IOption2.Definition => Definition;
     public T DefaultValue => Definition.DefaultValue;
 
-#if CODE_STYLE
+#if !WORKSPACE
     bool IOption2.IsPerLanguage => true;
 #else
     string IOption.Feature => "config";

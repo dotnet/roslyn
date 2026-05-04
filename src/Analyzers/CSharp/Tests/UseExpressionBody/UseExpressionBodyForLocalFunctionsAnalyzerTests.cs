@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,43 +21,51 @@ using VerifyCS = CSharpCodeFixVerifier<
     UseExpressionBodyCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForLocalFunctionsAnalyzerTests
+public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 {
-    private static async Task TestWithUseExpressionBody(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestMissingWithUseExpressionBody(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code)
+        => new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.WhenPossible } }
+        }.RunAsync();
+
+    private static Task TestWithUseExpressionBody(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.WhenPossible } }
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseExpressionBodyWhenOnSingleLine(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseExpressionBodyWhenOnSingleLine(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.WhenOnSingleLine } }
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseBlockBody(string code, string fixedCode, ReferenceAssemblies? referenceAssemblies = null)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseBlockBody(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode, ReferenceAssemblies? referenceAssemblies = null)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.Never } },
             ReferenceAssemblies = referenceAssemblies ?? ReferenceAssemblies.Default,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUseExpressionBody1()
-    {
-        var code = """
+    public Task TestUseExpressionBody1()
+        => TestWithUseExpressionBody("""
             class C
             {
                 void Test() { }
@@ -69,8 +78,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Test() { }
@@ -80,14 +88,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     void Bar() => Test();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseExpressionBody2()
-    {
-        var code = """
+    public Task TestUseExpressionBody2()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Test() { return 0; }
@@ -100,8 +105,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Test() { return 0; }
@@ -111,14 +115,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     int Bar() => Test();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseExpressionBody3()
-    {
-        var code = """
+    public Task TestUseExpressionBody3()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -131,8 +132,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -142,14 +142,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     int Bar() => throw new NotImplementedException();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseExpressionBody4()
-    {
-        var code = """
+    public Task TestUseExpressionBody4()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -162,8 +159,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -173,9 +169,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     int Bar() => throw new NotImplementedException(); // comment
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
     public async Task TestUseExpressionBodyWhenOnSingleLineMissing()
@@ -198,9 +192,8 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
     }
 
     [Fact]
-    public async Task TestUseExpressionBodyWhenOnSingleLine()
-    {
-        var code = """
+    public Task TestUseExpressionBodyWhenOnSingleLine()
+        => TestWithUseExpressionBodyWhenOnSingleLine("""
             class C
             {
                 void Goo()
@@ -211,8 +204,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Goo()
@@ -220,14 +212,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     int Bar() => 1 + 2 + 3;
                 }
             }
-            """;
-        await TestWithUseExpressionBodyWhenOnSingleLine(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBody1()
-    {
-        var code = """
+    public Task TestUseBlockBody1()
+        => TestWithUseBlockBody("""
             class C
             {
                 void Test() { }
@@ -237,8 +226,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     {|IDE0061:void Bar() => Test();|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Test() { }
@@ -251,14 +239,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBody2()
-    {
-        var code = """
+    public Task TestUseBlockBody2()
+        => TestWithUseBlockBody("""
             class C
             {
                 int Test() { return 0; }
@@ -268,8 +253,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     {|IDE0061:int Bar() => Test();|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Test() { return 0; }
@@ -282,14 +266,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBody3()
-    {
-        var code = """
+    public Task TestUseBlockBody3()
+        => TestWithUseBlockBody("""
             using System;
 
             class C
@@ -299,8 +280,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     {|IDE0061:int Bar() => throw new NotImplementedException();|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -313,14 +293,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBody4()
-    {
-        var code = """
+    public Task TestUseBlockBody4()
+        => TestWithUseBlockBody("""
             using System;
 
             class C
@@ -330,8 +307,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     {|IDE0061:int Bar() => throw new NotImplementedException();|} // comment
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -344,14 +320,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestComments1()
-    {
-        var code = """
+    public Task TestComments1()
+        => TestWithUseExpressionBody("""
             class C
             {
                 void Test() { }
@@ -365,8 +338,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Test() { }
@@ -378,14 +350,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                         Test();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestComments2()
-    {
-        var code = """
+    public Task TestComments2()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Test() { return 0; }
@@ -399,8 +368,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Test() { return 0; }
@@ -412,14 +380,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                         Test();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestComments3()
-    {
-        var code = """
+    public Task TestComments3()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -435,8 +400,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -450,14 +414,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                         throw Test();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestComments4()
-    {
-        var code = """
+    public Task TestComments4()
+        => TestWithUseExpressionBody("""
             class C
             {
                 void Test() { }
@@ -470,8 +431,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Test() { }
@@ -481,14 +441,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     void Bar() => Test(); // Comment
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestComments5()
-    {
-        var code = """
+    public Task TestComments5()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Test() { return 0; }
@@ -501,8 +458,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Test() { return 0; }
@@ -512,14 +468,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     int Bar() => Test(); // Comment
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestComments6()
-    {
-        var code = """
+    public Task TestComments6()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -534,8 +487,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -547,14 +499,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     void Bar() => throw Test(); // Comment
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
-    [Fact]
-    public async Task TestDirectives1()
-    {
-        var code = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80400")]
+    public Task TestDirectives1()
+        => TestMissingWithUseExpressionBody("""
             #define DEBUG
             using System;
 
@@ -562,16 +511,19 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
             {
                 void Method()
                 {
-                    {|IDE0061:void Bar()
+                    void Bar()
                     {
             #if DEBUG
                         Console.WriteLine();
             #endif
-                    }|}
+                    }
                 }
             }
-            """;
-        var fixedCode = """
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80400")]
+    public Task TestDirectives2()
+        => TestMissingWithUseExpressionBody("""
             #define DEBUG
             using System;
 
@@ -579,21 +531,21 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
             {
                 void Method()
                 {
-                    void Bar() =>
+                    void Bar()
+                    {
             #if DEBUG
                         Console.WriteLine();
+            #elif RELEASE
+                        Console.WriteLine();
             #endif
-
+                    }
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestDirectives2()
-    {
-        var code = """
+    public Task TestDirectives3()
+        => TestWithUseExpressionBody("""
             #define DEBUG
             using System;
 
@@ -611,8 +563,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             #define DEBUG
             using System;
 
@@ -629,14 +580,54 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBodyAsync1()
-    {
-        var code = """
+    public Task TestDirectives4()
+        => TestWithUseExpressionBody("""
+            #define DEBUG
+            using System;
+
+            class Program
+            {
+                void Method()
+                {
+                    {|IDE0061:void Bar()
+                    {
+            #if DEBUG
+                        Console.WriteLine(0);
+            #elif RELEASE
+                        Console.WriteLine(1);
+            #else
+                        Console.WriteLine(2);
+            #endif
+                    }|}
+                }
+            }
+            """, """
+            #define DEBUG
+            using System;
+
+            class Program
+            {
+                void Method()
+                {
+                    void Bar() =>
+            #if DEBUG
+                        Console.WriteLine(0);
+            #elif RELEASE
+                        Console.WriteLine(1);
+            #else
+                        Console.WriteLine(2);
+            #endif
+
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestUseBlockBodyAsync1()
+        => TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -648,8 +639,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Test() { return Task.CompletedTask; }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -664,14 +654,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Test() { return Task.CompletedTask; }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBodyAsync2()
-    {
-        var code = """
+    public Task TestUseBlockBodyAsync2()
+        => TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -683,8 +670,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Test() { return Task.CompletedTask; }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -699,14 +685,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Test() { return Task.CompletedTask; }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBodyAsync3()
-    {
-        var code = """
+    public Task TestUseBlockBodyAsync3()
+        => TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -718,8 +701,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Bar() { return Task.CompletedTask; }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -734,14 +716,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Bar() { return Task.CompletedTask; }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode, ReferenceAssemblies.NetStandard.NetStandard21);
-    }
+            """, ReferenceAssemblies.NetStandard.NetStandard21);
 
     [Fact]
-    public async Task TestUseBlockBodyAsync4()
-    {
-        var code = """
+    public Task TestUseBlockBodyAsync4()
+        => TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -753,8 +732,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task<int> Bar() { return Task.FromResult(0); }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -769,14 +747,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task<int> Bar() { return Task.FromResult(0); }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBodyAsync5()
-    {
-        var code = """
+    public Task TestUseBlockBodyAsync5()
+        => TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -788,8 +763,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Bar() { return Task.CompletedTask; }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -804,14 +778,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Bar() { return Task.CompletedTask; }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseBlockBodyNestedLocalFunction()
-    {
-        var code = """
+    public Task TestUseBlockBodyNestedLocalFunction()
+        => TestWithUseBlockBody("""
             class C
             {
                 void NestedTest() { }
@@ -824,8 +795,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void NestedTest() { }
@@ -841,14 +811,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestUseExpressionBodyNestedLocalFunction()
-    {
-        var code = """
+    public Task TestUseExpressionBodyNestedLocalFunction()
+        => TestWithUseExpressionBody("""
             class C
             {
                 void NestedTest() { }
@@ -864,8 +831,7 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void NestedTest() { }
@@ -878,14 +844,11 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57570")]
-    public async Task TestUseExpressionBodyTopLevelStatment()
-    {
-        await new VerifyCS.Test
+    public Task TestUseExpressionBodyTopLevelStatment()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -912,12 +875,10 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
             LanguageVersion = LanguageVersion.CSharp9,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.WhenPossible } },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57570")]
-    public async Task TestUseBlockBodyTopLevelStatment()
-    {
-        await new VerifyCS.Test
+    public Task TestUseBlockBodyTopLevelStatment()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -941,5 +902,4 @@ public class UseExpressionBodyForLocalFunctionsAnalyzerTests
             LanguageVersion = LanguageVersion.CSharp9,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.Never } },
         }.RunAsync();
-    }
 }

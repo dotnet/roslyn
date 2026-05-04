@@ -245,6 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (IgnoreUserDefinedSpanConversions(source, target))
+            {
+                return;
+            }
+
             bool haveInterfaces = false;
 
             foreach ((NamedTypeSymbol declaringType, TypeParameterSymbol constrainedToTypeOpt) in d)
@@ -281,7 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
                 bool allowAnyTarget)
             {
-                foreach (MethodSymbol op in declaringType.GetOperators(WellKnownMemberNames.ImplicitConversionName))
+                var operators = ArrayBuilder<MethodSymbol>.GetInstance();
+                declaringType.AddOperators(WellKnownMemberNames.ImplicitConversionName, operators);
+
+                foreach (MethodSymbol op in operators)
                 {
                     // We might have a bad operator and be in an error recovery situation. Ignore it.
                     if (op.ReturnsVoid || op.ParameterCount != 1)
@@ -349,6 +357,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+
+                operators.Free();
             }
         }
 
@@ -601,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return EncompassingImplicitConversion(aExpr: null, a, b, ref useSiteInfo);
         }
 
-        private static bool IsEncompassingImplicitConversionKind(ConversionKind kind)
+        internal static bool IsEncompassingImplicitConversionKind(ConversionKind kind)
         {
             switch (kind)
             {
@@ -624,7 +634,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
+                case ConversionKind.Union:
                 case ConversionKind.FunctionType:
+                case ConversionKind.CollectionExpression:
 
                 // Not implicit.
                 case ConversionKind.ExplicitNumeric:
@@ -639,6 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.IntPtr:
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
+                case ConversionKind.ExplicitSpan:
                     return false;
 
                 // Spec'd in C# 4.
@@ -666,6 +679,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitPointer:
                 // Added for C# 12
                 case ConversionKind.InlineArray:
+                // Added for C# 13
+                case ConversionKind.ImplicitSpan:
                     return true;
 
                 default:
@@ -964,6 +979,73 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return UserDefinedConversionResult.NoApplicableOperators(u);
+        }
+
+        protected virtual Conversion AnalyzeImplicitUnionConversions(
+            BoundExpression sourceExpression,
+            TypeSymbol source,
+            TypeSymbol target,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
+            Debug.Assert(sourceExpression != null || (object)source != null);
+            Debug.Assert((object)target != null);
+
+            if (target.StrippedType() is not NamedTypeSymbol namedTarget || !namedTarget.IsUnionType)
+            {
+                return Conversion.NoConversion;
+            }
+
+            // SPEC: Find the set of applicable constructors
+            var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
+            computeApplicableConstructorSet(sourceExpression, source, target, namedTarget, ubuild, ref useSiteInfo);
+
+            if (ubuild.Count == 0)
+            {
+                ubuild.Free();
+                return Conversion.NoConversion;
+            }
+
+            ImmutableArray<UserDefinedConversionAnalysis> u = ubuild.ToImmutableAndFree();
+
+            // Find the most specific source type SX of the operators in U...
+            TypeSymbol sx = MostSpecificSourceTypeForImplicitUserDefinedConversion(u, source, ref useSiteInfo);
+            if ((object)sx == null || MostSpecificConversionOperator(sx, namedTarget, u) is not int best)
+            {
+                // Ambiguous. The first applicable is good enough then.
+                best = 0;
+            }
+
+            return Conversion.CreateUnionConversion(UserDefinedConversionResult.Valid(u, best));
+
+            void computeApplicableConstructorSet(
+                BoundExpression sourceExpression,
+                TypeSymbol source,
+                TypeSymbol target,
+                NamedTypeSymbol declaringType,
+                ArrayBuilder<UserDefinedConversionAnalysis> u,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                foreach (MethodSymbol ctor in declaringType.InstanceConstructors)
+                {
+                    if (!NamedTypeSymbol.IsSuitableUnionConstructor(ctor))
+                    {
+                        continue;
+                    }
+
+                    TypeSymbol convertsFrom = ctor.GetParameterType(0);
+                    Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteInfo);
+                    Conversion targetConversion = EncompassingImplicitConversion(declaringType, target, ref useSiteInfo);
+
+                    Debug.Assert(targetConversion.Exists && targetConversion.IsImplicit);
+                    Debug.Assert(targetConversion.IsIdentity || (targetConversion.IsNullable && targetConversion.UnderlyingConversions[0].IsIdentity));
+
+                    if (fromConversion.Exists && targetConversion.Exists)
+                    {
+                        u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt: null, ctor, fromConversion, targetConversion, convertsFrom, toType: declaringType));
+                    }
+                }
+            }
         }
     }
 }

@@ -55,7 +55,7 @@ internal sealed class CSharpUsePatternCombinatorsCodeFixProvider() : SyntaxEdito
         return isSafe == (equivalenceKey == SafeEquivalenceKey);
     }
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
         var isSafe = CSharpUsePatternCombinatorsDiagnosticAnalyzer.IsSafe(diagnostic);
@@ -65,8 +65,6 @@ internal sealed class CSharpUsePatternCombinatorsCodeFixProvider() : SyntaxEdito
             isSafe ? CSharpAnalyzersResources.Use_pattern_matching : CSharpAnalyzersResources.Use_pattern_matching_may_change_code_meaning,
             isSafe ? SafeEquivalenceKey : UnsafeEquivalenceKey,
             CodeActionPriority.Low);
-
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
@@ -101,9 +99,23 @@ internal sealed class CSharpUsePatternCombinatorsCodeFixProvider() : SyntaxEdito
             Source p => p.PatternSyntax,
             Type p => TypePattern(p.TypeSyntax),
             Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), AsExpressionSyntax(p.Value, p)),
-            Not p => UnaryPattern(AsPatternSyntax(p.Pattern).Parenthesize()),
+            Not p => ProcessNotPattern(p),
             var p => throw ExceptionUtilities.UnexpectedValue(p)
         };
+    }
+
+    private static PatternSyntax ProcessNotPattern(Not notPattern)
+    {
+        // If we're going to generate `not not X` we can just change that to 'X'.
+        var underlyingPattern = AsPatternSyntax(notPattern.Pattern);
+        var unwrapped = underlyingPattern;
+        while (unwrapped is ParenthesizedPatternSyntax parenthesized)
+            unwrapped = parenthesized.Pattern;
+
+        if (unwrapped is UnaryPatternSyntax(SyntaxKind.NotPattern) unaryPattern)
+            return unaryPattern.Pattern;
+
+        return UnaryPattern(underlyingPattern.Parenthesize());
     }
 
     private static ExpressionSyntax AsExpressionSyntax(ExpressionSyntax expr, AnalyzedPattern p)

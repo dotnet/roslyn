@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
 
-internal partial class CSharpArgumentWrapper
+internal sealed partial class CSharpArgumentWrapper
     : AbstractCSharpSeparatedSyntaxListWrapper<BaseArgumentListSyntax, ArgumentSyntax>
 {
     protected override string Align_wrapped_items => FeaturesResources.Align_wrapped_arguments;
@@ -51,6 +51,7 @@ internal partial class CSharpArgumentWrapper
             ElementAccessExpressionSyntax elementAccessExpression => elementAccessExpression.ArgumentList,
             BaseObjectCreationExpressionSyntax objectCreationExpression => objectCreationExpression.ArgumentList,
             ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
+            PrimaryConstructorBaseTypeSyntax baseTypeSyntax => baseTypeSyntax.ArgumentList,
             _ => null,
         };
 
@@ -85,6 +86,11 @@ internal partial class CSharpArgumentWrapper
         {
             // allow anywhere in `this(...)` or `base(...)`
             startToken = constructorInitializer.ThisOrBaseKeyword;
+        }
+        else if (declaration is PrimaryConstructorBaseTypeSyntax baseTypeSyntax)
+        {
+            // allow anywhere in `BaseClass(...)`
+            startToken = baseTypeSyntax.GetFirstToken();
         }
 
         var endToken = listSyntax.GetLastToken();

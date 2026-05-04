@@ -31,7 +31,7 @@ internal class FSharpDocumentNavigationService(IThreadingContext threadingContex
     {
         var service = workspace.Services.GetService<IDocumentNavigationService>();
         return threadingContext.JoinableTaskFactory.Run(() =>
-            service.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken));
+            service.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, allowInvalidPosition: false, cancellationToken));
     }
 
     public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
@@ -47,6 +47,7 @@ internal class FSharpDocumentNavigationService(IThreadingContext threadingContex
         var service = workspace.Services.GetService<IDocumentNavigationService>();
         return threadingContext.JoinableTaskFactory.Run(() =>
             service.TryNavigateToPositionAsync(
-                threadingContext, workspace, documentId, position, virtualSpace, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken));
+                threadingContext, workspace, documentId, position, virtualSpace,
+                allowInvalidPosition: false, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken));
     }
 }

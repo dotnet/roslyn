@@ -80,7 +80,7 @@ End Class]]>
             Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,
-                options:=[Option](CodeStyleOptions2.QualifyPropertyAccess, True, NotificationOption2.Suggestion))
+                New TestParameters(options:=[Option](CodeStyleOptions2.QualifyPropertyAccess, True, NotificationOption2.Suggestion)))
         End Function
     End Class
 End Namespace

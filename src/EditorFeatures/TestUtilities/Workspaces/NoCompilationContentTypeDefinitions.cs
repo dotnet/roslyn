@@ -7,16 +7,15 @@
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+
+internal static class NoCompilationContentTypeDefinitions
 {
-    internal static class NoCompilationContentTypeDefinitions
-    {
-        /// <summary>
-        /// Definition of the primary C# content type.
-        /// </summary>
-        [System.ComponentModel.Composition.Export]
-        [Name(NoCompilationConstants.LanguageName)]
-        [BaseDefinition(ContentTypeNames.RoslynContentType)]
-        public static readonly ContentTypeDefinition NoCompilationContentTypeDefinition;
-    }
+    /// <summary>
+    /// Definition of the primary C# content type.
+    /// </summary>
+    [System.ComponentModel.Composition.Export]
+    [Name(NoCompilationConstants.LanguageName)]
+    [BaseDefinition(ContentTypeNames.RoslynContentType)]
+    public static readonly ContentTypeDefinition NoCompilationContentTypeDefinition;
 }

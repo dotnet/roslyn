@@ -7,21 +7,20 @@
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+
+internal sealed class TextBlockWithDataItemControlType : TextBlock
 {
-    internal class TextBlockWithDataItemControlType : TextBlock
+    protected override AutomationPeer OnCreateAutomationPeer()
+        => new TextBlockWithDataItemControlTypeAutomationPeer(this);
+
+    private sealed class TextBlockWithDataItemControlTypeAutomationPeer : TextBlockAutomationPeer
     {
-        protected override AutomationPeer OnCreateAutomationPeer()
-            => new TextBlockWithDataItemControlTypeAutomationPeer(this);
-
-        private class TextBlockWithDataItemControlTypeAutomationPeer : TextBlockAutomationPeer
+        public TextBlockWithDataItemControlTypeAutomationPeer(TextBlock owner) : base(owner)
         {
-            public TextBlockWithDataItemControlTypeAutomationPeer(TextBlock owner) : base(owner)
-            {
-            }
-
-            protected override AutomationControlType GetAutomationControlTypeCore()
-                => AutomationControlType.DataItem;
         }
+
+        protected override AutomationControlType GetAutomationControlTypeCore()
+            => AutomationControlType.DataItem;
     }
 }

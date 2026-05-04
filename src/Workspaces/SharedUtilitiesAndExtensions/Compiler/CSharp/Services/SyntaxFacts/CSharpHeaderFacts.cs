@@ -23,121 +23,78 @@ internal class CSharpHeaderFacts : AbstractHeaderFacts
 
     public override bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
     {
-        var node = TryGetAncestorForLocation<BaseTypeDeclarationSyntax>(root, position);
-        typeDeclaration = node;
-        if (node == null)
-            return false;
+        var node = TryGetAncestorForLocation<BaseTypeDeclarationSyntax>(root, position, out typeDeclaration);
+        return node != null && IsOnHeader(root, position, node, GetLastToken());
 
-        var lastToken = (node as TypeDeclarationSyntax)?.TypeParameterList?.GetLastToken() ?? node.Identifier;
-        if (fullHeader)
-            lastToken = node.BaseList?.GetLastToken() ?? lastToken;
+        SyntaxToken GetLastToken()
+        {
+            if (fullHeader && node.BaseList != null)
+                return node.BaseList.GetLastToken();
 
-        return IsOnHeader(root, position, node, lastToken);
+            if (node is TypeDeclarationSyntax { TypeParameterList.GreaterThanToken: var greaterThanToken })
+                return greaterThanToken;
+
+            // .Identifier may be default in the case of an extension type.
+            if (node.Identifier != default)
+                return node.Identifier;
+
+            return node switch
+            {
+                TypeDeclarationSyntax typeDeclaration => typeDeclaration.Keyword,
+                EnumDeclarationSyntax enumDeclaration => enumDeclaration.EnumKeyword,
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
+        }
     }
 
     public override bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? propertyDeclaration)
     {
-        var node = TryGetAncestorForLocation<PropertyDeclarationSyntax>(root, position);
-        propertyDeclaration = node;
-        if (propertyDeclaration == null)
-        {
-            return false;
-        }
-
-        RoslynDebug.AssertNotNull(node);
-        return IsOnHeader(root, position, node, node.Identifier);
+        var node = TryGetAncestorForLocation<PropertyDeclarationSyntax>(root, position, out propertyDeclaration);
+        return node != null && IsOnHeader(root, position, node, node.Identifier);
     }
 
     public override bool IsOnParameterHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? parameter)
     {
-        var node = TryGetAncestorForLocation<ParameterSyntax>(root, position);
-        parameter = node;
-        if (parameter == null)
-        {
-            return false;
-        }
-
-        RoslynDebug.AssertNotNull(node);
-        return IsOnHeader(root, position, node, node);
+        var node = TryGetAncestorForLocation<ParameterSyntax>(root, position, out parameter);
+        return node != null && IsOnHeader(root, position, node, node);
     }
 
     public override bool IsOnMethodHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? method)
     {
-        var node = TryGetAncestorForLocation<MethodDeclarationSyntax>(root, position);
-        method = node;
-        if (method == null)
-        {
-            return false;
-        }
-
-        RoslynDebug.AssertNotNull(node);
-        return IsOnHeader(root, position, node, node.ParameterList);
+        var node = TryGetAncestorForLocation<MethodDeclarationSyntax>(root, position, out method);
+        return node != null && IsOnHeader(root, position, node, node.ParameterList);
     }
 
     public override bool IsOnLocalFunctionHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localFunction)
     {
-        var node = TryGetAncestorForLocation<LocalFunctionStatementSyntax>(root, position);
-        localFunction = node;
-        if (localFunction == null)
-        {
-            return false;
-        }
-
-        RoslynDebug.AssertNotNull(node);
-        return IsOnHeader(root, position, node, node.ParameterList);
+        var node = TryGetAncestorForLocation<LocalFunctionStatementSyntax>(root, position, out localFunction);
+        return node != null && IsOnHeader(root, position, node, node.ParameterList);
     }
 
     public override bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localDeclaration)
     {
-        var node = TryGetAncestorForLocation<LocalDeclarationStatementSyntax>(root, position);
-        localDeclaration = node;
-        if (localDeclaration == null)
-        {
-            return false;
-        }
-
-        var initializersExpressions = node!.Declaration.Variables
-            .Where(v => v.Initializer != null)
-            .SelectAsArray(initializedV => initializedV.Initializer!.Value);
-        return IsOnHeader(root, position, node, node, holes: initializersExpressions);
+        var node = TryGetAncestorForLocation<LocalDeclarationStatementSyntax>(root, position, out localDeclaration);
+        return node != null && IsOnHeader(root, position, node, node, holes: node.Declaration.Variables
+            .SelectAsArray(
+                predicate: v => v.Initializer != null,
+                selector: initializedV => initializedV.Initializer!.Value));
     }
 
     public override bool IsOnIfStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? ifStatement)
     {
-        var node = TryGetAncestorForLocation<IfStatementSyntax>(root, position);
-        ifStatement = node;
-        if (ifStatement == null)
-        {
-            return false;
-        }
-
-        RoslynDebug.AssertNotNull(node);
-        return IsOnHeader(root, position, node, node.CloseParenToken);
+        var node = TryGetAncestorForLocation<IfStatementSyntax>(root, position, out ifStatement);
+        return node != null && IsOnHeader(root, position, node, node.CloseParenToken);
     }
 
     public override bool IsOnWhileStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? whileStatement)
     {
-        var node = TryGetAncestorForLocation<WhileStatementSyntax>(root, position);
-        whileStatement = node;
-        if (whileStatement == null)
-        {
-            return false;
-        }
-
-        RoslynDebug.AssertNotNull(node);
-        return IsOnHeader(root, position, node, node.CloseParenToken);
+        var node = TryGetAncestorForLocation<WhileStatementSyntax>(root, position, out whileStatement);
+        return node != null && IsOnHeader(root, position, node, node.CloseParenToken);
     }
 
     public override bool IsOnForeachHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? foreachStatement)
     {
-        var node = TryGetAncestorForLocation<ForEachStatementSyntax>(root, position);
-        foreachStatement = node;
-        if (foreachStatement == null)
-        {
-            return false;
-        }
-
-        RoslynDebug.AssertNotNull(node);
-        return IsOnHeader(root, position, node, node.CloseParenToken);
+        var node = TryGetAncestorForLocation<ForEachStatementSyntax>(root, position, out foreachStatement);
+        return node != null && IsOnHeader(root, position, node, node.CloseParenToken);
     }
 }

@@ -370,19 +370,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return $"'{prefix} ... {suffix}'";
         }
 
-        private static bool ShouldLogType(IOperation operation)
-        {
-            var operationKind = (int)operation.Kind;
-
-            // Expressions
-            if (operationKind >= 0x100 && operationKind < 0x400)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         protected void LogString(string str)
         {
             if (_pendingIndent)
@@ -450,7 +437,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
             var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
 
-            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
+            string isUnion = "";
+            if (conversion.IsUnion)
+            {
+                isUnion = ", " + FormatBoolProperty(nameof(conversion.IsUnion), conversion.IsUnion);
+            }
+
+            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}{isUnion}) (");
             LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
             LogString(")");
         }
@@ -509,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
                 catch (ArgumentException)
                 {
-                    Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
+                    Assert.Fail($"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
                 }
             }
 
@@ -602,11 +595,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             where T : IOperation
         {
             VisitArrayCommon(list, header, logElementCount, logNullForDefault, o => Visit(o));
-        }
-
-        private void VisitArray(ImmutableArray<ISymbol> list, string header, bool logElementCount, bool logNullForDefault = false)
-        {
-            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitSymbolArrayElement);
         }
 
         private void VisitArray(ImmutableArray<string> list, string header, bool logElementCount, bool logNullForDefault = false)
@@ -1356,6 +1344,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(PlaceholderKind.AggregationGroup, operation.PlaceholderKind);
         }
 
+        public override void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation)
+        {
+            LogString(nameof(ICollectionExpressionElementsPlaceholderOperation));
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
         public override void VisitUnaryOperator(IUnaryOperation operation)
         {
             LogString(nameof(IUnaryOperation));
@@ -1827,6 +1821,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogSymbol(operation.ConstructMethod, $", {nameof(operation.ConstructMethod)}");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+
+            if (operation.ConstructArguments.Length > 0)
+                VisitArray(operation.ConstructArguments, nameof(operation.ConstructArguments), logElementCount: true);
 
             VisitArray(operation.Elements, nameof(operation.Elements), logElementCount: true);
         }

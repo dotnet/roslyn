@@ -4,15 +4,11 @@
 
 using System.Collections.Immutable;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationEventSymbol(
+internal sealed class CodeGenerationEventSymbol(
     INamedTypeSymbol? containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility declaredAccessibility,
@@ -58,6 +54,14 @@ internal class CodeGenerationEventSymbol(
     public bool IsWindowsRuntimeEvent => false;
 
     public IEventSymbol? OverriddenEvent => null;
+
+#if !OLDER_ROSLYN
+    public IEventSymbol? PartialImplementationPart => null;
+
+    public IEventSymbol? PartialDefinitionPart => null;
+
+    public bool IsPartialDefinition => false;
+#endif
 
     public static ImmutableArray<CustomModifier> TypeCustomModifiers => [];
 }

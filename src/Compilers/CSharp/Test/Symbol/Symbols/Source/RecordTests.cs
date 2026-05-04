@@ -1076,11 +1076,11 @@ record C
             AssertEx.Equal(new[] {
                 "System.Type! C.EqualityContract.get",
                 "System.Type! C.EqualityContract { get; }",
-                "System.Int32 C.<X>k__BackingField",
+                "System.Int32 C.X.field",
                 "System.Int32 C.X { get; init; }",
                 "System.Int32 C.X.get",
                 "void C.X.init",
-                "System.String! C.<Y>k__BackingField",
+                "System.String! C.Y.field",
                 "System.String! C.Y { get; init; }",
                 "System.String! C.Y.get",
                 "void C.Y.init",
@@ -1300,18 +1300,6 @@ enum G : C { }";
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (3,8): error CS0115: 'B.EqualityContract': no suitable method found to override
-                // record B : A { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(3, 8),
-                // (3,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
-                // record B : A { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(3, 8),
-                // (3,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
-                // record B : A { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
-                // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
-                // record B : A { }
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(3, 8),
                 // (3,12): error CS8864: Records may only inherit from object or another record
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),
@@ -1356,18 +1344,6 @@ enum H : C { }
             });
 
             comp2.VerifyDiagnostics(
-                // (3,8): error CS0115: 'E.EqualityContract': no suitable method found to override
-                // record E : A { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.EqualityContract").WithLocation(3, 8),
-                // (3,8): error CS0115: 'E.Equals(A?)': no suitable method found to override
-                // record E : A { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.Equals(A?)").WithLocation(3, 8),
-                // (3,8): error CS0115: 'E.PrintMembers(StringBuilder)': no suitable method found to override
-                // record E : A { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
-                // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
-                // record E : A { }
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "E").WithArguments("A").WithLocation(3, 8),
                 // (3,12): error CS8864: Records may only inherit from object or another record
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),

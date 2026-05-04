@@ -8,10 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions;
+
+internal interface IXamlGoToDefinitionService : ILanguageService
 {
-    internal interface IXamlGoToDefinitionService : ILanguageService
-    {
-        Task<ImmutableArray<XamlDefinition>> GetDefinitionsAsync(TextDocument document, int position, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<XamlDefinition>> GetDefinitionsAsync(TextDocument document, int position, CancellationToken cancellationToken);
 }

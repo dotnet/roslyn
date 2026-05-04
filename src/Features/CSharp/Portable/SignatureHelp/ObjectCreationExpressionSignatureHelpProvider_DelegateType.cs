@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
-internal partial class ObjectCreationExpressionSignatureHelpProvider
+internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
 {
     private static ImmutableArray<SignatureHelpItem> ConvertDelegateTypeConstructor(
         BaseObjectCreationExpressionSyntax objectCreationExpression,

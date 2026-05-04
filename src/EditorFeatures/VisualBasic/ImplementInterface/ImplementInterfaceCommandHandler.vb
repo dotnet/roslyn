@@ -5,6 +5,8 @@
 Imports System.ComponentModel.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 Imports Microsoft.CodeAnalysis.ImplementInterface
 Imports Microsoft.CodeAnalysis.ImplementType
@@ -26,31 +28,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService,
-                       globalOptions As IGlobalOptionService)
-            MyBase.New(editorOperationsFactoryService, globalOptions)
+        Public Sub New(
+                threadingContext As IThreadingContext,
+                editorOperationsFactoryService As IEditorOperationsFactoryService,
+                globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, editorOperationsFactoryService, globalOptions)
         End Sub
 
         Protected Overrides Async Function TryGetNewDocumentAsync(
             document As Document,
             typeSyntax As TypeSyntax,
-            cancellationToken As CancellationToken
-        ) As Task(Of Document)
+            cancellationToken As CancellationToken) As Task(Of Document)
 
             If typeSyntax.Parent.Kind <> SyntaxKind.ImplementsStatement Then
                 Return Nothing
             End If
 
             Dim service = document.GetLanguageService(Of IImplementInterfaceService)()
-            Dim options = Await document.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(False)
+            Dim options = Await document.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(True)
 
             Dim updatedDocument = Await service.ImplementInterfaceAsync(
                 document,
                 options,
                 typeSyntax.Parent,
-                cancellationToken).ConfigureAwait(False)
+                cancellationToken).ConfigureAwait(True)
 
-            Dim changes = Await updatedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(False)
+            Dim changes = Await updatedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(True)
             If changes.Any() Then
                 Return updatedDocument
             End If

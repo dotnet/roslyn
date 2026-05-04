@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -25,10 +23,9 @@ internal abstract class AbstractRemoveUnnecessaryParenthesesCodeFixProvider<TPar
     protected abstract bool CanRemoveParentheses(
         TParenthesizedExpressionSyntax current, SemanticModel semanticModel, CancellationToken cancellationToken);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Remove_unnecessary_parentheses, nameof(AnalyzersResources.Remove_unnecessary_parentheses));
-        return Task.CompletedTask;
     }
 
     protected override Task FixAllAsync(

@@ -3,53 +3,60 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 
 /// <summary>
-/// The <see cref="AwaitCompletionProvider"/> adds async modifier if the return type is Task or ValueTask.
-/// The tests here are only checking whether the completion item is provided or not.
-/// Tests for checking adding async modifier are in:
-/// src/EditorFeatures/Test2/IntelliSense/CSharpCompletionCommandHandlerTests_AwaitCompletion.vb
+/// The <see cref="AwaitCompletionProvider"/> adds async modifier if the return type is Task or ValueTask. The tests
+/// here are only checking whether the completion item is provided or not. Tests for checking adding async modifier are
+/// in: src/EditorFeatures/Test2/IntelliSense/CSharpCompletionCommandHandlerTests_AwaitCompletion.vb
 /// </summary>
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType() => typeof(AwaitCompletionProvider);
 
     private const string CompletionDisplayTextAwait = "await";
     private const string CompletionDisplayTextAwaitAndConfigureAwait = "awaitf";
 
-    private async Task VerifyAbsenceAsync(string code)
+    private async Task VerifyAbsenceAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code)
     {
         await VerifyItemIsAbsentAsync(code, CompletionDisplayTextAwait);
         await VerifyItemIsAbsentAsync(code, CompletionDisplayTextAwaitAndConfigureAwait);
     }
 
-    private async Task VerifyAbsenceAsync(string code, LanguageVersion languageVersion = LanguageVersion.Default)
+    private async Task VerifyAbsenceAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, LanguageVersion languageVersion = LanguageVersion.Default)
     {
         await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait);
         await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait);
     }
 
-    private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion = LanguageVersion.Default, string? inlineDescription = null, bool dotAwait = false, bool dotAwaitf = false)
+    private async Task VerifyKeywordAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, LanguageVersion languageVersion = LanguageVersion.Default, string? inlineDescription = null, bool dotAwait = false, bool dotAwaitf = false)
     {
         var expectedDescription = dotAwait
             ? GetDescription(CompletionDisplayTextAwait, FeaturesResources.Await_the_preceding_expression)
             : GetDescription(CompletionDisplayTextAwait, FeaturesResources.Asynchronously_waits_for_the_task_to_finish);
-        await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait, glyph: (int)Glyph.Keyword, expectedDescriptionOrNull: expectedDescription, inlineDescription: inlineDescription);
+        await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait, glyph: Glyph.Keyword, expectedDescriptionOrNull: expectedDescription, inlineDescription: inlineDescription);
 
         if (dotAwaitf)
         {
             expectedDescription = string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "false");
-            await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait, glyph: (int)Glyph.Keyword, expectedDescriptionOrNull: expectedDescription, inlineDescription: inlineDescription);
+            await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait, glyph: Glyph.Keyword, expectedDescriptionOrNull: expectedDescription, inlineDescription: inlineDescription);
         }
         else
         {
@@ -61,20 +68,17 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
     }
 
     [Fact]
-    public async Task TestNotInTypeContext()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInTypeContext()
+        => VerifyAbsenceAsync("""
             class Program
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStatementInMethod()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestStatementInMethod()
+        => VerifyKeywordAsync("""
             class C
             {
               void F()
@@ -82,12 +86,10 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
                 $$  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestStatementInMethod_Async()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestStatementInMethod_Async()
+        => VerifyKeywordAsync("""
             class C
             {
               async Task F()
@@ -95,18 +97,14 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
                 $$  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestStatementInMethod_TopLevel()
-    {
-        await VerifyKeywordAsync("$$", LanguageVersion.CSharp9);
-    }
+    public Task TestStatementInMethod_TopLevel()
+        => VerifyKeywordAsync("$$", LanguageVersion.CSharp9);
 
     [Fact]
-    public async Task TestExpressionInAsyncMethod()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestExpressionInAsyncMethod()
+        => VerifyKeywordAsync("""
             class C
             {
               async Task F()
@@ -114,12 +112,10 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
                 var z = $$  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestExpressionInNonAsyncMethodWithTaskReturn()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestExpressionInNonAsyncMethodWithTaskReturn()
+        => VerifyKeywordAsync("""
             class C
             {
               Task F()
@@ -127,18 +123,14 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
                 var z = $$  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestExpressionInAsyncMethod_TopLevel()
-    {
-        await VerifyKeywordAsync("var z = $$", LanguageVersion.CSharp9);
-    }
+    public Task TestExpressionInAsyncMethod_TopLevel()
+        => VerifyKeywordAsync("var z = $$", LanguageVersion.CSharp9);
 
     [Fact]
-    public async Task TestUsingStatement()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestUsingStatement()
+        => VerifyAbsenceAsync("""
             class C
             {
               async Task F()
@@ -146,13 +138,10 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
                 using $$  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestUsingStatement_TopLevel()
-    {
-        await VerifyAbsenceAsync("using $$", LanguageVersion.CSharp9);
-    }
+    public Task TestUsingStatement_TopLevel()
+        => VerifyAbsenceAsync("using $$", LanguageVersion.CSharp9);
 
     [Fact]
     public async Task TestUsingDirective()
@@ -163,9 +152,8 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
         => await VerifyAbsenceAsync("global using $$");
 
     [Fact]
-    public async Task TestForeachStatement()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestForeachStatement()
+        => VerifyAbsenceAsync("""
             class C
             {
               async Task F()
@@ -173,18 +161,14 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
                 foreach $$  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestForeachStatement_TopLevel()
-    {
-        await VerifyAbsenceAsync("foreach $$", LanguageVersion.CSharp9);
-    }
+    public Task TestForeachStatement_TopLevel()
+        => VerifyAbsenceAsync("foreach $$", LanguageVersion.CSharp9);
 
     [Fact]
-    public async Task TestNotInQuery()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInQuery()
+        => VerifyAbsenceAsync("""
             class C
             {
               async Task F()
@@ -193,22 +177,18 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
                       select $$  }
                 }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestNotInQuery_TopLevel()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInQuery_TopLevel()
+        => VerifyAbsenceAsync(
             """
             var z = from a in "char"
                       select $$
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-    public async Task TestInFinally()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInFinally()
+        => VerifyKeywordAsync("""
             class C
             {
               async Task F()
@@ -217,22 +197,18 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
             finally { $$ }  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-    public async Task TestInFinally_TopLevel()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInFinally_TopLevel()
+        => VerifyKeywordAsync(
             """
             try { }
             finally { $$ }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-    public async Task TestInCatch()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInCatch()
+        => VerifyKeywordAsync("""
             class C
             {
               async Task F()
@@ -241,22 +217,18 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
             catch { $$ }  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-    public async Task TestInCatch_TopLevel()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInCatch_TopLevel()
+        => VerifyKeywordAsync(
             """
             try { }
             catch { $$ }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestNotInLock()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInLock()
+        => VerifyAbsenceAsync("""
             class C
             {
               async Task F()
@@ -264,18 +236,14 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
                 lock(this) { $$ }  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestNotInLock_TopLevel()
-    {
-        await VerifyAbsenceAsync("lock (this) { $$ }", LanguageVersion.CSharp9);
-    }
+    public Task TestNotInLock_TopLevel()
+        => VerifyAbsenceAsync("lock (this) { $$ }", LanguageVersion.CSharp9);
 
     [Fact]
-    public async Task TestInAsyncLambdaInCatch()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInAsyncLambdaInCatch()
+        => VerifyKeywordAsync("""
             class C
             {
               async Task F()
@@ -284,22 +252,18 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
             catch { var z = async () => $$ }  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestInAsyncLambdaInCatch_TopLevel()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInAsyncLambdaInCatch_TopLevel()
+        => VerifyKeywordAsync(
             """
             try { }
             catch { var z = async () => $$ }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestAwaitInLock()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestAwaitInLock()
+        => VerifyKeywordAsync("""
             class C
             {
               async Task F()
@@ -307,18 +271,14 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
                 lock($$  }
             }
             """, LanguageVersion.CSharp9);
-    }
 
     [Fact]
-    public async Task TestAwaitInLock_TopLevel()
-    {
-        await VerifyKeywordAsync("lock($$", LanguageVersion.CSharp9);
-    }
+    public Task TestAwaitInLock_TopLevel()
+        => VerifyKeywordAsync("lock($$", LanguageVersion.CSharp9);
 
     [Fact]
-    public async Task TestDotAwaitSuggestAfterDotOnTask()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitSuggestAfterDotOnTask()
+        => VerifyKeywordAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -329,12 +289,10 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
               }
             }
             """, dotAwait: true, dotAwaitf: true);
-    }
 
     [Fact]
-    public async Task TestDotAwaitSuggestAfterDotOnTaskOfT()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitSuggestAfterDotOnTaskOfT()
+        => VerifyKeywordAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -345,38 +303,36 @@ public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTest
               }
             }
             """, dotAwait: true, dotAwaitf: true);
-    }
 
     [Fact]
     public async Task TestDotAwaitSuggestAfterDotOnValueTask()
     {
         var valueTaskAssembly = typeof(ValueTask).Assembly.Location;
-        var markup = @$"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <MetadataReference>{valueTaskAssembly}</MetadataReference>
-        <Document FilePath=""Test2.cs"">
-using System.Threading.Tasks;
+        var markup = $$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <MetadataReference>{{valueTaskAssembly}}</MetadataReference>
+                    <Document FilePath="Test2.cs">
+            using System.Threading.Tasks;
 
-class C
-{{
-  async Task F(ValueTask someTask)
-  {{
-    someTask.$$
-  }}
-}}
-        </Document>
-    </Project>
-</Workspace>
-";
+            class C
+            {
+              async Task F(ValueTask someTask)
+              {
+                someTask.$$
+              }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
         await VerifyItemExistsAsync(markup, "await");
         await VerifyItemExistsAsync(markup, "awaitf");
     }
 
     [Fact]
-    public async Task TestDotAwaitSuggestAfterDotOnCustomAwaitable()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitSuggestAfterDotOnCustomAwaitable()
+        => VerifyKeywordAsync("""
             using System;
             using System.Runtime.CompilerServices;
             using System.Threading.Tasks;
@@ -401,12 +357,10 @@ class C
                 }
             }
             """, dotAwait: true);
-    }
 
     [Fact]
-    public async Task TestDotAwaitSuggestAfterDotOnCustomAwaitableButNotConfigureAwaitEvenIfPresent()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitSuggestAfterDotOnCustomAwaitableButNotConfigureAwaitEvenIfPresent()
+        => VerifyKeywordAsync("""
             using System;
             using System.Runtime.CompilerServices;
             using System.Threading.Tasks;
@@ -432,12 +386,10 @@ class C
                 }
             }
             """, dotAwait: true, dotAwaitf: false);
-    }
 
     [Fact]
-    public async Task TestDotAwaitSuggestAfterDotDot()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitSuggestAfterDotDot()
+        => VerifyKeywordAsync("""
             using System.Threading.Tasks;
 
             static class Program
@@ -448,12 +400,10 @@ class C
                 }
             }
             """, dotAwait: true, dotAwaitf: true);
-    }
 
     [Fact]
-    public async Task TestDotAwaitSuggestAfterDotBeforeType()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitSuggestAfterDotBeforeType()
+        => VerifyKeywordAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -466,12 +416,10 @@ class C
                 }
             }
             """, dotAwait: true, dotAwaitf: true);
-    }
 
     [Fact]
-    public async Task TestDotAwaitSuggestAfterDotBeforeAnotherAwait()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitSuggestAfterDotBeforeAnotherAwait()
+        => VerifyKeywordAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -486,7 +434,6 @@ class C
                 async Task Test() { }
             }
             """, dotAwait: true, dotAwaitf: true);
-    }
 
     [Theory]
     [InlineData("")]
@@ -497,21 +444,20 @@ class C
     [InlineData("if (true) { }")]
     [InlineData("System.Int32 Test() => 0;")]
     [InlineData("async Task<System.Int32> Test() => await Task.FromResult(1);")]
-    public async Task TestDotAwaitSuggestAfterDotBeforeDifferentStatements(string statement)
-    {
-        await VerifyKeywordAsync($@"
-using System;
-using System.Threading.Tasks;
+    public Task TestDotAwaitSuggestAfterDotBeforeDifferentStatements(string statement)
+        => VerifyKeywordAsync($$"""
+            using System;
+            using System.Threading.Tasks;
 
-static class Program
-{{
-    static async Task Main(Task someTask)
-    {{
-        someTask.$$
-        {statement}
-    }}
-}}", dotAwait: true, dotAwaitf: true);
-    }
+            static class Program
+            {
+                static async Task Main(Task someTask)
+                {
+                    someTask.$$
+                    {{statement}}
+                }
+            }
+            """, dotAwait: true, dotAwaitf: true);
 
     [Theory]
     // static
@@ -544,53 +490,45 @@ static class Program
     [InlineData("((parameter)).$$")]
     [InlineData("(true ? parameter : parameter).$$")]
     [InlineData("(null ?? Task.CompletedTask).$$")]
-    public async Task TestDotAwaitSuggestAfterDifferentExpressions(string expression)
-    {
-        await VerifyKeywordAsync($@"
-using System;
-using System.Threading.Tasks;
+    public Task TestDotAwaitSuggestAfterDifferentExpressions(string expression)
+        => VerifyKeywordAsync($$"""
+            using System;
+            using System.Threading.Tasks;
 
-class C
-{{
-    public C Self => this;
-    public Task Field = Task.CompletedTask;
-    public Task Method() => Task.CompletedTask;
-    public Task Property => Task.CompletedTask;
-    public Task this[int i] => Task.CompletedTask;
-    public Func<Task> Function() => () => Task.CompletedTask;
-    public static Task operator +(C left, C right) => Task.CompletedTask;
-    public static explicit operator Task(C c) => Task.CompletedTask;
-}}
+            class C
+            {
+                public C Self => this;
+                public Task Field = Task.CompletedTask;
+                public Task Method() => Task.CompletedTask;
+                public Task Property => Task.CompletedTask;
+                public Task this[int i] => Task.CompletedTask;
+                public Func<Task> Function() => () => Task.CompletedTask;
+                public static Task operator +(C left, C right) => Task.CompletedTask;
+                public static explicit operator Task(C c) => Task.CompletedTask;
+            }
 
-static class Program
-{{
-    static Task StaticField = Task.CompletedTask;
-    static Task StaticProperty => Task.CompletedTask;
-    static Task StaticMethod() => Task.CompletedTask;
+            static class Program
+            {
+                static Task StaticField = Task.CompletedTask;
+                static Task StaticProperty => Task.CompletedTask;
+                static Task StaticMethod() => Task.CompletedTask;
 
-    static async Task Main(Task parameter)
-    {{
-        Task local = Task.CompletedTask;
-        var c = new C();
+                static async Task Main(Task parameter)
+                {
+                    Task local = Task.CompletedTask;
+                    var c = new C();
 
-        {expression}
+                    {{expression}}
 
-        Task LocalFunction() => Task.CompletedTask;
-    }}
-}}", dotAwait: true, dotAwaitf: true);
-    }
+                    Task LocalFunction() => Task.CompletedTask;
+                }
+            }
+            """, dotAwait: true, dotAwaitf: true);
 
     [Fact(Skip = "Fails because speculative binding can't figure out that local is a Task.")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/56245")]
-    public async Task TestDotAwaitSuggestBeforeLocalFunction()
-    {
-        // Speculative binding a local as expression finds the local as ILocalSymbol, but the type is ErrorType.
-        // This is only the case when
-        // * await is partially written (local.a),
-        // * only for locals (e.g. IParameterSymbols are fine) which
-        //   * are declared with var
-        //   * The return type of the local function is used as first name in a MemberAccess in the declarator
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitSuggestBeforeLocalFunction()
+        => VerifyKeywordAsync("""
             using System.Threading.Tasks;
 
             static class Program
@@ -604,7 +542,6 @@ static class Program
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("await Task.Run(async () => Task.CompletedTask.$$")]
@@ -616,25 +553,23 @@ static class Program
     [InlineData("Task.Run(async () => await someTask).$$")]
 
     [InlineData("await Task.Run(() => someTask.$$")]
-    public async Task TestDotAwaitSuggestInLambdas(string lambda)
-    {
-        await VerifyKeywordAsync($@"
-using System.Threading.Tasks;
+    public Task TestDotAwaitSuggestInLambdas(string lambda)
+        => VerifyKeywordAsync($$"""
+            using System.Threading.Tasks;
 
-static class Program
-{{
-    static async Task Main()
-    {{
-        var someTask = Task.CompletedTask;
-        {lambda}
-    }}
-}}", dotAwait: true, dotAwaitf: true);
-    }
+            static class Program
+            {
+                static async Task Main()
+                {
+                    var someTask = Task.CompletedTask;
+                    {{lambda}}
+                }
+            }
+            """, dotAwait: true, dotAwaitf: true);
 
     [Fact]
-    public async Task TestDotAwaitNotAfterDotOnTaskIfAlreadyAwaited()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestDotAwaitNotAfterDotOnTaskIfAlreadyAwaited()
+        => VerifyAbsenceAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -645,12 +580,10 @@ static class Program
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDotAwaitNotAfterTaskType()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestDotAwaitNotAfterTaskType()
+        => VerifyAbsenceAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -661,12 +594,10 @@ static class Program
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDotAwaitNotInLock()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestDotAwaitNotInLock()
+        => VerifyAbsenceAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -677,22 +608,18 @@ static class Program
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDotAwaitNotInLock_TopLevel()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestDotAwaitNotInLock_TopLevel()
+        => VerifyAbsenceAsync("""
             using System.Threading.Tasks;
 
             lock(this) { Task.CompletedTask.$$ }
             """);
-    }
 
     [Fact]
-    public async Task TestDotAwaitQueryNotInSelect()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestDotAwaitQueryNotInSelect()
+        => VerifyAbsenceAsync("""
             using System.Linq;
             using System.Threading.Tasks;
 
@@ -705,12 +632,10 @@ static class Program
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDotAwaitQueryInFirstFromClause()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitQueryInFirstFromClause()
+        => VerifyKeywordAsync("""
             using System.Linq;
             using System.Threading.Tasks;
 
@@ -724,12 +649,10 @@ static class Program
                 }
             }
             """, dotAwait: true, dotAwaitf: true);
-    }
 
     [Fact]
-    public async Task TestDotAwaitQueryNotInSecondFromClause()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task TestDotAwaitQueryNotInSecondFromClause()
+        => VerifyNoItemsExistAsync("""
             using System.Linq;
             using System.Threading.Tasks;
 
@@ -745,12 +668,10 @@ static class Program
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDotAwaitQueryNotInContinuation()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task TestDotAwaitQueryNotInContinuation()
+        => VerifyNoItemsExistAsync("""
             using System.Linq;
             using System.Threading.Tasks;
 
@@ -767,12 +688,10 @@ static class Program
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDotAwaitQueryInJoinClause()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitQueryInJoinClause()
+        => VerifyKeywordAsync("""
             using System.Linq;
             using System.Threading.Tasks;
 
@@ -788,12 +707,10 @@ static class Program
                 }
             }
             """, dotAwait: true, dotAwaitf: true);
-    }
 
     [Fact]
-    public async Task TestDotAwaitQueryInJoinIntoClause()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestDotAwaitQueryInJoinIntoClause()
+        => VerifyKeywordAsync("""
             using System.Linq;
             using System.Threading.Tasks;
 
@@ -809,20 +726,10 @@ static class Program
                 }
             }
             """, dotAwait: true, dotAwaitf: true);
-    }
 
     [Fact]
-    public async Task TestDotAwaitNotAfterConditionalAccessOfTaskMembers()
-    {
-        // The conditional access suggests, that someTask can be null.
-        // await on null throws at runtime, so the user should do
-        // if (someTask is not null) await someTask;
-        // or
-        // await (someTask ?? Task.CompletedTask)
-        // Completion should not offer await, because the patterns above would change to much code.
-        // This decision should be revised after https://github.com/dotnet/csharplang/issues/35 
-        // is implemented.
-        await VerifyAbsenceAsync("""
+    public Task TestDotAwaitNotAfterConditionalAccessOfTaskMembers()
+        => VerifyAbsenceAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -833,7 +740,6 @@ static class Program
               }
             }
             """);
-    }
 
     [Theory]
     [InlineData("c?.SomeTask.$$")]
@@ -852,28 +758,26 @@ static class Program
 
     [InlineData("c.M()?.M().M()?.M().SomeTask.$$")]
     [InlineData("new C().M()?.Pro.M()?.M().SomeTask.$$")]
-    public async Task TestDotAwaitNotAfterDotInConditionalAccessChain(string conditionalAccess)
-    {
-        await VerifyAbsenceAsync($@"
-using System.Threading.Tasks;
-public class C
-{{
-    public Task SomeTask => Task.CompletedTask;
-    
-    public C Pro => this;
-    public C M() => this;
-}}
+    public Task TestDotAwaitNotAfterDotInConditionalAccessChain(string conditionalAccess)
+        => VerifyAbsenceAsync($$"""
+            using System.Threading.Tasks;
+            public class C
+            {
+                public Task SomeTask => Task.CompletedTask;
 
-static class Program
-{{
-    public static async Task Main()
-    {{
-        var c = new C();
-        {conditionalAccess}
-    }}
-}}
-");
-    }
+                public C Pro => this;
+                public C M() => this;
+            }
+
+            static class Program
+            {
+                public static async Task Main()
+                {
+                    var c = new C();
+                    {{conditionalAccess}}
+                }
+            }
+            """);
 
     [Theory]
     [InlineData("c!.SomeTask.$$")]
@@ -893,46 +797,140 @@ static class Program
 
     [InlineData("c.M()!.M().M()!.M().SomeTask.$$")]
     [InlineData("new C().M()!.Pro.M()!.M().SomeTask.$$")]
-    public async Task TestDotAwaitAfterNullForgivingOperatorAccessChain(string nullForgivingAccess)
-    {
-        await VerifyKeywordAsync($@"
-#nullable enable
+    public Task TestDotAwaitAfterNullForgivingOperatorAccessChain(string nullForgivingAccess)
+        => VerifyKeywordAsync($$"""
+            #nullable enable
 
-using System.Threading.Tasks;
-public class C
-{{
-    public Task? SomeTask => Task.CompletedTask;
-    
-    public C? Pro => this;
-    public C? M() => this;
-}}
+            using System.Threading.Tasks;
+            public class C
+            {
+                public Task? SomeTask => Task.CompletedTask;
 
-static class Program
-{{
-    public static async Task Main(params string[] args)
-    {{
-        var c =  args[1] == string.Empty ? new C() : null;
-        {nullForgivingAccess}
-    }}
-}}
-", dotAwait: true, dotAwaitf: true);
-    }
+                public C? Pro => this;
+                public C? M() => this;
+            }
+
+            static class Program
+            {
+                public static async Task Main(params string[] args)
+                {
+                    var c =  args[1] == string.Empty ? new C() : null;
+                    {{nullForgivingAccess}}
+                }
+            }
+            """, dotAwait: true, dotAwaitf: true);
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/58921")]
     public async Task TestInCastExpressionThatMightBeParenthesizedExpression(bool hasNewline)
     {
-        var code = $@"
-class C
-{{
-    void M()
-    {{
-        var data = (n$$) {(hasNewline ? Environment.NewLine : string.Empty)} M();
-    }}
-}}";
+        var code = $$"""
+            class C
+            {
+                void M()
+                {
+                    var data = (n$$) {{(hasNewline ? Environment.NewLine : string.Empty)}} M();
+                }
+            }
+            """;
         if (hasNewline)
             await VerifyKeywordAsync(code);
         else
             await VerifyAbsenceAsync(code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11569")]
+    public async Task TestDotAwait_WithAdditionalTypedCharacters_DoesNotLeaveResidualText()
+    {
+        // Simulate the scenario where item.Span is stale: completion triggers at the dot,
+        // user types "aw" before committing. GetChangeAsync receives the current document
+        // (with "aw") but item.Span.End still points to the position right after the dot.
+        var code = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task F()
+                {
+                    Task.Delay(100).$$
+                }
+            }
+            """;
+
+        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            new CSharpParseOptions(LanguageVersion.Default),
+            [code],
+            composition: GetComposition());
+
+        var testDocument = workspace.Documents.Single();
+        var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
+        var position = testDocument.CursorPosition!.Value;
+
+        var service = GetCompletionService(document.Project);
+        var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
+        var awaitItem = completionList.ItemsList.First(i => i.DisplayText == "await");
+
+        // Now simulate the user typing "aw" after the dot by inserting text at the trigger position
+        var text = await document.GetTextAsync();
+        var newText = text.WithChanges(new TextChange(new TextSpan(position, 0), "aw"));
+        var modifiedDocument = document.WithText(newText);
+
+        // GetChangeAsync should produce a clean result even with stale item.Span
+        var change = await service.GetChangeAsync(modifiedDocument, awaitItem, commitCharacter: null, CancellationToken.None);
+
+        var finalText = newText.WithChanges(change.TextChange);
+        var finalCode = finalText.ToString();
+
+        // The result should contain "await Task.Delay(100)" without residual "aw"
+        Assert.Contains("await Task.Delay(100)", finalCode);
+        Assert.DoesNotContain("await Task.Delay(100)aw", finalCode);
+        Assert.DoesNotContain(".aw", finalCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11569")]
+    public async Task TestAwaitKeyword_WithAdditionalTypedCharacters_DoesNotLeaveResidualText()
+    {
+        // Same scenario but for the "await at current position" path (non-dot context).
+        // The method is non-async so committing "await" makes it async (complex text edit).
+        var code = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task F()
+                {
+                    $$
+                }
+            }
+            """;
+
+        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            new CSharpParseOptions(LanguageVersion.CSharp9),
+            [code],
+            composition: GetComposition());
+
+        var testDocument = workspace.Documents.Single();
+        var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
+        var position = testDocument.CursorPosition!.Value;
+
+        var service = GetCompletionService(document.Project);
+        var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
+        var awaitItem = completionList.ItemsList.First(i => i.DisplayText == "await");
+
+        // Simulate the user typing "aw" at the trigger position
+        var text = await document.GetTextAsync();
+        var newText = text.WithChanges(new TextChange(new TextSpan(position, 0), "aw"));
+        var modifiedDocument = document.WithText(newText);
+
+        var change = await service.GetChangeAsync(modifiedDocument, awaitItem, commitCharacter: null, CancellationToken.None);
+
+        var finalText = newText.WithChanges(change.TextChange);
+        var finalCode = finalText.ToString();
+
+        // Should produce clean "await" without leaving residual "aw"
+        Assert.Contains("await", finalCode);
+        Assert.DoesNotContain("awaitaw", finalCode);
     }
 }

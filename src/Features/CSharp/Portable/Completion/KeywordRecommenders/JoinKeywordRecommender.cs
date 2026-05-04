@@ -7,13 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class JoinKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class JoinKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.JoinKeyword)
 {
-    public JoinKeywordRecommender()
-        : base(SyntaxKind.JoinKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         => context.SyntaxTree.IsValidContextForJoinClause(position, context.LeftToken);
 }

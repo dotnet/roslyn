@@ -19,9 +19,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions.XmlSnippetParser;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// </summary>
 [ExportCSharpVisualBasicStatelessLspService(typeof(InlineCompletionsHandler)), Shared]
 [Method(VSInternalMethods.TextDocumentInlineCompletionName)]
-internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
+internal sealed partial class InlineCompletionsHandler : ILspServiceDocumentRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
     /// The set of built in snippets from, typically found in
@@ -102,7 +104,19 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
     public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.GetRequiredDocument();
+        var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
+        var item = await GetInlineCompletionItemsAsync(context.Logger, document, linePosition, request.Options, _xmlSnippetParser, cancellationToken).ConfigureAwait(false);
 
+        if (item is null)
+        {
+            return null;
+        }
+
+        return new VSInternalInlineCompletionList { Items = [item] };
+    }
+
+    internal static async Task<VSInternalInlineCompletionItem?> GetInlineCompletionItemsAsync(ILspLogger logger, Document document, LinePosition linePosition, LSP.FormattingOptions options, XmlSnippetParser xmlSnippetParser, CancellationToken cancellationToken)
+    {
         // First get available snippets if any.
         var snippetInfoService = document.Project.GetRequiredLanguageService<ISnippetInfoService>();
         var snippetInfo = snippetInfoService.GetSnippetsIfAvailable();
@@ -114,7 +128,6 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
         // Then attempt to get the word at the requested position.
         var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFactsService = document.Project.GetRequiredLanguageService<ISyntaxFactsService>();
-        var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var position = sourceText.Lines.GetPosition(linePosition);
         if (!SnippetUtilities.TryGetWordOnLeft(position, sourceText, syntaxFactsService, out var wordOnLeft))
         {
@@ -130,29 +143,23 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
 
         var matchingSnippetInfo = snippetInfo.First(s => wordText.Equals(s.Shortcut, StringComparison.OrdinalIgnoreCase));
 
-        var parsedSnippet = _xmlSnippetParser.GetParsedXmlSnippet(matchingSnippetInfo, context);
+        var parsedSnippet = xmlSnippetParser.GetParsedXmlSnippet(matchingSnippetInfo, logger);
         if (parsedSnippet == null)
         {
             return null;
         }
 
         // Use the formatting options specified by the client to format the snippet.
-        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(options, document, cancellationToken).ConfigureAwait(false);
         var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, document, sourceText, formattingOptions, simplifierOptions, cancellationToken).ConfigureAwait(false);
 
-        return new VSInternalInlineCompletionList
+        return new VSInternalInlineCompletionItem
         {
-            Items =
-            [
-                new VSInternalInlineCompletionItem
-                {
-                    Range = ProtocolConversions.TextSpanToRange(wordOnLeft.Value, sourceText),
-                    Text = formattedLspSnippet,
-                    TextFormat = InsertTextFormat.Snippet,
-                }
-            ]
+            Range = ProtocolConversions.TextSpanToRange(wordOnLeft.Value, sourceText),
+            Text = formattedLspSnippet,
+            TextFormat = InsertTextFormat.Snippet,
         };
     }
 

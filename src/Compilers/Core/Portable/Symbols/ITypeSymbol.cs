@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -26,8 +27,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The declared base type of this type, or null. The object type, interface types,
-        /// and pointer types do not have a base type. The base type of a type parameter
-        /// is its effective base class.
+        /// pointer types, and type parameters do not have a base type.
         /// </summary>
         INamedTypeSymbol? BaseType { get; }
 
@@ -80,6 +80,14 @@ namespace Microsoft.CodeAnalysis
         /// by language keywords 'nint' and 'nuint'.
         /// </summary>
         bool IsNativeIntegerType { get; }
+
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        bool IsExtension { get; }
+
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IParameterSymbol? ExtensionParameter { get; }
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -134,6 +142,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns false for record structs in metadata since they don't have any distinctive marker.
         /// </remarks>
         bool IsRecord { get; }
+
+        // https://github.com/dotnet/roslyn/issues/82636: Add bool IsUnion { get; } ?
 
         /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.

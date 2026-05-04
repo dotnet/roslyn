@@ -16,86 +16,94 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 [Trait(Traits.Feature, Traits.Features.AddMissingReference)]
 public class CSharpAddMissingReference : AbstractEditorTest
 {
-    private const string FileInLibraryProject1 = @"Public Class Class1
-    Inherits System.Windows.Forms.Form
-    Public Sub goo()
+    private const string FileInLibraryProject1 = """
+        Public Class Class1
+            Inherits System.Windows.Forms.Form
+            Public Sub goo()
 
-    End Sub
-End Class
+            End Sub
+        End Class
 
-Public Class class2
-    Public Sub goo(ByVal x As System.Windows.Forms.Form)
+        Public Class class2
+            Public Sub goo(ByVal x As System.Windows.Forms.Form)
 
-    End Sub
+            End Sub
 
-    Public Event ee As System.Windows.Forms.ColumnClickEventHandler
-End Class
+            Public Event ee As System.Windows.Forms.ColumnClickEventHandler
+        End Class
 
-Public Class class3
-    Implements System.Windows.Forms.IButtonControl
+        Public Class class3
+            Implements System.Windows.Forms.IButtonControl
 
-    Public Property DialogResult() As System.Windows.Forms.DialogResult Implements System.Windows.Forms.IButtonControl.DialogResult
-        Get
+            Public Property DialogResult() As System.Windows.Forms.DialogResult Implements System.Windows.Forms.IButtonControl.DialogResult
+                Get
 
-        End Get
-        Set(ByVal Value As System.Windows.Forms.DialogResult)
+                End Get
+                Set(ByVal Value As System.Windows.Forms.DialogResult)
 
-        End Set
-    End Property
+                End Set
+            End Property
 
-    Public Sub NotifyDefault(ByVal value As Boolean) Implements System.Windows.Forms.IButtonControl.NotifyDefault
+            Public Sub NotifyDefault(ByVal value As Boolean) Implements System.Windows.Forms.IButtonControl.NotifyDefault
 
-    End Sub
+            End Sub
 
-    Public Sub PerformClick() Implements System.Windows.Forms.IButtonControl.PerformClick
+            Public Sub PerformClick() Implements System.Windows.Forms.IButtonControl.PerformClick
 
-    End Sub
-End Class
-";
-    private const string FileInLibraryProject2 = @"Public Class Class1
-    Inherits System.Xml.XmlAttribute
-    Sub New()
-        MyBase.New(Nothing, Nothing, Nothing, Nothing)
-    End Sub
-    Sub goo()
+            End Sub
+        End Class
 
-    End Sub
-    Public bar As ClassLibrary3.Class1
-End Class
-";
-    private const string FileInLibraryProject3 = @"Public Class Class1
-    Public Enum E
-        E1
-        E2
-    End Enum
+        """;
+    private const string FileInLibraryProject2 = """
+        Public Class Class1
+            Inherits System.Xml.XmlAttribute
+            Sub New()
+                MyBase.New(Nothing, Nothing, Nothing, Nothing)
+            End Sub
+            Sub goo()
 
-    Public Function Goo() As ADODB.Recordset
-        Dim x As ADODB.Recordset = Nothing
-        Return x
-    End Function
+            End Sub
+            Public bar As ClassLibrary3.Class1
+        End Class
+
+        """;
+    private const string FileInLibraryProject3 = """
+        Public Class Class1
+            Public Enum E
+                E1
+                E2
+            End Enum
+
+            Public Function Goo() As ADODB.Recordset
+                Dim x As ADODB.Recordset = Nothing
+                Return x
+            End Function
 
 
-End Class
-";
-    private const string FileInConsoleProject1 = @"
-class Program
-{
-    static void Main(string[] args)
-    {
-        var y = new ClassLibrary1.class2();
-        y.goo(null);
+        End Class
 
-        y.ee += (_, __) => { };
+        """;
+    private const string FileInConsoleProject1 = """
 
-        var x = new ClassLibrary1.Class1();
+        class Program
+        {
+            static void Main(string[] args)
+            {
+                var y = new ClassLibrary1.class2();
+                y.goo(null);
 
-        ClassLibrary1.class3 z = null;
+                y.ee += (_, __) => { };
 
-        var a = new ClassLibrary2.Class1();
-        var d = a.bar;
-    }
-}
-";
+                var x = new ClassLibrary1.Class1();
+
+                ClassLibrary1.class3 z = null;
+
+                var a = new ClassLibrary2.Class1();
+                var d = a.bar;
+            }
+        }
+
+        """;
 
     private const string ClassLibrary1Name = "ClassLibrary1";
     private const string ClassLibrary2Name = "ClassLibrary2";

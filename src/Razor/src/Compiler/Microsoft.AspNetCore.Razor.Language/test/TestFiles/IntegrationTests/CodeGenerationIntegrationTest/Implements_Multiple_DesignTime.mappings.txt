@@ -1,0 +1,32 @@
+﻿Source Location: (12:0,12 [11] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Implements_Multiple.cshtml)
+|IDisposable|
+Generated Location: (1281:26,0 [11] )
+|IDisposable|
+
+Source Location: (37:1,12 [18] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Implements_Multiple.cshtml)
+|IEquatable<string>|
+Generated Location: (1551:36,0 [18] )
+|IEquatable<string>|
+
+Source Location: (69:2,12 [10] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Implements_Multiple.cshtml)
+|ICloneable|
+Generated Location: (1828:46,0 [10] )
+|ICloneable|
+
+Source Location: (95:4,12 [138] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Implements_Multiple.cshtml)
+|
+    void IDisposable.Dispose() { }
+
+    bool IEquatable<string>.Equals(string x) => false;
+
+    object ICloneable.Clone() => this;
+|
+Generated Location: (2414:65,12 [138] )
+|
+    void IDisposable.Dispose() { }
+
+    bool IEquatable<string>.Equals(string x) => false;
+
+    object ICloneable.Clone() => this;
+|
+

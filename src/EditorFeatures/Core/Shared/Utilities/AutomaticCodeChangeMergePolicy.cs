@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 /// a merge policy that should be used for any automatic code changes that could happen in sequences so that
 /// all those steps are shown to users as one undo transaction rather than multiple ones
 /// </summary>
-internal class AutomaticCodeChangeMergePolicy : IMergeTextUndoTransactionPolicy
+internal sealed class AutomaticCodeChangeMergePolicy : IMergeTextUndoTransactionPolicy
 {
     public static readonly AutomaticCodeChangeMergePolicy Instance = new();
 

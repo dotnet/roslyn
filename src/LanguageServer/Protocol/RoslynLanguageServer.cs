@@ -6,6 +6,8 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,224 +16,269 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 using StreamJsonRpc;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
 {
-    internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
+    private static int s_clientProcessId = -1;
+    private static readonly Lazy<int> s_currentProcessId = new(static () => { using var process = Process.GetCurrentProcess(); return process.Id; });
+    public static int ServerProcessId => s_currentProcessId.Value;
+
+    private readonly AbstractLspServiceProvider _lspServiceProvider;
+    private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
+    private readonly WellKnownLspServerKinds _serverKind;
+
+    public RoslynLanguageServer(
+        AbstractLspServiceProvider lspServiceProvider,
+        JsonRpc jsonRpc,
+        JsonSerializerOptions serializerOptions,
+        AbstractLspLogger logger,
+        HostServices hostServices,
+        ImmutableArray<string> supportedLanguages,
+        WellKnownLspServerKinds serverKind,
+        AbstractTypeRefResolver? typeRefResolver = null)
+        : base(jsonRpc, serializerOptions, logger, typeRefResolver)
     {
-        private readonly AbstractLspServiceProvider _lspServiceProvider;
-        private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
-        private readonly WellKnownLspServerKinds _serverKind;
+        _lspServiceProvider = lspServiceProvider;
+        _serverKind = serverKind;
 
-        public RoslynLanguageServer(
-            AbstractLspServiceProvider lspServiceProvider,
-            JsonRpc jsonRpc,
-            JsonSerializerOptions serializerOptions,
-            ICapabilitiesProvider capabilitiesProvider,
-            AbstractLspLogger logger,
-            HostServices hostServices,
-            ImmutableArray<string> supportedLanguages,
-            WellKnownLspServerKinds serverKind,
-            AbstractTypeRefResolver? typeRefResolver = null)
-            : base(jsonRpc, serializerOptions, logger, typeRefResolver)
+        // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
+        _baseServices = GetBaseServices(jsonRpc, logger, hostServices, serverKind, supportedLanguages);
+
+        // This spins up the queue and ensure the LSP is ready to start receiving requests
+        Initialize();
+    }
+
+    public static bool TryRegisterClientProcessId(int clientProcessId)
+    {
+        if (s_clientProcessId != -1)
+            return false;
+
+        if (clientProcessId == ServerProcessId)
+            return false;
+
+        if (Interlocked.CompareExchange(ref s_clientProcessId, clientProcessId, -1) != -1)
+            return false;
+
+        _ = WaitForClientProcessExitAsync(s_clientProcessId);
+        return true;
+
+        static async Task WaitForClientProcessExitAsync(int clientProcessId)
         {
-            _lspServiceProvider = lspServiceProvider;
-            _serverKind = serverKind;
-
-            // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
-            _baseServices = GetBaseServices(jsonRpc, logger, capabilitiesProvider, hostServices, serverKind, supportedLanguages);
-
-            // This spins up the queue and ensure the LSP is ready to start receiving requests
-            Initialize();
-        }
-
-        public static SystemTextJsonFormatter CreateJsonMessageFormatter()
-        {
-            var messageFormatter = new SystemTextJsonFormatter();
-            messageFormatter.JsonSerializerOptions.AddLspSerializerOptions();
-            return messageFormatter;
-        }
-
-        protected override ILspServices ConstructLspServices()
-        {
-            return _lspServiceProvider.CreateServices(_serverKind, _baseServices);
-        }
-
-        protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
-        {
-            var provider = GetLspServices().GetRequiredService<IRequestExecutionQueueProvider<RequestContext>>();
-            return provider.CreateRequestExecutionQueue(this, Logger, HandlerProvider);
-        }
-
-        private FrozenDictionary<string, ImmutableArray<BaseService>> GetBaseServices(
-            JsonRpc jsonRpc,
-            AbstractLspLogger logger,
-            ICapabilitiesProvider capabilitiesProvider,
-            HostServices hostServices,
-            WellKnownLspServerKinds serverKind,
-            ImmutableArray<string> supportedLanguages)
-        {
-            // This map will hold either a single BaseService instance, or an ImmutableArray<BaseService>.Builder.
-            var baseServiceMap = new Dictionary<string, object>();
-
-            var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc);
-            var lifeCycleManager = new LspServiceLifeCycleManager(clientLanguageServerManager);
-
-            AddService<IClientLanguageServerManager>(clientLanguageServerManager);
-            AddService<ILspLogger>(logger);
-            AddService<AbstractLspLogger>(logger);
-            AddService<ICapabilitiesProvider>(capabilitiesProvider);
-            AddService<ILifeCycleManager>(lifeCycleManager);
-            AddService(new ServerInfoProvider(serverKind, supportedLanguages));
-            AddLazyService<AbstractRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
-            AddLazyService<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
-            AddLazyService<AbstractHandlerProvider>((_) => HandlerProvider);
-            AddService<IInitializeManager>(new InitializeManager());
-            AddService<IMethodHandler>(new InitializeHandler());
-            AddService<IMethodHandler>(new InitializedHandler());
-            AddService<IOnInitialized>(this);
-            AddService<ILanguageInfoProvider>(new LanguageInfoProvider());
-
-            // In all VS cases, we already have a misc workspace.  Specifically
-            // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
-            // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
-            // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
-            if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-                AddLazyService<LspMiscellaneousFilesWorkspace>(lspServices => lspServices.GetRequiredService<LspMiscellaneousFilesWorkspaceProvider>().CreateLspMiscellaneousFilesWorkspace(lspServices, hostServices));
-
-            return baseServiceMap.ToFrozenDictionary(
-                keySelector: kvp => kvp.Key,
-                elementSelector: kvp => kvp.Value switch
-                {
-                    BaseService service => [service],
-                    ImmutableArray<BaseService>.Builder builder => builder.ToImmutable(),
-                    _ => throw ExceptionUtilities.Unreachable()
-                });
-
-            void AddService<T>(T instance)
-                where T : class
+            try
             {
-                AddBaseService(BaseService.Create(instance));
-            }
+                var clientProcessExitTask = new TaskCompletionSource<bool>();
 
-            void AddLazyService<T>(Func<ILspServices, T> creator)
-                where T : class
-            {
-                AddBaseService(BaseService.CreateLazily(creator));
-            }
+                using var clientProcess = Process.GetProcessById(clientProcessId);
+                clientProcess.EnableRaisingEvents = true;
+                clientProcess.Exited += (sender, args) => clientProcessExitTask.SetResult(true);
 
-            void AddBaseService(BaseService baseService)
-            {
-                var typeName = baseService.Type.FullName;
-                Contract.ThrowIfNull(typeName);
-
-                // If the service doesn't exist in the map yet, just add it.
-                if (!baseServiceMap.TryGetValue(typeName, out var value))
+                if (!clientProcess.HasExited)
                 {
-                    baseServiceMap.Add(typeName, baseService);
-                    return;
-                }
-
-                // If the service exists in the map, check to see if it's a...
-                switch (value)
-                {
-                    // ... BaseService. In this case, update the map with an ImmutableArray<BaseService>.Builder
-                    // and add both the existing and new services to it.
-                    case BaseService existingService:
-                        var builder = ImmutableArray.CreateBuilder<BaseService>();
-                        builder.Add(existingService);
-                        builder.Add(baseService);
-
-                        baseServiceMap[typeName] = builder;
-                        break;
-
-                    // ... ImmutableArray<BaseService>.Builder. In this case, just add the new service to the builder.
-                    case ImmutableArray<BaseService>.Builder existingBuilder:
-                        existingBuilder.Add(baseService);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.Unreachable();
+                    // Wait for the client process to exit.
+                    await clientProcessExitTask.Task.ConfigureAwait(false);
                 }
             }
+            finally
+            {
+                // The process didn't exist, exited, or we ran into
+                // issues checking whether the process had exited.
+                Environment.Exit(ServerExitCodes.ClientProcessExited);
+            }
+        }
+    }
+
+    public static SystemTextJsonFormatter CreateJsonMessageFormatter()
+    {
+        var messageFormatter = new SystemTextJsonFormatter();
+        messageFormatter.JsonSerializerOptions.AddLspSerializerOptions();
+        return messageFormatter;
+    }
+
+    protected override ILspServices ConstructLspServices()
+    {
+        return _lspServiceProvider.CreateServices(_serverKind, _baseServices);
+    }
+
+    protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
+    {
+        var provider = GetLspServices().GetRequiredService<IRequestExecutionQueueProvider<RequestContext>>();
+        return provider.CreateRequestExecutionQueue(this, Logger, HandlerProvider);
+    }
+
+    private FrozenDictionary<string, ImmutableArray<BaseService>> GetBaseServices(
+        JsonRpc jsonRpc,
+        AbstractLspLogger logger,
+        HostServices hostServices,
+        WellKnownLspServerKinds serverKind,
+        ImmutableArray<string> supportedLanguages)
+    {
+        // This map will hold either a single BaseService instance, or an ImmutableArray<BaseService>.Builder.
+        var baseServiceMap = new Dictionary<string, object>();
+
+        var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc);
+
+        AddService<IClientLanguageServerManager>(clientLanguageServerManager);
+        AddService<ILspLogger>(logger);
+        AddService<AbstractLspLogger>(logger);
+        AddLazyService<ILifeCycleManager>(lspServices => lspServices.GetRequiredService<LspServiceLifeCycleManager>());
+        AddService(new ServerInfoProvider(serverKind, supportedLanguages));
+        AddLazyService<AbstractRequestContextFactory<RequestContext>>(lspServices => new RequestContextFactory(lspServices));
+        AddLazyService<AbstractTelemetryService>(lspServices => new TelemetryService(lspServices));
+        AddLazyService<AbstractHandlerProvider>(_ => HandlerProvider);
+        AddService<IInitializeManager>(new InitializeManager());
+        AddService<IMethodHandler>(new InitializeHandler());
+        AddService<IMethodHandler>(new InitializedHandler());
+        AddService<IOnInitialized>(this);
+        AddService<ILanguageInfoProvider>(new LanguageInfoProvider());
+
+        // In all VS cases, we already have a misc workspace.  Specifically
+        // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
+        // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
+        // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
+        if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
+            AddLazyService<ILspMiscellaneousFilesWorkspaceProvider>(lspServices => lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProviderFactory>().CreateLspMiscellaneousFilesWorkspaceProvider(lspServices, hostServices));
+
+        return baseServiceMap.ToFrozenDictionary(
+            keySelector: kvp => kvp.Key,
+            elementSelector: kvp => kvp.Value switch
+            {
+                BaseService service => [service],
+                ImmutableArray<BaseService>.Builder builder => builder.ToImmutable(),
+                _ => throw ExceptionUtilities.Unreachable()
+            });
+
+        void AddService<T>(T instance)
+            where T : class
+        {
+            AddBaseService(BaseService.Create(instance));
         }
 
-        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        void AddLazyService<T>(Func<ILspServices, T> creator)
+            where T : class
         {
-            OnInitialized();
-            return Task.CompletedTask;
+            AddBaseService(BaseService.CreateLazily(creator));
         }
 
-        public override string GetLanguageForRequest(string methodName, object? serializedParameters)
+        void AddBaseService(BaseService baseService)
         {
-            if (serializedParameters == null)
+            var typeName = baseService.Type.FullName;
+            Contract.ThrowIfNull(typeName);
+
+            // If the service doesn't exist in the map yet, just add it.
+            if (!baseServiceMap.TryGetValue(typeName, out var value))
             {
-                Logger.LogInformation("No request parameters given, using default language handler");
-                return LanguageServerConstants.DefaultLanguageName;
+                baseServiceMap.Add(typeName, baseService);
+                return;
             }
 
-            // We implement the STJ language server so this must be a JsonElement.
-            var parameters = (JsonElement)serializedParameters;
-
-            // For certain requests like text syncing we'll always use the default language handler
-            // as we do not want languages to be able to override them.
-            if (ShouldUseDefaultLanguage(methodName))
+            // If the service exists in the map, check to see if it's a...
+            switch (value)
             {
-                return LanguageServerConstants.DefaultLanguageName;
+                // ... BaseService. In this case, update the map with an ImmutableArray<BaseService>.Builder
+                // and add both the existing and new services to it.
+                case BaseService existingService:
+                    var builder = ImmutableArray.CreateBuilder<BaseService>();
+                    builder.Add(existingService);
+                    builder.Add(baseService);
+
+                    baseServiceMap[typeName] = builder;
+                    break;
+
+                // ... ImmutableArray<BaseService>.Builder. In this case, just add the new service to the builder.
+                case ImmutableArray<BaseService>.Builder existingBuilder:
+                    existingBuilder.Add(baseService);
+                    break;
+
+                default:
+                    throw ExceptionUtilities.Unreachable();
             }
+        }
+    }
 
-            var lspWorkspaceManager = GetLspServices().GetRequiredService<LspWorkspaceManager>();
+    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    {
+        OnInitialized();
+    }
 
-            // All general LSP spec document params have the following json structure
-            // { "textDocument": { "uri": "<uri>" ... } ... }
-            //
-            // We can easily identify the URI for the request by looking for this structure
-            if (parameters.TryGetProperty("textDocument", out var textDocumentToken) ||
-                parameters.TryGetProperty("_vs_textDocument", out textDocumentToken))
-            {
-                var uriToken = textDocumentToken.GetProperty("uri");
-                var uri = JsonSerializer.Deserialize<Uri>(uriToken, ProtocolConversions.LspJsonSerializerOptions);
-                Contract.ThrowIfNull(uri, "Failed to deserialize uri property");
-                var language = lspWorkspaceManager.GetLanguageForUri(uri);
-                Logger.LogInformation($"Using {language} from request text document");
-                return language;
-            }
+    public override bool TryGetLanguageForRequest(string methodName, object? serializedParameters, [NotNullWhen(true)] out string? language)
+    {
+        if (serializedParameters == null)
+        {
+            Logger.LogDebug("No request parameters given, using default language handler");
+            language = LanguageServerConstants.DefaultLanguageName;
+            return true;
+        }
 
+        // We implement the STJ language server so this must be a JsonElement.
+        var parameters = (JsonElement)serializedParameters;
+
+        // For certain requests like text syncing we'll always use the default language handler
+        // as we do not want languages to be able to override them.
+        if (ShouldUseDefaultLanguage(methodName))
+        {
+            language = LanguageServerConstants.DefaultLanguageName;
+            return true;
+        }
+
+        var lspWorkspaceManager = GetLspServices().GetRequiredService<LspWorkspaceManager>();
+
+        // All general LSP spec document params have the following json structure
+        // { "textDocument": { "uri": "<uri>" ... } ... }
+        //
+        // We can easily identify the URI for the request by looking for this structure
+        DocumentUri? uri = null;
+        if (parameters.TryGetProperty("textDocument", out var textDocumentToken) ||
+            parameters.TryGetProperty("_vs_textDocument", out textDocumentToken))
+        {
+            var textDocumentIdentifier = JsonSerializer.Deserialize<TextDocumentIdentifier>(textDocumentToken, ProtocolConversions.LspJsonSerializerOptions);
+            Contract.ThrowIfNull(textDocumentIdentifier, "Failed to deserialize text document identifier property");
+            uri = textDocumentIdentifier.DocumentUri;
+        }
+        else if (parameters.TryGetProperty("data", out var dataToken))
+        {
             // All the LSP resolve params have the following known json structure
             // { "data": { "TextDocument": { "uri": "<uri>" ... } ... } ... }
             //
             // We can deserialize the data object using our unified DocumentResolveData.
             //var dataToken = parameters["data"];
-            if (parameters.TryGetProperty("data", out var dataToken))
-            {
-                var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
-                Contract.ThrowIfNull(data, "Failed to document resolve data object");
-                var language = lspWorkspaceManager.GetLanguageForUri(data.TextDocument.Uri);
-                Logger.LogInformation($"Using {language} from data text document");
-                return language;
-            }
+            var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
+            Contract.ThrowIfNull(data, "Failed to document resolve data object");
+            uri = data.TextDocument.DocumentUri;
+        }
 
+        if (uri == null)
+        {
             // This request is not for a textDocument and is not a resolve request.
-            Logger.LogInformation("Request did not contain a textDocument, using default language handler");
-            return LanguageServerConstants.DefaultLanguageName;
+            Logger.LogDebug("Request did not contain a textDocument, using default language handler");
+            language = LanguageServerConstants.DefaultLanguageName;
+            return true;
+        }
 
-            static bool ShouldUseDefaultLanguage(string methodName)
+        if (!lspWorkspaceManager.TryGetLanguageForUri(uri, out language))
+        {
+            Logger.LogDebug($"Failed to get language for {uri} with language {language}");
+            return false;
+        }
+
+        return true;
+
+        static bool ShouldUseDefaultLanguage(string methodName)
+        {
+            return methodName switch
             {
-                return methodName switch
-                {
-                    Methods.InitializeName => true,
-                    Methods.InitializedName => true,
-                    Methods.TextDocumentDidOpenName => true,
-                    Methods.TextDocumentDidChangeName => true,
-                    Methods.TextDocumentDidCloseName => true,
-                    Methods.TextDocumentDidSaveName => true,
-                    Methods.ShutdownName => true,
-                    Methods.ExitName => true,
-                    _ => false,
-                };
-            }
+                Methods.InitializeName => true,
+                Methods.InitializedName => true,
+                Methods.TextDocumentDidOpenName => true,
+                Methods.TextDocumentDidChangeName => true,
+                Methods.TextDocumentDidCloseName => true,
+                Methods.TextDocumentDidSaveName => true,
+                Methods.ShutdownName => true,
+                Methods.ExitName => true,
+                _ => false,
+            };
         }
     }
 }

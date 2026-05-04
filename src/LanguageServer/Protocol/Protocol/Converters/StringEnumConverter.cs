@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// JsonConverter for serializing and deserializing string-based enums.
 /// </summary>
 /// <typeparam name="TStringEnumType">The actual type implementing <see cref="IStringEnum"/>.</typeparam>
-internal class StringEnumConverter<TStringEnumType>
+internal sealed class StringEnumConverter<TStringEnumType>
     : JsonConverter<TStringEnumType>
     where TStringEnumType : IStringEnum
 {
@@ -39,7 +39,7 @@ internal class StringEnumConverter<TStringEnumType>
     {
         if (reader.TokenType == JsonTokenType.String)
         {
-            return CreateEnum(reader.GetString()!);
+            return CreateEnum(reader.GetString());
         }
         else if (reader.TokenType == JsonTokenType.Null)
         {
@@ -58,7 +58,7 @@ internal class StringEnumConverter<TStringEnumType>
     /// Type converter from <see langword="string"/> to <typeparamref name="TStringEnumType"/>.
     /// This is required to support <see cref="DefaultValueAttribute(Type, string)"/>.
     /// </summary>
-    public class TypeConverter
+    public sealed class TypeConverter
         : System.ComponentModel.TypeConverter
     {
         /// <inheritdoc/>

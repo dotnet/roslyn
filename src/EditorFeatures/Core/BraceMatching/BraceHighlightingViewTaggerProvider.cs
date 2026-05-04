@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -45,19 +43,19 @@ internal sealed class BraceHighlightingViewTaggerProvider(TaggerHost taggerHost,
             TaggerEventSources.OnParseOptionChanged(subjectBuffer));
     }
 
-    protected override Task ProduceTagsAsync(
+    protected override async Task ProduceTagsAsync(
         TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
     {
         var document = documentSnapshotSpan.Document;
         if (!caretPosition.HasValue || document == null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         var options = GlobalOptions.GetBraceMatchingOptions(document.Project.Language);
 
-        return ProduceTagsAsync(
-            context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value, options, cancellationToken);
+        await ProduceTagsAsync(
+            context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value, options, cancellationToken).ConfigureAwait(false);
     }
 
     internal async Task ProduceTagsAsync(

@@ -660,7 +660,7 @@ class Test
     {
         get
         {
-            dynamic d = field + field;
+            dynamic d = @field + @field;
             return d;
         }
         set
@@ -695,7 +695,7 @@ class Test
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""41"" document=""1"" />
         <entry offset=""0x13"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""22"" document=""1"" />
         <entry offset=""0x17"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
       </sequencePoints>

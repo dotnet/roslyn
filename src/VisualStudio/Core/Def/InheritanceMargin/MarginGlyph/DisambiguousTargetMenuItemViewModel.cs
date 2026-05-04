@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 /// The View Model would be used when there are multiple targets with same name in the group.
 /// It contains an additional image moniker represents the source language in the UI.
 /// </summary>
-internal class DisambiguousTargetMenuItemViewModel : TargetMenuItemViewModel
+internal sealed class DisambiguousTargetMenuItemViewModel : TargetMenuItemViewModel
 {
     /// <summary>
     /// Icon represents the source language of this target.

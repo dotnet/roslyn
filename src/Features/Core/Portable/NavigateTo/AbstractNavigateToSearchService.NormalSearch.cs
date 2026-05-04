@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,9 +8,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -25,7 +31,7 @@ internal abstract partial class AbstractNavigateToSearchService
         CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
-        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument: null, onResultsFound);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument: document, onResultsFound);
 
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client != null)
@@ -35,31 +41,106 @@ internal abstract partial class AbstractNavigateToSearchService
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 document.Project,
                 (service, solutionInfo, callbackId, cancellationToken) =>
-                service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, [.. kinds], callbackId, cancellationToken),
+                service.SearchDocumentAndRelatedDocumentsAsync(solutionInfo, document.Id, searchPattern, [.. kinds], callbackId, cancellationToken),
                 callback, cancellationToken).ConfigureAwait(false);
 
             return;
         }
 
-        await SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, onItemsFound, cancellationToken).ConfigureAwait(false);
+        await SearchDocumentAndRelatedDocumentsInCurrentProcessAsync(document, searchPattern, kinds, onItemsFound, cancellationToken).ConfigureAwait(false);
     }
 
-    public static async Task SearchDocumentInCurrentProcessAsync(
+    public static async Task SearchDocumentAndRelatedDocumentsInCurrentProcessAsync(
         Document document,
         string searchPattern,
         IImmutableSet<string> kinds,
         Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         CancellationToken cancellationToken)
     {
-        var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
+        if (ProcessSearchPattern(searchPattern) is not { } patternInfo)
+            return;
+
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-        var results = new ConcurrentSet<RoslynNavigateToItem>();
-        await SearchSingleDocumentAsync(
-            document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, t => results.Add(t), cancellationToken).ConfigureAwait(false);
+        // In parallel, search both the document requested, and any relevant 'related documents' we find for it. For the
+        // original document, search the entirety of it (by passing 'null' in for the 'spans' argument).  For related
+        // documents, only search the spans of the partial-types/inheriting-types that we find for the types in this
+        // starting document.
+        await Task.WhenAll(
+            SearchDocumentsInCurrentProcessAsync([(document, spans: null)]),
+            SearchRelatedDocumentsInCurrentProcessAsync()).ConfigureAwait(false);
 
-        if (results.Count > 0)
-            await onItemsFound(results.ToImmutableArray(), default, cancellationToken).ConfigureAwait(false);
+        Task SearchDocumentsInCurrentProcessAsync(ImmutableArray<(Document document, NormalizedTextSpanCollection? spans)> documentAndSpans)
+            => ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
+                documentAndSpans,
+                produceItems: static async (documentAndSpan, onItemFound, args, cancellationToken) =>
+                {
+                    var (patternInfo, declaredSymbolInfoKindsSet, onItemsFound) = args;
+                    await SearchSingleDocumentAsync(
+                        documentAndSpan.document, patternInfo, declaredSymbolInfoKindsSet,
+                        item =>
+                        {
+                            // Ensure that the results found while searching the single document intersect the desired
+                            // subrange of the document we're searching in.  For the primary document this will always
+                            // succeed (since we're searching the full document).  But for related documents this may fail
+                            // if the results is not in the span of any of the types in those files we're searching.
+                            if (documentAndSpan.spans is null || documentAndSpan.spans.IntersectsWith(item.DeclaredSymbolInfo.Span))
+                                onItemFound(item);
+                        },
+                        cancellationToken).ConfigureAwait(false);
+                },
+                consumeItems: static (values, args, cancellationToken) => args.onItemsFound(values, default, cancellationToken),
+                args: (patternInfo, declaredSymbolInfoKindsSet, onItemsFound),
+                cancellationToken);
+
+        async Task SearchRelatedDocumentsInCurrentProcessAsync()
+        {
+            var relatedDocuments = await GetRelatedDocumentsAsync().ConfigureAwait(false);
+            await SearchDocumentsInCurrentProcessAsync(relatedDocuments).ConfigureAwait(false);
+        }
+
+        async Task<ImmutableArray<(Document document, NormalizedTextSpanCollection? spans)>> GetRelatedDocumentsAsync()
+        {
+            // For C#/VB we define 'related documents' as those containing types in the inheritance chain of types in
+            // the originating file (as well as all partial parts of the original and inheritance types).  This way a
+            // user can search for symbols scoped to the 'current document' and still get results for the members found
+            // in partial parts.
+
+            var solution = document.Project.Solution;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var topLevelNodes);
+            syntaxFacts.AddTopLevelMembers(root, topLevelNodes);
+
+            // Keep track of all of the interesting spans in each document we find. Note: we will convert this to a
+            // NormalizedTextSpanCollection before returning it.  That way the span of an outer partial type will
+            // encompass the span of an inner one and we won't get duplicates for the same symbol.
+            var documentToTextSpans = new MultiDictionary<Document, TextSpan>();
+
+            foreach (var topLevelMember in topLevelNodes)
+            {
+                if (semanticModel.GetDeclaredSymbol(topLevelMember, cancellationToken) is not INamedTypeSymbol namedTypeSymbol)
+                    continue;
+
+                foreach (var type in namedTypeSymbol.GetBaseTypesAndThis())
+                {
+                    foreach (var reference in type.DeclaringSyntaxReferences)
+                    {
+                        var relatedDocument = solution.GetDocument(reference.SyntaxTree);
+                        if (relatedDocument is null)
+                            continue;
+
+                        documentToTextSpans.Add(relatedDocument, reference.Span);
+                    }
+                }
+            }
+
+            // Ensure we don't search the original document we were already searching.
+            documentToTextSpans.Remove(document);
+            return documentToTextSpans.SelectAsArray(kvp => (kvp.Key, new NormalizedTextSpanCollection(kvp.Value)))!;
+        }
     }
 
     public async Task SearchProjectsAsync(
@@ -117,7 +198,9 @@ internal abstract partial class AbstractNavigateToSearchService
         // of potentially stale indices.
         ClearCachedData();
 
-        var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
+        if (ProcessSearchPattern(searchPattern) is not { } patternInfo)
+            return;
+
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         using var _ = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
@@ -137,11 +220,11 @@ internal abstract partial class AbstractNavigateToSearchService
         {
             using var _1 = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
 
-            await RoslynParallel.ForEachAsync(
+            await Parallel.ForEachAsync(
                 Prioritize(project.Documents, highPriDocs.Contains),
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(
-                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+                    document, patternInfo, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
 
             await onProjectCompleted().ConfigureAwait(false);
         }

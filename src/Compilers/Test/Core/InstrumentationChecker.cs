@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
             }
-            AssertEx.Fail(output.ToStringAndFree());
+            Assert.Fail(output.ToStringAndFree());
         }
 
         private static string GetTermination(int index, int length)
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Runtime
                     }
                 }
             }
-            AssertEx.Fail(output.ToStringAndFree());
+            Assert.Fail(output.ToStringAndFree());
         }
 
         private static string GetTermination(int index, int length)
@@ -335,7 +335,7 @@ End Namespace
                 var actualSnippets = GetActualSnippets(method, reader, sourceLines);
                 var expectedSnippets = _spanExpectations[method].SnippetExpectations;
 
-                AssertEx.Equal(expectedSnippets, actualSnippets, new SnippetComparer(), $"Validation of method {method} failed.");
+                AssertEx.SequenceEqual(expectedSnippets, actualSnippets, new SnippetComparer(), $"Validation of method {method} failed.");
             }
         }
 

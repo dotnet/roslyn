@@ -4,13 +4,14 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(WorkspaceDebugConfigurationHandler)), Shared]
 [Method(MethodName)]
-internal class WorkspaceDebugConfigurationHandler : ILspServiceRequestHandler<WorkspaceDebugConfigurationParams, ProjectDebugConfiguration[]>
+internal sealed class WorkspaceDebugConfigurationHandler : ILspServiceRequestHandler<WorkspaceDebugConfigurationParams, ProjectDebugConfiguration[]>
 {
     private const string MethodName = "workspace/debugConfiguration";
 
@@ -27,20 +28,20 @@ internal class WorkspaceDebugConfigurationHandler : ILspServiceRequestHandler<Wo
 
     public bool RequiresLSPSolution => true;
 
-    public Task<ProjectDebugConfiguration[]> HandleRequestAsync(WorkspaceDebugConfigurationParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<ProjectDebugConfiguration[]> HandleRequestAsync(WorkspaceDebugConfigurationParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution, nameof(context.Solution));
 
         var projects = context.Solution.Projects
-            .Where(p => p.FilePath != null && p.OutputFilePath != null)
+            .Where(p => p is { FilePath: not null, OutputFilePath: not null })
             .Where(p => IsProjectInWorkspace(request.WorkspacePath, p))
             .Select(GetProjectDebugConfiguration).ToArray();
-        return Task.FromResult(projects);
+        return projects;
     }
 
-    private static bool IsProjectInWorkspace(Uri workspacePath, Project project)
+    private static bool IsProjectInWorkspace(DocumentUri workspacePath, Project project)
     {
-        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.LocalPath);
+        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.GetRequiredParsedUri().LocalPath);
     }
 
     private ProjectDebugConfiguration GetProjectDebugConfiguration(Project project)
@@ -59,7 +60,7 @@ internal class WorkspaceDebugConfigurationHandler : ILspServiceRequestHandler<Wo
         }
         else
         {
-            var projectPath = project.FilePath!;
+            var projectPath = project.FilePath;
             var projectFileName = Path.GetFileName(projectPath);
             return $"{projectFileName} ({flavor}) - {projectPath}";
         }

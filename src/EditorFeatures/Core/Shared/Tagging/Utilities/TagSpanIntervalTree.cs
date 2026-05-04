@@ -118,6 +118,14 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
             tagSpans.Add(GetTranslatedTagSpan(tagSpan, textSnapshot));
     }
 
+    /// <inheritdoc cref="AddAllSpans(ITextSnapshot, HashSet{TagSpan{TTag}})"/>
+    /// <remarks>Spans will be added in sorted order</remarks>
+    public void AddAllSpans(ITextSnapshot textSnapshot, SegmentedList<(SnapshotSpan, TTag)> tagSpans)
+    {
+        foreach (var tagSpan in _tree)
+            tagSpans.Add((GetTranslatedSpan(tagSpan, textSnapshot, _spanTrackingMode), tagSpan.Tag));
+    }
+
     /// <summary>
     /// Removes from <paramref name="tagSpans"/> all the tags spans in <see langword="this"/> that intersect with any of
     /// the spans in <paramref name="snapshotSpansToRemove"/>.
@@ -207,7 +215,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
                     continue;
                 }
 
-                // The current tag is *after* teh current span we're trying to intersect with.  Move to the next span to
+                // The current tag is *after* the current span we're trying to intersect with.  Move to the next span to
                 // see if it intersects with the current tag.
                 if (currentTagSpan.Start > currentRequestSpan.End)
                 {

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -25,5 +24,5 @@ internal sealed class NullPdbMatchingSourceTextProvider : IPdbMatchingSourceText
     }
 
     public ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult<string?>(null);
+        => ValueTask.FromResult<string?>(null);
 }

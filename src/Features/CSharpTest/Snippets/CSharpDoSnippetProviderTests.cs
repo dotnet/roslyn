@@ -15,9 +15,8 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
     protected override string SnippetIdentifier => "do";
 
     [Fact]
-    public async Task InsertDoSnippetInMethodTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertDoSnippetInMethodTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -38,12 +37,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertDoSnippetInGlobalContextTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertDoSnippetInGlobalContextTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             do
@@ -52,33 +49,27 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
             }
             while ({|0:true|});
             """);
-    }
 
     [Fact]
-    public async Task NoDoSnippetInBlockNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoDoSnippetInBlockNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoDoSnippetInFileScopedNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoDoSnippetInFileScopedNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace;
 
             $$
             """);
-    }
 
     [Fact]
-    public async Task InsertDoSnippetInConstructorTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertDoSnippetInConstructorTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public Program()
@@ -101,12 +92,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertDoSnippetInLocalFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertDoSnippetInLocalFunctionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -135,12 +124,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertDoSnippetInAnonymousFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertDoSnippetInAnonymousFunctionTest()
+        => VerifySnippetAsync("""
             public delegate void Print(int value);
 
             static void Main(string[] args)
@@ -167,12 +154,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
 
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertDoSnippetInParenthesizedLambdaExpressionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertDoSnippetInParenthesizedLambdaExpressionTest()
+        => VerifySnippetAsync("""
             using System;
 
             Func<int, int, bool> testForEquality = (x, y) =>
@@ -193,12 +178,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 return x == y;
             };
             """);
-    }
 
     [Fact]
-    public async Task NoDoSnippetInSwitchExpression()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoDoSnippetInSwitchExpression()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -216,12 +199,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoDoSnippetInSingleLambdaExpression()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoDoSnippetInSingleLambdaExpression()
+        => VerifySnippetIsAbsentAsync("""
             using System;
 
             class Program
@@ -232,12 +213,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoDoSnippetInStringTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoDoSnippetInStringTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -246,12 +225,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoDoSnippetInConstructorArgumentsTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoDoSnippetInConstructorArgumentsTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -267,12 +244,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoDoSnippetInParameterListTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoDoSnippetInParameterListTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method(int x, $$)
@@ -280,12 +255,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoDoSnippetInRecordDeclarationTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoDoSnippetInRecordDeclarationTest()
+        => VerifySnippetIsAbsentAsync("""
             public record Person
             {
                 $$
@@ -293,12 +266,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 public string LastName { get; init; }
             };
             """);
-    }
 
     [Fact]
-    public async Task NoDoSnippetInVariableDeclarationTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoDoSnippetInVariableDeclarationTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -307,12 +278,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInlineDoSnippetForCorrectTypeTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineDoSnippetForCorrectTypeTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 void M(bool arg)
@@ -333,12 +302,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineDoSnippetForIncorrectTypeTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineDoSnippetForIncorrectTypeTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 void M(int arg)
@@ -347,12 +314,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineDoSnippetWhenNotDirectlyExpressionStatementTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineDoSnippetWhenNotDirectlyExpressionStatementTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 void M(bool arg)
@@ -361,15 +326,13 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("// comment")]
     [InlineData("/* comment */")]
     [InlineData("#region test")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
+        => VerifySnippetAsync($$"""
             class Program
             {
                 void M(bool arg)
@@ -392,15 +355,13 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("#if true")]
     [InlineData("#pragma warning disable CS0108")]
     [InlineData("#nullable enable")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
+        => VerifySnippetAsync($$"""
             class Program
             {
                 void M(bool arg)
@@ -423,14 +384,12 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("// comment")]
     [InlineData("/* comment */")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
-    {
-        await VerifySnippetAsync($"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
+        => VerifySnippetAsync($"""
             {trivia}
             true.$$
             """, $$"""
@@ -441,16 +400,14 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
             }
             while (true);
             """);
-    }
 
     [Theory]
     [InlineData("#region test")]
     [InlineData("#if true")]
     [InlineData("#pragma warning disable CS0108")]
     [InlineData("#nullable enable")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
-    {
-        await VerifySnippetAsync($"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
+        => VerifySnippetAsync($"""
             {trivia}
             true.$$
             """, $$"""
@@ -462,12 +419,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
             }
             while (true);
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-    public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest1()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest1()
+        => VerifySnippetAsync("""
             class C
             {
                 void M(bool flag)
@@ -490,12 +445,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-    public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest2()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest2()
+        => VerifySnippetAsync("""
             class C
             {
                 async void M(bool flag, Task t)
@@ -518,15 +471,13 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
     [InlineData("Task")]
     [InlineData("Task<int>")]
     [InlineData("System.Threading.Tasks.Task<int>")]
-    public async Task InsertInlineSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+        => VerifySnippetAsync($$"""
             using System.Threading.Tasks;
 
             class C
@@ -553,12 +504,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInlineDoSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineDoSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
+        => VerifySnippetAsync("""
             using System;
 
             class C
@@ -585,12 +534,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineDoSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineDoSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
+        => VerifySnippetIsAbsentAsync("""
             class C
             {
                 void M(bool flag)
@@ -599,12 +546,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineDoSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineDoSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
+        => VerifySnippetIsAbsentAsync("""
             class C
             {
                 void M(bool flag)
@@ -613,12 +558,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineDoSnippetForTypeItselfTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineDoSnippetForTypeItselfTest()
+        => VerifySnippetIsAbsentAsync("""
             class C
             {
                 void M()
@@ -627,12 +570,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineDoSnippetForTypeItselfTest_Parenthesized()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineDoSnippetForTypeItselfTest_Parenthesized()
+        => VerifySnippetIsAbsentAsync("""
             class C
             {
                 void M()
@@ -641,12 +582,10 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineDoSnippetForTypeItselfTest_BeforeContextualKeyword()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineDoSnippetForTypeItselfTest_BeforeContextualKeyword()
+        => VerifySnippetIsAbsentAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -658,5 +597,4 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
                 }
             }
             """);
-    }
 }

@@ -45,10 +45,13 @@ internal readonly struct EmbeddedSyntaxToken<TSyntaxKind> where TSyntaxKind : st
         Value = value;
     }
 
-    public bool IsMissing => VirtualChars.IsEmpty;
+    public bool IsMissing => VirtualChars.IsEmpty();
 
     public EmbeddedSyntaxToken<TSyntaxKind> AddDiagnosticIfNone(EmbeddedDiagnostic diagnostic)
         => Diagnostics.Length > 0 ? this : WithDiagnostics([diagnostic]);
+
+    public EmbeddedSyntaxToken<TSyntaxKind> AddDiagnosticIfMissing(EmbeddedDiagnostic diagnostic)
+        => Diagnostics.Contains(diagnostic) ? this : With(diagnostics: this.Diagnostics.Add(diagnostic));
 
     public EmbeddedSyntaxToken<TSyntaxKind> WithDiagnostics(ImmutableArray<EmbeddedDiagnostic> diagnostics)
         => With(diagnostics: diagnostics);

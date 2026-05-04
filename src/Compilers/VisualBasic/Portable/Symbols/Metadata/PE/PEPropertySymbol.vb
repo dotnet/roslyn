@@ -4,12 +4,13 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
-Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
+Imports System.Reflection.Metadata.Ecma335
+Imports System.Runtime.CompilerServices
+Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -45,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
 
         Private _lazyIsRequired As ThreeState = ThreeState.Unknown
+        Private _lazyOverloadResolutionPriority As StrongBox(Of Integer)
 
         Friend Shared Function Create(
             moduleSymbol As PEModuleSymbol,
@@ -220,6 +222,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            If _lazyOverloadResolutionPriority Is Nothing Then
+
+                Dim priority As Integer
+                If Not _containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, priority) Then
+                    priority = 0
+                End If
+
+                Interlocked.CompareExchange(_lazyOverloadResolutionPriority, New StrongBox(Of Integer)(priority), Nothing)
+            End If
+
+            Return _lazyOverloadResolutionPriority.Value
+        End Function
+
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
                 Return (Me._getMethod Is Nothing OrElse Me._getMethod.IsShared) AndAlso
@@ -254,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Friend Sub SetIsWithEvents(value As Boolean)
             Dim newValue = If(value, ThreeState.True, ThreeState.False)
-            Dim origValue = Threading.Interlocked.CompareExchange(Me._isWithEvents, newValue, ThreeState.Unknown)
+            Dim origValue = Interlocked.CompareExchange(Me._isWithEvents, newValue, ThreeState.Unknown)
             Debug.Assert(origValue = ThreeState.Unknown OrElse origValue = newValue, "Tried changing already known IsWithEvent value.")
         End Sub
 

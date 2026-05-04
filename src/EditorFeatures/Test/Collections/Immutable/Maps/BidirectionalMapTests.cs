@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps;
 
-public class BidirectionalMapTests
+public sealed class BidirectionalMapTests
 {
     [Fact]
     public void TestEmpty()

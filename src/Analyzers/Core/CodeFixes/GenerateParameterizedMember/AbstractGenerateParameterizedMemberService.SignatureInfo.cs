@@ -17,14 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
@@ -83,7 +76,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
                 attributes: default,
                 accessibility: accessibility,
-                modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract),
+                modifiers: DeclarationModifiers.None.WithIsStatic(State.IsStatic).WithIsAbstract(isAbstract),
                 type: await DetermineReturnTypeAsync(cancellationToken).ConfigureAwait(false),
                 refKind: DetermineRefKind(cancellationToken),
                 explicitInterfaceImplementations: default,
@@ -111,8 +104,8 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
             var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,
                 accessibility: DetermineAccessibility(isAbstract),
-                modifiers: new DeclarationModifiers(
-                    isStatic: State.IsStatic, isAbstract: isAbstract, isUnsafe: isUnsafe, isAsync: knownTypes.IsTaskLike(returnType)),
+                modifiers: DeclarationModifiers.None
+                    .WithIsStatic(State.IsStatic).WithIsAbstract(isAbstract).WithIsUnsafe(isUnsafe).WithAsync(!isAbstract && knownTypes.IsTaskLike(returnType)),
                 returnType: returnType,
                 refKind: DetermineRefKind(cancellationToken),
                 explicitInterfaceImplementations: default,
@@ -125,9 +118,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 methodKind: State.MethodKind);
 
             // Ensure no conflicts between type parameter names and parameter names.
-            var languageServiceProvider = Document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(State.TypeToGenerateIn.Language);
-
-            var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
+            var syntaxFacts = Document.Project.Solution.GetLanguageService<ISyntaxFactsService>(State.TypeToGenerateIn.Language);
 
             var equalityComparer = syntaxFacts.StringComparer;
             var reservedParameterNames = DetermineParameterNames(cancellationToken)

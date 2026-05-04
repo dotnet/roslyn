@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast;
 
@@ -29,10 +28,9 @@ internal sealed partial class CSharpRemoveUnnecessaryCastCodeFixProvider() : Syn
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId];
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Remove_Unnecessary_Cast, nameof(AnalyzersResources.Remove_Unnecessary_Cast));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

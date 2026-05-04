@@ -30,20 +30,17 @@ internal sealed partial class CSharpAsAndMemberAccessCodeFixProvider() : SyntaxE
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UsePatternMatchingAsAndMemberAccessDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_pattern_matching, nameof(CSharpAnalyzersResources.Use_pattern_matching));
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             FixOne(editor, diagnostic, cancellationToken);
-
-        return Task.CompletedTask;
     }
 
     private static void FixOne(SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
@@ -61,16 +58,18 @@ internal sealed partial class CSharpAsAndMemberAccessCodeFixProvider() : SyntaxE
         var parent = binaryExpression ?? (ExpressionSyntax?)isPatternExpression;
         Contract.ThrowIfNull(parent);
 
+        var (notKeyword, initialPattern) = CreatePattern(binaryExpression, isPatternExpression);
+
         // { X.Y: pattern }
         var propertyPattern = PropertyPatternClause(
             OpenBraceToken.WithoutTrivia().WithAppendedTrailingTrivia(Space),
             [Subpattern(
                 CreateExpressionColon(conditionalAccessExpression),
-                CreatePattern(binaryExpression, isPatternExpression).WithTrailingTrivia(Space))],
+                initialPattern.WithTrailingTrivia(Space))],
             CloseBraceToken.WithoutTrivia());
 
         // T { X.Y: pattern }
-        var newPattern = RecursivePattern(
+        var recursivePattern = RecursivePattern(
             (TypeSyntax)asExpression.Right.WithAppendedTrailingTrivia(Space),
             positionalPatternClause: null,
             propertyPattern,
@@ -80,7 +79,7 @@ internal sealed partial class CSharpAsAndMemberAccessCodeFixProvider() : SyntaxE
         var newIsExpression = IsPatternExpression(
             asExpression.Left,
             IsKeyword.WithTriviaFrom(asExpression.OperatorToken),
-            newPattern);
+            notKeyword == default ? recursivePattern : UnaryPattern(notKeyword, recursivePattern));
 
         var toReplace = parent.WalkUpParentheses();
         editor.ReplaceNode(
@@ -112,15 +111,27 @@ internal sealed partial class CSharpAsAndMemberAccessCodeFixProvider() : SyntaxE
             return expression;
         }
 
-        static PatternSyntax CreatePattern(BinaryExpressionSyntax? binaryExpression, IsPatternExpressionSyntax? isPatternExpression)
+        static (SyntaxToken notKeyword, PatternSyntax pattern) CreatePattern(
+            BinaryExpressionSyntax? binaryExpression, IsPatternExpressionSyntax? isPatternExpression)
         {
             // if we had `.X.Y is some_pattern` we can just convert that to `X.Y: some_pattern`
             if (isPatternExpression != null)
-                return isPatternExpression.Pattern;
+            {
+                // If this is a `not { ..  var name ... }` pattern, then we need to lift the 'not' outwards to ensure
+                // that 'var name' is still in scope when the pattern is checked. The lang only allows this for
+                // top-level 'not' pattern, not for an inner 'not' pattern.
+                if (isPatternExpression.Pattern is UnaryPatternSyntax(kind: SyntaxKind.NotPattern) unaryPattern &&
+                    unaryPattern.DescendantNodes().OfType<DeclarationPatternSyntax>().Any())
+                {
+                    return (unaryPattern.OperatorToken, unaryPattern.Pattern);
+                }
+
+                return (default, isPatternExpression.Pattern);
+            }
 
             Contract.ThrowIfNull(binaryExpression);
 
-            return binaryExpression.Kind() switch
+            PatternSyntax pattern = binaryExpression.Kind() switch
             {
                 // `.X.Y == expr` => `X.Y: expr`
                 SyntaxKind.EqualsExpression => ConstantPattern(binaryExpression.Right),
@@ -134,6 +145,8 @@ internal sealed partial class CSharpAsAndMemberAccessCodeFixProvider() : SyntaxE
                 SyntaxKind.LessThanOrEqualExpression => RelationalPattern(binaryExpression.OperatorToken, binaryExpression.Right),
                 _ => throw ExceptionUtilities.Unreachable()
             };
+
+            return (default, pattern);
         }
     }
 }

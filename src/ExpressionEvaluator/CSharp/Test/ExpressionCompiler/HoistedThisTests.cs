@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1436,7 +1435,8 @@ public class C
             var stateMachineType = originalType.GetMembers().OfType<NamedTypeSymbol>().Single(t => GeneratedNameParser.GetKind(t.Name) == GeneratedNameKind.StateMachineType);
             var moveNextMethod = stateMachineType.GetMember<MethodSymbol>("MoveNext");
 
-            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(new EECompilationContextMethod(comp2, moveNextMethod), sourceMethodMustBeInstance: true);
+            var guessedIterator = new CompilationContext(comp2, currentFrame: moveNextMethod, currentSourceMethod: moveNextMethod, locals: [], inScopeHoistedLocalSlots: [], methodDebugInfo: MethodDebugInfo<TypeSymbol, LocalSymbol>.None).
+                GetSubstitutedUserDefinedSourceMethod(new EECompilationContextMethod(comp2, moveNextMethod));
             Assert.Equal(iteratorMethod, ((EECompilationContextMethod)guessedIterator.OriginalDefinition).UnderlyingMethod.OriginalDefinition);
         }
     }

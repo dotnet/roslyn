@@ -5,16 +5,16 @@
 #nullable disable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.LanguageServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
-internal class CallHierarchyDetail : ICallHierarchyItemDetails
+internal sealed class CallHierarchyDetail : ICallHierarchyItemDetails
 {
     private readonly CallHierarchyProvider _provider;
     private readonly TextSpan _span;
@@ -64,7 +64,7 @@ internal class CallHierarchyDetail : ICallHierarchyItemDetails
     private async Task NavigateToAsync()
     {
         using var context = _provider.ThreadOperationExecutor.BeginExecute(
-            ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
+            EditorFeaturesResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
 
         var solution = _workspace.CurrentSolution;
         var document = solution.GetDocument(_documentId);

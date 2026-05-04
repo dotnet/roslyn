@@ -4,9 +4,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
@@ -58,6 +58,8 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
     protected abstract ISyntaxFacts SyntaxFacts { get; }
     protected abstract IDocumentationCommentService DocumentationCommentService { get; }
 
+    public abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
+
     public string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int bannerLength, CancellationToken cancellationToken)
         => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, bannerLength, cancellationToken);
 
@@ -86,7 +88,7 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
         var index = 0;
         _oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index);
 
-        strippedTrivia = leadingTriviaToKeep.Take(index).ToImmutableArray();
+        strippedTrivia = [.. leadingTriviaToKeep.Take(index)];
 
         return node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index));
     }
@@ -135,12 +137,12 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
         if (ppIndex != -1)
         {
             // We have a pp directive.  it (and all previous trivia) must be stripped.
-            leadingTriviaToStrip = new List<SyntaxTrivia>(leadingTrivia.Take(ppIndex + 1));
-            leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia.Skip(ppIndex + 1));
+            leadingTriviaToStrip = [.. leadingTrivia.Take(ppIndex + 1)];
+            leadingTriviaToKeep = [.. leadingTrivia.Skip(ppIndex + 1)];
         }
         else
         {
-            leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia);
+            leadingTriviaToKeep = [.. leadingTrivia];
             leadingTriviaToStrip = [];
         }
 
@@ -173,8 +175,8 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
 
         var leadingTrivia = firstToken.LeadingTrivia;
         var index = 0;
-        _fileBannerMatcher.TryMatch(leadingTrivia.ToList(), ref index);
+        _fileBannerMatcher.TryMatch([.. leadingTrivia], ref index);
 
-        return ImmutableArray.CreateRange(leadingTrivia.Take(index));
+        return [.. leadingTrivia.Take(index)];
     }
 }

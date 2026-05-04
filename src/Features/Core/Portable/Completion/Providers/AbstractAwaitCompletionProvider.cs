@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 /// </summary>
 internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
 {
-    private const string AwaitCompletionTargetTokenPosition = nameof(AwaitCompletionTargetTokenPosition);
+    private const string Position = nameof(Position);
+    private const string LeftTokenPosition = nameof(LeftTokenPosition);
     private const string AppendConfigureAwait = nameof(AppendConfigureAwait);
     private const string MakeContainerAsync = nameof(MakeContainerAsync);
 
@@ -54,19 +56,14 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         _awaitfFilterText = $"{_awaitKeyword}F"; // Uppercase F to select "awaitf" if "af" is written.
     }
 
-    /// <summary>
-    /// Gets the span start where async keyword should go.
-    /// </summary>
-    protected abstract int GetSpanStart(SyntaxNode declaration);
+    protected abstract int GetAsyncKeywordInsertionPosition(SyntaxNode declaration);
+    protected abstract Task<TextChange?> GetReturnTypeChangeAsync(Solution solution, SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken);
 
-    protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
+    protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken leftToken, int position);
 
     protected abstract ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken);
     protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
     protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-
-    protected virtual bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
-        => syntaxContext.IsAwaitKeywordContext;
 
     private static bool IsConfigureAwaitable(Compilation compilation, ITypeSymbol symbol)
     {
@@ -90,25 +87,31 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
 
         var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
 
-        var isAwaitKeywordContext = IsAwaitKeywordContext(syntaxContext);
+        var isAwaitKeywordContext = syntaxContext.IsAwaitKeywordContext;
         var dotAwaitContext = GetDotAwaitKeywordContext(syntaxContext, cancellationToken);
         if (!isAwaitKeywordContext && dotAwaitContext == DotAwaitContext.None)
             return;
 
-        var token = syntaxContext.TargetToken;
-        var declaration = GetAsyncSupportingDeclaration(token);
+        var leftToken = syntaxContext.LeftToken;
+        var declaration = GetAsyncSupportingDeclaration(leftToken, position);
 
         using var builder = TemporaryArray<KeyValuePair<string, string>>.Empty;
 
-        builder.Add(KeyValuePairUtil.Create(AwaitCompletionTargetTokenPosition, token.SpanStart.ToString()));
+        builder.Add(KeyValuePair.Create(Position, position.ToString()));
+        builder.Add(KeyValuePair.Create(LeftTokenPosition, leftToken.SpanStart.ToString()));
+
+        // Compute the identifier length at the trigger position so GetChangeAsync can
+        // distinguish pre-existing text from characters the user typed after the trigger.
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        builder.Add(CompletionUtilities.GetOriginalIdentifierEndProperty(position, text, syntaxFacts));
 
         var makeContainerAsync = declaration is not null && !SyntaxGenerator.GetGenerator(document).GetModifiers(declaration).IsAsync;
         if (makeContainerAsync)
-            builder.Add(KeyValuePairUtil.Create(MakeContainerAsync, string.Empty));
+            builder.Add(KeyValuePair.Create(MakeContainerAsync, string.Empty));
 
         if (isAwaitKeywordContext)
         {
-            builder.Add(KeyValuePairUtil.Create(AddAwaitAtCurrentPosition, string.Empty));
+            builder.Add(KeyValuePair.Create(AddAwaitAtCurrentPosition, string.Empty));
             var properties = builder.ToImmutableAndClear();
 
             context.AddItem(CreateCompletionItem(
@@ -133,7 +136,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
             if (dotAwaitContext == DotAwaitContext.AwaitAndConfigureAwait)
             {
                 // add the `awaitf` option to do the same, but also add .ConfigureAwait(false);
-                properties = properties.Add(KeyValuePairUtil.Create(AppendConfigureAwait, string.Empty));
+                properties = properties.Add(KeyValuePair.Create(AppendConfigureAwait, string.Empty));
                 context.AddItem(CreateCompletionItem(
                     properties, _awaitfDisplayText, _awaitfFilterText,
                     string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, _falseKeyword),
@@ -178,8 +181,9 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         if (item.TryGetProperty(MakeContainerAsync, out var _))
         {
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var tokenPosition = int.Parse(item.GetProperty(AwaitCompletionTargetTokenPosition));
-            var declaration = GetAsyncSupportingDeclaration(root.FindToken(tokenPosition));
+            var position = int.Parse(item.GetProperty(Position));
+            var leftTokenPosition = int.Parse(item.GetProperty(LeftTokenPosition));
+            var declaration = GetAsyncSupportingDeclaration(root.FindToken(leftTokenPosition), position);
             if (declaration is null)
             {
                 // IsComplexTextEdit should only be true when GetAsyncSupportingDeclaration returns non-null.
@@ -188,12 +192,33 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
                 return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
             }
 
-            builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " "));
+            // Add the 'async' modifier at the appropriate location.
+            var asyncChange = new TextChange(new TextSpan(GetAsyncKeywordInsertionPosition(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " ");
+
+            // Try to fixup the return type to be task-like if needed.
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var returnTypeChange = await GetReturnTypeChangeAsync(
+                document.Project.Solution, semanticModel, declaration, cancellationToken).ConfigureAwait(false);
+            var addImportsChanges = returnTypeChange == null
+                ? []
+                : await ImportCompletionProviderHelpers.GetAddImportTextChangesAsync(
+                    document, leftTokenPosition, "System.Threading.Tasks", cancellationToken).ConfigureAwait(false);
+
+            builder.AddRange(addImportsChanges);
+            builder.Add(asyncChange);
+            builder.AddIfNotNull(returnTypeChange);
         }
+
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
+        // item.Span was captured when the completion session started and does not advance as the
+        // user types. Use the original identifier length (stored at trigger time) to detect how
+        // many characters the user has typed since, so the replacement span covers them all.
+        var currentSpanEnd = CompletionUtilities.GetCurrentSpanEnd(item, text, syntaxFacts);
 
         if (item.TryGetProperty(AddAwaitAtCurrentPosition, out var _))
         {
-            builder.Add(new TextChange(item.Span, _awaitKeyword));
+            builder.Add(new TextChange(TextSpan.FromBounds(item.Span.Start, currentSpanEnd), _awaitKeyword));
         }
         else
         {
@@ -212,10 +237,9 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
                 ? $".{nameof(Task.ConfigureAwait)}({_falseKeyword})"
                 : "";
 
-            builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, item.Span.End), replacementText));
+            builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, currentSpanEnd), replacementText));
         }
 
-        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var newText = text.WithChanges(builder);
         var allChanges = builder.ToImmutable();
 

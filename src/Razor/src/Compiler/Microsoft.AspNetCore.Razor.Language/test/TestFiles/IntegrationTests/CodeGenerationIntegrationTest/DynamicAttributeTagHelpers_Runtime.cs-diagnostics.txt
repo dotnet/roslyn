@@ -1,0 +1,12 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml(5,54): warning CS0162: Unreachable code detected
+// Write(false
+Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(5, 54),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml(9,67): warning CS0162: Unreachable code detected
+// WriteLiteral(false
+Diagnostic(ErrorCode.WRN_UnreachableCode, "WriteLiteral").WithLocation(9, 67),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml(10,69): warning CS0162: Unreachable code detected
+// Write(false
+Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(10, 69),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DynamicAttributeTagHelpers.cshtml(14,54): warning CS0162: Unreachable code detected
+// Write(false
+Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(14, 54)

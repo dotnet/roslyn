@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 
-internal partial class DebuggerTextView
+internal sealed partial class DebuggerTextView
 {
     // HACK HACK HACK HACK HACK: We'll use this fake ICompletionSession to trick them into
     // routing commands to us for both completion and sighelp
@@ -77,7 +77,7 @@ internal partial class DebuggerTextView
     /// 
     /// See CEditCtlStatementCompletion::HandleKeyDown for more information
     /// </remarks>
-    internal class HACK_CompletionSession : ICompletionSession
+    internal sealed class HACK_CompletionSession : ICompletionSession
     {
         public int Count = 0;
 

@@ -8,6 +8,8 @@ internal sealed class EmptyAsyncToken : IAsyncToken
 {
     public static IAsyncToken Instance { get; } = new EmptyAsyncToken();
 
+    public bool IsNull => true;
+
     private EmptyAsyncToken()
     {
     }

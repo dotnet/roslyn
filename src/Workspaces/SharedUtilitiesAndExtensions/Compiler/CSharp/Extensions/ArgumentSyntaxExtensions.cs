@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -61,7 +60,7 @@ internal static class ArgumentSyntaxExtensions
             var parameters = symbol.GetParameters();
 
             // Handle named argument
-            if (argument.NameColon != null && !argument.NameColon.IsMissing)
+            if (argument.NameColon is { IsMissing: false })
             {
                 var name = argument.NameColon.Name.Identifier.ValueText;
                 var parameter = parameters.FirstOrDefault(p => p.Name == name);

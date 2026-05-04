@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
         }
 #endif
 
-        public static void AddPooled<K, V>(this IDictionary<K, ArrayBuilder<V>> dictionary, K key, V value)
+        public static void AddPooled<K, V>(this Dictionary<K, ArrayBuilder<V>> dictionary, K key, V value)
             where K : notnull
         {
             if (!dictionary.TryGetValue(key, out var values))
@@ -88,15 +88,22 @@ namespace Microsoft.CodeAnalysis
             values.Add(value);
         }
 
-        public static ImmutableSegmentedDictionary<K, ImmutableArray<V>> ToImmutableSegmentedDictionaryAndFree<K, V>(this IReadOnlyDictionary<K, ArrayBuilder<V>> builder)
+        /// <summary>
+        /// Converts the passed in dictionary to an <see cref="ImmutableSegmentedDictionary{TKey, TValue}"/>, where all
+        /// the values in the passed builder will be converted to an <see cref="ImmutableArray{T}"/> using <see
+        /// cref="ArrayBuilder{T}.ToImmutableAndFree"/>.  The <paramref name="dictionary"/> will be freed at the end of
+        /// this method as well, and should not be used afterwards.
+        /// </summary>
+        public static ImmutableSegmentedDictionary<K, ImmutableArray<V>> ToImmutableSegmentedDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> dictionary)
             where K : notnull
         {
             var result = ImmutableSegmentedDictionary.CreateBuilder<K, ImmutableArray<V>>();
-            foreach (var (key, values) in builder)
+            foreach (var (key, values) in dictionary)
             {
                 result.Add(key, values.ToImmutableAndFree());
             }
 
+            dictionary.Free();
             return result.ToImmutable();
         }
     }

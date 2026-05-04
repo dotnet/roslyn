@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -20,22 +15,18 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
     TExpressionSyntax,
     TStatementSyntax,
     TVariableDeclarator,
-    TIfStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    TIfStatementSyntax>() : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId,
+        EnforceOnBuildValues.UseCoalesceExpression,
+        CodeStyleOptions2.PreferCoalesceExpression,
+        new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
     where TVariableDeclarator : SyntaxNode
     where TIfStatementSyntax : TStatementSyntax
 {
-    protected AbstractUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId,
-               EnforceOnBuildValues.UseCoalesceExpression,
-               CodeStyleOptions2.PreferCoalesceExpression,
-               new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-               new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    {
-    }
-
     protected abstract TSyntaxKind IfStatementKind { get; }
     protected abstract ISyntaxFacts SyntaxFacts { get; }
 
@@ -91,6 +82,17 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
                 return;
         }
 
+        if (syntaxFacts.ContainsInterleavedDirective([previousStatement, ifStatement], cancellationToken))
+            return;
+
+        // Don't offer the refactoring if the if-statement has directives that would be lost when we remove it.
+        if (ifStatement.GetFirstToken().ContainsDirectives)
+            return;
+
+        // Same with the inner statement we're removing.
+        if (whenTrueStatement.GetFirstToken().ContainsDirectives)
+            return;
+
         TExpressionSyntax? expressionToCoalesce;
 
         if (syntaxFacts.IsLocalDeclarationStatement(previousStatement))
@@ -102,7 +104,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             if (!AnalyzeLocalDeclarationForm(previousStatement, out expressionToCoalesce))
                 return;
         }
-        else if (syntaxFacts.IsAnyAssignmentStatement(previousStatement))
+        else if (syntaxFacts.IsSimpleAssignmentStatement(previousStatement))
         {
             // v = Expr();
             // if (v == null)
@@ -120,11 +122,32 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
-            ImmutableArray.Create(
-                expressionToCoalesce.GetLocation(),
+            [expressionToCoalesce.GetLocation(),
                 ifStatement.GetLocation(),
-                whenTrueStatement.GetLocation()),
+                whenTrueStatement.GetLocation()],
             properties: null));
+
+        return;
+
+        bool CheckExpression([NotNullWhen(true)] TExpressionSyntax? expression)
+        {
+            if (expression is null)
+                return false;
+
+            // if 'Expr()' is a value type, we can't use `??` on it.
+            var exprType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            if (exprType is null)
+                return false;
+
+            if (exprType.IsNonNullableValueType())
+                return false;
+
+            // ?? can't be used on a pointer of any sort.
+            if (exprType is IPointerTypeSymbol)
+                return false;
+
+            return true;
+        }
 
         bool AnalyzeLocalDeclarationForm(
             TStatementSyntax localDeclarationStatement,
@@ -162,9 +185,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             if (conditionIdentifier != variableName)
                 return false;
 
-            // if 'Expr()' is a value type, we can't use `??` on it.
-            var exprType = semanticModel.GetTypeInfo(initializer, cancellationToken).Type;
-            if (exprType is null || exprType.IsNonNullableValueType())
+            if (!CheckExpression(initializer))
                 return false;
 
             if (!IsLegalWhenTrueStatementForAssignment(out var whenPartToAnalyze))
@@ -233,7 +254,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
                 return false;
 
             expressionToCoalesce = topAssignmentRight as TExpressionSyntax;
-            if (expressionToCoalesce is null)
+            if (!CheckExpression(expressionToCoalesce))
                 return false;
 
             // expr = Expr();

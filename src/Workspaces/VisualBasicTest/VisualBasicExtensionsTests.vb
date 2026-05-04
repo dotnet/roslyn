@@ -3,10 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Text
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.SyntaxTreeExtensions
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.SyntaxTreeExtensions
-Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 

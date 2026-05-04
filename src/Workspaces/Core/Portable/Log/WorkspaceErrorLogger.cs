@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -12,7 +10,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 namespace Microsoft.CodeAnalysis.ErrorLogger;
 
 [ExportWorkspaceService(typeof(IErrorLoggerService)), Export(typeof(IErrorLoggerService)), Shared]
-internal class WorkspaceErrorLogger : IErrorLoggerService
+internal sealed class WorkspaceErrorLogger : IErrorLoggerService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

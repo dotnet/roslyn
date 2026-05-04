@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationTypeParameterSymbol(
+internal sealed class CodeGenerationTypeParameterSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     VarianceKind varianceKind,

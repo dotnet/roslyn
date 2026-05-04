@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AddImports;
 [Order(Before = PredefinedCommandHandlerNames.FormatDocument)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpAddImportsPasteCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions, IAsynchronousOperationListenerProvider listnerProvider) : AbstractAddImportsPasteCommandHandler(threadingContext, globalOptions, listnerProvider)
+internal sealed class CSharpAddImportsPasteCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions, IAsynchronousOperationListenerProvider listnerProvider)
+    : AbstractAddImportsPasteCommandHandler(threadingContext, globalOptions, listnerProvider)
 {
     public override string DisplayName => CSharpEditorResources.Add_Missing_Usings_on_Paste;
     protected override string DialogText => CSharpEditorResources.Adding_missing_usings;

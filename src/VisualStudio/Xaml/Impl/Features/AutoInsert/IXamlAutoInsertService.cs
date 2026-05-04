@@ -9,10 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert;
+
+internal interface IXamlAutoInsertService : ILanguageService
 {
-    internal interface IXamlAutoInsertService : ILanguageService
-    {
-        public Task<XamlAutoInsertResult> GetAutoInsertAsync(TextDocument document, char typedChar, int position, CancellationToken cancellationToken);
-    }
+    Task<XamlAutoInsertResult> GetAutoInsertAsync(TextDocument document, char typedChar, int position, CancellationToken cancellationToken);
 }

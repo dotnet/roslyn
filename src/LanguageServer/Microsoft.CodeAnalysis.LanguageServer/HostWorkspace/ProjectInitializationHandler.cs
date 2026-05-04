@@ -2,23 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Composition;
-using Microsoft.CodeAnalysis.BrokeredServices;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Definitions;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
-using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export, Shared]
 internal sealed class ProjectInitializationHandler : IDisposable
 {
-    private const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
+    internal const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
 
     private readonly IServiceBroker _serviceBroker;
     private readonly ServiceBrokerClient _serviceBrokerClient;
@@ -29,11 +26,9 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
     private IDisposable? _subscription;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ProjectInitializationHandler(IServiceBrokerProvider serviceBrokerProvider, ILoggerFactory loggerFactory)
+    public ProjectInitializationHandler(IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
     {
-        _serviceBroker = serviceBrokerProvider.ServiceBroker;
+        _serviceBroker = serviceBroker;
         _serviceBroker.AvailabilityChanged += AvailabilityChanged;
         _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
 
@@ -41,7 +36,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);
     }
 
-    public static async Task SendProjectInitializationCompleteNotificationAsync()
+    public static async ValueTask SendProjectInitializationCompleteNotificationAsync()
     {
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
@@ -86,7 +81,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _serviceBrokerClient.Dispose();
     }
 
-    internal class ProjectInitializationCompleteObserver : IObserver<ProjectInitializationCompletionState>
+    internal sealed class ProjectInitializationCompleteObserver : IObserver<ProjectInitializationCompletionState>
     {
         private readonly ILogger _logger;
 
@@ -111,8 +106,8 @@ internal sealed class ProjectInitializationHandler : IDisposable
         public void OnNext(ProjectInitializationCompletionState value)
         {
             _logger.LogDebug("Devkit project initialization completed");
-            _ = SendProjectInitializationCompleteNotificationAsync().ReportNonFatalErrorAsync();
+            VSCodeRequestTelemetryLogger.ReportProjectInitializationComplete();
+            _ = SendProjectInitializationCompleteNotificationAsync().AsTask().ReportNonFatalErrorAsync();
         }
     }
 }
-#pragma warning restore RS0030 // Do not used banned APIs

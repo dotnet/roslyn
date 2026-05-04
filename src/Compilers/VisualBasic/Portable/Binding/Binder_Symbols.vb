@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Interface IA(Of T As C) : End Interface
             ' Interface IB(Of T As C) : Inherits IA(Of T) : End Interface
             If checkConstraints AndAlso ShouldCheckConstraints Then
-                constructedType.CheckConstraintsForNonTuple(syntaxArguments, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
+                constructedType.CheckConstraintsForNonTuple(Compilation.LanguageVersion, syntaxArguments, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
             End If
 
             constructedType = DirectCast(TupleTypeSymbol.TransformToTupleIfCompatible(constructedType), NamedTypeSymbol)

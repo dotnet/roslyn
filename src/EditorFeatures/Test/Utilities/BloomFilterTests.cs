@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
-public class BloomFilterTests
+public sealed class BloomFilterTests
 {
     private static IEnumerable<string> GenerateStrings(int count)
     {
@@ -165,8 +165,8 @@ public class BloomFilterTests
     [Fact]
     public void TestInt64()
     {
-        var longs = CreateLongs(GenerateStrings(2000).Skip(500).Take(1000).Select(s => s.GetHashCode()).ToList());
-        var testLongs = CreateLongs(GenerateStrings(100000).Select(s => s.GetHashCode()).ToList());
+        var longs = CreateLongs([.. GenerateStrings(2000).Skip(500).Take(1000).Select(s => s.GetHashCode())]);
+        var testLongs = CreateLongs([.. GenerateStrings(100000).Select(s => s.GetHashCode())]);
 
         for (var d = 0.1; d >= 0.0001; d /= 10)
         {
@@ -208,15 +208,15 @@ public class BloomFilterTests
         var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
         var allHashSets = new List<HashSet<string>>
         {
-            new HashSet<string>(GenerateStrings(1_000), comparer),
-            new HashSet<string>(GenerateStrings(1_000).Where((s, i) => i % 1 == 0), comparer),
-            new HashSet<string>(GenerateStrings(1_000).Where((s, i) => i % 1 == 1), comparer),
-            new HashSet<string>(GenerateStrings(10_000), comparer),
-            new HashSet<string>(GenerateStrings(10_000).Where((s, i) => i % 1 == 0), comparer),
-            new HashSet<string>(GenerateStrings(10_000).Where((s, i) => i % 1 == 1), comparer),
-            new HashSet<string>(GenerateStrings(100_000), comparer),
-            new HashSet<string>(GenerateStrings(100_000).Where((s, i) => i % 1 == 0), comparer),
-            new HashSet<string>(GenerateStrings(100_000).Where((s, i) => i % 1 == 1), comparer),
+            new(GenerateStrings(1_000), comparer),
+            new(GenerateStrings(1_000).Where((s, i) => i % 1 == 0), comparer),
+            new(GenerateStrings(1_000).Where((s, i) => i % 1 == 1), comparer),
+            new(GenerateStrings(10_000), comparer),
+            new(GenerateStrings(10_000).Where((s, i) => i % 1 == 0), comparer),
+            new(GenerateStrings(10_000).Where((s, i) => i % 1 == 1), comparer),
+            new(GenerateStrings(100_000), comparer),
+            new(GenerateStrings(100_000).Where((s, i) => i % 1 == 0), comparer),
+            new(GenerateStrings(100_000).Where((s, i) => i % 1 == 1), comparer),
         };
 
         // Try the patterns where we're searching smaller filters then larger ones.  Then the pattern of larger ones then smaller ones.

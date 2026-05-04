@@ -8,10 +8,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundSlicePattern
     {
+        internal BoundSlicePattern WithPattern(BoundPattern? pattern)
+        {
+            return Update(pattern, this.IndexerAccess, this.ReceiverPlaceholder, this.ArgumentPlaceholder, this.InputType, this.NarrowedType);
+        }
+
         private partial void Validate()
         {
+            Debug.Assert(Pattern is not BoundPatternWithUnionMatching);
             Debug.Assert(IndexerAccess is null or BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
             Debug.Assert(Binder.GetIndexerOrImplicitIndexerSymbol(IndexerAccess) is var _);
+            Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
         }
     }
 }

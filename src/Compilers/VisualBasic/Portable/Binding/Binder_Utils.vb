@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If ShouldCheckConstraints Then
                 Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                 Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                constructedType.CheckConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=GetNewCompoundUseSiteInfo(diagBag))
+                constructedType.CheckConstraints(Compilation.LanguageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=GetNewCompoundUseSiteInfo(diagBag))
 
                 If useSiteDiagnosticsBuilder IsNot Nothing Then
                     diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)

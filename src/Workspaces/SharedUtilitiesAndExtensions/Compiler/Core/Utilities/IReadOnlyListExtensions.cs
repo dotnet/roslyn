@@ -35,7 +35,7 @@ internal static class IReadOnlyListExtensions
         return -1;
     }
 
-    private class ReadOnlyList<T>(IList<T> list) : IReadOnlyList<T>
+    private sealed class ReadOnlyList<T>(IList<T> list) : IReadOnlyList<T>
     {
         public T this[int index] => list[index];
         public int Count => list.Count;

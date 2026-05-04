@@ -126,6 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        public override bool IsAsync => _underlyingMethod.IsAsync;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
@@ -256,6 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _lazyUnmanagedAttributeData;
         }
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             if (!_underlyingMethod.TryGetThisParameter(out var underlyingParameter))
@@ -269,6 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 : null;
             return true;
         }
+
+        internal override int TryGetOverloadResolutionPriority()
+            => _underlyingMethod.TryGetOverloadResolutionPriority();
 #nullable disable
 
         public override AssemblySymbol ContainingAssembly
@@ -388,5 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             builderArgument = null;
             return false;
         }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

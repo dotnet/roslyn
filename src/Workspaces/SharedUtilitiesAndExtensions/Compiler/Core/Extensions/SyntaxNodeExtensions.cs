@@ -610,6 +610,7 @@ internal static partial class SyntaxNodeExtensions
     /// <summary>
     /// If the position is inside of token, return that token; otherwise, return the token to the right.
     /// </summary>
+    /// <remarks>This may throw when `position` is invalid or there is no token to the right.</remarks>
     public static SyntaxToken FindTokenOnRightOfPosition(
         this SyntaxNode root,
         int position,
@@ -620,7 +621,6 @@ internal static partial class SyntaxNodeExtensions
         var findSkippedToken = includeSkipped ? s_findSkippedTokenForward : ((l, p) => default);
 
         var token = GetInitialToken(root, position, includeSkipped, includeDirectives, includeDocumentationComments);
-
         if (position < token.SpanStart)
         {
             var skippedToken = findSkippedToken(token.LeadingTrivia, position);
@@ -649,6 +649,7 @@ internal static partial class SyntaxNodeExtensions
     /// <summary>
     /// If the position is inside of token, return that token; otherwise, return the token to the left.
     /// </summary>
+    /// <remarks>This may throw when `position` is invalid or there is no token to the left.</remarks>
     public static SyntaxToken FindTokenOnLeftOfPosition(
         this SyntaxNode root,
         int position,
@@ -938,6 +939,57 @@ internal static partial class SyntaxNodeExtensions
                 }
             }
         }
+    }
+
+    public static SyntaxTriviaList GetLeadingTriviaIncludingMissingTokens(this SyntaxNode node)
+    {
+        var triviaList = new SyntaxTriviaList();
+        foreach (var token in node.DescendantTokens())
+        {
+            triviaList = triviaList.AddRange(token.LeadingTrivia);
+
+            if (!token.IsMissing)
+                break;
+
+            triviaList = triviaList.AddRange(token.TrailingTrivia);
+        }
+
+        return triviaList;
+    }
+
+    public static SyntaxTriviaList GetTrailingTriviaIncludingMissingTokens(this SyntaxNode node)
+    {
+        var triviaList = new SyntaxTriviaList();
+        var fullSpan = node.FullSpan;
+        var current = node.GetLastToken(includeZeroWidth: true);
+        while (fullSpan.Contains(current.Span))
+        {
+            triviaList = triviaList.InsertRange(0, current.TrailingTrivia);
+
+            if (!current.IsMissing)
+                break;
+
+            triviaList = triviaList.InsertRange(0, current.LeadingTrivia);
+            current = current.GetPreviousToken(includeZeroWidth: true);
+        }
+
+        return triviaList;
+    }
+
+    public static SyntaxNode WithLeadingTriviaFromIncludingMissingTokens(this SyntaxNode node, SyntaxNode other)
+    {
+        return node.WithLeadingTrivia(other.GetLeadingTriviaIncludingMissingTokens());
+    }
+
+    public static SyntaxNode WithTrailingTriviaFromIncludingMissingTokens(this SyntaxNode node, SyntaxNode other)
+    {
+        return node.WithTrailingTrivia(other.GetTrailingTriviaIncludingMissingTokens());
+    }
+
+    public static SyntaxNode WithTriviaFromIncludingMissingTokens(this SyntaxNode node, SyntaxNode other)
+    {
+        return node.WithLeadingTriviaFromIncludingMissingTokens(other)
+            .WithTrailingTriviaFromIncludingMissingTokens(other);
     }
 
     /// <summary>

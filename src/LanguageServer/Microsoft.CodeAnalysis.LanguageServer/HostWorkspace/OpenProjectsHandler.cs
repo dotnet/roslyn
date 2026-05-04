@@ -12,9 +12,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(OpenProjectHandler)), Shared]
-[Method("project/open")]
-internal class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHandler.NotificationParams>
+[Method(OpenProjectName)]
+internal sealed class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHandler.NotificationParams>
 {
+    internal const string OpenProjectName = "project/open";
+
     private readonly LanguageServerProjectSystem _projectSystem;
 
     [ImportingConstructor]
@@ -32,7 +34,7 @@ internal class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHa
         return _projectSystem.OpenProjectsAsync(request.Projects.SelectAsArray(p => p.LocalPath));
     }
 
-    private class NotificationParams
+    internal sealed class NotificationParams
     {
         [JsonPropertyName("projects")]
         public required Uri[] Projects { get; set; }

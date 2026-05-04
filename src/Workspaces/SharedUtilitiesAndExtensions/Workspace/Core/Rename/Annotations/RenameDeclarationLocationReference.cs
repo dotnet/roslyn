@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 /// This class is used to refer to a Symbol definition which could be in source or metadata
 /// it has a metadata name.
 /// </summary>
-internal class RenameDeclarationLocationReference
+internal sealed class RenameDeclarationLocationReference
 {
     // The DocumentId and the TextSpan of the First Symbol Location
     public readonly DocumentId DocumentId;

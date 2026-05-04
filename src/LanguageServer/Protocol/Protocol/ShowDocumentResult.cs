@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class ShowDocumentResult
+internal sealed class ShowDocumentResult
 {
     /// <summary>
     /// Indicates whether the show was successful.

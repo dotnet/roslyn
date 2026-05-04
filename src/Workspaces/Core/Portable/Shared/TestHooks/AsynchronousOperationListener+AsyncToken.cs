@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks;
 
-internal partial class AsynchronousOperationListener
+internal sealed partial class AsynchronousOperationListener
 {
     internal class AsyncToken : IAsyncToken
     {
@@ -21,6 +21,9 @@ internal partial class AsynchronousOperationListener
         }
 
         public AsynchronousOperationListener Listener { get; }
+
+        public bool IsNull
+            => false;
 
         public void Dispose()
         {

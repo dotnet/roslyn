@@ -206,13 +206,13 @@ partial class C
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("abstract").WithLocation(5, 34),
                 // (5,34): error CS0558: User-defined operator 'C.operator -(C, C)' must be declared static and public
                 //     abstract public int operator - (C c1, C c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "-").WithArguments("C.operator -(C, C)").WithLocation(5, 34),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "-").WithArguments("C.operator -(C, C)").WithLocation(5, 34),
                 // (6,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed public int operator << (C c1, int c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "<<").WithArguments("sealed").WithLocation(6, 32),
                 // (6,32): error CS0558: User-defined operator 'C.operator <<(C, int)' must be declared static and public
                 //     sealed public int operator << (C c1, int c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "<<").WithArguments("C.operator <<(C, int)").WithLocation(6, 32),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "<<").WithArguments("C.operator <<(C, int)").WithLocation(6, 32),
                 // (7,36): error CS0106: The modifier 'new' is not valid for this item
                 //     new public static int operator >> (C c1, int c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, ">>").WithArguments("new").WithLocation(7, 36),
@@ -227,13 +227,13 @@ partial class C
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(10, 33),
                 // (10,33): error CS0558: User-defined operator 'C.operator -(C)' must be declared static and public
                 //     virtual public int operator - (C c1) { return 0; }
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "-").WithArguments("C.operator -(C)").WithLocation(10, 33),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "-").WithArguments("C.operator -(C)").WithLocation(10, 33),
                 // (11,34): error CS0106: The modifier 'override' is not valid for this item
                 //     override public int operator ~ (C c1) { return 0; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("override").WithLocation(11, 34),
                 // (11,34): error CS0558: User-defined operator 'C.operator ~(C)' must be declared static and public
                 //     override public int operator ~ (C c1) { return 0; }
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "~").WithArguments("C.operator ~(C)").WithLocation(11, 34),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "~").WithArguments("C.operator ~(C)").WithLocation(11, 34),
                 // (12,12): error CS1004: Duplicate 'public' modifier
                 //     public public public static int operator & (C c1, C c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(12, 12),

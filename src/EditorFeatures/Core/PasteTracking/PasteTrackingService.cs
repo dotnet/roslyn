@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking;
 [Export(typeof(PasteTrackingService))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class PasteTrackingService(IThreadingContext threadingContext) : IPasteTrackingService
+internal sealed class PasteTrackingService(IThreadingContext threadingContext) : IPasteTrackingService
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly object _pastedTextSpanKey = new();

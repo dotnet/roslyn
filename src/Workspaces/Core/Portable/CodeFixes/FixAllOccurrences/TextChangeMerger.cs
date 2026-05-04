@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// <summary>
 /// Helper to merge many disparate text changes to a single document together into a total set of changes.
 /// </summary>
-internal class TextChangeMerger
+internal sealed class TextChangeMerger
 {
     private readonly struct IntervalIntrospector : IIntervalIntrospector<TextChange>
     {

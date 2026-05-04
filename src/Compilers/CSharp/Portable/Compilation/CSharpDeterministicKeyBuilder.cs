@@ -3,8 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -27,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.WriteCompilationOptionsCore(writer, options);
 
             writer.Write("unsafe", csharpOptions.AllowUnsafe);
+            writer.Write("memorySafetyRules", csharpOptions.MemorySafetyRules);
             writer.Write("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
             writer.WriteKey("usings");
             writer.WriteArrayStart();

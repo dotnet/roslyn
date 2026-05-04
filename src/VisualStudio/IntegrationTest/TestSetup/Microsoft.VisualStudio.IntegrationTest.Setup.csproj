@@ -13,6 +13,8 @@
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <DeployExtension>true</DeployExtension>
+
   </PropertyGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -26,5 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests" />
   </ItemGroup>
 </Project>

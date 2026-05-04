@@ -8,11 +8,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class FindReferencesSearchEngine
+internal sealed partial class FindReferencesSearchEngine
 {
     /// <summary>
     /// Represents the set of symbols that the engine is searching for.  While the find-refs engine is passed an
@@ -90,7 +89,7 @@ internal partial class FindReferencesSearchEngine
                 : new BidirectionalSymbolSet(engine, initialSymbols, upSymbols, includeImplementationsThroughDerivedTypes);
         }
 
-        private static async Task<MetadataUnifyingSymbolHashSet> MapToAppropriateSymbolsAsync(
+        private static async ValueTask<MetadataUnifyingSymbolHashSet> MapToAppropriateSymbolsAsync(
             Solution solution, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
         {
             var result = new MetadataUnifyingSymbolHashSet();
@@ -100,7 +99,7 @@ internal partial class FindReferencesSearchEngine
             return result;
         }
 
-        private static async Task<ISymbol?> TryMapToAppropriateSymbolAsync(
+        private static async ValueTask<ISymbol?> TryMapToAppropriateSymbolAsync(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             // Never search for an alias.  Always search for it's target.  Note: if the caller was
@@ -110,14 +109,9 @@ internal partial class FindReferencesSearchEngine
 
             if (searchSymbol is IAliasSymbol aliasSymbol)
             {
-                // We currently only support searching for aliases to normal named types or namespaces. In the
-                // future it would be nice to support searching for aliases to any arbitrary type.
-                //
-                // Tracked with: https://github.com/dotnet/roslyn/issues/67640
-                if (aliasSymbol.Target is INamedTypeSymbol or INamespaceSymbol)
+                // We currently only support searching for aliases to normal named types or namespaces.
+                if (aliasSymbol.Target is INamedTypeSymbol { IsTupleType: false } or INamespaceSymbol)
                     searchSymbol = aliasSymbol.Target;
-                else
-                    return null;
             }
 
             searchSymbol = searchSymbol.GetOriginalUnreducedDefinition();

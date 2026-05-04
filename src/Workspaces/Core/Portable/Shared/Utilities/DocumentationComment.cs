@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Xml;
 using Microsoft.CodeAnalysis.PooledObjects;
-using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -113,7 +113,7 @@ internal sealed class DocumentationComment
     /// <summary>
     /// Helper class for parsing XML doc comments. Encapsulates the state required during parsing.
     /// </summary>
-    private class CommentBuilder
+    private sealed class CommentBuilder
     {
         private readonly DocumentationComment _comment;
         private ImmutableArray<string>.Builder? _parameterNamesBuilder;

@@ -181,7 +181,6 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         /// </param>
         /// <param name="ordinalInInvocation">ordinal of the arguments of function: (a,b) or (a,b,c) in the example above</param>
         /// <param name="ordinalInLambda">ordinal of the lambda parameters, e.g. a, b or c.</param>
-        /// <returns></returns>
         private ImmutableArray<ITypeSymbol> GetTypeSymbols(
             ImmutableArray<ISymbol> candidateSymbols,
             string argumentName,
@@ -348,7 +347,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             //
             // ...unless, again, it's also declared elsewhere.
             //
-            return recommendationSymbol.IsNamespace() &&
+            return recommendationSymbol is INamespaceSymbol &&
                    recommendationSymbol.Locations.Any(
                        static (candidateLocation, declarationSyntax) => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
                                               declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)), declarationSyntax);
@@ -389,7 +388,17 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             INamespaceOrTypeSymbol container, int position, bool excludeInstance)
         {
             if (excludeInstance)
-                return _context.SemanticModel.LookupStaticMembers(position, container);
+            {
+                var staticMembers = _context.SemanticModel.LookupStaticMembers(position, container);
+                if (container is not INamedTypeSymbol)
+                    return staticMembers;
+
+                var staticExtensionsMembers = _context.SemanticModel
+                    .LookupSymbols(position, container, includeReducedExtensionMethods: true)
+                    .WhereAsArray(static (s, staticMembers) => s is { IsStatic: true, ContainingType.IsExtension: true } && !staticMembers.Contains(s), staticMembers);
+
+                return [.. staticMembers, .. staticExtensionsMembers];
+            }
 
             var containerMembers = SuppressDefaultTupleElements(
                 container,
@@ -528,6 +537,6 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
             => container is not INamedTypeSymbol { IsTupleType: true } namedType
                 ? symbols
-                : symbols.Where(s => s is not IFieldSymbol).Concat(namedType.TupleElements).ToImmutableArray();
+                : [.. symbols.Where(s => s is not IFieldSymbol), .. namedType.TupleElements];
     }
 }

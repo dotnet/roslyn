@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,9 +13,9 @@ namespace Roslyn.Utilities
 {
     internal static class TextChangeRangeExtensions
     {
-        public static TextChangeRange? Accumulate(this TextChangeRange? accumulatedTextChangeSoFar, IEnumerable<TextChangeRange> changesInNextVersion)
+        public static TextChangeRange? Accumulate(this TextChangeRange? accumulatedTextChangeSoFar, IReadOnlyList<TextChangeRange> changesInNextVersion)
         {
-            if (!changesInNextVersion.Any())
+            if (changesInNextVersion.Count == 0)
             {
                 return accumulatedTextChangeSoFar;
             }
@@ -25,7 +24,9 @@ namespace Roslyn.Utilities
             // we could apply each one individually like we do in SyntaxDiff::ComputeSpansInNew by calculating delta
             // between each change in changesInNextVersion which is already sorted in its textual position ascending order.
             // but end result will be same as just applying it once with encompassed text change range.
-            var newChange = TextChangeRange.Collapse(changesInNextVersion);
+            var newChange = changesInNextVersion.Count == 1
+                ? changesInNextVersion[0]
+                : TextChangeRange.Collapse(changesInNextVersion);
 
             // no previous accumulated change, return the new value.
             if (accumulatedTextChangeSoFar == null)

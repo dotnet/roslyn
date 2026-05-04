@@ -41,7 +41,7 @@ $@"namespace Test {ob}
                         GetMember<NamedTypeSymbol>("voidDelegate").GetMembers().ToArray();
 
                     AssertEx.SetEqual(actualMembers.Select(s => s.Name), expectedMembers);
-                };
+                }
             };
 
             VerifyType verify = (winmd, expected) =>

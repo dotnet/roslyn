@@ -15,11 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// when the LSP server instance shuts down.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
-internal class ExportLspServiceFactoryAttribute : AbstractExportLspServiceAttribute
-{
-    public ExportLspServiceFactoryAttribute(
-        Type serviceType, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any)
-        : base(serviceType, contractName, contractType: typeof(ILspServiceFactory), isStateless: false, serverKind)
-    {
-    }
-}
+internal class ExportLspServiceFactoryAttribute(
+    Type serviceType, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any)
+    : AbstractExportLspServiceAttribute(
+        serviceType, contractName, contractType: typeof(ILspServiceFactory), isStateless: false, serverKind);

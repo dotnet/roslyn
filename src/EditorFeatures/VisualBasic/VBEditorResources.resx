@@ -129,15 +129,6 @@
   <data name="Formatting_Document" xml:space="preserve">
     <value>Formatting Document...</value>
   </data>
-  <data name="Insert_new_line" xml:space="preserve">
-    <value>Insert new line</value>
-  </data>
-  <data name="Formatting_pasted_text" xml:space="preserve">
-    <value>Formatting pasted text...</value>
-  </data>
-  <data name="Paste" xml:space="preserve">
-    <value>Paste</value>
-  </data>
   <data name="Format_on_Save" xml:space="preserve">
     <value>Format on Save</value>
   </data>

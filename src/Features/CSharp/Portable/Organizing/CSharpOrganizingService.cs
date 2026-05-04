@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing;
 [ExportLanguageService(typeof(IOrganizingService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpOrganizingService(
+internal sealed partial class CSharpOrganizingService(
     [ImportMany] IEnumerable<Lazy<ISyntaxOrganizer, LanguageMetadata>> organizers) : AbstractOrganizingService(organizers.Where(o => o.Metadata.Language == LanguageNames.CSharp).Select(o => o.Value))
 {
     protected override async Task<Document> ProcessAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers, CancellationToken cancellationToken)

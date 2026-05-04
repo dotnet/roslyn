@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
-internal partial class InvocationExpressionSignatureHelpProviderBase
+internal abstract partial class InvocationExpressionSignatureHelpProviderBase
 {
     private static IMethodSymbol? GetDelegateInvokeMethod(
         InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbol within,

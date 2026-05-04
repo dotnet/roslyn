@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.AddParameter;
 
-internal class RegisterFixData<TArgumentSyntax>(SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodCandidates, bool isConstructorInitializer)
+internal sealed class RegisterFixData<TArgumentSyntax>(SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodCandidates, bool isConstructorInitializer)
     where TArgumentSyntax : SyntaxNode
 {
     public RegisterFixData() : this([], [], false)

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQMemberVariable(RQUnconstructedType containingType, string name) : RQMember(containingType)
+internal sealed class RQMemberVariable(RQUnconstructedType containingType, string name) : RQMember(containingType)
 {
     public readonly string Name = name;
 

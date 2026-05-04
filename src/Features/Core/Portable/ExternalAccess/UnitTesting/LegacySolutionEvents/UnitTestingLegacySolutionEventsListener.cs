@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
 /// for unit testing.
 /// </summary>
 [Export(typeof(ILegacySolutionEventsListener)), Shared]
-internal class UnitTestingLegacySolutionEventsListener : ILegacySolutionEventsListener
+internal sealed class UnitTestingLegacySolutionEventsListener : ILegacySolutionEventsListener
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -45,10 +45,10 @@ internal class UnitTestingLegacySolutionEventsListener : ILegacySolutionEventsLi
         return service.HasRegisteredAnalyzerProviders;
     }
 
-    public ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+    public ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, bool processSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         var coordinator = GetCoordinator(args.NewSolution);
-        coordinator?.OnWorkspaceChanged(args);
-        return ValueTaskFactory.CompletedTask;
+        coordinator?.OnWorkspaceChanged(args, processSourceGeneratedDocuments);
+        return ValueTask.CompletedTask;
     }
 }

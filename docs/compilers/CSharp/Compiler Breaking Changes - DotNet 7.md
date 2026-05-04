@@ -1,4 +1,6 @@
-# This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
+# Breaking changes in Roslyn after .NET 6.0.100 through .NET 7.0.100
+
+This document lists known breaking changes in Roslyn after .NET 6 general release (.NET SDK version 6.0.100) through .NET 7 general release (.NET SDK version 7.0.100).
 
 ## All locals of restricted types are disallowed in async methods 
 
@@ -162,7 +164,7 @@ DoAction(action, 1); // error CS1503: Argument 1: cannot convert from '<anonymou
 void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
 ```
 
-You can learn more about this change in the associated [proposal](https://github.com/dotnet/csharplang/blob/main/proposals/lambda-method-group-defaults.md#breaking-change).
+You can learn more about this change in the associated [proposal](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/lambda-method-group-defaults.md#breaking-change).
 
 ## For the purpose of definite assignment analysis, invocations of async local functions are no longer treated as being awaited
 

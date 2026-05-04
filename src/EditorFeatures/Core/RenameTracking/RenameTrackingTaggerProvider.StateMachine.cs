@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +39,6 @@ internal sealed partial class RenameTrackingTaggerProvider
 
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         // Store committed sessions so they can be restored on undo/redo. The undo transactions
         // may live beyond the lifetime of the buffer tracked by this StateMachine, so storing
@@ -58,7 +58,6 @@ internal sealed partial class RenameTrackingTaggerProvider
             IThreadingContext threadingContext,
             ITextBuffer buffer,
             IInlineRenameService inlineRenameService,
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListener asyncListener)
         {
@@ -67,7 +66,6 @@ internal sealed partial class RenameTrackingTaggerProvider
             Buffer.Changed += Buffer_Changed;
             _inlineRenameService = inlineRenameService;
             _asyncListener = asyncListener;
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
             GlobalOptions = globalOptions;
         }
 
@@ -129,7 +127,7 @@ internal sealed partial class RenameTrackingTaggerProvider
         public void UpdateTrackingSessionIfRenamable()
         {
             ThreadingContext.ThrowIfNotOnUIThread();
-            if (this.TrackingSession.IsDefinitelyRenamableIdentifier())
+            if (this.TrackingSession.IsDefinitelyRenamableIdentifierFastCheck())
             {
                 this.TrackingSession.CheckNewIdentifier(this, Buffer.CurrentSnapshot);
                 TrackingSessionUpdated();
@@ -214,7 +212,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                 previousTrackingSession.Cancel();
 
                 // If there may have been a tag showing, then actually clear the tags.
-                if (previousTrackingSession.IsDefinitelyRenamableIdentifier())
+                if (previousTrackingSession.IsDefinitelyRenamableIdentifierFastCheck())
                 {
                     TrackingSessionCleared(previousTrackingSession.TrackingSpan);
                 }
@@ -229,7 +227,7 @@ internal sealed partial class RenameTrackingTaggerProvider
         {
             ThreadingContext.ThrowIfNotOnUIThread();
 
-            if (this.TrackingSession != null && this.TrackingSession.IsDefinitelyRenamableIdentifier())
+            if (this.TrackingSession != null && this.TrackingSession.IsDefinitelyRenamableIdentifierFastCheck())
             {
                 var document = Buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
@@ -238,8 +236,8 @@ internal sealed partial class RenameTrackingTaggerProvider
                     // provide a diagnostic/codefix, but nothing has changed in the workspace
                     // to trigger the diagnostic system to reanalyze, so we trigger it 
                     // manually.
-
-                    _diagnosticAnalyzerService?.RequestDiagnosticRefresh();
+                    var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                    service.RequestDiagnosticRefresh();
                 }
 
                 // Disallow the existing TrackingSession from triggering IdentifierFound.
@@ -271,7 +269,7 @@ internal sealed partial class RenameTrackingTaggerProvider
 
         public bool CanInvokeRename(
             [NotNullWhen(true)] out TrackingSession trackingSession,
-            bool isSmartTagCheck = false, bool waitForResult = false, CancellationToken cancellationToken = default)
+            bool isSmartTagCheck = false)
         {
             // This needs to be able to run on a background thread for the diagnostic.
 
@@ -280,14 +278,15 @@ internal sealed partial class RenameTrackingTaggerProvider
                 return false;
 
             return TryGetSyntaxFactsService(out var syntaxFactsService) && TryGetLanguageHeuristicsService(out var languageHeuristicsService) &&
-                trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
+                trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck);
         }
 
         internal (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
-            Document document, SourceText text, TextSpan userSpan,
+            Document document,
+            SourceText text,
+            TextSpan userSpan,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            CancellationToken cancellationToken)
+            ITextUndoHistoryRegistry undoHistoryRegistry)
         {
             try
             {
@@ -299,7 +298,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                 // engine will know that the document changed and not display the lightbulb anyway.
 
                 if (Buffer.AsTextContainer().CurrentText == text &&
-                    CanInvokeRename(out var trackingSession, waitForResult: true, cancellationToken: cancellationToken))
+                    CanInvokeRename(out var trackingSession))
                 {
                     var snapshotSpan = trackingSession.TrackingSpan.GetSpan(Buffer.CurrentSnapshot);
 
@@ -307,7 +306,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                     if (text.AreOnSameLine(userSpan.Start, snapshotSpan.Start))
                     {
                         var title = string.Format(
-                            EditorFeaturesResources.Rename_0_to_1,
+                            WorkspacesResources.Rename_0_to_1,
                             trackingSession.OriginalName,
                             snapshotSpan.GetText());
 
@@ -318,7 +317,7 @@ internal sealed partial class RenameTrackingTaggerProvider
 
                 return default;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable();
             }

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.ValidateFormatString;
 namespace Microsoft.CodeAnalysis.CSharp.ValidateFormatString;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpValidateFormatStringDiagnosticAnalyzer :
+internal sealed class CSharpValidateFormatStringDiagnosticAnalyzer :
     AbstractValidateFormatStringDiagnosticAnalyzer<SyntaxKind>
 {
     protected override ISyntaxFacts GetSyntaxFacts()

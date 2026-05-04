@@ -8,17 +8,13 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Navigation
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Microsoft.VisualStudio.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <UseExportProvider, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-    Public Class GoToDefinitionCommandHandlerTests
+    Public NotInheritable Class GoToDefinitionCommandHandlerTests
         <WpfFact>
         Public Async Function TestInLinkedFiles() As Task
             Dim definition =
@@ -57,24 +53,22 @@ class C
                 Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
                 Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
                 Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GetService(Of IUIThreadOperationExecutor),
                     provider)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
                 Await waiter.ExpeditedWaitAsync()
 
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(78, 2), mockDocumentNavigationService._span)
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(78, mockDocumentNavigationService._position)
 
                 workspace.SetDocumentContext(linkDocument.Id)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
                 Await waiter.ExpeditedWaitAsync()
 
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(121, 2), mockDocumentNavigationService._span)
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(121, mockDocumentNavigationService._position)
             End Using
         End Function
 
@@ -99,16 +93,14 @@ int y = x$$</Document>
                 Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
                 Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
                 Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GetService(Of IUIThreadOperationExecutor),
                     provider)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
                 Await waiter.ExpeditedWaitAsync()
 
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(4, 1), mockDocumentNavigationService._span)
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(4, mockDocumentNavigationService._position)
                 Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
             End Using
         End Function
@@ -134,7 +126,6 @@ class C
 </Workspace>
 
             Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
-
                 Dim document = workspace.Documents.First()
                 Dim view = document.GetTextView()
 
@@ -144,9 +135,7 @@ class C
                 Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
                 Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
                 Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GetService(Of IUIThreadOperationExecutor),
                     provider)
 
                 Dim snapshot = document.GetTextBuffer().CurrentSnapshot
@@ -157,9 +146,165 @@ class C
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
                 Await waiter.ExpeditedWaitAsync()
 
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(22, 1), mockDocumentNavigationService._span)
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(22, mockDocumentNavigationService._position)
                 Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
+            End Using
+        End Function
+
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/78533")>
+        <InlineData("
+            static class Extension1
+            {
+                public static void Goo(this string s) { }
+                public static void Goo(this string s, string t) { }
+            }
+
+            static class Extension2
+            {
+                public static void Goo(this string s) { }
+                public static void Goo(this string s, string t) { }
+            }
+
+            class Program
+            {
+                static void Test(string s)
+                {
+                    s.$$Goo(""test"");
+                }
+            }",
+            "public static void Goo(this string s, string t) { }")>
+        <InlineData("
+            static class Extension1
+            {
+                public static void Goo(this string s) { }
+                public static void Goo(this string s, string t) { }
+            }
+
+            static class Extension2
+            {
+                public static void Goo(this string s) { }
+                public static void Goo(this string s, string t) { }
+            }
+
+            class Program
+            {
+                static void Test(string s)
+                {
+                    s?.$$Goo(""test"");
+                }
+            }",
+            "public static void Goo(this string s, string t) { }")>
+        <InlineData("
+            class Program
+            {
+                static void Test(string s)
+                {
+                    $$Goo(""test"");
+                }
+
+                static void Goo() { }
+                static void Goo(string s) { }
+                static void Goo(string s) { }
+            }",
+            "static void Goo(string s) { }")>
+        <InlineData("
+            class Base
+            {
+                public Base() { }
+                public Base(string s) { }
+                public Base(string s) { }
+            }
+
+            class Derived : Base
+            {
+                public Derived() : $$base("""") { }
+            }",
+            "public Base(string s) { }")>
+        <InlineData("
+            class Base
+            {
+                public Base() { }
+                public Base(string s) { }
+                public Base(string s) { }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    var d = new $$Base("""");
+                }
+            }",
+            "public Base(string s) { }")>
+        <InlineData("
+            namespace N
+            {
+                class Base
+                {
+                    public Base() { }
+                    public Base(string s) { }
+                    public Base(string s) { }
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    var d = new N.$$Base("""");
+                }
+            }",
+            "public Base(string s) { }")>
+        <InlineData("
+            class Base
+            {
+                public Base() { }
+                public Base(string s) { }
+                public Base(string s) { }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    Base d = new$$("""");
+                }
+            }",
+            "public Base(string s) { }")>
+        Public Async Function TestCSharpOverloadResolutionError(documentContent As String, expectedNavigatedLine As String) As Task
+            Dim definition = <Workspace>
+                                 <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                                     <Document><%= documentContent %></Document>
+                                 </Project>
+                             </Workspace>
+
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+                Dim document = workspace.Documents.First()
+                Dim view = document.GetTextView()
+
+                Dim mockDocumentNavigationService =
+                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
+
+                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
+                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
+                Dim handler = New GoToDefinitionCommandHandler(
+                    workspace.GetService(Of IThreadingContext),
+                    provider)
+
+                Dim snapshot = document.GetTextBuffer().CurrentSnapshot
+
+                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
+                Await waiter.ExpeditedWaitAsync()
+
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
+
+                Dim navigatedPosition = mockDocumentNavigationService._position
+                Dim navigatedLine = snapshot.GetLineFromPosition(navigatedPosition).GetText().Trim()
+
+                ' We had to navigate to one of the overloads that takes an actual string parameter.
+                Assert.Equal(expectedNavigatedLine, navigatedLine)
             End Using
         End Function
     End Class

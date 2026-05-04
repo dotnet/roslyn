@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,8 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirective;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryNullableDirective)]
-[Shared]
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryNullableDirective), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider()
@@ -33,7 +31,7 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider()
             IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId,
         ];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -42,11 +40,9 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider()
             else
                 RegisterCodeFix(context, CSharpAnalyzersResources.Remove_unnecessary_nullable_directive, nameof(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive), diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
@@ -91,8 +87,6 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider()
                 node,
                 node.ReplaceToken(token, token.WithLeadingTrivia(leadingTrivia)));
         }
-
-        return Task.CompletedTask;
     }
 
     private static bool HasPrecedingBlankLine(SyntaxTriviaList leadingTrivia, int index)

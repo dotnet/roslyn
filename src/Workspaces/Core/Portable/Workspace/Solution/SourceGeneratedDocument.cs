@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -26,7 +27,13 @@ public sealed class SourceGeneratedDocument : Document
 
     internal DateTime GenerationDateTime => State.GenerationDateTime;
 
-    internal override Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+    internal new SourceGeneratedDocument WithText(SourceText text)
+        => (SourceGeneratedDocument)base.WithText(text);
+
+    internal new SourceGeneratedDocument WithSyntaxRoot(SyntaxNode root)
+        => (SourceGeneratedDocument)base.WithSyntaxRoot(root);
+
+    internal override Document WithFrozenPartialSemantics(bool forceFreeze, CancellationToken cancellationToken)
     {
         // For us to implement frozen partial semantics here with a source generated document,
         // we'd need to potentially deal with the combination where that happens on a snapshot that was already

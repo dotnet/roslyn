@@ -3,17 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
@@ -26,7 +19,9 @@ internal interface IAddImportsService : ILanguageService
     /// <paramref name="import"/> in scope at <paramref name="contextLocation"/>.  This includes
     /// global imports for VB.
     /// </summary>
-    bool HasExistingImport(Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import, SyntaxGenerator generator);
+    bool HasExistingImport(
+        SemanticModel semanticModel, SyntaxNode root, SyntaxNode? contextLocation,
+        SyntaxNode import, SyntaxGenerator generator, CancellationToken cancellationToken);
 
     /// <summary>
     /// Given a context location in a provided syntax tree, returns the appropriate container
@@ -35,18 +30,18 @@ internal interface IAddImportsService : ILanguageService
     SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import, AddImportPlacementOptions options);
 
     SyntaxNode AddImports(
-        Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation,
+        SemanticModel semanticModel, SyntaxNode root, SyntaxNode? contextLocation,
         IEnumerable<SyntaxNode> newImports, SyntaxGenerator generator, AddImportPlacementOptions options, CancellationToken cancellationToken);
 }
 
 internal static class IAddImportServiceExtensions
 {
     public static SyntaxNode AddImport(
-        this IAddImportsService service, Compilation compilation, SyntaxNode root,
+        this IAddImportsService service, SemanticModel semanticModel, SyntaxNode root,
         SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator, AddImportPlacementOptions options,
         CancellationToken cancellationToken)
     {
-        return service.AddImports(compilation, root, contextLocation,
-            [newImport], generator, options, cancellationToken);
+        return service.AddImports(
+            semanticModel, root, contextLocation, [newImport], generator, options, cancellationToken);
     }
 }

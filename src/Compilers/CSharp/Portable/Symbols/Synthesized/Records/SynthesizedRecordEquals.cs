@@ -120,10 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // virtual bool Equals(Derived other) =>
                     //     (object)other == this || (base.Equals((Base)other) &&
                     //     field1 == other.field1 && ... && fieldN == other.fieldN);
+                    TypeSymbol baseType = baseEquals.Parameters[0].Type;
+                    Conversion c = F.ClassifyEmitConversion(other, baseType);
+                    Debug.Assert(c.IsImplicit);
+                    Debug.Assert(c.IsReference);
                     retExpr = F.Call(
                         F.Base(baseEquals.ContainingType),
                         baseEquals,
-                        F.Convert(baseEquals.Parameters[0].Type, other));
+                        F.Convert(baseType, other, c));
                 }
 
                 // field1 == other.field1 && ... && fieldN == other.fieldN
@@ -136,12 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         fields.Add(f);
 
                         var parameterType = f.Type;
-                        if (parameterType.IsPointerOrFunctionPointer())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.GetFirstLocationOrNone(), parameterType);
-                            foundBadField = true;
-                        }
-                        else if (parameterType.IsRestrictedType())
+                        if (parameterType.IsPointerOrFunctionPointer() || parameterType.IsRestrictedType())
                         {
                             // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
                             foundBadField = true;

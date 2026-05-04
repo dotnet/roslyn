@@ -1,0 +1,19 @@
+﻿Source Location: (56:0,56 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|myField|
+Generated Location: (1166:29,56 [7] )
+|myField|
+
+Source Location: (45:0,45 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|Property1|
+Generated Location: (1804:43,45 [9] )
+|Property1|
+
+Source Location: (78:2,7 [46] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string myField = "Some Value";
+|
+Generated Location: (2247:61,7 [46] )
+|
+    private string myField = "Some Value";
+|
+

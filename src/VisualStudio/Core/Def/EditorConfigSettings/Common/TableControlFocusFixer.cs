@@ -20,7 +20,7 @@ internal static class TableControlFocusFixer
     /// </summary>
     public static void DoNotLoseFocusOnBucketExpandOrCollapse(this IWpfTableControl tableControl)
     {
-        tableControl.Control.PreviewLostKeyboardFocus += (object sender, KeyboardFocusChangedEventArgs e) =>
+        tableControl.Control.PreviewLostKeyboardFocus += (sender, e) =>
         {
             // The tabular data control is a list view, the new focus changing to a different control tells us we've hit this case.
             // This workaround will break if the underlying implementation of the tabular data control is changed someday.

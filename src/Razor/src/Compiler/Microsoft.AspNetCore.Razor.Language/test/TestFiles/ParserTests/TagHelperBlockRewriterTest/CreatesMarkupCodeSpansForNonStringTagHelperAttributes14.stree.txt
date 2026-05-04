@@ -1,0 +1,55 @@
+﻿RazorDocument - [0..73)::73 - [@{ LF    var @string = "1";LF}LF<person age="Convert.ToInt32(@string)" />]
+    MarkupBlock - [0..73)::73
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..30)::30
+            CSharpStatement - [0..30)::30
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..30)::29
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..29)::27
+                        CSharpStatementLiteral - [2..29)::27 - [ LF    var @string = "1";LF] - Gen<Stmt>
+                            Whitespace;[ ];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[@string];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["1"];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [29..30)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [30..32)::2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTagHelperElement - [32..73)::41 - person[SelfClosing] - PersonTagHelper
+            MarkupTagHelperStartTag - [32..73)::41 - [<person age="Convert.ToInt32(@string)" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[person];
+                MarkupTagHelperAttribute - [39..70)::31 - age - DoubleQuotes - Bound - [ age="Convert.ToInt32(@string)"]
+                    MarkupTextLiteral - [39..40)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [40..43)::3 - [age] - Gen<Markup>
+                        Text;[age];
+                    Equals;[=];
+                    MarkupTextLiteral - [44..45)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [45..69)::24
+                        CSharpExpressionLiteral - [45..69)::24 - [Convert.ToInt32(@string)] - Gen<None>
+                            Text;[Convert.ToInt32(];
+                            Transition;[@];
+                            Keyword;[string];
+                            Text;[)];
+                    MarkupTextLiteral - [69..70)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [70..71)::1
+                    MarkupTextLiteral - [70..71)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

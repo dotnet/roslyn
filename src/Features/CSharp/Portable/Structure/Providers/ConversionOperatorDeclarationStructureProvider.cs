@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class ConversionOperatorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<ConversionOperatorDeclarationSyntax>
+internal sealed class ConversionOperatorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<ConversionOperatorDeclarationSyntax>
 {
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,

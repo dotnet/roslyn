@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Symbols
 
@@ -156,6 +157,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Property
 
             Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
                 Get
                     Return False
                 End Get

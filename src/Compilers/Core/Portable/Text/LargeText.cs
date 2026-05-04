@@ -233,18 +233,22 @@ namespace Microsoft.CodeAnalysis.Text
             return new LineInfo(this, ParseLineStarts());
         }
 
-        private SegmentedList<int> ParseLineStarts()
+        private SegmentedList<uint> ParseLineStarts()
         {
-            var position = 0;
             var index = 0;
             var lastCr = -1;
             // Initial line capacity estimated at 64 chars / line. This value was obtained by
             // looking at ratios in large files in the roslyn repo.
-            var list = new SegmentedList<int>(Length / 64);
+            var list = new SegmentedList<uint>(Length / 64)
+            {
+                0u // line 0 starts at position 0; top bit unused (no prior line break)
+            };
 
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
             // and non-line breaks.
+            // Each entry encodes the start of the line in the low 31 bits and whether the
+            // *prior* line's break was the 2-char \r\n pair in the top bit (see LineInfo).
             foreach (var chunk in _chunks)
             {
                 foreach (var c in chunk)
@@ -261,32 +265,35 @@ namespace Microsoft.CodeAnalysis.Text
                     switch (c)
                     {
                         case '\r':
+                            // Add a provisional entry for a lone \r (length 1). If \n follows
+                            // immediately, the \n case will upgrade it to \r\n (length 2).
                             lastCr = index;
-                            goto line_break;
+                            list.Add(LineInfo.PackEntry(index, 1));
+                            break;
 
                         case '\n':
                             // Assumes that the only 2-char line break sequence is CR+LF
                             if (lastCr == (index - 1))
                             {
-                                position = index;
-                                break;
+                                // Upgrade the provisional \r entry: new line starts after \n, break length = 2
+                                list[list.Count - 1] = LineInfo.PackEntry(index, 2);
+                                lastCr = -1;
                             }
-
-                            goto line_break;
+                            else
+                            {
+                                list.Add(LineInfo.PackEntry(index, 1));
+                            }
+                            break;
 
                         case '\u0085':
                         case '\u2028':
                         case '\u2029':
-line_break:
-                            list.Add(position);
-                            position = index;
+                            list.Add(LineInfo.PackEntry(index, 1));
                             break;
                     }
                 }
             }
 
-            // Create a start for the final line.  
-            list.Add(position);
             return list;
         }
     }

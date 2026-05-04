@@ -13,13 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf;
 /// Finds code like typeof(someType).Name and determines whether it can be changed to nameof(someType), if yes then it offers a diagnostic
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractConvertTypeOfToNameOfDiagnosticAnalyzer
+internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer()
+    : AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(s_title)
 {
     private static readonly string s_title = CSharpAnalyzersResources.typeof_can_be_converted_to_nameof;
-
-    public CSharpConvertTypeOfToNameOfDiagnosticAnalyzer() : base(s_title)
-    {
-    }
 
     protected override bool IsValidTypeofAction(OperationAnalysisContext context)
     {
@@ -34,8 +31,8 @@ internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractCo
         // Make sure that the syntax that we're looking at is actually a typeof expression and that
         // the parent syntax is a member access expression otherwise the syntax is not the kind of
         // expression that we want to analyze
-        return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax } typeofExpression &&
-            // nameof(System.Void) isn't allowed in C#.
-            typeofExpression is not { Type: PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.VoidKeyword } };
+        return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax }
+               // nameof(System.Void) isn't allowed in C#.
+               and not { Type: PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.VoidKeyword } };
     }
 }

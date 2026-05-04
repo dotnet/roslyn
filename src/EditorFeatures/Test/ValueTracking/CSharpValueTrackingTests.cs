@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking;
 
 [UseExportProvider]
-public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
+public sealed class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
 {
     protected override TestWorkspace CreateWorkspace(string code, TestComposition composition)
         => TestWorkspace.CreateCSharp(code, composition: composition);
@@ -20,19 +20,21 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
     public async Task TestProperty(TestHost testHost)
     {
         var code =
-@"
-class C
-{
-    public string $$S { get; set; } = """";
+            """
 
-    public void SetS(string s)
-    {
-        S = s;
-    }
+            class C
+            {
+                public string $$S { get; set; } = "";
 
-    public string GetS() => S;
-}
-";
+                public void SetS(string s)
+                {
+                    S = s;
+                }
+
+                public string GetS() => S;
+            }
+
+            """;
         using var workspace = CreateWorkspace(code, testHost);
 
         //
@@ -42,30 +44,32 @@ class C
         //
         await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (7, "s"),
                 (3, "public string S { get; set; } = \"\";"),
-            });
+            ]);
     }
 
     [Theory, CombinatorialData]
     public async Task TestPropertyWithThis(TestHost testHost)
     {
         var code =
-@"
-class C
-{
-    public string $$S { get; set; } = """";
+            """
 
-    public void SetS(string s)
-    {
-        this.S = s;
-    }
+            class C
+            {
+                public string $$S { get; set; } = "";
 
-    public string GetS() => this.S;
-}
-";
+                public void SetS(string s)
+                {
+                    this.S = s;
+                }
+
+                public string GetS() => this.S;
+            }
+
+            """;
         using var workspace = CreateWorkspace(code, testHost);
 
         //
@@ -75,29 +79,31 @@ class C
         //
         await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (7, "s"),
                 (3, "public string S { get; set; } = \"\";"),
-            });
+            ]);
     }
 
     [Theory, CombinatorialData]
     public async Task TestField(TestHost testHost)
     {
         var code =
-@"
-class C
-{
-    private string $$_s = """";
+            """
 
-    public void SetS(string s)
-    {
-        _s = s;
-    }
+            class C
+            {
+                private string $$_s = "";
 
-    public string GetS() => _s;
-}";
+                public void SetS(string s)
+                {
+                    _s = s;
+                }
+
+                public string GetS() => _s;
+            }
+            """;
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
 
@@ -108,29 +114,33 @@ class C
         //
         await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (7, "s"),
-                (3, "_s = \"\"")
-            });
+                (3, """
+                _s = ""
+                """)
+            ]);
     }
 
     [Theory, CombinatorialData]
     public async Task TestFieldWithThis(TestHost testHost)
     {
         var code =
-@"
-class C
-{
-    private string $$_s = """";
+            """
 
-    public void SetS(string s)
-    {
-        this._s = s;
-    }
+            class C
+            {
+                private string $$_s = "";
 
-    public string GetS() => this._s;
-}";
+                public void SetS(string s)
+                {
+                    this._s = s;
+                }
+
+                public string GetS() => this._s;
+            }
+            """;
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
 
@@ -141,27 +151,31 @@ class C
         //
         await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (7, "s"),
-                (3, "_s = \"\"")
-            });
+                (3, """
+                _s = ""
+                """)
+            ]);
     }
 
     [Theory, CombinatorialData]
     public async Task TestLocal(TestHost testHost)
     {
         var code =
-@"
-class C
-{
-    public int Add(int x, int y)
-    {
-        var $$z = x;
-        z += y;
-        return z;
-    }
-}";
+            """
+
+            class C
+            {
+                public int Add(int x, int y)
+                {
+                    var $$z = x;
+                    z += y;
+                    return z;
+                }
+            }
+            """;
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
 
@@ -179,15 +193,17 @@ class C
     public async Task TestParameter(TestHost testHost)
     {
         var code =
-@"
-class C
-{
-    public int Add(int $$x, int y)
-    {
-        x += y;
-        return x;
-    }
-}";
+            """
+
+            class C
+            {
+                public int Add(int $$x, int y)
+                {
+                    x += y;
+                    return x;
+                }
+            }
+            """;
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
 
@@ -202,18 +218,69 @@ class C
     }
 
     [Theory, CombinatorialData]
+    public async Task TestParameter2(TestHost testHost)
+    {
+        var code =
+            """
+
+            class C
+            {
+                public void InvokeM(string arg)
+                {
+                    M(arg);
+                    M();
+                    M("test");
+                }
+
+                public void M(string? $$x = null)
+                {
+                }
+            }
+            """;
+        using var workspace = CreateWorkspace(code, testHost);
+        var initialItems = await GetTrackedItemsAsync(workspace);
+
+        //
+        // public void M(|string? x = null|)
+        //  M(|"test"|)
+        //  |M("test")|
+        //  M(|arg|)
+        //  |M(arg)|
+        // 
+        Assert.Equal(1, initialItems.Length);
+        ValidateItem(initialItems[0], 10);
+
+        var items = await ValidateChildrenAsync(
+            workspace,
+            initialItems.Single(),
+            childInfo:
+            [
+                (7, """
+                "test"
+                """),           // M(|"test"|)
+                (7, """
+                M("test")
+                """),           // |M("test")|
+                (5, "arg"),     // M(|arg|)
+                (5, "M(arg)"),  // |M(arg)|
+            ]);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestMissingOnMethod(TestHost testHost)
     {
         var code =
-@"
-class C
-{
-    public int $$Add(int x, int y)
-    {
-        x += y;
-        return x;
-    }
-}";
+            """
+
+            class C
+            {
+                public int $$Add(int x, int y)
+                {
+                    x += y;
+                    return x;
+                }
+            }
+            """;
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
         Assert.Empty(initialItems);
@@ -223,15 +290,17 @@ class C
     public async Task TestMissingOnClass(TestHost testHost)
     {
         var code =
-@"
-class $$C
-{
-    public int Add(int x, int y)
-    {
-        x += y;
-        return x;
-    }
-}";
+            """
+
+            class $$C
+            {
+                public int Add(int x, int y)
+                {
+                    x += y;
+                    return x;
+                }
+            }
+            """;
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
         Assert.Empty(initialItems);
@@ -241,18 +310,20 @@ class $$C
     public async Task TestMissingOnNamespace(TestHost testHost)
     {
         var code =
-@"
-namespace $$N
-{
-    class C
-    {
-        public int Add(int x, int y)
-        {
-            x += y;
-            return x;
-        }
-    }
-}";
+            """
+
+            namespace $$N
+            {
+                class C
+                {
+                    public int Add(int x, int y)
+                    {
+                        x += y;
+                        return x;
+                    }
+                }
+            }
+            """;
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
         Assert.Empty(initialItems);
@@ -262,47 +333,49 @@ namespace $$N
     public async Task MethodTracking1(TestHost testHost)
     {
         var code =
-@"
-class C
-{
-    public string S { get; set; } = """";
+            """
 
-    public void SetS(string s)
-    {
-        S$$ = s;
-    }
+            class C
+            {
+                public string S { get; set; } = "";
 
-    public string GetS() => S;
-}
+                public void SetS(string s)
+                {
+                    S$$ = s;
+                }
 
-class Other
-{
-    public void CallS(C c, string str)
-    {
-        c.SetS(str);
-    }
+                public string GetS() => S;
+            }
 
-    public void CallS(C c)
-    {
-        CallS(c, CalculateDefault(c));
-    }
+            class Other
+            {
+                public void CallS(C c, string str)
+                {
+                    c.SetS(str);
+                }
 
-    private string CalculateDefault(C c)
-    {
-        if (c is null)
-        {
-            return ""null"";
-        }
+                public void CallS(C c)
+                {
+                    CallS(c, CalculateDefault(c));
+                }
 
-        if (string.IsNullOrEmpty(c.S))
-        {
-            return ""defaultstring"";
-        }
+                private string CalculateDefault(C c)
+                {
+                    if (c is null)
+                    {
+                        return "null";
+                    }
 
-        return """";
-    }
-}
-";
+                    if (string.IsNullOrEmpty(c.S))
+                    {
+                        return "defaultstring";
+                    }
+
+                    return "";
+                }
+            }
+
+            """;
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
 
@@ -323,11 +396,11 @@ class Other
         var items = await ValidateChildrenAsync(
             workspace,
             initialItems.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (17, "str"), // |> c.SetS([|str|]); [Code.cs:17]
                 (17, "c.SetS(str)"), // |> [|c.SetS(str)|]; [Code.cs:17]
-            });
+            ]);
 
         // |> [|c.SetS(s)|]; [Code.cs:17]
         await ValidateChildrenEmptyAsync(workspace, items[1]);
@@ -336,13 +409,13 @@ class Other
         items = await ValidateChildrenAsync(
             workspace,
             items[0],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (22, "c" ), // |> CallS([|c|], CalculateDefault(c)) [Code.cs:22]
                 (22, "c" ), // |> CallS(c, CalculateDefault([|c|])) [Code.cs:22]
                 (22, "CalculateDefault(c)" ), // |> CallS(c, [|CalculateDefault(c)|]) [Code.cs:22]
                 (22, "CallS(c, CalculateDefault(c))" ) // |> [|CallS(c, CalculateDefault(c))|] [Code.cs:22]
-            });
+            ]);
 
         // |> CallS([|c|], CalculateDefault(c)) [Code.cs:22]
         await ValidateChildrenEmptyAsync(workspace, items[0]);
@@ -355,12 +428,18 @@ class Other
         var children = await ValidateChildrenAsync(
             workspace,
             items[2],
-            childInfo: new[]
-            {
-                (37, "\"\""), // |>  return "" [Code.cs:37]
-                (34, "\"defaultstring\""), // |>  return "defaultstring" [Code.cs:34]
-                (29, "\"null\""), // |> return "null" [Code.cs:29]
-            });
+            childInfo:
+            [
+                (37, """
+                ""
+                """), // |>  return "" [Code.cs:37]
+                (34, """
+                "defaultstring"
+                """), // |>  return "defaultstring" [Code.cs:34]
+                (29, """
+                "null"
+                """), // |> return "null" [Code.cs:29]
+            ]);
 
         foreach (var child in children)
         {
@@ -372,63 +451,65 @@ class Other
     public async Task MethodTracking2(TestHost testHost)
     {
         var code =
-@"
-class C
-{
-    public string S { get; set; } = """";
+            """
 
-    public void SetS(string s)
-    {
-        S$$ = s;
-    }
+            class C
+            {
+                public string S { get; set; } = "";
 
-    public string GetS() => S;
-}
+                public void SetS(string s)
+                {
+                    S$$ = s;
+                }
 
-class Other
-{
-    private readonly string _adornment;
-    public Other(string adornment)
-    {
-        _adornment = adornment;
-    }
+                public string GetS() => S;
+            }
 
-    public void CallS(C c, string s)
-    {
-        c.SetS(s);
-    }
+            class Other
+            {
+                private readonly string _adornment;
+                public Other(string adornment)
+                {
+                    _adornment = adornment;
+                }
 
-    public void CallS(C c)
-    {
-        CallS(c, CalculateDefault(c) + _adornment);
-    }
+                public void CallS(C c, string s)
+                {
+                    c.SetS(s);
+                }
 
-    private string CalculateDefault(C c)
-    {
-        if (c is null)
-        {
-            return ""null"";
-        }
+                public void CallS(C c)
+                {
+                    CallS(c, CalculateDefault(c) + _adornment);
+                }
 
-        if (string.IsNullOrEmpty(c.S))
-        {
-            return ""defaultstring"";
-        }
+                private string CalculateDefault(C c)
+                {
+                    if (c is null)
+                    {
+                        return "null";
+                    }
 
-        return """";
-    }
-}
+                    if (string.IsNullOrEmpty(c.S))
+                    {
+                        return "defaultstring";
+                    }
 
-class Program
-{
-    public static void Main(string[] args)
-    {
-        var other = new Other(""some value"");
-        var c = new C();
-        other.CallS(c);
-    }
-}
-";
+                    return "";
+                }
+            }
+
+            class Program
+            {
+                public static void Main(string[] args)
+                {
+                    var other = new Other("some value");
+                    var c = new C();
+                    other.CallS(c);
+                }
+            }
+
+            """;
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
 
@@ -456,11 +537,11 @@ class Program
         var items = await ValidateChildrenAsync(
             workspace,
             initialItems.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (23, "s"), // |> c.SetS([|s|]); [Code.cs:23]
                 (23, "c.SetS(s)"), // |> c.SetS(s); [Code.cs:23]
-            });
+            ]);
 
         // |> c.SetS(s); [Code.cs:23]
         await ValidateChildrenEmptyAsync(workspace, items[1]);
@@ -469,23 +550,23 @@ class Program
         items = await ValidateChildrenAsync(
             workspace,
             items[0],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (28, "c" ), // |> CallS([|c|], CalculateDefault(c) + _adornment) [Code.cs:28]
                 (28, "_adornment" ), // |> CallS(c, CalculateDefault(c) + [|_adornment|]) [Code.cs:28]
                 (28, "c" ), // |> CallS(c, CalculateDefault([|c|]) + _adornment) [Code.cs:28]
                 (28, "CalculateDefault(c)" ), // |> CallS(c, [|CalculateDefault|](c) + _adornment) [Code.cs:28]
                 (28, "CallS(c, CalculateDefault(c) + _adornment)" ), // |> [|CallS(c, CalculateDefault(c) + _adornment)|] [Code.cs:28]
-            });
+            ]);
 
         // |> CallS([|c|], CalculateDefault(c) + _adornment) [Code.cs:28]
         var children = await ValidateChildrenAsync(
             workspace,
             items[0],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (53, "other.CallS(c)"), // |> other.CallS([|c|]); [Code.cs:53]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, children);
 
@@ -493,10 +574,10 @@ class Program
         children = await ValidateChildrenAsync(
             workspace,
             items[2],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (53, "other.CallS(c)"), // |> other.CallS([|c|]); [Code.cs:53]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, children);
 
@@ -504,30 +585,38 @@ class Program
         children = await ValidateChildrenAsync(
             workspace,
             items[1],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (18, "adornment"), // |> _adornment = [|adornment|] [Code.cs:18]
-            });
+            ]);
 
         children = await ValidateChildrenAsync(
             workspace,
             children.Single(),
-            childInfo: new[]
-            {
-                (51, "\"some value\"") // |> var other = new Other([|"some value"|]); [Code.cs:51]
-            });
+            childInfo:
+            [
+                (51, """
+                "some value"
+                """) // |> var other = new Other([|"some value"|]); [Code.cs:51]
+            ]);
         await ValidateChildrenEmptyAsync(workspace, children);
 
         // |> CallS(c, [|CalculateDefault(c)|] + _adornment) [Code.cs:28]
         children = await ValidateChildrenAsync(
             workspace,
             items[3],
-            childInfo: new[]
-            {
-                (43, "\"\""), // |>  return "" [Code.cs:37]
-                (40, "\"defaultstring\""), // |>  return "defaultstring" [Code.cs:34]
-                (35, "\"null\""), // |> return "null" [Code.cs:29]
-            });
+            childInfo:
+            [
+                (43, """
+                ""
+                """), // |>  return "" [Code.cs:37]
+                (40, """
+                "defaultstring"
+                """), // |>  return "defaultstring" [Code.cs:34]
+                (35, """
+                "null"
+                """), // |> return "null" [Code.cs:29]
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, children);
 
@@ -539,28 +628,30 @@ class Program
     public async Task MethodTracking3(TestHost testHost)
     {
         var code =
-@"
-using System.Threading.Tasks;
+            """
 
-namespace N
-{
-    class C
-    {
-        public int Add(int x, int y)
-        {
-            x += y;
-            return x;
-        }
+            using System.Threading.Tasks;
 
-        public Task<int> AddAsync(int x, int y) => Task.FromResult(Add(x,y));
+            namespace N
+            {
+                class C
+                {
+                    public int Add(int x, int y)
+                    {
+                        x += y;
+                        return x;
+                    }
 
-        public async Task<int> Double(int x)
-        {
-            x = await AddAsync(x, x);
-            return $$x;
-        }
-    }
-}";
+                    public Task<int> AddAsync(int x, int y) => Task.FromResult(Add(x,y));
+
+                    public async Task<int> Double(int x)
+                    {
+                        x = await AddAsync(x, x);
+                        return $$x;
+                    }
+                }
+            }
+            """;
         //
         //  |> return [|x|] [Code.cs:18]
         //    |> x = await AddAsync([|x|], x) [Code.cs:17]
@@ -577,24 +668,24 @@ namespace N
         var children = await ValidateChildrenAsync(
             workspace,
             initialItems.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (17, "x"), // |> x = await AddAsync([|x|], x) [Code.cs:17]
                 (17, "x"), // |> x = await AddAsync(x, [|x|]) [Code.cs:17]
                 (17, "AddAsync(x, x)") // |> x = await [|AddAsync(x, x)|] [Code.cs:17]
-            });
+            ]);
 
         // |> x = await [|AddAsync(x, x)|] [Code.cs:17]
         children = await ValidateChildrenAsync(
             workspace,
             children[2],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (13, "x"), // |> Task.FromResult(Add([|x|], y)) [Code.cs:13]
                 (13, "y"), // |> Task.FromResult(Add(x, [|y|])) [Code.cs:13]
                 (13, "Add(x,y)"),  // |> Task.FromResult([|Add(x, y)|]) [Code.cs:13]
                 (13, "Task.FromResult(Add(x,y))"), // |> [|Task.FromResult|](Add(x, y)) [Code.cs:13]
-            });
+            ]);
 
         // |> [|Task.FromResult|](Add(x, y)) [Code.cs:13]
         await ValidateChildrenEmptyAsync(workspace, children[3]);
@@ -603,43 +694,45 @@ namespace N
         children = await ValidateChildrenAsync(
             workspace,
             children[2],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (10, "x") // |> return x [Code.cs:10]
-            });
+            ]);
     }
 
     [Theory, CombinatorialData]
     public async Task OutParam(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    bool TryConvertInt(object o, out int i)
-    {
-        if (int.TryParse(o.ToString(), out i))
-        {
-            return true;
-        }
+        var code = """
 
-        return false;
-    }
+            class C
+            {
+                bool TryConvertInt(object o, out int i)
+                {
+                    if (int.TryParse(o.ToString(), out i))
+                    {
+                        return true;
+                    }
 
-    void M()
-    {
-        int i = 0;
-        object o = ""5"";
+                    return false;
+                }
 
-        if (TryConvertInt(o, out i))
-        {
-            Console.WriteLine($$i);
-        }
-        else
-        {
-            i = 2;
-        }
-    }
-}";
+                void M()
+                {
+                    int i = 0;
+                    object o = "5";
+
+                    if (TryConvertInt(o, out i))
+                    {
+                        Console.WriteLine($$i);
+                    }
+                    else
+                    {
+                        i = 2;
+                    }
+                }
+            }
+            """;
 
         //
         //  |> Console.WriteLine($$i); [Code.cs:20]
@@ -658,12 +751,12 @@ class C
         var children = await ValidateChildrenAsync(
             workspace,
             initialItems.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (24, "2"), // |> i = [|2|] [Code.cs:24]
                 (18, "i"), // |> if (TryConvertInt(o, out [|i|])) [Code.cs:18]
                 (15, "0"), // |> int i = 0 [Code.cs:15]
-            });
+            ]);
 
         // |> i = [|2|] [Code.cs:24]
         await ValidateChildrenEmptyAsync(workspace, children[0]);
@@ -672,10 +765,10 @@ class C
         children = await ValidateChildrenAsync(
             workspace,
             children[1],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (5, "i") // |> if (int.TryParse(o.ToString(), out [|i|])) [Code.cs:5]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, children.Single());
     }
@@ -684,22 +777,24 @@ class C
     public async Task TestVariableReferenceStart(TestHost testHost)
     {
         var code =
-@"
-class Test
-{
-    public static void M()
-    {
-        int x = GetM();
-        Console.Write(x);
-        var y = $$x + 1;
-    }
+            """
 
-    public static int GetM()
-    {
-        var x = 0;
-        return x;
-    }
-}";
+            class Test
+            {
+                public static void M()
+                {
+                    int x = GetM();
+                    Console.Write(x);
+                    var y = $$x + 1;
+                }
+
+                public static int GetM()
+                {
+                    var x = 0;
+                    return x;
+                }
+            }
+            """;
 
         //
         //  |> var y = x + 1; [Code.cs:7]
@@ -710,34 +805,34 @@ class Test
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (7, "x") // |> var y = [|x|] + 1; [Code.cs:7]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (5, "GetM()") // |> int x = [|GetM()|] [Code.cs:5]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (13, "x") // |> return [|x|]; [Code.cs:13]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (12, "0") // |> var x = [|0|]; [Code.cs:12]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items.Single());
     }
@@ -746,22 +841,24 @@ class Test
     public async Task TestVariableReferenceStart2(TestHost testHost)
     {
         var code =
-@"
-class Test
-{
-    public static void M()
-    {
-        int x = GetM();
-        Console.Write($$x);
-        var y = x + 1;
-    }
+            """
 
-    public static int GetM()
-    {
-        var x = 0;
-        return x;
-    }
-}";
+            class Test
+            {
+                public static void M()
+                {
+                    int x = GetM();
+                    Console.Write($$x);
+                    var y = x + 1;
+                }
+
+                public static int GetM()
+                {
+                    var x = 0;
+                    return x;
+                }
+            }
+            """;
 
         //
         //  |> Console.Write(x); [Code.cs:6]
@@ -772,34 +869,34 @@ class Test
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (6, "x") // |> Console.Write([|x|]); [Code.cs:7]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (5, "GetM()") // |> int x = [|GetM()|] [Code.cs:5]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (13, "x") // |> return [|x|]; [Code.cs:13]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (12, "0") // |> var x = [|0|]; [Code.cs:12]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items.Single());
     }
@@ -808,25 +905,27 @@ class Test
     public async Task TestVariableReferenceStart3(TestHost testHost)
     {
         var code =
-@"
-class Test
-{
-    public static void M()
-    {
-        int x = GetM();
-        Console.Write($$x);
-        var y = x + 1;
-        x += 1;
-        Console.Write(x);
-        Console.Write(y);
-    }
+            """
 
-    public static int GetM()
-    {
-        var x = 0;
-        return x;
-    }
-}";
+            class Test
+            {
+                public static void M()
+                {
+                    int x = GetM();
+                    Console.Write($$x);
+                    var y = x + 1;
+                    x += 1;
+                    Console.Write(x);
+                    Console.Write(y);
+                }
+
+                public static int GetM()
+                {
+                    var x = 0;
+                    return x;
+                }
+            }
+            """;
 
         //
         //  |> Console.Write(x); [Code.cs:6]
@@ -838,37 +937,37 @@ class Test
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (6, "x") // |> Console.Write([|x|]); [Code.cs:7]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (8, "1"),      // |> x += 1; [Codec.s:8]
                 (5, "GetM()"), // |> int x = [|GetM()|] [Code.cs:5]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items[0]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items[1],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (16, "x") // |> return [|x|]; [Code.cs:13]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (15, "0") // |> var x = [|0|]; [Code.cs:12]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items.Single());
     }
@@ -877,25 +976,27 @@ class Test
     public async Task TestMultipleDeclarators(TestHost testHost)
     {
         var code =
-@"
-class Test
-{
-    public static void M()
-    {
-        int x = GetM(), z = 5;
-        Console.Write($$x);
-        var y = x + 1 + z;
-        x += 1;
-        Console.Write(x);
-        Console.Write(y);
-    }
+            """
 
-    public static int GetM()
-    {
-        var x = 0;
-        return x;
-    }
-}";
+            class Test
+            {
+                public static void M()
+                {
+                    int x = GetM(), z = 5;
+                    Console.Write($$x);
+                    var y = x + 1 + z;
+                    x += 1;
+                    Console.Write(x);
+                    Console.Write(y);
+                }
+
+                public static int GetM()
+                {
+                    var x = 0;
+                    return x;
+                }
+            }
+            """;
 
         //
         //  |> Console.Write(x); [Code.cs:6]
@@ -907,37 +1008,37 @@ class Test
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (6, "x") // |> Console.Write([|x|]); [Code.cs:7]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (8, "1"),      // |> x += 1; [Codec.s:8]
                 (5, "GetM()"), // |> int x = [|GetM()|] [Code.cs:5]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items[0]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items[1],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (16, "x") // |> return [|x|]; [Code.cs:13]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (15, "0") // |> var x = [|0|]; [Code.cs:12]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items.Single());
     }
@@ -946,19 +1047,21 @@ class Test
     public async Task TestIndex(TestHost testHost)
     {
         var code =
-@"
-class Test
-{
-    public int this[string $$key] => 0;
+            """
 
-    public int M(Test localTest)
-    {
-        var assignedVariable = this[""test""];
-        System.Console.WriteLine(this[""test""]);
-        
-        return localTest[""test""];
-    }
-}";
+            class Test
+            {
+                public int this[string $$key] => 0;
+
+                public int M(Test localTest)
+                {
+                    var assignedVariable = this["test"];
+                    System.Console.WriteLine(this["test"]);
+                    
+                    return localTest["test"];
+                }
+            }
+            """;
 
         //
         //  |> public int this[string [|key|]] => 0; [Code.cs:4]
@@ -969,21 +1072,27 @@ class Test
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (3, "string key") // |>public int this[[|string key|]] => 0; [Code.cs:4]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (10, "localTest"), // return [|localTest|]["test"]; [Code.cs:10] (This is included because it is part of a return statement, and follows same logic as other references for if it is tracked)
-                (10, "\"test\""),  // return localTest[[|"test"|]]; [Code.cs:10]
-                (8, "\"test\""),   // System.Console.WriteLine(this[[|"test"|]]); [Code.cs:8]
-                (7, "\"test\""),   // var assignedVariable = this[[|"test"|]]; [Code.cs:7]
-            });
+                (10, """
+                "test"
+                """),  // return localTest[[|"test"|]]; [Code.cs:10]
+                (8, """
+                "test"
+                """),   // System.Console.WriteLine(this[[|"test"|]]); [Code.cs:8]
+                (7, """
+                "test"
+                """),   // var assignedVariable = this[[|"test"|]]; [Code.cs:7]
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items[0]);
         await ValidateChildrenEmptyAsync(workspace, items[1]);
@@ -995,42 +1104,44 @@ class Test
     public async Task TestPropertyValue(TestHost testHost)
     {
         var code =
-@"
-class Test
-{
-    private int _i;
-    public int I 
-    {
-        get => _i;
-        set 
-        {
-            _i = $$value;
-        }
-    }
+            """
 
-    public int M(Test localTest)
-    {
-        localTest.I = 5;
-    }
-}";
+            class Test
+            {
+                private int _i;
+                public int I 
+                {
+                    get => _i;
+                    set 
+                    {
+                        _i = $$value;
+                    }
+                }
+
+                public int M(Test localTest)
+                {
+                    localTest.I = 5;
+                }
+            }
+            """;
         //  _i = [|value|]; [Code.cs:9]
         //    |> localTest.I = [|5|]; [Code.cs:15]
         using var workspace = CreateWorkspace(code, testHost);
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (9, "value") // _i = [|value|]; [Code.cs:9]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (15, "5") // localTest.I = [|5|]; [Code.cs:15]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items.Single());
     }

@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis
                 base.WriteByte(value);
 
                 // same rationale for checked arithmetic as above.
-                checked { BytesWritten++; };
+                checked { BytesWritten++; }
             }
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-internal partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
+internal sealed partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
 {
     /// <summary>
     /// nested class of <see cref="UnitTestingSolutionCrawlerRegistrationService"/> since it is tightly coupled with it.
@@ -19,7 +19,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTest
     /// more than one <see cref="IWorkspaceService"/>.
     /// </summary>
     [ExportWorkspaceService(typeof(IUnitTestingSolutionCrawlerService), ServiceLayer.Default), Shared]
-    internal class UnitTestingSolutionCrawlerService : IUnitTestingSolutionCrawlerService
+    internal sealed class UnitTestingSolutionCrawlerService : IUnitTestingSolutionCrawlerService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

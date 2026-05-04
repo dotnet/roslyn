@@ -9,8 +9,8 @@
 // but is copied here because Roslyn needs to build outside DevDiv sources for now.
 
 using System;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
@@ -303,7 +303,6 @@ internal sealed class CodeMarkers
     /// Converts a string into a byte buffer including a zero terminator (needed for proper ETW message formatting)
     /// </summary>
     /// <param name="stringData">String to be converted to bytes</param>
-    /// <returns></returns>
     internal static byte[] StringToBytesZeroTerminated(string stringData)
     {
         var encoding = System.Text.Encoding.Unicode;

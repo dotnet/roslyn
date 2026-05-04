@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
-internal class MutableNamingStyle(NamingStyle namingStyle)
+internal sealed class MutableNamingStyle(NamingStyle namingStyle)
 {
     public NamingStyle NamingStyle { get; private set; } = namingStyle;
 

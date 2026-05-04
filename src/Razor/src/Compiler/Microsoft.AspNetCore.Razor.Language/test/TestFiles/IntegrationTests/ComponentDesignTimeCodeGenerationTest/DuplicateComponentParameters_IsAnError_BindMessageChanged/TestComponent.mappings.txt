@@ -1,0 +1,29 @@
+﻿Source Location: (31:0,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|(s) => {}|
+Generated Location: (1294:29,31 [9] )
+|(s) => {}|
+
+Source Location: (59:0,59 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|message|
+Generated Location: (1626:38,59 [7] )
+|message|
+
+Source Location: (13:0,13 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|MessageChanged|
+Generated Location: (2687:54,13 [14] )
+|MessageChanged|
+
+Source Location: (49:0,49 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|Message|
+Generated Location: (2947:63,49 [7] )
+|Message|
+
+Source Location: (84:1,12 [30] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    string message = "hi";
+|
+Generated Location: (3367:81,12 [30] )
+|
+    string message = "hi";
+|
+

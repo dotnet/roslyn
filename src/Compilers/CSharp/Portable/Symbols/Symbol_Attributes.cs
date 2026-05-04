@@ -10,12 +10,12 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -230,6 +230,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_InvalidExperimentalDiagID, attrArgumentLocation);
                 }
             }
+            else if (arguments.Attribute.IsTargetAttribute(AttributeDescription.MetadataUpdateDeletedAttribute))
+            {
+                arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_AttributeCannotBeAppliedManually, arguments.AttributeSyntaxOpt!.Location, args: [AttributeDescription.MetadataUpdateDeletedAttribute.FullName]);
+            }
 
             DecodeWellKnownAttributeImpl(ref arguments);
         }
@@ -302,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeLocation symbolPart = AttributeLocation.None,
             bool earlyDecodingOnly = false,
             Binder? binderOpt = null,
-            Func<AttributeSyntax, bool>? attributeMatchesOpt = null,
+            Func<AttributeSyntax, Binder?, bool>? attributeMatchesOpt = null,
             Action<AttributeSyntax>? beforeAttributePartBound = null,
             Action<AttributeSyntax>? afterAttributePartBound = null)
         {
@@ -424,6 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Binder.CheckRequiredMembersInObjectInitializer(ctor, ImmutableArray<BoundExpression>.CastUp(boundAttribute.NamedArguments), boundAttribute.Syntax, diagnostics);
                                 attributeBinder.ReportDiagnosticsIfObsolete(diagnostics, ctor, boundAttribute.Syntax, hasBaseReceiver: false);
+                                attributeBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, ctor, boundAttribute.Syntax);
                             }
                             NullableWalker.AnalyzeIfNeeded(attributeBinder, boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
                         }
@@ -586,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeLocation symbolPart,
             BindingDiagnosticBag diagnostics,
             CSharpCompilation compilation,
-            Func<AttributeSyntax, bool> attributeMatchesOpt,
+            Func<AttributeSyntax, Binder, bool> attributeMatchesOpt,
             Binder rootBinderOpt,
             out ImmutableArray<Binder> binders)
         {
@@ -605,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var attributeDeclarationSyntax in attributeDeclarationSyntaxList)
                     {
                         // We bind the attribute only if it has a matching target for the given ownerSymbol and attributeLocation.
-                        if (MatchAttributeTarget(attributeTarget, symbolPart, attributeDeclarationSyntax.Target, diagnostics) &&
+                        if (MatchAttributeTarget(attributeTarget, symbolPart, attributeDeclarationSyntax, diagnostics) &&
                             ShouldBindAttributes(attributeDeclarationSyntax, diagnostics))
                         {
                             if (syntaxBuilder == null)
@@ -624,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 foreach (var attribute in attributesToBind)
                                 {
-                                    if (attributeMatchesOpt(attribute))
+                                    if (attributeMatchesOpt(attribute, rootBinderOpt))
                                     {
                                         syntaxBuilder.Add(attribute);
                                         attributesToBindCount++;
@@ -666,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private Binder GetAttributeBinder(SyntaxList<AttributeListSyntax> attributeDeclarationSyntaxList, CSharpCompilation compilation, Binder? rootBinder = null)
+        protected Binder GetAttributeBinder(SyntaxList<AttributeListSyntax> attributeDeclarationSyntaxList, CSharpCompilation compilation, Binder? rootBinder = null)
         {
             var binder = rootBinder ?? compilation.GetBinderFactory(attributeDeclarationSyntaxList.Node!.SyntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
             binder = new ContextualAttributeBinder(binder, this);
@@ -675,14 +680,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeTargetSpecifierSyntax targetOpt, BindingDiagnosticBag diagnostics)
+        private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeListSyntax attributeList, BindingDiagnosticBag diagnostics)
         {
+            AttributeLocation defaultAttributeLocation = attributeTarget.DefaultAttributeLocation;
+            if (defaultAttributeLocation == AttributeLocation.Extension)
+            {
+                diagnostics.Add(ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                return false;
+            }
+
             IAttributeTargetSymbol attributesOwner = attributeTarget.AttributesOwner;
 
             // Determine if the target symbol owns the attribute declaration.
             // We need to report diagnostics only once, so do it when visiting attributes for the owner.
             bool isOwner = symbolPart == AttributeLocation.None && ReferenceEquals(attributesOwner, attributeTarget);
 
+            AttributeTargetSpecifierSyntax targetOpt = attributeList.Target;
             if (targetOpt == null)
             {
                 // only attributes with an explicit target match if the symbol doesn't own the attributes:
@@ -699,7 +712,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AttributeLocation allowedTargets = attributesOwner.AllowedAttributeLocations;
-
             AttributeLocation explicitTarget = targetOpt.GetAttributeLocation();
             if (explicitTarget == AttributeLocation.None)
             {
@@ -721,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (allowedTargets == AttributeLocation.None)
                     {
-                        switch (attributeTarget.DefaultAttributeLocation)
+                        switch (defaultAttributeLocation)
                         {
                             case AttributeLocation.Assembly:
                             case AttributeLocation.Module:
@@ -895,6 +907,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol attributeType = attribute.AttributeClass;
             AttributeUsageInfo attributeUsageInfo = attributeType.GetAttributeUsageInfo();
+
+            if (this is NamedTypeSymbol { IsExtension: true })
+            {
+                diagnostics.Add(ErrorCode.ERR_AttributesNotAllowed, node.Name.Location);
+                return false;
+            }
 
             // Given attribute can't be specified more than once if AllowMultiple is false.
             if (!uniqueAttributeTypes.Add(attributeType.OriginalDefinition) && !attributeUsageInfo.AllowMultiple)

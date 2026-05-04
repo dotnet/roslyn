@@ -8,15 +8,12 @@ Imports System.Runtime.InteropServices
 Imports System.Runtime.InteropServices.ComTypes
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.ErrorReporting
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
 
@@ -210,7 +207,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                                ByVal pcActualItems As IntPtr,
                                                findFormsOnly As Boolean)
 
-            Dim entryPoints = EntryPointFinder.FindEntryPoints(compilation.SourceModule.GlobalNamespace, findFormsOnly:=findFormsOnly)
+            Dim entryPoints = VisualBasicEntryPointFinder.FindEntryPoints(compilation, findFormsOnly:=findFormsOnly)
 
             ' If called with cItems = 0 and pcActualItems != NULL, GetEntryPointsList returns in pcActualItems the number of items available.
             If cItems = 0 AndAlso pcActualItems <> Nothing Then

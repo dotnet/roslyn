@@ -1100,7 +1100,7 @@ interface IB<T>
         where U : T*
         where V : T[];
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (2,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //     where U : T*
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(2, 15),
@@ -1122,6 +1122,24 @@ interface IB<T>
                 // (9,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         where U : T*
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*").WithLocation(9, 19));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     where U : T*
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(2, 15),
+                // (3,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     where V : T[]
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "T[]").WithLocation(3, 15),
+                // (9,19): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //         where U : T*
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(9, 19),
+                // (10,19): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //         where V : T[];
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "T[]").WithLocation(10, 19),
+            };
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -1309,27 +1327,27 @@ class C
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-                // (11,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-                // (12,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z"),
-                // (13,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-                // (14,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (11,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int> f1     = (int x, y) => 1;          // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y").WithLocation(11, 44),
+                // (12,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int> f2     = (x, int y) => 1;          // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(12, 37),
+                // (13,51): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int,int> f3 = (int x, int y, z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z").WithLocation(13, 51),
                 // (14,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-                // (15,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
+                //         Func<int,int,int,int> f4 = (int x, y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y").WithLocation(14, 44),
+                // (15,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int,int> f5 = (x, int y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(15, 37),
+                // (16,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int,int> f6 = (x, y, int z) => 1;       // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(16, 37),
+                // (16,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int,int> f6 = (x, y, int z) => 1;       // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y").WithLocation(16, 40));
         }
 
         [WorkItem(535915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535915")]
@@ -4042,7 +4060,7 @@ class Program
 }
 ";
             // note: ErrorCode.ManagedAddr not given for Test1* because the base type after binding is considered to be System.Object
-            CreateCompilation(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilation(test, parseOptions: TestOptions.Regular14).GetDeclarationDiagnostics().Verify(
                 // (6,15): error CS1521: Invalid base type
                 // class Test3 : Test1*    // CS1521
                 Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*").WithLocation(6, 15),
@@ -4058,6 +4076,24 @@ class Program
                 // (3,15): error CS0527: Type 'Test1[]' in interface list is not an interface
                 // class Test2 : Test1[]   // CS1521
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1[]").WithArguments("Test1[]").WithLocation(3, 15));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (6,15): error CS1521: Invalid base type
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*").WithLocation(6, 15),
+                // (6,15): error CS0527: Type 'Test1*' in interface list is not an interface
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1*").WithArguments("Test1*").WithLocation(6, 15),
+                // (3,15): error CS1521: Invalid base type
+                // class Test2 : Test1[]   // CS1521
+                Diagnostic(ErrorCode.ERR_BadBaseType, "Test1[]").WithLocation(3, 15),
+                // (3,15): error CS0527: Type 'Test1[]' in interface list is not an interface
+                // class Test2 : Test1[]   // CS1521
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1[]").WithArguments("Test1[]").WithLocation(3, 15),
+            };
+            CreateCompilation(test).GetDeclarationDiagnostics().Verify(expectedPreviewDiagnostics);
+            CreateCompilation(test, parseOptions: TestOptions.RegularNext).GetDeclarationDiagnostics().Verify(expectedPreviewDiagnostics);
         }
 
         [WorkItem(906299, "DevDiv/Personal")]
@@ -4456,7 +4492,7 @@ class MyClass {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadUnOpArgs, "++").WithArguments("++"));
+            ParseAndValidate(test); // Binding error is reported instead
         }
 
         // TODO: extra error CS1001
@@ -5115,6 +5151,19 @@ class Test
 }
 [assembly:System.Attribute]
 ";
+
+            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
+        }
+
+        [Fact, WorkItem(863438, "DevDiv/Personal")]
+        public void CS1730ERR_GlobalAttributesNotFirst2()
+        {
+            var test = """
+                class Test
+                {
+                }
+                [  assembly  :System.Attribute]
+                """;
 
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
         }
@@ -5977,10 +6026,7 @@ class C
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
-            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
-                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16));
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
@@ -5988,10 +6034,8 @@ class C
             CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyDiagnostics(
                 // (4,16): error CS8024: Feature 'async function' is not available in C# 3. Please use language version 5 or greater.
                 //     async void M() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "M").WithArguments("async function", "5").WithLocation(4, 16),
-                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "M").WithArguments("async function", "5").WithLocation(4, 16)
+            );
         }
 
         [Fact, WorkItem(529870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529870")]
@@ -6005,20 +6049,15 @@ class C
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
-            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
-                // (4,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static void M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 23));
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
             CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyDiagnostics(
                 // (4,23): error CS8024: Feature 'async function' is not available in C# 3. Please use language version 5 or greater.
                 //     async static void M() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "M").WithArguments("async function", "5").WithLocation(4, 23),
-                // (4,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static void M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 23));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "M").WithArguments("async function", "5").WithLocation(4, 23)
+            );
         }
 
         [Fact]
@@ -6041,10 +6080,8 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Func<int, Task<int>>").WithArguments("Func<,>").WithLocation(6, 9),
                 // (6,19): error CS0246: The type or namespace name 'Task<>' could not be found (are you missing a using directive or an assembly reference?)
                 //         Func<int, Task<int>> f = async x => x;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19),
-                // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> f = async x => x;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19)
+            );
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
@@ -6057,10 +6094,8 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19),
                 // (6,34): error CS8025: Feature 'async function' is not available in C# 4. Please use language version 5 or greater.
                 //         Func<int, Task<int>> f = async x => x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5").WithLocation(6, 34),
-                // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> f = async x => x;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5").WithLocation(6, 34)
+            );
         }
 
         [Fact]
@@ -6083,10 +6118,8 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Func<int, Task<int>>").WithArguments("Func<,>").WithLocation(6, 9),
                 // (6,19): error CS0246: The type or namespace name 'Task<>' could not be found (are you missing a using directive or an assembly reference?)
                 //         Func<int, Task<int>> f = async delegate (int x) { return x; };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19),
-                // (6,40): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> f = async delegate (int x) { return x; };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 40));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19)
+            );
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
@@ -6099,10 +6132,8 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19),
                 // (6,34): error CS8025: Feature 'async function' is not available in C# 4. Please use language version 5 or greater.
                 //         Func<int, Task<int>> f = async delegate (int x) { return x; };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5").WithLocation(6, 34),
-                // (6,40): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> f = async delegate (int x) { return x; };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 40));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5").WithLocation(6, 34)
+            );
         }
 
         [Fact]

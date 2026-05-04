@@ -2032,6 +2032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             While candidate IsNot Nothing
                 If ConstraintsHelper.CheckConstraints(constructedSymbol:=Nothing,
+                                                      LanguageVersion.Latest, ' Classifying conversions from/to type parameters. This is meaningful only when they and their constraints are declared in source
                                                       substitution:=Nothing,
                                                       typeParameter:=typeParam,
                                                       typeArgument:=candidate,
@@ -3501,7 +3502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     'From a type T? to a type S?
                     conv = ClassifyPredefinedConversion(srcUnderlying, dstUnderlying, useSiteInfo)
                     Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
-                    Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
+                    Debug.Assert(Not ConversionExists(conv) OrElse (conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
 
                     If IsWideningConversion(conv) Then
                         'From a type T? to a type S?, where there is a widening conversion from the type T to the type S.
@@ -3530,7 +3531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return ConversionKind.NarrowingNullable
                 Else
                     conv = ClassifyPredefinedConversion(srcUnderlying, destination, useSiteInfo)
-                    Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
+                    Debug.Assert(Not ConversionExists(conv) OrElse (conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
 
                     If ConversionExists(conv) Then
                         'From a type S? to a type T, where there is a conversion from the type S to the type T.
@@ -3549,7 +3550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim conv = ClassifyPredefinedConversion(source, dstUnderlying, useSiteInfo)
                 Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
-                Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
+                Debug.Assert(Not ConversionExists(conv) OrElse (conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
 
                 If IsWideningConversion(conv) Then
                     'From a type T to a type S?, where there is a widening conversion from the type T to the type S.

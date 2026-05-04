@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup;
 [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService) : AbstractCodeCleanupService(codeFixService, diagnosticAnalyzerService)
+internal sealed class CSharpCodeCleanupService(ICodeFixService codeFixService)
+    : AbstractCodeCleanupService(codeFixService)
 {
     /// <summary>
     /// Maps format document code cleanup options to DiagnosticId[]
@@ -36,7 +37,7 @@ internal class CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnos
                 IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
                 IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId),
             new DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
-                IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId),
+                IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId),
             new DiagnosticSet(FeaturesResources.Apply_coalesce_expression_preferences,
                 IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId),
             new DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,
@@ -166,8 +167,15 @@ internal class CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnos
                 CSharpRemoveUnusedVariableCodeFixProvider.CS0219),
             new DiagnosticSet(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive,
                 IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
-                IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId)
-,
+                IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId),
+            new DiagnosticSet(CSharpFeaturesResources.Apply_collection_expression_preferences,
+                IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForNewDiagnosticId),
         ];
 
     protected override string OrganizeImportsDescription

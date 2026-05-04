@@ -7,13 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class StackAllocKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class StackAllocKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.StackAllocKeyword)
 {
-    public StackAllocKeywordRecommender()
-        : base(SyntaxKind.StackAllocKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         // Beginning with C# 8.0, stackalloc expression can be used inside other expressions

@@ -13,54 +13,58 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
 public sealed partial class MergeNestedIfStatementsTests
 {
     [Fact]
-    public async Task MergedOnOuterIf()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [||]if (a)
-        {
-            if (b)
+    public Task MergedOnOuterIf()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    [||]if (a)
+                    {
+                        if (b)
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-    }
-}");
-    }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55563")]
-    public async Task MergedOnOuterIf_TopLevelStatements()
-    {
-        await TestInRegularAndScriptAsync(
-@"var a = true;
-var b = true;
+    public Task MergedOnOuterIf_TopLevelStatements()
+        => TestInRegularAndScriptAsync(
+            """
+            var a = true;
+            var b = true;
 
-[||]if (a)
-{
-    if (b)
-    {
-    }
-}
-",
-@"var a = true;
-var b = true;
+            [||]if (a)
+            {
+                if (b)
+                {
+                }
+            }
 
-if (a && b)
-{
-}
-");
-    }
+            """,
+            """
+            var a = true;
+            var b = true;
+
+            if (a && b)
+            {
+            }
+
+            """);
 
     [Theory]
     [InlineData("[||]else if (a)")]
@@ -74,199 +78,209 @@ if (a && b)
     [InlineData("else [|if|] (a)")]
     [InlineData("else [|if (a)|]")]
     [InlineData("[|else if (a)|]")]
-    public async Task MergedOnOuterElseIfSpans(string elseIfLine)
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        " + elseIfLine + @"
-        {
-            if (b)
+    public Task MergedOnOuterElseIfSpans(string elseIfLine)
+        => TestInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    
+            """ + elseIfLine + """
+
+                    {
+                        if (b)
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        else if (a && b)
-        {
-        }
-    }
-}");
-    }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    else if (a && b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task MergedOnOuterElseIfExtendedHeaderSelection()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-[|        else if (a)
-|]        {
-            if (b)
+    public Task MergedOnOuterElseIfExtendedHeaderSelection()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+            [|        else if (a)
+            |]        {
+                        if (b)
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        else if (a && b)
-        {
-        }
-    }
-}");
-    }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    else if (a && b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task MergedOnOuterElseIfFullSelection()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-[|        else if (a)
-        {
-            if (b)
+    public Task MergedOnOuterElseIfFullSelection()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+            [|        else if (a)
+                    {
+                        if (b)
+                        {
+                        }
+                    }
+            |]    }
             }
-        }
-|]    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        else if (a && b)
-        {
-        }
-    }
-}");
-    }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    else if (a && b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task MergedOnOuterElseIfFullSelectionWithElseClause()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        [|else if (a)
-        {
-            if (b)
+    public Task MergedOnOuterElseIfFullSelectionWithElseClause()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    [|else if (a)
+                    {
+                        if (b)
+                        {
+                        }
+                        else
+                        {
+                        }
+                    }
+                    else
+                    {
+                    }|]
+                }
             }
-            else
+            """,
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    else if (a && b)
+                    {
+                    }
+                    else
+                    {
+                    }
+                }
             }
-        }
-        else
-        {
-        }|]
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        else if (a && b)
-        {
-        }
-        else
-        {
-        }
-    }
-}");
-    }
+            """);
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfFullSelectionWithoutElseClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        [|else if (a)
-        {
-            if (b)
+    public Task NotMergedOnOuterElseIfFullSelectionWithoutElseClause()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    [|else if (a)
+                    {
+                        if (b)
+                        {
+                        }
+                        else
+                        {
+                        }
+                    }|]
+                    else
+                    {
+                    }
+                }
             }
-            else
-            {
-            }
-        }|]
-        else
-        {
-        }
-    }
-}");
-    }
+            """);
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfFullSelectionWithParentIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [|if (true)
-        {
-        }
-        else if (a)
-        {
-            if (b)
+    public Task NotMergedOnOuterElseIfFullSelectionWithParentIf()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    [|if (true)
+                    {
+                    }
+                    else if (a)
+                    {
+                        if (b)
+                        {
+                        }
+                        else
+                        {
+                        }
+                    }
+                    else
+                    {
+                    }|]
+                }
             }
-            else
-            {
-            }
-        }
-        else
-        {
-        }|]
-    }
-}");
-    }
+            """);
 
     [Theory]
     [InlineData("else if ([||]a)")]
@@ -279,268 +293,273 @@ if (a && b)
     [InlineData("else if (a[|)|]")]
     [InlineData("else if ([|a|])")]
     [InlineData("else if [|(a)|]")]
-    public async Task NotMergedOnOuterElseIfSpans(string elseIfLine)
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        " + elseIfLine + @"
-        {
-            if (b)
+    public Task NotMergedOnOuterElseIfSpans(string elseIfLine)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    
+            """ + elseIfLine + """
+
+                    {
+                        if (b)
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-    }
+            """);
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfOverreachingSelection1()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        [|else if (a)
-        |]{
-            if (b)
+    public Task NotMergedOnOuterElseIfOverreachingSelection1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    [|else if (a)
+                    |]{
+                        if (b)
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-    }
+            """);
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfOverreachingSelection2()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        [|else if (a)
-        {|]
-            if (b)
+    public Task NotMergedOnOuterElseIfOverreachingSelection2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    [|else if (a)
+                    {|]
+                        if (b)
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-    }
+            """);
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfBodySelection()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        else if (a)
-        [|{
-            if (b)
+    public Task NotMergedOnOuterElseIfBodySelection()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    else if (a)
+                    [|{
+                        if (b)
+                        {
+                        }
+                    }|]
+                }
             }
-        }|]
-    }
-}");
-    }
+            """);
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfBodyCaret1()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        else if (a)
-        [||]{
-            if (b)
+    public Task NotMergedOnOuterElseIfBodyCaret1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    else if (a)
+                    [||]{
+                        if (b)
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-    }
+            """);
 
     [Fact]
-    public async Task NotMergedOnOuterElseIfBodyCaret2()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (true)
-        {
-        }
-        else if (a)
-        {
-            if (b)
+    public Task NotMergedOnOuterElseIfBodyCaret2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
             {
+                void M(bool a, bool b)
+                {
+                    if (true)
+                    {
+                    }
+                    else if (a)
+                    {
+                        if (b)
+                        {
+                        }
+                    }[||]
+                }
             }
-        }[||]
-    }
-}");
-    }
+            """);
 
     [Fact]
     public async Task MergedOnMiddleIfMergableWithNestedOnly()
     {
         const string Initial =
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a)
-        {
-            [||]if (b)
+            """
+            class C
             {
-                if (c)
+                void M(bool a, bool b, bool c)
                 {
-                    System.Console.WriteLine();
+                    if (a)
+                    {
+                        [||]if (b)
+                        {
+                            if (c)
+                            {
+                                System.Console.WriteLine();
+                            }
+                        }
+
+                        return;
+                    }
                 }
             }
-
-            return;
-        }
-    }
-}";
-        const string Expected =
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a)
-        {
-            if (b && c)
-            {
-                System.Console.WriteLine();
-            }
-
-            return;
-        }
-    }
-}";
-
+            """;
         await TestActionCountAsync(Initial, 1);
-        await TestInRegularAndScriptAsync(Initial, Expected);
+        await TestInRegularAndScriptAsync(Initial, """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a)
+                    {
+                        if (b && c)
+                        {
+                            System.Console.WriteLine();
+                        }
+
+                        return;
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
     public async Task MergedOnMiddleIfMergableWithOuterOnly()
     {
         const string Initial =
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a)
-        {
-            [||]if (b)
+            """
+            class C
             {
-                if (c)
+                void M(bool a, bool b, bool c)
                 {
-                    System.Console.WriteLine();
+                    if (a)
+                    {
+                        [||]if (b)
+                        {
+                            if (c)
+                            {
+                                System.Console.WriteLine();
+                            }
+
+                            return;
+                        }
+                    }
                 }
-
-                return;
             }
-        }
-    }
-}";
-        const string Expected =
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a && b)
-        {
-            if (c)
-            {
-                System.Console.WriteLine();
-            }
-
-            return;
-        }
-    }
-}";
-
+            """;
         await TestActionCountAsync(Initial, 1);
-        await TestInRegularAndScriptAsync(Initial, Expected);
+        await TestInRegularAndScriptAsync(Initial, """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a && b)
+                    {
+                        if (c)
+                        {
+                            System.Console.WriteLine();
+                        }
+
+                        return;
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
     public async Task MergedOnMiddleIfMergableWithBoth()
     {
         const string Initial =
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a)
-        {
-            [||]if (b)
+            """
+            class C
             {
-                if (c)
+                void M(bool a, bool b, bool c)
                 {
-                    System.Console.WriteLine();
+                    if (a)
+                    {
+                        [||]if (b)
+                        {
+                            if (c)
+                            {
+                                System.Console.WriteLine();
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-}";
-        const string Expected1 =
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a && b)
-        {
-            if (c)
-            {
-                System.Console.WriteLine();
-            }
-        }
-    }
-}";
-        const string Expected2 =
-@"class C
-{
-    void M(bool a, bool b, bool c)
-    {
-        if (a)
-        {
-            if (b && c)
-            {
-                System.Console.WriteLine();
-            }
-        }
-    }
-}";
-
+            """;
         await TestActionCountAsync(Initial, 2);
-        await TestInRegularAndScriptAsync(Initial, Expected1, index: 0);
-        await TestInRegularAndScriptAsync(Initial, Expected2, index: 1);
+        await TestInRegularAndScriptAsync(Initial, """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a && b)
+                    {
+                        if (c)
+                        {
+                            System.Console.WriteLine();
+                        }
+                    }
+                }
+            }
+            """, index: 0);
+        await TestInRegularAndScriptAsync(Initial, """
+            class C
+            {
+                void M(bool a, bool b, bool c)
+                {
+                    if (a)
+                    {
+                        if (b && c)
+                        {
+                            System.Console.WriteLine();
+                        }
+                    }
+                }
+            }
+            """, index: 1);
     }
 }

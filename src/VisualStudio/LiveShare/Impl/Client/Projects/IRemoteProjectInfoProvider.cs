@@ -9,10 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
+
+internal interface IRemoteProjectInfoProvider
 {
-    internal interface IRemoteProjectInfoProvider
-    {
-        Task<ImmutableArray<ProjectInfo>> GetRemoteProjectInfosAsync(CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<ProjectInfo>> GetRemoteProjectInfosAsync(CancellationToken cancellationToken);
 }

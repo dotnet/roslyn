@@ -5,6 +5,7 @@
 Imports System.Globalization
 Imports System.Text
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -2726,7 +2727,35 @@ End Class
             Dim result = cu2.ToFullString()
 
             Assert.Equal(expected, result)
+        End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")>
+        Public Sub TestRemove_KeepUnbalancedDirectives_Indented()
+            Dim text = <![CDATA[
+Class C
+    #Region "A Region"
+    Sub Goo()
+    End Sub
+    #End Region
+End Class
+]]>.Value.Replace(vbLf, vbCrLf)
+
+            Dim expected = <![CDATA[
+Class C
+
+    #Region "A Region"
+    #End Region
+End Class
+]]>.Value.Replace(vbLf, vbCrLf)
+
+            Dim cu = SyntaxFactory.ParseCompilationUnit(text)
+            Dim n = cu.DescendantTokens().Where(Function(t) t.ToString() = "Goo").Select(Function(t) t.Parent.FirstAncestorOrSelf(Of MethodBlockSyntax)()).FirstOrDefault()
+
+            Dim cu2 = cu.RemoveNode(n, SyntaxRemoveOptions.KeepUnbalancedDirectives)
+
+            Dim result = cu2.ToFullString()
+
+            Assert.Equal(expected, result)
         End Sub
 
         <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
@@ -3458,10 +3487,10 @@ End Module
             Assert.Equal(Obj1, obj3)
             Assert.NotEqual(Obj1, Obj2)
             If Obj1 = Obj2 Then
-                Assert.True(False, "GlobalImports equal Failure")
+                Assert.Fail("GlobalImports equal Failure")
             End If
             If Obj1 <> obj3 Then
-                Assert.True(False, "GlobalImports Not equal Failure")
+                Assert.Fail("GlobalImports Not equal Failure")
             End If
         End Sub
 

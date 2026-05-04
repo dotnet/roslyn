@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching;
 /// <summary>
 /// Use this attribute to export a <see cref="IEmbeddedLanguageBraceMatcher"/>.
 /// </summary>
-internal class ExportEmbeddedLanguageBraceMatcherAttribute(
+internal sealed class ExportEmbeddedLanguageBraceMatcherAttribute(
     string name, string[] languages, bool supportsUnannotatedAPIs, params string[] identifiers) : ExportEmbeddedLanguageFeatureServiceAttribute(typeof(IEmbeddedLanguageBraceMatcher), name, languages, supportsUnannotatedAPIs, identifiers)
 {
     public ExportEmbeddedLanguageBraceMatcherAttribute(

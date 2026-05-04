@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -41,10 +42,10 @@ internal sealed class RemoteNavigateToSearchService(
         // pulled over from the host side to the remote side.  Once this completes, the next
         // call to SearchFullyLoadedDocumentAsync or SearchFullyLoadedProjectAsync will be
         // quick as very little will need to by sync'ed over.
-        return RunServiceAsync(solutionChecksum, solution => ValueTaskFactory.CompletedTask, cancellationToken);
+        return RunServiceAsync(solutionChecksum, solution => ValueTask.CompletedTask, cancellationToken);
     }
 
-    public ValueTask SearchDocumentAsync(
+    public ValueTask SearchDocumentAndRelatedDocumentsAsync(
         Checksum solutionChecksum,
         DocumentId documentId,
         string searchPattern,
@@ -57,7 +58,7 @@ internal sealed class RemoteNavigateToSearchService(
             var document = solution.GetRequiredDocument(documentId);
             var (onItemsFound, onProjectCompleted) = GetCallbacks(callbackId, cancellationToken);
 
-            await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+            await AbstractNavigateToSearchService.SearchDocumentAndRelatedDocumentsInCurrentProcessAsync(
                 document, searchPattern, kinds.ToImmutableHashSet(), onItemsFound, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }

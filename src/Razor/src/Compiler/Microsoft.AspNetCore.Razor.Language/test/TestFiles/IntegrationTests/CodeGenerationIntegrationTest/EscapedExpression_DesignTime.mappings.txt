@@ -1,0 +1,20 @@
+﻿Source Location: (14:0,14 [17] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
+|"*, TestAssembly"|
+Generated Location: (1733:32,37 [17] )
+|"*, TestAssembly"|
+
+Source Location: (48:2,13 [18] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
+|new string("1, 2")|
+Generated Location: (2341:50,27 [18] )
+|new string("1, 2")|
+
+Source Location: (84:3,12 [18] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
+|new string("1, 2")|
+Generated Location: (2702:59,27 [18] )
+|new string("1, 2")|
+
+Source Location: (120:4,12 [24] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedExpression.cshtml)
+|"0" + new @String("1 2")|
+Generated Location: (3063:68,27 [24] )
+|"0" + new @String("1 2")|
+

@@ -29,11 +29,13 @@ public class BasicWinForms : AbstractEditorTest
     {
         var project = ProjectName;
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.vb", HangMitigatingCancellationToken);
-        await SetUpEditorAsync(@"Public Class Form1
-    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Public Class Form1
+                Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("My.", HangMitigatingCancellationToken);
 
         var completionItems = (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).SelectAsArray(item => item.DisplayText);
@@ -67,7 +69,9 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.CloseDesignerFileAsync(project, "Form1.vb", saveFile: true, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.vb", HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"Me.SomeButton.Name = ""SomeButton""", actualText);
+        Assert.Contains("""
+            Me.SomeButton.Name = "SomeButton"
+            """, actualText);
         Assert.Contains(@"Friend WithEvents SomeButton As Button", actualText);
     }
 
@@ -83,7 +87,9 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.CloseDesignerFileAsync(project, "Form1.vb", saveFile: true, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.vb", HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"Me.SomeButton.Text = ""NewButtonText""", actualText);
+        Assert.Contains("""
+            Me.SomeButton.Text = "NewButtonText"
+            """, actualText);
     }
 
     [IdeFact]
@@ -103,10 +109,16 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.vb", HangMitigatingCancellationToken);
         //  Verify that the control's property was set correctly. The following text should appear in InitializeComponent().
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"Me.SomeButton.Text = ""ButtonTextGoesHere""", actualText);
+        Assert.Contains("""
+            Me.SomeButton.Text = "ButtonTextGoesHere"
+            """, actualText);
         //  Replace text property with something else
-        await TestServices.Editor.SelectTextInCurrentDocumentAsync(@"Me.SomeButton.Text = ""ButtonTextGoesHere""", HangMitigatingCancellationToken);
-        await TestServices.Input.SendAsync(@"Me.SomeButton.Text = ""GibberishText""", HangMitigatingCancellationToken);
+        await TestServices.Editor.SelectTextInCurrentDocumentAsync("""
+            Me.SomeButton.Text = "ButtonTextGoesHere"
+            """, HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync("""
+            Me.SomeButton.Text = "GibberishText"
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.CloseCodeFileAsync(project, "Form1.Designer.vb", saveFile: true, HangMitigatingCancellationToken);
         //  Verify that the control text has changed in the designer
         await TestServices.SolutionExplorer.OpenFileWithDesignerAsync(project, "Form1.vb", HangMitigatingCancellationToken);
@@ -159,8 +171,12 @@ End Class", HangMitigatingCancellationToken);
         // Verify that the rename propagated in designer code
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.vb", HangMitigatingCancellationToken);
         var formDesignerActualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"Me.SomeNewButton.Name = ""SomeNewButton""", formDesignerActualText);
-        Assert.Contains(@"Me.SomeNewButton.Text = ""ButtonTextValue""", formDesignerActualText);
+        Assert.Contains("""
+            Me.SomeNewButton.Name = "SomeNewButton"
+            """, formDesignerActualText);
+        Assert.Contains("""
+            Me.SomeNewButton.Text = "ButtonTextValue"
+            """, formDesignerActualText);
         Assert.Contains(@"Friend WithEvents SomeNewButton As Button", formDesignerActualText);
         // Verify that the old button name goes away
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
@@ -262,7 +278,9 @@ End Class", HangMitigatingCancellationToken);
         Assert.Empty(await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken));
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.vb", HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.DoesNotContain(@"Me.SomeButton.Name = ""SomeButton""", actualText);
+        Assert.DoesNotContain("""
+            Me.SomeButton.Name = "SomeButton"
+            """, actualText);
         Assert.DoesNotContain(@"Friend WithEvents SomeButton As Button", actualText);
     }
 }

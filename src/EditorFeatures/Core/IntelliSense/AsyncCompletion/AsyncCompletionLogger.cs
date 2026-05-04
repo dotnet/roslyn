@@ -76,7 +76,7 @@ internal static class AsyncCompletionLogger
 
     internal static void ReportTelemetry()
     {
-        Logger.Log(FunctionId.Intellisense_AsyncCompletion_Data, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.Intellisense_AsyncCompletion_Data, KeyValueLogMessage.Create(static m =>
         {
             foreach (var kv in s_statisticLogAggregator)
             {

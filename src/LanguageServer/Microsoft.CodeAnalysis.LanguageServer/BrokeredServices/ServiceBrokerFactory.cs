@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
-using Roslyn.Utilities;
 using ExportProvider = Microsoft.VisualStudio.Composition.ExportProvider;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
@@ -26,29 +25,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 /// </remarks>
 #pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [Export]
-internal class ServiceBrokerFactory
+internal sealed class ServiceBrokerFactory
 {
     private BrokeredServiceContainer? _container;
     private readonly ExportProvider _exportProvider;
+    private readonly WrappedServiceBroker _wrappedServiceBroker;
     private Task _bridgeCompletionTask;
-    private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-    private readonly ImmutableArray<IOnServiceBrokerInitialized> _onServiceBrokerInitialized;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly ImmutableArray<IServiceBrokerInitializer> _serviceBrokerInitializers;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ServiceBrokerFactory([ImportMany] IEnumerable<IOnServiceBrokerInitialized> onServiceBrokerInitialized,
-        ExportProvider exportProvider)
+    public ServiceBrokerFactory([ImportMany] IEnumerable<IServiceBrokerInitializer> onServiceBrokerInitialized,
+        ExportProvider exportProvider,
+        WrappedServiceBroker wrappedServiceBroker)
     {
         _exportProvider = exportProvider;
         _bridgeCompletionTask = Task.CompletedTask;
-        _onServiceBrokerInitialized = onServiceBrokerInitialized.ToImmutableArray();
+        _serviceBrokerInitializers = [.. onServiceBrokerInitialized];
+        _wrappedServiceBroker = wrappedServiceBroker;
     }
-
-    /// <summary>
-    /// Returns a full-access service broker, but will throw if we haven't yet connected to the Dev Kit broker.
-    /// </summary>
-    [Export(typeof(SVsFullAccessServiceBroker))]
-    public IServiceBroker FullAccessServiceBroker => this.GetRequiredServiceBrokerContainer().GetFullAccessServiceBroker();
 
     /// <summary>
     /// Returns a full-access service broker, but will return null if we haven't yet connected to the Dev Kit broker.
@@ -68,13 +64,14 @@ internal class ServiceBrokerFactory
     {
         Contract.ThrowIfFalse(_container == null, "We should only create one container.");
 
-        _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
+        _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _serviceBrokerInitializers, _cancellationTokenSource.Token);
+        _wrappedServiceBroker.SetServiceBroker(_container.GetFullAccessServiceBroker());
 
-        foreach (var onInitialized in _onServiceBrokerInitialized)
+        foreach (var onInitialized in _serviceBrokerInitializers)
         {
             try
             {
-                onInitialized.OnServiceBrokerInitialized(_container.GetFullAccessServiceBroker());
+                onInitialized.OnServiceBrokerInitialized(_container.GetFullAccessServiceBroker(), _cancellationTokenSource.Token);
             }
             catch (Exception)
             {
@@ -90,13 +87,19 @@ internal class ServiceBrokerFactory
         _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, _container!, _cancellationTokenSource.Token);
     }
 
-    public Task ShutdownAndWaitForCompletionAsync()
+    public async Task ShutdownAndWaitForCompletionAsync()
     {
         _cancellationTokenSource.Cancel();
 
-        // Return the task we created when we created the bridge; if we never started it in the first place, we'll just return the
+        // Await the task we created when we created the bridge; if we never started it in the first place, we'll just return the
         // completed task set in the constructor, so the waiter no-ops.
-        return _bridgeCompletionTask;
+        try
+        {
+            await _bridgeCompletionTask;
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during shutdown, swallow.
+        }
     }
 }
-#pragma warning restore RS0030 // Do not used banned APIs

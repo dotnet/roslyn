@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -190,7 +189,7 @@ internal static class ContainedLanguageCodeSupport
         var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
             attributes: default,
             accessibility: Accessibility.Protected,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
             refKind: RefKind.None,
             explicitInterfaceImplementations: default,
@@ -330,7 +329,7 @@ internal static class ContainedLanguageCodeSupport
             var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, options, newName, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
 
-            var undoTitle = string.Format(EditorFeaturesResources.Rename_0_to_1, symbol.Name, newName);
+            var undoTitle = string.Format(WorkspacesResources.Rename_0_to_1, symbol.Name, newName);
             using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(undoTitle))
             {
                 // Notify third parties about the coming rename operation on the workspace, and let

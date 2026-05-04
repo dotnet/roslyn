@@ -1280,7 +1280,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     || slot.operationOpt.Kind == OperationKind.FlowCaptureReference
                     || slot.operationOpt.Kind == OperationKind.DeclarationExpression
                     || slot.operationOpt.Kind == OperationKind.Discard
-                    || slot.operationOpt.Kind == OperationKind.OmittedArgument));
+                    || slot.operationOpt.Kind == OperationKind.OmittedArgument
+                    || slot.operationOpt.Kind == OperationKind.CollectionExpressionElementsPlaceholder));
 #endif
             if (statement == null)
             {
@@ -1536,51 +1537,57 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             if (operation == _currentStatement)
             {
-                if (operation.WhenFalse == null)
-                {
-                    // if (condition)
-                    //   consequence;
-                    //
-                    // becomes
-                    //
-                    // GotoIfFalse condition afterif;
-                    // consequence;
-                    // afterif:
+                // if (condition)
+                //   consequence;
+                //
+                // becomes
+                //
+                // GotoIfFalse condition afterif;
+                // consequence;
+                // afterif:
 
-                    BasicBlockBuilder? afterIf = null;
-                    VisitConditionalBranch(operation.Condition, ref afterIf, jumpIfTrue: false);
-                    VisitStatement(operation.WhenTrue);
-                    AppendNewBlock(afterIf);
-                }
-                else
-                {
-                    // if (condition)
-                    //     consequence;
-                    // else
-                    //     alternative
-                    //
-                    // becomes
-                    //
-                    // GotoIfFalse condition alt;
-                    // consequence
-                    // goto afterif;
-                    // alt:
-                    // alternative;
-                    // afterif:
+                // if (condition)
+                //     consequence;
+                // else
+                //     alternative
+                //
+                // becomes
+                //
+                // GotoIfFalse condition alt;
+                // consequence
+                // goto afterif;
+                // alt:
+                // alternative;
+                // afterif:
 
+                var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
+
+                while (true)
+                {
                     BasicBlockBuilder? whenFalse = null;
                     VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
-
+                    Debug.Assert(whenFalse is { });
                     VisitStatement(operation.WhenTrue);
-
-                    var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                     UnconditionalBranch(afterIf);
 
                     AppendNewBlock(whenFalse);
-                    VisitStatement(operation.WhenFalse);
 
-                    AppendNewBlock(afterIf);
+                    if (operation.WhenFalse is IConditionalOperation nested)
+                    {
+                        operation = nested;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+
+                if (operation.WhenFalse is not null)
+                {
+                    VisitStatement(operation.WhenFalse);
+                }
+
+                AppendNewBlock(afterIf);
 
                 return null;
             }
@@ -1843,7 +1850,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 if (operationOpt.Kind != OperationKind.FlowCaptureReference
                     && operationOpt.Kind != OperationKind.DeclarationExpression
                     && operationOpt.Kind != OperationKind.Discard
-                    && operationOpt.Kind != OperationKind.OmittedArgument)
+                    && operationOpt.Kind != OperationKind.OmittedArgument
+                    && operationOpt.Kind != OperationKind.CollectionExpressionElementsPlaceholder)
                 {
                     // Here we need to decide what region should own the new capture. Due to the spilling operations occurred before,
                     // we currently might be in a region that is not associated with the stack frame we are in, but it is one of its
@@ -2684,7 +2692,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 AppendNewBlock(lazyFallThrough);
 
                 var constantValue = ConstantValue.Create(stopValue);
-                SyntaxNode leftSyntax = (lazyFallThrough!.GetSingletonPredecessorOrDefault() != null ? condition.LeftOperand : condition).Syntax;
+                SyntaxNode leftSyntax = (lazyFallThrough.GetSingletonPredecessorOrDefault() != null ? condition.LeftOperand : condition).Syntax;
                 AddStatement(new FlowCaptureOperation(captureId, leftSyntax, new LiteralOperation(semanticModel: null, leftSyntax, condition.Type, constantValue, isImplicit: true)));
 
                 AppendNewBlock(labEnd);
@@ -6536,6 +6544,23 @@ oneMoreTime:
         public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
+
+            if (operation.ConstructArguments.Any(a => a is IArgumentOperation) && !operation.ConstructArguments.All(a => a is IArgumentOperation))
+                throw ExceptionUtilities.UnexpectedValue("Mixed argument operations and non-argument operations in ConstructArguments");
+
+            // If we bound successfully, we'll have an array of IArgumentOperation.  We want to call through to
+            // VisitArguments to handle it properly.  So attempt to cast to that type first, but fallback to just
+            // visiting the array of expressions if we didn't bind successfully.
+            var arguments = operation.ConstructArguments.As<IArgumentOperation>();
+            if (arguments.IsDefault)
+            {
+                VisitAndPushArray(operation.ConstructArguments);
+            }
+            else
+            {
+                VisitAndPushArguments(arguments, instancePushed: false);
+            }
+
             var elements = VisitArray(
                 operation.Elements,
                 unwrapper: static (IOperation element) =>
@@ -6556,14 +6581,19 @@ oneMoreTime:
                             IsImplicit(spread)) :
                         operation;
                 });
-            PopStackFrame(frame);
-            return new CollectionExpressionOperation(
+
+            var creationArguments = arguments.IsDefault
+                ? PopArray(operation.ConstructArguments)
+                : ImmutableArray<IOperation>.CastUp(PopArray(arguments, RewriteArgumentFromArray));
+
+            return PopStackFrame(frame, new CollectionExpressionOperation(
                 operation.ConstructMethod,
+                creationArguments,
                 elements,
                 semanticModel: null,
                 operation.Syntax,
                 operation.Type,
-                IsImplicit(operation));
+                IsImplicit(operation)));
         }
 
         public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
@@ -6966,8 +6996,10 @@ oneMoreTime:
 
                 case InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver:
                     AssertContainingContextIsForThisCreation(operation, assertArgumentContext: true);
-                    Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
-                    if (_currentInterpolatedStringHandlerArgumentContext.HasReceiver && tryGetArgumentOrReceiver(-1) is IOperation receiverCapture)
+                    // Context may be null in error scenarios (for example, indexer with no setter in object initializer)
+                    if (_currentInterpolatedStringHandlerArgumentContext != null &&
+                        _currentInterpolatedStringHandlerArgumentContext.HasReceiver &&
+                        tryGetArgumentOrReceiver(-1) is IOperation receiverCapture)
                     {
                         Debug.Assert(receiverCapture is IFlowCaptureReferenceOperation);
                         return OperationCloner.CloneOperation(receiverCapture);
@@ -6979,8 +7011,9 @@ oneMoreTime:
 
                 case InterpolatedStringArgumentPlaceholderKind.CallsiteArgument:
                     AssertContainingContextIsForThisCreation(operation, assertArgumentContext: true);
-                    Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
-                    if (tryGetArgumentOrReceiver(operation.ArgumentIndex) is IOperation argumentCapture)
+                    // Context may be null in error scenarios (for example, indexer with no setter in object initializer)
+                    if (_currentInterpolatedStringHandlerArgumentContext != null &&
+                        tryGetArgumentOrReceiver(operation.ArgumentIndex) is IOperation argumentCapture)
                     {
                         Debug.Assert(argumentCapture is IFlowCaptureReferenceOperation or IDiscardOperation);
                         return OperationCloner.CloneOperation(argumentCapture);
@@ -7413,6 +7446,12 @@ oneMoreTime:
             return new PlaceholderOperation(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
+        public override IOperation? VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation, int? argument)
+        {
+            // Leave collection builder element placeholder alone. It itself doesn't affect flow control.
+            return new CollectionExpressionElementsPlaceholderOperation(semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
+        }
+
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
         {
             return new ConversionOperation(VisitRequired(operation.Operand), ((ConversionOperation)operation).ConversionConvertible, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
@@ -7559,15 +7598,43 @@ oneMoreTime:
 
         public override IOperation VisitBinaryPattern(IBinaryPatternOperation operation, int? argument)
         {
-            return new BinaryPatternOperation(
-                operatorKind: operation.OperatorKind,
-                leftPattern: (IPatternOperation)VisitRequired(operation.LeftPattern),
-                rightPattern: (IPatternOperation)VisitRequired(operation.RightPattern),
-                inputType: operation.InputType,
-                narrowedType: operation.NarrowedType,
-                semanticModel: null,
-                syntax: operation.Syntax,
-                isImplicit: IsImplicit(operation));
+            if (operation.LeftPattern is not IBinaryPatternOperation)
+            {
+                return createOperation(this, operation, (IPatternOperation)VisitRequired(operation.LeftPattern));
+            }
+
+            // Use a manual stack to avoid overflowing on deeply-nested binary patterns
+            var stack = ArrayBuilder<IBinaryPatternOperation>.GetInstance();
+            IBinaryPatternOperation? current = operation;
+
+            do
+            {
+                stack.Push(current);
+                current = current.LeftPattern as IBinaryPatternOperation;
+            } while (current != null);
+
+            current = stack.Pop();
+            var result = (IPatternOperation)VisitRequired(current.LeftPattern);
+            do
+            {
+                result = createOperation(this, current, result);
+            } while (stack.TryPop(out current));
+
+            stack.Free();
+            return result;
+
+            static BinaryPatternOperation createOperation(ControlFlowGraphBuilder @this, IBinaryPatternOperation operation, IPatternOperation left)
+            {
+                return new BinaryPatternOperation(
+                            operatorKind: operation.OperatorKind,
+                            leftPattern: left,
+                            rightPattern: (IPatternOperation)@this.VisitRequired(operation.RightPattern),
+                            inputType: operation.InputType,
+                            narrowedType: operation.NarrowedType,
+                            semanticModel: null,
+                            syntax: operation.Syntax,
+                            isImplicit: @this.IsImplicit(operation));
+            }
         }
 
         public override IOperation VisitNegatedPattern(INegatedPatternOperation operation, int? argument)

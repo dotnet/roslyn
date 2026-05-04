@@ -683,7 +683,7 @@ class Test
                     AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
                     AssertHasCompilerFeatureRequired(includeCompilerFeatureRequired, peType, peModule, new MetadataDecoder(peModule));
                 }
-            };
+            }
 
             CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, verify: Verification.Passes, symbolValidator: validate, sourceSymbolValidator: validate);
         }

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseIsNullCheck;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck;
 
@@ -34,7 +33,7 @@ internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvi
     private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
         => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.CastAndEqualityKey;
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
         if (IsSupportedDiagnostic(diagnostic))
@@ -42,15 +41,11 @@ internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvi
             var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
             var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
 
-            context.RegisterCodeFix(
-                CodeAction.Create(title, GetDocumentUpdater(context), title),
-                context.Diagnostics);
+            RegisterCodeFix(context, title, title);
         }
-
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -65,8 +60,6 @@ internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvi
                 binary,
                 (current, g) => Rewrite((BinaryExpressionSyntax)current));
         }
-
-        return Task.CompletedTask;
     }
 
     private static ExpressionSyntax Rewrite(BinaryExpressionSyntax binary)

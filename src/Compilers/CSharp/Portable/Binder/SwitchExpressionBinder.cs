@@ -5,10 +5,10 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -31,11 +31,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundInputExpression = BindSwitchGoverningExpression(diagnostics);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = BindSwitchExpressionArms(node, originalBinder, boundInputExpression, diagnostics);
             TypeSymbol? naturalType = InferResultType(switchArms, diagnostics);
-            bool reportedNotExhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol? defaultLabel, diagnostics);
+
+            bool reportedNotExhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms,
+                out BoundDecisionDag decisionDag, out LabelSymbol? defaultLabel, out bool wasReported, diagnostics);
 
             // When the input is constant, we use that to reshape the decision dag that is returned
             // so that flow analysis will see that some of the cases may be unreachable.
             decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundInputExpression);
+
+            if (!wasReported && diagnostics.AccumulatesDiagnostics && DecisionDagBuilder.EnableRedundantPatternsCheck(this.Compilation))
+            {
+                DecisionDagBuilder.CheckRedundantPatternsForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, diagnostics);
+            }
 
             return new BoundUnconvertedSwitchExpression(
                 node, boundInputExpression, switchArms, decisionDag,
@@ -57,8 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             out BoundDecisionDag decisionDag,
             [NotNullWhen(true)] out LabelSymbol? defaultLabel,
+            out bool wasReported,
             BindingDiagnosticBag diagnostics)
         {
+            wasReported = false;
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
             var reachableLabels = decisionDag.ReachableLabels;
@@ -69,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors && !reachableLabels.Contains(arm.Label))
                 {
                     diagnostics.Add(ErrorCode.ERR_SwitchArmSubsumed, arm.Pattern.Syntax.Location);
+                    wasReported = true;
                 }
             }
 
@@ -102,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         warningCode,
                         node.SwitchKeyword.GetLocation(),
                         samplePattern);
+                    wasReported = true;
                     return true;
                 }
             }

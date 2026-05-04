@@ -26,11 +26,13 @@ public class BasicChangeSignatureDialog : AbstractEditorTest
     [IdeFact]
     public async Task VerifyCodeRefactoringOffered()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Method$$(a As Integer, b As Integer)
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class C
+                Sub Method$$(a As Integer, b As Integer)
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Change signature...", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
@@ -39,32 +41,38 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task VerifyRefactoringCancelled()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Method$$(a As Integer, b As String)
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class C
+                Sub Method$$(a As Integer, b As String)
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.ChangeSignatureDialog.InvokeAsync(HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.ClickCancelAsync(HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"
-Class C
-    Sub Method(a As Integer, b As String)
-    End Sub
-End Class", actualText);
+        Assert.Contains("""
+
+            Class C
+                Sub Method(a As Integer, b As String)
+                End Sub
+            End Class
+            """, actualText);
     }
 
     [IdeFact]
     public async Task VerifyReorderParameters()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Method$$(a As Integer, b As String)
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class C
+                Sub Method$$(a As Integer, b As String)
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.ChangeSignatureDialog.InvokeAsync(HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
@@ -73,44 +81,49 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.ClickOKAsync(HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"
-Class C
-    Sub Method(b As String, a As Integer)
-    End Sub
-End Class", actualText);
+        Assert.Contains("""
+
+            Class C
+                Sub Method(b As String, a As Integer)
+                End Sub
+            End Class
+            """, actualText);
     }
 
     [IdeFact]
     public async Task VerifyReorderAndRemoveParametersAcrossLanguages()
     {
-        await SetUpEditorAsync(@"
-Class VBTest
-    Sub TestMethod()
-        Dim x As New CSharpClass
-        x.Method$$(0, ""str"", 3.0)
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class VBTest
+                Sub TestMethod()
+                    Dim x As New CSharpClass
+                    x.Method$$(0, "str", 3.0)
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
         var csharpProject = "CSharpProject";
         await TestServices.SolutionExplorer.AddProjectAsync(csharpProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
-        await TestServices.Editor.SetTextAsync(@"
-public class CSharpClass
-{
-    /// <summary>
-    /// A method in CSharp.
-    /// </summary>
-    /// <param name=""a"">parameter a</param>
-    /// <param name=""b"">parameter b</param>
-    /// <param name=""c"">parameter c</param>
-    /// <returns>One</returns>
-    public int Method(int a, string b, double c)
-    {
-        return 1;
-    }
-}", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            public class CSharpClass
+            {
+                /// <summary>
+                /// A method in CSharp.
+                /// </summary>
+                /// <param name="a">parameter a</param>
+                /// <param name="b">parameter b</param>
+                /// <param name="c">parameter c</param>
+                /// <returns>One</returns>
+                public int Method(int a, string b, double c)
+                {
+                    return 1;
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
         var project = ProjectName;
-        var csharpProjectReference = "CSharpProject";
-        await TestServices.SolutionExplorer.AddProjectReferenceAsync(project, csharpProjectReference, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectReferenceAsync(project, "CSharpProject", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.vb", HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
@@ -132,35 +145,38 @@ public class CSharpClass
         Assert.Contains(@"x.Method(""str"")", actualText);
         await TestServices.SolutionExplorer.OpenFileAsync(csharpProject, "Class1.cs", HangMitigatingCancellationToken);
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        var expectedText = @"
-public class CSharpClass
-{
-    /// <summary>
-    /// A method in CSharp.
-    /// </summary>
-    /// <param name=""b"">parameter b</param>
-    /// 
-    /// 
-    /// <returns>One</returns>
-    public int Method(string b)
-    {
-        return 1;
-    }
-}";
-        Assert.Contains(expectedText, actualText);
+        Assert.Contains("""
+
+            public class CSharpClass
+            {
+                /// <summary>
+                /// A method in CSharp.
+                /// </summary>
+                /// <param name="b">parameter b</param>
+                /// 
+                /// 
+                /// <returns>One</returns>
+                public int Method(string b)
+                {
+                    return 1;
+                }
+            }
+            """, actualText);
     }
 
     [IdeFact]
     public async Task VerifyAddParameter()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Method$$(a As Integer, b As String)
-    End Sub
-    Sub NewMethod()
-        Method(1, ""stringB"")
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class C
+                Sub Method$$(a As Integer, b As String)
+                End Sub
+                Sub NewMethod()
+                    Method(1, "stringB")
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.ChangeSignatureDialog.InvokeAsync(HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
@@ -210,24 +226,28 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.ClickOKAsync(HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"
-Class C
-    Sub Method(a As Integer, d As Integer, b As String, c As String)
-    End Sub
-    Sub NewMethod()
-        Method(1, 3, ""stringB"", TODO)
-    End Sub
-End Class", actualText);
+        Assert.Contains("""
+
+            Class C
+                Sub Method(a As Integer, d As Integer, b As String, c As String)
+                End Sub
+                Sub NewMethod()
+                    Method(1, 3, "stringB", TODO)
+                End Sub
+            End Class
+            """, actualText);
     }
 
     [IdeFact]
     public async Task VerifyAddParameterRefactoringCancelled()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Method$$(a As Integer, b As String)
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class C
+                Sub Method$$(a As Integer, b As String)
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.ChangeSignatureDialog.InvokeAsync(HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
@@ -241,37 +261,42 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.ClickCancelAsync(HangMitigatingCancellationToken);
         await TestServices.ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"
-Class C
-    Sub Method(a As Integer, b As String)
-    End Sub
-End Class", actualText);
+        Assert.Contains("""
+
+            Class C
+                Sub Method(a As Integer, b As String)
+                End Sub
+            End Class
+            """, actualText);
     }
 
     [IdeFact]
     public async Task VerifyAddParametersAcrossLanguages()
     {
-        await SetUpEditorAsync(@"
-Class VBTest
-    Sub TestMethod()
-        Dim x As New CSharpClass
-        x.Method$$(0, ""str"", 3.0)
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class VBTest
+                Sub TestMethod()
+                    Dim x As New CSharpClass
+                    x.Method$$(0, "str", 3.0)
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
         var csharpProject = "CSharpProject";
         await TestServices.SolutionExplorer.AddProjectAsync(csharpProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
-        await TestServices.Editor.SetTextAsync(@"
-public class CSharpClass
-{
-    public int Method(int a, string b, double c)
-    {
-        return 1;
-    }
-}", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            public class CSharpClass
+            {
+                public int Method(int a, string b, double c)
+                {
+                    return 1;
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
         var project = ProjectName;
-        var csharpProjectReference = "CSharpProject";
-        await TestServices.SolutionExplorer.AddProjectReferenceAsync(project, csharpProjectReference, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectReferenceAsync(project, "CSharpProject", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.vb", HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
@@ -283,7 +308,9 @@ public class CSharpClass
         await TestServices.AddParameterDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.AddParameterDialog.FillTypeFieldAsync("string", HangMitigatingCancellationToken);
         await TestServices.AddParameterDialog.FillNameFieldAsync("d", HangMitigatingCancellationToken);
-        await TestServices.AddParameterDialog.FillCallSiteFieldAsync(@"""str2""", HangMitigatingCancellationToken);
+        await TestServices.AddParameterDialog.FillCallSiteFieldAsync("""
+            "str2"
+            """, HangMitigatingCancellationToken);
         await TestServices.AddParameterDialog.ClickOKAsync(HangMitigatingCancellationToken);
         await TestServices.AddParameterDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
@@ -293,14 +320,15 @@ public class CSharpClass
         Assert.Contains(@"x.Method(0, ""str"", 3.0, ""str2"")", actualText);
         await TestServices.SolutionExplorer.OpenFileAsync(csharpProject, "Class1.cs", HangMitigatingCancellationToken);
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        var expectedText = @"
-public class CSharpClass
-{
-    public int Method(int a, string b, double c, string d)
-    {
-        return 1;
-    }
-}";
-        Assert.Contains(expectedText, actualText);
+        Assert.Contains("""
+
+            public class CSharpClass
+            {
+                public int Method(int a, string b, double c, string d)
+                {
+                    return 1;
+                }
+            }
+            """, actualText);
     }
 }

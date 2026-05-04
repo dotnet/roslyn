@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace;
 /// </summary>
 internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvider
 {
-    private class CustomFixAllProvider : FixAllProvider
+    private sealed class CustomFixAllProvider : FixAllProvider
     {
         public static readonly CustomFixAllProvider Instance = new();
 
@@ -76,8 +76,9 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
             // the tree won't be the same.
             var documentIdToDiagnosticsMap = diagnostics
                 .GroupBy(diagnostic => diagnostic.Location.SourceTree)
-                .Where(group => group.Key is not null)
-                .SelectAsArray(group => (id: solution.GetRequiredDocument(group.Key!).Id, diagnostics: group.ToImmutableArray()));
+                .SelectAsArray(
+                    predicate: group => group.Key is not null,
+                    selector: group => (id: solution.GetRequiredDocument(group.Key!).Id, diagnostics: group.ToImmutableArray()));
 
             var newSolution = solution;
 

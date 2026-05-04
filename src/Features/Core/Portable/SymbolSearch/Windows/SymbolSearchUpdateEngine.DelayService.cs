@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
 
-internal partial class SymbolSearchUpdateEngine
+internal sealed partial class SymbolSearchUpdateEngine
 {
-    private class DelayService : IDelayService
+    private sealed class DelayService : IDelayService
     {
         public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
         public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);

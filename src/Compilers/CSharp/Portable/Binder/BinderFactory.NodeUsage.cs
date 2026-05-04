@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompilationUnitScriptUsings = 1 << 2,
 
             DocumentationCommentParameter = 1 << 0,
-            DocumentationCommentTypeParameter = 1 << 1,
-            DocumentationCommentTypeParameterReference = 1 << 2,
+            DocumentationCommentParameterReference = 1 << 1,
+            DocumentationCommentTypeParameter = 1 << 2,
+            DocumentationCommentTypeParameterReference = 1 << 3,
 
             CrefParameterOrReturnType = 1 << 0,
         }

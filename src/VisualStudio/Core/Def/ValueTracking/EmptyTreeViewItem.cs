@@ -4,7 +4,7 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
 
-internal class EmptyTreeViewItem : TreeViewItemBase
+internal sealed class EmptyTreeViewItem : TreeViewItemBase
 {
     public static EmptyTreeViewItem Instance { get; } = new();
 

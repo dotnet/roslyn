@@ -4,6 +4,7 @@
 
 Imports System.Collections.Generic
 Imports System.Diagnostics
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols

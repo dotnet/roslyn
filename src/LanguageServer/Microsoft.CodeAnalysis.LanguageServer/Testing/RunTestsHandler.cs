@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.Extensions.Logging;
 using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
-using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [Method(RunTestsMethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
+internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
 {
     private const string RunTestsMethodName = "textDocument/runTests";
@@ -50,15 +49,18 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
         // Find the appropriate vstest.console.dll from the SDK.
         var vsTestConsolePath = await dotnetCliHelper.GetVsTestConsolePathAsync(projectOutputDirectory, cancellationToken);
 
+        var dotnetRootUser = Environment.GetEnvironmentVariable("DOTNET_ROOT_USER");
+
+        var testLogPath = serverConfiguration.ExtensionLogDirectory is not null ? Path.Combine(serverConfiguration.ExtensionLogDirectory, "testLogs", "vsTestLogs.txt") : null;
         // Instantiate the test platform wrapper.
         var vsTestConsoleWrapper = new VsTestConsoleWrapper(vsTestConsolePath, new ConsoleParameters
         {
-            LogFilePath = Path.Combine(serverConfiguration.ExtensionLogDirectory, "testLogs", "vsTestLogs.txt"),
+            LogFilePath = testLogPath,
             TraceLevel = GetTraceLevel(serverConfiguration),
             EnvironmentVariables = new()
             {
                 // Reset dotnet root so that vs test console can find the right runtimes.
-                { DotnetCliHelper.DotnetRootEnvVar, string.Empty },
+                { DotnetCliHelper.DotnetRootEnvVar, string.IsNullOrEmpty(dotnetRootUser) || dotnetRootUser == "EMPTY" ? string.Empty : dotnetRootUser }
             }
         });
 
@@ -154,14 +156,15 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
 
     private static TraceLevel GetTraceLevel(ServerConfiguration serverConfiguration)
     {
-        return serverConfiguration.MinimumLogLevel switch
+        var level = serverConfiguration.LogConfiguration.GetLogLevel();
+        return level switch
         {
             Microsoft.Extensions.Logging.LogLevel.Trace or Microsoft.Extensions.Logging.LogLevel.Debug => TraceLevel.Verbose,
             Microsoft.Extensions.Logging.LogLevel.Information => TraceLevel.Info,
             Microsoft.Extensions.Logging.LogLevel.Warning => TraceLevel.Warning,
             Microsoft.Extensions.Logging.LogLevel.Error or Microsoft.Extensions.Logging.LogLevel.Critical => TraceLevel.Error,
             Microsoft.Extensions.Logging.LogLevel.None => TraceLevel.Off,
-            _ => throw new InvalidOperationException($"Unexpected log level {serverConfiguration.MinimumLogLevel}"),
+            _ => throw new InvalidOperationException($"Unexpected log level {level}"),
         };
     }
 

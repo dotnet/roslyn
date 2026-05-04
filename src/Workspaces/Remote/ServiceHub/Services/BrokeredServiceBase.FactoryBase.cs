@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Pipelines;
-using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.Remote.Host;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
 using Nerdbank.Streams;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -46,7 +44,7 @@ internal abstract partial class BrokeredServiceBase
             object? clientRpcTarget)
             => CreateService(arguments);
 
-        public Task<object> CreateAsync(
+        public async Task<object> CreateAsync(
            Stream stream,
            IServiceProvider hostProvidedServices,
            ServiceActivationOptions serviceActivationOptions,
@@ -69,11 +67,11 @@ internal abstract partial class BrokeredServiceBase
                     CultureInfo.DefaultThreadCurrentCulture = serviceActivationOptions.ClientCulture;
                 }
 
-                return Task.FromResult((object)Create(
+                return (object)Create(
                     stream.UsePipe(),
                     hostProvidedServices,
                     serviceActivationOptions,
-                    serviceBroker));
+                    serviceBroker);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
@@ -94,7 +92,7 @@ internal abstract partial class BrokeredServiceBase
         {
             // Register this service broker globally (if it's the first we encounter) so it can be used by other
             // global services that need it.
-            GlobalServiceBroker.RegisterServiceBroker(serviceBroker);
+            RemoteServiceBrokerProvider.RegisterServiceBroker(serviceBroker);
 
             var descriptor = ServiceDescriptors.Instance.GetServiceDescriptorForServiceFactory(typeof(TService));
             var serviceHubTraceSource = (TraceSource?)hostProvidedServices.GetService(typeof(TraceSource));

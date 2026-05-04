@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
 
-public class BlockSpanTests
+public sealed class BlockSpanTests
 {
     [Fact]
     public void TestProperties()

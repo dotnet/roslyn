@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -13,16 +12,15 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
-internal partial class ObjectCreationExpressionSignatureHelpProvider
+internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
 {
-    private static SignatureHelpItem ConvertNormalTypeConstructor(
+    public static SignatureHelpItem ConvertNormalTypeConstructor(
         IMethodSymbol constructor,
-        BaseObjectCreationExpressionSyntax objectCreationExpression,
+        int position,
         SemanticModel semanticModel,
         IStructuralTypeDisplayService structuralTypeDisplayService,
         IDocumentationCommentFormattingService documentationCommentFormattingService)
     {
-        var position = objectCreationExpression.SpanStart;
         var item = CreateItem(
             constructor, semanticModel, position,
             structuralTypeDisplayService,
@@ -31,7 +29,7 @@ internal partial class ObjectCreationExpressionSignatureHelpProvider
             GetNormalTypePreambleParts(constructor, semanticModel, position),
             GetSeparatorParts(),
             GetNormalTypePostambleParts(),
-            constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+            [.. constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
 
         return item;
     }

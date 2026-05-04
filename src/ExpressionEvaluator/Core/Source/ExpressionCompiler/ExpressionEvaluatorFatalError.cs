@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var hKeyCurrentUserField = registryType.GetTypeInfo().GetDeclaredField("CurrentUser");
                     if (hKeyCurrentUserField != null && hKeyCurrentUserField.IsStatic)
                     {
-                        using var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null);
+                        using var currentUserKey = (IDisposable?)hKeyCurrentUserField.GetValue(null);
+                        RoslynDebug.AssertNotNull(currentUserKey);
                         var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetDeclaredMethod("OpenSubKey", [typeof(string), typeof(bool)]);
 
                         using var eeKey = (IDisposable?)openSubKeyMethod?.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false });
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 switch (dkmException.Code)
                 {
+                    case DkmExceptionCode.E_METADATA_UPDATE_DEADLOCK: // Metadata was updated while EE had component lock
                     case DkmExceptionCode.E_PROCESS_DESTROYED:
                     case DkmExceptionCode.E_XAPI_REMOTE_CLOSED:
                     case DkmExceptionCode.E_XAPI_REMOTE_DISCONNECTED:

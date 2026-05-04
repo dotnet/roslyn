@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
-internal partial class CSharpIntroduceVariableService
+internal sealed partial class CSharpIntroduceVariableService
 {
     protected override Task<Document> IntroduceFieldAsync(
         SemanticDocument document,
@@ -28,7 +29,13 @@ internal partial class CSharpIntroduceVariableService
         bool isConstant,
         CancellationToken cancellationToken)
     {
-        var oldTypeDeclaration = expression.GetAncestorOrThis<TypeDeclarationSyntax>();
+        // Get the ancestor TypeDeclarationSyntax that is NOT an ExtensionBlockDeclarationSyntax.
+        // Extension blocks can't contain fields, so we need to find the containing class/struct.
+        //
+        // Note, this can be revised in the future as we do expect to allow constants/static in
+        // extension blocks in a future version of the language.
+        var oldTypeDeclaration = expression.GetAncestorsOrThis<TypeDeclarationSyntax>()
+            .FirstOrDefault(t => t is not ExtensionBlockDeclarationSyntax);
 
         var oldType = oldTypeDeclaration != null
             ? document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration, cancellationToken)
@@ -81,7 +88,7 @@ internal partial class CSharpIntroduceVariableService
     protected override int DetermineConstantInsertPosition(TypeDeclarationSyntax oldType, TypeDeclarationSyntax newType)
         => DetermineConstantInsertPosition(oldType.Members, newType.Members);
 
-    protected static int DetermineConstantInsertPosition(
+    private static int DetermineConstantInsertPosition(
         SyntaxList<MemberDeclarationSyntax> oldMembers,
         SyntaxList<MemberDeclarationSyntax> newMembers)
     {
@@ -121,7 +128,7 @@ internal partial class CSharpIntroduceVariableService
     protected override int DetermineFieldInsertPosition(TypeDeclarationSyntax oldType, TypeDeclarationSyntax newType)
         => DetermineFieldInsertPosition(oldType.Members, newType.Members);
 
-    protected static int DetermineFieldInsertPosition(
+    private static int DetermineFieldInsertPosition(
         SyntaxList<MemberDeclarationSyntax> oldMembers,
         SyntaxList<MemberDeclarationSyntax> newMembers)
     {
@@ -160,7 +167,7 @@ internal partial class CSharpIntroduceVariableService
     private static bool IsConstantField(MemberDeclarationSyntax member)
         => member is FieldDeclarationSyntax field && field.Modifiers.Any(SyntaxKind.ConstKeyword);
 
-    protected static int DetermineFirstChange(SyntaxList<MemberDeclarationSyntax> oldMembers, SyntaxList<MemberDeclarationSyntax> newMembers)
+    private static int DetermineFirstChange(SyntaxList<MemberDeclarationSyntax> oldMembers, SyntaxList<MemberDeclarationSyntax> newMembers)
     {
         for (var i = 0; i < oldMembers.Count; i++)
         {
@@ -173,7 +180,7 @@ internal partial class CSharpIntroduceVariableService
         return -1;
     }
 
-    protected static TypeDeclarationSyntax InsertMember(
+    private static TypeDeclarationSyntax InsertMember(
         TypeDeclarationSyntax typeDeclaration,
         MemberDeclarationSyntax memberDeclaration,
         int index)

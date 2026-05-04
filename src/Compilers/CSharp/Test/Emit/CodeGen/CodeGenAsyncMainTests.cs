@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [CompilerTrait(CompilerFeature.AsyncMain)]
+    [CompilerTrait(CompilerFeature.AsyncMain, CompilerFeature.Async)]
     public class CodeGenAsyncMainTests : EmitMetadataTestBase
     {
         [Fact]
@@ -1271,12 +1271,6 @@ class A
     }
 }";
             var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
-                // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static Task<int> Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(6, 28),
-                // (12,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static Task<float> Main(string[] args)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(12, 30),
                 // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static Task<int> Main()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task<int>").WithArguments("async main", "7.1").WithLocation(6, 18),
@@ -2068,6 +2062,429 @@ class Program
                 // (43,25): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static async MyTask Main()
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(43, 25));
+        }
+
+        // Removal is tracked by https://github.com/dotnet/roslyn/issues/81097.
+        private const string MinimalAsyncCorelibWithAsyncHelpers = """
+            namespace System
+            {
+                public class Object { }
+                public class Void { }
+                public abstract class ValueType { }
+                public struct Int32 { }
+                public struct Boolean { }
+                public class String { }
+                public class Exception { }
+                public class Attribute { }
+                public abstract class Enum : ValueType { }
+                public abstract class Delegate { }
+                public abstract class MulticastDelegate : Delegate { }
+                public delegate void Action();
+                public class Type { }
+                public struct IntPtr { }
+                public struct RuntimeTypeHandle { }
+                public struct RuntimeFieldHandle { }
+
+                public static class Console
+                {
+                    public static void Write(int value) { }
+                }
+
+                namespace Threading.Tasks
+                {
+                    public class Task
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => default;
+                        public static Task Delay(int millisecondsDelay) => default;
+                    }
+
+                    public class Task<TResult>
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter<TResult> GetAwaiter() => default;
+                    }
+                }
+
+                namespace Runtime.CompilerServices
+                {
+                    public interface INotifyCompletion
+                    {
+                        void OnCompleted(Action continuation);
+                    }
+
+                    public interface ICriticalNotifyCompletion : INotifyCompletion
+                    {
+                        void UnsafeOnCompleted(Action continuation);
+                    }
+
+                    public interface IAsyncStateMachine
+                    {
+                        void MoveNext();
+                        void SetStateMachine(IAsyncStateMachine stateMachine);
+                    }
+
+                    public class AsyncTaskMethodBuilder
+                    {
+                        public static AsyncTaskMethodBuilder Create() => default;
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+                        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                            where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+                        public void SetResult() { }
+                        public void SetException(Exception exception) { }
+                        public Threading.Tasks.Task Task => default;
+                    }
+
+                    public class AsyncTaskMethodBuilder<T>
+                    {
+                        public static AsyncTaskMethodBuilder<T> Create() => default;
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+                        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                            where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+                        public void SetResult(T result) { }
+                        public void SetException(Exception exception) { }
+                        public Threading.Tasks.Task<T> Task => default;
+                    }
+
+                    public static class AsyncHelpers
+                    {
+                        public static void HandleAsyncEntryPoint(Threading.Tasks.Task task)
+                        {
+                            task.GetAwaiter().GetResult();
+                        }
+
+                        public static int HandleAsyncEntryPoint(Threading.Tasks.Task<int> task)
+                        {
+                            return task.GetAwaiter().GetResult();
+                        }
+                    }
+
+                    public struct TaskAwaiter<TResult> : ICriticalNotifyCompletion
+                    {
+                        public bool IsCompleted => true;
+                        public TResult GetResult() => default;
+                        public void OnCompleted(Action continuation) { }
+                        public void UnsafeOnCompleted(Action continuation) { }
+                    }
+
+                    public struct TaskAwaiter : ICriticalNotifyCompletion
+                    {
+                        public bool IsCompleted => true;
+                        public void GetResult() { }
+                        public void OnCompleted(Action continuation) { }
+                        public void UnsafeOnCompleted(Action continuation) { }
+                    }
+                }
+
+                public enum AttributeTargets { All = ~0 }
+
+                [AttributeUsage(AttributeTargets.All)]
+                public sealed class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets validOn) { }
+                    public bool AllowMultiple { get; set; }
+                    public bool Inherited { get; set; }
+                }
+            }
+
+            namespace System.Diagnostics
+            {
+                public class DebuggerStepThroughAttribute : Attribute { }
+            }
+            """;
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainWithHandleAsyncEntryPoint_Task()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.Delay(1);
+                        Console.Write(1);
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  call       "System.Threading.Tasks.Task Program.Main()"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.HandleAsyncEntryPoint(System.Threading.Tasks.Task)"
+                  IL_000a:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainWithHandleAsyncEntryPoint_TaskOfInt()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task<int> Main()
+                    {
+                        await Task.Delay(1);
+                        Console.Write(1);
+                        return 42;
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output and return code
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Program.Main()"
+                  IL_0005:  call       "int System.Runtime.CompilerServices.AsyncHelpers.HandleAsyncEntryPoint(System.Threading.Tasks.Task<int>)"
+                  IL_000a:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainFallbackToOldPattern_Task()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.Delay(1);
+                        Console.Write(1);
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task Program.Main()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainFallbackToOldPattern_TaskOfInt()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task<int> Main()
+                    {
+                        await Task.Delay(1);
+                        Console.Write(1);
+                        return 42;
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output and return code
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter<int> V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Program.Main()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainFallbackToOldPattern_RedefinedTask()
+        {
+            var source = """
+                #pragma warning disable CS0436
+
+                class Program
+                {
+                    static async System.Threading.Tasks.Task Main()
+                    {
+                        await System.Threading.Tasks.Task.Delay(1);
+                        System.Console.Write(1);
+                    }
+                }
+
+                namespace System.Threading.Tasks
+                {
+                    public class Task
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => throw null;
+                        public static Task Delay(int millisecondsDelay) => throw null;
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public struct AsyncTaskMethodBuilder
+                    {
+                        public System.Threading.Tasks.Task Task => null;
+                        public static AsyncTaskMethodBuilder Create() => throw null;
+                        public void SetException(Exception exception){}
+                        public void SetResult(){}
+                        public void AwaitOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void AwaitUnsafeOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine){}
+                    }
+
+                    public static class AsyncHelpers
+                    {
+                        public static void HandleAsyncEntryPoint(Threading.Tasks.Task task)
+                        {
+                            task.GetAwaiter().GetResult();
+                        }
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task Program.Main()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainFallbackToOldPattern_RedefinedTaskT()
+        {
+            var source = """
+                #pragma warning disable CS0436
+
+                class Program
+                {
+                    static async System.Threading.Tasks.Task<int> Main()
+                    {
+                        await System.Threading.Tasks.Task.Delay(1);
+                        System.Console.Write(1);
+                        return 42;
+                    }
+                }
+
+                namespace System.Threading.Tasks
+                {
+                    public class Task<TResult>
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter<TResult> GetAwaiter() => throw null;
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public struct AsyncTaskMethodBuilder<TResult>
+                    {
+                        public System.Threading.Tasks.Task<TResult> Task => null;
+                        public static AsyncTaskMethodBuilder<TResult> Create() => throw null;
+                        public void SetException(Exception exception){}
+                        public void SetResult(TResult result){}
+                        public void AwaitOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void AwaitUnsafeOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine){}
+                    }
+
+                    public static class AsyncHelpers
+                    {
+                        public static int HandleAsyncEntryPoint(Threading.Tasks.Task<int> task)
+                        {
+                            return task.GetAwaiter().GetResult();
+                        }
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output and return code
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter<int> V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Program.Main()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                  IL_0012:  ret
+                }
+                """);
         }
     }
 }

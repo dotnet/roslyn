@@ -46,6 +46,8 @@ try {
     throw "Unsupported bootstrap toolset $toolset"
   }
 
+  $projectPath = Join-Path $RepoRoot $projectPath
+
   $name = Split-Path -Leaf $output
   $binaryLogFilePath = Join-Path $LogDir "bootstrap-$($name).binlog"
 
@@ -60,6 +62,11 @@ try {
 
   if ($ci) {
     $args += " /p:ContinuousIntegrationBuild=true"
+  
+    # Set NUGET_PACKAGES to fix issues with package Restore when building with `-ci`.
+    # Workaround for https://github.com/dotnet/arcade/issues/15970
+    $env:NUGET_PACKAGES = Join-Path $RepoRoot '.packages\'
+    $env:RESTORENOCACHE = $true
   }
 
   Exec-DotNet "build $args $projectPath"

@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 isConstant As Boolean,
                 cancellationToken As CancellationToken) As FieldDeclarationSyntax
 
-            Dim matches = FindMatches(document, expression, document, oldTypeDeclaration, allOccurrences, cancellationToken)
+            Dim matches = FindMatches(document, expression, document, {oldTypeDeclaration}, allOccurrences, cancellationToken)
 
             Dim trimmedExpression = expression.WithoutTrailingTrivia().WithoutLeadingTrivia()
             Return SyntaxFactory.FieldDeclaration(

@@ -8,12 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private bool _hasNoBaseCycles;
 
-        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null!);
+        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null);
 
         /// <summary>
         /// <see langword="default"/> if uninitialized. <see cref="RequiredMembersErrorSentinel"/> if there are errors. <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Empty"/> if
@@ -204,17 +204,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
         /// <summary>
-        /// Get the operators for this type by their metadata name
+        /// Adds the operators for this type by their metadata name to <paramref name="operators"/>
         /// </summary>
-        internal ImmutableArray<MethodSymbol> GetOperators(string name)
+        internal void AddOperators(string name, ArrayBuilder<MethodSymbol> operators)
         {
             ImmutableArray<Symbol> candidates = GetSimpleNonTypeMembers(name);
             if (candidates.IsEmpty)
-            {
-                return ImmutableArray<MethodSymbol>.Empty;
-            }
+                return;
 
-            var operators = ArrayBuilder<MethodSymbol>.GetInstance(candidates.Length);
+            AddOperators(operators, candidates);
+        }
+
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
+        {
             foreach (var candidate in candidates)
             {
                 if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
@@ -222,8 +224,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     operators.Add(method);
                 }
             }
+        }
 
-            return operators.ToImmutableAndFree();
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ArrayBuilder<Symbol> candidates)
+        {
+            foreach (var candidate in candidates)
+            {
+                if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
+                {
+                    operators.Add(method);
+                }
+            }
         }
 
         /// <summary>
@@ -328,23 +339,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if this type might contain extension methods. If this property
-        /// returns false, there are no extension methods in this type.
+        /// Returns true if this type might contain extension members or methods. If this property
+        /// returns false, there are no extension members or methods in this type.
         /// </summary>
         /// <remarks>
-        /// This property allows the search for extension methods to be narrowed quickly.
+        /// This property allows the search for extension members or methods to be narrowed quickly.
         /// </remarks>
-        public abstract bool MightContainExtensionMethods { get; }
+        public abstract bool MightContainExtensions { get; }
 
-        internal void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
-        {
-            if (this.MightContainExtensionMethods)
-            {
-                DoGetExtensionMethods(methods, nameOpt, arity, options);
-            }
-        }
-
-        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+#nullable enable
+        /// <remarks>Does not perform a full viability check</remarks>
+        private void DoGetExtensionMethods(ArrayBuilder<Symbol> methods, string? nameOpt, int arity, LookupOptions options, PooledHashSet<MethodSymbol>? implementationsToShadow)
         {
             var members = nameOpt == null
                 ? this.GetMembersUnordered()
@@ -359,20 +364,163 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
                         var thisParam = method.Parameters.First();
-
-                        if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
-                            (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
+                        if (!IsValidExtensionReceiverParameter(thisParam))
                         {
-                            // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
                             continue;
                         }
 
-                        Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                        methods.Add(method);
+                        if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                        {
+                            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
+                            methods.Add(method);
+                        }
                     }
                 }
             }
         }
+
+        private static bool IsValidExtensionReceiverParameter(ParameterSymbol thisParam)
+        {
+            Debug.Assert(thisParam is not null);
+
+            if (!thisParam.Type.IsValidExtensionParameterType())
+            {
+                return false;
+            }
+
+            // For ref and ref-readonly extension members and classic extension methods, receivers need to be of the correct types to be considered in lookup
+            if (thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType)
+            {
+                return false;
+            }
+
+            if (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter
+                && !thisParam.Type.IsValidInOrRefReadonlyExtensionParameterType())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal void GetAllExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            Debug.Assert((options & ~(LookupOptions.AllMethodsOnArityZero
+                | LookupOptions.MustBeInstance | LookupOptions.MustNotBeInstance | LookupOptions.MustBeInvocableIfMember
+                | LookupOptions.MustBeOperator | LookupOptions.MustNotBeMethodTypeParameter)) == 0);
+
+            Debug.Assert(name is not null || alternativeName is null);
+
+            if (!MightContainExtensions)
+                return;
+
+            PooledHashSet<MethodSymbol>? implementationsToShadow = null;
+
+            if (this.IsClassType() && IsStatic && !IsGenericType)
+            {
+                doGetExtensionMembers(members, name, alternativeName, arity, options, ref implementationsToShadow, fieldsBeingBound);
+            }
+
+            if (!options.HasFlag(LookupOptions.MustBeOperator))
+            {
+                DoGetExtensionMethods(members, name, arity, options, implementationsToShadow);
+                if (alternativeName is not null)
+                {
+                    DoGetExtensionMethods(members, alternativeName, arity, options, implementationsToShadow);
+                }
+            }
+
+            implementationsToShadow?.Free();
+
+            return;
+
+            void doGetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ref PooledHashSet<MethodSymbol>? implementationsToShadow, ConsList<FieldSymbol> fieldsBeingBound)
+            {
+                foreach (NamedTypeSymbol nestedType in GetTypeMembers(name: ""))
+                {
+                    if (nestedType is not { IsExtension: true, ExtensionParameter: { } extensionParameter }
+                        || !IsValidExtensionReceiverParameter(extensionParameter))
+                    {
+                        continue;
+                    }
+
+                    var candidates = name is null || alternativeName is not null
+                        ? nestedType.GetMembersUnordered()
+                        : nestedType.GetMembers(name);
+
+                    foreach (var candidate in candidates)
+                    {
+                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                        {
+                            // Not supported yet
+                            continue;
+                        }
+
+                        if (extensionMemberMatches(candidate, name, alternativeName, arity, options, fieldsBeingBound))
+                        {
+                            members.Add(candidate);
+
+                            if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                                shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                            {
+                                implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
+                                implementationsToShadow.Add(toShadow);
+                            }
+                        }
+                    }
+                }
+            }
+
+            static bool extensionMemberMatches(Symbol member, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
+            {
+                if ((options & LookupOptions.MustBeInstance) != 0 && member.IsStatic)
+                {
+                    return false;
+                }
+
+                if ((options & LookupOptions.MustNotBeInstance) != 0 && !member.IsStatic)
+                {
+                    return false;
+                }
+
+                if ((options & LookupOptions.MustBeOperator) != 0 && member is not MethodSymbol { MethodKind: MethodKind.UserDefinedOperator })
+                {
+                    return false;
+                }
+
+                if ((options & LookupOptions.AllMethodsOnArityZero) == 0
+                    && arity != member.GetMemberArityIncludingExtension())
+                {
+                    return false;
+                }
+
+                string memberName = member.Name;
+                bool namesMatch = name is null
+                    || memberName == name
+                    || (alternativeName is not null && memberName == alternativeName);
+
+                if (!namesMatch)
+                {
+                    return false;
+                }
+
+                if ((options & LookupOptions.MustBeInvocableIfMember) != 0
+                    && !Binder.IsInvocableMember(member, fieldsBeingBound))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        public virtual MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+#nullable disable
 
         // TODO: Probably should provide similar accessors for static constructor, destructor, 
         // TODO: operators, conversions.
@@ -499,6 +647,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
 
+        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
+        public virtual bool IsExtension
+            => TypeKind == TypeKind.Extension;
+
+        /// <summary>
+        /// For the type representing an extension declaration, returns the receiver parameter symbol.
+        /// It may be unnamed.
+        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
+        /// </summary>
+        internal abstract ParameterSymbol? ExtensionParameter { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the grouping type.
+        /// Returns null otherwise.
+        /// </summary>
+        internal abstract string? ExtensionGroupingName { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the marker type.
+        /// Returns null otherwise.
+        /// </summary>
+        internal abstract string? ExtensionMarkerName { get; }
 #nullable disable
 
         /// <summary>
@@ -1154,6 +1324,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument);
 
+        internal abstract bool HasCompilerLoweringPreserveAttribute { get; }
+
         /// <summary>
         /// Gets a value indicating whether this type has System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute or not.
         /// </summary>
@@ -1625,6 +1797,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         /// <returns>True if this is an interface type.</returns>
         internal abstract bool IsInterface { get; }
+
+        internal bool IsUnionType
+        {
+            get
+            {
+                return TypeKind is TypeKind.Class or TypeKind.Struct &&
+                       IsUnionTypeCore;
+            }
+        }
+
+        internal abstract bool IsUnionTypeCore { get; }
+
+        internal ImmutableArray<TypeSymbol> UnionCaseTypes
+        {
+            get
+            {
+                if (!IsUnionType)
+                {
+                    return [];
+                }
+
+                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+
+                foreach (var ctor in this.InstanceConstructors)
+                {
+                    if (IsSuitableUnionConstructor(ctor))
+                    {
+                        var candidate = ctor.Parameters[0].Type.StrippedType();
+                        if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate))
+                        {
+                            builder.Add(candidate);
+                        }
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+        }
+
+        internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
+        {
+            Debug.Assert(ctor.MethodKind is MethodKind.Constructor);
+            return ctor is { DeclaredAccessibility: Accessibility.Public, ParameterCount: 1, Parameters: [{ RefKind: RefKind.In or RefKind.None }] };
+        }
 
         /// <summary>
         /// Verify if the given type can be used to back a tuple type 

@@ -175,7 +175,7 @@ namespace N1
             Assert.True(eventQueue.Count > 0);
             bool compilationStartedFired;
             HashSet<string> declaredSymbolNames, completedCompilationUnits;
-            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out completedCompilationUnits));
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out _, out completedCompilationUnits));
 
             // Verify symbol declared events fired for all symbols declared in the first source file.
             Assert.True(compilationStartedFired);
@@ -224,7 +224,7 @@ namespace N1
             Assert.True(eventQueue.Count > 0);
             bool compilationStartedFired;
             HashSet<string> declaredSymbolNames, completedCompilationUnits;
-            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out completedCompilationUnits));
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out _, out completedCompilationUnits));
 
             // Verify symbol declared events fired for all symbols declared in the first source file.
             Assert.True(compilationStartedFired);
@@ -276,7 +276,7 @@ namespace N1
             Assert.True(eventQueue.Count > 0);
             bool compilationStartedFired;
             HashSet<string> declaredSymbolNames, completedCompilationUnits;
-            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out completedCompilationUnits));
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out _, out completedCompilationUnits));
 
             // Verify symbol declared events fired for all symbols declared in the first source file.
             Assert.True(compilationStartedFired);
@@ -303,6 +303,130 @@ namespace N1
             AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
         }
 
+        [Fact]
+        public void TestCompilationEventsForPartialEvent()
+        {
+            var source1 = @"
+namespace N1
+{
+    partial class Class
+    {
+        event System.Action NonPartialEvent1 { add { } remove { } }
+        partial event System.Action DefOnlyPartialEvent;
+        partial event System.Action ImplOnlyPartialEvent { add { } remove { } }
+        partial event System.Action PartialEvent1;
+        partial event System.Action PartialEvent2 { add { } remove { } }
+    }
+} 
+";
+            var source2 = @"
+namespace N1
+{
+    partial class Class
+    {
+        event System.Action NonPartialEvent2 { add { } remove { } }
+        partial event System.Action PartialEvent1 { add { } remove { } }
+        partial event System.Action PartialEvent2;
+    }
+} 
+";
+
+            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1", options: TestOptions.RegularPreview);
+            var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2", options: TestOptions.RegularPreview);
+            var eventQueue = new AsyncQueue<CompilationEvent>();
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
+
+            // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
+            var model = compilation.GetSemanticModel(tree1);
+            model.GetDiagnostics(tree1.GetRoot().FullSpan);
+
+            Assert.True(eventQueue.Count > 0);
+            bool compilationStartedFired;
+            HashSet<string> declaredSymbolNames, completedCompilationUnits;
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out _, out completedCompilationUnits));
+
+            // Verify symbol declared events fired for all symbols declared in the first source file.
+            Assert.True(compilationStartedFired);
+
+            // NB: NonPartialEvent2 is missing here because we only asked for diagnostics in tree1.
+            // PartialEvent2 is missing because it is the implementation part and that is removed (only the definition part is kept).
+            AssertEx.Equal([
+                "",
+                "add_ImplOnlyPartialEvent",
+                "add_NonPartialEvent1",
+                "add_PartialEvent1",
+                "Class",
+                "DefOnlyPartialEvent",
+                "ImplOnlyPartialEvent",
+                "N1",
+                "NonPartialEvent1",
+                "PartialEvent1",
+                "remove_ImplOnlyPartialEvent",
+                "remove_NonPartialEvent1",
+                "remove_PartialEvent1",
+            ], declaredSymbolNames.OrderBy(name => name));
+
+            AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
+        }
+
+        [Fact]
+        public void TestCompilationEventsForPartialConstructor()
+        {
+            var source1 = @"
+namespace N1
+{
+    partial class Class
+    {
+        partial C(int a) { } // not partial 1
+        partial C(int a, int b); // def only
+        partial C(int a, int b, int c) { } // impl only
+        partial C(int a, int b, int c, int d); // full partial with def first
+        partial C(int a, int b, int c, int d, int e) { } // full partial with impl first
+    }
+} 
+";
+            var source2 = @"
+namespace N1
+{
+    partial class Class
+    {
+        partial C(string a) { } // not partial 2
+        partial C(int a, int b, int c, int d) { } // full partial with def first
+        partial C(int a, int b, int c, int d, int e); // full partial with impl first
+    }
+} 
+";
+
+            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1", options: TestOptions.RegularPreview);
+            var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2", options: TestOptions.RegularPreview);
+            var eventQueue = new AsyncQueue<CompilationEvent>();
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
+
+            // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
+            var model = compilation.GetSemanticModel(tree1);
+            model.GetDiagnostics(tree1.GetRoot().FullSpan);
+
+            Assert.True(eventQueue.Count > 0);
+            bool compilationStartedFired;
+            HashSet<string> declaredSymbols, completedCompilationUnits;
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out _, out declaredSymbols, out completedCompilationUnits));
+
+            // Verify symbol declared events fired for all symbols declared in the first source file.
+            Assert.True(compilationStartedFired);
+
+            // NB: non partial 2 is missing here because we only asked for diagnostics in tree1
+            AssertEx.Equal([
+                "<global namespace>",
+                "N1",
+                "N1.Class",
+                "N1.Class..ctor(System.Int32 a)",
+                "N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c)",
+                "N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d)",
+            ], declaredSymbols.OrderBy(name => name, StringComparer.Ordinal));
+
+            AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
+        }
+
         [Fact, WorkItem(8178, "https://github.com/dotnet/roslyn/issues/8178")]
         public void TestEarlyCancellation()
         {
@@ -324,10 +448,11 @@ namespace N1
             model.GetDiagnostics(tree.GetRoot().FullSpan);
         }
 
-        private static bool DequeueCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, out bool compilationStartedFired, out HashSet<string> declaredSymbolNames, out HashSet<string> completedCompilationUnits)
+        private static bool DequeueCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, out bool compilationStartedFired, out HashSet<string> declaredSymbolNames, out HashSet<string> declaredSymbols, out HashSet<string> completedCompilationUnits)
         {
             compilationStartedFired = false;
             declaredSymbolNames = new HashSet<string>();
+            declaredSymbols = new HashSet<string>();
             completedCompilationUnits = new HashSet<string>();
             if (eventQueue.Count == 0)
             {
@@ -348,7 +473,7 @@ namespace N1
                     if (symbolDeclaredEvent != null)
                     {
                         var symbol = symbolDeclaredEvent.Symbol;
-                        var added = declaredSymbolNames.Add(symbol.Name);
+                        var added = declaredSymbolNames.Add(symbol.Name) & declaredSymbols.Add(symbol.ToTestDisplayString());
                         if (!added)
                         {
                             Assert.True(symbol.GetSymbol().IsPartialMember(), "Unexpected multiple symbol declared events for symbol " + symbol);
@@ -1463,6 +1588,61 @@ internal class TestAttribute : Attribute
             Assert.True(analyzerDiagnostic.IsSuppressed);
             var suppression = analyzerDiagnostic.ProgrammaticSuppressionInfo.Suppressions.Single();
             Assert.Equal(DiagnosticSuppressorForCS0657.SuppressionId, suppression.Descriptor.Id);
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2581061")]
+        public async Task TestDiagnosticSuppressor_GetAnalysisResultAsyncCrash()
+        {
+            var source = """
+                using System;
+
+                public class SomeClass
+                {
+                    [property: Test]
+                    public string Name;
+                }
+
+                internal class TestAttribute : Attribute
+                {
+                }
+                """;
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (5,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'field'. All attributes in this block will be ignored.
+                //     [property: Test]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "field").WithLocation(5, 6));
+
+            // Verify that CS0657 can be suppressed with a DiagnosticSuppressor
+            var diagnosticAnalyzer = new CSharpCompilerDiagnosticAnalyzer();
+            var suppressor = new DiagnosticSuppressorForCS0657();
+
+            // Create options with our own getAnalyzerConfigOptionsProvider.  That way we do initialize the map from
+            // analyzer to options within the AnalyzerDriver.  This map needs to contain all analyzers and suppressors,
+            // not just the one we're calling into with GetAnalysisResultAsync.
+            var options = new CompilationWithAnalyzersOptions(
+                AnalyzerOptions.Empty,
+                onAnalyzerException: null,
+                concurrentAnalysis: false,
+                logAnalyzerExecutionTime: false,
+                reportSuppressedDiagnostics: true,
+                analyzerExceptionFilter: null,
+                getAnalyzerConfigOptionsProvider: _ => new CompilerAnalyzerConfigOptionsProvider(
+                    ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
+                    new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty)));
+
+            var compilationWithAnalyzers = compilation.WithAnalyzers([diagnosticAnalyzer, suppressor], options);
+
+            // Calling in with a single analyzer should still properly setup internal maps so that suppressors run properly.
+            var analysisResult1 = await compilationWithAnalyzers.GetAnalysisResultAsync([diagnosticAnalyzer], CancellationToken.None);
+            var analysisResult2 = await compilationWithAnalyzers.GetAnalysisResultAsync([diagnosticAnalyzer, suppressor], CancellationToken.None);
+
+            var diagnostic1 = analysisResult1.SemanticDiagnostics.Single().Value.Single().Value.Single();
+            var diagnostic2 = analysisResult2.SemanticDiagnostics.Single().Value.Single().Value.Single();
+
+            Assert.True(diagnostic1.IsSuppressed);
+            Assert.True(diagnostic2.IsSuppressed);
+
+            Assert.Equal("CS0657", diagnostic1.Id);
+            Assert.Equal("CS0657", diagnostic2.Id);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]

@@ -12,12 +12,13 @@ using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForConversionOperatorsRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class UseExpressionBodyForConversionOperatorsRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new UseExpressionBodyCodeRefactoringProvider();
@@ -35,106 +36,175 @@ public class UseExpressionBodyForConversionOperatorsRefactoringTests : AbstractC
         => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
-    {
-        await TestMissingAsync(
-@"class C
-{
-    public static implicit operator bool(C c1)
-    {
-        [||]Bar();
-    }
-}", parameters: new TestParameters(options: UseExpressionBody));
-    }
+    public Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1)
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
-@"class C
-{
-    public static implicit operator bool(C c1)
-    {
-        [||]Bar();
-    }
-}",
-@"class C
-{
-    public static implicit operator bool(C c1) => Bar();
-}", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
-    }
+    public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1)
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
-@"class C
-{
-    public static implicit operator bool(C c1)
-    {
-        [||]Bar();
-    }
-}",
-@"class C
-{
-    public static implicit operator bool(C c1) => Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
-    }
+    public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1)
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
 
     [Fact]
-    public async Task TestNotOfferedInLambda()
-    {
-        await TestMissingAsync(
-@"class C
-{
-    public static implicit operator bool(C c1)
-    {
-        return () => { [||] };
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
-    }
+    public Task TestNotOfferedInLambda()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1)
+                {
+                    return () => { [||] };
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
-    {
-        await TestMissingAsync(
-@"class C
-{
-    public static implicit operator bool(C c1) => [||]Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
-    }
+    public Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) => [||]Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
-@"class C
-{
-    public static implicit operator bool(C c1) => [||]Bar();
-}",
-@"class C
-{
-    public static implicit operator bool(C c1)
-    {
-        return Bar();
-    }
-}", parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
-    }
+    public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                public static implicit operator bool(C c1)
+                {
+                    return Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
-@"class C
-{
-    public static implicit operator bool(C c1) => [||]Bar();
-}",
-@"class C
-{
-    public static implicit operator bool(C c1)
-    {
-        return Bar();
-    }
-}", parameters: new TestParameters(options: UseExpressionBody));
-    }
+    public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                public static implicit operator bool(C c1)
+                {
+                    return Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
+
+    [Fact]
+    public Task TestOfferedWithSelectionInsideBlockBody()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1)
+                {
+                    [|Bar()|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+
+    [Fact]
+    public Task TestNotOfferedWithSelectionOutsideBlockBody()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1)
+                {
+                    [|Bar();
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
+    public Task TestCommentAfterConstructorName()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) // comment
+                {
+                    [||]return Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) => Bar(); // comment
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
 }

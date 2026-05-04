@@ -1,0 +1,29 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPageWithNoLeadingPageDirective - global::Microsoft.AspNetCore.Mvc.RazorPages.Page - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (0:0,0 [28] RazorPageWithNoLeadingPageDirective.cshtml)
+                    LazyIntermediateToken - (0:0,0 [4] RazorPageWithNoLeadingPageDirective.cshtml) - Html - <div
+                    LazyIntermediateToken - (4:0,4 [1] RazorPageWithNoLeadingPageDirective.cshtml) - Html - >
+                    LazyIntermediateToken - (5:0,5 [15] RazorPageWithNoLeadingPageDirective.cshtml) - Html - Some text here.
+                    LazyIntermediateToken - (20:0,20 [6] RazorPageWithNoLeadingPageDirective.cshtml) - Html - </div>
+                    LazyIntermediateToken - (26:0,26 [2] RazorPageWithNoLeadingPageDirective.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #nullable restore\npublic global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPageWithNoLeadingPageDirective> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPageWithNoLeadingPageDirective>)PageContext?.ViewData!;\n#nullable disable
+            PropertyDeclaration -  - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPageWithNoLeadingPageDirective - Model - ViewData.Model

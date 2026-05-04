@@ -4,7 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -19,7 +19,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         ''' <summary>
         ''' Find all the methods that handle events (though "Handles" clauses).
         ''' </summary>
-        ''' <returns></returns>
         Public Function GetStaticEventBindings(document As Document,
                                                className As String,
                                                objectName As String,

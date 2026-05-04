@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 namespace Roslyn.LanguageServer.Protocol;
 
 // copied from https://github.com/dotnet/runtime/issues/98038 to match newtonsoft behavior
-internal class NaturalObjectConverter : JsonConverter<object>
+internal sealed class NaturalObjectConverter : JsonConverter<object>
 {
     public override object? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => ReadObjectCore(ref reader);

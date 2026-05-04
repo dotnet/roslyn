@@ -4,10 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Security.Principal;
-using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -17,7 +13,7 @@ internal abstract partial class AbstractTriviaDataFactory
     private const int LineBreakCacheSize = 5;
     private const int IndentationLevelCacheSize = 20;
 
-    private static readonly Dictionary<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)> s_optionsToWhitespace = new();
+    private static readonly Dictionary<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)> s_optionsToWhitespace = [];
     private static Tuple<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)>? s_lastOptionAndWhitespace;
 
     protected readonly TreeData TreeInfo;
@@ -128,7 +124,7 @@ internal abstract partial class AbstractTriviaDataFactory
             if (indentationLevel < IndentationLevelCacheSize)
             {
                 var lineIndex = lineBreaks - 1;
-                return _whitespaces[lineIndex, indentationLevel]!;
+                return _whitespaces[lineIndex, indentationLevel];
             }
         }
 

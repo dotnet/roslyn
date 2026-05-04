@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource;
 
 using static SyntaxFactory;
 
-internal partial class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
+internal sealed partial class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
 {
     private static readonly AbstractFormattingRule s_memberSeparationRule = new FormattingRule();
     public static readonly CSharpMetadataAsSourceService Instance = new();

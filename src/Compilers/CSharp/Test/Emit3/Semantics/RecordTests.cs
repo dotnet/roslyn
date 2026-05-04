@@ -65,9 +65,9 @@ record Point(int x, int y);
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
-                // (2,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,8): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // record Point { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Point").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "Point").WithLocation(2, 8),
                 // (2,8): error CS0548: '<invalid-global-code>.Point': property or indexer must have at least one accessor
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("<invalid-global-code>.Point").WithLocation(2, 8)
@@ -306,6 +306,8 @@ record R(R x);
 record R2(R2? x) { }
 
 record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
+
+record R4(in R4 x);
 ";
             var comp = CreateCompilation(new[] { src, NotNullAttributeDefinition });
             comp.VerifyEmitDiagnostics(
@@ -317,11 +319,14 @@ record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R2").WithLocation(5, 8),
                 // (7,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
-                Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R3").WithLocation(7, 8)
+                Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R3").WithLocation(7, 8),
+                // 0.cs(9,8): error CS8910: The primary constructor conflicts with the synthesized copy constructor.
+                // record R4(in R4 x);
+                Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R4").WithLocation(9, 8)
                 );
 
             var r = comp.GlobalNamespace.GetTypeMember("R");
-            Assert.Equal(new[] { "R..ctor(R x)", "R..ctor(R original)" }, r.GetMembers(".ctor").ToTestDisplayStrings());
+            Assert.Equal(new[] { "R..ctor(R x)" }, r.GetMembers(".ctor").ToTestDisplayStrings());
         }
 
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
@@ -394,27 +399,12 @@ record R3(R3 x) : Base
                 // (4,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record R(R x) : Base; // 1
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R").WithLocation(4, 8),
-                // (6,30): error CS0121: The call is ambiguous between the following methods or properties: 'R.R(R)' and 'R.R(R)'
-                // record Derived(Derived y) : R(y) // 2
-                Diagnostic(ErrorCode.ERR_AmbigCall, "(y)").WithArguments("R.R(R)", "R.R(R)").WithLocation(6, 30),
                 // (8,12): error CS0111: Type 'Derived' already defines a member called 'Derived' with the same parameter types
                 //     public Derived(Derived y) : base(y) => throw null; // 3, 4, 5
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Derived").WithArguments("Derived", "Derived").WithLocation(8, 12),
-                // (8,33): error CS0121: The call is ambiguous between the following methods or properties: 'R.R(R)' and 'R.R(R)'
-                //     public Derived(Derived y) : base(y) => throw null; // 3, 4, 5
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base").WithArguments("R.R(R)", "R.R(R)").WithLocation(8, 33),
-                // (8,33): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
-                //     public Derived(Derived y) : base(y) => throw null; // 3, 4, 5
-                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(8, 33),
                 // (11,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record Derived2(Derived2 y) : R(y); // 6, 7, 8
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "Derived2").WithLocation(11, 8),
-                // (11,8): error CS8867: No accessible copy constructor found in base type 'R'.
-                // record Derived2(Derived2 y) : R(y); // 6, 7, 8
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "Derived2").WithArguments("R").WithLocation(11, 8),
-                // (11,32): error CS0121: The call is ambiguous between the following methods or properties: 'R.R(R)' and 'R.R(R)'
-                // record Derived2(Derived2 y) : R(y); // 6, 7, 8
-                Diagnostic(ErrorCode.ERR_AmbigCall, "(y)").WithArguments("R.R(R)", "R.R(R)").WithLocation(11, 32),
                 // (15,12): error CS0111: Type 'R2' already defines a member called 'R2' with the same parameter types
                 //     public R2(R2 x) => throw null; // 9, 10
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "R2").WithArguments("R2", "R2").WithLocation(15, 12),
@@ -601,7 +591,7 @@ public record A(int i, int ) { }
             var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];
             Assert.Equal("A..ctor(System.Int32 i, System.Int32)", ctor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
+            Assert.Equal(3, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
         }
 
         [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
@@ -615,12 +605,12 @@ public record A(int, string ) { }
                 // (2,20): error CS1001: Identifier expected
                 // public record A(int, string ) { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(2, 20),
+                // (2,22): error CS0102: The type 'A' already contains a definition for ''
+                // public record A(int, string ) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "string").WithArguments("A", "").WithLocation(2, 22),
                 // (2,29): error CS1001: Identifier expected
                 // public record A(int, string ) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 29),
-                // (2,29): error CS0102: The type 'A' already contains a definition for ''
-                // public record A(int, string ) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(2, 29)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 29)
                 );
 
             var expectedMembers = new[]
@@ -649,12 +639,12 @@ public record A(int, int ) { }
                 // (2,20): error CS1001: Identifier expected
                 // public record A(int, int ) { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(2, 20),
+                // (2,22): error CS0102: The type 'A' already contains a definition for ''
+                // public record A(int, int ) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "int").WithArguments("A", "").WithLocation(2, 22),
                 // (2,26): error CS1001: Identifier expected
                 // public record A(int, int ) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 26),
-                // (2,26): error CS0102: The type 'A' already contains a definition for ''
-                // public record A(int, int ) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(2, 26)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 26)
                 );
 
             var expectedMembers = new[]
@@ -685,12 +675,12 @@ public record A(int // A
                 // (2,20): error CS1001: Identifier expected
                 // public record A(int // A
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 20),
+                // (4,7): error CS0102: The type 'A' already contains a definition for ''
+                //     , int /* C */) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "int").WithArguments("A", "").WithLocation(4, 7),
                 // (4,18): error CS1001: Identifier expected
                 //     , int /* C */) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 18),
-                // (4,18): error CS0102: The type 'A' already contains a definition for ''
-                //     , int /* C */) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(4, 18)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 18)
                 );
 
             var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];
@@ -1223,37 +1213,42 @@ record C1(object O1)
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [Theory, CombinatorialData]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
-        public void RestrictedTypesAndPointerTypes()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
+        public void RestrictedTypesAndPointerTypes(bool withEquals)
         {
-            var src = @"
-class C<T> { }
-static class C2 { }
-ref struct RefLike{}
+            var src = $$"""
 
-unsafe record C(
-    int* P1, // 1
-    int*[] P2,
-    C<int*[]> P3,
-    delegate*<int, int> P4, // 2
-    void P5, // 3
-    C2 P6, // 4, 5
-    System.ArgIterator P7, // 6
-    System.TypedReference P8, // 7
-    RefLike P9, // 8
-    delegate*<void>[] P10);
+                class C<T> { }
+                static class C2 { }
+                ref struct RefLike{}
 
-";
+                unsafe record C(
+                    int* P1, // 1
+                    int*[] P2,
+                    C<int*[]> P3,
+                    delegate*<int, int> P4, // 2
+                    void P5, // 3
+                    C2 P6, // 4, 5
+                    System.ArgIterator P7, // 6
+                    System.TypedReference P8, // 7
+                    RefLike P9, // 8
+                    delegate*<void>[] P10)
+                {
+                    {{(withEquals ? "public virtual bool Equals(C c) => true;" : "")}}
+                    {{(withEquals ? "public override int GetHashCode() => 0;" : "")}}
+                }
+                """;
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(7,10): error CS8908: The type 'int*' may not be used for a field of a record.
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Mscorlib461);
+            DiagnosticDescription[] expected = [
+                // 0.cs(7,5): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     int* P1, // 1
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
-                // 0.cs(10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(7, 5),
+                // 0.cs(10,5): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     delegate*<int, int> P4, // 2
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P4").WithArguments("delegate*<int, int>").WithLocation(10, 25),
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(10, 5),
                 // 0.cs(11,5): error CS1536: Invalid parameter type 'void'
                 //     void P5, // 3
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
@@ -1271,12 +1266,15 @@ unsafe record C(
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
                 // 0.cs(15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     RefLike P9, // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)
-                );
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)];
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [Fact]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
         public void RestrictedTypesAndPointerTypes_NominalMembers()
         {
             var src = @"
@@ -1299,14 +1297,14 @@ public unsafe record C
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(8,17): error CS8908: The type 'int*' may not be used for a field of a record.
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Mscorlib461);
+            DiagnosticDescription[] expected = [
+                // 0.cs(8,12): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public int* f1; // 1
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(8, 17),
-                // 0.cs(11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(8, 12),
+                // 0.cs(11,12): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     public delegate*<int, int> f4; // 3
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(11, 32),
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(11, 12),
                 // 0.cs(12,12): error CS0670: Field cannot have void type
                 //     public void f5; // 4
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(12, 12),
@@ -1321,12 +1319,14 @@ public unsafe record C
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
                 // 0.cs(16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     public RefLike f9; // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)
-                );
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)];
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [Fact]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
         public void RestrictedTypesAndPointerTypes_NominalMembers_AutoProperties()
         {
             var src = @"
@@ -1337,6 +1337,7 @@ public ref struct RefLike{}
 public unsafe record C
 {
     public int* f1 { get; set; } // 1
+    public int* f1_a { get => field; set; } // 1
     public int*[] f2 { get; set; }
     public C<int*[]> f3 { get; set; }
     public delegate*<int, int> f4 { get; set; } // 2
@@ -1349,34 +1350,40 @@ public unsafe record C
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(8,17): error CS8908: The type 'int*' may not be used for a field of a record.
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Mscorlib461);
+            DiagnosticDescription[] expected = [
+                // 0.cs(8,12): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public int* f1 { get; set; } // 1
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(8, 17),
-                // 0.cs(11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(8, 12),
+                // 0.cs(9,12): error CS8908: The type 'int*' may not be used for a field of a record.
+                //     public int* f1_a { get => field; set; } // 1
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(9, 12),
+                // 0.cs(12,12): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     public delegate*<int, int> f4 { get; set; } // 2
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(11, 32),
-                // 0.cs(12,17): error CS0547: 'C.f5': property or indexer cannot have void type
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(12, 12),
+                // 0.cs(13,17): error CS0547: 'C.f5': property or indexer cannot have void type
                 //     public void f5 { get; set; } // 3
-                Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
-                // 0.cs(13,12): error CS0722: 'C2': static types cannot be used as return types
+                Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(13, 17),
+                // 0.cs(14,12): error CS0722: 'C2': static types cannot be used as return types
                 //     public C2 f6 { get; set; } // 4, 5
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(13, 12),
-                // 0.cs(14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(14, 12),
+                // 0.cs(15,12): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public System.ArgIterator f7 { get; set; } // 6
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
-                // 0.cs(15,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(15, 12),
+                // 0.cs(16,12): error CS0610: Field or property cannot be of type 'TypedReference'
                 //     public System.TypedReference f8 { get; set; } // 7
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
-                // 0.cs(16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(16, 12),
+                // 0.cs(17,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     public RefLike f9 { get; set; } // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)
-                );
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(17, 12)];
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
         public void RestrictedTypesAndPointerTypes_PointerTypeAllowedForParameterAndProperty()
         {
             var src = @"
@@ -1423,8 +1430,61 @@ unsafe record C(int* P1, int*[] P2, C<int*[]> P3)
             CompileAndVerify(comp, expectedOutput: "P1 P2 P3 RAN", verify: Verification.Skipped /* pointers */);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [Fact]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
+        public void RestrictedTypesAndPointerTypes_PointerTypeAllowedForNestedTypes()
+        {
+            var src = @"
+class C<T> { }
+
+unsafe record C(int*[] P1)
+{
+    public unsafe static void Main()
+    {
+        var x = new C((int*[])null);
+        var x2 = x.P1;
+        System.Console.Write(""RAN"");
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN", verify: Verification.Skipped /* pointers */);
+
+            verifier.VerifyIL("C.Equals(C)", """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  beq.s      IL_0035
+                  IL_0004:  ldarg.1
+                  IL_0005:  brfalse.s  IL_0032
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "System.Type C.EqualityContract.get"
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "System.Type C.EqualityContract.get"
+                  IL_0013:  call       "bool System.Type.op_Equality(System.Type, System.Type)"
+                  IL_0018:  brfalse.s  IL_0032
+                  IL_001a:  call       "System.Collections.Generic.EqualityComparer<int*[]> System.Collections.Generic.EqualityComparer<int*[]>.Default.get"
+                  IL_001f:  ldarg.0
+                  IL_0020:  ldfld      "int*[] C.<P1>k__BackingField"
+                  IL_0025:  ldarg.1
+                  IL_0026:  ldfld      "int*[] C.<P1>k__BackingField"
+                  IL_002b:  callvirt   "bool System.Collections.Generic.EqualityComparer<int*[]>.Equals(int*[], int*[])"
+                  IL_0030:  br.s       IL_0033
+                  IL_0032:  ldc.i4.0
+                  IL_0033:  br.s       IL_0036
+                  IL_0035:  ldc.i4.1
+                  IL_0036:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
         public void RestrictedTypesAndPointerTypes_StaticFields()
         {
             var src = @"
@@ -1445,7 +1505,7 @@ public unsafe record C
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyEmitDiagnostics(
                 // (12,22): error CS0723: Cannot declare a variable of static type 'C2'
                 //     public static C2 f6; // 1
@@ -10545,7 +10605,7 @@ record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X
                 "System.Object[] C.P4 { get; }",
                 "(System.Int32 X, System.Int32 Y) C.P5 { get; }",
                 "(System.Int32, System.Int32)[] C.P6 { get; }",
-                "nint C.P7 { get; }",
+                "System.IntPtr C.P7 { get; }",
                 "System.UIntPtr[] C.P8 { get; }"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -10957,18 +11017,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
-                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
@@ -11028,18 +11076,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
-                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
@@ -11118,15 +11154,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,8): error CS0115: 'C.EqualityContract': no suitable method found to override
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'C.Equals(B?)': no suitable method found to override
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(B?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'C.PrintMembers(StringBuilder)': no suitable method found to override
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
                 // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
@@ -12581,6 +12608,21 @@ record B : A
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8));
 
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63270")]
+        public void RecordInheritingFromNonRecord_OnlyReportsBaseError()
+        {
+            var source = """
+                class Base { }
+
+                record Derived : Base { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,18): error CS8864: Records may only inherit from object or another record
+                // record Derived : Base { }
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "Base").WithLocation(3, 18));
         }
 
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
@@ -14071,6 +14113,51 @@ record A(int X)
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "123").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72357")]
+        public void CopyCtor_AssemblyWarnings()
+        {
+            var comp1 = CreateCompilation("""
+                public record BaseRecord
+                {
+                    public required object Object1 { get; init; }
+                    public required object Object2 { get; init; }
+                }
+                """, assemblyName: "Base", targetFramework: TargetFramework.Net70);
+
+            var comp2 = CreateCompilation("""
+                var sut = new DerivedRecord
+                {
+                    Object1 = new object(),
+                    Object2 = new object()
+                };
+
+                var broken = sut with { Object2 = new object()};
+                System.Console.Write(broken.Object1 is null);
+
+                public record DerivedRecord : BaseRecord;
+                """, assemblyName: "Derived", references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80);
+
+            var verifier = CompileAndVerify(comp2, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "False" : null, verify: Verification.FailsPEVerify);
+
+            // Historical note: These warnings were the cause of the bug, so they are not being suppressed
+            var expectedDiagnostic =
+                // warning CS1701: Assuming assembly reference 'System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'Base' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "Base", "System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1);
+
+            verifier.VerifyDiagnostics(Enumerable.Repeat(expectedDiagnostic, 21).ToArray());
+
+            verifier.VerifyIL("DerivedRecord..ctor(DerivedRecord)", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  call       "BaseRecord..ctor(BaseRecord)"
+                  IL_0007:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -21428,9 +21515,9 @@ record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (13,16): error CS8861: Unexpected argument list.
+                // (13,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(13, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21474,9 +21561,9 @@ partial record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (17,24): error CS8861: Unexpected argument list.
+                // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21527,12 +21614,12 @@ partial record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (13,24): error CS8861: Unexpected argument list.
+                // (13,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 24),
-                // (17,24): error CS8861: Unexpected argument list.
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(13, 24),
+                // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21589,9 +21676,9 @@ partial record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (17,24): error CS8861: Unexpected argument list.
+                // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21678,9 +21765,9 @@ partial record C(int X, int Y) : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (13,24): error CS8861: Unexpected argument list.
+                // (13,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(13, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21877,9 +21964,9 @@ record C : Base(X)
                 // (11,8): error CS1729: 'Base' does not contain a constructor that takes 0 arguments
                 // record C : Base(X)
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("Base", "0").WithLocation(11, 8),
-                // (11,16): error CS8861: Unexpected argument list.
+                // (11,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record C : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(11, 16)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X)").WithLocation(11, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -22394,9 +22481,9 @@ interface I {}
             var comp = CreateCompilation(src);
 
             comp.VerifyDiagnostics(
-                // (11,16): error CS8861: Unexpected argument list.
+                // (11,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record C : Base(GetInt(X, out var xx) + xx, Y), I
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(GetInt(X, out var xx) + xx, Y)").WithLocation(11, 16),
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(GetInt(X, out var xx) + xx, Y)").WithLocation(11, 16),
                 // (13,30): error CS1729: 'Base' does not contain a constructor that takes 4 arguments
                 //     C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("Base", "4").WithLocation(13, 30)
@@ -24284,15 +24371,9 @@ record B : A<int>;
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
-                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record A<T>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
-                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record B : A<int>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
@@ -24349,18 +24430,12 @@ record B : A<int>, System.IEquatable<B>;
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
-                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
                 // (1,22): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<A<T>>").WithArguments("IEquatable<>", "System").WithLocation(1, 22),
-                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record B : A<int>, System.IEquatable<B>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>, System.IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
@@ -24423,18 +24498,12 @@ record B : A<int>, IEquatable<B>;
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
-                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
                 // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 8),
                 // (2,15): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<A<T>>").WithArguments("IEquatable<>").WithLocation(2, 15),
-                // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record B : A<int>, IEquatable<B>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
                 // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>, IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
@@ -25672,9 +25741,9 @@ record B
             if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 c.VerifyDiagnostics(
-                    // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                    // (8,12): error CS9338: Inconsistent accessibility: type 'B.C.D' is less accessible than class 'B.C'
                     //     record C : X<C.D.E>
-                    Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
+                    Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("B.C", "B.C.D").WithLocation(8, 12),
                     // (8,12): error CS0051: Inconsistent accessibility: parameter type 'X<B.C.D.E>' is less accessible than method 'B.C.Equals(X<B.C.D.E>?)'
                     //     record C : X<C.D.E>
                     Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
@@ -25683,9 +25752,9 @@ record B
             else
             {
                 c.VerifyDiagnostics(
-                    // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                    // (8,12): error CS9338: Inconsistant accessibility: type 'B.C.D' is less accessible than class 'B.C'
                     //     record C : X<C.D.E>
-                    Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
+                    Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("B.C", "B.C.D").WithLocation(8, 12),
                     // (8,12): error CS0050: Inconsistent accessibility: return type 'X<B.C.D.E>' is less accessible than method 'B.C.<Clone>$()'
                     //     record C : X<C.D.E>
                     Diagnostic(ErrorCode.ERR_BadVisReturnType, "C").WithArguments("B.C.<Clone>$()", "X<B.C.D.E>").WithLocation(8, 12),
@@ -30148,6 +30217,116 @@ record R2 : I(0)
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordInheritanceWithoutParameterList()
+        {
+            var src = """
+                record R1(int P1);
+                record R2 : R1(1);
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS1729: 'R1' does not contain a constructor that takes 0 arguments
+                // record R2 : R1(1);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "R2").WithArguments("R1", "0").WithLocation(2, 8),
+                // (2,15): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // record R2 : R1(1);
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(1)").WithLocation(2, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordClassInheritanceWithoutParameterList()
+        {
+            var src = """
+                record class R1(int P1);
+                record class R2 : R1(42);
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,14): error CS1729: 'R1' does not contain a constructor that takes 0 arguments
+                // record class R2 : R1(42);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "R2").WithArguments("R1", "0").WithLocation(2, 14),
+                // (2,21): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // record class R2 : R1(42);
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(42)").WithLocation(2, 21));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordInheritanceWithEmptyParameterListIsValid()
+        {
+            var src = """
+                record R1(int P1);
+                record R2() : R1(1);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R2();
+                        System.Console.WriteLine(r.P1);
+                    }
+                }
+                """;
+            CompileAndVerify(src, expectedOutput: "1").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void StructWithArgumentListInBaseType()
+        {
+            var src = """
+                interface I
+                {
+                }
+
+                struct S : I(0)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8861: Unexpected argument list.
+                // struct S : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(5, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordStructWithArgumentListInBaseType()
+        {
+            var src = """
+                interface I
+                {
+                }
+
+                record struct S : I(0)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,20): error CS8861: Unexpected argument list.
+                // record struct S : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(5, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordWithArgumentListToInterface()
+        {
+            var src = """
+                interface I
+                {
+                }
+
+                record R : I(0)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8861: Unexpected argument list.
+                // record R : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(5, 13));
+        }
+
         [Theory]
         [WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         [CombinatorialData]
@@ -30264,7 +30443,7 @@ class C3<T>
         }
 
         [Fact, WorkItem(62051, "https://github.com/dotnet/roslyn/issues/62051")]
-        public void MisingBaseType()
+        public void MissingBaseType()
         {
             var src = @"
 record R : // 1
@@ -30363,7 +30542,7 @@ record R1(int x);
                 class Attr : System.Attribute {}
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -30387,7 +30566,7 @@ record R1(int x);
                 class Attr : System.Attribute {}
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -28,6 +29,8 @@ internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer :
     {
     }
 
+    protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics;
+
     protected override ISyntaxFacts SyntaxFacts
         => CSharpSyntaxFacts.Instance;
 
@@ -52,18 +55,28 @@ internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer :
     {
         Contract.ThrowIfFalse(nodes.Any());
 
-        var nodesContainingUnnecessaryUsings = new HashSet<SyntaxNode>();
-        foreach (var node in nodes)
+        foreach (var node in nodes.Select(n => n.GetAncestors().First(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)).Distinct())
         {
-            var nodeContainingUnnecessaryUsings = node.GetAncestors().First(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax);
-            if (!nodesContainingUnnecessaryUsings.Add(nodeContainingUnnecessaryUsings))
+            if (node is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
-                continue;
+                yield return namespaceDeclaration.Usings.GetContainedSpan();
             }
-
-            yield return nodeContainingUnnecessaryUsings is BaseNamespaceDeclarationSyntax namespaceDeclaration
-                ? namespaceDeclaration.Usings.GetContainedSpan()
-                : ((CompilationUnitSyntax)nodeContainingUnnecessaryUsings).Usings.GetContainedSpan();
+            else if (node is CompilationUnitSyntax compilationUnit)
+            {
+                yield return compilationUnit.Usings.GetContainedSpan();
+            }
         }
+    }
+
+    protected override void AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        // We've opted in to generated code analysis above, but we actually only want to analyze generated code for Razor
+        if (context.IsGeneratedCode &&
+            tree.FilePath.IndexOf("Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator") == -1)
+        {
+            return;
+        }
+
+        base.AnalyzeSemanticModel(context, tree, cancellationToken);
     }
 }

@@ -103,7 +103,7 @@ internal abstract class TreeItemViewModel : TreeViewItemBase
     {
         if (ClassifiedSpans.IsDefaultOrEmpty)
         {
-            return ImmutableArray<Inline>.Empty;
+            return [];
         }
 
         var classifiedTexts = ClassifiedSpans.SelectAsArray(
@@ -115,7 +115,7 @@ internal abstract class TreeItemViewModel : TreeViewItemBase
         var spanStartPosition = TextSpan.Start - ClassifiedSpans[0].TextSpan.Start;
         var highlightSpan = new TextSpan(spanStartPosition, TextSpan.Length);
 
-        return classifiedTexts.ToInlines(
+        return [.. classifiedTexts.ToInlines(
             TreeViewModel.ClassificationFormatMap,
             TreeViewModel.ClassificationTypeMap,
             (run, classifiedText, position) =>
@@ -133,6 +133,6 @@ internal abstract class TreeItemViewModel : TreeViewItemBase
                             TreeViewModel.HighlightBrush);
                     }
                 }
-            }).ToImmutableArray();
+            })];
     }
 }

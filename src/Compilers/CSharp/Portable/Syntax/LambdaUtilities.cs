@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -358,13 +360,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Compares content of two nodes ignoring lambda bodies and trivia.
         /// </summary>
         public static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode oldNode, SyntaxNode newNode)
-        {
-            // all tokens that don't belong to a lambda body:
-            var oldTokens = oldNode.DescendantTokens(node => node == oldNode || !IsLambdaBodyStatementOrExpression(node));
-            var newTokens = newNode.DescendantTokens(node => node == newNode || !IsLambdaBodyStatementOrExpression(node));
+            => DescendantTokensIgnoringLambdaBodies(oldNode).SequenceEqual(DescendantTokensIgnoringLambdaBodies(newNode), SyntaxFactory.AreEquivalent);
 
-            return oldTokens.SequenceEqual(newTokens, SyntaxFactory.AreEquivalent);
-        }
+        /// <summary>
+        /// Returns all tokens of <paramref name="node"/> that are not part of lambda bodies.
+        /// </summary>
+        public static IEnumerable<SyntaxToken> DescendantTokensIgnoringLambdaBodies(SyntaxNode node)
+            => node.DescendantTokens(child => child == node || !IsLambdaBodyStatementOrExpression(child));
 
         /// <summary>
         /// "Pair lambda" is a synthesized lambda that creates an instance of an anonymous type representing a pair of values. 

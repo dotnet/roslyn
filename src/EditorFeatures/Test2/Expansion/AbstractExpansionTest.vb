@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     <[UseExportProvider]>
@@ -21,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
                 Dim hostDocument = If(Not useLastProject, workspace.Documents.Single(), workspace.Documents.Last())
 
                 If hostDocument.AnnotatedSpans.Count <> 1 Then
-                    Assert.True(False, "Encountered unexpected span annotation -- only one of 'Expand' or 'ExpandAndSimplify' is legal")
+                    Assert.Fail("Encountered unexpected span annotation -- only one of 'Expand' or 'ExpandAndSimplify' is legal")
                 End If
 
                 Dim document = If(Not useLastProject, workspace.CurrentSolution.Projects.Single(), workspace.CurrentSolution.Projects.Last()).Documents.Single()
@@ -56,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
         End Function
 
         Private Shared Function GetExpressionSyntaxWithSameSpan(node As SyntaxNode, spanEnd As Integer) As SyntaxNode
-            While Not node Is Nothing And Not node.Parent Is Nothing And node.Parent.SpanStart = node.SpanStart
+            While node IsNot Nothing And node.Parent IsNot Nothing And node.Parent.SpanStart = node.SpanStart
                 node = node.Parent
                 If node.Span.End = spanEnd Then
                     Exit While

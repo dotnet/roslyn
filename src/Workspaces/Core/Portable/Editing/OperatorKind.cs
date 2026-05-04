@@ -140,4 +140,59 @@ public enum OperatorKind
     /// The name assigned to the UnsignedRightShift operator.
     /// </summary>
     UnsignedRightShift,
+
+    /// <summary>
+    /// The name assigned to the AdditionAssignment operator.
+    /// </summary>
+    AdditionAssignment,
+
+    /// <summary>
+    /// The name assigned to the SubtractionAssignment operator.
+    /// </summary>
+    SubtractionAssignment,
+
+    /// <summary>
+    /// The name assigned to the MultiplicationAssignment operator.
+    /// </summary>
+    MultiplicationAssignment,
+
+    /// <summary>
+    /// The name assigned to the DivisionAssignment operator.
+    /// </summary>
+    DivisionAssignment,
+
+    /// <summary>
+    /// The name assigned to the ModulusAssignment operator.
+    /// </summary>
+    ModulusAssignment,
+
+    /// <summary>
+    /// The name assigned to the ExclusiveOrAssignment operator.
+    /// </summary>
+    ExclusiveOrAssignment,
+
+    /// <summary>
+    /// The name assigned to the BitwiseAndAssignment operator.
+    /// </summary>
+    BitwiseAndAssignment,
+
+    /// <summary>
+    /// The name assigned to the BitwiseOrAssignment operator.
+    /// </summary>
+    BitwiseOrAssignment,
+
+    /// <summary>
+    /// The name assigned to the LeftShiftAssignment operator.
+    /// </summary>
+    LeftShiftAssignment,
+
+    /// <summary>
+    /// The name assigned to the RightShiftAssignment operator.
+    /// </summary>
+    RightShiftAssignment,
+
+    /// <summary>
+    /// The name assigned to the UnsignedRightShiftAssignment operator.
+    /// </summary>
+    UnsignedRightShiftAssignment,
 }

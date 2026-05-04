@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
@@ -22,11 +20,11 @@ internal abstract partial class AbstractObjectBrowserLibraryManager
     internal void CollectTypeListItems(IAssemblySymbol assemblySymbol, Compilation compilation, ProjectId projectId, ImmutableArray<ObjectListItem>.Builder builder, string searchString)
         => GetListItemFactory().CollectTypeListItems(assemblySymbol, compilation, projectId, builder, searchString);
 
-    internal ImmutableHashSet<Tuple<ProjectId, IAssemblySymbol>> GetAssemblySet(Solution solution, string languageName, CancellationToken cancellationToken)
-        => GetListItemFactory().GetAssemblySet(solution, languageName, cancellationToken);
+    internal Task<ImmutableHashSet<(ProjectId, IAssemblySymbol)>> GetAssemblySetAsync(Solution solution, string languageName, CancellationToken cancellationToken)
+        => GetListItemFactory().GetAssemblySetAsync(solution, languageName, cancellationToken);
 
-    internal ImmutableHashSet<Tuple<ProjectId, IAssemblySymbol>> GetAssemblySet(Project project, bool lookInReferences, CancellationToken cancellationToken)
-        => GetListItemFactory().GetAssemblySet(project, lookInReferences, cancellationToken);
+    internal Task<ImmutableHashSet<(ProjectId, IAssemblySymbol)>> GetAssemblySetAsync(Project project, bool lookInReferences, CancellationToken cancellationToken)
+        => GetListItemFactory().GetAssemblySetAsync(project, lookInReferences, cancellationToken);
 
     internal ImmutableArray<ObjectListItem> GetBaseTypeListItems(ObjectListItem parentListItem, Compilation compilation)
         => GetListItemFactory().GetBaseTypeListItems(parentListItem, compilation);

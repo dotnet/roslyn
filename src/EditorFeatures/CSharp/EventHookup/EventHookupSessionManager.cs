@@ -8,15 +8,17 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
@@ -25,22 +27,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class EventHookupSessionManager(
     IThreadingContext threadingContext,
-    IToolTipService toolTipService)
+    IToolTipService toolTipService,
+    Lazy<SuggestionServiceBase> suggestionServiceBase)
 {
     public readonly IThreadingContext ThreadingContext = threadingContext;
     private readonly IToolTipService _toolTipService = toolTipService;
+    internal readonly Lazy<SuggestionServiceBase> SuggestionServiceBase = suggestionServiceBase;
 
     private IToolTipPresenter _toolTipPresenter;
+    private VisualStudio.Threading.IAsyncDisposable _suggestionBlocker;
 
-    internal EventHookupSession CurrentSession { get; set; }
+    internal EventHookupSession CurrentSession
+    {
+        get
+        {
+            ThreadingContext.ThrowIfNotOnUIThread();
+            return field;
+        }
+
+        set
+        {
+            ThreadingContext.ThrowIfNotOnUIThread();
+            field?.CancelBackgroundTasks();
+            field = value;
+        }
+    }
 
     // For test purposes only!
     internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
 
-    internal void EventHookupFoundInSession(EventHookupSession analyzedSession, string eventName)
+    public async Task EventHookupFoundInSessionAsync(
+        EventHookupSession analyzedSession, string eventName, CancellationToken cancellationToken)
     {
-        ThreadingContext.ThrowIfNotOnUIThread();
+        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+        if (cancellationToken.IsCancellationRequested)
+            return;
 
+        // Now that we've switched to the UI thread, the rest of the work is not cancellable.  We're about to be making
+        // mutations, and we don't want to stop somewhere in the middle of that.
+        cancellationToken = default;
         var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
         // only generate tooltip if it is not already shown (_toolTipPresenter == null)
@@ -76,6 +101,16 @@ internal sealed partial class EventHookupSessionManager(
 
             analyzedSession.TextView.Caret.PositionChanged += Caret_PositionChanged;
             CurrentSession.Dismissed += () => { analyzedSession.TextView.Caret.PositionChanged -= Caret_PositionChanged; };
+
+            // Dismiss and suppress gray text proposals for the duration of the event hookup session. Note we pass
+            // CancellationToken.None here as we don't actually want to cancel this operation, since we've already
+            // made UI changes/hookup that we now have to go through.  We are technically safe, as we've cleared
+            // out cancellationToken above, but this is an extra level safety.
+            //
+            // Also, 'ConfigureAwait(true)' on everything here as we want to stay on the UI thread.
+            _suggestionBlocker?.DisposeAsync().ConfigureAwait(true);
+            _suggestionBlocker = await SuggestionServiceBase.Value.DismissAndBlockProposalsAsync(
+                analyzedSession.TextView, ReasonForDismiss.DismissedAfterBufferChange, CancellationToken.None).ConfigureAwait(true);
         }
     }
 
@@ -118,17 +153,12 @@ internal sealed partial class EventHookupSessionManager(
     {
         ThreadingContext.ThrowIfNotOnUIThread();
 
-        if (_toolTipPresenter != null)
-        {
-            _toolTipPresenter.Dismiss();
-            _toolTipPresenter = null;
-        }
+        _toolTipPresenter?.Dismiss();
+        _toolTipPresenter = null;
+        _suggestionBlocker?.DisposeAsync().Forget();
+        _suggestionBlocker = null;
 
-        if (CurrentSession != null)
-        {
-            CurrentSession.CancelBackgroundTasks();
-            CurrentSession = null;
-        }
+        CurrentSession = null;
 
         // For test purposes only!
         TEST_MostRecentToolTipContent = null;

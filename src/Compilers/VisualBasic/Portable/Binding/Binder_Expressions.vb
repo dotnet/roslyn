@@ -1400,6 +1400,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Throw ExceptionUtilities.UnexpectedValue(propertyAccess.AccessKind)
                 End Select
 
+            ElseIf expr.Kind = BoundKind.InterpolatedStringExpression Then
+
+                expr = BindUnconvertedInterpolatedStringToString(DirectCast(expr, BoundInterpolatedStringExpression), diagnostics)
+
             ElseIf expr.IsLateBound() Then
 
                 Select Case expr.GetLateBoundAccessKind()

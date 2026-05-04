@@ -11,14 +11,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-public class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTests<SwitchStatementSyntax>
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public sealed class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTests<SwitchStatementSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchStatementStructureProvider();
 
-    [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestSwitchStatement1()
-    {
-        var code = """
+    [Fact]
+    public Task TestSwitchStatement1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -28,16 +28,12 @@ public class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTe
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestSwitchStatement2()
-    {
-        var code = """
+    [Fact]
+    public Task TestSwitchStatement2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -57,11 +53,8 @@ public class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTe
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

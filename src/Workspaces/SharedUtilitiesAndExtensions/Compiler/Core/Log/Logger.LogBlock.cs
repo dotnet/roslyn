@@ -16,12 +16,12 @@ internal static partial class Logger
     // Use an object pool since we may be logging up to 1-10k events/second
     private static readonly ObjectPool<RoslynLogBlock> s_pool = new(() => new RoslynLogBlock(s_pool!), Math.Min(Environment.ProcessorCount * 8, 256));
 
-    private static IDisposable CreateLogBlock(FunctionId functionId, LogMessage message, int blockId, CancellationToken cancellationToken)
+    public static IDisposable CreateLogBlock(ILogger logger, FunctionId functionId, LogMessage message, int blockId, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(s_currentLogger);
+        Contract.ThrowIfNull(logger);
 
         var block = s_pool.Allocate();
-        block.Construct(s_currentLogger, functionId, message, blockId, cancellationToken);
+        block.Construct(logger, functionId, message, blockId, cancellationToken);
         return block;
     }
 
@@ -29,7 +29,7 @@ internal static partial class Logger
     /// This tracks the logged message. On instantiation, it logs 'Started block' with other event data.
     /// On dispose, it logs 'Ended block' with the same event data so we can track which block started and ended when looking at logs.
     /// </summary>
-    private class RoslynLogBlock(ObjectPool<RoslynLogBlock> pool) : IDisposable
+    private sealed class RoslynLogBlock(ObjectPool<RoslynLogBlock> pool) : IDisposable
     {
 
         // these need to be cleared before putting back to pool

@@ -24,20 +24,22 @@ public class BasicClassification : AbstractEditorTest
     [IdeFact]
     public async Task Verify_Color_Of_Some_Tokens()
     {
-        await TestServices.Editor.SetTextAsync(@"Imports System
-Imports MathAlias = System.Math
-Namespace Acme
-    ''' <summary>innertext
-    ''' </summary>
-    ''' <!--comment-->
-    ''' <![CDATA[cdata]]>
-    ''' <typeparam name=""attribute"" />
-    Public Class Program
-        Public Shared Sub Main(args As String())
-            Console.WriteLine(""Hello World"") 'comment
-        End Sub
-    End Class
-End Namespace", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+            Imports System
+            Imports MathAlias = System.Math
+            Namespace Acme
+                ''' <summary>innertext
+                ''' </summary>
+                ''' <!--comment-->
+                ''' <![CDATA[cdata]]>
+                ''' <typeparam name="attribute" />
+                Public Class Program
+                    Public Shared Sub Main(args As String())
+                        Console.WriteLine("Hello World") 'comment
+                    End Sub
+                End Class
+            End Namespace
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("MathAlias", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "class name", HangMitigatingCancellationToken);
@@ -70,11 +72,13 @@ End Namespace", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Semantic_Classification()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Imports System
-Class Goo
-    Inherits Attribute
-End Class", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            Imports System
+            Class Goo
+                Inherits Attribute
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("Goo", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "class name", HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("Attribute", charsOffset: 0, HangMitigatingCancellationToken);

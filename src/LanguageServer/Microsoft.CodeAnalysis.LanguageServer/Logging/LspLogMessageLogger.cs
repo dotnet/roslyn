@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
@@ -12,34 +13,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 /// Implements an ILogger that seamlessly switches from a fallback logger
 /// to LSP log messages as soon as the server initializes.
 /// </summary>
-internal sealed class LspLogMessageLogger : ILogger
+internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fallbackLoggerFactory, ServerConfiguration serverConfiguration, IExternalScopeProvider? externalScopeProvider) : ILogger
 {
-    private readonly string _categoryName;
-    private readonly ILogger _fallbackLogger;
+    private readonly Lazy<ILogger> _fallbackLogger = new(() => fallbackLoggerFactory.CreateLogger(categoryName));
+    private readonly IExternalScopeProvider? _externalScopeProvider = externalScopeProvider;
 
-    public LspLogMessageLogger(string categoryName, ILoggerFactory fallbackLoggerFactory)
-    {
-        _categoryName = categoryName;
-        _fallbackLogger = fallbackLoggerFactory.CreateLogger(categoryName);
-    }
-
-    public IDisposable BeginScope<TState>(TState state) where TState : notnull
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsEnabled(LogLevel logLevel)
-    {
-        return true;
-    }
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => _externalScopeProvider?.Push(state);
+    public bool IsEnabled(LogLevel logLevel) => serverConfiguration.LogConfiguration.GetLogLevel() <= logLevel;
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
+        if (!IsEnabled(logLevel) || logLevel == LogLevel.None)
+        {
+            return;
+        }
+
         var server = LanguageServerHost.Instance;
         if (server == null)
         {
             // If the language server has not been initialized yet, log using the fallback logger.
-            _fallbackLogger.Log(logLevel, eventId, state, exception, formatter);
+            _fallbackLogger.Value.Log(logLevel, eventId, state, exception, formatter);
             return;
         }
 
@@ -56,23 +49,59 @@ internal sealed class LspLogMessageLogger : ILogger
                 message += " " + exceptionString;
         }
 
-        if (message != null && logLevel != LogLevel.None)
+        string messagePrefix = "";
+
+        var logMethod = Methods.WindowLogMessageName;
+
+        _externalScopeProvider?.ForEachScope((scope, _) =>
         {
-            message = $"[{_categoryName}] {message}";
-            var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
+            if (scope is LspLoggingScope lspLoggingScope)
             {
-                Message = message,
-                MessageType = logLevel switch
+                if (lspLoggingScope.Context is not null)
                 {
-                    LogLevel.Trace => MessageType.Log,
-                    LogLevel.Debug => MessageType.Log,
-                    LogLevel.Information => MessageType.Info,
-                    LogLevel.Warning => MessageType.Warning,
-                    LogLevel.Error => MessageType.Error,
-                    LogLevel.Critical => MessageType.Error,
-                    _ => throw new InvalidOperationException($"Unexpected logLevel argument {logLevel}"),
+                    messagePrefix += $"[{lspLoggingScope.Context}] ";
                 }
+
+                if (lspLoggingScope.Language is not null)
+                {
+                    logMethod = lspLoggingScope.Language switch
+                    {
+                        LanguageInfoProvider.RazorLanguageName => "razor/log",
+                        _ => logMethod,
+                    };
+                }
+            }
+        }, state);
+
+        messagePrefix += $"[{categoryName}]";
+
+        try
+        {
+            var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(logMethod, new LogMessageParams()
+            {
+                Message = $"{messagePrefix} {message}",
+                MessageType = LogLevelToMessageType(logLevel),
             }, CancellationToken.None);
         }
+        catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
+        {
+            // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a log notification
+            // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
+        }
+    }
+
+    private static MessageType LogLevelToMessageType(LogLevel logLevel)
+    {
+        return logLevel switch
+        {
+            // Count "Trace" as "Debug", as right now the VS Code LSP client doesn't have a concept of "trace", and using a generic "Log" puts no severity at all which is even more confusing.
+            LogLevel.Trace => MessageType.Debug,
+            LogLevel.Debug => MessageType.Debug,
+            LogLevel.Information => MessageType.Info,
+            LogLevel.Warning => MessageType.Warning,
+            LogLevel.Error => MessageType.Error,
+            LogLevel.Critical => MessageType.Error,
+            _ => throw ExceptionUtilities.UnexpectedValue(logLevel),
+        };
     }
 }

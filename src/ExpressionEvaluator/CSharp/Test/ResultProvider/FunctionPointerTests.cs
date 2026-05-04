@@ -4,13 +4,13 @@
 
 #nullable disable
 
+using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
-using System;
-using System.Diagnostics;
 using Xunit;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 

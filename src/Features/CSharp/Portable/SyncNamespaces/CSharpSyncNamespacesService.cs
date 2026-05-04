@@ -23,5 +23,7 @@ internal sealed class CSharpSyncNamespacesService(
 {
     public override AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<SyntaxKind, BaseNamespaceDeclarationSyntax> DiagnosticAnalyzer { get; } = diagnosticAnalyzer;
 
+    public override bool IsHostAnalyzer => false;
+
     public override AbstractChangeNamespaceToMatchFolderCodeFixProvider CodeFixProvider { get; } = codeFixProvider;
 }

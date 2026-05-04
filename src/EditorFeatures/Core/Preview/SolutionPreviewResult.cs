@@ -7,13 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor;
 
-internal class SolutionPreviewResult(
+internal sealed class SolutionPreviewResult(
     IThreadingContext threadingContext,
     IList<SolutionPreviewItem>? previews,
     SolutionChangeSummary? changeSummary = null)
@@ -101,7 +102,7 @@ internal class SolutionPreviewResult(
 
         return new SolutionPreviewResult(
             result1._threadingContext,
-            result1._previews.Concat(result2._previews).ToList(),
+            [.. result1._previews, .. result2._previews],
             result1.ChangeSummary ?? result2.ChangeSummary);
     }
 }

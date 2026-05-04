@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
-public class FixInterpolatedVerbatimStringCommandHandlerTests
+public sealed class FixInterpolatedVerbatimStringCommandHandlerTests
 {
     private static EditorTestWorkspace CreateTestWorkspace(string inputMarkup)
     {
@@ -97,8 +97,7 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
 
     [WpfFact]
     public void TestAfterAtSignDollarSign()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -117,12 +116,10 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterDollarSignAtSign()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -132,12 +129,10 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterAtSign()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -147,12 +142,10 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingAfterDollarSign()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -162,7 +155,6 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     public void TestMissingInEmptyFileAfterAtSignDollarSign()
@@ -178,8 +170,7 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
 
     [WpfFact]
     public void TestAfterAtSignDollarSignEndOfFile()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -194,24 +185,20 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 {
                     var v = $@"[||]
             """);
-    }
 
     [WpfFact]
     public void TestMissingInClassDeclaration()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
                 @$[||]
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInComment1()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -221,12 +208,10 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInComment2()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -236,12 +221,10 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInString()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -251,12 +234,10 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInVerbatimString()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -266,12 +247,10 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInInterpolatedString()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -281,12 +260,10 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInInterpolatedVerbatimString1()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -296,12 +273,10 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestMissingInInterpolatedVerbatimString2()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -311,12 +286,10 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void TestTrivia()
-    {
-        TestHandled(
+        => TestHandled(
             """
             class C
             {
@@ -337,5 +310,4 @@ public class FixInterpolatedVerbatimStringCommandHandlerTests
                 }
             }
             """);
-    }
 }

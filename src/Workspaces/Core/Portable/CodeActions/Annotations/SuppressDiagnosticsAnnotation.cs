@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
-internal class SuppressDiagnosticsAnnotation
+internal sealed class SuppressDiagnosticsAnnotation
 {
     public const string Kind = "CodeAction_SuppressDiagnostics";
 

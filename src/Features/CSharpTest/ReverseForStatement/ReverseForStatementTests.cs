@@ -14,15 +14,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReverseForStatement;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpReverseForStatementCodeRefactoringProvider();
 
     [Fact]
-    public async Task TestMissingWithoutInitializer()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithoutInitializer()
+        => TestMissingAsync(
             """
             class C
             {
@@ -34,12 +33,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithoutCondition()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithoutCondition()
+        => TestMissingAsync(
             """
             class C
             {
@@ -51,12 +48,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithoutIncrementor()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithoutIncrementor()
+        => TestMissingAsync(
             """
             class C
             {
@@ -68,12 +63,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithoutVariableReferencedInCondition()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithoutVariableReferencedInCondition()
+        => TestMissingAsync(
             """
             class C
             {
@@ -85,12 +78,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithoutVariableReferencedInIncrementor()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithoutVariableReferencedInIncrementor()
+        => TestMissingAsync(
             """
             class C
             {
@@ -102,12 +93,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithoutVariableInitializer()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithoutVariableInitializer()
+        => TestMissingAsync(
             """
             class C
             {
@@ -119,12 +108,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMismatchedConditionAndIncrementor1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMismatchedConditionAndIncrementor1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -136,12 +123,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMismatchedConditionAndIncrementor2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMismatchedConditionAndIncrementor2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -153,12 +138,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPostIncrement1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPostIncrement1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -181,12 +164,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPostIncrementConstants1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPostIncrementConstants1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -209,12 +190,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPostDecrementConstants1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPostDecrementConstants1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -237,12 +216,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIncrementPreIncrement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIncrementPreIncrement()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -265,12 +242,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIncrementAddAssignment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIncrementAddAssignment()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -293,12 +268,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithNonOneIncrementValue()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithNonOneIncrementValue()
+        => TestMissingAsync(
             """
             class C
             {
@@ -310,12 +283,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPostDecrement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPostDecrement()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -338,12 +309,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPostIncrementEquals1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPostIncrementEquals1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -366,12 +335,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPostDecrementEquals()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPostDecrementEquals()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -394,12 +361,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -422,12 +387,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPostIncrementSwappedConditions()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPostIncrementSwappedConditions()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -450,12 +413,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPostIncrementEqualsSwappedConditions()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPostIncrementEqualsSwappedConditions()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -478,12 +439,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestByteOneMin()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestByteOneMin()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -506,12 +465,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUInt16OneMin()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUInt16OneMin()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -534,12 +491,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUInt32OneMin()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUInt32OneMin()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -562,12 +517,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUInt64OneMin()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUInt64OneMin()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -590,12 +543,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestByteZeroMin()
-    {
-        await TestMissingAsync(
+    public Task TestByteZeroMin()
+        => TestMissingAsync(
             """
             class C
             {
@@ -607,12 +558,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUInt16ZeroMin()
-    {
-        await TestMissingAsync(
+    public Task TestUInt16ZeroMin()
+        => TestMissingAsync(
             """
             class C
             {
@@ -624,12 +573,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUInt32ZeroMin()
-    {
-        await TestMissingAsync(
+    public Task TestUInt32ZeroMin()
+        => TestMissingAsync(
             """
             class C
             {
@@ -641,12 +588,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUInt64ZeroMin()
-    {
-        await TestMissingAsync(
+    public Task TestUInt64ZeroMin()
+        => TestMissingAsync(
             """
             class C
             {
@@ -658,12 +603,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestByteMax()
-    {
-        await TestMissingAsync(
+    public Task TestByteMax()
+        => TestMissingAsync(
             """
             class C
             {
@@ -675,12 +618,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUInt16Max()
-    {
-        await TestMissingAsync(
+    public Task TestUInt16Max()
+        => TestMissingAsync(
             """
             class C
             {
@@ -692,12 +633,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUInt32Max()
-    {
-        await TestMissingAsync(
+    public Task TestUInt32Max()
+        => TestMissingAsync(
             """
             class C
             {
@@ -709,12 +648,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUInt64Max()
-    {
-        await TestMissingAsync(
+    public Task TestUInt64Max()
+        => TestMissingAsync(
             """
             class C
             {
@@ -726,12 +663,10 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestByteZeroMinReverse()
-    {
-        await TestMissingAsync(
+    public Task TestByteZeroMinReverse()
+        => TestMissingAsync(
             """
             class C
             {
@@ -743,5 +678,4 @@ public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 }

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 
-internal class NamingStylesLocationViewModel : NotifyPropertyChangedBase
+internal sealed class NamingStylesLocationViewModel : NotifyPropertyChangedBase
 {
     private readonly NamingStyleSetting _setting;
     private string _locationValue;

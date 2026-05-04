@@ -20,7 +20,7 @@ internal interface INavigableLocation
     Task<bool> NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken);
 }
 
-internal class NavigableLocation(Func<NavigationOptions, CancellationToken, Task<bool>> callback) : INavigableLocation
+internal sealed class NavigableLocation(Func<NavigationOptions, CancellationToken, Task<bool>> callback) : INavigableLocation
 {
     private readonly Func<NavigationOptions, CancellationToken, Task<bool>> _callback = callback;
 

@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Specifies the encoding to be used when debugging scripts loaded from a file, or saved to a file for debugging purposes.
         /// If it's null, the compiler will attempt to detect the necessary encoding for debugging
         /// </summary>
-        public Encoding FileEncoding { get; private set; }
+        public Encoding? FileEncoding { get; private set; }
 
         /// <summary>
         /// The path to the script source if it originated from a file, empty otherwise.
@@ -139,7 +138,9 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public int WarningLevel { get; private set; }
 
-        internal ParseOptions ParseOptions { get; private set; }
+        internal ParseOptions? ParseOptions { get; private set; }
+
+        internal Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> CreateFromFileFunc { get; private set; }
 
         internal ScriptOptions(
             string filePath,
@@ -148,12 +149,13 @@ namespace Microsoft.CodeAnalysis.Scripting
             MetadataReferenceResolver metadataResolver,
             SourceReferenceResolver sourceResolver,
             bool emitDebugInformation,
-            Encoding fileEncoding,
+            Encoding? fileEncoding,
             OptimizationLevel optimizationLevel,
             bool checkOverflow,
             bool allowUnsafe,
             int warningLevel,
-            ParseOptions parseOptions)
+            ParseOptions? parseOptions,
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference>? createFromFileFunc = null)
         {
             Debug.Assert(filePath != null);
             Debug.Assert(!references.IsDefault);
@@ -173,6 +175,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             AllowUnsafe = allowUnsafe;
             WarningLevel = warningLevel;
             ParseOptions = parseOptions;
+            CreateFromFileFunc = createFromFileFunc ?? Script.CreateFromFile;
         }
 
         private ScriptOptions(ScriptOptions other)
@@ -187,7 +190,8 @@ namespace Microsoft.CodeAnalysis.Scripting
                    checkOverflow: other.CheckOverflow,
                    allowUnsafe: other.AllowUnsafe,
                    warningLevel: other.WarningLevel,
-                   parseOptions: other.ParseOptions)
+                   parseOptions: other.ParseOptions,
+                   createFromFileFunc: other.CreateFromFileFunc)
         {
         }
 
@@ -198,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the <see cref="FilePath"/> changed.
         /// </summary>
-        public ScriptOptions WithFilePath(string filePath)
+        public ScriptOptions WithFilePath(string? filePath)
             => (FilePath == filePath) ? this : new ScriptOptions(this) { FilePath = filePath ?? "" };
 
         private static MetadataReference CreateUnresolvedReference(string reference)
@@ -244,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
         /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
         public ScriptOptions WithReferences(IEnumerable<Assembly> references)
-            => WithReferences(SelectChecked(references, nameof(references), CreateReferenceFromAssembly));
+            => WithReferences(SelectChecked(references, nameof(references), CreateFromAssembly));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
@@ -260,12 +264,10 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
         /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
         public ScriptOptions AddReferences(IEnumerable<Assembly> references)
-            => AddReferences(SelectChecked(references, nameof(references), CreateReferenceFromAssembly));
+            => AddReferences(SelectChecked(references, nameof(references), CreateFromAssembly));
 
-        private static MetadataReference CreateReferenceFromAssembly(Assembly assembly)
-        {
-            return MetadataReference.CreateFromAssemblyInternal(assembly, s_assemblyReferenceProperties);
-        }
+        private MetadataImageReference CreateFromAssembly(Assembly assembly) =>
+            Script.CreateFromAssembly(assembly, s_assemblyReferenceProperties, CreateFromFileFunc);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
@@ -364,7 +366,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Create a new <see cref="ScriptOptions"/> with the specified <see cref="OptimizationLevel"/>.
         /// </summary>
-        /// <returns></returns>
         public ScriptOptions WithOptimizationLevel(OptimizationLevel optimizationLevel)
             => optimizationLevel == OptimizationLevel ? this : new ScriptOptions(this) { OptimizationLevel = optimizationLevel };
 
@@ -388,5 +389,8 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         internal ScriptOptions WithParseOptions(ParseOptions parseOptions)
             => parseOptions == ParseOptions ? this : new ScriptOptions(this) { ParseOptions = parseOptions };
+
+        internal ScriptOptions WithCreateFromFileFunc(Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> createFromFileFunc)
+            => new ScriptOptions(this) { CreateFromFileFunc = createFromFileFunc };
     }
 }

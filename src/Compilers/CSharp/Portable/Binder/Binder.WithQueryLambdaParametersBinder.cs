@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node,
                         LookupResultKind.Empty,
                         ImmutableArray.Create<Symbol>(receiver.ExpressionSymbol),
-                        ImmutableArray.Create(BindToTypeForErrorRecovery(receiver)),
+                        ImmutableArray.Create(AdjustBadExpressionChild(BindToTypeForErrorRecovery(receiver))),
                         new ExtendedErrorTypeSymbol(this.Compilation, "", 0, info));
                 }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupMembersWithFallback(lookupResult, receiver.Type, name, 0, ref useSiteInfo, basesBeingResolved: null, options: options);
                 diagnostics.Add(node, useSiteInfo);
 
-                var result = BindMemberOfType(node, node, name, 0, indexed: false, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
+                var result = BindMemberOfType(node, node, name, 0, invoked: false, indexed: false, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
                 lookupResult.Free();
                 return result;
             }

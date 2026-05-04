@@ -664,6 +664,16 @@ namespace System.Xml.Linq
         }
 
         [Fact]
+        public void VisualizerStringBuilder()
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append("Hello, ");
+            sb.Append("World!");
+
+            Assert.Equal("Hello, World!", GetUnderlyingString(sb));
+        }
+
+        [Fact]
         public void HostValueNotFound_int()
         {
             var clrValue = new DkmClrValue(

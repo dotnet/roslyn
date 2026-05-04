@@ -499,7 +499,7 @@ class C
                     state.SendEscape()
                 End If
 
-                state.SendUpKey()
+                state.CurrentSignatureHelpPresenterSession.SelectPreviousItem()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
 
                 state.SendTypeChars("1")
@@ -545,7 +545,7 @@ class C
                     state.SendEscape()
                 End If
 
-                state.SendDownKey()
+                state.CurrentSignatureHelpPresenterSession.SelectNextItem()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
 
                 state.SendTypeChars("1")
@@ -580,7 +580,7 @@ class C
                 state.SendTypeChars("1, """" ")
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
 
-                state.SendUpKey()
+                state.CurrentSignatureHelpPresenterSession.SelectPreviousItem()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
 
                 state.SendTypeChars(",")

@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -313,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         private static TupleElementNamesInfo DecodeTupleElementNamesInfo(ImmutableArray<byte> bytes, ref int offset)
         {
             var n = ReadInt32(bytes, ref offset);
-            var builder = ArrayBuilder<string>.GetInstance(n);
+            var builder = ArrayBuilder<string?>.GetInstance(n);
             for (var i = 0; i < n; i++)
             {
                 var value = ReadUtf8String(bytes, ref offset);
@@ -337,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         public static ImmutableArray<ImmutableArray<string>> GetCSharpGroupedImportStrings<TArg>(
             int methodToken,
             TArg arg,
-            Func<int, TArg, byte[]> getMethodCustomDebugInfo,
+            Func<int, TArg, byte[]?> getMethodCustomDebugInfo,
             Func<int, TArg, ImmutableArray<string>> getMethodImportStrings,
             out ImmutableArray<string> externAliasStrings)
         {
@@ -572,7 +574,7 @@ RETRY:
         ///  "TSystem.Math" -> <type name="System.Math" />
         /// ]]>
         /// </remarks>
-        public static bool TryParseCSharpImportString(string import, out string alias, out string externAlias, out string target, out ImportTargetKind kind)
+        public static bool TryParseCSharpImportString(string import, out string? alias, out string? externAlias, out string? target, out ImportTargetKind kind)
         {
             alias = null;
             externAlias = null;
@@ -673,7 +675,7 @@ RETRY:
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="import"/> is null.</exception>
         /// <exception cref="ArgumentException">Format of <paramref name="import"/> is not valid.</exception>
-        public static bool TryParseVisualBasicImportString(string import, out string alias, out string target, out ImportTargetKind kind, out VBImportScopeKind scope)
+        public static bool TryParseVisualBasicImportString(string import, out string? alias, out string? target, out ImportTargetKind kind, out VBImportScopeKind scope)
         {
             alias = null;
             target = null;
@@ -820,7 +822,7 @@ RETRY:
             }
         }
 
-        private static bool TrySplit(string input, int offset, char separator, out string before, out string after)
+        private static bool TrySplit(string input, int offset, char separator, [NotNullWhen(true)] out string? before, [NotNullWhen(true)] out string? after)
         {
             var separatorPos = input.IndexOf(separator, offset);
 
@@ -864,6 +866,89 @@ RETRY:
 
             var block = builder.ToArrayAndFree();
             return Encoding.UTF8.GetString(block, 0, block.Length);
+        }
+
+        /// <summary>
+        /// Returns <see cref="CustomDebugInformation"/> of the specified kind associated with the given handle if there is a single such entry.
+        /// </summary>
+        /// <exception cref="BadImageFormatException">The PDB is malformed or there are multiple entries of the given <paramref name="kind"/>.</exception>
+        public static bool TryGetCustomDebugInformation(this MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
+        {
+            var foundAny = false;
+            customDebugInfo = default;
+            foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
+            {
+                var info = reader.GetCustomDebugInformation(infoHandle);
+                var id = reader.GetGuid(info.Kind);
+                if (id == kind)
+                {
+                    if (foundAny)
+                    {
+                        throw new BadImageFormatException();
+                    }
+
+                    customDebugInfo = info;
+                    foundAny = true;
+                }
+            }
+
+            return foundAny;
+        }
+
+        /// <summary>
+        /// Reads compilation options custom debug information.
+        /// https://github.com/dotnet/runtime/blob/ef5b188467e37b28c952ea9f2fd423422365f90a/docs/design/specs/PortablePdb-Metadata.md#compilation-options-c-and-vb-compilers
+        /// </summary>
+        /// <exception cref="BadImageFormatException">The PDB is malformed.</exception>
+        public static ImmutableDictionary<string, string> GetCompilationOptions(this MetadataReader pdbReader)
+        {
+            if (!pdbReader.TryGetCustomDebugInformation(EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.CompilationOptions, out var customDebugInformation))
+            {
+                return ImmutableDictionary<string, string>.Empty;
+            }
+
+            var result = PooledDictionary<string, string>.GetInstance();
+            try
+            {
+                var blobReader = pdbReader.GetBlobReader(customDebugInformation.Value);
+
+                while (blobReader.RemainingBytes > 0)
+                {
+                    var name = ReadNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
+                    var value = ReadNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
+
+                    // There shall be no two entries with the same name in the list.
+                    if (result.ContainsKey(name))
+                    {
+                        throw new BadImageFormatException();
+                    }
+
+                    // The spec allows an empty name.
+                    result.Add(name, value);
+                }
+
+                return result.ToImmutableDictionary();
+            }
+            finally
+            {
+                result.Free();
+            }
+
+            static string? ReadNullTerminatedString(ref BlobReader reader)
+            {
+                var nullIndex = reader.IndexOf(0);
+                if (nullIndex == -1)
+                {
+                    return null;
+                }
+
+                var value = reader.ReadUTF8(nullIndex);
+
+                // Skip the null terminator
+                reader.ReadByte();
+
+                return value;
+            }
         }
     }
 }

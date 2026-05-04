@@ -11,12 +11,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId;
 
-public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
+public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
 {
     [Fact]
     public void GenericType_NotMissingWithMissingTypeArgument()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -30,15 +29,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 {
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void GenericType_MissingWithNonMissingTypeArgument()
-    {
-        var source = """
+        => VerifyResolution("""
             using System.Collections.Generic;
 
             namespace N
@@ -54,15 +49,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 {
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void GenericType_MissingWithMissingTypeArgument()
-    {
-        var source = """
+        => VerifyResolution("""
             using System.Collections.Generic;
 
             namespace N
@@ -74,15 +65,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void Tuple_MissingTypes()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -92,15 +79,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void Tuple_NonMissingTypes()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -114,15 +97,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 {
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void Array_MissingElementType()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -132,15 +111,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void Array_NonMissingElementType()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -154,15 +129,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 {
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void Pointer_MissingType()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -172,15 +143,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void Pointer_NonMissingType()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -194,15 +161,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 {
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void NestedType_MissingInGenericContainer()
-    {
-        var source = """
+        => VerifyResolution("""
             using System.Collections.Generic;
 
             namespace N
@@ -214,15 +177,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void NestedType_MissingInNonGenericContainer()
-    {
-        var source = """
+        => VerifyResolution("""
             using System.Diagnostics;
 
             namespace N
@@ -234,15 +193,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.M"));
-    }
+            """, c => c.GetMember("N.C.M"));
 
     [Fact]
     public void Method_MissingReturnType()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -253,15 +208,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.Create"));
-    }
+            """, c => c.GetMember("N.C.Create"));
 
     [Fact]
     public void Method_MissingParameterType()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -272,30 +223,22 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.Create"));
-    }
+            """, c => c.GetMember("N.C.Create"));
 
     [Fact]
     public void Constructor_MissingParameterType()
-    {
-        var source = """
+        => VerifyResolution("""
             public class C
             {
                 public C(string x)
                 {
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("C..ctor"));
-    }
+            """, c => c.GetMember("C..ctor"));
 
     [Fact]
     public void Indexer_MissingParameterType()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -307,15 +250,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.this[]"));
-    }
+            """, c => c.GetMember("N.C.this[]"));
 
     [Fact]
     public void Indexer_MissingReturnType()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -327,15 +266,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.this[]"));
-    }
+            """, c => c.GetMember("N.C.this[]"));
 
     [Fact]
     public void Property_MissingReturnType()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -347,15 +282,11 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     }
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.P"));
-    }
+            """, c => c.GetMember("N.C.P"));
 
     [Fact]
     public void EventField_MissingReturnType()
-    {
-        var source = """
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -363,10 +294,7 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                     public event System.EventHandler E;
                 }
             }
-            """;
-
-        VerifyResolution(source, c => c.GetMember("N.C.E"));
-    }
+            """, c => c.GetMember("N.C.E"));
 
     private static void VerifyResolution(string source, Func<Compilation, ISymbol> symbolToResolve)
     {
@@ -394,6 +322,6 @@ public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
 
         // Since we expect some types to be error types, we just use display string to make sure we found the right
         // symbol.
-        Assert.Equal(symbol.ToDisplayString(), resolution.Symbol!.ToDisplayString());
+        Assert.Equal(symbol.ToDisplayString(), resolution.Symbol.ToDisplayString());
     }
 }

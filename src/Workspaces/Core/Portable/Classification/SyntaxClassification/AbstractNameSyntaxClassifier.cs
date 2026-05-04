@@ -50,7 +50,7 @@ internal abstract class AbstractNameSyntaxClassifier : AbstractSyntaxClassifier
             return false;
         }
 
-        if (symbol.IsNamespace())
+        if (symbol is INamespaceSymbol)
         {
             // Namespace names are not classified as static since there is no
             // instance equivalent of the concept and they have their own

@@ -18,14 +18,13 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
 [ExportCompletionProvider(nameof(PropertySubpatternCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(InternalsVisibleToCompletionProvider))]
 [Shared]
-internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
+internal sealed class PropertySubpatternCompletionProvider : LSPCompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -47,9 +46,10 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
         // For `is { Property.Property2.$$`, we get:
-        // - the property pattern clause `{ ... }` and
-        // - the member access before the last dot `Property.Property2` (or null)
-        var (propertyPatternClause, memberAccess) = TryGetPropertyPatternClause(tree, position, cancellationToken);
+        // - the property pattern clause `{ ... }`,
+        // - the member access before the last dot `Property.Property2` (or null), and
+        // - the subpattern currently being edited (or null) so it can be excluded from the "already tested members" filter
+        var (propertyPatternClause, memberAccess, editingSubpattern) = TryGetPropertyPatternClause(tree, position, cancellationToken);
         if (propertyPatternClause is null)
         {
             return;
@@ -73,9 +73,13 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
 
         if (memberAccess is null)
         {
-            // Filter out those members that have already been typed as simple (not extended) properties
-            var alreadyTestedMembers = new HashSet<string>(propertyPatternClause.Subpatterns.Select(
-                p => p.NameColon?.Name.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s))!);
+            // Filter out those members that have already been typed as simple (not extended) properties.
+            // If we're currently editing an existing subpattern name (cursor at `IsCompleted$$:` in `{ IsCompleted: true }`),
+            // exclude it so the member being edited still appears in the completion list.
+            var alreadyTestedMembers = new HashSet<string>(propertyPatternClause.Subpatterns
+                .Where(p => p != editingSubpattern)
+                .Select(p => p.NameColon?.Name.Identifier.ValueText)
+                .Where(s => !string.IsNullOrEmpty(s))!);
 
             members = members.WhereAsArray(m => !alreadyTestedMembers.Contains(m.Name));
         }
@@ -86,7 +90,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
                 displayText: member.Name.EscapeIdentifier(),
                 displayTextSuffix: "",
                 insertionText: null,
-                symbols: ImmutableArray.Create(member),
+                symbols: [member],
                 contextPosition: context.Position,
                 rules: s_rules));
         }
@@ -145,14 +149,10 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
     private static bool IsFieldOrReadableProperty(ISymbol symbol)
     {
         if (symbol.IsKind(SymbolKind.Field))
-        {
             return true;
-        }
 
-        if (symbol.IsKind(SymbolKind.Property) && !((IPropertySymbol)symbol).IsWriteOnly)
-        {
+        if (symbol is IPropertySymbol { IsWriteOnly: false })
             return true;
-        }
 
         return false;
     }
@@ -167,7 +167,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
 
     public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
-    private static (PropertyPatternClauseSyntax?, ExpressionSyntax?) TryGetPropertyPatternClause(SyntaxTree tree, int position, CancellationToken cancellationToken)
+    private static (PropertyPatternClauseSyntax?, ExpressionSyntax?, SubpatternSyntax? editingSubpattern) TryGetPropertyPatternClause(SyntaxTree tree, int position, CancellationToken cancellationToken)
     {
         if (tree.IsInNonUserCode(position, cancellationToken))
         {
@@ -175,12 +175,22 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
         }
 
         var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
+        var tokenBeforeAdjustment = token;
         token = token.GetPreviousTokenIfTouchingWord(position);
+
+        // Check whether the original token was the name of a subpattern being edited
+        // (e.g., `{ IsCompleted$$: true }`). We need to know this so the caller can exclude it from
+        // the "already tested members" filter and keep showing the member in the completion list.
+        SubpatternSyntax? editingSubpattern = null;
+        if (tokenBeforeAdjustment.Parent is IdentifierNameSyntax { Parent: NameColonSyntax { Parent: SubpatternSyntax subpattern } })
+        {
+            editingSubpattern = subpattern;
+        }
 
         if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken)
         {
             return token.Parent is PropertyPatternClauseSyntax { Parent: PatternSyntax } propertyPatternClause
-                ? (propertyPatternClause, null)
+                ? (propertyPatternClause, null, editingSubpattern)
                 : default;
         }
 
@@ -189,7 +199,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
             // is { Property1.$$ }
             // is { Property1.$$  Property1.Property2: ... } // typing before an existing pattern
             return token.Parent is MemberAccessExpressionSyntax memberAccess && IsExtendedPropertyPattern(memberAccess, out var propertyPatternClause)
-                ? (propertyPatternClause, memberAccess.Expression)
+                ? (propertyPatternClause, memberAccess.Expression, editingSubpattern)
                 : default;
         }
 

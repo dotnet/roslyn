@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -10,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
     {
@@ -140,9 +141,7 @@ internal partial class SolutionCompilationState
                 return GetOriginatingProjectInfo(ns.ConstituentNamespaces[0]);
             }
         }
-        else if (symbol.IsKind(SymbolKind.Assembly) ||
-                 symbol.IsKind(SymbolKind.NetModule) ||
-                 symbol.IsKind(SymbolKind.DynamicType))
+        else if (symbol is IAssemblySymbol or IModuleSymbol or IDynamicTypeSymbol)
         {
             if (!unrootedSymbolToProjectId.TryGetValue(symbol, out var projectId))
             {

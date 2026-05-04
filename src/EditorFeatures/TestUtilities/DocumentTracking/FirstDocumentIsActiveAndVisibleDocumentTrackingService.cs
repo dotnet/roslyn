@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Test;
 
@@ -29,7 +28,7 @@ internal sealed class FirstDocumentIsActiveAndVisibleDocumentTrackingService : I
         => [TryGetActiveDocument()];
 
     [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
-    public class Factory : IWorkspaceServiceFactory
+    public sealed class Factory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

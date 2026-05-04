@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -23,6 +24,25 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
 
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind is MethodKind.Constructor or MethodKind.StaticConstructor;
+
+    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(IMethodSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+    {
+        if (symbol.MethodKind is MethodKind.Constructor)
+            return GetOtherPartsOfPartial(symbol);
+
+        return [];
+    }
+
+    private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
+    {
+        if (symbol.PartialDefinitionPart != null)
+            return [symbol.PartialDefinitionPart];
+
+        if (symbol.PartialImplementationPart != null)
+            return [symbol.PartialImplementationPart];
+
+        return [];
+    }
 
     protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(IMethodSymbol symbol, Project project, CancellationToken cancellationToken)
     {
@@ -65,7 +85,17 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
         {
             await FindDocumentsWithImplicitObjectCreationExpressionAsync(
                 project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+
+            if (IsCollectionConstructor(symbol))
+                await FindDocumentsWithCollectionExpressionsAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    private bool IsCollectionConstructor(IMethodSymbol symbol)
+    {
+        // Simple heuristic: see if the type implements IEnumerable<T> and has an non-static `Add(X)` method.
+        return symbol.ContainingType.AllInterfaces.Any(a => a.OriginalDefinition.IsIEnumerableOfT()) &&
+            symbol.ContainingType.GetBaseTypesAndThis().Any(t => t.GetMembers(nameof(IList<>.Add)).Any(m => m is IMethodSymbol { IsStatic: false, Parameters.Length: 1 }));
     }
 
     private static Task FindDocumentsWithImplicitObjectCreationExpressionAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
@@ -118,8 +148,14 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
         FindReferencesInImplicitObjectCreationExpression(
             methodSymbol, state, processResult, processResultData, cancellationToken);
 
+        FindReferencesInPrimaryConstructorBaseType(
+            methodSymbol, state, processResult, processResultData, cancellationToken);
+
         FindReferencesInDocumentInsideGlobalSuppressions(
             methodSymbol, state, processResult, processResultData, cancellationToken);
+
+        if (IsCollectionConstructor(methodSymbol))
+            FindReferencesInCollectionExpressions(methodSymbol, state, processResult, processResultData, cancellationToken);
     }
 
     private static void FindReferenceToAlias<TData>(
@@ -251,6 +287,47 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
                     alias: null,
                     newKeywordToken.GetLocation(),
                     isImplicit: true,
+                    GetSymbolUsageInfo(node, state, cancellationToken),
+                    GetAdditionalFindUsagesProperties(node, state), CandidateReason.None));
+                processResult(result, processResultData);
+            }
+        }
+    }
+
+    private static void FindReferencesInPrimaryConstructorBaseType<TData>(
+        IMethodSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        if (!state.Cache.SyntaxTreeIndex.ContainsPrimaryConstructorBaseType)
+            return;
+
+        var syntaxFacts = state.SyntaxFacts;
+        foreach (var token in state.Cache.FindMatchingIdentifierTokens(symbol.ContainingType.Name, cancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var parent = token.GetRequiredParent();
+            if (!syntaxFacts.IsSimpleName(parent))
+                continue;
+
+            if (syntaxFacts.IsRightOfQualifiedName(parent) || syntaxFacts.IsRightOfAliasQualifiedName(parent))
+                parent = parent.GetRequiredParent();
+
+            var node = parent.GetRequiredParent();
+            if (!syntaxFacts.IsPrimaryConstructorBaseType(node))
+                continue;
+
+            var constructor = state.SemanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
+            if (Matches(constructor, symbol))
+            {
+                var result = new FinderLocation(node, new ReferenceLocation(
+                    state.Document,
+                    alias: null,
+                    token.GetLocation(),
+                    isImplicit: false,
                     GetSymbolUsageInfo(node, state, cancellationToken),
                     GetAdditionalFindUsagesProperties(node, state), CandidateReason.None));
                 processResult(result, processResultData);

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef;
 /// <summary>
 /// MEF metadata class used to find exports declared for a specific file extensions.
 /// </summary>
-internal class FileExtensionsMetadata
+internal sealed class FileExtensionsMetadata
 {
     public IEnumerable<string> Extensions { get; }
 

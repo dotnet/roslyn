@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return RewriteInlineArrayForEachStatementAsFor(node);
             }
-            else if (node.AwaitOpt is null && CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
+            else if (node.EnumeratorInfoOpt?.MoveNextAwaitableInfo is null && CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
             {
                 return RewriteForEachStatementAsFor(node, indexerGet, lengthGetter);
             }
@@ -69,25 +70,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CanRewriteForEachAsFor(SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, [NotNullWhen(true)] out MethodSymbol? indexerGet, [NotNullWhen(true)] out MethodSymbol? lengthGet)
         {
+            return CanRewriteForEachAsFor(_compilation, forEachSyntax, nodeExpressionType, out indexerGet, out lengthGet, _diagnostics);
+        }
+
+        internal static bool CanRewriteForEachAsFor(CSharpCompilation compilation, SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, [NotNullWhen(true)] out MethodSymbol? indexerGet, [NotNullWhen(true)] out MethodSymbol? lengthGet, BindingDiagnosticBag diagnostics)
+        {
             lengthGet = indexerGet = null;
             var origDefinition = nodeExpressionType.OriginalDefinition;
 
             if (origDefinition.SpecialType == SpecialType.System_String)
             {
-                lengthGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Length);
-                indexerGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars);
+                lengthGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Length, compilation, diagnostics);
+                indexerGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars, compilation, diagnostics);
             }
-            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_Span_T))
+            else if ((object)origDefinition == compilation.GetWellKnownType(WellKnownType.System_Span_T))
             {
                 var spanType = (NamedTypeSymbol)nodeExpressionType;
-                lengthGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
-                indexerGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
+                lengthGet = (MethodSymbol?)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__get_Length, diagnostics, syntax: forEachSyntax, isOptional: true)?.SymbolAsMember(spanType);
+                indexerGet = (MethodSymbol?)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__get_Item, diagnostics, syntax: forEachSyntax, isOptional: true)?.SymbolAsMember(spanType);
             }
-            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
+            else if ((object)origDefinition == compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
             {
                 var spanType = (NamedTypeSymbol)nodeExpressionType;
-                lengthGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
-                indexerGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
+                lengthGet = (MethodSymbol?)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_ReadOnlySpan_T__get_Length, diagnostics, syntax: forEachSyntax, isOptional: true)?.SymbolAsMember(spanType);
+                indexerGet = (MethodSymbol?)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_ReadOnlySpan_T__get_Item, diagnostics, syntax: forEachSyntax, isOptional: true)?.SymbolAsMember(spanType);
             }
 
             return lengthGet is { } && indexerGet is { };
@@ -126,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ElementConversion,
                 node.IterationVariables,
                 node.DeconstructionOpt,
-                node.AwaitOpt,
                 node.BreakLabel,
                 node.ContinueLabel,
                 rewrittenBody);
@@ -140,13 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
-            BoundAwaitableInfo? awaitableInfo,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             var forEachSyntax = (CSharpSyntaxNode)node.Syntax;
-            bool isAsync = awaitableInfo != null;
+            bool isAsync = enumeratorInfo.MoveNextAwaitableInfo != null;
 
             BoundExpression rewrittenExpression = VisitExpression(convertedCollection.Operand);
 
@@ -180,8 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants (which fill-in arguments for optional parameters)
-            BoundExpression enumeratorVarInitValue = SynthesizeCall(getEnumeratorInfo, forEachSyntax, receiver,
-                allowExtensionAndOptionalParameters: isAsync || getEnumeratorInfo.Method.IsExtensionMethod, firstRewrittenArgument: firstRewrittenArgument);
+            BoundExpression enumeratorVarInitValue = MakeCall(getEnumeratorInfo, forEachSyntax, receiver,
+                firstRewrittenArgument: firstRewrittenArgument);
 
             // E e = ((C)(x)).GetEnumerator();
             BoundStatement enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
@@ -214,24 +218,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
 
             var rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
-            BoundExpression rewrittenCondition = SynthesizeCall(
+            BoundExpression rewrittenCondition = MakeCall(
                 methodArgumentInfo: enumeratorInfo.MoveNextInfo,
                 syntax: forEachSyntax,
-                receiver: boundEnumeratorVar,
-                allowExtensionAndOptionalParameters: isAsync,
+                expression: boundEnumeratorVar,
                 firstRewrittenArgument: null);
 
             var disposalFinallyBlock = GetDisposalFinallyBlock(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, out var hasAsyncDisposal);
             if (isAsync)
             {
-                Debug.Assert(awaitableInfo is { GetResult: { } });
+                var moveNextAwaitableInfo = enumeratorInfo.MoveNextAwaitableInfo;
+                Debug.Assert(moveNextAwaitableInfo is { GetResult: not null } or { RuntimeAsyncAwaitCall: not null });
 
                 // We need to be sure that when the disposal isn't async we reserve an unused state machine state number for it,
                 // so that await foreach always produces 2 state machine states: one for MoveNextAsync and the other for DisposeAsync.
                 // Otherwise, EnC wouldn't be able to map states when the disposal changes from having async dispose to not, or vice versa.
                 var debugInfo = new BoundAwaitExpressionDebugInfo(s_moveNextAsyncAwaitId, ReservedStateMachineCount: (byte)(hasAsyncDisposal ? 0 : 1));
 
-                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, awaitableInfo, awaitableInfo.GetResult.ReturnType, debugInfo, used: true);
+                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, moveNextAwaitableInfo, (moveNextAwaitableInfo.GetResult ?? moveNextAwaitableInfo.RuntimeAsyncAwaitCall!.Method)!.ReturnType, debugInfo, used: true);
             }
 
             BoundStatement whileLoop = RewriteWhileStatement(
@@ -289,13 +293,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryGetDisposeMethod(SyntaxNode forEachSyntax, ForEachEnumeratorInfo enumeratorInfo, out MethodSymbol disposeMethod)
         {
-            if (enumeratorInfo.IsAsync)
+            return TryGetDisposeMethod(_compilation, forEachSyntax, enumeratorInfo.IsAsync, _diagnostics, out disposeMethod);
+        }
+
+        internal static bool TryGetDisposeMethod(CSharpCompilation compilation, SyntaxNode syntax, bool isAsync, BindingDiagnosticBag diagnostics, out MethodSymbol disposeMethod)
+        {
+            if (isAsync)
             {
-                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, _diagnostics, syntax: forEachSyntax);
+                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, diagnostics, syntax: syntax);
                 return (object)disposeMethod != null;
             }
 
-            return Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, forEachSyntax, _diagnostics, out disposeMethod);
+            return Binder.TryGetSpecialTypeMember(compilation, SpecialMember.System_IDisposable__Dispose, syntax, diagnostics, out disposeMethod);
         }
 
         /// <summary>
@@ -347,6 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                containingMember: _factory.CurrentFunction,
                                                containingType: _factory.CurrentType,
                                                location: enumeratorInfo.Location);
+            // Unsafe member access diagnostics reported during binding.
 
             if (implementsInterface || !(enumeratorInfo.PatternDisposeInfo is null))
             {
@@ -369,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
-                disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, forEachSyntax, receiver, firstRewrittenArgument: null);
+                disposeCall = MakeCall(disposeInfo, forEachSyntax, receiver, firstRewrittenArgument: null);
 
                 BoundStatement disposeCallStatement;
                 var disposeAwaitableInfoOpt = enumeratorInfo.DisposeAwaitableInfo;
@@ -404,7 +414,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax: forEachSyntax,
                         rewrittenCondition: _factory.IsNotNullReference(boundEnumeratorVar),
                         rewrittenConsequence: disposeCallStatement,
-                        rewrittenAlternativeOpt: null,
                         hasErrors: false);
                 }
 
@@ -459,7 +468,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultKind: LookupResultKind.Viable,
                         type: _compilation.GetSpecialType(SpecialType.System_Boolean)),
                     rewrittenConsequence: disposeCallStatement,
-                    rewrittenAlternativeOpt: null,
                     hasErrors: false);
 
                 // IDisposable d = e as IDisposable;
@@ -499,7 +507,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver.Type is { });
             if (!receiver.Type.IsReferenceType && method.ContainingType.IsInterface)
             {
-                Debug.Assert(receiverConversion.IsImplicit && !receiverConversion.IsUserDefined);
+                Debug.Assert(receiverConversion.IsImplicit);
+                Debug.Assert(!receiverConversion.IsUserDefined);
+                Debug.Assert(!receiverConversion.IsUnion);
 
                 // NOTE: The spec says that disposing of a struct enumerator won't cause any
                 // unnecessary boxing to occur.  However, Dev10 extends this improvement to the
@@ -535,19 +545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return receiver;
-        }
-
-        private BoundExpression SynthesizeCall(MethodArgumentInfo methodArgumentInfo, CSharpSyntaxNode syntax, BoundExpression? receiver, bool allowExtensionAndOptionalParameters, BoundExpression? firstRewrittenArgument)
-        {
-            if (allowExtensionAndOptionalParameters)
-            {
-                // Generate a call with zero explicit arguments, but with implicit arguments for optional and params parameters.
-                return MakeCallWithNoExplicitArgument(methodArgumentInfo, syntax, receiver, firstRewrittenArgument: firstRewrittenArgument);
-            }
-
-            // Generate a call with literally zero arguments
-            Debug.Assert(methodArgumentInfo.Arguments.IsEmpty);
-            return BoundCall.Synthesized(syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, methodArgumentInfo.Method, arguments: ImmutableArray<BoundExpression>.Empty);
         }
 
         /// <summary>
@@ -604,8 +601,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstructionOpt,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             NamedTypeSymbol? collectionType = (NamedTypeSymbol?)collectionExpression.Type;
@@ -900,8 +897,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
@@ -1049,8 +1046,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
@@ -1160,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // int p_dimension = a.GetLowerBound(dimension);
                 BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);
 
-                GeneratedLabelSymbol breakLabelInner = dimension == 0 // outermost for-loop
+                LabelSymbol breakLabelInner = dimension == 0 // outermost for-loop
                     ? breakLabel // i.e. the one that break statements will jump to
                     : new GeneratedLabelSymbol("break"); // Should not affect emitted code since unused
 
@@ -1180,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar[dimension], intType);
 
                 BoundStatement body;
-                GeneratedLabelSymbol continueLabelInner;
+                LabelSymbol continueLabelInner;
 
                 if (forLoop == null)
                 {

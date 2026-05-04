@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1330,7 +1331,7 @@ End Interface
                                 AssertEx.Equal(_ONE4, reader.GetBlobBytes(constant.Value))
 
                             Case Else
-                                Assert.True(False, "Unknown field: " + name)
+                                Assert.Fail("Unknown field: " + name)
                         End Select
                     End If
                 Next

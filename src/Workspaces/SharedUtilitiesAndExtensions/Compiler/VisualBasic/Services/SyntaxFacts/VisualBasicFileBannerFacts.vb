@@ -24,5 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
                 Return VisualBasicDocumentationCommentService.Instance
             End Get
         End Property
+
+        Public Overrides Function CreateTrivia(trivia As SyntaxTrivia, text As String) As SyntaxTrivia
+            Return If(trivia.Kind() = SyntaxKind.CommentTrivia OrElse trivia.Kind() = SyntaxKind.DocumentationCommentTrivia,
+                      SyntaxFactory.CommentTrivia(text),
+                      trivia)
+        End Function
     End Class
 End Namespace

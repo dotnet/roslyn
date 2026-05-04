@@ -20,7 +20,7 @@ using static ConvertProgramAnalysis;
 using static ConvertProgramTransform;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToProgramMain), Shared]
-internal class ConvertToProgramMainCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class ConvertToProgramMainCodeRefactoringProvider : CodeRefactoringProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

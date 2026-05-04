@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class FindReferencesSearchEngine
+internal sealed partial class FindReferencesSearchEngine
 {
     /// <summary>
     /// A symbol set used when the find refs caller does not want cascading.  This is a trivial impl that basically
@@ -21,11 +21,10 @@ internal partial class FindReferencesSearchEngine
         public override ImmutableArray<ISymbol> GetAllSymbols()
             => _symbols;
 
-        public override Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken)
+        public override async Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken)
         {
             // Nothing to do here.  We're in a non-cascading scenario, so even as we encounter a new project we
             // don't have to figure out what new symbols may be found.
-            return Task.CompletedTask;
         }
     }
 }

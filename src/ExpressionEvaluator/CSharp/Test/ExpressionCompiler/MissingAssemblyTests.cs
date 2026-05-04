@@ -9,8 +9,8 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -21,7 +21,6 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -649,7 +648,7 @@ class C
                 var numRetries = 0;
                 string errorMessage;
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                     context,
                     (_, diagnostics) =>
                     {
@@ -663,6 +662,7 @@ class C
                         uSize = (uint)missingModule.MetadataLength;
                         return missingModule.MetadataAddress;
                     },
+                    out _,
                     out errorMessage);
 
                 Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
@@ -690,8 +690,8 @@ class C
 
                 var shouldSucceed = false;
                 string errorMessage;
-                var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                    runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                     context,
                     (_, diagnostics) =>
                     {
@@ -711,6 +711,7 @@ class C
                         uSize = (uint)missingModule.MetadataLength;
                         return missingModule.MetadataAddress;
                     },
+                    out var compileResult,
                     out errorMessage);
 
                 Assert.Same(TestCompileResult.Instance, compileResult);
@@ -747,7 +748,7 @@ class UseLinq
                 CompilationTestData testData;
                 int retryCount = 0;
                 var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                     "args.Where(a => a.Length > 0)",
                     ImmutableArray<Alias>.Empty,
                     (_1, _2) => context, // ignore new blocks and just keep using the same failed context...
@@ -902,22 +903,22 @@ LanguageVersion.CSharp7_1);
                 WithRuntimeInstance(comp, [Net461.References.mscorlib, ValueTupleLegacyRef], runtime =>
                 {
                     ImmutableArray<MetadataBlock> blocks;
-                    Guid moduleVersionId;
+                    ModuleId moduleId;
                     ISymUnmanagedReader symReader;
                     int methodToken;
                     int localSignatureToken;
-                    GetContextState(runtime, methodName, out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                    GetContextState(runtime, methodName, out blocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
                     string errorMessage;
                     CompilationTestData testData;
                     int retryCount = 0;
                     var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                        runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                        runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                         expression,
                         ImmutableArray<Alias>.Empty,
                         (b, u) => EvaluationContext.CreateMethodContext(
-                            b.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies),
+                            b.ToCompilation(moduleId: default, MakeAssemblyReferencesKind.AllAssemblies),
                             symReader,
-                            moduleVersionId,
+                            moduleId,
                             methodToken,
                             methodVersion: 1,
                             ilOffset: 0,

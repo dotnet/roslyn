@@ -14,13 +14,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
-public partial class CodeCleanupTests
+public sealed partial class CodeCleanupTests
 {
     private abstract class TestThirdPartyCodeFix : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create("HasDefaultCase");
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ["HasDefaultCase"];
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
@@ -42,13 +42,11 @@ public partial class CodeCleanupTests
                         nameof(TestThirdPartyCodeFix)),
                     diagnostic);
             }
-
-            return Task.CompletedTask;
         }
     }
 
     [PartNotDiscoverable, Shared, ExportCodeFixProvider(LanguageNames.CSharp)]
-    private class TestThirdPartyCodeFixWithFixAll : TestThirdPartyCodeFix
+    private sealed class TestThirdPartyCodeFixWithFixAll : TestThirdPartyCodeFix
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -60,7 +58,7 @@ public partial class CodeCleanupTests
     }
 
     [PartNotDiscoverable, Shared, ExportCodeFixProvider(LanguageNames.CSharp)]
-    private class TestThirdPartyCodeFixWithOutFixAll : TestThirdPartyCodeFix
+    private sealed class TestThirdPartyCodeFixWithOutFixAll : TestThirdPartyCodeFix
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -70,7 +68,7 @@ public partial class CodeCleanupTests
     }
 
     [PartNotDiscoverable, Shared, ExportCodeFixProvider(LanguageNames.CSharp)]
-    private class TestThirdPartyCodeFixModifiesSolution : TestThirdPartyCodeFix
+    private sealed class TestThirdPartyCodeFixModifiesSolution : TestThirdPartyCodeFix
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -80,12 +78,12 @@ public partial class CodeCleanupTests
 
         public override FixAllProvider GetFixAllProvider() => new ModifySolutionFixAll();
 
-        private class ModifySolutionFixAll : FixAllProvider
+        private sealed class ModifySolutionFixAll : FixAllProvider
         {
-            public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 var solution = fixAllContext.Solution;
-                return Task.FromResult<CodeAction?>(CodeAction.Create(
+                return CodeAction.Create(
                         "Remove default case",
                         async cancellationToken =>
                         {
@@ -115,33 +113,27 @@ public partial class CodeCleanupTests
                             Assumes.NotNull(project);
                             return solution.AddDocument(DocumentId.CreateNewId(project.Id), "new.cs", SourceText.From(""));
                         },
-                        nameof(TestThirdPartyCodeFix)));
+                        nameof(TestThirdPartyCodeFix));
             }
         }
     }
 
     [PartNotDiscoverable, Shared, ExportCodeFixProvider(LanguageNames.CSharp)]
-    private class TestThirdPartyCodeFixDoesNotSupportDocumentScope : TestThirdPartyCodeFix
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestThirdPartyCodeFixDoesNotSupportDocumentScope() : TestThirdPartyCodeFix
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestThirdPartyCodeFixDoesNotSupportDocumentScope()
-        {
-        }
-
         public override FixAllProvider GetFixAllProvider() => new ModifySolutionFixAll();
 
-        private class ModifySolutionFixAll : FixAllProvider
+        private sealed class ModifySolutionFixAll : FixAllProvider
         {
             public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            {
-                return new[] { FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom };
-            }
+                => [FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom];
 
-            public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 var solution = fixAllContext.Solution;
-                return Task.FromResult<CodeAction?>(CodeAction.Create(
+                return CodeAction.Create(
                         "Remove default case",
                         async cancellationToken =>
                         {
@@ -171,7 +163,7 @@ public partial class CodeCleanupTests
                             Assumes.NotNull(project);
                             return solution.AddDocument(DocumentId.CreateNewId(project.Id), "new.cs", SourceText.From(""));
                         },
-                        nameof(TestThirdPartyCodeFix)));
+                        nameof(TestThirdPartyCodeFix));
             }
         }
     }

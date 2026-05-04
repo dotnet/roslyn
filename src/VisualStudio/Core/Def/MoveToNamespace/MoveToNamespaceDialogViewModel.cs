@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
 
-internal class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, IDataErrorInfo
+internal sealed class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, IDataErrorInfo
 {
     private readonly ISyntaxFacts _syntaxFacts;
 
@@ -26,9 +26,12 @@ internal class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, I
     {
         _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
         _namespaceName = defaultNamespace;
-        AvailableNamespaces = namespaceHistory.Select(n => new NamespaceItem(true, n))
-            .Concat(availableNamespaces.Except(namespaceHistory).Select(n => new NamespaceItem(false, n)))
-            .ToImmutableArray();
+        AvailableNamespaces =
+        [
+            .. namespaceHistory.Select(n => new NamespaceItem(true, n))
+,
+            .. availableNamespaces.Except(namespaceHistory).Select(n => new NamespaceItem(false, n)),
+        ];
 
         PropertyChanged += MoveToNamespaceDialogViewModel_PropertyChanged;
     }
@@ -104,27 +107,21 @@ internal class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, I
         get => _icon;
         private set => SetProperty(ref _icon, value);
     }
-
-    private string? _message;
     public string? Message
     {
-        get => _message;
-        private set => SetProperty(ref _message, value);
+        get;
+        private set => SetProperty(ref field, value);
     }
-
-    private bool _showMessage = false;
     public bool ShowMessage
     {
-        get => _showMessage;
-        private set => SetProperty(ref _showMessage, value);
-    }
-
-    private bool _canSubmit = true;
+        get;
+        private set => SetProperty(ref field, value);
+    } = false;
     public bool CanSubmit
     {
-        get => _canSubmit;
-        private set => SetProperty(ref _canSubmit, value);
-    }
+        get;
+        private set => SetProperty(ref field, value);
+    } = true;
 
     public string Error => CanSubmit ? string.Empty : Message ?? string.Empty;
 

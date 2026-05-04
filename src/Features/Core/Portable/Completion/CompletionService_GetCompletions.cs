@@ -11,14 +11,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion;
@@ -33,7 +34,6 @@ public abstract partial class CompletionService
     /// <param name="trigger">The triggering action.</param>
     /// <param name="roles">Optional set of roles associated with the editor state.</param>
     /// <param name="options">Optional options that override the default options.</param>
-    /// <param name="cancellationToken"></param>
     public Task<CompletionList> GetCompletionsAsync(
         Document document,
         int caretPosition,
@@ -58,7 +58,6 @@ public abstract partial class CompletionService
     /// <param name="options">The CompletionOptions that override the default options.</param>
     /// <param name="trigger">The triggering action.</param>
     /// <param name="roles">Optional set of roles associated with the editor state.</param>
-    /// <param name="cancellationToken"></param>
     internal virtual async Task<CompletionList> GetCompletionsAsync(
          Document document,
          int caretPosition,
@@ -69,7 +68,8 @@ public abstract partial class CompletionService
          CancellationToken cancellationToken = default)
     {
         // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
-        (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+        document = GetDocumentWithFrozenPartialSemantics(document, cancellationToken);
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var completionListSpan = GetDefaultCompletionListSpan(text, caretPosition);
@@ -85,7 +85,7 @@ public abstract partial class CompletionService
         var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
 
         var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
-        triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
+        triggeredProviders = [.. triggeredProviders.Except(additionalAugmentingProviders)];
 
         // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
         // so we try to share a single SyntaxContext based on document/caretPosition among all providers to reduce repeat computation.
@@ -102,7 +102,7 @@ public abstract partial class CompletionService
 
         // See if there were completion contexts provided that were exclusive. If so, then
         // that's all we'll return.
-        var exclusiveContexts = triggeredContexts.Where(t => t.IsExclusive).ToImmutableArray();
+        var exclusiveContexts = triggeredContexts.WhereAsArray(t => t.IsExclusive);
         if (!exclusiveContexts.IsEmpty)
             return MergeAndPruneCompletionLists(exclusiveContexts, options, isExclusive: true);
 
@@ -151,7 +151,7 @@ public abstract partial class CompletionService
         static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProvidersAsync(
             Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
         {
-            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
             var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
@@ -177,14 +177,12 @@ public abstract partial class CompletionService
     /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
     /// we get into this transient state.
     /// </summary>
-    private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+    private Document GetDocumentWithFrozenPartialSemantics(Document document, CancellationToken cancellationToken)
     {
         if (_suppressPartialSemantics)
-        {
-            return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
-        }
+            return document;
 
-        return await document.GetFullOrPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        return document.WithFrozenPartialSemantics(cancellationToken);
     }
 
     private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
@@ -290,8 +288,11 @@ public abstract partial class CompletionService
     /// </summary>
     protected virtual bool ItemsMatch(CompletionItem item, CompletionItem existingItem)
     {
+        // If both items is marked as `DoNotMerge`, we will keep them separated in the list.
+        // If only one of them is marked as `DoNotMerge`, the one with `DoNotMerge` is considered "better" item and will be merged into.
         return item.Span == existingItem.Span
-            && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription;
+            && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription
+            && !(item.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _) && existingItem.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _));
     }
 
     /// <summary>
@@ -299,6 +300,15 @@ public abstract partial class CompletionService
     /// </summary>
     protected virtual CompletionItem GetBetterItem(CompletionItem item, CompletionItem existingItem)
     {
+        if (item.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _))
+        {
+            return item;
+        }
+        else if (existingItem.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _))
+        {
+            return existingItem;
+        }
+
         // the item later in the sort order (determined by provider order) wins?
         return item;
     }
@@ -327,7 +337,7 @@ public abstract partial class CompletionService
         SharedSyntaxContextsWithSpeculativeModel? sharedContext,
         CancellationToken cancellationToken)
     {
-        var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+        var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
         var context = new CompletionContext(provider, document, position, sharedContext, defaultSpan, triggerInfo, options, cancellationToken);
 
@@ -340,7 +350,7 @@ public abstract partial class CompletionService
         return context;
     }
 
-    private class DisplayNameToItemsMap(CompletionService service) : IEnumerable<CompletionItem>, IDisposable
+    private sealed class DisplayNameToItemsMap(CompletionService service) : IEnumerable<CompletionItem>, IDisposable
     {
         // We might need to handle large amount of items with import completion enabled,
         // so use a dedicated pool to minimize array allocations. Set the size of pool to a small
@@ -357,7 +367,7 @@ public abstract partial class CompletionService
         {
             if (!options.PerformSort)
             {
-                return new(this);
+                return [.. this];
             }
 
             // Use a list to do the sorting as it's significantly faster than doing so on a SegmentedList.
@@ -366,7 +376,7 @@ public abstract partial class CompletionService
             {
                 list.AddRange(this);
                 list.Sort();
-                return new(list);
+                return [.. list];
             }
             finally
             {

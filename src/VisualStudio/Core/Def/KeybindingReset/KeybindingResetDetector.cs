@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
@@ -163,10 +165,15 @@ internal sealed class KeybindingResetDetector : IOleCommandTarget
 
         // make sure all state machine change work is serialized so that cancellation
         // doesn't mess the state up.   
-        _lastTask = _lastTask.SafeContinueWithFromAsync(_ =>
+        _lastTask = ContinueAsync(_lastTask);
+
+        async Task ContinueAsync(Task task)
         {
-            return UpdateStateMachineWorkerAsync(cancellationToken);
-        }, cancellationToken, TaskScheduler.Default);
+            // We always want to run UpdateStateMachineWorkerAsync no matter what happens with the prior task. So we use
+            // NoThrowAwaitableInternal to ensure that we always continue.
+            await task.NoThrowAwaitableInternal(captureContext: false);
+            await UpdateStateMachineWorkerAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private async Task UpdateStateMachineWorkerAsync(CancellationToken cancellationToken)
@@ -218,8 +225,8 @@ internal sealed class KeybindingResetDetector : IOleCommandTarget
 
         _globalOptions.SetGlobalOptions(
         [
-            KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus), (object)currentStatus),
-            KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.NeedsReset), (object)needsReset),
+            KeyValuePair.Create(new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus), (object)currentStatus),
+            KeyValuePair.Create(new OptionKey2(KeybindingResetOptionsStorage.NeedsReset), (object)needsReset),
         ]);
 
         if (needsReset)

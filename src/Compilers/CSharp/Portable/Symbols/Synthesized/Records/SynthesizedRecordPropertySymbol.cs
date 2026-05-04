@@ -4,8 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -30,10 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifiers: DeclarationModifiers.Public | (isOverride ? DeclarationModifiers.Override : DeclarationModifiers.None),
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
                 hasExplicitAccessMod: false,
-                isAutoProperty: true,
+                hasAutoPropertyGet: true,
+                hasAutoPropertySet: true,
                 isExpressionBodied: false,
-                isInitOnly: ShouldUseInit(containingType),
                 accessorsHaveImplementation: true,
+                getterUsesFieldKeyword: false,
+                setterUsesFieldKeyword: false,
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
@@ -46,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SourcePropertySymbolBase? BoundAttributesSource => null;
 
         public override IAttributeTargetSymbol AttributesOwner => BackingParameter as IAttributeTargetSymbol ?? this;
+
+        internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         protected override Location TypeLocation
             => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;

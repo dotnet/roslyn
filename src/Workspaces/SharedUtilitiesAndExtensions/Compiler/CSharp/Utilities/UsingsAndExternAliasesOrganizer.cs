@@ -16,11 +16,20 @@ internal static partial class UsingsAndExternAliasesOrganizer
     public static void Organize(
         SyntaxList<ExternAliasDirectiveSyntax> externAliasList,
         SyntaxList<UsingDirectiveSyntax> usingList,
-        bool placeSystemNamespaceFirst, bool separateGroups,
-        SyntaxTrivia newLineTrivia,
+        bool placeSystemNamespaceFirst,
+        bool separateGroups,
+        SyntaxTrivia fallbackTrivia,
         out SyntaxList<ExternAliasDirectiveSyntax> organizedExternAliasList,
         out SyntaxList<UsingDirectiveSyntax> organizedUsingList)
     {
+        // Attempt to use an existing newline trivia from the existing usings/externs.  If we can't find any use what
+        // the caller passed in.
+        var newLineTrivia = ((IEnumerable<SyntaxNode>)externAliasList)
+            .Concat(usingList)
+            .Select(n => n.GetTrailingTrivia().FirstOrNull(t => t.Kind() == SyntaxKind.EndOfLineTrivia))
+            .Where(t => t != null)
+            .FirstOrDefault() ?? fallbackTrivia;
+
         OrganizeWorker(
             externAliasList, usingList, placeSystemNamespaceFirst,
             newLineTrivia,
@@ -54,6 +63,7 @@ internal static partial class UsingsAndExternAliasesOrganizer
         }
     }
 
+    // NOTE: Stay in sync with TokenBasedFormattingRule.GetGroupIdentifier
     public static bool NeedsGrouping(
         UsingDirectiveSyntax using1,
         UsingDirectiveSyntax using2)
@@ -81,6 +91,7 @@ internal static partial class UsingsAndExternAliasesOrganizer
         {
             // Both normal usings.  Place them in groups if their first namespace
             // component differs.
+            // LanguageParser.ParseUsingDirective guarantees that if there is no alias, Name is always present
             Contract.ThrowIfNull(using1.Name);
             Contract.ThrowIfNull(using2.Name);
             var name1 = using1.Name.GetFirstToken().ValueText;

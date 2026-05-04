@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime;
 
-internal partial class DateAndTimeEmbeddedCompletionProvider
+internal sealed partial class DateAndTimeEmbeddedCompletionProvider
 {
     private readonly struct DateAndTimeItem(
         string displayText, string inlineDescription, string fullDescription, CompletionChange change, bool isDefault)

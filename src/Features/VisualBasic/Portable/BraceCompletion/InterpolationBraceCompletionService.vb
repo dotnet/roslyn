@@ -8,11 +8,10 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.BraceCompletion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
     <ExportBraceCompletionService(LanguageNames.VisualBasic), [Shared]>
-    Friend Class InterpolationBraceCompletionService
+    Friend NotInheritable Class InterpolationBraceCompletionService
         Inherits AbstractVisualBasicBraceCompletionService
 
         <ImportingConstructor>

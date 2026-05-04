@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private class MetadataSymbolsSearchScope(
+    private sealed class MetadataSymbolsSearchScope(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         Project assemblyProject,
         IAssemblySymbol assembly,
@@ -26,7 +26,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
         {
             return new MetadataSymbolReference(
-                provider,
+                Provider,
                 searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol),
                 _assemblyProject.Id,
                 _metadataReference);

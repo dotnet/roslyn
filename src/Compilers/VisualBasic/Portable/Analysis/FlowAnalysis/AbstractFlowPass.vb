@@ -1480,7 +1480,7 @@ lUnsplitAndFinish:
         End Function
 
         Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
-            VisitRvalue(node.ReceiverOrCondition)
+            VisitRvalue(node.Receiver)
             Dim savedState As LocalState = Me.State.Clone()
 
             VisitRvalue(node.WhenNotNull)

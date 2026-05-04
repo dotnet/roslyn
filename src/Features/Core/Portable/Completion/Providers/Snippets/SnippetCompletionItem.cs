@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Roslyn.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 
-internal class SnippetCompletionItem
+internal sealed class SnippetCompletionItem
 {
     public static string LSPSnippetKey = "LSPSnippet";
     public static string SnippetIdentifierKey = "SnippetIdentifier";
@@ -31,8 +31,8 @@ internal class SnippetCompletionItem
             sortText: snippetIdentifier + " ",
             filterText: snippetIdentifier,
             properties: [
-                KeyValuePairUtil.Create("Position", position.ToString()),
-                KeyValuePairUtil.Create(SnippetIdentifierKey, snippetIdentifier)],
+                KeyValuePair.Create("Position", position.ToString()),
+                KeyValuePair.Create(SnippetIdentifierKey, snippetIdentifier)],
             isComplexTextEdit: true,
             inlineDescription: inlineDescription,
             rules: CompletionItemRules.Default)

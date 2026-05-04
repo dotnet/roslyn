@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -43,7 +42,7 @@ internal abstract class AbstractWrappingCodeRefactoringProvider : CodeRefactorin
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var token = root.FindToken(position);
 
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         var options = GetWrappingOptions(configOptions);
 
         foreach (var node in token.GetRequiredParent().AncestorsAndSelf())
@@ -62,7 +61,7 @@ internal abstract class AbstractWrappingCodeRefactoringProvider : CodeRefactorin
                 if (computer == null)
                     continue;
 
-                var actions = await computer.GetTopLevelCodeActionsAsync().ConfigureAwait(false);
+                var actions = await computer.GetTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false);
                 if (actions.IsDefaultOrEmpty)
                     continue;
 

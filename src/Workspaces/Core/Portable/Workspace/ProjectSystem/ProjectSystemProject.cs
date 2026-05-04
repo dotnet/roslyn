@@ -14,13 +14,16 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Workspaces.ProjectSystem.ProjectSystemProjectFactory;
 
@@ -28,12 +31,10 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 internal sealed partial class ProjectSystemProject
 {
-    private static readonly char[] s_directorySeparator = [Path.DirectorySeparatorChar];
     private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = [default(MetadataReferenceProperties)];
 
     private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
     private readonly ProjectSystemHostInfo _hostInfo;
-    private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
     /// <summary>
     /// A semaphore taken for all mutation of any mutable field in this type.
@@ -59,6 +60,11 @@ internal sealed partial class ProjectSystemProject
     private readonly HashSet<string> _projectAnalyzerPaths = [];
 
     /// <summary>
+    /// The set of SDK code style analyzer reference paths that the project knows about.
+    /// </summary>
+    private readonly HashSet<string> _sdkCodeStyleAnalyzerPaths = [];
+
+    /// <summary>
     /// Paths to analyzers we want to add when the current batch completes.
     /// </summary>
     private readonly List<string> _analyzersAddedInBatch = [];
@@ -75,12 +81,6 @@ internal sealed partial class ProjectSystemProject
     private string? _filePath;
     private CompilationOptions? _compilationOptions;
     private ParseOptions? _parseOptions;
-    private SourceHashAlgorithm _checksumAlgorithm = SourceHashAlgorithms.Default;
-    private bool _hasAllInformation = true;
-    private string? _compilationOutputAssemblyFilePath;
-    private string? _outputFilePath;
-    private string? _outputRefFilePath;
-    private string? _defaultNamespace;
 
     /// <summary>
     /// If this project is the 'primary' project the project system cares about for a group of Roslyn projects that
@@ -88,11 +88,6 @@ internal sealed partial class ProjectSystemProject
     /// default.
     /// </summary>
     internal bool IsPrimary { get; set; } = true;
-
-    // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
-    // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
-    private bool? _runAnalyzersPropertyValue;
-    private bool? _runAnalyzersDuringLiveAnalysisPropertyValue;
 
     // Effective boolean value to determine if analyzers should be executed based on _runAnalyzersPropertyValue and _runAnalyzersDuringLiveAnalysisPropertyValue.
     private bool _runAnalyzers = true;
@@ -116,9 +111,9 @@ internal sealed partial class ProjectSystemProject
     private readonly IFileChangeContext _documentFileChangeContext;
 
     /// <summary>
-    /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
+    /// The set of dynamic file info providers we have already subscribed to.
     /// </summary>
-    private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = [];
+    private readonly HashSet<IDynamicFileInfoProvider> _dynamicFileInfoProvidersSubscribedTo = [];
 
     /// <summary>
     /// Map of the original dynamic file path to the <see cref="DynamicFileInfo.FilePath"/> that was associated with it.
@@ -165,11 +160,6 @@ internal sealed partial class ProjectSystemProject
         Id = id;
         Language = language;
         _displayName = displayName;
-
-        var provider = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        // NOTE: The provider will always return the same singleton, shadow copying, analyzer loader instance, which is
-        // important to ensure that analyzer dependencies are correctly loaded.
-        _analyzerAssemblyLoader = provider.SharedShadowCopyLoader;
 
         _sourceFiles = new BatchingDocumentCollection(
             this,
@@ -220,8 +210,8 @@ internal sealed partial class ProjectSystemProject
 
             return language switch
             {
-                LanguageNames.VisualBasic => [new(rootPath, ".vb")],
-                LanguageNames.CSharp => [new(rootPath, ".cs"), new(rootPath, ".razor"), new(rootPath, ".cshtml")],
+                LanguageNames.VisualBasic => [new(rootPath, [".vb"])],
+                LanguageNames.CSharp => [new(rootPath, [".cs", ".razor", ".cshtml"])],
                 _ => []
             };
         }
@@ -260,6 +250,9 @@ internal sealed partial class ProjectSystemProject
 
             field = newValue;
 
+            _projectPropertyModificationsInBatch.Add(
+                (solutionChanges, projectUpdateState) => updateSolution(solutionChanges, projectUpdateState, oldValue));
+
             if (logThrowAwayTelemetry)
             {
                 var telemetryService = _projectSystemProjectFactory.SolutionServices.GetService<IWorkspaceTelemetryService>();
@@ -280,13 +273,29 @@ internal sealed partial class ProjectSystemProject
 
                     if (!isFullyLoaded)
                     {
-                        TryReportCompilationThrownAway(_projectSystemProjectFactory.Workspace.CurrentSolution, Id);
+                        if (ShouldReportCompilationWillBeThrownAway(newValue, oldValue))
+                            TryReportCompilationThrownAway(_projectSystemProjectFactory.Workspace.CurrentSolution, Id);
                     }
                 }
             }
+        }
 
-            _projectPropertyModificationsInBatch.Add(
-                (solutionChanges, projectUpdateState) => updateSolution(solutionChanges, projectUpdateState, oldValue));
+        bool ShouldReportCompilationWillBeThrownAway(T newValue, T? oldValue)
+        {
+            // This method can be called for both AssemblyName (type string) and ParseOptions (type ParseOptions) changes.
+
+            // We report telemetry for AssemblyName changes.
+            if (newValue is not ParseOptions newParseOption)
+                return true;
+
+            // We don't want to report telemetry for the initial evaluation result.
+            if (oldValue is not ParseOptions oldParseOptions)
+                return false;
+
+            // ParseOptions should be reported if they differ by more than just preprocessor directives. (See DocumentState.UpdateParseOptionsAndSourceCodeKind)
+            var syntaxTreeFactoryService = _projectSystemProjectFactory.SolutionServices.GetRequiredLanguageService<ISyntaxTreeFactoryService>(Language);
+
+            return !syntaxTreeFactoryService.OptionsDifferOnlyByPreprocessorDirectives(oldParseOptions, newParseOption);
         }
     }
 
@@ -357,7 +366,7 @@ internal sealed partial class ProjectSystemProject
     public CompilationOptions? CompilationOptions
     {
         get => _compilationOptions;
-        set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value), logThrowAwayTelemetry: true);
+        set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value));
     }
 
     // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
@@ -374,23 +383,35 @@ internal sealed partial class ProjectSystemProject
     /// </summary>
     internal string? CompilationOutputAssemblyFilePath
     {
-        get => _compilationOutputAssemblyFilePath;
+        get;
         set => ChangeProjectOutputPath(
-            ref _compilationOutputAssemblyFilePath,
+            ref field,
             value,
             s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithAssemblyPath(value)));
     }
 
+    /// <summary>
+    /// The path to the source generated files.
+    /// </summary>
+    internal string? GeneratedFilesOutputDirectory
+    {
+        get;
+        set => ChangeProjectOutputPath(
+            ref field,
+            value,
+            s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithGeneratedFilesOutputDirectory(value)));
+    }
+
     public string? OutputFilePath
     {
-        get => _outputFilePath;
-        set => ChangeProjectOutputPath(ref _outputFilePath, value, s => s.WithProjectOutputFilePath(Id, value));
+        get;
+        set => ChangeProjectOutputPath(ref field, value, s => s.WithProjectOutputFilePath(Id, value));
     }
 
     public string? OutputRefFilePath
     {
-        get => _outputRefFilePath;
-        set => ChangeProjectOutputPath(ref _outputRefFilePath, value, s => s.WithProjectOutputRefFilePath(Id, value));
+        get;
+        set => ChangeProjectOutputPath(ref field, value, s => s.WithProjectOutputRefFilePath(Id, value));
     }
 
     public string? FilePath
@@ -407,34 +428,37 @@ internal sealed partial class ProjectSystemProject
 
     public SourceHashAlgorithm ChecksumAlgorithm
     {
-        get => _checksumAlgorithm;
-        set => ChangeProjectProperty(ref _checksumAlgorithm, value, s => s.WithProjectChecksumAlgorithm(Id, value));
-    }
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithProjectChecksumAlgorithm(Id, value));
+    } = SourceHashAlgorithms.Default;
 
     // internal to match the visibility of the Workspace-level API -- this is something
     // we use but we haven't made officially public yet.
     internal bool HasAllInformation
     {
-        get => _hasAllInformation;
-        set => ChangeProjectProperty(ref _hasAllInformation, value, s => s.WithHasAllInformation(Id, value));
-    }
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithHasAllInformation(Id, value));
+    } = true;
+
+    // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
+    // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
 
     internal bool? RunAnalyzers
     {
-        get => _runAnalyzersPropertyValue;
+        get;
         set
         {
-            _runAnalyzersPropertyValue = value;
+            field = value;
             UpdateRunAnalyzers();
         }
     }
 
     internal bool? RunAnalyzersDuringLiveAnalysis
     {
-        get => _runAnalyzersDuringLiveAnalysisPropertyValue;
+        get;
         set
         {
-            _runAnalyzersDuringLiveAnalysisPropertyValue = value;
+            field = value;
             UpdateRunAnalyzers();
         }
     }
@@ -442,30 +466,36 @@ internal sealed partial class ProjectSystemProject
     private void UpdateRunAnalyzers()
     {
         // Property RunAnalyzers overrides RunAnalyzersDuringLiveAnalysis, and default when both properties are not set is 'true'.
-        var runAnalyzers = _runAnalyzersPropertyValue ?? _runAnalyzersDuringLiveAnalysisPropertyValue ?? true;
+        var runAnalyzers = RunAnalyzers ?? RunAnalyzersDuringLiveAnalysis ?? true;
         ChangeProjectProperty(ref _runAnalyzers, runAnalyzers, s => s.WithRunAnalyzers(Id, runAnalyzers));
+    }
+
+    internal bool HasSdkCodeStyleAnalyzers
+    {
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithHasSdkCodeStyleAnalyzers(Id, value));
     }
 
     /// <summary>
     /// The default namespace of the project.
     /// </summary>
     /// <remarks>
-    /// In C#, this is defined as the value of "rootnamespace" msbuild property. Right now VB doesn't 
+    /// In C#, this is defined as the value of "rootnamespace" msbuild property. Right now VB doesn't
     /// have the concept of "default namespace", but we conjure one in workspace by assigning the value
     /// of the project's root namespace to it. So various features can choose to use it for their own purpose.
-    /// 
+    ///
     /// In the future, we might consider officially exposing "default namespace" for VB project
     /// (e.g.through a "defaultnamespace" msbuild property)
     /// </remarks>
     internal string? DefaultNamespace
     {
-        get => _defaultNamespace;
-        set => ChangeProjectProperty(ref _defaultNamespace, value, s => s.WithProjectDefaultNamespace(Id, value));
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithProjectDefaultNamespace(Id, value));
     }
 
     /// <summary>
-    /// The max language version supported for this project, if applicable. Useful to help indicate what 
-    /// language version features should be suggested to a user, as well as if they can be upgraded. 
+    /// The max language version supported for this project, if applicable. Useful to help indicate what
+    /// language version features should be suggested to a user, as well as if they can be upgraded.
     /// </summary>
     internal string? MaxLangVersion
     {
@@ -593,7 +623,7 @@ internal sealed partial class ProjectSystemProject
                     Id, solutionChanges, _projectReferencesRemovedInBatch, _projectReferencesAddedInBatch);
 
                 projectUpdateState = UpdateAnalyzerReferences(
-                    projectBeforeMutations, solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
+                    Id, solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
 
                 // Other property modifications...
                 foreach (var propertyModification in _projectPropertyModificationsInBatch)
@@ -619,7 +649,6 @@ internal sealed partial class ProjectSystemProject
                 ClearAndZeroCapacity(_analyzersRemovedInBatch);
 
                 ClearAndZeroCapacity(_projectPropertyModificationsInBatch);
-
             }).ConfigureAwait(false);
 
             foreach (var (documentId, textContainer) in documentsToOpen)
@@ -632,7 +661,7 @@ internal sealed partial class ProjectSystemProject
                 await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
 
             // Give the host the opportunity to check if those files are open
-            if (documentFileNamesAdded.Count() > 0)
+            if (documentFileNamesAdded.Length > 0)
                 await _projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync, documentFileNamesAdded).ConfigureAwait(false);
 
             // If we added or removed analyzers, then re-run all generators to bring them up to date.
@@ -648,6 +677,8 @@ internal sealed partial class ProjectSystemProject
             List<(string path, MetadataReferenceProperties properties)> metadataReferencesAddedInBatch)
         {
             var projectId = projectBeforeMutation.Id;
+            using var _1 = ArrayBuilder<PortableExecutableReference>.GetInstance(out var peReferencesRemoved);
+            using var _2 = ArrayBuilder<PortableExecutableReference>.GetInstance(out var peReferencesAdded);
 
             // Metadata reference removing. Do this before adding in case this removes a project reference that we are also
             // going to add in the same batch. This could happen if case is changing, or we're targeting a different output
@@ -667,12 +698,15 @@ internal sealed partial class ProjectSystemProject
                         .OfType<PortableExecutableReference>()
                         .Single(m => m.FilePath == path && m.Properties == properties);
 
-                    projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
+                    peReferencesRemoved.Add(metadataReference);
 
                     solutionChanges.UpdateSolutionForProjectAction(
                         projectId, solutionChanges.Solution.RemoveMetadataReference(projectId, metadataReference));
                 }
             }
+
+            if (peReferencesRemoved.Count > 0)
+                projectUpdateState = projectUpdateState.WithIncrementalMetadataReferencesRemoved(peReferencesRemoved);
 
             // Metadata reference adding...
             if (metadataReferencesAddedInBatch.Count > 0)
@@ -682,7 +716,7 @@ internal sealed partial class ProjectSystemProject
                 foreach (var (path, properties) in metadataReferencesAddedInBatch)
                 {
                     projectUpdateState = TryCreateConvertedProjectReference_NoLock(
-                        projectId, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
+                        projectBeforeMutation.State, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
 
                     if (projectReference != null)
                     {
@@ -691,9 +725,12 @@ internal sealed partial class ProjectSystemProject
                     else
                     {
                         var metadataReference = CreateMetadataReference_NoLock(path, properties, solutionChanges.Solution.Services);
-                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(metadataReference);
+                        peReferencesAdded.Add(metadataReference);
                     }
                 }
+
+                if (peReferencesAdded.Count > 0)
+                    projectUpdateState = projectUpdateState.WithIncrementalMetadataReferencesAdded(peReferencesAdded);
 
                 solutionChanges.UpdateSolutionForProjectAction(
                     projectId,
@@ -724,44 +761,84 @@ internal sealed partial class ProjectSystemProject
         }
 
         static ProjectUpdateState UpdateAnalyzerReferences(
-            Project projectBeforeMutation,
+            ProjectId projectId,
             SolutionChangeAccumulator solutionChanges,
             ProjectUpdateState projectUpdateState,
             List<string> analyzersRemovedInBatch,
             List<string> analyzersAddedInBatch)
         {
-            var projectId = projectBeforeMutation.Id;
+            if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
+                return projectUpdateState;
 
-            // Analyzer reference removing...
-            if (analyzersRemovedInBatch.Count > 0)
-            {
-                projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(analyzersRemovedInBatch);
+            // Use shared helper to figure out the new forked state.
+            var (newSolution, newProjectUpdateState) = UpdateProjectAnalyzerReferences(
+                solutionChanges.Solution, projectId, projectUpdateState, analyzersRemovedInBatch, analyzersAddedInBatch);
 
-                foreach (var analyzerReferenceFullPath in analyzersRemovedInBatch)
-                {
-                    solutionChanges.UpdateSolutionForProjectAction(
-                        projectId,
-                        solutionChanges.Solution.RemoveAnalyzerReference(
-                            projectId, projectBeforeMutation.AnalyzerReferences.First(a => a.FullPath == analyzerReferenceFullPath)));
-                }
-            }
+            solutionChanges.UpdateSolutionForProjectAction(projectId, newSolution);
 
-            // Analyzer reference adding...
-            if (analyzersAddedInBatch.Count > 0)
-            {
-                projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
-
-                var loaderProvider = solutionChanges.Solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-                var shadowCopyLoader = loaderProvider.SharedShadowCopyLoader;
-
-                solutionChanges.UpdateSolutionForProjectAction(
-                    projectId,
-                    solutionChanges.Solution.AddAnalyzerReferences(projectId,
-                        analyzersAddedInBatch.Select(fullPath => new AnalyzerFileReference(fullPath, shadowCopyLoader))));
-            }
-
-            return projectUpdateState;
+            return newProjectUpdateState;
         }
+    }
+
+    public static (Solution newSolution, ProjectUpdateState newProjectUpdateState) UpdateProjectAnalyzerReferences(
+        Solution solution,
+        ProjectId projectId,
+        ProjectUpdateState projectUpdateState,
+        List<string> analyzersRemoved,
+        List<string> analyzersAdded)
+    {
+        Contract.ThrowIfTrue(analyzersRemoved.Count == 0 && analyzersAdded.Count == 0, "Should only be called when there is work to do");
+
+        // NOTE: Create the initial AnalyzerFileReferences for the analyzers we're adding with a shared shadow copy
+        // loader.  This is fine as we're just creating these to pass into CreateIsolatedAnalyzerReferencesAsync which
+        // will properly give them an isolated ALC to use instead.
+        var assemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        var sharedShadowCopyLoader = assemblyLoaderProvider.SharedShadowCopyLoader;
+
+        var project = solution.GetRequiredProject(projectId);
+
+        using var _ = ArrayBuilder<AnalyzerFileReference>.GetInstance(out var initialReferenceList);
+
+        // Keep around all the project's analyzers that were not removed.
+        foreach (var analyzerReference in project.AnalyzerReferences)
+        {
+            // Skip any existing analyzer references we're removing.
+            if (analyzersRemoved.Contains(analyzerReference.FullPath!))
+                continue;
+
+#if NET
+            // In .Net Core, we must have IsolatedAnalyzerFileReferences for all analyzers.
+            initialReferenceList.Add(((IsolatedAnalyzerFileReference)analyzerReference).UnderlyingAnalyzerFileReference);
+#else
+            // In .NET Framework, we must have AnalyzerFileReferences for all analyzers.
+            initialReferenceList.Add((AnalyzerFileReference)analyzerReference);
+#endif
+        }
+
+        // Now, create an initial analyzer file reference for all the analyzers being added.
+        foreach (var analyzer in analyzersAdded)
+            initialReferenceList.Add(new AnalyzerFileReference(analyzer, sharedShadowCopyLoader));
+
+        // We are only updating this state object so that we can ensure we unregister any file watchers for
+        // analyzers that are removed, and register new watches for analyzers that are added.  Note that those file
+        // watchers are based on file path only.  So it's ok if the analyzer references added here are not
+        // necessarily the exact same ones given to the solution itself.
+        var newProjectUpdateState = projectUpdateState
+            .WithIncrementalAnalyzerReferencesRemoved(analyzersRemoved)
+            .WithIncrementalAnalyzerReferencesAdded(analyzersAdded);
+
+        // Attempt to isolate these analyzer references into their own ALC so that we can still load
+        // analyzers/generators from them if they changed on disk.
+        var isolatedReferences = IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+            useAsync: false,
+            ImmutableArray<AnalyzerReference>.CastUp(initialReferenceList.ToImmutableAndClear()),
+            solution.Services,
+            CancellationToken.None).VerifyCompleted();
+
+        // Fork the solution's project with these new isolated analyzer references. And return the forked solution and
+        // forked projectUpdateState back to the caller to handle them.
+        var newSolution = solution.WithProjectAnalyzerReferences(project.Id, isolatedReferences);
+        return (newSolution, newProjectUpdateState);
     }
 
     #endregion
@@ -857,7 +934,7 @@ internal sealed partial class ProjectSystemProject
                 // Don't get confused by _filePath and filePath.
                 // VisualStudioProject._filePath points to csproj/vbproj of the project
                 // and the parameter filePath points to dynamic file such as ASP.NET .g.cs files.
-                // 
+                //
                 // Also, provider is free-threaded. so fine to call Wait rather than JTF.
                 fileInfo = provider.Value.GetDynamicFileInfoAsync(
                     projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
@@ -948,7 +1025,7 @@ internal sealed partial class ProjectSystemProject
         {
             if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out fileInfoPath))
             {
-                // given file doesn't belong to this project. 
+                // given file doesn't belong to this project.
                 // this happen since the event this is handling is shared between all projects
                 return;
             }
@@ -967,13 +1044,25 @@ internal sealed partial class ProjectSystemProject
     public void AddAnalyzerReference(string fullPath)
     {
         CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
+        CodeAnalysisEventSource.Log.AnalyzerReferenceRequestAddToProject(fullPath, DisplayName);
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
+
+        bool containsSdkCodeStyleAnalyzers;
 
         using var _ = CreateBatchScope();
 
         using (_gate.DisposableWait())
         {
+            if (IsSdkCodeStyleAnalyzer(fullPath))
+            {
+                // Track the sdk code style analyzer paths
+                _sdkCodeStyleAnalyzerPaths.Add(fullPath);
+            }
+
+            // Determine if we are still using SDK CodeStyle analyzers while access to _sdkCodeStyleAnalyzerPaths is gated.
+            containsSdkCodeStyleAnalyzers = _sdkCodeStyleAnalyzerPaths.Count > 0;
+
             // check all mapped paths first, so that all analyzers are either added or not
             foreach (var mappedFullPath in mappedPaths)
             {
@@ -985,19 +1074,15 @@ internal sealed partial class ProjectSystemProject
             {
                 // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid
                 // removing it once we apply the batch
-                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(fullPath => fullPath == mappedFullPath);
                 _projectAnalyzerPaths.Add(mappedFullPath);
+                CodeAnalysisEventSource.Log.AnalyzerReferenceAddedToProject(mappedFullPath, DisplayName);
 
-                if (analyzerPendingRemoval != null)
-                {
-                    _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
-                }
-                else
-                {
+                if (!_analyzersRemovedInBatch.Remove(mappedFullPath))
                     _analyzersAddedInBatch.Add(mappedFullPath);
-                }
             }
         }
+
+        HasSdkCodeStyleAnalyzers = containsSdkCodeStyleAnalyzers;
     }
 
     public void RemoveAnalyzerReference(string fullPath)
@@ -1005,12 +1090,25 @@ internal sealed partial class ProjectSystemProject
         if (string.IsNullOrEmpty(fullPath))
             throw new ArgumentException("message", nameof(fullPath));
 
+        CodeAnalysisEventSource.Log.AnalyzerReferenceRequestRemoveFromProject(fullPath, DisplayName);
+
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
+
+        bool containsSdkCodeStyleAnalyzers;
 
         using var _ = CreateBatchScope();
 
         using (_gate.DisposableWait())
         {
+            if (IsSdkCodeStyleAnalyzer(fullPath))
+            {
+                // Track the sdk code style analyzer paths
+                _sdkCodeStyleAnalyzerPaths.Remove(fullPath);
+            }
+
+            // Determine if we are still using SDK CodeStyle analyzers while access to _sdkCodeStyleAnalyzerPaths is gated.
+            containsSdkCodeStyleAnalyzers = _sdkCodeStyleAnalyzerPaths.Count > 0;
+
             // check all mapped paths first, so that all analyzers are either removed or not
             foreach (var mappedFullPath in mappedPaths)
             {
@@ -1021,6 +1119,7 @@ internal sealed partial class ProjectSystemProject
             foreach (var mappedFullPath in mappedPaths)
             {
                 _projectAnalyzerPaths.Remove(mappedFullPath);
+                CodeAnalysisEventSource.Log.AnalyzerReferenceRemovedFromProject(fullPath, DisplayName);
 
                 // This analyzer may be one we've just added in the same batch; in that case, just don't add it in
                 // the first place.
@@ -1028,45 +1127,73 @@ internal sealed partial class ProjectSystemProject
                     _analyzersRemovedInBatch.Add(mappedFullPath);
             }
         }
-    }
 
-    internal const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
-    private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
-    private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
-    [
-        "Microsoft.NET.Sdk.Razor.SourceGenerators",
-        "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-        "Microsoft.CodeAnalysis.Razor.Compiler",
-    ];
-    private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
-        assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
+        HasSdkCodeStyleAnalyzers = containsSdkCodeStyleAnalyzers;
+    }
 
     private OneOrMany<string> GetMappedAnalyzerPaths(string fullPath)
     {
         fullPath = Path.GetFullPath(fullPath);
-        // Map all files in the SDK directory that contains the Razor source generator to source generator files loaded from VSIX.
-        // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
-        if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==
-            fullPath.LastIndexOf(Path.DirectorySeparatorChar))
+
+        if (IsSdkCodeStyleAnalyzer(fullPath))
         {
-            var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
-                predicate: item => item.extensionId == RazorVsixExtensionId,
-                selector: item => item.reference.FullPath);
+            // We discard the CodeStyle analyzers added by the SDK when the EnforceCodeStyleInBuild property is set.
+            // The same analyzers ship in-box as part of the Features layer and are version matched to the compiler.
+            return OneOrMany<string>.Empty;
+        }
 
-            if (!vsixRazorAnalyzers.IsEmpty)
-            {
-                if (s_razorSourceGeneratorAssemblyRootedFileNames.Any(
-                    static (fileName, fullPath) => fullPath.EndsWith(fileName, StringComparison.OrdinalIgnoreCase), fullPath))
-                {
-                    return OneOrMany.Create(vsixRazorAnalyzers);
-                }
-
-                return OneOrMany.Create(ImmutableArray<string>.Empty);
-            }
+        if (TryRedirectAnalyzerAssembly(fullPath) is { } redirectedPath)
+        {
+            return OneOrMany.Create(redirectedPath);
         }
 
         return OneOrMany.Create(fullPath);
     }
+
+    private string? TryRedirectAnalyzerAssembly(string fullPath)
+    {
+        string? redirectedPath = null;
+
+        foreach (var redirector in _hostInfo.AnalyzerAssemblyRedirectors)
+        {
+            try
+            {
+                if (redirector.RedirectPath(fullPath) is { } currentlyRedirectedPath)
+                {
+                    if (redirectedPath == null)
+                    {
+                        redirectedPath = currentlyRedirectedPath;
+                        CodeAnalysisEventSource.Log.AnanlyzerReferenceRedirected(redirector.GetType().Name, fullPath, redirectedPath, DisplayName);
+                    }
+                    else if (redirectedPath != currentlyRedirectedPath)
+                    {
+                        throw new InvalidOperationException($"Multiple redirectors disagree on the path to redirect '{fullPath}' to ('{redirectedPath}' vs '{currentlyRedirectedPath}').");
+                    }
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
+            {
+                // Ignore if the external redirector throws.
+            }
+        }
+
+        return redirectedPath;
+    }
+
+    private static readonly string s_csharpCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "cs");
+    private static readonly string s_visualBasicCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "vb");
+
+    private bool IsSdkCodeStyleAnalyzer(string fullPath) => Language switch
+    {
+        LanguageNames.CSharp => DirectoryNameEndsWith(fullPath, s_csharpCodeStyleAnalyzerSdkDirectory),
+        LanguageNames.VisualBasic => DirectoryNameEndsWith(fullPath, s_visualBasicCodeStyleAnalyzerSdkDirectory),
+        _ => false,
+    };
+
+    private static string CreateDirectoryPathFragment(params string[] paths) => Path.Combine([" ", .. paths, " "]).Trim();
+
+    private static bool DirectoryNameEndsWith(string fullPath, string ending) => fullPath.LastIndexOf(ending, StringComparison.OrdinalIgnoreCase) + ending.Length - 1 ==
+        fullPath.LastIndexOf(Path.DirectorySeparatorChar);
 
     #endregion
 
@@ -1235,8 +1362,14 @@ internal sealed partial class ProjectSystemProject
     #endregion
 
     public void RemoveFromWorkspace()
+        => RemoveFromWorkspaceMaybeAsync(useAsync: false).VerifyCompleted();
+
+    public ValueTask RemoveFromWorkspaceAsync()
+        => RemoveFromWorkspaceMaybeAsync(useAsync: true);
+
+    private async ValueTask RemoveFromWorkspaceMaybeAsync(bool useAsync)
     {
-        using (_gate.DisposableWait())
+        using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
         {
             if (!_projectSystemProjectFactory.Workspace.CurrentSolution.ContainsProject(Id))
             {
@@ -1246,26 +1379,35 @@ internal sealed partial class ProjectSystemProject
             _asynchronousFileChangeProcessingCancellationTokenSource.Cancel();
 
             // clear tracking to external components
-            foreach (var provider in _eventSubscriptionTracker)
+            foreach (var provider in _dynamicFileInfoProvidersSubscribedTo)
             {
                 provider.Updated -= OnDynamicFileInfoUpdated;
             }
 
-            _eventSubscriptionTracker.Clear();
+            _dynamicFileInfoProvidersSubscribedTo.Clear();
         }
 
         _documentFileChangeContext.Dispose();
 
         IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;
+        IReadOnlyList<AnalyzerReference>? remainingAnalyzerReferences = null;
 
-        _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
+        await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w =>
         {
             // Acquire the remaining metadata references inside the workspace lock. This is critical
             // as another project being removed at the same time could result in project to project
             // references being converted to metadata references (or vice versa) and we might either
             // miss stopping a file watcher or might end up double-stopping a file watcher.
-            remainingMetadataReferences = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences;
+            //
+            // It's also critical we remove ourselves from all our tracking first. There is an edge case where
+            // if we have a metadata reference to ourselves, then removing us might try to convert that reference
+            // to a project reference to some other project.
             _projectSystemProjectFactory.RemoveProjectFromTrackingMaps_NoLock(Id);
+
+            var project = w.CurrentSolution.GetRequiredProject(Id);
+
+            remainingMetadataReferences = project.MetadataReferences;
+            remainingAnalyzerReferences = project.AnalyzerReferences;
 
             // If this is our last project, clear the entire solution.
             if (w.CurrentSolution.ProjectIds.Count == 1)
@@ -1276,12 +1418,16 @@ internal sealed partial class ProjectSystemProject
             {
                 _projectSystemProjectFactory.Workspace.OnProjectRemoved(Id);
             }
-        });
+        }).ConfigureAwait(false);
 
         Contract.ThrowIfNull(remainingMetadataReferences);
+        Contract.ThrowIfNull(remainingAnalyzerReferences);
 
         foreach (var reference in remainingMetadataReferences.OfType<PortableExecutableReference>())
             _projectSystemProjectFactory.FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
+
+        foreach (var reference in remainingAnalyzerReferences)
+            _projectSystemProjectFactory.FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference.FullPath!, referenceToTrack: reference);
     }
 
     public void ReorderSourceFiles(ImmutableArray<string> filePaths)

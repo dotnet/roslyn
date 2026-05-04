@@ -6,15 +6,16 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -194,7 +195,7 @@ internal sealed class ValueTrackedTreeItemViewModel : TreeItemViewModel
 
         return await valueTrackedItems.SelectAsArrayAsync(static (item, self, cancellationToken) =>
             CreateAsync(
-                self._solution, item, children: ImmutableArray<TreeItemViewModel>.Empty,
+                self._solution, item, children: [],
                 self.TreeViewModel, self._glyphService, self._valueTrackingService, self._globalOptions,
                 self.ThreadingContext, self._listener, self._threadOperationExecutor, cancellationToken), this, cancellationToken).ConfigureAwait(false);
     }

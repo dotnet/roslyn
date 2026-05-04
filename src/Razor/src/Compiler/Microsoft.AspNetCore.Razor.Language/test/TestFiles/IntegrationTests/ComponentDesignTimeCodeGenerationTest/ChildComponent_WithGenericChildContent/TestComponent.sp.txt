@@ -1,0 +1,12 @@
+﻿get_MyAttr: 
+	IL_0000: (9,32)-(9,36) ""
+set_MyAttr: 
+	IL_0000: (9,37)-(9,41) ""
+get_ChildContent: 
+	IL_0000: (12,54)-(12,58) ""
+set_ChildContent: 
+	IL_0000: (12,59)-(12,63) ""
+BuildRenderTree: 
+	IL_003f: (1,1)-(1,40) "x:\dir\subdir\Test\TestComponent.cshtml"
+<BuildRenderTree>b__1: 
+	IL_0001: (1,49)-(1,82) "x:\dir\subdir\Test\TestComponent.cshtml"

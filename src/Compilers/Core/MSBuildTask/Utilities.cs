@@ -6,6 +6,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -119,6 +120,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return path;
         }
 
+        internal static bool TryCombine(string path1, string path2, [NotNullWhen(returnValue: true)] out string? combined)
+        {
+            try
+            {
+                combined = Path.Combine(path1, path2);
+                return true;
+            }
+            catch (Exception e) when (IsIoRelatedException(e))
+            {
+                combined = null;
+                return false;
+            }
+        }
+
         internal static void DeleteNoThrow(string path)
         {
             try
@@ -166,20 +181,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 #else
             return assembly.Location;
 #endif
-        }
-
-        /// <summary>
-        /// Generate the full path to the tool that is deployed with our build tasks.
-        /// </summary>
-        internal static string GenerateFullPathToTool(string toolFileName)
-        {
-            var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
-            var assemblyPath = buildTask.Location;
-            var assemblyDirectory = Path.GetDirectoryName(assemblyPath)!;
-
-            return RuntimeHostInfo.IsDesktopRuntime
-                ? Path.Combine(assemblyDirectory, toolFileName)
-                : Path.Combine(assemblyDirectory, "bincore", toolFileName);
         }
     }
 }

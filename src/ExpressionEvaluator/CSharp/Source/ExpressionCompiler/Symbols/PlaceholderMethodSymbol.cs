@@ -4,12 +4,10 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -218,9 +216,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable();
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override bool HasUnscopedRefAttribute => false;
 
         internal override bool UseUpdatedEscapeRules => false;
+
+        internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         internal override bool RequiresSecurityObject
         {
@@ -279,13 +281,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {
             builderArgument = null;
             return false;
         }
 
-        internal override int? TryGetOverloadResolutionPriority() => null;
+        internal override int TryGetOverloadResolutionPriority() => 0;
 
 #if DEBUG
         protected override MethodSymbolAdapter CreateCciAdapter()

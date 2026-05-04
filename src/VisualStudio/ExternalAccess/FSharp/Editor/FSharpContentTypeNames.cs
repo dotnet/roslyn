@@ -4,12 +4,11 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+
+internal static class FSharpContentTypeNames
 {
-    internal static class FSharpContentTypeNames
-    {
-        public const string RoslynContentType = Microsoft.CodeAnalysis.Editor.ContentTypeNames.RoslynContentType;
-        public const string FSharpContentType = CodeAnalysis.Editor.ContentTypeNames.FSharpContentType;
-        public const string FSharpSignatureHelpContentType = CodeAnalysis.Editor.ContentTypeNames.FSharpSignatureHelpContentType;
-    }
+    public const string RoslynContentType = Microsoft.CodeAnalysis.Editor.ContentTypeNames.RoslynContentType;
+    public const string FSharpContentType = CodeAnalysis.Editor.ContentTypeNames.FSharpContentType;
+    public const string FSharpSignatureHelpContentType = CodeAnalysis.Editor.ContentTypeNames.FSharpSignatureHelpContentType;
 }

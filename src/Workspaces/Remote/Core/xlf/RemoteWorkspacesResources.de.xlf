@@ -27,6 +27,16 @@
         <target state="translated">Tupel in Strukturrefactoring konvertieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotChangeAnalysis">
+        <source>Copilot change analysis</source>
+        <target state="translated">Copilot-Änderungsanalyse</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CopilotProposalAdjuster">
+        <source>Copilot proposal adjuster</source>
+        <target state="translated">Copilot-Vorschlagsanpassung</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">Suche nach abhängigen Typen</target>
@@ -57,9 +67,14 @@
         <target state="translated">Feldrefactoring kapseln</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
-        <source>Extension method import completion</source>
-        <target state="translated">Erweiterungsmethodenimporte vervollständigen</target>
+      <trans-unit id="FeatureName_ExtensionMemberImportCompletion">
+        <source>Extension member import completion</source>
+        <target state="translated">Abschluss des Importvorgangs für Erweiterungselemente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="translated">Erweiterungsmeldungshandler</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
@@ -80,6 +95,11 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">Vererbungsrand</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="translated">Initialisierung</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
@@ -119,7 +139,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_RelatedDocuments">
         <source>Related documents</source>
-        <target state="new">Related documents</target>
+        <target state="translated">Zugehörige Dokumente</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_Renamer">

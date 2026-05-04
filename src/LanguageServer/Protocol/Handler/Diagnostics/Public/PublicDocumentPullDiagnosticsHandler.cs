@@ -18,20 +18,15 @@ using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticRep
 using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>;
 
 [Method(Methods.TextDocumentDiagnosticName)]
-internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
+internal sealed partial class PublicDocumentPullDiagnosticsHandler(
+    IClientLanguageServerManager clientLanguageServerManager,
+    IDiagnosticSourceManager diagnosticSourceManager,
+    IDiagnosticsRefresher diagnosticsRefresher,
+    IGlobalOptionService globalOptions)
+    : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport>(
+        diagnosticsRefresher, diagnosticSourceManager, globalOptions)
 {
-    private readonly IClientLanguageServerManager _clientLanguageServerManager;
-
-    public PublicDocumentPullDiagnosticsHandler(
-        IClientLanguageServerManager clientLanguageServerManager,
-        IDiagnosticAnalyzerService analyzerService,
-        IDiagnosticSourceManager diagnosticSourceManager,
-        IDiagnosticsRefresher diagnosticsRefresher,
-        IGlobalOptionService globalOptions)
-        : base(analyzerService, diagnosticsRefresher, diagnosticSourceManager, globalOptions)
-    {
-        _clientLanguageServerManager = clientLanguageServerManager;
-    }
+    private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager;
 
     protected override string? GetRequestDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;
@@ -62,7 +57,7 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
         return true;
     }
 
-    protected override DocumentDiagnosticReport? CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
+    protected override DocumentDiagnosticReport CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
     {
         // We only ever report one result for document diagnostics, which is the first DocumentDiagnosticReport.
         var progressValues = progress.GetValues();
@@ -76,12 +71,15 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
             return progressValues.Single().Second;
         }
 
-        return null;
+        return new RelatedFullDocumentDiagnosticReport
+        {
+            Items = []
+        };
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)
     {
-        if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
+        if (diagnosticsParams is { PreviousResultId: not null, TextDocument: not null })
         {
             return ImmutableArray.Create(new PreviousPullResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
         }

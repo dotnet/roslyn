@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.InternalUtilities;
 
@@ -18,6 +19,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
             => s_categoryToSeverityKeyMap.GetOrAdd(category, category, static category => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}");
+
+        public static ImmutableArray<AdditionalText> GetAdditionalFiles(this AnalyzerOptions? analyzerOptions)
+            => analyzerOptions?.AdditionalFiles ?? [];
 
         /// <summary>
         /// Tries to get configured severity for the given <paramref name="descriptor"/>

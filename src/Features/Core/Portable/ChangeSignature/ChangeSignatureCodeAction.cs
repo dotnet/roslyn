@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature;
 
-internal class ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalysisSucceededContext context) : CodeActionWithOptions
+internal sealed class ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalysisSucceededContext context) : CodeActionWithOptions
 {
     private readonly AbstractChangeSignatureService _changeSignatureService = changeSignatureService;
     private readonly ChangeSignatureAnalysisSucceededContext _context = context;

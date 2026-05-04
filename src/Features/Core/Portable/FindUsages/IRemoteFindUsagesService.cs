@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
 
@@ -160,7 +159,8 @@ internal sealed class FindUsagesServerCallback(Solution solution, IFindUsagesCon
 }
 
 [DataContract]
-internal readonly struct SerializableDocumentSpan(DocumentId documentId, TextSpan sourceSpan)
+internal readonly struct SerializableDocumentSpan(
+    DocumentId documentId, TextSpan sourceSpan, bool isGeneratedCode)
 {
     [DataMember(Order = 0)]
     public readonly DocumentId DocumentId = documentId;
@@ -168,15 +168,18 @@ internal readonly struct SerializableDocumentSpan(DocumentId documentId, TextSpa
     [DataMember(Order = 1)]
     public readonly TextSpan SourceSpan = sourceSpan;
 
+    [DataMember(Order = 2)]
+    public readonly bool IsGeneratedCode = isGeneratedCode;
+
     public static SerializableDocumentSpan Dehydrate(DocumentSpan documentSpan)
-        => new(documentSpan.Document.Id, documentSpan.SourceSpan);
+        => new(documentSpan.Document.Id, documentSpan.SourceSpan, documentSpan.IsGeneratedCode);
 
     public async ValueTask<DocumentSpan> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
     {
         var document = solution.GetDocument(DocumentId) ??
-                       await solution.GetSourceGeneratedDocumentAsync(DocumentId, cancellationToken).ConfigureAwait(false);
+            await solution.GetSourceGeneratedDocumentAsync(DocumentId, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfNull(document);
-        return new DocumentSpan(document, SourceSpan);
+        return new DocumentSpan(document, SourceSpan, IsGeneratedCode);
     }
 }
 
@@ -259,7 +262,14 @@ internal readonly struct SerializableClassifiedSpansAndHighlightSpan(
     public readonly TextSpan HighlightSpan = highlightSpan;
 
     public static SerializableClassifiedSpansAndHighlightSpan Dehydrate(ClassifiedSpansAndHighlightSpan classifiedSpansAndHighlightSpan)
-        => new(SerializableClassifiedSpans.Dehydrate(classifiedSpansAndHighlightSpan.ClassifiedSpans), classifiedSpansAndHighlightSpan.HighlightSpan);
+    {
+        using var _ = Classifier.GetPooledList(out var temp);
+
+        foreach (var span in classifiedSpansAndHighlightSpan.ClassifiedSpans)
+            temp.Add(span);
+
+        return new(SerializableClassifiedSpans.Dehydrate(temp), classifiedSpansAndHighlightSpan.HighlightSpan);
+    }
 
     public ClassifiedSpansAndHighlightSpan Rehydrate()
         => new(this.ClassifiedSpans.Rehydrate(), this.HighlightSpan);

@@ -6,21 +6,17 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass;
 
-internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode> : CodeFixProvider
+internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode>(string diagnosticId) : CodeFixProvider
     where TClassNode : SyntaxNode
 {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = [diagnosticId];
 
     public sealed override FixAllProvider GetFixAllProvider()
         => WellKnownFixAllProviders.BatchFixer;
-
-    protected AbstractImplementAbstractClassCodeFixProvider(string diagnosticId)
-        => FixableDiagnosticIds = [diagnosticId];
 
     protected abstract SyntaxToken GetClassIdentifier(TClassNode classNode);
 
@@ -49,7 +45,7 @@ internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode
         context.RegisterCodeFix(
             CodeAction.Create(
                 AnalyzersResources.Implement_abstract_class,
-                c => data.ImplementAbstractClassAsync(throughMember: null, canDelegateAllMembers: null, c),
+                cancellationToken => data.ImplementAbstractClassAsync(throughMember: null, canDelegateAllMembers: null, cancellationToken),
                 id),
             context.Diagnostics);
 
@@ -63,7 +59,7 @@ internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode
             context.RegisterCodeFix(
                 CodeAction.Create(
                     string.Format(AnalyzersResources.Implement_through_0, through.Name),
-                    c => data.ImplementAbstractClassAsync(through, canDelegateAllMembers, c),
+                    cancellationToken => data.ImplementAbstractClassAsync(through, canDelegateAllMembers, cancellationToken),
                     id),
                 context.Diagnostics);
         }

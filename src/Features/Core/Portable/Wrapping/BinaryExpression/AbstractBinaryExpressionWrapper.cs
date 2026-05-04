@@ -89,8 +89,7 @@ internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressio
 
         var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         return new BinaryExpressionCodeActionComputer(
-            this, document, sourceText, options, binaryExpr,
-            exprsAndOperators, cancellationToken);
+            this, document, sourceText, options, binaryExpr, exprsAndOperators);
     }
 
     private ImmutableArray<SyntaxNodeOrToken> GetExpressionsAndOperators(

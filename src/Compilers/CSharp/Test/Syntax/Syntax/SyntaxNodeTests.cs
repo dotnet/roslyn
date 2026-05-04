@@ -114,6 +114,80 @@ class C {
             Assert.Equal(SyntaxKind.AddExpression, nodes[7].Kind());
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46964")]
+        public void TestAncestorsOfDocumentationCommentTrivia()
+        {
+            var text = """
+                public class TestMe
+                {
+                    /// <summary>
+                    /// Test comment
+                    /// </summary>
+                    private int i;
+                }
+                """;
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var root = tree.GetCompilationUnitRoot();
+
+            var docComment = root.DescendantNodes(descendIntoTrivia: true)
+                .OfType<DocumentationCommentTriviaSyntax>()
+                .First();
+
+            // Verify that Ancestors() now returns all ancestors when ascendOutOfTrivia is true
+            var ancestors = docComment.Ancestors(ascendOutOfTrivia: true).ToList();
+            Assert.Equal(3, ancestors.Count);
+            Assert.Equal(SyntaxKind.FieldDeclaration, ancestors[0].Kind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, ancestors[1].Kind());
+            Assert.Equal(SyntaxKind.CompilationUnit, ancestors[2].Kind());
+
+            // Verify that AncestorsAndSelf() still works correctly
+            var ancestorsAndSelf = docComment.AncestorsAndSelf(ascendOutOfTrivia: true).ToList();
+            Assert.Equal(4, ancestorsAndSelf.Count);
+            Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, ancestorsAndSelf[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, ancestorsAndSelf[1].Kind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, ancestorsAndSelf[2].Kind());
+            Assert.Equal(SyntaxKind.CompilationUnit, ancestorsAndSelf[3].Kind());
+
+            // Verify that Ancestors() returns empty when ascendOutOfTrivia is false
+            var ancestorsWithoutAscending = docComment.Ancestors(ascendOutOfTrivia: false).ToList();
+            Assert.Equal(0, ancestorsWithoutAscending.Count);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46964")]
+        public void TestAncestorsOfDirectiveTrivia()
+        {
+            var text = """
+                #define DEBUG
+                public class TestMe
+                {
+                }
+                """;
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var root = tree.GetCompilationUnitRoot();
+
+            var defineDirective = root.DescendantNodes(descendIntoTrivia: true)
+                .OfType<DefineDirectiveTriviaSyntax>()
+                .First();
+
+            // The #define directive is attached as trivia to the class declaration's first token (public keyword)
+            // so the ClassDeclaration is its first ancestor, followed by CompilationUnit
+            var ancestors = defineDirective.Ancestors(ascendOutOfTrivia: true).ToList();
+            Assert.Equal(2, ancestors.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, ancestors[0].Kind());
+            Assert.Equal(SyntaxKind.CompilationUnit, ancestors[1].Kind());
+
+            // Verify that AncestorsAndSelf() still works correctly
+            var ancestorsAndSelf = defineDirective.AncestorsAndSelf(ascendOutOfTrivia: true).ToList();
+            Assert.Equal(3, ancestorsAndSelf.Count);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, ancestorsAndSelf[0].Kind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, ancestorsAndSelf[1].Kind());
+            Assert.Equal(SyntaxKind.CompilationUnit, ancestorsAndSelf[2].Kind());
+
+            // Verify that Ancestors() returns empty when ascendOutOfTrivia is false
+            var ancestorsWithoutAscending = defineDirective.Ancestors(ascendOutOfTrivia: false).ToList();
+            Assert.Equal(0, ancestorsWithoutAscending.Count);
+        }
+
         [Fact]
         public void TestFirstAncestorOrSelf()
         {
@@ -347,24 +421,21 @@ class C {
         public void TestContainsDirective()
         {
             // Empty compilation unit shouldn't have any directives in it.
-            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
                 Assert.False(SyntaxFactory.ParseCompilationUnit("").ContainsDirective(kind));
 
             // basic file shouldn't have any directives in it.
-            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
                 Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N { }").ContainsDirective(kind));
 
             // directive in trailing trivia is not a thing
-            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
             {
                 var compilationUnit = SyntaxFactory.ParseCompilationUnit("namespace N { } #if false");
                 compilationUnit.GetDiagnostics().Verify(
                     // (1,17): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                     // namespace N { } #if false
-                    TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 17),
-                    // (1,26): error CS1027: #endif directive expected
-                    // namespace N { } #if false
-                    TestBase.Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(1, 26));
+                    TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 17));
                 Assert.False(compilationUnit.ContainsDirective(kind));
             }
 
@@ -386,14 +457,14 @@ class C {
             testContainsHelper1("#undef x", SyntaxKind.UndefDirectiveTrivia);
             testContainsHelper1("#warning", SyntaxKind.WarningDirectiveTrivia);
 
-            // !# is special and is only recognized at start of a script file and nowhere else.
             testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Script));
-            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
-            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
+            testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
+            testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
+            testContainsHelper2([SyntaxKind.IgnoredDirectiveTrivia], SyntaxFactory.ParseCompilationUnit("#:x"));
 
             return;
 
-            void testContainsHelper1(string directive, params SyntaxKind[] directiveKinds)
+            static void testContainsHelper1(string directive, params SyntaxKind[] directiveKinds)
             {
                 Assert.True(directiveKinds.Length > 0);
 
@@ -469,18 +540,44 @@ class C {
                     """));
             }
 
-            void testContainsHelper2(SyntaxKind[] directiveKinds, CompilationUnitSyntax compilationUnit)
+            static void testContainsHelper2(SyntaxKind[] directiveKinds, CompilationUnitSyntax compilationUnit)
             {
                 Assert.True(compilationUnit.ContainsDirectives);
                 foreach (var directiveKind in directiveKinds)
-                    Assert.True(compilationUnit.ContainsDirective(directiveKind));
+                    Assert.True(compilationUnit.ContainsDirective(directiveKind), directiveKind.ToString());
 
-                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedType; kind++)
+                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
                 {
                     if (!directiveKinds.Contains(kind))
                         Assert.False(compilationUnit.ContainsDirective(kind));
                 }
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void TestContainsDirective_IfIf()
+        {
+            var compilationUnit = SyntaxFactory.ParseCompilationUnit("""
+                if (#if)
+                """);
+            compilationUnit.GetDiagnostics().Verify(
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if (#if)
+                TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
+                // (1,9): error CS1733: Expected expression
+                // if (#if)
+                TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1026: ) expected
+                // if (#if)
+                TestBase.Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
+                // if (#if)
+                TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1002: ; expected
+                // if (#if)
+                TestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9));
+            Assert.False(compilationUnit.ContainsDirectives);
+            Assert.False(compilationUnit.ContainsDirective(SyntaxKind.IfDirectiveTrivia));
         }
 
         [Fact]
@@ -2779,6 +2876,44 @@ class C
             });
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")]
+        public void TestRemove_KeepUnbalancedDirectives_Indented()
+        {
+            var inputText = """
+                class C
+                {
+                    // before
+                    #region Fred
+                    // more before
+                    void M()
+                    {
+                    } // after
+                    #endregion
+                }
+                """;
+
+            var expectedText = """
+                class C
+                {
+
+                    #region Fred
+                    #endregion
+                }
+                """;
+
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+                Assert.NotNull(m);
+
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+
+                var text = cu2.ToFullString();
+
+                Assert.Equal(expected, text);
+            });
+        }
+
         [Fact]
         public void TestRemove_KeepDirectives()
         {
@@ -2880,7 +3015,7 @@ class C
 
             var text = cu2.ToFullString();
 
-            Assert.Equal("class A { } \r\n#endregion", text);
+            Assert.Equal("class A { } ", text);
         }
 
         [Fact]
@@ -3245,7 +3380,7 @@ class A { } #endregion";
 
             var expectedText = @"
 #region A
-#endregion";
+";
 
             TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
             {

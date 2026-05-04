@@ -18,7 +18,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
     where TExportAttribute : Attribute
     where TExtension : class
 {
-    public record class ExtensionInfo(ImmutableArray<TextDocumentKind> DocumentKinds, string[]? DocumentExtensions);
+    public sealed record class ExtensionInfo(ImmutableArray<TextDocumentKind> DocumentKinds, string[]? DocumentExtensions);
 
     // Following CWTs are used to cache completion providers from projects' references,
     // so we can avoid the slow path unless there's any change to the references.
@@ -145,8 +145,10 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
         if (TryGetExtensionsFromReference(this.Reference, out var extensions))
             return extensions;
 
+        var analyzerFileReference = GetAnalyzerFileReference(this.Reference);
+
         // otherwise, see whether we can pick it up from reference itself
-        if (this.Reference is not AnalyzerFileReference analyzerFileReference)
+        if (analyzerFileReference is null)
             return [];
 
         using var _ = ArrayBuilder<TExtension>.GetInstance(out var builder);
@@ -183,5 +185,17 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
         }
 
         return builder.ToImmutableAndClear();
+
+        static AnalyzerFileReference? GetAnalyzerFileReference(AnalyzerReference reference)
+        {
+            if (reference is AnalyzerFileReference analyzerFileReference)
+                return analyzerFileReference;
+#if NET
+            if (reference is IsolatedAnalyzerFileReference isolatedReference)
+                return isolatedReference.UnderlyingAnalyzerFileReference;
+#endif
+
+            return null;
+        }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQVoidType : RQType
+internal sealed class RQVoidType : RQType
 {
     public static readonly RQVoidType Singleton = new();
     private RQVoidType() { }

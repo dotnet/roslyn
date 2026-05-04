@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Editing;
@@ -74,7 +74,7 @@ internal sealed class CSharpImportAdder() : ImportAdderService
     /// no users being hit, then that's far less important than if we have a reasonable coding pattern that would be
     /// impacted by adding an import to a normal namespace.
     /// </summary>
-    private class ConflictFinder
+    private sealed class ConflictFinder
     {
         private readonly SemanticModel _model;
 
@@ -133,7 +133,7 @@ internal sealed class CSharpImportAdder() : ImportAdderService
 
             await ProducerConsumer<INamespaceSymbol>.RunParallelAsync(
                 source: nodes,
-                produceItems: static (node, onItemsFound, args, cancellationToken) =>
+                produceItems: static async (node, onItemsFound, args, cancellationToken) =>
                 {
                     var (self, containsAnonymousMethods, _) = args;
                     if (node is SimpleNameSyntax nameSyntaxNode)
@@ -142,13 +142,11 @@ internal sealed class CSharpImportAdder() : ImportAdderService
                         self.ProduceConflicts(memberAccessExpressionNode, containsAnonymousMethods, onItemsFound, cancellationToken);
                     else
                         throw ExceptionUtilities.Unreachable();
-
-                    return Task.CompletedTask;
                 },
                 consumeItems: static async (items, args, cancellationToken) =>
                 {
                     var (_, _, conflicts) = args;
-                    await foreach (var conflict in items)
+                    await foreach (var conflict in items.ConfigureAwait(false))
                         conflicts.Add(conflict);
                 },
                 args: (self: this, containsAnonymousMethods, conflicts),

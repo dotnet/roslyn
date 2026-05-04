@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
-internal class ExampleRequestContextFactory : AbstractRequestContextFactory<ExampleRequestContext>
+internal sealed class ExampleRequestContextFactory : AbstractRequestContextFactory<ExampleRequestContext>
 {
     private readonly ILspServices _lspServices;
 
@@ -16,12 +16,12 @@ internal class ExampleRequestContextFactory : AbstractRequestContextFactory<Exam
         _lspServices = lspServices;
     }
 
-    public override Task<ExampleRequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<ExampleRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+    public override async Task<ExampleRequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<ExampleRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
     {
         var logger = _lspServices.GetRequiredService<ILspLogger>();
 
         var requestContext = new ExampleRequestContext(_lspServices, logger);
 
-        return Task.FromResult(requestContext);
+        return requestContext;
     }
 }

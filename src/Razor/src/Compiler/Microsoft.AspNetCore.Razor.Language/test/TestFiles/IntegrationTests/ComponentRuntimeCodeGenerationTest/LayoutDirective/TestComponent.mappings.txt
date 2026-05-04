@@ -1,0 +1,5 @@
+﻿Source Location: (8:0,8 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|System.Object|
+Generated Location: (479:15,0 [13] )
+|System.Object|
+

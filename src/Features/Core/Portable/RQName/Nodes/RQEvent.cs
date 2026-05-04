@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQEvent(RQUnconstructedType containingType, RQMethodPropertyOrEventName memberName) : RQMethodPropertyOrEvent(containingType, memberName)
+internal sealed class RQEvent(RQUnconstructedType containingType, RQMethodPropertyOrEventName memberName) : RQMethodPropertyOrEvent(containingType, memberName)
 {
     protected override string RQKeyword
     {

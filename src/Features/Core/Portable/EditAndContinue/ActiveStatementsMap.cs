@@ -9,9 +9,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -113,12 +113,6 @@ internal sealed class ActiveStatementsMap
                     throw new InvalidOperationException($"Multiple active statements with the same instruction id returned by Active Statement Provider");
                 }
             }
-        }
-
-        // TODO: Remove. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
-        if (EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames)
-        {
-            byDocumentPath = byDocumentPath.WithComparers(keyComparer: StringComparer.OrdinalIgnoreCase);
         }
 
         return new ActiveStatementsMap(byDocumentPath, byInstruction.ToImmutableDictionary());

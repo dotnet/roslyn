@@ -11,10 +11,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -292,11 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string name, int arity, LookupOptions options)
+#nullable enable
+        internal sealed override void GetAllExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
             foreach (NamespaceSymbol namespaceSymbol in _namespacesToMerge)
             {
-                namespaceSymbol.GetExtensionMethods(methods, name, arity, options);
+                namespaceSymbol.GetAllExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
             }
         }
     }

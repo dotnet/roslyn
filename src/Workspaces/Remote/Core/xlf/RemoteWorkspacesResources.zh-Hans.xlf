@@ -27,6 +27,16 @@
         <target state="translated">将元组转换为结构重构</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotChangeAnalysis">
+        <source>Copilot change analysis</source>
+        <target state="translated">Copilot 更改分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CopilotProposalAdjuster">
+        <source>Copilot proposal adjuster</source>
+        <target state="translated">Copilot 提案调整器</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">依赖类型查找器</target>
@@ -57,9 +67,14 @@
         <target state="translated">封装字段重构</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
-        <source>Extension method import completion</source>
-        <target state="translated">扩展方法导入完成</target>
+      <trans-unit id="FeatureName_ExtensionMemberImportCompletion">
+        <source>Extension member import completion</source>
+        <target state="translated">扩展成员导入完成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="translated">扩展消息处理程序</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
@@ -80,6 +95,11 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">继承边距</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="translated">初始化</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
@@ -119,7 +139,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_RelatedDocuments">
         <source>Related documents</source>
-        <target state="new">Related documents</target>
+        <target state="translated">相关文档</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_Renamer">

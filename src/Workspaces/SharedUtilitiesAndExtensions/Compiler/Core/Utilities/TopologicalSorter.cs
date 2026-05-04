@@ -56,7 +56,7 @@ internal static class TopologicalSorter
             var naturalItemsBefore = itemsBefore != null ? itemsBefore(item) : null;
             if (naturalItemsBefore != null)
             {
-                return naturalItemsBefore.ToList();
+                return [.. naturalItemsBefore];
             }
             else
             {

@@ -45,13 +45,10 @@ internal interface IVirtualCharService
     /// implementation.
     /// </para>
     /// <para>
-    /// If this function succeeds, certain invariants will hold.  First, each character in the
-    /// sequence of characters in <paramref name="token"/>.ValueText will become a single
-    /// VirtualChar in the result array with a matching <see cref="VirtualChar.Rune"/> property.
-    /// Similarly, each VirtualChar's <see cref="VirtualChar.Span"/> will abut each other, and
-    /// the union of all of them will cover the span of the token's <see
-    /// cref="SyntaxToken.Text"/>
-    /// *not* including the start and quotes.
+    /// If this function succeeds, certain invariants will hold.  First, each character in the sequence of characters in
+    /// <paramref name="token"/>.ValueText will become a single VirtualChar in the result array. Similarly, each
+    /// VirtualChar's <see cref="VirtualChar.Span"/> will abut each other, and the union of all of them will cover the
+    /// span of the token's <see cref="SyntaxToken.Text"/> *not* including the start and quotes.
     /// </para>
     /// <para>
     /// In essence the VirtualChar array acts as the information explaining how the <see

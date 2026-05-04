@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.GenerateType;
 
-internal class GenerateTypeOptionsResult
+internal sealed class GenerateTypeOptionsResult
 {
     public static readonly GenerateTypeOptionsResult Cancelled = new(isCancelled: true);
 

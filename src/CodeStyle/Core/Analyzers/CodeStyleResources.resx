@@ -117,22 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="A_language_name_cannot_be_specified_for_this_option" xml:space="preserve">
-    <value>A language name cannot be specified for this option.</value>
-  </data>
-  <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
-    <value>A language name must be specified for this option.</value>
-  </data>
-  <data name="Indentation_and_spacing" xml:space="preserve">
-    <value>Indentation and spacing</value>
-  </data>
-  <data name="New_line_preferences" xml:space="preserve">
-    <value>New line preferences</value>
-  </data>
-  <data name="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer" xml:space="preserve">
-    <value>Value too large to be represented as a 30 bit unsigned integer.</value>
-  </data>
-  <data name="Stream_is_too_long" xml:space="preserve">
-    <value>Stream is too long.</value>
-  </data>
 </root>

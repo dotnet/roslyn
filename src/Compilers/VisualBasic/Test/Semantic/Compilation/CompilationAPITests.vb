@@ -8,7 +8,9 @@ Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
 Imports System.Threading
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -18,7 +20,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestHelpers
-Imports Basic.Reference.Assemblies
 Imports CS = Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -381,7 +382,7 @@ End Namespace
             comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             'IsCaseSensitive
-            Assert.Equal(Of Boolean)(False, comp.IsCaseSensitive)
+            AssertEx.Equal(Of Boolean)(False, comp.IsCaseSensitive)
 
             Assert.Equal("D", comp.GetTypeByMetadataName("C+D").Name)
             Assert.Equal("E", comp.GetTypeByMetadataName("C+D+E").Name)
@@ -561,19 +562,19 @@ End Namespace
             'WithReferences 
             Dim hs1 As New HashSet(Of MetadataReference) From {ref1, ref2, ref3}
             Dim compCollection1 = VisualBasicCompilation.Create("Compilation")
-            Assert.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(compCollection1.References))
+            AssertEx.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(compCollection1.References))
             Dim c2 As Compilation = compCollection1.WithReferences(hs1)
-            Assert.Equal(Of Integer)(3, Enumerable.Count(Of MetadataReference)(c2.References))
+            AssertEx.Equal(Of Integer)(3, Enumerable.Count(Of MetadataReference)(c2.References))
 
             'WithReferences 
             Dim compCollection2 = VisualBasicCompilation.Create("Compilation")
-            Assert.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(compCollection2.References))
+            AssertEx.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(compCollection2.References))
             Dim c3 As Compilation = compCollection1.WithReferences(ref1, ref2, ref3)
-            Assert.Equal(Of Integer)(3, Enumerable.Count(Of MetadataReference)(c3.References))
+            AssertEx.Equal(Of Integer)(3, Enumerable.Count(Of MetadataReference)(c3.References))
 
             'ReferencedAssemblyNames
             Dim RefAsm_Names As IEnumerable(Of AssemblyIdentity) = c2.ReferencedAssemblyNames
-            Assert.Equal(Of Integer)(2, Enumerable.Count(Of AssemblyIdentity)(RefAsm_Names))
+            AssertEx.Equal(Of Integer)(2, Enumerable.Count(Of AssemblyIdentity)(RefAsm_Names))
             Dim ListNames As New List(Of String)
             Dim I As AssemblyIdentity
             For Each I In RefAsm_Names
@@ -584,7 +585,7 @@ End Namespace
 
             'RemoveAllReferences
             c2 = c2.RemoveAllReferences
-            Assert.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(c2.References))
+            AssertEx.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(c2.References))
 
             ' Overload with Hashset
             Dim hs = New HashSet(Of MetadataReference)() From {ref1, ref2, ref3}
@@ -796,13 +797,13 @@ End Namespace
 
             'ContainsSyntaxTree
             Dim b1 As Boolean = comp.ContainsSyntaxTree(t2)
-            Assert.Equal(Of Boolean)(False, b1)
+            AssertEx.Equal(Of Boolean)(False, b1)
             comp = comp.AddSyntaxTrees({t2})
             b1 = comp.ContainsSyntaxTree(t2)
-            Assert.Equal(Of Boolean)(True, b1)
+            AssertEx.Equal(Of Boolean)(True, b1)
 
             Dim xt As SyntaxTree = Nothing
-            Assert.Equal(Of Boolean)(False, comp.ContainsSyntaxTree(xt))
+            AssertEx.Equal(Of Boolean)(False, comp.ContainsSyntaxTree(xt))
 
             comp = comp.RemoveSyntaxTrees({t2})
             Assert.Equal(1, comp.SyntaxTrees.Length)
@@ -813,8 +814,8 @@ End Namespace
             comp = comp.RemoveAllSyntaxTrees
             Assert.Equal(0, comp.SyntaxTrees.Length)
             comp = VisualBasicCompilation.Create("Compilation").AddSyntaxTrees(listSyntaxTree).RemoveSyntaxTrees({t2})
-            Assert.Equal(Of Integer)(1, comp.SyntaxTrees.Length)
-            Assert.Equal(Of String)("Object", comp.ObjectType.Name)
+            AssertEx.Equal(Of Integer)(1, comp.SyntaxTrees.Length)
+            AssertEx.Equal(Of String)("Object", comp.ObjectType.Name)
 
             ' Remove mid SyntaxTree
             listSyntaxTree.Add(t3)
@@ -2324,10 +2325,10 @@ End Class
         <Fact>
         Public Sub ReferenceManagerReuse_WithSyntaxTrees()
             Dim ta = Parse("Imports System")
-            Dim tb = Parse("Imports System", options:=TestOptions.Script)
+            Dim tb = Parse("Imports System", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
             Dim tc = Parse("#r ""bar""  ' error: #r in regular code")
-            Dim tr = Parse("#r ""goo""", options:=TestOptions.Script)
-            Dim ts = Parse("#r ""bar""", options:=TestOptions.Script)
+            Dim tr = Parse("#r ""goo""", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
+            Dim ts = Parse("#r ""bar""", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
 
             Dim a = VisualBasicCompilation.Create("c", syntaxTrees:={ta})
 

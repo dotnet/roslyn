@@ -21,7 +21,7 @@ public class WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     private static void AssertSetEquals(LSP.SymbolInformation[] expected, LSP.SymbolInformation[]? results)
-        => Assert.True(expected.ToHashSet().SetEquals(results));
+        => Assert.True(expected.ToHashSet().SetEquals(results!));
 
     private Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace)
         => CreateTestLspServerAsync(markup, mutatingLspWorkspace, composition: Composition.AddParts(typeof(TestWorkspaceNavigateToSearchHostService)));
@@ -208,7 +208,7 @@ public class WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper)
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "NonExistingSymbol").ConfigureAwait(false);
-        Assert.Empty(results);
+        AssertEx.Empty(results);
     }
 
     [Theory, CombinatorialData]
@@ -261,7 +261,7 @@ public class WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper)
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     protected sealed class TestWorkspaceNavigateToSearchHostService() : IWorkspaceNavigateToSearcherHostService
     {
-        public ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
-            => new(true);
+        public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+            => true;
     }
 }

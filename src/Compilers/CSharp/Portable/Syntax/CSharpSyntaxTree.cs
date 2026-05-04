@@ -8,11 +8,10 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -389,10 +388,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Internal helper for <see cref="CSharpSyntaxNode"/> class to create a new syntax tree rooted at the given root node.
         /// This method does not create a clone of the given root, but instead preserves it's reference identity.
         /// </para>
-        /// <para>NOTE: This method is only intended to be used from <see cref="CSharpSyntaxNode.SyntaxTree"/> property.</para>
+        /// <para>NOTE: This method is only intended to be used from <see cref="CSharpSyntaxNode.SyntaxTree"/> property and <c>SyntaxFactory.Parse*</c> methods.</para>
         /// <para>NOTE: Do not use this method elsewhere, instead use <see cref="Create(CSharpSyntaxNode, CSharpParseOptions, string, Encoding)"/> method for creating a syntax tree.</para>
         /// </summary>
-        internal static SyntaxTree CreateWithoutClone(CSharpSyntaxNode root)
+        internal static SyntaxTree CreateWithoutClone(CSharpSyntaxNode root, CSharpParseOptions options)
         {
             Debug.Assert(root != null);
 
@@ -401,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 encodingOpt: null,
                 checksumAlgorithm: SourceHashAlgorithm.Sha1,
                 path: "",
-                options: CSharpParseOptions.Default,
+                options: options,
                 root: root,
                 directives: default,
                 diagnosticOptions: null,
@@ -514,7 +513,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilationUnit,
                 parser.Directives,
                 diagnosticOptions: diagnosticOptions,
-                cloneRoot: true);
+                cloneRoot: false);
+            Debug.Assert(compilationUnit._syntaxTree == null);
+            compilationUnit._syntaxTree = tree;
             tree.VerifySource();
             return tree;
         }
@@ -790,19 +791,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (greenNode.ContainsDiagnostics)
             {
-                return EnumerateDiagnostics(greenNode, position);
+                return SyntaxTreeDiagnosticEnumerator.EnumerateDiagnostics(this, greenNode, position);
             }
 
             return SpecializedCollections.EmptyEnumerable<Diagnostic>();
-        }
-
-        private IEnumerable<Diagnostic> EnumerateDiagnostics(GreenNode node, int position)
-        {
-            var enumerator = new SyntaxTreeDiagnosticEnumerator(this, node, position);
-            while (enumerator.MoveNext())
-            {
-                yield return enumerator.Current;
-            }
         }
 
         /// <summary>

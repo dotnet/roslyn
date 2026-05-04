@@ -5,16 +5,11 @@
 #nullable disable
 
 using System.Collections.Immutable;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationParameterSymbol(
+internal sealed class CodeGenerationParameterSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     RefKind refKind,
@@ -23,7 +18,7 @@ internal class CodeGenerationParameterSymbol(
     string name,
     bool isOptional,
     bool hasDefaultValue,
-    object defaultValue) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name), IParameterSymbol
+    object defaultValue) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, DeclarationModifiers.None, name), IParameterSymbol
 {
     public RefKind RefKind { get; } = refKind;
     public bool IsParams { get; } = isParams;

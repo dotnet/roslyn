@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 
-public class NintKeywordRecommenderTests : NativeIntegerKeywordRecommenderTests
+public sealed class NintKeywordRecommenderTests : NativeIntegerKeywordRecommenderTests
 {
     protected override string KeywordText => "nint";
 

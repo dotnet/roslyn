@@ -1,0 +1,27 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [92] x:\dir\subdir\Test\TestComponent.cshtml) - Ancestor
+                    ComponentChildContent -  - ChildContent - context
+                        Component - (45:0,45 [36] x:\dir\subdir\Test\TestComponent.cshtml) - Passthrough
+                            ComponentChildContent -  - ChildContent - context
+                                Component - (58:0,58 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Child
+                    ComponentAttribute - (17:0,17 [26] x:\dir\subdir\Test\TestComponent.cshtml) - Items - Items - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (19:0,19 [23] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Array.Empty<DateTime>()
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateAncestor_0
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateChild_1

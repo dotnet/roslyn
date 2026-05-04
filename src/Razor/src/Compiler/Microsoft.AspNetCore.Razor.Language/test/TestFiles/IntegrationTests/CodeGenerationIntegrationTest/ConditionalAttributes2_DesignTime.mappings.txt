@@ -1,0 +1,272 @@
+﻿Source Location: (2:0,2 [68] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    var ch = true;
+    var cls = "bar";
+    var s = "str";
+    |
+Generated Location: (2069:39,2 [68] )
+|
+    var ch = true;
+    var cls = "bar";
+    var s = "str";
+    |
+
+Source Location: (74:4,8 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (2314:50,8 [1] )
+|s|
+
+Source Location: (87:4,21 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (2506:57,21 [6] )
+|
+    |
+
+Source Location: (97:5,8 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (2689:65,8 [1] )
+|s|
+
+Source Location: (107:5,18 [3] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|cls|
+Generated Location: (2878:72,18 [3] )
+|cls|
+
+Source Location: (114:5,25 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (3076:79,25 [6] )
+|
+    |
+
+Source Location: (124:6,8 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (3259:87,8 [1] )
+|s|
+
+Source Location: (136:6,20 [3] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|cls|
+Generated Location: (3450:94,20 [3] )
+|cls|
+
+Source Location: (143:6,27 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (3650:101,27 [6] )
+|
+    |
+
+Source Location: (153:7,8 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (3833:109,8 [1] )
+|s|
+
+Source Location: (163:7,18 [3] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|cls|
+Generated Location: (4022:116,18 [3] )
+|cls|
+
+Source Location: (172:7,27 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (4222:123,27 [6] )
+|
+    |
+
+Source Location: (202:8,28 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (4425:131,28 [1] )
+|s|
+
+Source Location: (214:8,40 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|ch|
+Generated Location: (4636:138,40 [2] )
+|ch|
+
+Source Location: (220:8,46 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (4854:145,46 [6] )
+|
+    |
+
+Source Location: (250:9,28 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (5058:153,28 [1] )
+|s|
+
+Source Location: (264:9,42 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|ch|
+Generated Location: (5272:160,42 [2] )
+|ch|
+
+Source Location: (270:9,48 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (5493:167,48 [6] )
+|
+    |
+
+Source Location: (280:10,8 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (5677:175,8 [1] )
+|s|
+
+Source Location: (290:10,18 [18] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|if(cls != null) { |
+Generated Location: (5867:182,18 [18] )
+|if(cls != null) { |
+
+Source Location: (309:10,37 [3] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|cls|
+Generated Location: (6092:189,37 [3] )
+|cls|
+
+Source Location: (312:10,40 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+| }|
+Generated Location: (6306:196,40 [2] )
+| }|
+
+Source Location: (318:10,46 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (6524:203,46 [6] )
+|
+    |
+
+Source Location: (343:11,23 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (6974:213,23 [6] )
+|
+    |
+
+Source Location: (358:12,13 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (7163:221,13 [1] )
+|s|
+
+Source Location: (366:12,21 [44] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|Url.Content("~/Scripts/jquery-1.6.2.min.js")|
+Generated Location: (7356:228,21 [44] )
+|Url.Content("~/Scripts/jquery-1.6.2.min.js")|
+
+Source Location: (444:12,99 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (7670:235,99 [6] )
+|
+    |
+
+Source Location: (454:13,8 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (7854:243,8 [1] )
+|s|
+
+Source Location: (464:13,18 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|null|
+Generated Location: (8044:250,18 [4] )
+|null|
+
+Source Location: (472:13,26 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (8245:257,26 [6] )
+|
+    |
+
+Source Location: (489:14,15 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|null|
+Generated Location: (8436:265,15 [4] )
+|null|
+
+Source Location: (496:14,22 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (8633:272,22 [1] )
+|s|
+
+Source Location: (500:14,26 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+
+    |
+Generated Location: (8831:279,26 [8] )
+|
+
+    |
+
+Source Location: (526:16,22 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (9031:288,22 [1] )
+|s|
+
+Source Location: (536:16,32 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|null|
+Generated Location: (9235:295,32 [4] )
+|null|
+
+Source Location: (547:16,43 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+
+    |
+Generated Location: (9453:302,43 [8] )
+|
+
+    |
+
+Source Location: (560:18,9 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s + s|
+Generated Location: (9640:311,9 [5] )
+|s + s|
+
+Source Location: (575:18,24 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|null|
+Generated Location: (9840:318,24 [4] )
+|null|
+
+Source Location: (586:18,35 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (10050:325,35 [6] )
+|
+    |
+
+Source Location: (597:19,9 [21] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|if (s.Length != 0) { |
+Generated Location: (10235:333,9 [21] )
+|if (s.Length != 0) { |
+
+Source Location: (619:19,31 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|s|
+Generated Location: (10457:340,31 [1] )
+|s|
+
+Source Location: (620:19,32 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+| }|
+Generated Location: (10661:347,32 [2] )
+| }|
+
+Source Location: (632:19,44 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|null|
+Generated Location: (10877:354,44 [4] )
+|null|
+
+Source Location: (643:19,55 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+    |
+Generated Location: (11107:361,55 [6] )
+|
+    |
+
+Source Location: (664:20,19 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|null|
+Generated Location: (11302:369,19 [4] )
+|null|
+
+Source Location: (675:20,30 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml)
+|
+|
+Generated Location: (11507:376,30 [2] )
+|
+|
+

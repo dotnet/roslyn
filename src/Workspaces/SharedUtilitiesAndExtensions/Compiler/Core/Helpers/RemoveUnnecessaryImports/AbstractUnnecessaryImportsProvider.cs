@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -26,15 +26,21 @@ internal abstract class AbstractUnnecessaryImportsProvider<TSyntaxNode> :
     public ImmutableArray<TSyntaxNode> GetUnnecessaryImports(
         SemanticModel model, TextSpan? span, Func<SyntaxNode, bool>? predicate, CancellationToken cancellationToken)
     {
-        if (span.HasValue)
-        {
-            // Bail out if there are no usings/imports in the filter span.
-            var node = model.SyntaxTree.FindNode(span, findInTrivia: false, getInnermostNodeForTie: false, cancellationToken);
-            if (node.FirstAncestorOrSelf<TSyntaxNode>() is null)
-                return [];
-        }
+        // Bail out if there are no usings/imports in the filter span.
+        if (span.HasValue && !HasImportThatIntersectsWithSpan(span.Value))
+            return [];
 
         return GetUnnecessaryImports(model, predicate, cancellationToken);
+
+        bool HasImportThatIntersectsWithSpan(TextSpan span)
+        {
+            var root = model.SyntaxTree.GetRoot(cancellationToken);
+            return root
+                .DescendantNodes(n => n.FullSpan.IntersectsWith(span))
+                .Where(n => n.FullSpan.IntersectsWith(span))
+                .OfType<TSyntaxNode>()
+                .Any();
+        }
     }
 
     bool IEqualityComparer<TSyntaxNode>.Equals([AllowNull] TSyntaxNode x, [AllowNull] TSyntaxNode y)

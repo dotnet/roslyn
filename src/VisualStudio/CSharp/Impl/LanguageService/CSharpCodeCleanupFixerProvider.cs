@@ -11,19 +11,18 @@ using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeCleanup
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeCleanup;
+
+[Export(typeof(ICodeCleanUpFixerProvider))]
+[AppliesToProject("CSharp")]
+[ContentType(ContentTypeNames.CSharpContentType)]
+internal sealed class CSharpCodeCleanUpFixerProvider : AbstractCodeCleanUpFixerProvider
 {
-    [Export(typeof(ICodeCleanUpFixerProvider))]
-    [AppliesToProject("CSharp")]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    internal class CSharpCodeCleanUpFixerProvider : AbstractCodeCleanUpFixerProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCodeCleanUpFixerProvider(
+        [ImportMany] IEnumerable<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> codeCleanUpFixers)
+        : base(codeCleanUpFixers)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanUpFixerProvider(
-            [ImportMany] IEnumerable<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> codeCleanUpFixers)
-            : base(codeCleanUpFixers)
-        {
-        }
     }
 }

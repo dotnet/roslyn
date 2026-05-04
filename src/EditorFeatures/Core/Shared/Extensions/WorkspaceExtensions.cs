@@ -4,9 +4,10 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
@@ -17,12 +18,18 @@ internal static partial class IWorkspaceExtensions
     /// has the text of newDocument.  If the document is open, then this method will determine a
     /// minimal set of changes to apply to the document.
     /// </summary>
-    internal static void ApplyDocumentChanges(this Workspace workspace, Document newDocument, CancellationToken cancellationToken)
+    internal static async Task ApplyDocumentChangesAsync(
+        this Workspace workspace, IThreadingContext threadingContext, Document newDocument, CancellationToken cancellationToken)
     {
         var oldSolution = workspace.CurrentSolution;
         var oldDocument = oldSolution.GetRequiredDocument(newDocument.Id);
-        var changes = newDocument.GetTextChangesAsync(oldDocument, cancellationToken).WaitAndGetResult(cancellationToken);
+
+        // Stay on the current context if we can so we don't bounce to the BG just to try to bounce back to the UI thread.
+        var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(true);
         var newSolution = oldSolution.UpdateDocument(newDocument.Id, changes, cancellationToken);
+
+        // VS has a requirement that we're on the main thread to apply changes.
+        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         workspace.TryApplyChanges(newSolution);
     }
 

@@ -5267,6 +5267,378 @@ class Program
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompleteMemberValueAssignment01()
+        {
+            var source = """
+                public class Thing
+                {
+                    public int Key { get; set; }
+                    public string Value { get; set; }
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, string value)
+                    {
+                        return new()
+                        {
+                            Key = key,
+                            Value,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (14,13): error CS0747: Invalid initializer member declarator
+                //             Value,
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(14, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
+            Assert.Equal("System.String Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompleteMemberValueAssignment02()
+        {
+            var source = """
+                public class Outer
+                {
+                    public Thing Thing { get; } = new();
+                }
+
+                public class Thing
+                {
+                    public int Key { get; set; }
+                    public string Value { get; set; }
+                }
+
+                public class Using
+                {
+                    public static Outer CreateOuterThing(int key, string value)
+                    {
+                        return new()
+                        {
+                            Thing =
+                            {
+                                Key = key,
+                                Value,
+                            }
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (21,17): error CS0747: Invalid initializer member declarator
+                //                 Value,
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(21, 17)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var thingInitializer = root.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .First(s => s.Left is IdentifierNameSyntax { Identifier.Text: "Thing" })
+                .Right
+                as InitializerExpressionSyntax;
+            var valueInitializer = thingInitializer.Expressions[1];
+            var initializedSymbol = model.GetSymbolInfo(valueInitializer).Symbol;
+            Assert.Equal("System.String Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompleteMemberValueAssignment03()
+        {
+            var source = """
+                public class Thing
+                {
+                    public int Key;
+                    public string Value;
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, string value)
+                    {
+                        return new()
+                        {
+                            Key = key,
+                            Value,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (14,13): error CS0747: Invalid initializer member declarator
+                //             Value,
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(14, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
+            Assert.Equal("System.String Thing.Value", initializedSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompleteMemberValueAssignment04()
+        {
+            var source = """
+                #pragma warning disable CS0067
+
+                public class Thing
+                {
+                    public int Key;
+                    public event System.Action Handler;
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, System.Action handler)
+                    {
+                        return new()
+                        {
+                            Key = key,
+                            Handler,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (16,13): error CS0747: Invalid initializer member declarator
+                //             Handler,
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Handler").WithLocation(16, 13),
+                // (16,13): error CS0070: The event 'Thing.Handler' can only appear on the left hand side of += or -= (except when used from within the type 'Thing')
+                //             Handler,
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "Handler").WithArguments("Thing.Handler", "Thing").WithLocation(16, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
+            Assert.Null(initializedSymbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompleteMemberValueAssignment05()
+        {
+            var source = """
+                public class Thing
+                {
+                    public int Key { get; set; }
+                    public string Value { get; set; }
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, string value)
+                    {
+                        return new()
+                        {
+                            Value,
+                            Key = key,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (13,13): error CS0747: Invalid initializer member declarator
+                //             Value,
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(13, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
+            Assert.Equal("System.String Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompleteMemberValueAssignment06()
+        {
+            var source = """
+                public class Outer
+                {
+                    public Thing Thing { get; } = new();
+                }
+
+                public class Thing
+                {
+                    public int Key { get; set; }
+                    public string Value { get; set; }
+                }
+
+                public class Using
+                {
+                    public static Outer CreateOuterThing(int key, string value)
+                    {
+                        return new()
+                        {
+                            Thing =
+                            {
+                                Value,
+                                Key = key,
+                            }
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (20,17): error CS0747: Invalid initializer member declarator
+                //                 Value,
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(20, 17)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var thingInitializer = root.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .First(s => s.Left is IdentifierNameSyntax { Identifier.Text: "Thing" })
+                .Right
+                as InitializerExpressionSyntax;
+            var valueInitializer = thingInitializer.Expressions[0];
+            var initializedSymbol = model.GetSymbolInfo(valueInitializer).Symbol;
+            Assert.Equal("System.String Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompleteMemberValueAssignment07()
+        {
+            var source = """
+                public class Thing
+                {
+                    public int Key;
+                    public string Value;
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, string value)
+                    {
+                        return new()
+                        {
+                            Value,
+                            Key = key,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (13,13): error CS0747: Invalid initializer member declarator
+                //             Value,
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(13, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
+            Assert.Equal("System.String Thing.Value", initializedSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompleteMemberValueAssignment08()
+        {
+            var source = """
+                #pragma warning disable CS0067
+                
+                public class Thing
+                {
+                    public int Key;
+                    public event System.Action Handler;
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, System.Action handler)
+                    {
+                        return new()
+                        {
+                            Handler,
+                            Key = key,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (15,13): error CS0747: Invalid initializer member declarator
+                //             Handler,
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Handler").WithLocation(15, 13),
+                // (15,13): error CS0070: The event 'Thing.Handler' can only appear on the left hand side of += or -= (except when used from within the type 'Thing')
+                //             Handler,
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "Handler").WithArguments("Thing.Handler", "Thing").WithLocation(15, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
+            Assert.Null(initializedSymbol);
+        }
+
         private static IParameterSymbol VerifyParameter(
             SemanticModel model,
             ParameterSyntax decl,

@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 
-internal partial class SmartIndent(ITextView textView, EditorOptionsService editorOptionsService) : ISmartIndent
+internal sealed partial class SmartIndent(ITextView textView, EditorOptionsService editorOptionsService) : ISmartIndent
 {
     private readonly ITextView _textView = textView;
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;

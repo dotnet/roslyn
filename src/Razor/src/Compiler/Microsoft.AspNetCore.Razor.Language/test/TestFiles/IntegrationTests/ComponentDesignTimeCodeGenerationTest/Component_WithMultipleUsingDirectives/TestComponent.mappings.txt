@@ -1,0 +1,15 @@
+﻿Source Location: (1:0,1 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|using System.IO|
+Generated Location: (309:11,0 [15] )
+|using System.IO|
+
+Source Location: (19:0,19 [37] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components|
+Generated Location: (418:16,0 [37] )
+|using Microsoft.AspNetCore.Components|
+
+Source Location: (61:1,3 [24] x:\dir\subdir\Test\TestComponent.cshtml)
+|using System.Reflection;|
+Generated Location: (549:21,0 [24] )
+|using System.Reflection;|
+

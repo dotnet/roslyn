@@ -6,19 +6,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+
+internal abstract class AbstractExecuteWorkspaceCommandHandler : ILspServiceDocumentRequestHandler<ExecuteCommandParams, object>
 {
-    internal abstract class AbstractExecuteWorkspaceCommandHandler : ILspServiceDocumentRequestHandler<ExecuteCommandParams, object>
-    {
-        public abstract string Command { get; }
+    public abstract string Command { get; }
 
-        public abstract bool MutatesSolutionState { get; }
-        public abstract bool RequiresLSPSolution { get; }
+    public abstract bool MutatesSolutionState { get; }
+    public abstract bool RequiresLSPSolution { get; }
 
-        public abstract TextDocumentIdentifier GetTextDocumentIdentifier(ExecuteCommandParams request);
+    public abstract TextDocumentIdentifier GetTextDocumentIdentifier(ExecuteCommandParams request);
 
-        public abstract Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken);
+    public abstract Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken);
 
-        public static string GetRequestNameForCommandName(string commandName) => $"{Methods.WorkspaceExecuteCommandName}/{commandName}";
-    }
+    public static string GetRequestNameForCommandName(string commandName) => $"{Methods.WorkspaceExecuteCommandName}/{commandName}";
 }

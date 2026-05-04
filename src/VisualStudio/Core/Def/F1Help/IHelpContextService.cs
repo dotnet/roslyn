@@ -17,5 +17,5 @@ internal interface IHelpContextService : ILanguageService
 
     Task<string> GetHelpTermAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
-    string FormatSymbol(ISymbol symbol);
+    string? FormatSymbol(ISymbol symbol);
 }

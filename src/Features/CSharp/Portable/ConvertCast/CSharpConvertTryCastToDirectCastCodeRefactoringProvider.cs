@@ -22,7 +22,7 @@ using static CSharpSyntaxTokens;
 ///     var o = (object)1;
 /// </summary>
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertTryCastToDirectCast), Shared]
-internal partial class CSharpConvertTryCastToDirectCastCodeRefactoringProvider
+internal sealed partial class CSharpConvertTryCastToDirectCastCodeRefactoringProvider
     : AbstractConvertCastCodeRefactoringProvider<TypeSyntax, BinaryExpressionSyntax, CastExpressionSyntax>
 {
     [ImportingConstructor]

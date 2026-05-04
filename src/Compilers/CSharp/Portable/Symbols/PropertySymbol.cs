@@ -166,8 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var property = (PropertySymbol)this.GetLeastOverriddenMember(this.ContainingType);
-                return (object)property.SetMethod == null;
+                return this.GetOwnOrInheritedSetMethod() is null;
             }
         }
 
@@ -178,8 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var property = (PropertySymbol)this.GetLeastOverriddenMember(this.ContainingType);
-                return (object)property.GetMethod == null;
+                return this.GetOwnOrInheritedGetMethod() is null;
             }
         }
 
@@ -350,13 +348,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return 0;
                 }
 
-                return TryGetOverloadResolutionPriority() ?? 0;
+                return TryGetOverloadResolutionPriority();
             }
         }
 
-        internal abstract int? TryGetOverloadResolutionPriority();
+        internal abstract int TryGetOverloadResolutionPriority();
 
-        internal bool CanHaveOverloadResolutionPriority => !IsOverride && !IsExplicitInterfaceImplementation && (IsIndexer || IsIndexedProperty);
+        internal bool CanHaveOverloadResolutionPriority
+            => !IsOverride && !IsExplicitInterfaceImplementation && (IsIndexer || IsIndexedProperty || this.IsExtensionBlockMember());
 
         /// <summary>
         /// Implements visitor pattern.

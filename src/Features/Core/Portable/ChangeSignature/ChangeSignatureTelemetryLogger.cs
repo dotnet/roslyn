@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature;
 
-internal class ChangeSignatureLogger
+internal sealed class ChangeSignatureLogger
 {
     private const string Maximum = nameof(Maximum);
     private const string Minimum = nameof(Minimum);
@@ -182,7 +180,7 @@ internal class ChangeSignatureLogger
 
     internal static void ReportTelemetry()
     {
-        Logger.Log(FunctionId.ChangeSignature_Data, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.ChangeSignature_Data, KeyValueLogMessage.Create(static m =>
         {
             foreach (var kv in s_countLogAggregator)
             {

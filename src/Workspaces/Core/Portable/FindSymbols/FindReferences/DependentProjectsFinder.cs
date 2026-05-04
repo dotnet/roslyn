@@ -27,7 +27,7 @@ internal static partial class DependentProjectsFinder
     /// Cache from the <see cref="MetadataId"/> for a particular <see cref="PortableExecutableReference"/> to the
     /// name of the <see cref="IAssemblySymbol"/> defined by it.
     /// </summary>
-    private static readonly Dictionary<MetadataId, string?> s_metadataIdToAssemblyName = new();
+    private static readonly Dictionary<MetadataId, string?> s_metadataIdToAssemblyName = [];
     private static readonly SemaphoreSlim s_metadataIdToAssemblyNameGate = new(initialCount: 1);
 
     private static readonly ConditionalWeakTable<
@@ -40,8 +40,10 @@ internal static partial class DependentProjectsFinder
     public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
         Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
     {
-        // namespaces are visible in all projects.
-        if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
+        // Namespaces are visible in all projects.
+        // Preprocessing symbols are arbitrary identifiers that are not bound to specific projects.
+        // 'dynamic' can appear in any project.
+        if (symbols.Any(static s => s is INamespaceSymbol or IPreprocessingSymbol or IDynamicTypeSymbol))
             return [.. projects];
 
         var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
@@ -91,6 +93,16 @@ internal static partial class DependentProjectsFinder
             result.AddRange(filteredProjects.Select(p => p.project));
         }
 
+        // Have to specially handle cref type parameters as they do not belong to any assembly.
+        foreach (var symbol in symbols)
+        {
+            if (symbol is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Cref, DeclaringSyntaxReferences: [{ SyntaxTree: var syntaxTree }, ..] })
+            {
+                var document = solution.GetDocument(syntaxTree);
+                result.AddIfNotNull(document?.Project);
+            }
+        }
+
         return [.. result];
     }
 
@@ -135,7 +147,7 @@ internal static partial class DependentProjectsFinder
         SymbolVisibility visibility,
         CancellationToken cancellationToken)
     {
-        var dictionary = s_solutionToDependentProjectMap.GetValue(solution, static _ => new());
+        var dictionary = s_solutionToDependentProjectMap.GetValue(solution, static _ => []);
 
         var key = (symbolOrigination.assembly, symbolOrigination.sourceProject, visibility);
         ImmutableArray<(Project project, bool hasInternalsAccess)> dependentProjects;

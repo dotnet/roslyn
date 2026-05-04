@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
     internal abstract class TypeSymbol : NamespaceOrTypeSymbol, ISymbol, ITypeSymbol
     {
+        private ImmutableArray<INamedTypeSymbol> _allInterfaces = default;
+
         protected TypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
             NullableAnnotation = nullableAnnotation;
@@ -26,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         ITypeSymbol ITypeSymbol.WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
+            if (UnderlyingTypeSymbol is Symbols.NamedTypeSymbol { IsExtension: true })
+            {
+                throw new System.NotSupportedException();
+            }
+
             if (NullableAnnotation == nullableAnnotation)
             {
                 return this;
@@ -103,7 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                return UnderlyingTypeSymbol.AllInterfacesNoUseSiteDiagnostics.GetPublicSymbols();
+                if (_allInterfaces.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _allInterfaces, UnderlyingTypeSymbol.AllInterfacesNoUseSiteDiagnostics.GetPublicSymbols());
+                }
+
+                return _allInterfaces;
             }
         }
 
@@ -143,6 +155,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ITypeSymbol.IsTupleType => UnderlyingTypeSymbol.IsTupleType;
 
         bool ITypeSymbol.IsNativeIntegerType => UnderlyingTypeSymbol.IsNativeIntegerType;
+
+#nullable enable
+        bool ITypeSymbol.IsExtension => UnderlyingTypeSymbol is Symbols.NamedTypeSymbol { IsExtension: true };
+
+        IParameterSymbol? ITypeSymbol.ExtensionParameter
+        {
+            get
+            {
+                return UnderlyingTypeSymbol is Symbols.NamedTypeSymbol namedType
+                    ? namedType.ExtensionParameter?.GetPublicSymbol()
+                    : null;
+            }
+        }
+#nullable disable
 
         string ITypeSymbol.ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
         {

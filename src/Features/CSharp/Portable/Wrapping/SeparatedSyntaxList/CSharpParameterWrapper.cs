@@ -9,11 +9,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.CodeAnalysis.Wrapping;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
 
-internal partial class CSharpParameterWrapper
+internal sealed partial class CSharpParameterWrapper
     : AbstractCSharpSeparatedSyntaxListWrapper<BaseParameterListSyntax, ParameterSyntax>
 {
     protected override string Align_wrapped_items => FeaturesResources.Align_wrapped_parameters;

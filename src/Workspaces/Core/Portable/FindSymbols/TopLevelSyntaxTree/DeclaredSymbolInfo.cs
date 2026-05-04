@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -14,6 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
+/// <summary>
+/// When adding a new value, also bump <see cref="AbstractSyntaxIndex{TIndex}.s_serializationFormatChecksum"/>.
+/// </summary>
 internal enum DeclaredSymbolInfoKind : byte
 {
     Class,
@@ -30,10 +34,12 @@ internal enum DeclaredSymbolInfoKind : byte
     Method,
     Module,
     Namespace,
+    Operator,
     Property,
     Record,
     RecordStruct,
     Struct,
+    Union,
 }
 
 [DataContract]

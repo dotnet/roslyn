@@ -7,10 +7,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename;
+
+internal interface IXamlRenameInfoService
 {
-    internal interface IXamlRenameInfoService
-    {
-        Task<IXamlRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
-    }
+    Task<IXamlRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
 }

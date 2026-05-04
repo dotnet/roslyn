@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="FormattingOptionsEncounteredInvalidToken">
         <source>Unable to deserialize FormattingOptions. Invalid token: {0}</source>
-        <target state="new">Unable to deserialize FormattingOptions. Invalid token: {0}</target>
+        <target state="translated">无法反序列化 FormattingOptions。令牌无效: {0}。</target>
         <note />
       </trans-unit>
       <trans-unit id="FormattingOptionsEndedUnexpectedly">
         <source>Unable to deserialize FormattingOptions as it ended unexpectedly</source>
-        <target state="new">Unable to deserialize FormattingOptions as it ended unexpectedly</target>
+        <target state="translated">无法反序列化 FormattingOptions，因为它已意外结束</target>
         <note />
       </trans-unit>
       <trans-unit id="FormattingOptionsMissingRequiredProperty">
         <source>Unable to deserialize FormattingOptions. Missing required property: {0}</source>
-        <target state="new">Unable to deserialize FormattingOptions. Missing required property: {0}</target>
+        <target state="translated">无法反序列化 FormattingOptions。缺少必需属性: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="MarkupContentSerializationError">

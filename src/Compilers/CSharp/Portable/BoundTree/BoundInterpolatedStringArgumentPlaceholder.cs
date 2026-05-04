@@ -7,9 +7,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundInterpolatedStringArgumentPlaceholder
     {
         public const int InstanceParameter = -1;
-        public const int TrailingConstructorValidityParameter = -2;
-        public const int UnspecifiedParameter = -3;
+        public const int ExtensionReceiver = -2;
+        public const int TrailingConstructorValidityParameter = -3;
+        public const int UnspecifiedParameter = -4;
 
-        public sealed override bool IsEquivalentToThisReference => throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 }

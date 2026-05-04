@@ -86,7 +86,11 @@ internal sealed partial class AssetProvider(
         // report telemetry to help correlate slow solution sync with UI delays
         var elapsed = timer.Elapsed;
         if (elapsed.TotalMilliseconds > 1000)
-            Logger.Log(FunctionId.AssetService_Perf, KeyValueLogMessage.Create(map => map["SolutionSyncTime"] = elapsed.TotalMilliseconds));
+        {
+            Logger.Log(FunctionId.AssetService_Perf, KeyValueLogMessage.Create(
+                static (map, elapsed) => map["SolutionSyncTime"] = elapsed.TotalMilliseconds,
+                elapsed));
+        }
 
         async ValueTask SynchronizeSolutionAssetsWorkerAsync()
         {

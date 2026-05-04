@@ -8,11 +8,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
 
@@ -62,7 +60,7 @@ internal abstract class AbstractGenerateMemberCodeFixProvider : CodeFixProvider
         ISyntaxFactsService syntaxFacts, SyntaxNode root,
         TextSpan span, Diagnostic diagnostic)
     {
-        var token = root.FindToken(span.Start);
+        var token = root.FindToken(span.Start, findInsideTrivia: true);
         if (token.Span.IntersectsWith(span))
         {
             var first = true;

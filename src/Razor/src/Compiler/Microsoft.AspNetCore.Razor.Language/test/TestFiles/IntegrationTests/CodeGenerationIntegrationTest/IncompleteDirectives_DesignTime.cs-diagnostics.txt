@@ -1,0 +1,18 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(5,38): error CS1010: Newline in constant
+// global::System.Object __typeHelper = ";
+Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 38),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(5,40): error CS1002: ; expected
+// global::System.Object __typeHelper = ";
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 40),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(9,38): error CS1010: Newline in constant
+// global::System.Object __typeHelper = ";
+Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(9, 38),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(9,40): error CS1002: ; expected
+// global::System.Object __typeHelper = ";
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(9, 40),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(13,38): error CS1010: Newline in constant
+// global::System.Object __typeHelper = ";
+Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(13, 38),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(13,40): error CS1002: ; expected
+// global::System.Object __typeHelper = ";
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(13, 40)

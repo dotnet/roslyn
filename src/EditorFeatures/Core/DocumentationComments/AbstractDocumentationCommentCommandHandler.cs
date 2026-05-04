@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,12 +32,14 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService;
+    private readonly CopilotGenerateDocumentationCommentManager _generateDocumentationCommentManager;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ITextUndoHistoryRegistry undoHistoryRegistry,
         IEditorOperationsFactoryService editorOperationsFactoryService,
-        EditorOptionsService editorOptionsService)
+        EditorOptionsService editorOptionsService,
+        CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
@@ -46,25 +49,23 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         _undoHistoryRegistry = undoHistoryRegistry;
         _editorOperationsFactoryService = editorOperationsFactoryService;
         _editorOptionsService = editorOptionsService;
+        _generateDocumentationCommentManager = generateDocumentationCommentManager;
     }
 
     protected abstract string ExteriorTriviaText { get; }
 
-    private char TriggerCharacter
-    {
-        get { return ExteriorTriviaText[^1]; }
-    }
+    private char TriggerCharacter => ExteriorTriviaText[^1];
 
     public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
-    private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
-        => service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken);
+    private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
+        => service.GetDocumentationCommentSnippetOnCharacterTyped(document, position, options, cancellationToken);
 
-    private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
-        => service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, cancellationToken);
+    private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
+        => service.GetDocumentationCommentSnippetOnEnterTyped(document, position, options, cancellationToken);
 
-    private static DocumentationCommentSnippet? InsertOnCommandInvoke(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
-        => service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, cancellationToken);
+    private static DocumentationCommentSnippet? InsertOnCommandInvoke(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
+        => service.GetDocumentationCommentSnippetOnCommandInvoke(document, position, options, cancellationToken);
 
     private static void ApplySnippet(DocumentationCommentSnippet snippet, ITextBuffer subjectBuffer, ITextView textView)
     {
@@ -76,20 +77,16 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     private bool CompleteComment(
         ITextBuffer subjectBuffer,
         ITextView textView,
-        Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, DocumentationCommentOptions, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
+        Func<IDocumentationCommentSnippetService, ParsedDocument, int, DocumentationCommentOptions, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
         CancellationToken cancellationToken)
     {
         var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
         if (caretPosition < 0)
-        {
             return false;
-        }
 
         var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
-        {
             return false;
-        }
 
         var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
@@ -100,37 +97,66 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         var returnValue = false;
         foreach (var snapshot in snapshots)
         {
-            var snippet = getSnippetAction(service, parsedDocument.SyntaxTree, parsedDocument.Text, snapshot.Span.Start, options, cancellationToken);
+            var snippet = getSnippetAction(service, parsedDocument, snapshot.Span.Start, options, cancellationToken);
             if (snippet != null)
             {
                 ApplySnippet(snippet, subjectBuffer, textView);
+                var oldSnapshot = subjectBuffer.CurrentSnapshot;
+                var oldCaret = textView.Caret.Position.VirtualBufferPosition;
+
                 returnValue = true;
+
+                _generateDocumentationCommentManager.TriggerDocumentationCommentProposalGeneration(document, snippet, oldSnapshot, oldCaret, textView, cancellationToken);
             }
         }
 
         return returnValue;
     }
-
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         => nextHandler();
 
     public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        // Ensure the character is actually typed in the editor
-        nextHandler();
-
         if (args.TypedChar != TriggerCharacter)
         {
+            nextHandler();
             return;
         }
 
         // Don't execute in cloud environment, as we let LSP handle that
         if (args.SubjectBuffer.IsInLspEditorContext())
         {
+            nextHandler();
             return;
         }
 
+        // Start the suggestion session BEFORE nextHandler() to claim exclusive control
+        // but only if we are at the third trigger character that would make a documentation comment.
+        if (WillGenerateDocumentationComment(args.SubjectBuffer, args.TextView))
+        {
+            _generateDocumentationCommentManager.StartSuggestionSession(
+                args.SubjectBuffer, args.TextView, CancellationToken.None);
+        }
+
+        // Ensure the character is actually typed in the editor
+        nextHandler();
+
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
+    }
+
+    private bool WillGenerateDocumentationComment(ITextBuffer subjectBuffer, ITextView textView)
+    {
+        var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
+        if (caretPosition < 0)
+            return false;
+
+        var snapshot = subjectBuffer.CurrentSnapshot;
+        var text = snapshot.AsText();
+
+        if (!DocumentationCommentSnippetHelpers.WillBeAtEndOfDocCommentTriviaOnBlankLine(text, caretPosition, TriggerCharacter))
+            return false;
+
+        return true;
     }
 
     public CommandState GetCommandState(ReturnKeyCommandArgs args)
@@ -138,6 +164,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
     public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
     {
+        var cancellationToken = context.OperationContext.UserCancellationToken;
+
         // Don't execute in cloud environment, as we let LSP handle that
         if (args.SubjectBuffer.IsInLspEditorContext())
         {
@@ -169,7 +197,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
             return false;
         }
 
-        if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition, context.OperationContext.UserCancellationToken))
+        if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition, cancellationToken))
         {
             return false;
         }
@@ -209,9 +237,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         var isValidTargetMember = false;
         _uiThreadOperationExecutor.Execute("IntelliSense", defaultDescription: "", allowCancellation: true, showProgress: false, action: c =>
         {
-            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(c.UserCancellationToken);
-            var text = syntaxTree.GetText(c.UserCancellationToken);
-            isValidTargetMember = service.IsValidTargetMember(syntaxTree, text, caretPosition, c.UserCancellationToken);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, c.UserCancellationToken);
+            isValidTargetMember = service.IsValidTargetMember(parsedDocument, caretPosition, c.UserCancellationToken);
         });
 
         return isValidTargetMember

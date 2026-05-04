@@ -34,7 +34,7 @@ internal sealed class AnalyzerItemsTracker(IThreadingContext threadingContext) :
 
     public async Task RegisterAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        _vsMonitorSelection ??= await serviceProvider.GetServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        _vsMonitorSelection ??= await serviceProvider.GetServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         _vsMonitorSelection?.AdviseSelectionEvents(this, out _selectionEventsCookie);
     }
@@ -47,8 +47,8 @@ internal sealed class AnalyzerItemsTracker(IThreadingContext threadingContext) :
     public IVsHierarchy? SelectedHierarchy { get; private set; }
     public uint SelectedItemId { get; private set; } = VSConstants.VSITEMID_NIL;
     public AnalyzersFolderItem? SelectedFolder { get; private set; }
-    public ImmutableArray<AnalyzerItem> SelectedAnalyzerItems { get; private set; } = ImmutableArray<AnalyzerItem>.Empty;
-    public ImmutableArray<DiagnosticItem> SelectedDiagnosticItems { get; private set; } = ImmutableArray<DiagnosticItem>.Empty;
+    public ImmutableArray<AnalyzerItem> SelectedAnalyzerItems { get; private set; } = [];
+    public ImmutableArray<DiagnosticItem> SelectedDiagnosticItems { get; private set; } = [];
 
     int IVsSelectionEvents.OnCmdUIContextChanged(uint dwCmdUICookie, int fActive)
     {
@@ -78,20 +78,18 @@ internal sealed class AnalyzerItemsTracker(IThreadingContext threadingContext) :
 
         var selectedObjects = GetSelectedObjects(pSCNew);
 
-        this.SelectedAnalyzerItems = selectedObjects
+        this.SelectedAnalyzerItems = [.. selectedObjects
             .OfType<AnalyzerItem.BrowseObject>()
-            .Select(b => b.AnalyzerItem)
-            .ToImmutableArray();
+            .Select(b => b.AnalyzerItem)];
 
         this.SelectedFolder = selectedObjects
             .OfType<AnalyzersFolderItem.BrowseObject>()
             .Select(b => b.Folder)
             .FirstOrDefault();
 
-        this.SelectedDiagnosticItems = selectedObjects
+        this.SelectedDiagnosticItems = [.. selectedObjects
             .OfType<DiagnosticItem.BrowseObject>()
-            .Select(b => b.DiagnosticItem)
-            .ToImmutableArray();
+            .Select(b => b.DiagnosticItem)];
 
         if (!object.ReferenceEquals(oldSelectedHierarchy, this.SelectedHierarchy) ||
             oldSelectedItemId != this.SelectedItemId)

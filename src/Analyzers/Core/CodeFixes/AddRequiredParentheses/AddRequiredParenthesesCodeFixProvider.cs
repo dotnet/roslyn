@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.AddRequiredParentheses), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId];
@@ -27,19 +27,13 @@ internal class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFi
         => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll) &&
            diagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey] == equivalenceKey;
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var firstDiagnostic = context.Diagnostics[0];
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                AnalyzersResources.Add_parentheses_for_clarity,
-                GetDocumentUpdater(context),
-                firstDiagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey]!),
-            context.Diagnostics);
-        return Task.CompletedTask;
+        RegisterCodeFix(
+            context, AnalyzersResources.Add_parentheses_for_clarity, context.Diagnostics[0].Properties[AddRequiredParenthesesConstants.EquivalenceKey]!);
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -56,7 +50,5 @@ internal class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFi
                 (current, _) => generator.AddParentheses(
                     current, includeElasticTrivia: false, addSimplifierAnnotation: false));
         }
-
-        return Task.CompletedTask;
     }
 }

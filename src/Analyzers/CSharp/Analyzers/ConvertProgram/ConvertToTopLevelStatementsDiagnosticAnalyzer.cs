@@ -78,7 +78,7 @@ internal sealed class ConvertToTopLevelStatementsDiagnosticAnalyzer : AbstractBu
                             methodDeclaration, isHidden: option.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
                         option.Notification,
                         context.Options,
-                        ImmutableArray.Create(methodDeclaration.GetLocation()),
+                        [methodDeclaration.GetLocation()],
                         ImmutableDictionary<string, string?>.Empty));
                 }
 

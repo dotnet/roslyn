@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 [ExportBraceCompletionService(LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ParenthesisBraceCompletionService() : AbstractCSharpBraceCompletionService
+internal sealed class ParenthesisBraceCompletionService() : AbstractCSharpBraceCompletionService
 {
     protected override char OpeningBrace => Parenthesis.OpenCharacter;
     protected override char ClosingBrace => Parenthesis.CloseCharacter;
@@ -44,6 +44,22 @@ internal class ParenthesisBraceCompletionService() : AbstractCSharpBraceCompleti
         if (closeParen.Kind() != SyntaxKind.CloseParenToken || closeParen.Span.Length == 0)
         {
             return true;
+        }
+
+        // Walk up parent nodes to see if any ancestor has a missing close paren positioned
+        // right after our current close paren. This handles cases like: if (a.Where(
+        // where the parser "borrows" the ArgumentList's close paren for the if statement.
+        for (var currentNode = token.Parent.Parent; currentNode != null; currentNode = currentNode.Parent)
+        {
+            var ancestorCloseParen = currentNode.GetParentheses().closeParen;
+
+            // Check if this ancestor has a missing close paren that's positioned right after
+            // our current close paren (meaning the parser reused our close paren for the ancestor)
+            if (ancestorCloseParen.IsMissing &&
+                ancestorCloseParen.FullSpan.Start == closeParen.FullSpan.End)
+            {
+                return true;
+            }
         }
 
         // If the completed pair is on the same line, then the closing parenthesis must belong to a different

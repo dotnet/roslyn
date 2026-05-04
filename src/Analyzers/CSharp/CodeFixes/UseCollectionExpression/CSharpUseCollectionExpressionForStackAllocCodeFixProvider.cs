@@ -14,14 +14,13 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForStackAlloc), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider()
+internal sealed partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider()
     : AbstractUseCollectionExpressionCodeFixProvider<ExpressionSyntax>(
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId)
@@ -47,6 +46,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
         var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             document,
             stackAllocExpression,
+            preMatches: [],
             matches,
             static e => e switch
             {
@@ -69,7 +69,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
 
         return;
 
-        ImmutableArray<CollectionExpressionMatch<StatementSyntax>> GetMatches()
+        ImmutableArray<CollectionMatch<StatementSyntax>> GetMatches()
             => stackAllocExpression switch
             {
                 // if we have `stackalloc[] { ... }` we have no subsequent matches to add to the collection. All values come

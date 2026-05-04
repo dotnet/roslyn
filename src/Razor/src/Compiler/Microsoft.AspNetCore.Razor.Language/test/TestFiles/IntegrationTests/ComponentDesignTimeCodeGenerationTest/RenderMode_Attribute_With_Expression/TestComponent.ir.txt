@@ -1,0 +1,23 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [73] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    RenderMode - (28:0,28 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (30:0,30 [38] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new MyRenderMode() { Extra = "Hello" }
+                HtmlContent - (73:0,73 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (73:0,73 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+            CSharpCode - (83:2,1 [135] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (83:2,1 [135] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode\n    {\n        public string Extra {get;set;}\n    }\n

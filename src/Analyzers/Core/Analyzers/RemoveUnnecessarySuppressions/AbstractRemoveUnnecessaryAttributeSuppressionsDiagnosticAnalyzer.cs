@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
@@ -69,7 +68,7 @@ internal abstract class AbstractRemoveUnnecessaryAttributeSuppressionsDiagnostic
 
     protected sealed class CompilationAnalyzer(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
     {
-        private readonly SuppressMessageAttributeState _state = new SuppressMessageAttributeState(compilation, suppressMessageAttributeType);
+        private readonly SuppressMessageAttributeState _state = new(compilation, suppressMessageAttributeType);
 
         public void AnalyzeAssemblyOrModuleAttribute(SyntaxNode attributeSyntax, SemanticModel model, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
@@ -110,7 +109,7 @@ internal abstract class AbstractRemoveUnnecessaryAttributeSuppressionsDiagnostic
                     }
                 }
 
-                reportDiagnostic(Diagnostic.Create(LegacyFormatTargetDescriptor, targetValueOperation.Syntax.GetLocation(), properties!, targetSymbolString));
+                reportDiagnostic(Diagnostic.Create(LegacyFormatTargetDescriptor, targetValueOperation.Syntax.GetLocation(), properties, targetSymbolString));
                 return;
             }
         }

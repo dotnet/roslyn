@@ -15,9 +15,8 @@ public partial class SemanticClassifierTests
 {
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/68534")]
-    public async Task TestJson1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestJson1(TestHost testHost)
+        => TestAsync(
             """
             class Program
             {
@@ -59,12 +58,10 @@ public partial class SemanticClassifierTests
             Json.String("'str'"),
             Json.Array("]"),
             Json.Comment("// comment"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestJson_RawString(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestJson_RawString(TestHost testHost)
+        => TestAsync(
             """"
             class Program
             {
@@ -85,13 +82,11 @@ public partial class SemanticClassifierTests
             Json.Number("0"),
             Json.Object("}"),
             Json.Array("]"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/68534")]
-    public async Task TestMultiLineJson1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestMultiLineJson1(TestHost testHost)
+        => TestAsync(
             """
             class Program
             {
@@ -147,12 +142,10 @@ public partial class SemanticClassifierTests
             Json.String("'str'"),
             Json.Array("]"),
             Json.Comment("// comment"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestJson_NoComment_NotLikelyJson(TestHost testHost)
-    {
-        var input = """
+    public Task TestJson_NoComment_NotLikelyJson(TestHost testHost)
+        => TestAsync("""
             class C
             {
                 void Goo()
@@ -160,16 +153,13 @@ public partial class SemanticClassifierTests
                     var r = @"[1, 2, 3]";
                 }
             }
-            """;
-        await TestAsync(input,
+            """,
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestJson_NoComment_LikelyJson(TestHost testHost)
-    {
-        var input = """
+    public Task TestJson_NoComment_LikelyJson(TestHost testHost)
+        => TestAsync("""
             class C
             {
                 void Goo()
@@ -177,8 +167,7 @@ public partial class SemanticClassifierTests
                     var r = @"[1, { prop: 0 }, 3]";
                 }
             }
-            """;
-        await TestAsync(input,
+            """,
             testHost,
             Keyword("var"),
             Json.Array("["),
@@ -192,12 +181,10 @@ public partial class SemanticClassifierTests
             Json.Punctuation(","),
             Json.Number("3"),
             Json.Array("]"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestJsonOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestJsonOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
 
@@ -220,13 +207,38 @@ public partial class SemanticClassifierTests
             Json.Number("0"),
             Json.Object("}"),
             Json.Array("]"));
-    }
+
+    [Theory, CombinatorialData]
+    public Task TestJsonOnApiWithStringSyntaxAttribute_Field_FromLocal(TestHost testHost)
+        => TestAsync(
+            """
+            using System.Diagnostics.CodeAnalysis;
+
+            class Program
+            {
+                [StringSyntax(StringSyntaxAttribute.Json)]
+                private string field;
+                void Goo()
+                {
+                    [|var v = @"[{ 'goo': 0}]";|]
+                    this.field = v;
+                }
+            }
+            """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost,
+            Keyword("var"),
+            Json.Array("["),
+            Json.Object("{"),
+            Json.PropertyName("'goo'"),
+            Json.Punctuation(":"),
+            Json.Number("0"),
+            Json.Object("}"),
+            Json.Array("]"));
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/74020")]
-    public async Task TestJsonOnApiWithStringSyntaxAttribute_OtherLanguage_Field(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestJsonOnApiWithStringSyntaxAttribute_OtherLanguage_Field(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
 
@@ -242,12 +254,10 @@ public partial class SemanticClassifierTests
             """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
             testHost,
             Field("field"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestJsonOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestJsonOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
 
@@ -270,12 +280,10 @@ public partial class SemanticClassifierTests
             Json.Number("0"),
             Json.Object("}"),
             Json.Array("]"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestJsonOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestJsonOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
 
@@ -300,13 +308,40 @@ public partial class SemanticClassifierTests
             Json.Number("0"),
             Json.Object("}"),
             Json.Array("]"));
-    }
+
+    [Theory, CombinatorialData]
+    public Task TestJsonOnApiWithStringSyntaxAttribute_Argument_FromLocal(TestHost testHost)
+        => TestAsync(
+            """
+            using System.Diagnostics.CodeAnalysis;
+
+            class Program
+            {
+                private void M([StringSyntax(StringSyntaxAttribute.Json)] string p)
+                {
+                }
+
+                void Goo()
+                {
+                    [|var v = @"[{ 'goo': 0}]";|]
+                    M(v);
+                }
+            }
+            """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost,
+            Keyword("var"),
+            Json.Array("["),
+            Json.Object("{"),
+            Json.PropertyName("'goo'"),
+            Json.Punctuation(":"),
+            Json.Number("0"),
+            Json.Object("}"),
+            Json.Array("]"));
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/69237")]
-    public async Task TestJsonOnApiWithStringSyntaxAttribute_PropertyInitializer(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestJsonOnApiWithStringSyntaxAttribute_PropertyInitializer(TestHost testHost)
+        => TestAsync(
             """"
             using System.Diagnostics.CodeAnalysis;
 
@@ -333,13 +368,43 @@ public partial class SemanticClassifierTests
             Json.Punctuation(","),
             Json.Number("3"),
             Json.Array("]"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/69237")]
-    public async Task TestJsonOnApiWithStringSyntaxAttribute_WithExpression(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestJsonOnApiWithStringSyntaxAttribute_PropertyInitializer_FromLocal(TestHost testHost)
+        => TestAsync(
+            """"
+            using System.Diagnostics.CodeAnalysis;
+
+            public sealed record Foo
+            {
+                [StringSyntax(StringSyntaxAttribute.Json)]
+                public required string Bar { get; set; }
+            }
+
+            class Program
+            {
+                void Goo()
+                {
+                    [|var v = """[1, 2, 3]""";|]
+                    var f = new Foo { Bar = v };
+                }
+            }
+            """" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost,
+            Keyword("var"),
+            Json.Array("["),
+            Json.Number("1"),
+            Json.Punctuation(","),
+            Json.Number("2"),
+            Json.Punctuation(","),
+            Json.Number("3"),
+            Json.Array("]"));
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/69237")]
+    public Task TestJsonOnApiWithStringSyntaxAttribute_WithExpression(TestHost testHost)
+        => TestAsync(
             """"
             using System.Diagnostics.CodeAnalysis;
 
@@ -367,5 +432,71 @@ public partial class SemanticClassifierTests
             Json.Punctuation(","),
             Json.Number("3"),
             Json.Array("]"));
-    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/69237")]
+    public Task TestJsonOnApiWithStringSyntaxAttribute_WithExpression_FromLocal(TestHost testHost)
+        => TestAsync(
+            """"
+            using System.Diagnostics.CodeAnalysis;
+
+            public sealed record Foo
+            {
+                [StringSyntax(StringSyntaxAttribute.Json)]
+                public required string Bar { get; set; }
+            }
+
+            class Program
+            {
+                void Goo()
+                {
+                    var f = new Foo { Bar =  "" };
+                    [|var v = """[1, 2, 3]""";|]
+                    f = f with { Bar = v };
+                }
+            }
+            """" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost,
+            Keyword("var"),
+            Json.Array("["),
+            Json.Number("1"),
+            Json.Punctuation(","),
+            Json.Number("2"),
+            Json.Punctuation(","),
+            Json.Number("3"),
+            Json.Array("]"));
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/69237")]
+    public Task TestJsonOnApiWithStringSyntaxAttribute_WithExpression_FromLocal2(TestHost testHost)
+        => TestAsync(
+            """"
+            using System.Diagnostics.CodeAnalysis;
+
+            public sealed record Foo
+            {
+                [StringSyntax(StringSyntaxAttribute.Json)]
+                public required string Bar { get; set; }
+            }
+
+            class Program
+            {
+                void Goo()
+                {
+                    var f = new Foo { Bar =  "" };
+                    string v;
+                    [|v = """[1, 2, 3]""";|]
+                    f = f with { Bar = v };
+                }
+            }
+            """" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost,
+            Local("v"),
+            Json.Array("["),
+            Json.Number("1"),
+            Json.Punctuation(","),
+            Json.Number("2"),
+            Json.Punctuation(","),
+            Json.Number("3"),
+            Json.Array("]"));
 }

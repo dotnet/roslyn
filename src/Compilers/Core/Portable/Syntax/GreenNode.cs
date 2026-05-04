@@ -9,6 +9,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
@@ -48,6 +50,10 @@ namespace Microsoft.CodeAnalysis
         private static readonly DiagnosticInfo[] s_noDiagnostics = Array.Empty<DiagnosticInfo>();
         private static readonly SyntaxAnnotation[] s_noAnnotations = Array.Empty<SyntaxAnnotation>();
         private static readonly IEnumerable<SyntaxAnnotation> s_noAnnotationsEnumerable = SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
+
+        // Pool of StringWriters to reduce allocations during ToString/ToFullString
+        private static readonly ObjectPool<StringWriter> s_stringWriterPool =
+            new ObjectPool<StringWriter>(() => new StringWriter(new StringBuilder(), System.Globalization.CultureInfo.InvariantCulture));
 
         protected GreenNode(ushort kind)
         {
@@ -268,6 +274,7 @@ namespace Microsoft.CodeAnalysis
             FactoryContextIsInAsync = 1 << 2,
             FactoryContextIsInQuery = 1 << 3,
             FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
+            FactoryContextIsInFieldKeywordContext = 1 << 4,
 
             // Flags that are inherited upwards when building parent nodes.  They should all start with "Contains" to
             // indicate that the information could be found on it or anywhere in its children.
@@ -275,15 +282,15 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// If this node, or any of its descendants has annotations attached to them.
             /// </summary>
-            ContainsAnnotations = 1 << 4,
+            ContainsAnnotations = 1 << 5,
             /// <summary>
             /// If this node, or any of its descendants has attributes attached to it.
             /// </summary>
-            ContainsAttributes = 1 << 5,
-            ContainsDiagnostics = 1 << 6,
-            ContainsDirectives = 1 << 7,
-            ContainsSkippedText = 1 << 8,
-            ContainsStructuredTrivia = 1 << 9,
+            ContainsAttributes = 1 << 6,
+            ContainsDiagnostics = 1 << 7,
+            ContainsDirectives = 1 << 8,
+            ContainsSkippedText = 1 << 9,
+            ContainsStructuredTrivia = 1 << 10,
 
             InheritMask = IsNotMissing | ContainsAnnotations | ContainsAttributes | ContainsDiagnostics | ContainsDirectives | ContainsSkippedText | ContainsStructuredTrivia,
         }
@@ -333,6 +340,14 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return (this.Flags & NodeFlags.FactoryContextIsInIterator) != 0;
+            }
+        }
+
+        internal bool ParsedInFieldKeywordContext
+        {
+            get
+            {
+                return (this.Flags & NodeFlags.FactoryContextIsInFieldKeywordContext) != 0;
             }
         }
 
@@ -600,18 +615,30 @@ namespace Microsoft.CodeAnalysis
 
         public virtual string ToFullString()
         {
-            var sb = PooledStringBuilder.GetInstance();
-            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
+            var writer = s_stringWriterPool.Allocate();
+            var sb = writer.GetStringBuilder();
+
             this.WriteTo(writer, leading: true, trailing: true);
-            return sb.ToStringAndFree();
+            var result = sb.ToString();
+
+            sb.Clear();
+            s_stringWriterPool.Free(writer);
+
+            return result;
         }
 
         public override string ToString()
         {
-            var sb = PooledStringBuilder.GetInstance();
-            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
+            var writer = s_stringWriterPool.Allocate();
+            var sb = writer.GetStringBuilder();
+
             this.WriteTo(writer, leading: false, trailing: false);
-            return sb.ToStringAndFree();
+            var result = sb.ToString();
+
+            sb.Clear();
+            s_stringWriterPool.Free(writer);
+
+            return result;
         }
 
         public void WriteTo(System.IO.TextWriter writer)
@@ -951,71 +978,6 @@ namespace Microsoft.CodeAnalysis
         internal abstract SyntaxNode CreateRed(SyntaxNode? parent, int position);
 
         #endregion
-
-        #region Caching
-
-        internal const int MaxCachedChildNum = 3;
-
-        internal bool IsCacheable
-        {
-            get
-            {
-                return ((this.Flags & NodeFlags.InheritMask) == NodeFlags.IsNotMissing) &&
-                    this.SlotCount <= GreenNode.MaxCachedChildNum;
-            }
-        }
-
-        internal int GetCacheHash()
-        {
-            Debug.Assert(this.IsCacheable);
-
-            int code = (int)(this.Flags) ^ this.RawKind;
-            int cnt = this.SlotCount;
-            for (int i = 0; i < cnt; i++)
-            {
-                var child = GetSlot(i);
-                if (child != null)
-                {
-                    code = Hash.Combine(RuntimeHelpers.GetHashCode(child), code);
-                }
-            }
-
-            return code & Int32.MaxValue;
-        }
-
-        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1)
-        {
-            Debug.Assert(this.IsCacheable);
-
-            return this.RawKind == kind &&
-                this.Flags == flags &&
-                this.SlotCount == 1 &&
-                this.GetSlot(0) == child1;
-        }
-
-        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2)
-        {
-            Debug.Assert(this.IsCacheable);
-
-            return this.RawKind == kind &&
-                this.Flags == flags &&
-                this.SlotCount == 2 &&
-                this.GetSlot(0) == child1 &&
-                this.GetSlot(1) == child2;
-        }
-
-        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2, GreenNode? child3)
-        {
-            Debug.Assert(this.IsCacheable);
-
-            return this.RawKind == kind &&
-                this.Flags == flags &&
-                this.SlotCount == 3 &&
-                this.GetSlot(0) == child1 &&
-                this.GetSlot(1) == child2 &&
-                this.GetSlot(2) == child3;
-        }
-        #endregion //Caching
 
         /// <summary>
         /// Add an error to the given node, creating a new node that is the same except it has no parent,

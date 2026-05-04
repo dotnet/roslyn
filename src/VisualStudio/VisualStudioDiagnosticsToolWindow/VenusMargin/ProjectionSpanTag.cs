@@ -6,17 +6,16 @@
 
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Roslyn.Hosting.Diagnostics.VenusMargin
+namespace Roslyn.Hosting.Diagnostics.VenusMargin;
+
+internal sealed class ProjectionSpanTag : TextMarkerTag
 {
-    internal class ProjectionSpanTag : TextMarkerTag
+    public const string TagId = "ProjectionTag";
+
+    public static readonly ProjectionSpanTag Instance = new();
+
+    public ProjectionSpanTag()
+        : base(TagId)
     {
-        public const string TagId = "ProjectionTag";
-
-        public static readonly ProjectionSpanTag Instance = new ProjectionSpanTag();
-
-        public ProjectionSpanTag()
-            : base(TagId)
-        {
-        }
     }
 }

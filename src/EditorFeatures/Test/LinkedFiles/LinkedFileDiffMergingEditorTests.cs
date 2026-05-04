@@ -52,8 +52,8 @@ public sealed class LinkedFileDiffMergingEditorTests : AbstractCodeActionTest
     public async Task TestCodeActionPreviewAndApply()
     {
         // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
-        using var workspace = EditorTestWorkspace.Create(WorkspaceXml, composition: EditorTestCompositions.EditorFeaturesWpf);
-        var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, new TestParameters());
+        using var workspace = EditorTestWorkspace.Create(WorkspaceXml, composition: EditorTestCompositions.EditorFeatures);
+        var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, TestParameters.Default);
 
         await TestActionOnLinkedFiles(
             workspace,
@@ -108,7 +108,7 @@ public sealed class LinkedFileDiffMergingEditorTests : AbstractCodeActionTest
                 .WithDocumentText(document.Id, (await document.GetTextAsync()).Replace(textString.IndexOf("public"), "public".Length, "internal"))
                 .WithDocumentText(linkedDocument.Id, sourceText.Replace(textString.LastIndexOf("public"), "public".Length, "private"));
 
-            context.RegisterRefactoring(CodeAction.Create("Description", _ => Task.FromResult(newSolution)), context.Span);
+            context.RegisterRefactoring(CodeAction.Create("Description", async _ => newSolution), context.Span);
         }
     }
 }

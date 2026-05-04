@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
-internal partial class InvocationExpressionSignatureHelpProviderBase
+internal abstract partial class InvocationExpressionSignatureHelpProviderBase
 {
     internal virtual Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
         ImmutableArray<IMethodSymbol> accessibleMethods,
@@ -58,8 +58,8 @@ internal partial class InvocationExpressionSignatureHelpProviderBase
             // SyntaxKind.SimpleMemberAccessExpression is for not imported types, e.g. "MyNamespace.MyClass.MyStaticMethod(...)"
             // SyntaxKind.PredefinedType is for built-in types, e.g. "string.Equals(...)"
             var includeInstance = throughExpression.Kind() is not (SyntaxKind.IdentifierName or SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.PredefinedType) ||
-                semanticModel.LookupSymbols(throughExpression.SpanStart, name: throughSymbol?.Name).Any(static s => s is not INamedTypeSymbol) ||
-                (throughSymbol is not INamespaceOrTypeSymbol && semanticModel.LookupSymbols(throughExpression.SpanStart, container: throughSymbol?.ContainingType).Any(static s => s is not INamedTypeSymbol));
+                throughSymbol is not INamespaceOrTypeSymbol ||
+                semanticModel.LookupSymbols(throughExpression.SpanStart, name: throughSymbol?.Name).Any(static s => s is not INamedTypeSymbol);
 
             var includeStatic = throughSymbol is INamedTypeSymbol ||
                 (throughExpression.IsKind(SyntaxKind.IdentifierName) &&

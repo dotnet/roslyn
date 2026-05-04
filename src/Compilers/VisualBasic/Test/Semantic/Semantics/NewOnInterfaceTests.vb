@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -1199,8 +1198,8 @@ End Module
             Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind)
             Assert.Equal("IInterface", semanticInfo.Symbol.ToDisplayString())
 
-            Assert.Null(semanticInfo.Type)
-            Assert.Null(semanticInfo.ConvertedType)
+            Assert.Equal("IInterface", semanticInfo.Type.ToDisplayString())
+            Assert.Equal("IInterface", semanticInfo.ConvertedType.ToDisplayString())
         End Sub
 
         <Fact()>

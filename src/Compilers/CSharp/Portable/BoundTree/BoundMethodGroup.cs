@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundMethodGroup(
             SyntaxNode syntax,
             ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
-            BoundExpression receiverOpt,
+            BoundExpression? receiverOpt,
             string name,
             ImmutableArray<MethodSymbol> methods,
             LookupResult lookupResult,
@@ -69,11 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool SearchExtensionMethods
+        public bool SearchExtensions
         {
             get
             {
-                return (this.Flags & BoundMethodGroupFlags.SearchExtensionMethods) != 0;
+                return (this.Flags & BoundMethodGroupFlags.SearchExtensions) != 0;
             }
         }
     }

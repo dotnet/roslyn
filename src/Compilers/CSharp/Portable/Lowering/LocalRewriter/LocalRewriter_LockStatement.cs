@@ -163,7 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lockSyntax,
                     boundLockTakenTemp,
                     exitCall,
-                    null,
                     node.HasErrors);
 
                 return new BoundBlock(

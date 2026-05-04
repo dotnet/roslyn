@@ -22,9 +22,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 
-public partial class PreviewTests : AbstractCSharpCodeActionTest
+public sealed partial class PreviewTests : AbstractCSharpCodeActionTest
 {
-    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf
+    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
         .AddParts(
             typeof(MockPreviewPaneService));
 
@@ -42,14 +42,13 @@ public partial class PreviewTests : AbstractCSharpCodeActionTest
 
     private sealed class MyCodeRefactoringProvider : CodeRefactoringProvider
     {
-        public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var codeAction = new TestCodeAction(context.Document);
             context.RegisterRefactoring(codeAction, context.Span);
-            return Task.CompletedTask;
         }
 
-        private class TestCodeAction : CodeAction
+        private sealed class TestCodeAction : CodeAction
         {
             private readonly Document _oldDocument;
 
@@ -64,7 +63,7 @@ public partial class PreviewTests : AbstractCSharpCodeActionTest
                 }
             }
 
-            protected override Task<Solution> GetChangedSolutionAsync(
+            protected override async Task<Solution> GetChangedSolutionAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var solution = _oldDocument.Project.Solution;
@@ -83,7 +82,7 @@ public partial class PreviewTests : AbstractCSharpCodeActionTest
                 // Change a document - This will result in IWpfTextView previews.
                 solution = solution.WithDocumentSyntaxRoot(_oldDocument.Id, CSharpSyntaxTree.ParseText(ChangedDocumentText, cancellationToken: cancellationToken).GetRoot(cancellationToken));
 
-                return Task.FromResult(solution);
+                return solution;
             }
         }
     }
@@ -106,7 +105,7 @@ public partial class PreviewTests : AbstractCSharpCodeActionTest
     [WpfFact]
     public async Task TestPickTheRightPreview_NoPreference()
     {
-        var parameters = new TestParameters();
+        var parameters = TestParameters.Default;
         using var workspace = CreateWorkspaceFromOptions("class D {}", parameters);
 
         var (document, previews) = await GetMainDocumentAndPreviewsAsync(parameters, workspace);

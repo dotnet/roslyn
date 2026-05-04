@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
@@ -32,7 +33,9 @@ public class CSharpWinForms : AbstractEditorTest
         await TestServices.SolutionExplorer.SaveFileAsync(project, "Form1.resx", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.cs", HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"this.SomeButton.Name = ""SomeButton""", actualText);
+        Assert.Contains("""
+            this.SomeButton.Name = "SomeButton"
+            """, actualText);
         Assert.Contains(@"private System.Windows.Forms.Button SomeButton;", actualText);
     }
 
@@ -48,7 +51,9 @@ public class CSharpWinForms : AbstractEditorTest
         await TestServices.SolutionExplorer.CloseDesignerFileAsync(project, "Form1.cs", saveFile: true, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.Designer.cs", HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"this.SomeButton.Text = ""NewButtonText""", actualText);
+        Assert.Contains("""
+            this.SomeButton.Text = "NewButtonText"
+            """, actualText);
     }
 
     [IdeFact]
@@ -94,18 +99,20 @@ public class CSharpWinForms : AbstractEditorTest
         Assert.Contains(@"this.SomeButton.Click += new System.EventHandler(this.ExecuteWhenButtonClicked);", designerActualText);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.cs", HangMitigatingCancellationToken);
         var codeFileActualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"    public partial class Form1 : Form
-    {
-        public Form1()
-        {
-            InitializeComponent();
-        }
+        Assert.Contains("""
+                public partial class Form1 : Form
+                {
+                    public Form1()
+                    {
+                        InitializeComponent();
+                    }
 
-        private void ExecuteWhenButtonClicked(object sender, EventArgs e)
-        {
+                    private void ExecuteWhenButtonClicked(object sender, EventArgs e)
+                    {
 
-        }
-    }", codeFileActualText);
+                    }
+                }
+            """, codeFileActualText);
     }
 
     [IdeFact]
@@ -204,7 +211,6 @@ public class CSharpWinForms : AbstractEditorTest
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(@"public System.Windows.Forms.Button SomeButton;", actualText);
     }
-
     [IdeFact]
     public async Task DeleteControl()
     {

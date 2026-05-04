@@ -91,7 +91,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
     private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
         => new WrappedNavigateToSearchResult(result);
 
-    private class WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result) : INavigateToSearchResult
+    private sealed class WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result) : INavigateToSearchResult
     {
         private readonly IVSTypeScriptNavigateToSearchResult _result = result;
 

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -57,6 +58,15 @@ public partial class Workspace
 
         return;
 
+        // <summary>
+        // Given the current state of a <paramref name="solution"/>, produced an updated version of the source generator
+        // execution map based on the changes in <paramref name="projectIds"/>.  Each item in <paramref
+        // name="projectIds"/> signifies a particular project (if <c>projectId</c> is non-null) or the solution as a
+        // whole (if it is null). The <c>forceRegeneration</c> signifies if generators should be rerun even if the
+        // contents of the solution are the same.  If a project is specified in <paramref name="projectIds"/> then both
+        // it and all dependent projects of it will have their source generator versions updated.  If the solution is
+        // specified, then all projects will have their versions updated.
+        // </summary>
         static SourceGeneratorExecutionVersionMap GetUpdatedSourceGeneratorVersions(
             Solution solution, ImmutableSegmentedList<(ProjectId? projectId, bool forceRegeneration)> projectIds)
         {

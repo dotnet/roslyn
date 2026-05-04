@@ -11,12 +11,11 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.TaskList;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TaskList;
 
 [ExportLanguageService(typeof(ITaskListService), LanguageNames.CSharp), Shared]
-internal class CSharpTaskListService : AbstractTaskListService
+internal sealed class CSharpTaskListService : AbstractTaskListService
 {
     private static readonly int s_multilineCommentPostfixLength = "*/".Length;
     private const string SingleLineCommentPrefix = "//";

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         MissingSignatureWithOutParameter,
         MismatchedReturnType,
         MismatchedParameterType,
-        RefInImplicitlyTypedLambda,
+        MismatchedParameterRefKind,
         StaticTypeInImplicitlyTypedLambda,
         ExpressionTreeMustHaveDelegateTypeArgument,
         ExpressionTreeFromAnonymousMethod,

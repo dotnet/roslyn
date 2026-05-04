@@ -22,7 +22,7 @@ internal interface IPragmaSuppressionsAnalyzer
     Task AnalyzeAsync(
         SemanticModel semanticModel,
         TextSpan? span,
-        CompilationWithAnalyzers compilationWithAnalyzers,
+        CompilationWithAnalyzers hostCompilationWithAnalyzers,
         Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnostics,
         Action<Diagnostic> reportDiagnostic,
         CancellationToken cancellationToken);

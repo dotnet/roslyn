@@ -19,9 +19,11 @@ public class CSharpUpgradeProject : AbstractUpgradeProjectTest
 {
     private async Task InvokeFixAsync(string version, CancellationToken cancellationToken)
     {
-        await TestServices.Editor.SetTextAsync(@$"
-#error version:{version}
-", cancellationToken);
+        await TestServices.Editor.SetTextAsync($"""
+
+            #error version:{version}
+
+            """, cancellationToken);
         await TestServices.Editor.ActivateAsync(cancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync($"version:{version}", charsOffset: 0, cancellationToken);
@@ -55,39 +57,41 @@ public class CSharpUpgradeProject : AbstractUpgradeProjectTest
         await TestServices.SolutionExplorer.AddCustomProjectAsync(
             project,
             ".csproj",
-            $@"<?xml version=""1.0"" encoding=""utf-8""?>
-<Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
-  <PropertyGroup>
-    <Configuration Condition=""'$(Configuration)' == ''"">Debug</Configuration>
-    <Platform Condition=""'$(Platform)' == ''"">x64</Platform>
-    <ProjectGuid>{{F4233BA4-A4CB-498B-BBC1-65A42206B1BA}}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>{ProjectName}</RootNamespace>
-    <AssemblyName>{ProjectName}</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <LangVersion>7.0</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Debug|x86'"">
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <PlatformTarget>x86</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Release|x86'"">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <PlatformTarget>x86</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Debug|x64'"">
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Release|x64'"">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>
-  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>",
+            $$"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+              <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+              <PropertyGroup>
+                <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+                <Platform Condition="'$(Platform)' == ''">x64</Platform>
+                <ProjectGuid>{F4233BA4-A4CB-498B-BBC1-65A42206B1BA}</ProjectGuid>
+                <OutputType>Library</OutputType>
+                <RootNamespace>{{ProjectName}}</RootNamespace>
+                <AssemblyName>{{ProjectName}}</AssemblyName>
+                <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+                <LangVersion>7.0</LangVersion>
+              </PropertyGroup>
+              <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+                <OutputPath>bin\x86\Debug\</OutputPath>
+                <PlatformTarget>x86</PlatformTarget>
+              </PropertyGroup>
+              <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+                <OutputPath>bin\x86\Release\</OutputPath>
+                <PlatformTarget>x86</PlatformTarget>
+              </PropertyGroup>
+              <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+                <OutputPath>bin\x64\Debug\</OutputPath>
+                <PlatformTarget>x64</PlatformTarget>
+              </PropertyGroup>
+              <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+                <OutputPath>bin\x64\Release\</OutputPath>
+                <PlatformTarget>x64</PlatformTarget>
+              </PropertyGroup>
+              <ItemGroup>
+              </ItemGroup>
+              <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+            </Project>
+            """,
             HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(project, "C.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
 
@@ -105,42 +109,44 @@ public class CSharpUpgradeProject : AbstractUpgradeProjectTest
         await TestServices.SolutionExplorer.AddCustomProjectAsync(
             project,
             ".csproj",
-            $@"<?xml version=""1.0"" encoding=""utf-8""?>
-<Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
-  <PropertyGroup>
-    <Configuration Condition=""'$(Configuration)' == ''"">Debug</Configuration>
-    <Platform Condition=""'$(Platform)' == ''"">x64</Platform>
-    <ProjectGuid>{{F4233BA4-A4CB-498B-BBC1-65A42206B1BA}}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>{ProjectName}</RootNamespace>
-    <AssemblyName>{ProjectName}</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Debug|x86'"">
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>7.2</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Release|x86'"">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>7.1</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Debug|x64'"">
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.0</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Release|x64'"">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.1</LangVersion>
-  </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>
-  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>",
+            $$"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+              <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+              <PropertyGroup>
+                <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+                <Platform Condition="'$(Platform)' == ''">x64</Platform>
+                <ProjectGuid>{F4233BA4-A4CB-498B-BBC1-65A42206B1BA}</ProjectGuid>
+                <OutputType>Library</OutputType>
+                <RootNamespace>{{ProjectName}}</RootNamespace>
+                <AssemblyName>{{ProjectName}}</AssemblyName>
+                <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+              </PropertyGroup>
+              <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+                <OutputPath>bin\x86\Debug\</OutputPath>
+                <PlatformTarget>x86</PlatformTarget>
+                <LangVersion>7.2</LangVersion>
+              </PropertyGroup>
+              <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+                <OutputPath>bin\x86\Release\</OutputPath>
+                <PlatformTarget>x86</PlatformTarget>
+                <LangVersion>7.1</LangVersion>
+              </PropertyGroup>
+              <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+                <OutputPath>bin\x64\Debug\</OutputPath>
+                <PlatformTarget>x64</PlatformTarget>
+                <LangVersion>7.0</LangVersion>
+              </PropertyGroup>
+              <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+                <OutputPath>bin\x64\Release\</OutputPath>
+                <PlatformTarget>x64</PlatformTarget>
+                <LangVersion>7.1</LangVersion>
+              </PropertyGroup>
+              <ItemGroup>
+              </ItemGroup>
+              <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+            </Project>
+            """,
             HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(project, "C.cs", open: true, cancellationToken: HangMitigatingCancellationToken);

@@ -19,20 +19,16 @@ internal static partial class EditAndContinueDiagnosticSource
 {
     private sealed class ProjectSource(Project project, ImmutableArray<DiagnosticData> diagnostics) : AbstractProjectDiagnosticSource(project)
     {
-        public override bool IsLiveSource()
-            => true;
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
-            => Task.FromResult(diagnostics);
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+            => diagnostics;
     }
 
     private sealed class ClosedDocumentSource(TextDocument document, ImmutableArray<DiagnosticData> diagnostics) : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
-        public override bool IsLiveSource()
-            => true;
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
-            => Task.FromResult(diagnostics);
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+            => diagnostics;
     }
 
     public static async ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(Solution solution, Func<Document, bool> isDocumentOpen, CancellationToken cancellationToken)
@@ -59,18 +55,18 @@ internal static partial class EditAndContinueDiagnosticSource
             var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document != null && !isDocumentOpen(document))
             {
-                sources.Add(new ClosedDocumentSource(document, diagnostics.ToImmutableArray()));
+                sources.Add(new ClosedDocumentSource(document, [.. diagnostics]));
             }
         }
 
         // diagnostics not associated with a document:
         sources.AddRange(
             from data in applyDiagnostics
-            where data.DocumentId == null && data.ProjectId != null
+            where data.DocumentId == null
             group data by data.ProjectId into projectData
             let project = solution.GetProject(projectData.Key)
             where project != null
-            select new ProjectSource(project, projectData.ToImmutableArray()));
+            select new ProjectSource(project, [.. projectData]));
 
         return sources.ToImmutable();
     }

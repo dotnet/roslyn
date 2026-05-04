@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -284,7 +283,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
 
     protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
         var newRoot = await GetNewRootAsync(preprocessedDocument, formattingOptions, diagnostics, cancellationToken).ConfigureAwait(false);
         editor.ReplaceNode(editor.OriginalRoot, newRoot);
@@ -695,8 +694,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
             var insertionNode = node.FirstAncestorOrSelf<SyntaxNode>(
                 n => n.Parent is TSwitchCaseBlockSyntax ||
                      blockFacts.IsExecutableBlock(n.Parent) &&
-                     n is not TCatchStatementSyntax &&
-                     n is not TCatchBlockSyntax);
+                     n is not TCatchStatementSyntax and not TCatchBlockSyntax);
             if (insertionNode is TSwitchCaseLabelOrClauseSyntax)
             {
                 InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(
@@ -831,9 +829,8 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         var originalDocument = document;
         var originalDeclStatementsToMoveOrRemove =
             memberDeclaration.DescendantNodes()
-                             .Where(n => n.HasAnnotation(s_newLocalDeclarationStatementAnnotation) ||
-                                         n.HasAnnotation(s_existingLocalDeclarationWithoutInitializerAnnotation))
-                             .ToImmutableArray();
+                             .WhereAsArray(n => n.HasAnnotation(s_newLocalDeclarationStatementAnnotation) ||
+                                         n.HasAnnotation(s_existingLocalDeclarationWithoutInitializerAnnotation));
         if (originalDeclStatementsToMoveOrRemove.IsEmpty)
         {
             return memberDeclaration;
@@ -866,8 +863,13 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
             }
             else if (declStatement.HasAnnotation(s_newLocalDeclarationStatementAnnotation))
             {
-                // Otherwise, move the declaration closer to the first reference if possible.
-                if (await moveDeclarationService.CanMoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false))
+                // Otherwise, move the declaration closer to the first reference if possible.  Note: because the initial
+                // declaration value was unused (which is why we're removing/moving the local decl in the first place),
+                // there's no concern about changing the scope where the declaration now lives, which is why it's fine
+                // to ignore 'mayChangeSemantics' here.
+
+                var (canUse, mayChangeSemantics) = await moveDeclarationService.CanMoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false);
+                if (canUse)
                 {
                     document = await moveDeclarationService.MoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false);
                     await OnDocumentUpdatedAsync().ConfigureAwait(false);

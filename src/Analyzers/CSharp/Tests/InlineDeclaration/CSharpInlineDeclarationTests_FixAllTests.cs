@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -12,12 +10,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
-public partial class CSharpInlineDeclarationTests
+public sealed partial class CSharpInlineDeclarationTests
 {
     [Fact]
-    public async Task FixAllInDocument1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -41,13 +38,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument2()
-    {
-
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -86,12 +80,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -113,12 +105,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29935")]
-    public async Task FixAllInDocumentSymbolResolution()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocumentSymbolResolution()
+        => TestInRegularAndScriptAsync(
             """
             class C 
             {
@@ -161,12 +151,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
-    public async Task FixAllInDocument4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -188,12 +176,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
-    public async Task FixAllInDocument5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument5()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -218,12 +204,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
-    public async Task FixAllInDocument6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument6()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -248,12 +232,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
-    public async Task FixAllInDocument7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument7()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -278,12 +260,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument8()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -308,12 +288,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument9()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -338,12 +316,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument10()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument10()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -368,12 +344,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument11()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument11()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -395,12 +369,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
-    public async Task FixAllInDocumentComments1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocumentComments1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -423,12 +395,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
-    public async Task FixAllInDocumentComments2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocumentComments2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -453,12 +423,10 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28323")]
-    public async Task FixAllInDocumentComments3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocumentComments3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -484,5 +452,4 @@ public partial class CSharpInlineDeclarationTests
                 }
             }
             """);
-    }
 }

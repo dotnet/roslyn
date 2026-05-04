@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForNullableTernaryConditionalCheck), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticId];
@@ -28,10 +27,9 @@ internal class UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixPro
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
@@ -63,6 +61,10 @@ internal class UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixPro
                     var coalesceExpression = whenPart == whenTrue
                         ? g.CoalesceExpression(conditionExpression, syntaxFacts.WalkDownParentheses(currentWhenTrue))
                         : g.CoalesceExpression(conditionExpression, syntaxFacts.WalkDownParentheses(currentWhenFalse));
+
+                    // We may be moving from `a == null ? b : a` to `a ?? b`.  In this case, we want to ensure that the
+                    // space after the 'b' can be cleaned up if needed.
+                    coalesceExpression = coalesceExpression.WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker);
 
                     if (semanticFacts.IsInExpressionTree(
                             semanticModel, conditionalExpression, expressionTypeOpt, cancellationToken))

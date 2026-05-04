@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -146,12 +147,6 @@ class C
                 // (11,34): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<byte>'. An explicit conversion exists (are you missing a cast?)
                 //     static Span<byte> Test2() => nullConstant;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.Span<byte>").WithLocation(11, 34),
-                // (11,34): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<byte>'. An explicit conversion exists (are you missing a cast?)
-                //     static Span<byte> Test2() => nullConstant;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.Span<byte>").WithLocation(11, 34),
-                // (12,42): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<byte>'. An explicit conversion exists (are you missing a cast?)
-                //     static ReadOnlySpan<byte> Test3() => nullConstant;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.ReadOnlySpan<byte>").WithLocation(12, 42),
                 // (12,42): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<byte>'. An explicit conversion exists (are you missing a cast?)
                 //     static ReadOnlySpan<byte> Test3() => nullConstant;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.ReadOnlySpan<byte>").WithLocation(12, 42)
@@ -3277,13 +3272,13 @@ class C
             var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.ReadOnlySpan<System.Char> System.String.op_Implicit(System.String? value)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
 
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.True(model.GetConversion(node).IsUserDefined);
+            Assert.True(model.GetConversion(node).IsSpan);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -3305,13 +3300,14 @@ class C
             var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.ReadOnlySpan<System.Char> System.String.op_Implicit(System.String? value)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
 
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.ConvertedType.ToTestDisplayString());
 
             Assert.True(model.GetConversion(node).IsIdentity);
+            Assert.True(((IConversionOperation)model.GetOperation(node)).GetConversion().IsSpan);
         }
 
         [Theory]

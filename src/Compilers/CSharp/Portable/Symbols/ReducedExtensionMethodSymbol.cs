@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -48,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var conversions = method.ContainingAssembly.CorLibrary.TypeConversions;
-            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo);
+            var conversions = compilation?.Conversions ?? (ConversionsBase)method.ContainingAssembly.CorLibrary.TypeConversions;
+            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo, isMethodGroupConversion: false);
             if (!conversion.Exists)
             {
                 return null;
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(reducedFrom.ParameterCount > 0);
 
             _reducedFrom = reducedFrom;
-            _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, out _typeParameters);
+            _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, propagateAttributes: false, out _typeParameters);
             _typeArguments = _typeMap.SubstituteTypes(reducedFrom.TypeArgumentsWithAnnotations);
         }
 
@@ -254,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
             _reducedFrom.Parameters[0].TypeWithAnnotations.ToPublicAnnotation();
 
-        public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
+        public override TypeWithAnnotations GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
             if ((object)reducedFromTypeParameter == null)
             {
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new System.ArgumentException();
             }
 
-            return null;
+            return default;
         }
 
         public override MethodSymbol ReducedFrom
@@ -444,6 +445,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
             => _reducedFrom.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         public override Accessibility DeclaredAccessibility
         {
             get { return _reducedFrom.DeclaredAccessibility; }
@@ -499,6 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => _reducedFrom.ReturnNotNullIfParameterNotNull;
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => _reducedFrom.FlowAnalysisAnnotations;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -599,6 +604,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => throw ExceptionUtilities.Unreachable();
+
         internal sealed override bool UseUpdatedEscapeRules => _reducedFrom.UseUpdatedEscapeRules;
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
@@ -608,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
-        internal override int? TryGetOverloadResolutionPriority()
+        internal override int TryGetOverloadResolutionPriority()
         {
             return _reducedFrom.TryGetOverloadResolutionPriority();
         }
@@ -676,6 +683,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
 
+            internal override bool HasEnumeratorCancellationAttribute => throw ExceptionUtilities.Unreachable();
+
             public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if ((object)this == obj)
@@ -698,6 +707,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return Hash.Combine(ContainingSymbol, _underlyingParameter.Ordinal);
             }
+
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+                => throw ExceptionUtilities.Unreachable();
         }
     }
 }

@@ -32,7 +32,7 @@ internal sealed class VisualStudioReferenceCleanupService : IReferenceCleanupSer
     public async Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)
     {
         var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, cancellationToken).ConfigureAwait(false);
-        return projectSystemReferences.Select(reference => reference.ToReferenceInfo()).ToImmutableArray();
+        return [.. projectSystemReferences.Select(reference => reference.ToReferenceInfo())];
     }
 
     public async Task<bool> TryUpdateReferenceAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)

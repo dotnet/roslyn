@@ -6,387 +6,308 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class GetKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class GetKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-        }
 
-        [Fact]
-        public async Task TestAfterProperty()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterProperty()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { $$
+            """);
 
-        [Fact]
-        public async Task TestAfterPropertyPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterPropertyPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { private $$
+            """);
 
-        [Fact]
-        public async Task TestAfterPropertyAttribute()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { [Bar] $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterPropertyAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { [Bar] $$
+            """);
 
-        [Fact]
-        public async Task TestAfterPropertyAttributeAndPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { [Bar] private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterPropertyAttributeAndPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { [Bar] private $$
+            """);
 
-        [Fact]
-        public async Task TestAfterPropertySet()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { set; $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterPropertySet()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { set; $$
+            """);
 
-        [Fact]
-        public async Task TestAfterPropertySetAndPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { set; private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterPropertySetAndPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { set; private $$
+            """);
 
-        [Fact]
-        public async Task TestAfterPropertySetAndAttribute()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { set; [Bar] $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterPropertySetAndAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { set; [Bar] $$
+            """);
 
-        [Fact]
-        public async Task TestAfterPropertySetAndAttributeAndPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { set; [Bar] private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterPropertySetAndAttributeAndPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { set; [Bar] private $$
+            """);
 
-        [Fact]
-        public async Task TestAfterSetAccessorBlock()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { set { } $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterSetAccessorBlock()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { set { } $$
+            """);
 
-        [Fact]
-        public async Task TestAfterSetAccessorBlockAndPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { set { } private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterSetAccessorBlockAndPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { set { } private $$
+            """);
 
-        [Fact]
-        public async Task TestAfterSetAccessorBlockAndAttribute()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { set { } [Bar] $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterSetAccessorBlockAndAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { set { } [Bar] $$
+            """);
 
-        [Fact]
-        public async Task TestAfterSetAccessorBlockAndAttributeAndPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int Goo { set { } [Bar] private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterSetAccessorBlockAndAttributeAndPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int Goo { set { } [Bar] private $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterPropertyGetKeyword()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C {
-                   int Goo { get $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterPropertyGetKeyword()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+               int Goo { get $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterPropertyGetAccessor()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C {
-                   int Goo { get; $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterPropertyGetAccessor()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+               int Goo { get; $$
+            """);
 
-        [Fact]
-        public async Task TestNotInEvent()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C {
-                   event Goo E { $$
-                """);
-        }
+    [Fact]
+    public Task TestNotInEvent()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+               event Goo E { $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexer()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexer()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { private $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerAttribute()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { [Bar] $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { [Bar] $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerAttributeAndPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { [Bar] private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerAttributeAndPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { [Bar] private $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerSet()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { set; $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerSet()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { set; $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerSetAndPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { set; private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerSetAndPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { set; private $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerSetAndAttribute()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { set; [Bar] $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerSetAndAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { set; [Bar] $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerSetAndAttributeAndPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { set; [Bar] private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerSetAndAttributeAndPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { set; [Bar] private $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerSetBlock()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { set { } $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerSetBlock()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { set { } $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerSetBlockAndPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { set { } private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerSetBlockAndPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { set { } private $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerSetBlockAndAttribute()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { set { } [Bar] $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerSetBlockAndAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { set { } [Bar] $$
+            """);
 
-        [Fact]
-        public async Task TestAfterIndexerSetBlockAndAttributeAndPrivate()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { set { } [Bar] private $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterIndexerSetBlockAndAttributeAndPrivate()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { set { } [Bar] private $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterIndexerGetKeyword()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C {
-                   int this[int i] { get $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterIndexerGetKeyword()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+               int this[int i] { get $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterIndexerGetAccessor()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C {
-                   int this[int i] { get; $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterIndexerGetAccessor()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+               int this[int i] { get; $$
+            """);
 
-        [Fact]
-        public async Task TestBeforeSemicolon()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { $$; }
-                """);
-        }
+    [Fact]
+    public Task TestBeforeSemicolon()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { $$; }
+            """);
 
-        [Fact]
-        public async Task TestAfterProtectedInternal()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { protected internal $$ }
-                """);
-        }
+    [Fact]
+    public Task TestAfterProtectedInternal()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { protected internal $$ }
+            """);
 
-        [Fact]
-        public async Task TestAfterInternalProtected()
-        {
-            await VerifyKeywordAsync(
-                """
-                class C {
-                   int this[int i] { internal protected $$ }
-                """);
-        }
-    }
+    [Fact]
+    public Task TestAfterInternalProtected()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               int this[int i] { internal protected $$ }
+            """);
 }

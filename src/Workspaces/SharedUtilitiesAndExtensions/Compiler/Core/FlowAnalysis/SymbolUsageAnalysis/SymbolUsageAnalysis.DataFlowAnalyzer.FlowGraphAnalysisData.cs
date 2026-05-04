@@ -120,7 +120,8 @@ internal static partial class SymbolUsageAnalysis
             {
                 Debug.Assert(cfg.Parent == null);
 
-                var parameters = owningSymbol.GetParameters();
+                var parameters = GetParameters(owningSymbol);
+
                 return new FlowGraphAnalysisData(
                     cfg,
                     owningSymbol,
@@ -134,6 +135,21 @@ internal static partial class SymbolUsageAnalysis
                     reachingDelegateCreationTargets: PooledDictionary<IOperation, PooledHashSet<IOperation>>.GetInstance(),
                     localFunctionTargetsToAccessingCfgMap: PooledDictionary<IMethodSymbol, ControlFlowGraph>.GetInstance(),
                     lambdaTargetsToAccessingCfgMap: PooledDictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph>.GetInstance());
+
+                static ImmutableArray<IParameterSymbol> GetParameters(ISymbol owningSymbol)
+                {
+                    var parameters = owningSymbol.GetParameters();
+#if !OLDER_ROSLYN
+                    if (owningSymbol.ContainingSymbol is INamedTypeSymbol { IsExtension: true, ExtensionParameter: { } extensionParameter })
+                    {
+                        return parameters.Add(extensionParameter); // order doesn't matter
+                    }
+
+                    return parameters;
+#else
+                    return parameters;
+#endif
+                }
             }
 
             public static FlowGraphAnalysisData Create(
@@ -183,7 +199,6 @@ internal static partial class SymbolUsageAnalysis
             /// <summary>
             /// 
             /// </summary>
-            /// <returns></returns>
             private static ImmutableHashSet<ILocalSymbol> GetCapturedLocals(ControlFlowGraph cfg)
             {
                 using var _ = PooledHashSet<ILocalSymbol>.GetInstance(out var builder);
@@ -223,7 +238,7 @@ internal static partial class SymbolUsageAnalysis
 
                     // Filter down the operations to writes within this block range.
                     writesInBlockRange = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
-                    foreach (var (symbol, write) in SymbolsWriteBuilder.Where(kvp => !kvp.Value).Select(kvp => kvp.Key).ToArray())
+                    foreach (var (symbol, write) in SymbolsWriteBuilder.SelectAsArray(kvp => !kvp.Value, kvp => kvp.Key))
                     {
                         if (write != null && operations.Contains(write))
                         {

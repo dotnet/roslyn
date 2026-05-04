@@ -51,8 +51,7 @@ internal sealed class AggregateLogger : ILogger
             return newLogger;
         }
 
-        var aggregateLogger = oldLogger as AggregateLogger;
-        if (aggregateLogger == null)
+        if (oldLogger is not AggregateLogger aggregateLogger)
         {
             // replace old logger with new logger
             if (predicate(oldLogger))
@@ -86,8 +85,7 @@ internal sealed class AggregateLogger : ILogger
 
     public static ILogger Remove(ILogger logger, Func<ILogger, bool> predicate)
     {
-        var aggregateLogger = logger as AggregateLogger;
-        if (aggregateLogger == null)
+        if (logger is not AggregateLogger aggregateLogger)
         {
             // remove the logger
             if (predicate(logger))

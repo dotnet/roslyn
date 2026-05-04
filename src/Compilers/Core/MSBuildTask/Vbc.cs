@@ -3,14 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Microsoft.Build.Tasks.Hosting;
+using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
@@ -384,6 +385,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
+            // Pass sdkpath and vbc.rsp if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
+            if (SdkPath is null && IsSdkFrameworkToCoreBridgeTask)
+            {
+                commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
+
+                if (!NoConfig)
+                {
+                    var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "vbc.rsp");
+                    if (File.Exists(rspFile))
+                    {
+                        commandLine.AppendSwitchIfNotNull("@", rspFile);
+                    }
+                }
+            }
+
             commandLine.AppendSwitchIfNotNull("/baseaddress:", this.GetBaseAddressInHex());
             commandLine.AppendSwitchIfNotNull("/libpath:", this.AdditionalLibPaths, ",");
             commandLine.AppendSwitchIfNotNull("/imports:", this.Imports, ",");

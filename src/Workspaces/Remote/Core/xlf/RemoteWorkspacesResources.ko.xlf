@@ -27,6 +27,16 @@
         <target state="translated">튜플을 구조체 리팩터링으로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotChangeAnalysis">
+        <source>Copilot change analysis</source>
+        <target state="translated">Copilot 변경 분석</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CopilotProposalAdjuster">
+        <source>Copilot proposal adjuster</source>
+        <target state="translated">Copilot 제안 조정기</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">종속 형식 찾기</target>
@@ -57,9 +67,14 @@
         <target state="translated">필드 리팩터링 캡슐화</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
-        <source>Extension method import completion</source>
-        <target state="translated">확장 메서드 가져오기 완료</target>
+      <trans-unit id="FeatureName_ExtensionMemberImportCompletion">
+        <source>Extension member import completion</source>
+        <target state="translated">확장 구성원 가져오기 완료</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="translated">확장 메시지 처리기</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
@@ -80,6 +95,11 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">상속 여백</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="translated">초기화</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
@@ -119,7 +139,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_RelatedDocuments">
         <source>Related documents</source>
-        <target state="new">Related documents</target>
+        <target state="translated">관련 문서</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_Renamer">

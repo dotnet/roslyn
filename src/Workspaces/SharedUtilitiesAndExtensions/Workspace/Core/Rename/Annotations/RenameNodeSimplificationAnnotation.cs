@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
-internal class RenameNodeSimplificationAnnotation : RenameAnnotation
+internal sealed class RenameNodeSimplificationAnnotation : RenameAnnotation
 {
     public TextSpan OriginalTextSpan { get; set; }
 }

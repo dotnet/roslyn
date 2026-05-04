@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -18,11 +16,11 @@ internal static class RemoveUnreachableCodeHelpers
         switch (firstUnreachableStatement.Parent)
         {
             case BlockSyntax block:
-                siblingStatements = ImmutableArray.CreateRange(block.Statements);
+                siblingStatements = [.. block.Statements];
                 break;
 
             case SwitchSectionSyntax switchSection:
-                siblingStatements = ImmutableArray.CreateRange(switchSection.Statements);
+                siblingStatements = [.. switchSection.Statements];
                 break;
 
             case GlobalStatementSyntax globalStatement:

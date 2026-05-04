@@ -18,7 +18,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class EditorVerifierInProcess : ITextViewWindowVerifierInProcess
+internal sealed partial class EditorVerifierInProcess : ITextViewWindowVerifierInProcess
 {
     TestServices ITextViewWindowVerifierInProcess.TestServices => TestServices;
 
@@ -167,7 +167,7 @@ internal partial class EditorVerifierInProcess : ITextViewWindowVerifierInProces
                 if (expectedTag.taggedText != actualTaggedText)
                     return false;
 
-                AssertEx.NotNull(actualTaggedSpan.Tag.ToolTipContent);
+                Assert.NotNull(actualTaggedSpan.Tag.ToolTipContent);
                 var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent;
                 var actualTooltipText = CollectTextInRun(containerElement);
                 if (expectedTag.tooltipText != actualTooltipText)

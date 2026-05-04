@@ -14,6 +14,8 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
     <IncludeCopyLocalReferencesInVSIXContainer>false</IncludeCopyLocalReferencesInVSIXContainer>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <DeployExtension>true</DeployExtension>
+
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefPackageRegistration Include="{31c0675e-87a4-4061-a0dd-a4e510fccf97}"
@@ -29,14 +31,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Buffers" IncludeInVsix="true" />
-    <PackageReference Include="System.Collections.Immutable" IncludeInVsix="true" />
-    <PackageReference Include="System.Memory" IncludeInVsix="true" />
-    <PackageReference Include="System.Reflection.Metadata" IncludeInVsix="true" />
-    <PackageReference Include="System.Numerics.Vectors" IncludeInVsix="true" />
-    <PackageReference Include="System.Text.Encoding.CodePages" IncludeInVsix="true" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" IncludeInVsix="true" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" IncludeInVsix="true" />
+    <PackageReference Include="System.Buffers" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Collections.Immutable" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Memory" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Reflection.Metadata" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Numerics.Vectors" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Text.Encoding.CodePages" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" ForceIncludeInVsix="true" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -59,7 +61,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj">
+    <ProjectReference Include="..\Core\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>

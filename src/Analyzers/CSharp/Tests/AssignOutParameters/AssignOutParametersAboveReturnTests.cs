@@ -16,12 +16,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     AssignOutParametersAboveReturnCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
-public class AssignOutParametersAboveReturnTests
+public sealed class AssignOutParametersAboveReturnTests
 {
     [Fact]
-    public async Task TestForSimpleReturn()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestForSimpleReturn()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -41,12 +40,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForSwitchSectionReturn()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestForSwitchSectionReturn()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -74,7 +71,6 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestMissingWhenVariableAssigned()
@@ -94,9 +90,8 @@ public class AssignOutParametersAboveReturnTests
     }
 
     [Fact]
-    public async Task TestWhenNotAssignedThroughAllPaths1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestWhenNotAssignedThroughAllPaths1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -121,12 +116,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWhenNotAssignedThroughAllPaths2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestWhenNotAssignedThroughAllPaths2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -158,7 +151,6 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestMissingWhenAssignedThroughAllPaths()
@@ -182,9 +174,8 @@ public class AssignOutParametersAboveReturnTests
     }
 
     [Fact]
-    public async Task TestMultiple()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestMultiple()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -205,12 +196,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiple_AssignedInReturn1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestMultiple_AssignedInReturn1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -230,12 +219,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiple_AssignedInReturn2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestMultiple_AssignedInReturn2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -255,12 +242,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedReturn()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestNestedReturn()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -286,12 +271,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedReturnNoBlock()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestNestedReturnNoBlock()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -315,12 +298,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedReturnEvenWhenWrittenAfter()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestNestedReturnEvenWhenWrittenAfter()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -352,12 +333,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForExpressionBodyMember()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestForExpressionBodyMember()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -374,12 +353,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForLambdaExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestForLambdaExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -400,12 +377,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingForLocalFunctionExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestMissingForLocalFunctionExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -427,12 +402,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForLambdaBlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestForLambdaBlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -460,12 +433,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForLocalFunctionBlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestForLocalFunctionBlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -495,7 +466,6 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestForOutParamInSinglePath()
@@ -521,9 +491,8 @@ public class AssignOutParametersAboveReturnTests
     }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFixAll1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -560,12 +529,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1_MultipleMethods()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFixAll1_MultipleMethods()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -628,12 +595,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFixAll2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -666,12 +631,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2_MultipleMethods()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFixAll2_MultipleMethods()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -726,12 +689,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFixAll3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -770,12 +731,10 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll3_MultipleMethods()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFixAll3_MultipleMethods()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -842,5 +801,4 @@ public class AssignOutParametersAboveReturnTests
                 }
             }
             """);
-    }
 }

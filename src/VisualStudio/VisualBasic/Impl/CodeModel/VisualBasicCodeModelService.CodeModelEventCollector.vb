@@ -70,7 +70,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Private Shared Function GetImportsClauses(importsStatements As SyntaxList(Of ImportsStatementSyntax)) As IReadOnlyList(Of ImportsClauseSyntax)
                 Return importsStatements _
                     .SelectMany(Function(i) i.ImportsClauses) _
-                    .Where(Function(i) Not TypeOf i Is XmlNamespaceImportsClauseSyntax) _
+                    .Where(Function(i) TypeOf i IsNot XmlNamespaceImportsClauseSyntax) _
                     .ToArray()
             End Function
 

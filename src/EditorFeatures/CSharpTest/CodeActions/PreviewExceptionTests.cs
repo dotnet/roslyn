@@ -16,17 +16,16 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 
-public partial class PreviewTests
+public sealed partial class PreviewTests
 {
     [WpfFact]
     public async Task TestExceptionInComputePreview()
     {
-        using var workspace = CreateWorkspaceFromOptions("class D {}", new TestParameters());
+        using var workspace = CreateWorkspaceFromOptions("class D {}", TestParameters.Default);
 
         var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
         var errorReported = false;
@@ -39,7 +38,7 @@ public partial class PreviewTests
     [WpfFact]
     public void TestExceptionInDisplayText()
     {
-        using var workspace = CreateWorkspaceFromOptions("class D {}", new TestParameters());
+        using var workspace = CreateWorkspaceFromOptions("class D {}", TestParameters.Default);
 
         var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
         var errorReported = false;
@@ -52,7 +51,7 @@ public partial class PreviewTests
     [WpfFact]
     public async Task TestExceptionInActionSets()
     {
-        using var workspace = CreateWorkspaceFromOptions("class D {}", new TestParameters());
+        using var workspace = CreateWorkspaceFromOptions("class D {}", TestParameters.Default);
 
         var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
         var errorReported = false;
@@ -88,14 +87,14 @@ public partial class PreviewTests
         Assert.False(extensionManager.IsIgnored(provider));
     }
 
-    private static CodeRefactoringSuggestedAction CreateRefactoringSuggestedAction(EditorTestWorkspace workspace, CodeRefactoringProvider provider, out EditorLayerExtensionManager.ExtensionManager extensionManager)
+    private static EditorSuggestedActionWithNestedFlavors CreateRefactoringSuggestedAction(EditorTestWorkspace workspace, CodeRefactoringProvider provider, out EditorLayerExtensionManager.ExtensionManager extensionManager)
     {
         var codeActions = new List<CodeAction>();
         RefactoringSetup(workspace, provider, codeActions, out extensionManager, out var textBuffer, out var document);
-        var suggestedAction = new CodeRefactoringSuggestedAction(
+        var suggestedAction = new EditorSuggestedActionWithNestedFlavors(
             workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
             workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
-            workspace, document, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
+            document, textBuffer, provider, codeActions.First(), fixAllFlavors: null, diagnostics: []);
         return suggestedAction;
     }
 

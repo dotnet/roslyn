@@ -8,7 +8,7 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2;
 
-internal partial class SQLitePersistentStorage
+internal sealed partial class SQLitePersistentStorage
 {
     private static (byte[] bytes, int length, bool fromPool) GetBytes(Stream stream)
     {

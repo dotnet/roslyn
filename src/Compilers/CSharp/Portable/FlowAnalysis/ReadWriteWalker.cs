@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (p.RefKind != RefKind.None) _readOutside.Add(p);
                     }
 
+                    if (_symbol.TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter) && extensionParameter.RefKind != RefKind.None)
+                    {
+                        _readOutside.Add(extensionParameter);
+                    }
+
                     Debug.Assert(!ignoreThisParameter || m is SynthesizedPrimaryConstructor);
 
                     if (!ignoreThisParameter)
@@ -129,11 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.NoteRead(variable, rangeVariableUnderlyingParameter);
         }
 
-        protected override void NoteWrite(Symbol variable, BoundExpression value, bool read)
+        protected override void NoteWrite(Symbol variable, BoundExpression value, bool read, bool isRef)
         {
             if ((object)variable == null) return;
             (IsInside ? _writtenInside : _writtenOutside).Add(variable);
-            base.NoteWrite(variable, value, read);
+            base.NoteWrite(variable, value, read: read, isRef: isRef);
         }
 
         protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
@@ -233,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case BoundKind.RangeVariable:
-                    if (written) NoteWrite(((BoundRangeVariable)node).RangeVariableSymbol, value, read);
+                    if (written) NoteWrite(((BoundRangeVariable)node).RangeVariableSymbol, value, read: read, isRef: isRef);
                     break;
 
                 case BoundKind.QueryClause:
@@ -242,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var symbol = ((BoundQueryClause)node).DefinedSymbol;
                         if ((object)symbol != null)
                         {
-                            if (written) NoteWrite(symbol, value, read);
+                            if (written) NoteWrite(symbol, value, read: read, isRef: isRef);
                         }
                     }
                     break;

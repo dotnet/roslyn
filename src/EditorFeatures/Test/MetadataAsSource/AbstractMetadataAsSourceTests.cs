@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource;
 [UseExportProvider]
 public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
 {
-    protected static readonly string ICSharpCodeDecompilerVersion = "8.1.1.7464";
+    protected static readonly string ICSharpCodeDecompilerVersion = "9.1.0.7988";
 
-    public virtual Task InitializeAsync()
+    public virtual async Task InitializeAsync()
     {
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MscorlibRef_v46, "mscorlib.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.mscorlib.ImageBytes));
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRef_v46, "System.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.System.ImageBytes));
@@ -33,21 +33,31 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MsvbRef, "Microsoft.VisualBasic.dll", ImmutableArray.Create(Net461.Resources.MicrosoftVisualBasic));
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemXmlRef, "System.Xml.v4_0_30319.dll", ImmutableArray.Create(Net461.Resources.SystemXml));
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemXmlLinqRef, "System.Xml.Linq.v4_0_30319.dll", ImmutableArray.Create(Net461.Resources.SystemXmlLinq));
-
-        return Task.CompletedTask;
     }
 
-    public virtual Task DisposeAsync()
+    public virtual async Task DisposeAsync()
     {
         AssemblyResolver.TestAccessor.ClearInMemoryImages();
-
-        return Task.CompletedTask;
     }
 
     internal static async Task GenerateAndVerifySourceAsync(
-        string metadataSource, string symbolName, string projectLanguage, string expected, bool signaturesOnly = true, bool includeXmlDocComments = false, string languageVersion = null, string metadataLanguageVersion = null, string metadataCommonReferences = null)
+        string metadataSource,
+        string symbolName,
+        string projectLanguage,
+        string expected,
+        bool signaturesOnly = true,
+        bool includeXmlDocComments = false,
+        string languageVersion = null,
+        string metadataLanguageVersion = null,
+        string metadataCommonReferences = null,
+        string commonReferencesValue = null)
     {
-        using var context = TestContext.Create(projectLanguage, [metadataSource], includeXmlDocComments, languageVersion: languageVersion, metadataLanguageVersion: metadataLanguageVersion, metadataCommonReferences: metadataCommonReferences);
+        using var context = TestContext.Create(
+            projectLanguage, [metadataSource], includeXmlDocComments,
+            languageVersion: languageVersion,
+            metadataLanguageVersion: metadataLanguageVersion,
+            metadataCommonReferences: metadataCommonReferences,
+            commonReferencesValue: commonReferencesValue);
         await context.GenerateAndVerifySourceAsync(symbolName, expected, signaturesOnly: signaturesOnly);
     }
 

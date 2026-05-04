@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -15,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider("AttributeSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,11 +32,9 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
     {
     }
 
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     private bool TryGetAttributeExpression(
         SyntaxNode root,
@@ -59,7 +57,7 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
     {
         return !token.IsKind(SyntaxKind.None) &&
             token.ValueText.Length == 1 &&
-            IsTriggerCharacter(token.ValueText[0]) &&
+            TriggerCharacters.Contains(token.ValueText[0]) &&
             token.Parent is AttributeArgumentListSyntax &&
             token.Parent.Parent is AttributeSyntax;
     }
@@ -93,7 +91,7 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
 
         var accessibleConstructors = attributeType.InstanceConstructors
                                                   .WhereAsArray(c => c.IsAccessibleWithin(within))
-                                                  .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+                                                  .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                                                   .Sort(semanticModel, attribute.SpanStart);
 
         if (!accessibleConstructors.Any())
@@ -109,8 +107,8 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
         var symbolInfo = semanticModel.GetSymbolInfo(attribute, cancellationToken);
         var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol);
 
-        return CreateSignatureHelpItems(accessibleConstructors.Select(c =>
-            Convert(c, within, attribute, semanticModel, structuralTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),
+        return CreateSignatureHelpItems([.. accessibleConstructors.Select(c =>
+            Convert(c, within, attribute, semanticModel, structuralTypeDisplayService, documentationCommentFormatter, cancellationToken))],
             textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem, parameterIndexOverride: -1);
     }
 
@@ -178,7 +176,7 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
 
             var displayParts = new List<SymbolDisplayPart>
             {
-                new SymbolDisplayPart(
+                new(
                 namedParameter is IFieldSymbol ? SymbolDisplayPartKind.FieldName : SymbolDisplayPartKind.PropertyName,
                 namedParameter, namedParameter.Name.ToIdentifierToken().ToString()),
                 Space(),
@@ -204,7 +202,7 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
         {
             return
             [
-                new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, CSharpFeaturesResources.Properties),
+                new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, FeaturesResources.Properties),
                 Punctuation(SyntaxKind.ColonToken),
                 Space()
             ];

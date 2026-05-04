@@ -11,12 +11,13 @@ using Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new UseExpressionBodyForLambdaCodeRefactoringProvider();
@@ -34,9 +35,8 @@ public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeAct
         => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
+        => TestMissingAsync(
             """
             using System;
 
@@ -51,12 +51,10 @@ public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeAct
                 }
             }
             """, parameters: new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -82,12 +80,10 @@ public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeAct
                 }
             }
             """, parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -113,12 +109,10 @@ public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeAct
                 }
             }
             """, parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestNotOfferedInMethod()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedInMethod()
+        => TestMissingAsync(
             """
             class C
             {
@@ -128,12 +122,10 @@ public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeAct
                 }
             }
             """, parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
+        => TestMissingAsync(
             """
             using System;
 
@@ -145,12 +137,10 @@ public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeAct
                 }
             }
             """, parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -176,12 +166,10 @@ public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeAct
                 }
             }
             """, parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -207,5 +195,18 @@ public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeAct
                 }
             }
             """, parameters: new TestParameters(options: UseExpressionBody));
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74137")]
+    public Task TestNotWithPreprocessorDirectives()
+        => TestMissingAsync(
+            """
+            app.UseSwaggerUI(c [||]=>
+            {
+            #if DEBUG
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+            #else
+                c.SwaggerEndpoint("/api/swagger/v1/swagger.json", "API V1");
+            #endif
+            });
+            """, parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
 }

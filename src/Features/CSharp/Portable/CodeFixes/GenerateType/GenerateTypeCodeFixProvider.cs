@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateType), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateVariable)]
-internal class GenerateTypeCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class GenerateTypeCodeFixProvider() : AbstractGenerateMemberCodeFixProvider
 {
     private const string CS0103 = nameof(CS0103); // error CS0103: The name 'Goo' does not exist in the current context
     private const string CS0117 = nameof(CS0117); // error CS0117: 'x' does not contain a definition for 'y'
@@ -31,33 +32,27 @@ internal class GenerateTypeCodeFixProvider : AbstractGenerateMemberCodeFixProvid
     private const string CS0308 = nameof(CS0308); // error CS0308: The non-generic type 'A' cannot be used with type arguments
     private const string CS0426 = nameof(CS0426); // error CS0426: The type name 'S' does not exist in the type 'Program'
     private const string CS0616 = nameof(CS0616); // error CS0616: 'x' is not an attribute class
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public GenerateTypeCodeFixProvider()
-    {
-    }
+    private const string CS1574 = nameof(CS1574); // warning CS1574: XML comment has cref attribute that could not be resolved
 
     public override ImmutableArray<string> FixableDiagnosticIds
-    {
-        get { return [CS0103, CS0117, CS0234, CS0246, CS0305, CS0308, CS0426, CS0616, IDEDiagnosticIds.UnboundIdentifierId]; }
-    }
+        => [CS0103, CS0117, CS0234, CS0246, CS0305, CS0308, CS0426, CS0616, CS1574, IDEDiagnosticIds.UnboundIdentifierId];
 
     protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
-    {
-        switch (node)
+        => node switch
         {
-            case QualifiedNameSyntax or MemberAccessExpressionSyntax:
-                return true;
-            case SimpleNameSyntax simple:
-                return !simple.IsParentKind(SyntaxKind.QualifiedName);
-        }
-
-        return false;
-    }
+            QualifiedNameSyntax or MemberAccessExpressionSyntax => true,
+            SimpleNameSyntax simple => !simple.IsParentKind(SyntaxKind.QualifiedName),
+            TypeCrefSyntax => true,
+            _ => false,
+        };
 
     protected override SyntaxNode? GetTargetNode(SyntaxNode node)
-        => ((ExpressionSyntax)node).GetRightmostName();
+        => node switch
+        {
+            TypeCrefSyntax typeCref => typeCref.Type,
+            ExpressionSyntax expression => expression.GetRightmostName(),
+            _ => null,
+        };
 
     protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
         Document document, SyntaxNode node, CancellationToken cancellationToken)

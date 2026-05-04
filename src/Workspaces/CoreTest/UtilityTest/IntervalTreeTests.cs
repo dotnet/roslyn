@@ -6,10 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -318,19 +316,19 @@ public abstract class IntervalTreeTests
             {
                 for (var length = 1; length <= max; length++)
                 {
-                    var span = new Span(start, length);
+                    var span = new TextSpan(start, length);
 
                     var set1 = new HashSet<string>(GetIntervalsThatOverlapWith(tree, start, length).Select(i => i.Item3));
                     var set2 = new HashSet<string>(spans.Where(t =>
                     {
-                        return span.OverlapsWith(new Span(t.Item1, t.Item2));
+                        return span.OverlapsWith(new TextSpan(t.Item1, t.Item2));
                     }).Select(t => t.Item3));
                     Assert.True(set1.SetEquals(set2));
 
                     var set3 = new HashSet<string>(GetIntervalsThatIntersectWith(tree, start, length).Select(i => i.Item3));
                     var set4 = new HashSet<string>(spans.Where(t =>
                     {
-                        return span.IntersectsWith(new Span(t.Item1, t.Item2));
+                        return span.IntersectsWith(new TextSpan(t.Item1, t.Item2));
                     }).Select(t => t.Item3));
                     Assert.True(set3.SetEquals(set4));
                 }
@@ -345,7 +343,7 @@ public abstract class IntervalTreeTests
         => new HashSet<T>(values);
 
     private static IList<T> List<T>(params T[] values)
-        => new List<T>(values);
+        => [.. values];
 }
 
 public sealed class BinaryIntervalTreeTests : IntervalTreeTests
@@ -375,7 +373,7 @@ public sealed class FlatArrayIntervalTreeTests : IntervalTreeTests
 {
     private protected override IEnumerable<IIntervalTree<Tuple<int, int, string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
     {
-        yield return ImmutableIntervalTree<Tuple<int, int, string>>.CreateFromUnsorted(new TupleIntrospector<string>(), new SegmentedList<Tuple<int, int, string>>(values));
+        yield return ImmutableIntervalTree<Tuple<int, int, string>>.CreateFromUnsorted(new TupleIntrospector<string>(), [.. values]);
     }
 
     private protected override bool HasIntervalThatIntersectsWith(IIntervalTree<Tuple<int, int, string>> tree, int position)
@@ -410,7 +408,7 @@ public sealed class FlatArrayIntervalTreeTests : IntervalTreeTests
     {
         for (var i = 0; i < 3000; i++)
         {
-            var tree = ImmutableIntervalTree<int>.CreateFromUnsorted(new Int32IntervalIntrospector(), new(Enumerable.Range(1, i)));
+            var tree = ImmutableIntervalTree<int>.CreateFromUnsorted(new Int32IntervalIntrospector(), [.. Enumerable.Range(1, i)]);
 
             // Ensure that the tree produces the same elements in sorted order.
             AssertEx.Equal(tree, Enumerable.Range(1, i));
@@ -436,7 +434,7 @@ public sealed class FlatArrayIntervalTreeTests : IntervalTreeTests
             for (var j = -3; j <= 2; j++)
             {
                 var allInts = Enumerable.Range(1, totalCount + j);
-                var tree = ImmutableIntervalTree<int>.CreateFromSorted(new Int32IntervalIntrospector(), new(allInts));
+                var tree = ImmutableIntervalTree<int>.CreateFromSorted(new Int32IntervalIntrospector(), [.. allInts]);
 
                 // Ensure that the tree produces the same elements in sorted order.
                 Assert.True(tree.SequenceEqual(allInts));

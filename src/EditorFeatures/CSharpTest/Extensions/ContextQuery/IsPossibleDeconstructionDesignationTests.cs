@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class IsPossibleDeconstructionDesignationTests : AbstractContextTests
+public sealed class IsPossibleDeconstructionDesignationTests : AbstractContextTests
 {
     protected override void CheckResult(bool expected, int position, SyntaxTree syntaxTree)
     {

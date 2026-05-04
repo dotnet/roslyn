@@ -8,7 +8,9 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Text
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -16,7 +18,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
     Public Class CompilationEmitTests
@@ -2460,7 +2461,7 @@ Imports System
                                             Dim actualGlobalMembers = DirectCast(m, SourceModuleSymbol).GlobalNamespace.GetMembers().ToArray()
 
                                             Assert.NotNull(m.GlobalNamespace.ContainingModule)
-                                            Assert.Equal(Of String)("C.dll", m.GlobalNamespace.ContainingModule.ToString)
+                                            AssertEx.Equal(Of String)("C.dll", m.GlobalNamespace.ContainingModule.ToString)
 
                                             For i As Integer = 0 To Math.Max(expectedGlobalMembers.Length, actualGlobalMembers.Length) - 1
                                                 Assert.Equal(expectedGlobalMembers(i), actualGlobalMembers(i).Name)
@@ -2596,7 +2597,7 @@ Imports System
                 End If
             Next
 
-            AssertEx.Fail("Unable to find type:" + typeName)
+            Assert.Fail("Unable to find type:" + typeName)
             Return Nothing
         End Function
 
@@ -2612,7 +2613,7 @@ Imports System
                 End If
             Next
 
-            AssertEx.Fail("Unable to find method:" + methodName)
+            Assert.Fail("Unable to find method:" + methodName)
             Return Nothing
         End Function
 

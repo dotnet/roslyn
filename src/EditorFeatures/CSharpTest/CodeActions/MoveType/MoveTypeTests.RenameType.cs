@@ -15,102 +15,63 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType;
 public partial class MoveTypeTests : CSharpMoveTypeTestsBase
 {
     [Fact]
-    public async Task SingleClassInFile_RenameType()
-    {
-        var code =
-@"[||]class Class1 { }";
-
-        var codeWithTypeRenamedToMatchFileName =
-@"class [|test1|] { }";
-
-        await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
-    }
+    public Task SingleClassInFile_RenameType()
+        => TestRenameTypeToMatchFileAsync(@"[||]class Class1 { }", @"class [|test1|] { }");
 
     [Fact]
-    public async Task MoreThanOneTypeInFile_RenameType()
-    {
-        var code =
-@"[||]class Class1
-{ 
-    class Inner { }
-}";
-
-        var codeWithTypeRenamedToMatchFileName =
-@"class [|test1|]
-{ 
-    class Inner { }
-}";
-
-        await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
-    }
+    public Task MoreThanOneTypeInFile_RenameType()
+        => TestRenameTypeToMatchFileAsync("""
+            [||]class Class1
+            { 
+                class Inner { }
+            }
+            """, """
+            class [|test1|]
+            { 
+                class Inner { }
+            }
+            """);
 
     [Fact]
-    public async Task TestMissing_TypeNameMatchesFileName_RenameType()
-    {
-        // testworkspace creates files like test1.cs, test2.cs and so on.. 
-        // so type name matches filename here and rename file action should not be offered.
-        var code =
-@"[||]class test1 { }";
-
-        await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
-    }
+    public Task TestMissing_TypeNameMatchesFileName_RenameType()
+        => TestRenameTypeToMatchFileAsync(@"[||]class test1 { }", expectedCodeAction: false);
 
     [Fact]
-    public async Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameType()
-    {
-        var code =
-@"[||]class Class1 { }
-class test1 { }";
-
-        await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
-    }
+    public Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameType()
+        => TestRenameTypeToMatchFileAsync("""
+            [||]class Class1 { }
+            class test1 { }
+            """, expectedCodeAction: false);
 
     [Fact]
-    public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameType()
-    {
-        var code =
-@"[||]class Class1 { }
-class Class2 { }";
-
-        var codeWithTypeRenamedToMatchFileName =
-@"class [|test1|] { }
-class Class2 { }";
-
-        await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
-    }
+    public Task MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameType()
+        => TestRenameTypeToMatchFileAsync("""
+            [||]class Class1 { }
+            class Class2 { }
+            """, """
+            class [|test1|] { }
+            class Class2 { }
+            """);
 
     [Fact]
-    public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameType()
-    {
-        var code =
-@"class Class1 { }
-[||]class Class2 { }";
-
-        var codeWithTypeRenamedToMatchFileName =
-@"class Class1 { }
-class [|test1|] { }";
-
-        await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
-    }
+    public Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameType()
+        => TestRenameTypeToMatchFileAsync("""
+            class Class1 { }
+            [||]class Class2 { }
+            """, """
+            class Class1 { }
+            class [|test1|] { }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40043")]
-    public async Task NothingOfferedWhenTypeHasNoNameYet1()
-    {
-        var code = @"class[||]";
-        await TestMissingAsync(code);
-    }
+    public Task NothingOfferedWhenTypeHasNoNameYet1()
+        => TestMissingAsync(@"class[||]");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40043")]
-    public async Task NothingOfferedWhenTypeHasNoNameYet2()
-    {
-        var code = @"class [||]";
-        await TestMissingAsync(code);
-    }
+    public Task NothingOfferedWhenTypeHasNoNameYet2()
+        => TestMissingAsync(@"class [||]");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40043")]
-    public async Task NothingOfferedWhenTypeHasNoNameYet3()
-    {
-        var code = @"class [||] { }";
-        await TestMissingAsync(code);
-    }
+    public Task NothingOfferedWhenTypeHasNoNameYet3()
+        => TestMissingAsync(@"class [||] { }");
 }

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -1019,7 +1020,7 @@ class D
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
@@ -1094,7 +1095,7 @@ class D
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
@@ -1227,7 +1228,7 @@ class E
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
@@ -1310,7 +1311,11 @@ class E
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: false));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [new IncrementalGeneratorWrapper(testGenerator)],
+                parseOptions: parseOptions,
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: false));
+
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
@@ -1397,7 +1402,7 @@ class E
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 new[] { new IncrementalGeneratorWrapper(testGenerator) },
                 parseOptions: parseOptions,
-                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+                driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
@@ -1517,7 +1522,7 @@ class C
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 new[] { new IncrementalGeneratorWrapper(testGenerator) },
                 parseOptions: parseOptions,
-                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+                driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGenerators(compilation);
             var results = driver.GetRunResult();
             Assert.Collection(results.Results[0].TrackedSteps["Fields"],
@@ -1686,7 +1691,7 @@ class C
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGenerators(compilation);
 
             // verify we ran the syntax transform once, but fed both outputs
@@ -1745,7 +1750,7 @@ class C
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGenerators(compilation);
             var results = driver.GetRunResult();
 
@@ -1799,7 +1804,7 @@ class C
 
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGenerators(compilation);
             var results = driver.GetRunResult();
 

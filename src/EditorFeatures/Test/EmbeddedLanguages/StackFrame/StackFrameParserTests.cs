@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Xunit;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
 using static Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame.StackFrameExtensions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame;
 
-public partial class StackFrameParserTests
+public sealed partial class StackFrameParserTests
 {
     [Fact]
     public void TestNoParams()
@@ -420,7 +420,6 @@ public partial class StackFrameParserTests
     [InlineData(@"at M.1c()")] // Invalid start character for identifier
     [InlineData(@"at 1M.C()")]
     [InlineData(@"at M.C(string& s)")] // "string&" represents a reference (ref, out) and is not supported yet
-    [InlineData(@"at StreamJsonRpc.JsonRpc.<InvokeCoreAsync>d__139`1.MoveNext()")] // Generated/Inline methods are not supported yet
     [InlineData(@"at M(")] // Missing closing paren
     [InlineData(@"at M)")] // MIssing open paren
     [InlineData(@"at M.M[T>(T t)")] // Mismatched generic opening/close
@@ -516,7 +515,21 @@ public partial class StackFrameParserTests
             fileInformation: FileInformation(
                 Path(@"C:\repos\languages\Program.cs"),
                 ColonToken,
-                line: CreateToken(StackFrameKind.NumberToken, "16", leadingTrivia: ImmutableArray.Create(CreateTrivia(StackFrameKind.LineTrivia, $"{line} "))),
+                line: CreateToken(StackFrameKind.NumberToken, "16", leadingTrivia: [CreateTrivia(StackFrameKind.LineTrivia, $"{line} ")]),
                 inTrivia: CreateTrivia(StackFrameKind.InTrivia, $" {@in} "))
                 );
+
+    [Fact]
+    public void TestStateMachineMethod()
+        => Verify("Test.<MyAsyncMethod>d__610.MoveNext()",
+            methodDeclaration: MethodDeclaration(
+                QualifiedName(
+                    Identifier("Test"),
+                    StateMachineMethod(
+                        GeneratedName("MyAsyncMethod", endWithDollar: false),
+                        suffix: "610",
+                        stateMachineMethod: "MoveNext")
+                    ),
+                argumentList: EmptyParams)
+            );
 }

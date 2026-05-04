@@ -1,0 +1,10 @@
+﻿Source Location: (54:0,54 [26] x:\dir\subdir\Test\TestComponent.cshtml)
+|context.ToLowerInvariant()|
+Generated Location: (1229:30,54 [26] )
+|context.ToLowerInvariant()|
+
+Source Location: (13:0,13 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyAttr|
+Generated Location: (1517:41,13 [6] )
+|MyAttr|
+

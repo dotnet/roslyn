@@ -27,6 +27,16 @@
         <target state="translated">タプルを構造体のリファクタリングに変換する</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotChangeAnalysis">
+        <source>Copilot change analysis</source>
+        <target state="translated">Copilot の変更分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CopilotProposalAdjuster">
+        <source>Copilot proposal adjuster</source>
+        <target state="translated">Copilot 提案調整ツール</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">依存型の検索</target>
@@ -57,9 +67,14 @@
         <target state="translated">フィールドのカプセル化のリファクタリング</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
-        <source>Extension method import completion</source>
-        <target state="translated">拡張メソッドのインポート完了</target>
+      <trans-unit id="FeatureName_ExtensionMemberImportCompletion">
+        <source>Extension member import completion</source>
+        <target state="translated">拡張メンバーの import 完了</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="translated">拡張メッセージ ハンドラー</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
@@ -80,6 +95,11 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">継承の余白</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="translated">初期化</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
@@ -119,7 +139,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_RelatedDocuments">
         <source>Related documents</source>
-        <target state="new">Related documents</target>
+        <target state="translated">関連ドキュメント</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_Renamer">

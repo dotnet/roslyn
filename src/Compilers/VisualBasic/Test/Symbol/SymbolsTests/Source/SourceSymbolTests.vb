@@ -2,14 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Globalization
-Imports System.Text
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -678,8 +673,8 @@ End Namespace")
 
             ' NamespaceNames and TypeNames do not match SyntaxTrees order.
             ' This is expected.
-            Assert.Equal({"", "N3", "N0", "N", "", "N4", "N"}, comp2.Declarations.NamespaceNames.ToArray())
-            Assert.Equal({"C3", "C0", "S", "C", "C4", "C"}, comp2.Declarations.TypeNames.ToArray())
+            AssertEx.Equal({"", "N3", "N0", "N", "", "N4", "N"}, comp2.Declarations.NamespaceNames.ToArray())
+            AssertEx.Equal({"C3", "C0", "S", "C", "C4", "C"}, comp2.Declarations.TypeNames.ToArray())
 
             ' RemoveSyntaxTrees should preserve order of remaining trees.
             Dim comp3 = comp2.RemoveSyntaxTrees(source0)

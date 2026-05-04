@@ -89,7 +89,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifySemanticDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active,
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Shared Sub Main(args As String())", GetResource("method"))})
         End Sub
 
         <Fact>

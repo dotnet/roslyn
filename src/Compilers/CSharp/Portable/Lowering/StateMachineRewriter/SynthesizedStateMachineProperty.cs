@@ -155,12 +155,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return null; }
         }
 
-        internal override int? TryGetOverloadResolutionPriority() => null;
+        internal override int TryGetOverloadResolutionPriority() => 0;
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
         {

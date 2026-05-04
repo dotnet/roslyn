@@ -405,6 +405,10 @@ lSelect:
             Me._diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(code), node.Syntax.GetLocation()))
         End Sub
 
+        Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
+            Visit(node.ConstructionOpt)
+            Return MyBase.VisitInterpolatedStringExpression(node)
+        End Function
     End Class
 
 End Namespace

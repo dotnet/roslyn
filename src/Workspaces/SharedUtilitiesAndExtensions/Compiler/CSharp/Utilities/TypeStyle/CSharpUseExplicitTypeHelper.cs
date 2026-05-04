@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
@@ -24,19 +23,13 @@ internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
     protected override bool IsStylePreferred(in State state)
     {
         var stylePreferences = state.TypeStylePreference;
-
-        if (state.IsInIntrinsicTypeContext)
+        return state.Context switch
         {
-            return !stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
-        }
-        else if (state.IsTypeApparentInContext)
-        {
-            return !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent);
-        }
-        else
-        {
-            return !stylePreferences.HasFlag(UseVarPreference.Elsewhere);
-        }
+            Context.BuiltInType => !stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes),
+            Context.TypeIsApparent => !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent),
+            Context.Elsewhere => !stylePreferences.HasFlag(UseVarPreference.Elsewhere),
+            _ => throw ExceptionUtilities.UnexpectedValue(state.Context),
+        };
     }
 
     public override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
@@ -82,8 +75,7 @@ internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
             return false;
         }
 
-        if (typeName.Parent is VariableDeclarationSyntax variableDeclaration &&
-            typeName.Parent.Parent is (kind: SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement))
+        if (typeName is { Parent: VariableDeclarationSyntax variableDeclaration, Parent.Parent: (kind: SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement) })
         {
             // check assignment for variable declarations.
             var variable = variableDeclaration.Variables.First();
@@ -110,6 +102,10 @@ internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
             {
                 return false;
             }
+        }
+        else if (typeName.Parent is DeclarationExpressionSyntax)
+        {
+            return !ContainsAnonymousType(typeName, semanticModel, cancellationToken);
         }
 
         return true;
@@ -142,18 +138,21 @@ internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
         CSharpSimplifierOptions options,
         CancellationToken cancellationToken)
     {
+        if (ContainsAnonymousType(typeName, semanticModel, cancellationToken))
+            return false;
+
+        // cannot find type if initializer resolves to an ErrorTypeSymbol
+        var initializerTypeInfo = semanticModel.GetTypeInfo(initializer, cancellationToken);
+        return !initializerTypeInfo.Type.IsErrorType();
+    }
+
+    private static bool ContainsAnonymousType(TypeSyntax typeName, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
         // is or contains an anonymous type
         // cases :
         //        var anon = new { Num = 1 };
         //        var enumerableOfAnons = from prod in products select new { prod.Color, prod.Price };
         var declaredType = semanticModel.GetTypeInfo(typeName.StripRefIfNeeded(), cancellationToken).Type;
-        if (declaredType.ContainsAnonymousType())
-        {
-            return false;
-        }
-
-        // cannot find type if initializer resolves to an ErrorTypeSymbol
-        var initializerTypeInfo = semanticModel.GetTypeInfo(initializer, cancellationToken);
-        return !initializerTypeInfo.Type.IsErrorType();
+        return declaredType.ContainsAnonymousType();
     }
 }

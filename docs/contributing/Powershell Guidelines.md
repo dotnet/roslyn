@@ -63,12 +63,12 @@ error detection on invocation failure, incorrect parameters, etc ...
 
 ```powershell
 # DO NOT
-& msbuild /v:m /m Roslyn.sln
-& dotnet build Roslyn.sln
+& msbuild /v:m /m Roslyn.slnx
+& dotnet build Roslyn.slnx
 
 # DO
-Exec-Command "msbuild" "/v:m /m Roslyn.sln"
-Exec-DotNet "build Roslyn.sln"
+Exec-Command "msbuild" "/v:m /m Roslyn.slnx"
+Exec-DotNet "build Roslyn.slnx"
 ```
 
 Scripts that have many executions of `dotnet` commands can store the `dotnet` command in a variable
@@ -104,5 +104,26 @@ The Roslyn infrastructure should use `powershell` for execution not `pwsh`. The 
 still uses `Powershell` and calls into our scripts. Moving to `pwsh` in our scripts creates errors
 in source and unified build. Until that moves to `pwsh` our scripts need to stay on `Powershell`.
 
-The exception is that our VS Code helper scripts should use `pwsh`. That is not a part of our 
-infrastructure and needs to run cross platform hence `pwsh` is appropriate.
+`pwsh` is permitted in cases which are not part of our infrastructure. i.e., scripts that are not under the `eng/` folder, and not expected to be run by the build process.
+This is necessary in scenarios where the script needs to run cross-platform, such as:
+- VS Code helper scripts
+- AI skills
+
+### Supporting .cmd file
+
+Consider adding a `.cmd` file that calls the `.ps1` file. This is to support users who are not 
+running a powershell shell. It also helps with ensuring the script is run locally the same it is 
+run in CI by controlling the powershell used to invoke the script.
+
+test.cmd
+
+```cmd
+@echo off
+set PSMODULEPATH=
+powershell -noprofile -ExecutionPolicy Unrestricted -file "%~dp0\test.ps1" %*
+```
+
+Note: the `PSMODULEPATH` is cleared to ensure a pwsh shell [does not interfere][psmodulepath] 
+with launching powershell.
+
+[psmodulepath]: https://github.com/PowerShell/PowerShell/discussions/24630

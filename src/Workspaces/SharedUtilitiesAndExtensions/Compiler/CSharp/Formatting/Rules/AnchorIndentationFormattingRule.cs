@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class AnchorIndentationFormattingRule : BaseFormattingRule
+internal sealed class AnchorIndentationFormattingRule : BaseFormattingRule
 {
     internal const string Name = "CSharp Anchor Indentation Formatting Rule";
 
@@ -57,7 +58,7 @@ internal class AnchorIndentationFormattingRule : BaseFormattingRule
             case NamespaceDeclarationSyntax namespaceNode:
                 AddAnchorIndentationOperation(list, namespaceNode);
                 return;
-            case TypeDeclarationSyntax typeNode:
+            case BaseTypeDeclarationSyntax typeNode:
                 AddAnchorIndentationOperation(list, typeNode);
                 return;
             case MemberDeclarationSyntax memberDeclNode:

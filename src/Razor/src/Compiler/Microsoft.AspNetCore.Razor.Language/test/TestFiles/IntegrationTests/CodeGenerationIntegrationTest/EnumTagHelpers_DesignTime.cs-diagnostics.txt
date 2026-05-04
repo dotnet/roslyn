@@ -1,0 +1,9 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml(4,21): error CS0103: The name 'MyEnum' does not exist in the current context
+//     var enumValue = MyEnum.MyValue;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "MyEnum").WithArguments("MyEnum").WithLocation(4, 21),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml(7,40): error CS0103: The name 'MyEnum' does not exist in the current context
+// __TestNamespace_InputTagHelper.Value = MyEnum.MyValue;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "MyEnum").WithArguments("MyEnum").WithLocation(7, 40),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EnumTagHelpers.cshtml(8,16): error CS0103: The name 'MyEnum' does not exist in the current context
+//          __o = MyEnum.MySecondValue;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "MyEnum").WithArguments("MyEnum").WithLocation(8, 16)

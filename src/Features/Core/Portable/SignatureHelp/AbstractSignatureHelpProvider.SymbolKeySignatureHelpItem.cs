@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp;
 
 internal abstract partial class AbstractSignatureHelpProvider
 {
-    internal class SymbolKeySignatureHelpItem(
+    internal sealed class SymbolKeySignatureHelpItem(
         ISymbol symbol,
         bool isVariadic,
         Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,

@@ -1099,7 +1099,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63557")>
         Public Async Function TestWithColorColorInstanceCase() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 

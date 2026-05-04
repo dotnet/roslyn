@@ -86,7 +86,10 @@ public readonly record struct TaggedText
 internal static class TaggedTextExtensions
 {
     public static ImmutableArray<TaggedText> ToTaggedText(
-        this IEnumerable<SymbolDisplayPart>? displayParts, TaggedTextStyle style = TaggedTextStyle.None, Func<ISymbol?, string?>? getNavigationHint = null, bool includeNavigationHints = true)
+        this IEnumerable<SymbolDisplayPart>? displayParts,
+        TaggedTextStyle style = TaggedTextStyle.None,
+        Func<ISymbol?, string?>? getNavigationHint = null,
+        bool includeNavigationHints = true)
     {
         if (displayParts == null)
             return [];
@@ -102,6 +105,9 @@ internal static class TaggedTextExtensions
                 includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? GetNavigationTarget(d.Symbol) : null,
                 includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
     }
+
+    public static ImmutableArray<(string tag, string text)> ToTagsAndText(this ImmutableArray<SymbolDisplayPart> displayParts)
+        => displayParts.SelectAsArray(static d => (GetTag(d), d.ToString()));
 
     private static string GetTag(SymbolDisplayPart part)
     {

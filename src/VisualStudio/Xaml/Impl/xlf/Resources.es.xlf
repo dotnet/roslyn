@@ -13,8 +13,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Sort_Namespaces">
+        <source>Sort Namespaces</source>
+        <target state="translated">Ordenar espacios de nombres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Namespaces_with_accelerator">
         <source>&amp;Sort Namespaces</source>
-        <target state="translated">Orde&amp;nar espacios de nombres</target>
+        <target state="translated">&amp;Ordenar espacios de nombres</target>
         <note />
       </trans-unit>
     </body>

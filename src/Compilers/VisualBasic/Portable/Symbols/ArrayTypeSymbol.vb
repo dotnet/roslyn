@@ -364,6 +364,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride Function WithElementType(elementType As TypeSymbol) As ArrayTypeSymbol
 
+        Friend Overrides Function GetManagedKind(ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
+            Return ManagedKind.Managed
+        End Function
+
 #Region "Use-Site Diagnostics"
 
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Tags;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
 
@@ -200,7 +199,7 @@ internal abstract partial class DefinitionItem
         bool displayIfNoReferences)
     {
         return Create(
-            tags, displayParts, sourceSpans, classifiedSpans, ImmutableArray<AssemblyLocation>.Empty, nameDisplayParts,
+            tags, displayParts, sourceSpans, classifiedSpans, [], nameDisplayParts,
             properties: null, displayableProperties: [], displayIfNoReferences: displayIfNoReferences);
     }
 
@@ -216,7 +215,7 @@ internal abstract partial class DefinitionItem
     {
         return Create(
             tags, displayParts, sourceSpans, classifiedSpans,
-            ImmutableArray<AssemblyLocation>.Empty, nameDisplayParts, displayIfNoReferences: displayIfNoReferences);
+            [], nameDisplayParts, displayIfNoReferences: displayIfNoReferences);
     }
 
     public static DefinitionItem Create(

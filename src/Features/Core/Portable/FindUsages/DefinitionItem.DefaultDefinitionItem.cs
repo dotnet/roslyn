@@ -9,11 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
 
-internal partial class DefinitionItem
+internal abstract partial class DefinitionItem
 {
     /// <summary>
     /// Implementation of a <see cref="DefinitionItem"/> that sits on top of a 

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -93,6 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return ContainingType.IsNullableEnabledForConstructorsAndInitializers(IsStatic);
         }
+
+        internal sealed override bool IsUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal sealed override bool CanBeCallerUnsafe => false;
 
         protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
         {

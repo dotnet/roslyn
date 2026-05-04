@@ -1,0 +1,32 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [203] x:\dir\subdir\Test\TestComponent.cshtml) - Grid
+                    ComponentChildContent - (78:1,4 [116] x:\dir\subdir\Test\TestComponent.cshtml) - ColumnsTemplate - context
+                        Component - (105:2,8 [65] x:\dir\subdir\Test\TestComponent.cshtml) - Column
+                            ComponentAttribute -  - Title -  - AttributeStructure.DoubleQuotes
+                                HtmlContent - (120:2,23 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                                    LazyIntermediateToken - (120:2,23 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Date
+                            ComponentAttribute - (137:2,40 [4] x:\dir\subdir\Test\TestComponent.cshtml) - FieldName - FieldName - AttributeStructure.DoubleQuotes
+                                HtmlContent - (137:2,40 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                                    IntermediateToken - (137:2,40 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Date
+                            ComponentAttribute -  - Format -  - AttributeStructure.DoubleQuotes
+                                HtmlContent - (151:2,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                                    LazyIntermediateToken - (151:2,54 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - d
+                            ComponentAttribute -  - Width -  - AttributeStructure.DoubleQuotes
+                                HtmlContent - (161:2,64 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+                                    LazyIntermediateToken - (161:2,64 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - 10rem
+                    ComponentTypeArgument - (13:0,13 [15] x:\dir\subdir\Test\TestComponent.cshtml) - TItem
+                        IntermediateToken - (13:0,13 [15] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - WeatherForecast
+                    ComponentAttribute -  - Items -  - AttributeStructure.DoubleQuotes
+                        CSharpExpression - (37:0,37 [33] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (39:0,39 [30] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Array.Empty<WeatherForecast>()
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateColumn_0

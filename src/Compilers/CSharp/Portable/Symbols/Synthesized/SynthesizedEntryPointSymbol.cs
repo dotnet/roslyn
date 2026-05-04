@@ -148,6 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => ThreeState.Unknown;
+
         public override MethodKind MethodKind
         {
             get { return MethodKind.Ordinary; }
@@ -204,6 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
 
         internal override Cci.CallingConvention CallingConvention
         {
@@ -314,15 +318,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {
             builderArgument = null;
             return false;
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
+        internal override int TryGetOverloadResolutionPriority()
         {
-            return null;
+            return 0;
         }
 
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
@@ -331,7 +337,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// <summary> The syntax for the user-defined asynchronous main method. </summary>
             private readonly CSharpSyntaxNode _userMainReturnTypeSyntax;
 
-            private readonly BoundExpression _getAwaiterGetResultCall;
+            /// <summary>
+            /// Either a call to AsyncHelpers.HandleAsyncEntryPoint or a call to GetAwaiter().GetResult() on the user-defined main method.
+            /// </summary>
+            private readonly BoundExpression _userEntryPointInvocation;
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
 
@@ -370,15 +379,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type: userMain.ReturnType)
                 { WasCompilerGenerated = true };
 
-                // The diagnostics that would be produced here will already have been captured and returned.
-                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall!, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
+                // Try to use the new HandleAsyncEntryPoint API if it exists
+                var specialMember = userMain.ReturnType.IsGenericTaskType(compilation)
+                    ? SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
+                    : SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task;
+
+                if (Binder.TryGetSpecialTypeMember(compilation, specialMember, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded, out MethodSymbol handleAsyncEntryPointMethod, isOptional: true)
+                    && handleAsyncEntryPointMethod.Parameters[0].Type.Equals(userMain.ReturnType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    // Use the new HandleAsyncEntryPoint API
+                    _userEntryPointInvocation = new BoundCall(
+                            syntax: _userMainReturnTypeSyntax,
+                            receiverOpt: null,
+                            initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                            method: handleAsyncEntryPointMethod,
+                            arguments: [userMainInvocation],
+                            argumentNamesOpt: default(ImmutableArray<string>),
+                            argumentRefKindsOpt: default(ImmutableArray<RefKind>),
+                            isDelegateCall: false,
+                            expanded: false,
+                            invokedAsExtensionMethod: false,
+                            argsToParamsOpt: default(ImmutableArray<int>),
+                            defaultArguments: default(BitVector),
+                            resultKind: LookupResultKind.Viable,
+                            type: handleAsyncEntryPointMethod.ReturnType)
+                    { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    // Fall back to the old GetAwaiter().GetResult() pattern
+                    // The diagnostics that would be produced here will already have been captured and returned.
+                    var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _userEntryPointInvocation, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
+                }
 
                 Debug.Assert(
                     ReturnType.IsVoidType() ||
                     ReturnType.SpecialType == SpecialType.System_Int32);
+                Debug.Assert(!compilation.IsRuntimeAsyncEnabledIn(this));
             }
 
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -389,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
-            public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(_getAwaiterGetResultCall.Type);
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(_userEntryPointInvocation.Type);
 
             internal override BoundBlock CreateBody(BindingDiagnosticBag diagnostics)
             {
@@ -403,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         statements: ImmutableArray.Create<BoundStatement>(
                             new BoundExpressionStatement(
                                 syntax: syntax,
-                                expression: _getAwaiterGetResultCall
+                                expression: _userEntryPointInvocation
                             )
                             { WasCompilerGenerated = true },
                             new BoundReturnStatement(
@@ -427,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new BoundReturnStatement(
                                 syntax: syntax,
                                 refKind: RefKind.None,
-                                expressionOpt: _getAwaiterGetResultCall,
+                                expressionOpt: _userEntryPointInvocation,
                                 @checked: false
                             )
                         )
@@ -489,7 +529,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!initializer.ReturnType.IsDynamic());
                 var initializeCall = CreateParameterlessCall(syntax, scriptLocal, receiverIsSubjectToCloning: ThreeState.False, initializer);
                 BoundExpression getAwaiterGetResultCall;
-                if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, syntax, diagnostics))
+                Debug.Assert(!compilation.IsRuntimeAsyncEnabledIn(this));
+                if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, runtimeAsyncAwaitCall: out _, syntax, diagnostics))
                 {
                     return new BoundBlock(
                         syntax: syntax,

@@ -14,9 +14,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers;
 
-internal partial class MemberDeclarationsOrganizer
+internal static partial class MemberDeclarationsOrganizer
 {
-    private class Comparer : IComparer<MemberDeclarationSyntax>
+    private sealed class Comparer : IComparer<MemberDeclarationSyntax>
     {
         // TODO(cyrusn): Allow users to specify the ordering they want
         private enum OuterOrdering

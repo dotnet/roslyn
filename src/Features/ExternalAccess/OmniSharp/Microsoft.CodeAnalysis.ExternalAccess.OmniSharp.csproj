@@ -10,13 +10,14 @@
       https://github.com/OmniSharp/omnisharp-roslyn
     </PackageDescription>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
     <!--
       ⚠ ONLY OMNISHARP ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
+    <InternalsVisibleTo Include="OmniSharp.Host" Key="$(OmniSharpKey)" />
     <InternalsVisibleTo Include="OmniSharp.Roslyn" Key="$(OmniSharpKey)" />
     <InternalsVisibleTo Include="OmniSharp.Roslyn.CSharp" Key="$(OmniSharpKey)" />
     <InternalsVisibleTo Include="OmniSharp.Roslyn.CSharp.Tests" Key="$(OmniSharpKey)" />

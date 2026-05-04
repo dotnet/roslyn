@@ -142,4 +142,13 @@
   <data name="EditorConfig_option_0_contains_unrecognized_value_1" xml:space="preserve">
     <value>EditorConfig option '{0}' contains unrecognized value '{1}'</value>
   </data>
+  <data name="Indentation_preferences" xml:space="preserve">
+    <value>Indentation preferences</value>
+  </data>
+  <data name="Space_preferences" xml:space="preserve">
+    <value>Space preferences</value>
+  </data>
+  <data name="Wrapping_preferences" xml:space="preserve">
+    <value>Wrapping preferences</value>
+  </data>
 </root>

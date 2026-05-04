@@ -2,13 +2,37 @@
 <Project>
 
   <PropertyGroup>
-    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">netcore</_RoslynTargetDirectoryName>   
-    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_RoslynTargetDirectoryName>   
-    <_RoslynTasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTargetDirectoryName)\</_RoslynTasksDirectory>
-    <RoslynTasksAssembly>$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly> 
+    <!--
+      Even on netfx hosts we want to use netcore compiler to be consistent with SDK's behavior since .NET 10.
+      The opt out is also the same as in SDK - setting RoslynCompilerType=Framework.
+    -->
+    <_UseRoslynBridgeTask Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(RoslynCompilerType)' != 'Framework'">true</_UseRoslynBridgeTask>
+
+    <!-- Directory with .targets files. -->
+    <_RoslynTargetsDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">netcore</_RoslynTargetsDirectoryName>
+    <_RoslynTargetsDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_RoslynTargetsDirectoryName>
+    <_RoslynTargetsDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTargetsDirectoryName)\</_RoslynTargetsDirectory>
+
+    <!-- Directory with BuildTask DLL. -->
+    <_RoslynTasksDirectoryName Condition="'$(_UseRoslynBridgeTask)' == 'true'">netcore\binfx</_RoslynTasksDirectoryName>
+    <_RoslynTasksDirectoryName Condition="'$(_RoslynTasksDirectoryName)' == ''">$(_RoslynTargetsDirectoryName)</_RoslynTasksDirectoryName>
+    <_RoslynTasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTasksDirectoryName)\</_RoslynTasksDirectory>
+
+    <RoslynCompilerType>Custom</RoslynCompilerType>
+
+    <!-- .NET Core compiler assemblies. -->
+    <RoslynCoreAssembliesPath Condition="'$(_UseRoslynBridgeTask)' != 'true'">$(_RoslynTasksDirectory)bincore\</RoslynCoreAssembliesPath>
+    <RoslynCoreAssembliesPath Condition="'$(_UseRoslynBridgeTask)' == 'true'">$(_RoslynTasksDirectory)..\bincore\</RoslynCoreAssembliesPath>
+
+    <!-- Framework/Core (depending on the host) compiler assemblies. -->
+    <RoslynAssembliesPath Condition="'$(RoslynAssembliesPath)' == '' and '$(MSBuildRuntimeType)' == 'Core'">$(RoslynCoreAssembliesPath)</RoslynAssembliesPath>
+    <RoslynAssembliesPath Condition="'$(RoslynAssembliesPath)' == '' and '$(MSBuildRuntimeType)' != 'Core'">$(_RoslynTargetsDirectory)</RoslynAssembliesPath>
+
+    <RoslynTasksAssembly Condition="'$(_UseRoslynBridgeTask)' != 'true'">$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly>
+    <RoslynTasksAssembly Condition="'$(_UseRoslynBridgeTask)' == 'true'">$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll</RoslynTasksAssembly>
     <UseSharedCompilation Condition="'$(UseSharedCompilation)' == ''">true</UseSharedCompilation>
-    <CSharpCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
-    <VisualBasicCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
+    <CSharpCoreTargetsPath>$(_RoslynTargetsDirectory)Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
+    <VisualBasicCoreTargetsPath>$(_RoslynTargetsDirectory)Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="$(RoslynTasksAssembly)" />

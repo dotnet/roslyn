@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateOverrides;
 
-internal partial class GenerateOverridesCodeRefactoringProvider
+internal sealed partial class GenerateOverridesCodeRefactoringProvider
 {
     private sealed class GenerateOverridesWithDialogCodeAction(
         GenerateOverridesCodeRefactoringProvider service,
@@ -102,10 +102,7 @@ internal partial class GenerateOverridesCodeRefactoringProvider
             public override void Apply(Workspace workspace, CancellationToken cancellationToken)
             {
                 var service = workspace.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
-                if (service != null)
-                {
-                    service.GenerateOverrides = _selectedAll;
-                }
+                service?.GenerateOverrides = _selectedAll;
             }
         }
     }

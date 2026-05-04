@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -13,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -24,21 +24,17 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.WinForms.Interfaces;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 /// <summary>
 /// The base class of both the Roslyn editor factories.
 /// </summary>
-internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
+internal abstract class AbstractEditorFactory(IComponentModel componentModel) : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
 {
-    private readonly IComponentModel _componentModel;
+    private readonly IComponentModel _componentModel = componentModel;
     private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
     private bool _encoding;
-
-    protected AbstractEditorFactory(IComponentModel componentModel)
-        => _componentModel = componentModel;
 
     protected abstract string ContentTypeName { get; }
     protected abstract string LanguageName { get; }
@@ -234,13 +230,12 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
         if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
         {
             var uiThreadOperationExecutor = _componentModel.GetService<IUIThreadOperationExecutor>();
-            // TODO(cyrusn): Can this be cancellable?
             uiThreadOperationExecutor.Execute(
-                "Intellisense",
-                defaultDescription: "",
-                allowCancellation: false,
+                ServicesVSResources.Visual_Studio,
+                defaultDescription: ServicesVSResources.Formatting_new_document,
+                allowCancellation: true,
                 showProgress: false,
-                action: c => FormatDocumentCreatedFromTemplate(pHier, itemid, pszMkDocument, c.UserCancellationToken));
+                action: c => FormatDocumentCreatedFromTemplate(pHier, pszMkDocument, c.UserCancellationToken));
         }
 
         return VSConstants.S_OK;
@@ -249,10 +244,10 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
     int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
         => VSConstants.S_OK;
 
-    private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
+    private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, string filePath, CancellationToken cancellationToken)
     {
         var threadingContext = _componentModel.GetService<IThreadingContext>();
-        threadingContext.JoinableTaskFactory.Run(() => FormatDocumentCreatedFromTemplateAsync(hierarchy, itemid, filePath, cancellationToken));
+        threadingContext.JoinableTaskFactory.Run(() => FormatDocumentCreatedFromTemplateAsync(hierarchy, filePath, cancellationToken));
     }
 
     // NOTE: This function has been created to hide IWinFormsEditorFactory type in non-WinForms scenarios (e.g. editing .cs or .vb file)
@@ -286,7 +281,7 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
                 out pguidCmdUI);
     }
 
-    private async Task FormatDocumentCreatedFromTemplateAsync(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
+    internal async Task FormatDocumentCreatedFromTemplateAsync(IVsHierarchy hierarchy, string filePath, CancellationToken cancellationToken)
     {
         // A file has been created on disk which the user added from the "Add Item" dialog. We need
         // to include this in a workspace to figure out the right options it should be formatted with.
@@ -316,6 +311,14 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
             // We have to discover .editorconfig files ourselves to ensure that code style rules are followed.
             // Normally the project system would tell us about these.
             projectToAddTo = AddEditorConfigFiles(projectToAddTo, Path.GetDirectoryName(filePath));
+
+            // Because we're adding the initial project to the solution, we need to ensure that this solution snapshot
+            // has the right fallback analyzer options.  This normally happens in Workspace.SetCurrentSolutionAsync as
+            // it mutates.  But that may never have happened so far (especially if the user has just opened VS and is
+            // making a fresh solution/project), so we have to simulate that manually here.  This ensures we pick up the
+            // right host/vs options which is needed in order to run the code cleanup pass below.
+            solution = projectToAddTo.Solution.WithFallbackAnalyzerOptionValuesFromHost(oldSolution: solution);
+            projectToAddTo = solution.GetRequiredProject(projectToAddTo.Id);
         }
 
         // We need to ensure that decisions made during new document formatting are based on the right language
@@ -334,7 +337,10 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
                 loader: fileLoader,
                 filePath: filePath));
 
-        var addedDocument = forkedSolution.GetRequiredDocument(documentId);
+        // Call WithFrozenPartialSemantics so we don't do expensive work here. Since this could be runnnig during the creation of a new solution or project, our OOP process
+        // might not be running yet. Expecting full semantics would mean we might need to synchronize everything OOP to run generators or other semantics, and that causes
+        // UI delays.
+        var addedDocument = forkedSolution.GetRequiredDocument(documentId).WithFrozenPartialSemantics(cancellationToken);
 
         var cleanupOptions = await addedDocument.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(true);
 
@@ -371,7 +377,7 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
 
         IOUtilities.PerformIO(() =>
         {
-            using var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding);
+            using var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding ?? Encoding.UTF8);
             // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
             formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
         });

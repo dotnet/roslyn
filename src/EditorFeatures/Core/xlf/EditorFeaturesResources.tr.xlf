@@ -7,20 +7,15 @@
         <target state="translated">Bu kod için belgeler oluşturulurken bir hata oluştu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
-        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="translated">'{0}' tanımlayıcısı için bir satır içi yeniden adlandırma oturumu etkin. Ek seçeneklere erişmek için satır içi yeniden adlandırmayı tekrar çağırın. İstediğiniz zaman yeniden adlandırılan tanımlayıcıyı düzenlemeye devam edebilirsiniz.</target>
-        <note>For screenreaders. {0} is the identifier being renamed.</note>
-      </trans-unit>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">Değişiklikler uygulanıyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Giriş işareti altında sembole gidilemiyor.</target>
-        <note />
+      <trans-unit id="Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset">
+        <source>Chat limit reached, [upgrade now] or wait for the limit to reset.</source>
+        <target state="translated">Sohbet sınırına ulaşıldı, [upgrade now] veya sınırın sıfırlanması için bekleyin.</target>
+        <note>The text surrounded by "[" and "]" characters will be hyperlinked. Please ensure the localized text still has "[" and "]" characters.</note>
       </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
@@ -37,9 +32,14 @@
         <target state="translated">Copilot düşünüyor...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot">
-        <source>Describe with Copilot</source>
-        <target state="translated">Copilot ile açıkla</target>
+      <trans-unit id="Describe">
+        <source>Describe</source>
+        <target state="translated">Açıkla</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">Başvurulan belge, kuruluşunuz tarafından hariç tutulduğu için 'Açıkla' kullanılamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -437,6 +437,11 @@
         <target state="translated">Kullanıcı Üyeler - Özellikler</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Arrays">
+        <source>User Types - Arrays</source>
+        <target state="translated">Kullanıcı Türleri - Diziler</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">Kullanıcı Türleri - Sınıflar</target>
@@ -452,9 +457,19 @@
         <target state="translated">Kullanıcı Türleri - Sabit Listeleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Function_Pointers">
+        <source>User Types - Function Pointers</source>
+        <target state="translated">Kullanıcı Türleri - İşlev İşaretçileri</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Kullanıcı Türleri - Arabirimler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Pointers">
+        <source>User Types - Pointers</source>
+        <target state="translated">Kullanıcı Türleri - İşaretçiler</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">
@@ -634,7 +649,7 @@
       </trans-unit>
       <trans-unit id="_0_declarations_and_interceptors">
         <source>'{0}' declarations and interceptors</source>
-        <target state="new">'{0}' declarations and interceptors</target>
+        <target state="translated">'{0}' bildirimleri ve engelleyicileri</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implemented_members">
@@ -790,11 +805,6 @@
       <trans-unit id="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated">
         <source>Rename operation was not properly completed. Some file might not have been updated.</source>
         <target state="translated">Yeniden adlandırma işlemi uygun şekilde tamamlanmadı. Bazı dosyalar güncelleştirilmemiş olabilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">'{0}' öğesini '{1}' olarak yeniden adlandır</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -982,11 +992,6 @@
         <target state="translated">Önceki eşdüzeyin yayılımı bulunuyor...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">Yeniden adlandırma: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">Altyapı, Etkileşimli Pencere'ye iliştirilmelidir.</target>
@@ -1070,7 +1075,7 @@
       <trans-unit id="Change_Signature">
         <source>Change Signature</source>
         <target state="translated">İmzayı Değiştir</target>
-        <note />
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
         <source>Preview Changes - {0}</source>
@@ -1102,17 +1107,10 @@
         <target state="translated">Otomatik Biçimlendirme</target>
         <note />
       </trans-unit>
-      <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s).
-Do you want to proceed?</source>
-        <target state="translated">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz. 
-Devam etmek istiyor musunuz?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
         <target state="translated">İmzayı Değiştir:</target>
-        <note />
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
@@ -1167,11 +1165,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
         <target state="translated">Değişiklikleri _Önizle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply3">
-        <source>Apply</source>
-        <target state="translated">Uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="Cancel">
@@ -1242,16 +1235,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Go_To_Implementation">
         <source>Go To Implementation</source>
         <target state="translated">Uygulamaya Git</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_name_colon_0">
-        <source>New name: {0}</source>
-        <target state="translated">Yeni ad: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
-        <source>Modify any highlighted location to begin renaming.</source>
-        <target state="translated">Yeniden adlandırmaya başlamak için vurgulanan tüm konumları değiştirin.</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">

@@ -4,8 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel.Design;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -28,7 +27,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 
-[Export(typeof(RemoveUnusedReferencesCommandHandler)), Shared]
+[Export(typeof(RemoveUnusedReferencesCommandHandler))]
 internal sealed class RemoveUnusedReferencesCommandHandler
 {
     private const string ProjectAssetsFilePropertyName = "ProjectAssetsFile";
@@ -37,7 +36,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
     private readonly VisualStudioWorkspace _workspace;
     private readonly IGlobalOptionService _globalOptions;
     private readonly IUIThreadOperationExecutor _threadOperationExecutor;
-    private IServiceProvider? _serviceProvider;
+    private readonly IServiceProvider _serviceProvider;
 
     private IReferenceCleanupService ReferenceCleanupService
         => _workspace.Services.GetRequiredService<IReferenceCleanupService>();
@@ -49,37 +48,24 @@ internal sealed class RemoveUnusedReferencesCommandHandler
         RemoveUnusedReferencesDialogProvider unusedReferenceDialogProvider,
         IUIThreadOperationExecutor threadOperationExecutor,
         VisualStudioWorkspace workspace,
-        IGlobalOptionService globalOptions)
+        IGlobalOptionService globalOptions,
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
     {
         _threadingContext = threadingContext;
         _unusedReferenceDialogProvider = unusedReferenceDialogProvider;
         _threadOperationExecutor = threadOperationExecutor;
         _workspace = workspace;
         _globalOptions = globalOptions;
+        _serviceProvider = serviceProvider;
     }
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(serviceProvider);
-
-        _serviceProvider = (IServiceProvider)serviceProvider;
-
-        // Hook up the "Remove Unused References" menu command for CPS based managed projects.
-        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
-        if (menuCommandService != null)
-        {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.RemoveUnusedReferences, Guids.RoslynGroupId, OnRemoveUnusedReferencesForSelectedProject, OnRemoveUnusedReferencesForSelectedProjectStatus);
-        }
-    }
-
-    private void OnRemoveUnusedReferencesForSelectedProjectStatus(object sender, EventArgs e)
+    internal void OnRemoveUnusedReferencesForSelectedProjectStatus(object sender, EventArgs e)
     {
         var command = (OleMenuCommand)sender;
 
-        // If the option hasn't been expicitly set then fallback to whether this is enabled as part of an experiment.
-        var isOptionEnabled = _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences)
-            ?? _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
+        // If the value is null it means user loads the value from previous build (at that moment it is in experiment)
+        // Since the feature is on by default now, just set it to true
+        var isOptionEnabled = _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences) ?? true;
 
         var isDotNetCpsProject = VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
             hierarchy.IsCapabilityMatch("CPS") &&
@@ -105,7 +91,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
         }
     }
 
-    private void OnRemoveUnusedReferencesForSelectedProject(object sender, EventArgs args)
+    internal void OnRemoveUnusedReferencesForSelectedProject(object sender, EventArgs args)
     {
         if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
         {
@@ -139,8 +125,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
             // If we are removing, then that is a change or if we are newly marking a reference as TreatAsUsed,
             // then that is a change.
             var referenceChanges = referenceUpdates
-                .Where(update => update.Action != UpdateAction.TreatAsUsed || !update.ReferenceInfo.TreatAsUsed)
-                .ToImmutableArray();
+                .WhereAsArray(update => update.Action != UpdateAction.TreatAsUsed || !update.ReferenceInfo.TreatAsUsed);
 
             // If there are no changes, then we can return
             if (referenceChanges.IsEmpty)
@@ -170,13 +155,13 @@ internal sealed class RemoveUnusedReferencesCommandHandler
     {
         if (!TryGetPropertyValue(projectHierarchy, ProjectAssetsFilePropertyName, out var projectAssetsFile))
         {
-            return (null, null, ImmutableArray<ReferenceUpdate>.Empty);
+            return (null, null, []);
         }
 
         var projectFilePath = projectHierarchy.TryGetProjectFilePath();
         if (string.IsNullOrEmpty(projectFilePath))
         {
-            return (null, null, ImmutableArray<ReferenceUpdate>.Empty);
+            return (null, null, []);
         }
 
         var solution = _workspace.CurrentSolution;
@@ -196,8 +181,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
         });
 
         var referenceUpdates = unusedReferences
-            .Select(reference => new ReferenceUpdate(reference.TreatAsUsed ? UpdateAction.TreatAsUsed : UpdateAction.Remove, reference))
-            .ToImmutableArray();
+            .SelectAsArray(reference => new ReferenceUpdate(reference.TreatAsUsed ? UpdateAction.TreatAsUsed : UpdateAction.Remove, reference));
 
         return referenceUpdates;
     }

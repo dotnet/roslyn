@@ -5,13 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
@@ -20,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpStructSnippetProvider() : AbstractCSharpTypeSnippetProvider<StructDeclarationSyntax>
+internal sealed class CSharpStructSnippetProvider()
+    : AbstractCSharpTypeSnippetProvider<StructDeclarationSyntax>(TypeKind.Struct)
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
@@ -40,12 +36,6 @@ internal sealed class CSharpStructSnippetProvider() : AbstractCSharpTypeSnippetP
 
     protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
 
-    protected override async Task<StructDeclarationSyntax> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
-    {
-        var generator = SyntaxGenerator.GetGenerator(document);
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-        var name = NameGenerator.GenerateUniqueName("MyStruct", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
-        return (StructDeclarationSyntax)generator.StructDeclaration(name);
-    }
+    protected override StructDeclarationSyntax TypeDeclaration(string name)
+        => SyntaxFactory.StructDeclaration(name);
 }

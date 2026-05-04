@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 proxy = CreateParameterCapture(
                             F.StateMachineField(
                                 paramType,
-                                Me.Method,
+                                parameter,
                                 GeneratedNames.MakeStateMachineParameterName(parameter.Name),
                                 Accessibility.Friend),
                             parameter)
@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              CreateParameterCapture(
                                                  Me.F.StateMachineField(
                                                      paramType,
-                                                     Me.Method,
+                                                     parameter,
                                                      GeneratedNames.MakeIteratorParameterProxyName(parameter.Name),
                                                      Accessibility.Friend),
                                                  parameter))

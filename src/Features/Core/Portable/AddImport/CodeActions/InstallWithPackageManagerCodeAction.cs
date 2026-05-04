@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -31,7 +29,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 new InstallWithPackageManagerCodeActionOperation(_installerService, _packageName)));
         }
 
-        private class InstallWithPackageManagerCodeActionOperation(
+        private sealed class InstallWithPackageManagerCodeActionOperation(
             IPackageInstallerService installerService,
             string packageName) : CodeActionOperation
         {

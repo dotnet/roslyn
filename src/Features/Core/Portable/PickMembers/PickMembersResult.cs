@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.PickMembers;
 
-internal class PickMembersResult
+internal sealed class PickMembersResult
 {
     public static readonly PickMembersResult Canceled = new(isCanceled: true);
 

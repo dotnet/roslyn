@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -16,6 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
+using static Microsoft.CodeAnalysis.Serialization.SerializerService.TestAccessor;
 using static TemporaryStorageService;
 
 internal partial class SerializerService
@@ -30,18 +33,18 @@ internal partial class SerializerService
     /// pretend that a <see cref="AnalyzerImageReference"/> is a <see cref="AnalyzerFileReference"/> during tests.
     /// </summary>
     private static readonly object s_analyzerImageReferenceMapGate = new();
-    private static IBidirectionalMap<AnalyzerImageReference, Guid> s_analyzerImageReferenceMap = BidirectionalMap<AnalyzerImageReference, Guid>.Empty;
+    private static IBidirectionalMap<AnalyzerReference, Guid> s_analyzerReferenceMap = BidirectionalMap<AnalyzerReference, Guid>.Empty;
 
     private static bool TryGetAnalyzerImageReferenceGuid(AnalyzerImageReference imageReference, out Guid guid)
     {
         lock (s_analyzerImageReferenceMapGate)
-            return s_analyzerImageReferenceMap.TryGetValue(imageReference, out guid);
+            return s_analyzerReferenceMap.TryGetValue(imageReference, out guid);
     }
 
-    private static bool TryGetAnalyzerImageReferenceFromGuid(Guid guid, [NotNullWhen(true)] out AnalyzerImageReference? imageReference)
+    private static bool TryGetAnalyzerImageReferenceFromGuid(Guid guid, [NotNullWhen(true)] out AnalyzerReference? analyzerReference)
     {
         lock (s_analyzerImageReferenceMapGate)
-            return s_analyzerImageReferenceMap.TryGetKey(guid, out imageReference);
+            return s_analyzerReferenceMap.TryGetKey(guid, out analyzerReference);
     }
 
     private static Checksum CreateChecksum(MetadataReference reference)
@@ -54,20 +57,35 @@ internal partial class SerializerService
 
     protected virtual Checksum CreateChecksum(AnalyzerReference reference)
     {
+#if NET
+        // If we're in the oop side and we're being asked to produce our local checksum (so we can compare it to the
+        // host checksum), then we want to just defer to the underlying analyzer reference of our isolated reference.
+        // This underlying reference corresponds to the reference that the host has, and we do not want to make any
+        // changes as long as they're both in agreement.
+        if (reference is IsolatedAnalyzerFileReference { UnderlyingAnalyzerFileReference: var underlyingReference })
+            reference = underlyingReference;
+#endif
+
         using var stream = SerializableBytes.CreateWritableStream();
 
         using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             switch (reference)
             {
-                case AnalyzerFileReference file:
-                    writer.WriteString(file.FullPath);
-                    writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(file));
+                case AnalyzerFileReference fileReference:
+                    writer.WriteString(fileReference.FullPath);
+                    writer.WriteGuid(IsolatedAnalyzerReferenceSet.TryGetFileReferenceMvid(fileReference.FullPath));
                     break;
 
                 case AnalyzerImageReference analyzerImageReference:
                     Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
                     writer.WriteGuid(guid);
+                    break;
+
+                case IAnalyzerReferenceWithGuid analyzerReferenceWithGuid:
+                    lock (s_analyzerImageReferenceMapGate)
+                        s_analyzerReferenceMap = s_analyzerReferenceMap.Add(reference, analyzerReferenceWithGuid.Guid);
+                    writer.WriteGuid(analyzerReferenceWithGuid.Guid);
                     break;
 
                 default:
@@ -109,11 +127,11 @@ internal partial class SerializerService
     {
         switch (reference)
         {
-            case AnalyzerFileReference file:
+            case AnalyzerFileReference fileReference:
                 writer.WriteString(nameof(AnalyzerFileReference));
-                writer.WriteString(file.FullPath);
+                writer.WriteString(fileReference.FullPath);
 
-                // Note: it is intentional that we are not writing the MVID of the analyzer file reference over (even
+                // Note: it is intentional that we are not writing the MVID of the analyzer file reference over in (even
                 // though we mixed it into the checksum).  We don't actually need the data on the other side as it will
                 // be read out from the file itself.  So the flow is as follows when an analyzer-file-reference changes:
                 //
@@ -150,8 +168,7 @@ internal partial class SerializerService
         switch (reader.ReadString())
         {
             case nameof(AnalyzerFileReference):
-                var fullPath = reader.ReadRequiredString();
-                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.SharedShadowCopyLoader);
+                return GetOrCreateAnalyzerFileReference(reader.ReadRequiredString());
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();
@@ -161,6 +178,14 @@ internal partial class SerializerService
             case var type:
                 throw ExceptionUtilities.UnexpectedValue(type);
         }
+    }
+
+    protected virtual AnalyzerFileReference GetOrCreateAnalyzerFileReference(string filePath)
+    {
+        // Rehydrate the analyzer file reference with the simple shared shadow copy loader.  Note: we won't
+        // actually use this instance we create.  Instead, the caller will use create an IsolatedAssemblyReferenceSet
+        // from these to ensure that all the types can be safely loaded into their own ALC.
+        return new AnalyzerFileReference(filePath, _analyzerLoaderProvider.SharedShadowCopyLoader);
     }
 
     protected static void WritePortableExecutableReferenceHeaderTo(
@@ -286,7 +311,7 @@ internal partial class SerializerService
         // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
         // it will go with simpler approach
         var documentProvider = filePath != null && _documentationService != null ?
-            _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
+            _documentationService.GetDocumentationProvider(filePath) : DocumentationProvider.Default;
 
         return new SerializedPortableExecutableReference(
             properties, filePath, metadata, storageHandles, documentProvider);
@@ -359,7 +384,7 @@ internal partial class SerializerService
         return true;
     }
 
-    private (Metadata metadata, ImmutableArray<TemporaryStorageStreamHandle> storageHandles)? TryReadMetadataFrom(
+    private (Metadata metadata, ImmutableArray<ITemporaryStorageStreamHandle> storageHandles)? TryReadMetadataFrom(
         ObjectReader reader, SerializationKinds kind)
     {
         var imageKind = reader.ReadInt32();
@@ -375,7 +400,7 @@ internal partial class SerializerService
             var count = reader.ReadInt32();
 
             var allMetadata = new FixedSizeArrayBuilder<ModuleMetadata>(count);
-            var allHandles = new FixedSizeArrayBuilder<TemporaryStorageStreamHandle>(count);
+            var allHandles = new FixedSizeArrayBuilder<ITemporaryStorageStreamHandle>(count);
 
             for (var i = 0; i < count; i++)
             {
@@ -399,7 +424,7 @@ internal partial class SerializerService
         }
     }
 
-    private (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFrom(
+    private (ModuleMetadata metadata, ITemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFrom(
         ObjectReader reader, SerializationKinds kind)
     {
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
@@ -408,7 +433,7 @@ internal partial class SerializerService
             ? ReadModuleMetadataFromBits()
             : ReadModuleMetadataFromMemoryMappedFile();
 
-        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromMemoryMappedFile()
+        (ModuleMetadata metadata, ITemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromMemoryMappedFile()
         {
             // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
             // will not be released by the host.
@@ -417,7 +442,7 @@ internal partial class SerializerService
             return ReadModuleMetadataFromStorage(storageHandle);
         }
 
-        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromBits()
+        (ModuleMetadata metadata, ITemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromBits()
         {
             // Host is sending us all the data as bytes.  Take that and write that out to a memory mapped file on the
             // server side so that we can refer to this data uniformly.
@@ -425,32 +450,78 @@ internal partial class SerializerService
             CopyByteArrayToStream(reader, stream);
 
             var length = stream.Length;
-            var storageHandle = _storageService.Value.WriteToTemporaryStorage(stream);
+            var storageHandle = _storageService.Value.WriteToTemporaryStorage(stream, CancellationToken.None);
             Contract.ThrowIfTrue(length != storageHandle.Identifier.Size);
             return ReadModuleMetadataFromStorage(storageHandle);
         }
 
-        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromStorage(
-            TemporaryStorageStreamHandle storageHandle)
+        (ModuleMetadata metadata, ITemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromStorage(
+            ITemporaryStorageStreamHandle storageHandle)
         {
             // Now read in the module data using that identifier.  This will either be reading from the host's memory if
             // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
             // sent us the full contents.
             //
-            // The ITemporaryStorageStreamHandle should have given us an UnmanagedMemoryStream
-            // since this only runs on Windows for VS.
-            var unmanagedStream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage();
-            Contract.ThrowIfFalse(storageHandle.Identifier.Size == unmanagedStream.Length);
-
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
-            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
-            // the metadata.
-            unsafe
+            var stream = storageHandle.ReadFromTemporaryStorage();
+            if (stream is UnmanagedMemoryStream unmanagedStream)
             {
-                var metadata = ModuleMetadata.CreateFromMetadata(
-                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
-                return (metadata, storageHandle);
+                Contract.ThrowIfFalse(storageHandle.Identifier.Size == unmanagedStream.Length);
+
+                // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+                // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+                // the metadata.
+                unsafe
+                {
+                    var metadata = ModuleMetadata.CreateFromMetadata(
+                        (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
+                    return (metadata, storageHandle);
+                }
             }
+
+            if (stream is MemoryStream memoryStream)
+            {
+                Contract.ThrowIfFalse(storageHandle.Identifier.Size == memoryStream.Length);
+
+                // The serialized bytes are raw CLI metadata (from MetadataReader.MetadataPointer), not a PE file.
+                // We must use CreateFromMetadata (pointer-based) rather than CreateFromImage (PE-based).  Allocate
+                // unmanaged memory and copy the data there to avoid pinning managed arrays (which causes GC
+                // fragmentation).
+                var length = (int)memoryStream.Length;
+                var unmanagedMemory = Marshal.AllocHGlobal(length);
+
+                unsafe
+                {
+                    var unmanagedSpan = new Span<byte>((void*)unmanagedMemory, length);
+                    CopyMemoryStreamToSpan(memoryStream, unmanagedSpan);
+                    memoryStream.Dispose();
+
+                    var metadata = ModuleMetadata.CreateFromMetadata(
+                        unmanagedMemory,
+                        length,
+                        () => Marshal.FreeHGlobal(unmanagedMemory));
+                    return (metadata, storageHandle);
+                }
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(stream.GetType());
+        }
+
+        unsafe void CopyMemoryStreamToSpan(MemoryStream stream, Span<byte> span)
+        {
+            Debug.Assert(stream.Length == span.Length);
+
+#if NET
+            stream.ReadExactly(span);
+#else
+            if (stream.TryGetBuffer(out var segment))
+            {
+                segment.AsSpan(0, (int)stream.Length).CopyTo(span);
+            }
+            else
+            {
+                stream.ToArray().AsSpan().CopyTo(span);
+            }
+#endif
         }
     }
 
@@ -472,12 +543,6 @@ internal partial class SerializerService
         writer.WriteSpan(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
     }
 
-    private static void WriteUnresolvedAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
-    {
-        writer.WriteString(nameof(UnresolvedAnalyzerReference));
-        writer.WriteString(reference.FullPath);
-    }
-
     private static Metadata? TryGetMetadata(PortableExecutableReference reference)
     {
         try
@@ -489,20 +554,6 @@ internal partial class SerializerService
             // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
             // case, rather than crashing, we will handle it gracefully.
             return null;
-        }
-    }
-
-    private static Guid TryGetAnalyzerFileReferenceMvid(AnalyzerFileReference file)
-    {
-        try
-        {
-            return AssemblyUtilities.ReadMvid(file.FullPath);
-        }
-        catch
-        {
-            // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
-            // case, rather than crashing, we will handle it gracefully.
-            return Guid.Empty;
         }
     }
 
@@ -545,9 +596,23 @@ internal partial class SerializerService
         {
             lock (s_analyzerImageReferenceMapGate)
             {
-                if (!s_analyzerImageReferenceMap.ContainsKey(analyzerImageReference))
-                    s_analyzerImageReferenceMap = s_analyzerImageReferenceMap.Add(analyzerImageReference, Guid.NewGuid());
+                if (!s_analyzerReferenceMap.ContainsKey(analyzerImageReference))
+                    s_analyzerReferenceMap = s_analyzerReferenceMap.Add(analyzerImageReference, Guid.NewGuid());
             }
+        }
+
+        public static void AddAnalyzerImageReferences(IReadOnlyList<AnalyzerReference> analyzerReferences)
+        {
+            foreach (var analyzer in analyzerReferences)
+            {
+                if (analyzer is AnalyzerImageReference analyzerImageReference)
+                    AddAnalyzerImageReference(analyzerImageReference);
+            }
+        }
+
+        public interface IAnalyzerReferenceWithGuid
+        {
+            Guid Guid { get; }
         }
     }
 }

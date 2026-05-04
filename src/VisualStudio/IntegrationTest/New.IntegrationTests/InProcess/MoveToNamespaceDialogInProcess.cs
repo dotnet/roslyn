@@ -8,17 +8,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class MoveToNamespaceDialogInProcess
+internal sealed partial class MoveToNamespaceDialogInProcess
 {
     private async Task<MoveToNamespaceDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {
@@ -31,7 +32,7 @@ internal partial class MoveToNamespaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await buttonAccessor(dialog).SimulateClickAsync(JoinableTaskFactory));
     }
@@ -92,7 +93,7 @@ internal partial class MoveToNamespaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         var success = await dialog.GetTestAccessor().NamespaceBox.SimulateSelectItemAsync(JoinableTaskFactory, @namespace, mustExist: false, cancellationToken);
         Contract.ThrowIfFalse(success);

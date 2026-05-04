@@ -16,10 +16,6 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
     where TSimpleNameSyntax : TExpressionSyntax
     where TExpressionSyntax : SyntaxNode
 {
-    protected AbstractGenerateMemberService()
-    {
-    }
-
     protected static readonly ISet<TypeKind> EnumType = new HashSet<TypeKind> { TypeKind.Enum };
     protected static readonly ISet<TypeKind> ClassInterfaceModuleStructTypes = new HashSet<TypeKind>
     {
@@ -64,8 +60,13 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
         TryDetermineTypeToGenerateInWorker(
             document, containingType, simpleNameOrMemberAccessExpression, cancellationToken, out typeToGenerateIn, out isStatic, out isColorColorCase);
 
-        typeToGenerateIn = typeToGenerateIn?.OriginalDefinition;
+        if (typeToGenerateIn.IsNullable(out var underlyingType) &&
+            underlyingType is INamedTypeSymbol underlyingNamedType)
+        {
+            typeToGenerateIn = underlyingNamedType;
+        }
 
+        typeToGenerateIn = typeToGenerateIn?.OriginalDefinition;
         return typeToGenerateIn != null;
     }
 
@@ -96,11 +97,8 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
                 DetermineTypeToGenerateInWorker(
                     semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, out isColorColorCase, cancellationToken);
             }
-
-            return;
         }
-
-        if (syntaxFacts.IsConditionalAccessExpression(expression))
+        else if (syntaxFacts.IsConditionalAccessExpression(expression))
         {
             var beforeDotExpression = syntaxFacts.GetExpressionOfConditionalAccessExpression(expression);
 
@@ -108,17 +106,9 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
             {
                 DetermineTypeToGenerateInWorker(
                     semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, out isColorColorCase, cancellationToken);
-                if (typeToGenerateIn.IsNullable(out var underlyingType) &&
-                    underlyingType is INamedTypeSymbol underlyingNamedType)
-                {
-                    typeToGenerateIn = underlyingNamedType;
-                }
             }
-
-            return;
         }
-
-        if (syntaxFacts.IsPointerMemberAccessExpression(expression))
+        else if (syntaxFacts.IsPointerMemberAccessExpression(expression))
         {
             var beforeArrowExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(expression);
             if (beforeArrowExpression != null)
@@ -128,14 +118,10 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
                 if (typeInfo.Type is IPointerTypeSymbol pointerType)
                 {
                     typeToGenerateIn = pointerType.PointedAtType as INamedTypeSymbol;
-                    isStatic = false;
                 }
             }
-
-            return;
         }
-
-        if (syntaxFacts.IsAttributeNamedArgumentIdentifier(expression))
+        else if (syntaxFacts.IsAttributeNamedArgumentIdentifier(expression))
         {
             var attributeNode = expression.GetAncestors().FirstOrDefault(syntaxFacts.IsAttribute);
             Contract.ThrowIfNull(attributeNode);
@@ -144,16 +130,11 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
             var attributeType = semanticModel.GetTypeInfo(attributeName, cancellationToken);
 
             typeToGenerateIn = attributeType.Type as INamedTypeSymbol;
-            isStatic = false;
-            return;
         }
-
-        if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(
+        else if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(
                 expression, out var initializedObject))
         {
             typeToGenerateIn = semanticModel.GetTypeInfo(initializedObject, cancellationToken).Type as INamedTypeSymbol;
-            isStatic = false;
-            return;
         }
         else if (syntaxFacts.IsNameOfSubpattern(expression))
         {
@@ -164,15 +145,38 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
                 // something like: { [|X|]: int i } or like: Blah { [|X|]: int i }
                 var inferenceService = semanticDocument.Document.GetRequiredLanguageService<ITypeInferenceService>();
                 typeToGenerateIn = inferenceService.InferType(semanticModel, propertyPatternClause, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
-
-                isStatic = false;
-                return;
             }
         }
+        else if (syntaxFacts.IsMemberBindingExpression(expression))
+        {
+            var target = syntaxFacts.GetTargetOfMemberBinding(expression);
 
-        // Generating into the containing type.
-        typeToGenerateIn = containingType;
-        isStatic = syntaxFacts.IsInStaticContext(expression);
+            if (target != null)
+            {
+                typeToGenerateIn = semanticModel.GetTypeInfo(target, cancellationToken).Type as INamedTypeSymbol;
+            }
+        }
+        else
+        {
+            // Generating into the containing type.
+            typeToGenerateIn = containingType;
+            isStatic = IsInStaticContext();
+        }
+
+        bool IsInStaticContext()
+        {
+            if (syntaxFacts.IsInStaticContext(expression))
+                return true;
+
+            // If the expression is used in an '&' operator, the method must be static.
+            if (expression.Parent?.RawKind == syntaxFacts.SyntaxKinds.AddressOfExpression &&
+                expression.Language == LanguageNames.CSharp)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     private static void DetermineTypeToGenerateInWorker(

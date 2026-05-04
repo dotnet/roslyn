@@ -117,20 +117,18 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
     private IEditAndContinueService GetLocalService()
         => services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
-    public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
+    public async ValueTask<DebuggingSessionProxy?> StartDebuggingSessionAsync(
         Solution solution,
         IManagedHotReloadService debuggerService,
         IPdbMatchingSourceTextProvider sourceTextProvider,
-        ImmutableArray<DocumentId> captureMatchingDocuments,
-        bool captureAllMatchingDocuments,
         bool reportDiagnostics,
         CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
         if (client == null)
         {
-            var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
-            return new RemoteDebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
+            var sessionId = GetLocalService().StartDebuggingSession(solution, debuggerService, sourceTextProvider, reportDiagnostics);
+            return new DebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
         }
 
         // need to keep the providers alive until the session ends:
@@ -139,12 +137,12 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
 
         var sessionIdOpt = await connection.TryInvokeAsync(
             solution,
-            async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
+            async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, reportDiagnostics, cancellationToken).ConfigureAwait(false),
             cancellationToken).ConfigureAwait(false);
 
         if (sessionIdOpt.HasValue)
         {
-            return new RemoteDebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
+            return new DebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
         }
 
         connection.Dispose();
@@ -163,7 +161,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         if (client == null)
         {
             var diagnostics = await GetLocalService().GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-            return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(document.Project.Solution, diagnostic, document.Project));
+            return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, document));
         }
 
         var diagnosticData = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DiagnosticData>>(

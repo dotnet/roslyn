@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// <summary>
 /// Represents a set of transformations that can be applied to a piece of code.
 /// </summary>
-internal class CodeRefactoring
+internal sealed class CodeRefactoring
 {
     public CodeRefactoringProvider Provider { get; }
 

@@ -28,14 +28,18 @@ public class CSharpNavigateTo : AbstractEditorTest
         await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
 
         var project = ProjectName;
-        await TestServices.SolutionExplorer.AddFileAsync(project, "test1.cs", open: false, contents: @"
-class FirstClass
-{
-    void FirstMethod() { }
-}", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddFileAsync(project, "test1.cs", open: false, contents: """
 
-        await TestServices.SolutionExplorer.AddFileAsync(project, "test2.cs", open: true, contents: @"
-", cancellationToken: HangMitigatingCancellationToken);
+            class FirstClass
+            {
+                void FirstMethod() { }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
+
+        await TestServices.SolutionExplorer.AddFileAsync(project, "test2.cs", open: true, contents: """
+
+
+            """, cancellationToken: HangMitigatingCancellationToken);
 
         await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
         await TestServices.Input.SendToNavigateToAsync(["FirstMethod", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);

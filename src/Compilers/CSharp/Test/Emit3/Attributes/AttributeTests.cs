@@ -4879,12 +4879,14 @@ class Program
         public void AttributeArgumentAsEnumFromMetadata()
         {
             var metadataStream1 = CSharpCompilation.Create("bar.dll",
+                options: TestOptions.DebugDll,
                 references: new[] { MscorlibRef },
                 syntaxTrees: new[] { Parse("public enum Bar { Baz }") }).EmitToStream(options: new EmitOptions(metadataOnly: true));
 
             var ref1 = MetadataReference.CreateFromStream(metadataStream1);
 
             var metadataStream2 = CSharpCompilation.Create("goo.dll", references: new[] { MscorlibRef, ref1 },
+                options: TestOptions.DebugDll,
                 syntaxTrees: new[] {
                     SyntaxFactory.ParseSyntaxTree(
                         "public class Ca : System.Attribute { public Ca(object o) { } } " +
@@ -10170,7 +10172,7 @@ class C
     unsafe static D M1() => new D(F);
     static D M2() => new D(F);
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (7,35): warning CS0612: 'C.F()' is obsolete
                 //     unsafe static D M1() => new D(F);
@@ -10179,6 +10181,21 @@ class C
                 //     static D M2() => new D(F);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(8, 28)
             );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (7,35): warning CS0612: 'C.F()' is obsolete
+                //     unsafe static D M1() => new D(F);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(7, 35),
+                // (8,28): warning CS0612: 'C.F()' is obsolete
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(8, 28),
+            };
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -10208,7 +10225,7 @@ namespace System.Runtime.InteropServices
         public string EntryPoint;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (8,35): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
                 //     unsafe static D M1() => new D(F);
@@ -10217,6 +10234,21 @@ namespace System.Runtime.InteropServices
                 //     static D M2() => new D(F);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(9, 28)
             );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (8,35): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //     unsafe static D M1() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "F").WithArguments("C.F()").WithLocation(8, 35),
+                // (9,28): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "F").WithArguments("C.F()").WithLocation(9, 28),
+            };
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -10831,7 +10863,7 @@ class C2 { }
 [Attr<TypedReference>] // 3
 class C3 { }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [Attr<int*>] // 1
@@ -10848,6 +10880,22 @@ class C3 { }
                 // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
                 // [Attr<TypedReference>] // 3
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (5,7): error CS0306: The type 'int*' may not be used as a type argument
+                // [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(5, 7),
+                // (8,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                // [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(8, 7),
+                // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
+                // [Attr<TypedReference>] // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7),
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -10892,11 +10940,16 @@ class Attr<T> : Attribute { }
 [Attr<int*[]>] // 1
 class C1 { }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [Attr<int*[]>] // 1
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
@@ -11573,11 +11626,16 @@ class A<T> : System.Attribute
 {
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (2,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<int*[]>] // 1
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 4));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68370")]
@@ -11646,6 +11704,106 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'I
             Assert.Equal("G = 0 switch { _ => 1 }", thirdArgument.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(thirdArgument.Expression).Type.ToTestDisplayString());
         }
+
+        [Fact]
+        public void MetadataUpdateDeletedAttribute_ErrorWhenManuallyApplied()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[assembly: MetadataUpdateDeleted]
+[module: MetadataUpdateDeleted]
+
+[MetadataUpdateDeleted] class TestClass<[MetadataUpdateDeleted] T>
+{
+    [MetadataUpdateDeleted] public TestClass()
+    {
+        field = 1;
+        Event?.Invoke();
+    }
+
+    [MetadataUpdateDeleted] public int field;
+    [MetadataUpdateDeleted] public int Property
+    {
+        [MetadataUpdateDeleted] get;
+        [MetadataUpdateDeleted] set;
+    }
+    [MetadataUpdateDeleted] public int this[int a] { get => a; }
+    [MetadataUpdateDeleted] [return: MetadataUpdateDeleted] public int Method(
+        [MetadataUpdateDeleted] int x) => x;
+
+    [MetadataUpdateDeleted] public event Action Event;
+    [MetadataUpdateDeleted] public event Action Event2
+    {
+        [MetadataUpdateDeleted] add {}
+        [MetadataUpdateDeleted] remove {}
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
+    public sealed class MetadataUpdateDeletedAttribute : Attribute
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,12): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                // [assembly: MetadataUpdateDeleted]
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(5, 12),
+                // (6,10): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                // [module: MetadataUpdateDeleted]
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(6, 10),
+                // (8,2): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                // [MetadataUpdateDeleted] class TestClass<[MetadataUpdateDeleted] T>
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(8, 2),
+                // (8,42): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                // [MetadataUpdateDeleted] class TestClass<[MetadataUpdateDeleted] T>
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(8, 42),
+                // (10,6): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //     [MetadataUpdateDeleted] public TestClass()
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(10, 6),
+                // (16,6): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //     [MetadataUpdateDeleted] public int field;
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(16, 6),
+                // (17,6): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //     [MetadataUpdateDeleted] public int Property
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(17, 6),
+                // (19,10): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //         [MetadataUpdateDeleted] get;
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(19, 10),
+                // (20,10): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //         [MetadataUpdateDeleted] set;
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(20, 10),
+                // (22,6): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //     [MetadataUpdateDeleted] public int this[int a] { get => a; }
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(22, 6),
+                // (23,6): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //     [MetadataUpdateDeleted] [return: MetadataUpdateDeleted] public int Method(
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(23, 6),
+                // (23,38): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //     [MetadataUpdateDeleted] [return: MetadataUpdateDeleted] public int Method(
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(23, 38),
+                // (24,10): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //         [MetadataUpdateDeleted] int x) => x;
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(24, 10),
+                // (26,6): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //     [MetadataUpdateDeleted] public event Action Event;
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(26, 6),
+                // (27,6): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //     [MetadataUpdateDeleted] public event Action Event2
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(27, 6),
+                // (29,10): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //         [MetadataUpdateDeleted] add {}
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(29, 10),
+                // (30,10): error CS9331: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+                //         [MetadataUpdateDeleted] remove {}
+                Diagnostic(ErrorCode.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(30, 10));
+        }
+
         #endregion
     }
 }

@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
@@ -25,15 +26,11 @@ internal static class ImplementHelpers
 
         var fields = namedType.GetMembers()
             .OfType<IFieldSymbol>()
-            .Where(f => !f.IsImplicitlyDeclared)
-            .Where(f => includeMemberType(f.Type))
-            .ToImmutableArray();
+            .WhereAsArray(f => !f.IsImplicitlyDeclared && includeMemberType(f.Type));
 
         var properties = namedType.GetMembers()
             .OfType<IPropertySymbol>()
-            .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0 && p.GetMethod != null)
-            .Where(p => includeMemberType(p.Type))
-            .ToImmutableArray();
+            .WhereAsArray(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0 && p.GetMethod != null && includeMemberType(p.Type));
 
         var parameters = GetNonCapturedPrimaryConstructorParameters(fields, properties);
 
@@ -116,7 +113,8 @@ internal static class ImplementHelpers
         }
     }
 
-    public static bool IsLessAccessibleThan(ISymbol? first, INamedTypeSymbol second)
+    public static bool ContainsTypeLessAccessibleThan(
+        ISymbol? first, INamedTypeSymbol second, bool supportsImplicitImplementationOfNonPublicInterfaceMembers)
     {
         if (first is null)
             return false;
@@ -127,7 +125,7 @@ internal static class ImplementHelpers
             return false;
         }
 
-        if (first.DeclaredAccessibility < second.DeclaredAccessibility)
+        if (!supportsImplicitImplementationOfNonPublicInterfaceMembers && first.DeclaredAccessibility < second.DeclaredAccessibility)
             return true;
 
         switch (first)
@@ -136,10 +134,10 @@ internal static class ImplementHelpers
                 if (IsTypeLessAccessibleThanOtherType(propertySymbol.Type, second, []))
                     return true;
 
-                if (IsLessAccessibleThan(propertySymbol.GetMethod, second))
+                if (ContainsTypeLessAccessibleThan(propertySymbol.GetMethod, second, supportsImplicitImplementationOfNonPublicInterfaceMembers))
                     return true;
 
-                if (IsLessAccessibleThan(propertySymbol.SetMethod, second))
+                if (ContainsTypeLessAccessibleThan(propertySymbol.SetMethod, second, supportsImplicitImplementationOfNonPublicInterfaceMembers))
                     return true;
 
                 return false;
@@ -216,7 +214,8 @@ internal static class ImplementHelpers
         return false;
     }
 
-    public static bool ShouldImplementDisposePattern(Compilation compilation, IImplementInterfaceInfo state, bool explicitly)
+    public static bool ShouldImplementDisposePattern(
+        Compilation compilation, ImplementInterfaceInfo state, bool explicitly)
     {
         // Dispose pattern should be implemented only if -
         // 1. An interface named 'System.IDisposable' is unimplemented.

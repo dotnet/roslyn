@@ -107,7 +107,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 class Program
 {
-    #pragma warning disable CS1998
     static void Main()
     {
         var s = (<<arg>>);
@@ -197,7 +196,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         }
 
         [Fact]
-        public bool TasklikeA3() => VerifyTaskOverloads("f(async () => 3)",
+        public void TasklikeA3() => VerifyTaskOverloads("f(async () => 3)",
                                                         "f(Func<ValueTask<int>> lambda)",
                                                         null);
 

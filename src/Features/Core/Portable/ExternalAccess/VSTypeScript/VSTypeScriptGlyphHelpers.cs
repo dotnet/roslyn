@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
@@ -73,7 +70,10 @@ internal static class VSTypeScriptGlyphHelpers
             Glyph.ModulePrivate => VSTypeScriptGlyph.ModulePrivate,
             Glyph.ModuleInternal => VSTypeScriptGlyph.ModuleInternal,
             Glyph.OpenFolder => VSTypeScriptGlyph.OpenFolder,
-            Glyph.Operator => VSTypeScriptGlyph.Operator,
+            Glyph.OperatorPublic => VSTypeScriptGlyph.Operator,
+            Glyph.OperatorProtected => VSTypeScriptGlyph.Operator,
+            Glyph.OperatorPrivate => VSTypeScriptGlyph.Operator,
+            Glyph.OperatorInternal => VSTypeScriptGlyph.Operator,
             Glyph.Parameter => VSTypeScriptGlyph.Parameter,
             Glyph.PropertyPublic => VSTypeScriptGlyph.PropertyPublic,
             Glyph.PropertyProtected => VSTypeScriptGlyph.PropertyProtected,
@@ -157,7 +157,7 @@ internal static class VSTypeScriptGlyphHelpers
             VSTypeScriptGlyph.ModulePrivate => Glyph.ModulePrivate,
             VSTypeScriptGlyph.ModuleInternal => Glyph.ModuleInternal,
             VSTypeScriptGlyph.OpenFolder => Glyph.OpenFolder,
-            VSTypeScriptGlyph.Operator => Glyph.Operator,
+            VSTypeScriptGlyph.Operator => Glyph.OperatorPublic,
             VSTypeScriptGlyph.Parameter => Glyph.Parameter,
             VSTypeScriptGlyph.PropertyPublic => Glyph.PropertyPublic,
             VSTypeScriptGlyph.PropertyProtected => Glyph.PropertyProtected,

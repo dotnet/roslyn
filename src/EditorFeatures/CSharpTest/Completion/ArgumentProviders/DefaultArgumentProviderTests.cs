@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class DefaultArgumentProviderTests : AbstractCSharpArgumentProviderTests
+public sealed class DefaultArgumentProviderTests : AbstractCSharpArgumentProviderTests
 {
     internal override Type GetArgumentProviderType()
         => typeof(DefaultArgumentProvider);
@@ -20,19 +20,19 @@ public class DefaultArgumentProviderTests : AbstractCSharpArgumentProviderTests
     [InlineData("System.Collections.DictionaryEntry")]
     public async Task TestDefaultValueIsDefaultLiteral(string type)
     {
-        var markup = $@"
-class C
-{{
-    void Method()
-    {{
-        this.Target($$);
-    }}
+        var markup = $$"""
+            class C
+            {
+                void Method()
+                {
+                    this.Target($$);
+                }
 
-    void Target({type} arg)
-    {{
-    }}
-}}
-";
+                void Target({{type}} arg)
+                {
+                }
+            }
+            """;
 
         await VerifyDefaultValueAsync(markup, "default");
         await VerifyDefaultValueAsync(markup, expectedDefaultValue: "prior", previousDefaultValue: "prior");
@@ -46,19 +46,19 @@ class C
     [InlineData("System.Exception")]
     public async Task TestDefaultValueIsNullLiteral(string type)
     {
-        var markup = $@"
-class C
-{{
-    void Method()
-    {{
-        this.Target($$);
-    }}
+        var markup = $$"""
+            class C
+            {
+                void Method()
+                {
+                    this.Target($$);
+                }
 
-    void Target({type} arg)
-    {{
-    }}
-}}
-";
+                void Target({{type}} arg)
+                {
+                }
+            }
+            """;
 
         await VerifyDefaultValueAsync(markup, "null");
         await VerifyDefaultValueAsync(markup, expectedDefaultValue: "prior", previousDefaultValue: "prior");
@@ -93,19 +93,19 @@ class C
     [InlineData("System.UInt64", "0UL")]
     public async Task TestDefaultValueIsZero(string type, string literalZero)
     {
-        var markup = $@"
-class C
-{{
-    void Method()
-    {{
-        this.Target($$);
-    }}
+        var markup = $$"""
+            class C
+            {
+                void Method()
+                {
+                    this.Target($$);
+                }
 
-    void Target({type} arg)
-    {{
-    }}
-}}
-";
+                void Target({{type}} arg)
+                {
+                }
+            }
+            """;
 
         await VerifyDefaultValueAsync(markup, literalZero);
         await VerifyDefaultValueAsync(markup, expectedDefaultValue: "prior", previousDefaultValue: "prior");

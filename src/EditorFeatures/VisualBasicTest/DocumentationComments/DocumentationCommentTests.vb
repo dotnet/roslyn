@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.VisualStudio.Commanding
@@ -1195,6 +1194,171 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_Class_Collapsed()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True}
+            }
+
+            Const code = "
+''$$
+Class C
+End Class
+"
+            Const expected = "
+''' <summary>$$</summary>
+Class C
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_Method_Collapsed()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True}
+            }
+
+            Const code = "
+Class C
+    ''$$
+    Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>$$</summary>
+    Sub M()
+    End Sub
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_MethodWithParameters_Collapsed()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True}
+            }
+
+            Const code = "
+Class C
+    ''$$
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>$$</summary>
+    ''' <param name=""x""></param>
+    ''' <param name=""y""></param>
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_Property_Collapsed()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True}
+            }
+
+            Const code = "
+Class C
+    ''$$
+    Public Property P As Integer
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>$$</summary>
+    ''' <returns></returns>
+    Public Property P As Integer
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_MethodWithParameters_OnlySummary()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, True}
+            }
+
+            Const code = "
+Class C
+    ''$$
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>
+    ''' $$
+    ''' </summary>
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_MethodWithParameters_OnlySummaryAndSingleLine()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True},
+                {DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, True}
+            }
+
+            Const code = "
+Class C
+    ''$$
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>$$</summary>
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub PressingEnter_InsideSingleLineSummary_Expands()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True}
+            }
+
+            Const code = "
+''' <summary>$$</summary>
+Class C
+End Class
+"
+            Const expected = "
+''' <summary>
+''' $$</summary>
+Class C
+End Class
+"
+            VerifyPressingEnter(code, expected, globalOptions:=globalOptions)
         End Sub
 
         Friend Overrides Function CreateCommandHandler(workspace As EditorTestWorkspace) As ICommandHandler

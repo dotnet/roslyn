@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [Export, Shared]
-internal class ServerConfigurationFactory
+internal sealed class ServerConfigurationFactory
 {
     private readonly IGlobalOptionService _globalOptionService;
 
@@ -41,14 +41,38 @@ internal class ServerConfigurationFactory
     }
 }
 
-internal record class ServerConfiguration(
+internal sealed record class ServerConfiguration(
     bool LaunchDebugger,
-    LogLevel MinimumLogLevel,
-    string? StarredCompletionsPath,
+    LogConfiguration LogConfiguration,
     string? TelemetryLevel,
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,
     string? DevKitDependencyPath,
-    string? RazorSourceGenerator,
     string? RazorDesignTimePath,
-    string ExtensionLogDirectory);
+    string? CSharpDesignTimePath,
+    string? ServerPipeName,
+    bool UseStdIo,
+    string? ExtensionLogDirectory,
+    bool AutoLoadProjects,
+    SourceGeneratorExecutionPreference SourceGeneratorExecutionPreference,
+    int? ClientProcessId);
+
+internal sealed class LogConfiguration
+{
+    private int _currentLogLevel;
+
+    public LogConfiguration(LogLevel initialLogLevel)
+    {
+        _currentLogLevel = (int)(initialLogLevel);
+    }
+
+    public void UpdateLogLevel(LogLevel level)
+    {
+        Interlocked.Exchange(ref _currentLogLevel, (int)level);
+    }
+
+    public LogLevel GetLogLevel()
+    {
+        return (LogLevel)_currentLogLevel;
+    }
+}

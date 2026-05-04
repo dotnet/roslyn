@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename;
 
-internal class RenameRewriterParameters(
+internal sealed class RenameRewriterParameters(
     RenameAnnotation renamedSymbolDeclarationAnnotation,
     Document document,
     SemanticModel semanticModel,

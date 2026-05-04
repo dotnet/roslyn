@@ -15,13 +15,14 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
 internal abstract partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
-    private partial class State
+    private sealed partial class State
     {
         private readonly TService _service;
         private readonly SemanticDocument _document;
@@ -70,19 +71,14 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             _document = document;
         }
 
-        public static async Task<State> GenerateAsync(
+        public static async ValueTask<State> GenerateAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode interfaceNode,
             CancellationToken cancellationToken)
         {
             var state = new State(service, document);
-            if (!await state.TryInitializeAsync(interfaceNode, cancellationToken).ConfigureAwait(false))
-            {
-                return null;
-            }
-
-            return state;
+            return await state.TryInitializeAsync(interfaceNode, cancellationToken).ConfigureAwait(false) ? state : null;
         }
 
         public Accessibility DetermineMaximalAccessibility()
@@ -108,9 +104,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             return accessibility;
         }
 
-        private async Task<bool> TryInitializeAsync(
-            SyntaxNode node,
-            CancellationToken cancellationToken)
+        private async ValueTask<bool> TryInitializeAsync(
+            SyntaxNode node, CancellationToken cancellationToken)
         {
             if (_service.IsIdentifierNameGeneration(node))
             {
@@ -155,7 +150,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 return false;
             }
 
-            TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(
+            TypeToGenerateIn = await SymbolFinderInternal.FindSourceDefinitionAsync(
                 TypeToGenerateIn, _document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
             if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
@@ -165,13 +160,17 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
             IsContainedInUnsafeType = _service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
 
-            return CanGenerateLocal() || CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, cancellationToken);
+            var codeGenerationContext = new CodeGenerationContext(
+                contextLocation: IdentifierToken.GetLocation(),
+                allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
+
+            return CanGenerateLocal() || CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, codeGenerationContext, cancellationToken);
         }
 
         internal bool CanGeneratePropertyOrField()
         {
-            return ContainingType is { IsImplicitClass: false }
-                && ContainingType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
+            return this.TypeToGenerateIn is { IsImplicitClass: false }
+                && TypeToGenerateIn.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
         }
 
         internal bool CanGenerateLocal()
@@ -184,8 +183,10 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         {
             // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
             // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
+            // Don't offer to generate a parameter if we're inside an accessor (property/event/indexer get/set/add/remove).
             return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
-                && !IsInMemberContext && !IsConstant && !IsInSourceGeneratedDocument;
+                && !IsInMemberContext && !IsConstant && !IsInSourceGeneratedDocument
+                && !ContainingMethod.IsAccessor();
         }
 
         private bool TryInitializeExplicitInterface(
@@ -468,7 +469,9 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             // Substitute 'object' for all captured method type parameters.  Note: we may need to
             // do this for things like anonymous types, as well as captured type parameters that
             // aren't in scope in the destination type.
-            var capturedMethodTypeParameters = inferredType.GetReferencedMethodTypeParameters();
+            using var _1 = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var capturedMethodTypeParameters);
+            inferredType.AddReferencedMethodTypeParameters(capturedMethodTypeParameters);
+
             var mapping = capturedMethodTypeParameters.ToDictionary(tp => tp,
                 tp => compilation.ObjectType);
 
@@ -480,7 +483,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             var enclosingMethodSymbol = _document.SemanticModel.GetEnclosingSymbol<IMethodSymbol>(SimpleNameOrMemberAccessExpressionOpt.SpanStart, cancellationToken);
             if (enclosingMethodSymbol != null && enclosingMethodSymbol.TypeParameters != null && enclosingMethodSymbol.TypeParameters.Length != 0)
             {
-                using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var combinedTypeParameters);
+                using var _2 = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var combinedTypeParameters);
                 combinedTypeParameters.AddRange(availableTypeParameters);
                 combinedTypeParameters.AddRange(enclosingMethodSymbol.TypeParameters);
                 LocalType = inferredType.RemoveUnavailableTypeParameters(compilation, combinedTypeParameters);

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// APIs to return all the results at the end of the operation, as opposed to broadcasting
 /// the results as they are found.
 /// </summary>
-internal class StreamingProgressCollector(
+internal sealed class StreamingProgressCollector(
     IStreamingFindReferencesProgress underlyingProgress) : IStreamingFindReferencesProgress
 {
     private readonly object _gate = new();

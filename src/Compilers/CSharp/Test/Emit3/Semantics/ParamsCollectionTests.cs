@@ -20,15 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class ParamsCollectionTests : CompilingTestBase
     {
-        private const string ParamCollectionAttributeSource = @"
-namespace System.Runtime.CompilerServices
-{
-    public sealed class ParamCollectionAttribute : Attribute
-    {
-        public ParamCollectionAttribute() { }
-    }
-}
-";
+        private static string ParamCollectionAttributeSource => TestSources.ParamsCollectionAttribute;
 
         private static void VerifyParamsAndAttribute(ParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
         {
@@ -828,16 +820,16 @@ public class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (18,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (18,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(18, 9),
-                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(19, 9),
-                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(20, 9),
-                // (23,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (23,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(23, 29)
                 );
@@ -978,16 +970,16 @@ public class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(19, 9),
-                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(20, 9),
-                // (21,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (21,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(21, 9),
-                // (24,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (24,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(24, 29)
                 );
@@ -1076,16 +1068,16 @@ class Program
 
             // The error improvement is tracked by https://github.com/dotnet/roslyn/issues/71854
             comp.VerifyDiagnostics(
-                // (5,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (5,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(5, 9),
-                // (6,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (6,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(6, 9),
-                // (7,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (7,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(7, 9),
-                // (10,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (10,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //     static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(10, 22)
                 );
@@ -2741,10 +2733,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
-
-                    Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
                 }).VerifyDiagnostics(
                     // (7,72): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                     //         System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
@@ -2797,8 +2787,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Int64[] x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
+                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.Int64[] x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamArray: true);
                 }).VerifyDiagnostics(
                     // (5,50): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                     //         System.Action<long[]> l = (params long[] x) => {};
@@ -2943,10 +2933,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
-                    AssertEx.Equal("void Program.<Main>g__local|0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
-
-                    Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                    AssertEx.Equal("void Program.<Main>g__local|0_0(params System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
                 }).VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -2992,8 +2980,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
-                    AssertEx.Equal("void Program.<Main>g__local|0_0(System.Int64[] x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
+                    AssertEx.Equal("void Program.<Main>g__local|0_0(params System.Int64[] x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamArray: true);
                 }).VerifyDiagnostics();
         }
 
@@ -3078,7 +3066,7 @@ format:
   IL_006c:  ldloca.s   V_0
   IL_006e:  ldc.i4.2
   IL_006f:  call       ""System.ReadOnlySpan<CustomHandler> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<CustomHandler>, CustomHandler>(in <>y__InlineArray2<CustomHandler>, int)""
-  IL_0074:  call       ""void Program.<<Main>$>g__M|0_0(scoped System.ReadOnlySpan<CustomHandler>)""
+  IL_0074:  call       ""void Program.<<Main>$>g__M|0_0(params System.ReadOnlySpan<CustomHandler>)""
   IL_0079:  ret
 }
 ");
@@ -3193,7 +3181,7 @@ GetA
 
             // Note, the collection is created after the lexically previous argument is evaluated, 
             // but before the lexically following argument is evaluated. This differs from params
-            // array case, which is created right before the target methos is invoked, after all
+            // array case, which is created right before the target method is invoked, after all
             // arguments are evaluated in their lexical order, which can be observed in a unit-test
             // Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenTests.NamedParamsOptimizationAndParams002​
             verifier.VerifyIL("Program.Main", @"
@@ -4533,15 +4521,13 @@ class Program
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
                         VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
-                        // Note, no attributes on lambdas
-
                         MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                        AssertEx.Equal("void Program.<>c.<Main>b__0_0(scoped System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l1.Parameters.Last());
+                        AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_1");
-                        AssertEx.Equal("void Program.<>c.<Main>b__0_1(System.Int64[] a)", l2.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l2.Parameters.Last());
+                        AssertEx.Equal("void Program.<>c.<Main>b__0_1(params System.Int64[] a)", l2.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l2.Parameters.Last(), isParamArray: true);
 
                         if (attributeIsEmbedded)
                         {
@@ -4686,15 +4672,13 @@ class Program
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
                         VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
-                        // Note, no attributes on local functions
-
                         MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test1|0_0");
-                        AssertEx.Equal("void Program.<Main>g__Test1|0_0(scoped System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l1.Parameters.Last());
+                        AssertEx.Equal("void Program.<Main>g__Test1|0_0(params System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test2|0_1");
-                        AssertEx.Equal("void Program.<Main>g__Test2|0_1(System.Int64[] a)", l2.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l2.Parameters.Last());
+                        AssertEx.Equal("void Program.<Main>g__Test2|0_1(params System.Int64[] a)", l2.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l2.Parameters.Last(), isParamArray: true);
 
                         if (attributeIsEmbedded)
                         {
@@ -5108,8 +5092,8 @@ class C1 : IEnumerable<char>
 
         [Theory]
         [InlineData("System.ReadOnlySpan<int>", "System.Span<int>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Span<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Span<int?>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "System.Span<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Span<int?>", null)]
         [InlineData("System.ReadOnlySpan<object>", "System.Span<int>", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<int?>", "System.Span<int>", null)] // cannot convert int? to int
         [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<object>", null)]
@@ -5119,24 +5103,24 @@ class C1 : IEnumerable<char>
         [InlineData("System.Span<int>", "System.Span<int?>", null)]
         [InlineData("System.Span<object>", "System.Span<int?>", null)]
         [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", null)]
-        [InlineData("System.Span<int>", "int?[]", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IEnumerable<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyCollection<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyList<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.ICollection<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IList<int?>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<int>", "int?[]", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IEnumerable<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyCollection<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyList<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.ICollection<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IList<int?>", null)]
         [InlineData("System.Span<int?>", "int[]", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IEnumerable<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyCollection<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyList<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.ICollection<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IList<int>", null)] // cannot convert int? to int
-        [InlineData("System.ReadOnlySpan<int>", "object[]", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IEnumerable<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyCollection<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyList<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.ICollection<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IList<object>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "object[]", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IEnumerable<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyCollection<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyList<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.ICollection<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IList<object>", null)]
         [InlineData("System.ReadOnlySpan<object>", "int[]", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IEnumerable<int>", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyCollection<int>", null)] // cannot convert object to int
@@ -5146,6 +5130,16 @@ class C1 : IEnumerable<char>
         [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<System.Int32>")]
         [InlineData("int[]", "object[]", null)] // rule requires span
         [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", null)] // rule requires span
+        [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.List<byte>", null)]
+        [InlineData("System.Collections.Generic.List<int?>", "System.Collections.Generic.List<long>", null)]
+        [InlineData("System.Collections.Generic.List<int?>", "System.Collections.Generic.List<ulong>", null)]
+        [InlineData("System.Collections.Generic.List<short>", "System.Collections.Generic.List<long>", null)]
+        [InlineData("System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<byte>", null)]
+        [InlineData("int[]", "System.Collections.Generic.List<byte>", null)]
+        [InlineData("System.Collections.Generic.HashSet<short>", "System.Span<long>", null)]
+        [InlineData("System.Collections.Generic.HashSet<short>", "System.ReadOnlySpan<long>", null)]
+        [InlineData("System.Collections.Generic.HashSet<long>", "System.Span<short>", null)]
+        [InlineData("System.Collections.Generic.HashSet<long>", "System.ReadOnlySpan<short>", null)]
         public void BetterConversionFromExpression_01B_Empty(string type1, string type2, string expectedType) // This is a clone of a unit-test from CollectionExpressionTests.cs
         {
             string source = $$"""
@@ -5198,24 +5192,14 @@ class C1 : IEnumerable<char>
         [InlineData("System.ReadOnlySpan<int>", "System.Span<int>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<int>", "System.Span<object>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<int>", "System.Span<int?>", "System.ReadOnlySpan<System.Int32>")]
-
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Span<int>", "System.Span<System.Int32>")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.ReadOnlySpan<int?>", "System.Span<int>", "System.Span<System.Int32>")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
+        [InlineData("System.ReadOnlySpan<object>", "System.Span<int>", "System.Span<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int?>", "System.Span<int>", "System.Span<System.Int32>")]
         [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<object>", "System.ReadOnlySpan<System.Int32>")]
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
         [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<int?>", "System.ReadOnlySpan<System.Int32>")]
-        // Ambiguous for inline collection expression, but 'int?' is a better conversion target than 'object' in params case
         [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<int?>", "System.ReadOnlySpan<System.Nullable<System.Int32>>")]
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
         [InlineData("System.Span<int>", "System.Span<object>", "System.Span<System.Int32>")]
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
         [InlineData("System.Span<int>", "System.Span<int?>", "System.Span<System.Int32>")]
-        // Ambiguous for inline collection expression, but 'int?' is a better conversion target than 'object' in params case
         [InlineData("System.Span<object>", "System.Span<int?>", "System.Span<System.Nullable<System.Int32>>")]
-        // Ambiguous for inline collection expression, but 'long' is a better conversion target than 'object' in params case
         [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", "System.ReadOnlySpan<System.Int64>")]
 
         [InlineData("System.Span<int>", "int?[]", "System.Span<System.Int32>")]
@@ -5225,18 +5209,12 @@ class C1 : IEnumerable<char>
         [InlineData("System.Span<int>", "System.Collections.Generic.ICollection<int?>", "System.Span<System.Int32>")]
         [InlineData("System.Span<int>", "System.Collections.Generic.IList<int?>", "System.Span<System.Int32>")]
 
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
         [InlineData("System.Span<int?>", "int[]", "System.Int32[]")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.Span<int?>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.IEnumerable<System.Int32>")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyCollection<int>", "System.Collections.Generic.IReadOnlyCollection<System.Int32>")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyList<int>", "System.Collections.Generic.IReadOnlyList<System.Int32>")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.Span<int?>", "System.Collections.Generic.ICollection<int>", "System.Collections.Generic.ICollection<System.Int32>")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.Span<int?>", "System.Collections.Generic.IList<int>", "System.Collections.Generic.IList<System.Int32>")] // cannot convert int? to int
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.IEnumerable<System.Int32>")]
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyCollection<int>", "System.Collections.Generic.IReadOnlyCollection<System.Int32>")]
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyList<int>", "System.Collections.Generic.IReadOnlyList<System.Int32>")]
+        [InlineData("System.Span<int?>", "System.Collections.Generic.ICollection<int>", "System.Collections.Generic.ICollection<System.Int32>")]
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IList<int>", "System.Collections.Generic.IList<System.Int32>")]
 
         [InlineData("System.ReadOnlySpan<int>", "object[]", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IEnumerable<object>", "System.ReadOnlySpan<System.Int32>")]
@@ -5245,25 +5223,28 @@ class C1 : IEnumerable<char>
         [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.ICollection<object>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IList<object>", "System.ReadOnlySpan<System.Int32>")]
 
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "int[]", "System.Int32[]")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.IEnumerable<System.Int32>")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyCollection<int>", "System.Collections.Generic.IReadOnlyCollection<System.Int32>")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyList<int>", "System.Collections.Generic.IReadOnlyList<System.Int32>")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.ICollection<int>", "System.Collections.Generic.ICollection<System.Int32>")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IList<int>", "System.Collections.Generic.IList<System.Int32>")] // cannot convert object to int
+        [InlineData("System.ReadOnlySpan<object>", "int[]", "System.Int32[]")]
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.IEnumerable<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyCollection<int>", "System.Collections.Generic.IReadOnlyCollection<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyList<int>", "System.Collections.Generic.IReadOnlyList<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.ICollection<int>", "System.Collections.Generic.ICollection<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IList<int>", "System.Collections.Generic.IList<System.Int32>")]
 
         [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<System.Int32>")]
 
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("int[]", "object[]", "System.Int32[]")] // rule requires span
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", "System.Int32[]")] // rule requires span
+        [InlineData("int[]", "object[]", "System.Int32[]")]
+        [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", "System.Int32[]")]
+
+        [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.List<byte>", "System.Collections.Generic.List<System.Int32>")]
+        [InlineData("System.Collections.Generic.List<int?>", "System.Collections.Generic.List<long>", null)]
+        [InlineData("System.Collections.Generic.List<int?>", "System.Collections.Generic.List<ulong>", "System.Collections.Generic.List<System.Nullable<System.Int32>>")]
+        [InlineData("System.Collections.Generic.List<short>", "System.Collections.Generic.List<long>", "System.Collections.Generic.List<System.Int16>")]
+        [InlineData("System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<byte>", "System.Collections.Generic.IEnumerable<System.Int32>")]
+        [InlineData("int[]", "System.Collections.Generic.List<byte>", "System.Int32[]")]
+        [InlineData("System.Collections.Generic.HashSet<short>", "System.Span<long>", "System.Collections.Generic.HashSet<System.Int16>")]
+        [InlineData("System.Collections.Generic.HashSet<short>", "System.ReadOnlySpan<long>", "System.Collections.Generic.HashSet<System.Int16>")]
+        [InlineData("System.Collections.Generic.HashSet<long>", "System.Span<short>", "System.Span<System.Int16>")]
+        [InlineData("System.Collections.Generic.HashSet<long>", "System.ReadOnlySpan<short>", "System.ReadOnlySpan<System.Int16>")]
         public void BetterConversionFromExpression_01B_NotEmpty(string type1, string type2, string expectedType) // This is a clone of a unit-test from CollectionExpressionTests.cs
         {
             string source = $$"""
@@ -5307,6 +5288,104 @@ class C1 : IEnumerable<char>
 
             static string generateMethod(string methodName, string parameterType) =>
                 $"static Type {methodName}(params {parameterType} value) => typeof({parameterType});";
+
+            static string generateMethodSignature(string methodName, string parameterType) =>
+                $"Program.{methodName}(params {parameterType})";
+        }
+
+        [Theory, CombinatorialData]
+        public void BetterConversionFromExpression_01C(
+            [CombinatorialValues(
+                "System.ReadOnlySpan<string>",
+                "System.Span<string>",
+                "string[]",
+                "System.Collections.Generic.IEnumerable<string>",
+                "System.Collections.Generic.IReadOnlyList<string>",
+                "System.Collections.Generic.IReadOnlyCollection<string>",
+                "System.Collections.Generic.IList<string>",
+                "System.Collections.Generic.ICollection<string>"
+            )]
+            string stringType,
+            [CombinatorialValues(
+                "System.ReadOnlySpan<CustomHandler>",
+                "System.Span<CustomHandler>",
+                "CustomHandler[]",
+                "System.Collections.Generic.IEnumerable<CustomHandler>",
+                "System.Collections.Generic.IReadOnlyList<CustomHandler>",
+                "System.Collections.Generic.IReadOnlyCollection<CustomHandler>",
+                "System.Collections.Generic.IList<CustomHandler>",
+                "System.Collections.Generic.ICollection<CustomHandler>")]
+             string interpolatedType) // This is a clone of a unit-test from CollectionExpressionTests.cs
+        {
+            var testMethods = $$"""
+                partial class Program
+                {
+                    {{generateMethod("F1", stringType)}}
+                    {{generateMethod("F1", interpolatedType)}}
+                    {{generateMethod("F2", interpolatedType)}}
+                    {{generateMethod("F2", stringType)}}
+                }
+                """;
+
+            var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false, includeOneTimeHelpers: false);
+
+            string source1 = $$"""
+                var a = F1();
+                var b = F2();
+                var c = F1($"{1}", $"2", $"{3}");
+                var d = F2($"{1}", $"2", $"{3}");
+                """;
+            var comp = CreateCompilation(
+                [source1, testMethods, customHandler, CollectionExpressionTests.s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+
+            string f1InterpolatedSig = generateMethodSignature("F1", interpolatedType);
+            string f1StringSig = generateMethodSignature("F1", stringType);
+            string f2InterpolatedSig = generateMethodSignature("F2", interpolatedType);
+            string f2StringSig = generateMethodSignature("F2", stringType);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(IReadOnlyList<string>)' and 'Program.F1(IReadOnlyCollection<CustomHandler>)'
+                // var a = F1();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments(f1StringSig, f1InterpolatedSig).WithLocation(1, 9),
+                // (2,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(IReadOnlyCollection<CustomHandler>)' and 'Program.F2(IReadOnlyList<string>)'
+                // var b = F2();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments(f2InterpolatedSig, f2StringSig).WithLocation(2, 9),
+                // (3,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(string[])' and 'Program.F1(CustomHandler[])'
+                // var c = F1($"{1}", $"2", $"{3}");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments(f1StringSig, f1InterpolatedSig).WithLocation(3, 9),
+                // (4,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(CustomHandler[])' and 'Program.F2(string[])'
+                // var d = F2($"{1}", $"2", $"{3}");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments(f2InterpolatedSig, f2StringSig).WithLocation(4, 9)
+            );
+
+            var source2 = $$"""
+                using System;
+                var c = F1($"{1}", $"{2}", $"{3}");
+                Console.WriteLine(c.GetTypeName());
+                var d = F2($"{1}", $"{2}", $"{3}");
+                Console.WriteLine(d.GetTypeName());
+                var e = F1([$"1", $"2", $"3"]);
+                Console.WriteLine(e.GetTypeName());
+                var f = F2([$"1", $"2", $"3"]);
+                Console.WriteLine(f.GetTypeName());
+                """;
+
+            comp = CreateCompilation(
+                [source2, testMethods, customHandler, CollectionExpressionTests.s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+
+            string outputStringType = stringType.Replace("string", "System.String");
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: ExpectedOutput($"""
+                {interpolatedType}
+                {interpolatedType}
+                {outputStringType}
+                {outputStringType}
+                """));
+
+            static string generateMethod(string methodName, string parameterType) =>
+                $"static System.Type {methodName}(params {parameterType} value) => typeof({parameterType});";
 
             static string generateMethodSignature(string methodName, string parameterType) =>
                 $"Program.{methodName}(params {parameterType})";
@@ -5451,25 +5530,11 @@ class C1 : IEnumerable<char>
                     }
                 }
                 """;
+
+            // Both calls are ambiguous for collection expressions due to different betterness among arguments.
             CreateCompilation(
                 new[] { source, CollectionExpressionTests.s_collectionExtensionsWithSpan },
                 targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // Inline collection expression works in this case.
-                // For 'params' case it fails because:
-                //    - For the first argument, 'int[]' and 'Span<object>' -> neither is better
-                //    - For the second argument, 'int' and 'int' -> neither is better vs. 'int[]' and 'ReadOnlySpan<int>' -> ReadOnlySpan<int> for a collection expression 
-                // Parameters type sequences are different, tie-breaking rules do not apply.   
-
-                // 0.cs(10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(int[], params int[])' and 'Program.F1(Span<object>, params ReadOnlySpan<int>)'
-                //         F1([1], 2);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(int[], params int[])", "Program.F1(System.Span<object>, params System.ReadOnlySpan<int>)").WithLocation(10, 9),
-
-                // Inline collection expression works in this case.
-                // For 'params' case it fails because:
-                //    - For the first argument, 'object' and 'string' -> string
-                //    - For the second argument, 'string' and 'object' -> string (different direction) vs. 'string[]' and 'Span<object>' -> neither is better for a collection expression 
-                // Parameters type sequences are different, tie-breaking rules do not apply.   
-
                 // 0.cs(11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(object, params string[])' and 'Program.F2(string, params Span<object>)'
                 //         F2("3", "4");
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(object, params string[])", "Program.F2(string, params System.Span<object>)").WithLocation(11, 9)
@@ -5640,6 +5705,95 @@ string
                 }
                 """;
             CompileAndVerify(source, expectedOutput: "string[]");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73857")]
+        public void BetterConversionFromExpression_08C() // This is a clone of a unit-test from CollectionExpressionTests.cs
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void F2(params ReadOnlySpan<string> value) { Console.WriteLine("ReadOnlySpan<string>"); }
+                    static void F2(params ReadOnlySpan<object> value) { Console.WriteLine("ReadOnlySpan<object>"); }
+                    static void Main()
+                    {
+                        F2("a", "b");
+                    }
+                }
+                """;
+            CompileAndVerify(source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: ExpectedOutput("ReadOnlySpan<string>"));
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_09() // This is a clone of a unit-test from CollectionExpressionTests.cs
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void F2(params List<int> value) { Console.WriteLine("List<int>"); }
+                    static void F2(params List<byte> value) { Console.WriteLine("List<byte>"); }
+                    static void Main()
+                    {
+                        F2(1, (byte)2);
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(List<int>)' and 'Program.F2(List<byte>)'
+                //         F2([1, (byte)2]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(params System.Collections.Generic.List<int>)", "Program.F2(params System.Collections.Generic.List<byte>)").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_10() // This is a clone of a unit-test from CollectionExpressionTests.cs
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void F2(params List<int> value) { Console.WriteLine("List<int>"); }
+                    static void F2(params List<byte> value) { Console.WriteLine("List<byte>"); }
+                    static void Main()
+                    {
+                        F2((byte)1, (byte)2);
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: "List<byte>");
+        }
+
+        [Theory]
+        [InlineData("System.FormattableString")]
+        [InlineData("System.IFormattable")]
+        public void BetterConversionFromExpression_11(string formatType) // This is a clone of a unit-test from CollectionExpressionTests.cs
+        {
+            string source = $$"""
+                using System;
+                class Program
+                {
+                    static void F2(params ReadOnlySpan<string> value) { Console.WriteLine("ReadOnlySpan<string>"); }
+                    static void F2(params ReadOnlySpan<{{formatType}}> value) { Console.WriteLine("ReadOnlySpan<{{formatType}}>"); }
+                    static void Main()
+                    {
+                        F2($"{1}");
+                    }
+                }
+                """;
+
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular13,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: ExpectedOutput("ReadOnlySpan<string>"));
         }
 
         [Theory]
@@ -12800,9 +12954,9 @@ class Program
                 src,
                 "<>f__AnonymousDelegate0.Invoke",
                 "void <>f__AnonymousDelegate0.Invoke(params System.Collections.Generic.IEnumerable<System.Int64> arg)",
-                // (7,18): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
-                //         var x1 = Test1;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test1").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(7, 18)
+                // (11,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         void Test1(params IEnumerable<long> a) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> a").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(11, 20)
                 );
         }
 
@@ -13381,7 +13535,7 @@ class Program
 }
 """;
 
-            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseExe);
             comp4.VerifyEmitDiagnostics(
                 // (5,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Params.Test();
@@ -13393,6 +13547,11 @@ class Program
                 //         Params.Test(2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Params.Test(2, 3)").WithLocation(7, 9)
                 );
+
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
 
             string source5 = """
 class Program
@@ -13482,7 +13641,7 @@ class Program
 }
 """;
 
-            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseExe);
             comp4.VerifyEmitDiagnostics(
                 // (6,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Params.Test(1);
@@ -13494,6 +13653,11 @@ class Program
                 //         Params.Test(2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(7, 24)
                 );
+
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
 
             string source5 = """
 class Program
@@ -13706,18 +13870,9 @@ class Program
                 // (21,14): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([1]);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[1]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 14),
-                // (21,15): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
-                //         Test([1]);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "1").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 15),
                 // (22,14): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([2, 3]);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[2, 3]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 14),
-                // (22,15): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
-                //         Test([2, 3]);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "2").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 15),
-                // (22,18): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
-                //         Test([2, 3]);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "3").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 18)
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[2, 3]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 14)
                 );
         }
 
@@ -14025,15 +14180,15 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (44,9): error CS9223: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
+                // (44,9): error CS9223: Creation of params collection 'MyCollection2' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
                 //         Test();
-                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection3", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(44, 9),
-                // (45,9): error CS9223: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection2", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(44, 9),
+                // (45,9): error CS9223: Creation of params collection 'MyCollection2' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
                 //         Test(1);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection3", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(45, 9),
-                // (46,9): error CS9223: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection2", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(45, 9),
+                // (46,9): error CS9223: Creation of params collection 'MyCollection2' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
                 //         Test(2, 3);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection3", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(46, 9)
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection2", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(46, 9)
                 );
         }
 
@@ -16889,6 +17044,55 @@ class Program
   IL_004c:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void ScopedParams()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct S : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class C
+                {
+                    public static void M(scoped params S x)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (12,33): error CS9348: The 'params' modifier cannot immediately follow the 'scoped' modifier.
+                //     public static void M(scoped params S x)
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "params").WithArguments("params").WithLocation(12, 33));
+        }
+
+        [Fact]
+        public void ParamsScoped()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct S : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+                
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class C
+                {
+                    public static void M(params scoped S x)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics();
         }
     }
 }

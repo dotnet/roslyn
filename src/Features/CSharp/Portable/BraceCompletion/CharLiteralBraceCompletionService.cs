@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 [ExportBraceCompletionService(LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CharLiteralBraceCompletionService() : AbstractCSharpBraceCompletionService
+internal sealed class CharLiteralBraceCompletionService() : AbstractCSharpBraceCompletionService
 {
     protected override char OpeningBrace => SingleQuote.OpenCharacter;
 

@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis;
 
 using SecondaryReferencedSymbol = (int hashCode, ISymbol symbol, SolutionCompilationState.MetadataReferenceInfo referenceInfo);
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     internal readonly record struct MetadataReferenceInfo(MetadataReferenceProperties Properties, string? FilePath)
     {
@@ -80,7 +80,7 @@ internal partial class SolutionCompilationState
                 if (symbol == null)
                     continue;
 
-                secondarySymbols.Add((ReferenceEqualityComparer.GetHashCode(symbol), symbol, MetadataReferenceInfo.From(reference)));
+                secondarySymbols.Add((ReferenceEqualityComparer.Instance.GetHashCode(symbol), symbol, MetadataReferenceInfo.From(reference)));
             }
 
             // Sort all the secondary symbols by their hash.  This will allow us to easily binary search for them
@@ -116,7 +116,7 @@ internal partial class SolutionCompilationState
             {
                 var secondarySymbols = this.SecondaryReferencedSymbols;
 
-                var symbolHash = ReferenceEqualityComparer.GetHashCode(symbol);
+                var symbolHash = ReferenceEqualityComparer.Instance.GetHashCode(symbol);
 
                 // The secondary symbol array is sorted by the symbols' hash codes.  So do a binary search to find
                 // the location we should start looking at.

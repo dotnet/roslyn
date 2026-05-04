@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class LocalFunctionOrSourceMemberMethodSymbol : SourceMethodSymbolWithAttributes
+    internal abstract class LocalFunctionOrSourceMemberMethodSymbol : SourceMethodSymbol
     {
         private TypeWithAnnotations.Boxed? _lazyIteratorElementType;
 

@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -2125,7 +2124,7 @@ HandleAsAGeneralExpression:
                             End If
 
                         Case BoundKind.GroupTypeInferenceLambda
-                            lambdaReturnType = DirectCast(argument, GroupTypeInferenceLambda).InferLambdaReturnType(delegateParams)
+                            lambdaReturnType = DirectCast(argument, GroupTypeInferenceLambda).InferLambdaReturnType(delegateParams, Me.Diagnostic)
 
                         Case BoundKind.UnboundLambda
                             Dim unboundLambda = DirectCast(argument, UnboundLambda)

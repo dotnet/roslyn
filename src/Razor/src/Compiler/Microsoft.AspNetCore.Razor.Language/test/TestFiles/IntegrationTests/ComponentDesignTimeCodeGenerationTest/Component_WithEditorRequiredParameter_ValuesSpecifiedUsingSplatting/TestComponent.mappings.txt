@@ -1,0 +1,5 @@
+﻿Source Location: (54:0,54 [32] x:\dir\subdir\Test\TestComponent.cshtml)
+|new Dictionary<string, object>()|
+Generated Location: (1284:29,54 [32] )
+|new Dictionary<string, object>()|
+

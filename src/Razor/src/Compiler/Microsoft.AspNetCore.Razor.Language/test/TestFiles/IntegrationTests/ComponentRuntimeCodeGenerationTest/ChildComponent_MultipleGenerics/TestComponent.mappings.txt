@@ -1,0 +1,35 @@
+﻿Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (703:19,49 [11] )
+|MyComponent|
+
+Source Location: (20:0,20 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (799:22,0 [6] )
+|string|
+
+Source Location: (34:0,34 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|int|
+Generated Location: (955:30,0 [3] )
+|int|
+
+Source Location: (38:0,38 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Item|
+Generated Location: (1206:39,0 [4] )
+|Item|
+
+Source Location: (46:0,46 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|"hi"|
+Generated Location: (1451:47,0 [4] )
+|"hi"|
+
+Source Location: (77:1,22 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|context.ToLower()|
+Generated Location: (1836:57,25 [17] )
+|context.ToLower()|
+
+Source Location: (158:3,3 [29] x:\dir\subdir\Test\TestComponent.cshtml)
+|System.Math.Max(0, item.Item)|
+Generated Location: (2296:69,25 [29] )
+|System.Math.Max(0, item.Item)|
+

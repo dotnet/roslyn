@@ -4,6 +4,8 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using UIAutomationClient;
@@ -11,7 +13,7 @@ using AutomationElementIdentifiers = System.Windows.Automation.AutomationElement
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities;
 
-public class AutomationElementHelper
+public static class AutomationElementHelper
 {
     /// <summary>
     /// Finds the automation element by <paramref name="elementName"/> and clicks on it asynchronously. 
@@ -59,7 +61,7 @@ public class AutomationElementHelper
         return element;
     }
 
-    private class AutomationEventHandler : IUIAutomationEventHandler
+    private sealed class AutomationEventHandler : IUIAutomationEventHandler
     {
         private readonly Action<IUIAutomationElement, int> _action;
 

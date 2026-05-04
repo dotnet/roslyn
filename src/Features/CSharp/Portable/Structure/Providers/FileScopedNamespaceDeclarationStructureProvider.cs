@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class FileScopedNamespaceDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<FileScopedNamespaceDeclarationSyntax>
+internal sealed class FileScopedNamespaceDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<FileScopedNamespaceDeclarationSyntax>
 {
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,

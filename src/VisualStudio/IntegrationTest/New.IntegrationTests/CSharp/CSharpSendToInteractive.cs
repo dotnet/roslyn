@@ -26,35 +26,37 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
         var project = ProjectName;
         await TestServices.SolutionExplorer.AddProjectAsync(project, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp, HangMitigatingCancellationToken);
 
-        await TestServices.Editor.SetTextAsync(@"using System;
+        await TestServices.Editor.SetTextAsync("""
+            using System;
 
- namespace TestProj
- {
-     public class Program
-     {
-         public static void Main(string[] args)
-         {
-            /* 1 */int x = 1;/* 2 */
-            
-            /* 3 */int y = 2;
-            int z = 3;/* 4 */
-            
-            /* 5 */     string a = ""alpha"";
-            string b = ""x *= 4;            "";/* 6 */
+             namespace TestProj
+             {
+                 public class Program
+                 {
+                     public static void Main(string[] args)
+                     {
+                        /* 1 */int x = 1;/* 2 */
+                        
+                        /* 3 */int y = 2;
+                        int z = 3;/* 4 */
+                        
+                        /* 5 */     string a = "alpha";
+                        string b = "x *= 4;            ";/* 6 */
 
-            /* 7 */int j = 7;/* 8 */
-        }
-    }
+                        /* 7 */int j = 7;/* 8 */
+                    }
+                }
 
-     public class C
-     {
-         public string M()
-         {
-             return ""C.M()"";
-         }
-     }
- }
-", HangMitigatingCancellationToken);
+                 public class C
+                 {
+                     public string M()
+                     {
+                         return "C.M()";
+                     }
+                 }
+             }
+
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
 
         await TestServices.InteractiveWindow.SubmitTextAsync("using System;", HangMitigatingCancellationToken);
@@ -73,7 +75,9 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
 
         await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.SubmitTextAsync("x.ToString()", HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("\"1\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("""
+            "1"
+            """, HangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -89,9 +93,13 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
 
         await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.SubmitTextAsync("y.ToString()", HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("\"2\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("""
+            "2"
+            """, HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.SubmitTextAsync("z.ToString()", HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("\"3\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("""
+            "3"
+            """, HangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -107,8 +115,12 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
         await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("\n. x *= 4;            ", HangMitigatingCancellationToken);
 
         await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.SubmitTextAsync("a + \"s\"", HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("\"alphas\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.SubmitTextAsync("""
+            a + "s"
+            """, HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("""
+            "alphas"
+            """, HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.SubmitTextAsync("b", HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("CS0103", HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.SubmitTextAsync("x", HangMitigatingCancellationToken);
@@ -128,7 +140,9 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
 
         await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.SubmitTextAsync("j.ToString()", HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("\"7\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("""
+            "7"
+            """, HangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -180,7 +194,9 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
         await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
 
         await TestServices.InteractiveWindow.SubmitTextAsync("a", HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("\"alpha\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("""
+            "alpha"
+            """, HangMitigatingCancellationToken);
 
         await TestServices.InteractiveWindow.SubmitTextAsync("b", HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("CS0103", HangMitigatingCancellationToken);
@@ -208,22 +224,25 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
     public async Task AddAssemblyReferenceAndTypesToInteractive()
     {
         await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.SubmitTextAsync("#r \"System.Numerics\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.SubmitTextAsync("""
+            #r "System.Numerics"
+            """, HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.SubmitTextAsync("Console.WriteLine(new System.Numerics.BigInteger(42));", HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("42", HangMitigatingCancellationToken);
 
         await TestServices.InteractiveWindow.SubmitTextAsync("public class MyClass { public string MyFunc() { return \"MyClass.MyFunc()\"; } }", HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.SubmitTextAsync("(new MyClass()).MyFunc()", HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("\"MyClass.MyFunc()\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("""
+            "MyClass.MyFunc()"
+            """, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawlerLegacy, HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task ResetInteractiveFromProjectAndVerify()
     {
-        var assembly = "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
         var project = ProjectName;
-        await TestServices.SolutionExplorer.AddMetadataReferenceAsync(assembly, project, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddMetadataReferenceAsync("System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", project, HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.SelectItemAsync(ProjectName, HangMitigatingCancellationToken);
         await TestServices.Shell.ExecuteCommandAsync<ResetInteractiveWindowFromProjectCommand>(HangMitigatingCancellationToken);
@@ -235,11 +254,15 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
         await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("CS0103", HangMitigatingCancellationToken);
 
         await TestServices.InteractiveWindow.SubmitTextAsync("(new TestProj.C()).M()", HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("\"C.M()\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("""
+            "C.M()"
+            """, HangMitigatingCancellationToken);
 
         await TestServices.InteractiveWindow.SubmitTextAsync("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"goo\";", HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.SubmitTextAsync("f.Text", HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("\"goo\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("""
+            "goo"
+            """, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawlerLegacy, HangMitigatingCancellationToken);
     }
 }

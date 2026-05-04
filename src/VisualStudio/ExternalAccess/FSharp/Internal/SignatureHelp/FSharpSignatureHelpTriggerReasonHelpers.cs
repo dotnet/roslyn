@@ -4,39 +4,36 @@
 
 #nullable disable
 
-using System;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp;
+
+internal static class FSharpSignatureHelpTriggerReasonHelpers
 {
-    internal static class FSharpSignatureHelpTriggerReasonHelpers
+    public static FSharpSignatureHelpTriggerReason ConvertFrom(SignatureHelpTriggerReason triggerReason)
     {
-        public static FSharpSignatureHelpTriggerReason ConvertFrom(SignatureHelpTriggerReason triggerReason)
+        switch (triggerReason)
         {
-            switch (triggerReason)
-            {
-                case SignatureHelpTriggerReason.InvokeSignatureHelpCommand:
-                    {
-                        return FSharpSignatureHelpTriggerReason.InvokeSignatureHelpCommand;
-                    }
+            case SignatureHelpTriggerReason.InvokeSignatureHelpCommand:
+                {
+                    return FSharpSignatureHelpTriggerReason.InvokeSignatureHelpCommand;
+                }
 
-                case SignatureHelpTriggerReason.RetriggerCommand:
-                    {
-                        return FSharpSignatureHelpTriggerReason.RetriggerCommand;
-                    }
+            case SignatureHelpTriggerReason.RetriggerCommand:
+                {
+                    return FSharpSignatureHelpTriggerReason.RetriggerCommand;
+                }
 
-                case SignatureHelpTriggerReason.TypeCharCommand:
-                    {
-                        return FSharpSignatureHelpTriggerReason.TypeCharCommand;
-                    }
+            case SignatureHelpTriggerReason.TypeCharCommand:
+                {
+                    return FSharpSignatureHelpTriggerReason.TypeCharCommand;
+                }
 
-                default:
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(triggerReason);
-                    }
-            }
+            default:
+                {
+                    throw ExceptionUtilities.UnexpectedValue(triggerReason);
+                }
         }
     }
 }

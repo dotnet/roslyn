@@ -8,7 +8,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
-internal record RunTestsParams(
+internal sealed record RunTestsParams(
     [property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument,
     [property: JsonPropertyName("range")] LSP.Range Range,
     [property: JsonPropertyName("attachDebugger")] bool AttachDebugger,

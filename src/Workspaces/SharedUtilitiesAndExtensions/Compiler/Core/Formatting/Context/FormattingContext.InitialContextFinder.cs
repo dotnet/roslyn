@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,9 +18,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
-internal partial class FormattingContext
+internal sealed partial class FormattingContext
 {
-    private class InitialContextFinder
+    private sealed class InitialContextFinder
     {
         private readonly TokenStream _tokenStream;
         private readonly ChainedFormattingRules _formattingRules;
@@ -67,7 +66,7 @@ internal partial class FormattingContext
         private List<IndentBlockOperation> GetInitialIndentBlockOperations(SyntaxToken startToken, SyntaxToken endToken)
         {
             var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
-            var node = startToken.GetCommonRoot(endToken)!.GetParentWithBiggerSpan();
+            var node = startToken.GetCommonRoot(endToken).GetParentWithBiggerSpan();
             var previous = (SyntaxNode?)null;
 
             // starting from the common node, move up to the parent

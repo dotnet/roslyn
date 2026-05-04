@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -17,7 +14,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UseCoalesceExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer :
+internal sealed class CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer :
     AbstractUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer<
         SyntaxKind,
         ExpressionSyntax,

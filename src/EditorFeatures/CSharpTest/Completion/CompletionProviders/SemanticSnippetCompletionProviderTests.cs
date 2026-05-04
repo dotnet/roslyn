@@ -23,9 +23,8 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
         => typeof(CSharpSnippetCompletionProvider);
 
     [WpfFact]
-    public async Task InsertConsoleSnippetWithInvocationBeforeAndAfterCursorTest()
-    {
-        var markupBeforeCommit = """
+    public Task InsertConsoleSnippetWithInvocationBeforeAndAfterCursorTest()
+        => VerifyCustomCommitProviderAsync("""
             class Program
             {
                 public void Method()
@@ -33,9 +32,7 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
                     Wr$$Blah
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "cw", """
             using System;
 
             class Program
@@ -45,16 +42,11 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
                     Console.WriteLine($$);
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "cw", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact]
-    public async Task InsertConsoleSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
-    {
-        var markupBeforeCommit =
-            """
+    public Task InsertConsoleSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
+        => VerifyCustomCommitProviderAsync("""
             class Program
             {
                 public void Method()
@@ -62,10 +54,7 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
                     _Wr$$Blah_
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, "cw", """
             using System;
 
             class Program
@@ -75,7 +64,5 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
                     Console.WriteLine($$);
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "cw", expectedCodeAfterCommit);
-    }
+            """);
 }

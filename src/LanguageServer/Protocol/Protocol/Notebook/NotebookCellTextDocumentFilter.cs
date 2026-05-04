@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#notebookCellTextDocumentFilter">Language Server Protocol specification</see> for additional information.
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookCellTextDocumentFilter
+internal sealed class NotebookCellTextDocumentFilter
 {
     /// <summary>
     /// A filter that matches against the notebook

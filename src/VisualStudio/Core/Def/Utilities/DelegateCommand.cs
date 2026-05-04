@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities;
 
-internal class DelegateCommand : ICommand
+internal sealed class DelegateCommand : ICommand
 {
     public event EventHandler? CanExecuteChanged;
 

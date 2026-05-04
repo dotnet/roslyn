@@ -1,0 +1,25 @@
+﻿RazorDocument - [0..42)::42 - [@custom System.Text.Encoding.ASCIIEncoding]
+    MarkupBlock - [0..42)::42
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..42)::42
+            RazorDirective - [0..42)::42 - Directive:{custom;SingleLine;Unrestricted}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..42)::41
+                    RazorMetaCode - [1..7)::6 - Gen<None>
+                        Identifier;[custom];
+                    CSharpCodeBlock - [7..42)::35
+                        CSharpStatementLiteral - [7..8)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [8..42)::34 - [System.Text.Encoding.ASCIIEncoding] - Gen<DirectiveToken {;Type;Opt:False}>
+                            Identifier;[System];
+                            Dot;[.];
+                            Identifier;[Text];
+                            Dot;[.];
+                            Identifier;[Encoding];
+                            Dot;[.];
+                            Identifier;[ASCIIEncoding];
+        MarkupTextLiteral - [42..42)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

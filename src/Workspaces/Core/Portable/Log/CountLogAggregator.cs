@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
-internal class CountLogAggregator<TKey> : AbstractLogAggregator<TKey, CountLogAggregator<TKey>.Counter> where TKey : notnull
+internal sealed class CountLogAggregator<TKey> : AbstractLogAggregator<TKey, CountLogAggregator<TKey>.Counter> where TKey : notnull
 {
     protected override Counter CreateCounter()
         => new();

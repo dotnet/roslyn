@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -198,6 +199,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool UseUpdatedEscapeRules => false;
+
+        internal sealed override bool UseUpdatedMemorySafetyRules => false;
 
 #nullable enable
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
