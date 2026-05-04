@@ -1502,6 +1502,48 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_UnionOfClosedClasses_02()
+    {
+        // Union including both base and derived of a hierarchy
+        var source = """
+            class Program
+            {
+                int M1(U u)
+                {
+            #line 100
+                    return u switch
+                    {
+                        E1 => 1,
+                    };
+                }
+
+                int M2(U u)
+                {
+                    return u switch
+                    {
+                        E1 => 1,
+                        F1 => 2,
+                    };
+                }
+            }
+
+            union U(D1, C);
+
+            closed class C { }
+
+            closed class D1 : C { }
+            class E1 : D1 { }
+            class F1 : D1 { }
+            """;
+
+        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(100, 18));
+    }
+
+    [Fact]
     public void Exhaustiveness_ClosedClassCustomUnion_01()
     {
         // Test a class which is both closed and a union.
