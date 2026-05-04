@@ -21,27 +21,14 @@ function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [s
   return Join-Path $ArtifactsDir "bin\$projectName\$configuration\$tfm\$ridDir$publishDir$fileName"
 }
 
-function GetPublishData() {
-  if (Test-Path variable:global:_PublishData) {
-    return $global:_PublishData
-  }
-
-  $publishDataFile = Join-Path $PSScriptRoot "config\PublishData.json"
-
-  Write-Host "Reading $publishDataFile"
-  $content = Get-Content -Path $publishDataFile -Raw
-
-  return $global:_PublishData = ConvertFrom-Json $content
-}
-
-function GetBranchPublishData([string]$branchName) {
+function GetBranchPublishData() {
   $data = GetPublishData
 
-  if (Get-Member -InputObject $data.branches -Name $branchName) {
-    return $data.branches.$branchName
-  } else {
-    return $null
+  if ($data.branchInfo -eq $null) {
+    throw "No branchInfo entry found in PublishData.json"
   }
+
+  return $data.branchInfo
 }
 
 function GetFeedPublishData() {
@@ -49,13 +36,14 @@ function GetFeedPublishData() {
   return $data.feeds
 }
 
-function GetPackagesPublishData([string]$packageFeeds) {
+function GetPackagesPublishData() {
   $data = GetPublishData
-  if (Get-Member -InputObject $data.packages -Name $packageFeeds) {
-    return $data.packages.$packageFeeds
-  } else {
-    return $null
+
+  if ($data.packages -eq $null) {
+    throw "No packages entry found in PublishData.json"
   }
+
+  return $data.packages
 }
 
 function GetReleasePublishData([string]$releaseName) {
