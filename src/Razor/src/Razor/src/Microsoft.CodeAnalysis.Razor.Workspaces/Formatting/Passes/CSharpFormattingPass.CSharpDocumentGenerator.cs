@@ -380,12 +380,12 @@ internal partial class CSharpFormattingPass
                 var attributeIndentationWidth = (htmlIndentLevel * _tabSize) + additionalIndentation.GetValueOrDefault();
                 if (attributeIndentationWidth <= 0)
                 {
-                    // Attributes don't affect indentation here, so the users indentation is all we need.
+                    // Attributes don't affect indentation here, so the user's indentation is all we need.
                     _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
                 }
                 else
                 {
-                    // Take the users indentation, and subtract our desired attribute indentation, so its not added repeatedly.
+                    // Take the user's indentation, and subtract our desired attribute indentation, so it's not added repeatedly.
                     var indentationWidth = Math.Max(_currentLine.GetIndentationSize(_tabSize) - attributeIndentationWidth, 0);
                     _builder.Append(FormattingUtilities.GetIndentationString(indentationWidth, _insertSpaces, _tabSize));
 
