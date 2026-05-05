@@ -52,7 +52,7 @@ UpdateValue
 #line hidden
 #nullable disable
             , ParentValue))));
-             _ = nameof(global::Test.MyComponent<CustomValue>.
+             var (_, _) = (nameof(global::Test.MyComponent<CustomValue>.
 #nullable restore
 #line (1,71)-(1,76) "x:\dir\subdir\Test\TestComponent.cshtml"
 Value
@@ -60,7 +60,7 @@ Value
 #line default
 #line hidden
 #nullable disable
-            );
+            ), 0);
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
