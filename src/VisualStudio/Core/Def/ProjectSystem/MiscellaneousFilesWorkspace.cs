@@ -298,7 +298,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         var checksumAlgorithm = SourceHashAlgorithms.Default;
         var fileLoader = new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null);
         return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            this, filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences.Value);
+            this, filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences.Value, enableFileBasedPrograms: false);
     }
 
     private void DetachFromDocument(string moniker)

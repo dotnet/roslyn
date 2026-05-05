@@ -3,14 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 
@@ -23,8 +20,30 @@ internal static class DiagnosticDataExtensions
         {
             using var _ = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
 
-            foreach (var index in GetLocationIndices(unnecessaryIndices))
-                locationsToTag.Add(diagnosticData.AdditionalLocations[index]);
+            try
+            {
+                // Parse a JSON array of non-negative integers (e.g., "[1,2,3]") inline. This replaces
+                // DataContractJsonSerializer which was extremely allocation-heavy for this simple format.
+                if (unnecessaryIndices.Length >= 2 && unnecessaryIndices[0] == '[' && unnecessaryIndices[^1] == ']')
+                {
+                    var start = 1;
+                    var end = unnecessaryIndices.Length - 1;
+                    while (start < end)
+                    {
+                        var commaIndex = unnecessaryIndices.IndexOf(',', start, end - start);
+                        var elementEnd = commaIndex < 0 ? end : commaIndex;
+
+                        var index = int.Parse(unnecessaryIndices.AsSpan(start, elementEnd - start).Trim().ToString());
+
+                        locationsToTag.Add(diagnosticData.AdditionalLocations[index]);
+                        start = elementEnd + 1;
+                    }
+                }
+            }
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            {
+                locationsToTag.Clear();
+            }
 
             unnecessaryLocations = locationsToTag.ToImmutable();
             return true;
@@ -32,21 +51,6 @@ internal static class DiagnosticDataExtensions
 
         unnecessaryLocations = null;
         return false;
-
-        static IEnumerable<int> GetLocationIndices(string indicesProperty)
-        {
-            try
-            {
-                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(indicesProperty));
-                var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
-                var result = serializer.ReadObject(stream) as IEnumerable<int>;
-                return result ?? [];
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                return [];
-            }
-        }
     }
 
     internal static bool TryGetUnnecessaryLocationIndices(

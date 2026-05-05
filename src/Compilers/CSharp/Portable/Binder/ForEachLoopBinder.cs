@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
                     }
-                    else if (getEnumeratorMethod.GetIsNewExtensionMember() && getEnumeratorMethod.ContainingType.ExtensionParameter.RefKind == RefKind.Ref)
+                    else if (getEnumeratorMethod.IsExtensionBlockMember() && getEnumeratorMethod.ContainingType.ExtensionParameter.RefKind == RefKind.Ref)
                     {
                         Error(diagnostics, ErrorCode.ERR_RefLvalueExpected, collectionExpr.Syntax);
                         hasErrors = true;
@@ -475,6 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.MoveNextInfo.Method));
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.CurrentPropertyGetter));
 
+            builder.ReportDiagnosticsIfUnsafeMemberAccess(this, foreachKeyword, _syntax, diagnostics);
+
             // We want to convert from inferredType in the array/string case and builder.ElementType in the enumerator case,
             // but it turns out that these are equivalent (when both are available).
 
@@ -511,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 createConversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             }
 
-            BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, iterationVariableType.Type, createConversionDiagnostics);
+            BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, iterationVariableType.Type, createConversionDiagnostics);
 
             if (createConversionDiagnostics.AccumulatesDiagnostics && !createConversionDiagnostics.DiagnosticBag.IsEmptyWithoutResolution)
             {
@@ -567,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (currentConversionClassification.IsValid)
             {
                 builder.CurrentPlaceholder = new BoundValuePlaceholder(_syntax, builder.CurrentPropertyGetter.ReturnType).MakeCompilerGenerated();
-                builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, builder.ElementType, diagnostics);
+                builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, builder.ElementType, diagnostics);
             }
 
             if (IsAsync)
@@ -587,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  (IsIEnumerable(builder.CollectionType) ||
                   IsIEnumerableT(builder.CollectionType.OriginalDefinition, IsAsync, Compilation) ||
                   builder.GetEnumeratorInfo.Method.IsExtensionMethod ||
-                  builder.GetEnumeratorInfo.Method.GetIsNewExtensionMember())) ||
+                  builder.GetEnumeratorInfo.Method.IsExtensionBlockMember())) ||
                 // For compat behavior, we can enumerate over System.String even if it's not IEnumerable. That will
                 // result in an explicit reference conversion in the bound nodes, but that conversion won't be emitted.
                 (collectionConversionClassification.Kind == ConversionKind.ExplicitReference && collectionExpr.Type.SpecialType == SpecialType.System_String));
@@ -644,6 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We're wrapping the collection expression in a (non-synthesized) conversion so that its converted
             // type (i.e. builder.CollectionType) will be available in the binding API.
             Debug.Assert(!collectionConversionClassification.IsUserDefined);
+            Debug.Assert(!collectionConversionClassification.IsUnion);
 
             BoundExpression convertedCollectionExpression = CreateConversion(
                 collectionExpr.Syntax,
@@ -651,6 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionConversionClassification,
                 isCast: false,
                 conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
                 collectionType,
                 diagnostics);
 
@@ -667,6 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     ConstantValue.NotAvailable,
                     collectionType);
             }
@@ -877,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
                 Debug.Assert(span == originalSpan);
-                Debug.Assert(!builder.ViaExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionMethod || builder.GetEnumeratorInfo.Method.GetIsNewExtensionMember());
+                Debug.Assert(!builder.ViaExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionBlockMember());
 #endif
                 if (!builder.ViaExtensionMethod &&
                     ((result is EnumeratorResult.Succeeded && builder.ElementTypeWithAnnotations.Equals(elementField.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions) &&
@@ -924,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             Debug.Assert(collectionExpr == originalCollectionExpr ||
                          (originalCollectionExpr.Type?.IsNullableType() == true && originalCollectionExpr.Type.StrippedType().Equals(collectionExpr.Type, TypeCompareKind.AllIgnoreOptions)));
-            Debug.Assert(!builder.ViaExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionMethod || builder.GetEnumeratorInfo.Method.GetIsNewExtensionMember());
+            Debug.Assert(!builder.ViaExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionBlockMember());
 #endif
 
             return result;
@@ -1027,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)builder.GetEnumeratorInfo != null);
 
                 Debug.Assert(!(viaExtensionMethod && builder.GetEnumeratorInfo.Method.IsExtensionMethod && builder.GetEnumeratorInfo.Method.Parameters.IsDefaultOrEmpty));
-                Debug.Assert(!(viaExtensionMethod && !builder.GetEnumeratorInfo.Method.IsExtensionMethod && !builder.GetEnumeratorInfo.Method.GetIsNewExtensionMember()));
+                Debug.Assert(!(viaExtensionMethod && !builder.GetEnumeratorInfo.Method.IsExtensionMethod && !builder.GetEnumeratorInfo.Method.IsExtensionBlockMember()));
 
                 builder.ViaExtensionMethod = viaExtensionMethod;
 
@@ -1205,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol patternDisposeMethod = TryFindDisposePatternMethod(receiver, syntax, isAsync, patternDiagnostics, out bool expanded);
                 if (patternDisposeMethod is object)
                 {
-                    Debug.Assert(!patternDisposeMethod.IsExtensionMethod && !patternDisposeMethod.GetIsNewExtensionMember(),
+                    Debug.Assert(!patternDisposeMethod.IsExtensionMethod && !patternDisposeMethod.IsExtensionBlockMember(),
                         "No extension disposal. See TryFindDisposePatternMethod");
                     Debug.Assert(patternDisposeMethod.ParameterRefKinds.IsDefaultOrEmpty ||
                         patternDisposeMethod.ParameterRefKinds.All(static refKind => refKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
@@ -1451,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (overloadResolutionResult.Succeeded)
             {
                 result = overloadResolutionResult.ValidResult.Member;
-                Debug.Assert(!result.IsExtensionMethod && !result.GetIsNewExtensionMember());
+                Debug.Assert(!result.IsExtensionMethod && !result.IsExtensionBlockMember());
 
                 if (result.IsStatic || result.DeclaredAccessibility != Accessibility.Public)
                 {
@@ -1532,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var result = overloadResolutionResult.ValidResult.Member;
 
-                Debug.Assert(result.IsExtensionMethod || result.GetIsNewExtensionMember());
+                Debug.Assert(result.IsExtensionMethod || result.IsExtensionBlockMember());
 
                 if (result.CallsAreOmitted(syntax.SyntaxTree))
                 {
@@ -1554,6 +1559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Unconditionally convert here, to match what we set the ConvertedExpression to in the main BoundForEachStatement node.
                     Debug.Assert(!collectionConversion.IsUserDefined);
+                    Debug.Assert(!collectionConversion.IsUnion);
                     collectionExpr = new BoundConversion(
                         collectionExpr.Syntax,
                         collectionExpr,
@@ -1561,6 +1567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked: CheckOverflowAtRuntime,
                         explicitCastInCode: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         ConstantValue.NotAvailable,
                         result.Parameters[0].Type);
 
@@ -1573,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    BoundExpression extensionReceiver = result.GetIsNewExtensionMember() ? collectionExpr : null;
+                    BoundExpression extensionReceiver = result.IsExtensionBlockMember() ? collectionExpr : null;
                     Debug.Assert(!result.IsStatic);
 
                     info = BindDefaultArguments(
@@ -1943,8 +1950,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="extensionReceiverOpt">If method is an extension method (classic or new), this must be non-null.</param>
         private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool expanded, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert((extensionReceiverOpt != null) == (method.IsExtensionMethod || method.GetIsNewExtensionMember()));
-            Debug.Assert(!method.GetIsNewExtensionMember() || !method.IsStatic);
+            Debug.Assert((extensionReceiverOpt != null) == (method.IsExtensionMethod || method.IsExtensionBlockMember()));
+            Debug.Assert(!method.IsExtensionBlockMember() || !method.IsStatic);
 
             if (method.ParameterCount == 0)
             {
@@ -1962,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindDefaultArguments(
                 syntax,
                 method.Parameters,
-                extensionReceiver: method.GetIsNewExtensionMember() ? extensionReceiverOpt : null,
+                extensionReceiver: method.IsExtensionBlockMember() ? extensionReceiverOpt : null,
                 argsBuilder,
                 argumentRefKindsBuilder: null,
                 namesBuilder: null,

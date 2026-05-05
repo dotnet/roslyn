@@ -1,0 +1,37 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        CSharpCode - 
+            IntermediateToken -  - CSharp - [global::Test.TestComponent.__PrivateComponentRenderModeAttribute]
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (68:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (68:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+            CSharpCode - (78:3,1 [137] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (78:3,1 [137] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n#pragma warning disable CS9113\n    public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }\n
+            ClassDeclaration -  - private sealed - __PrivateComponentRenderModeAttribute - global::Microsoft.AspNetCore.Components.RenderModeAttribute - 
+                DesignTimeDirective - 
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - #pragma warning disable 0414
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - private static object __o = null;
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - #pragma warning restore 0414
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
+                    CSharpCode - (14:0,14 [51] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (14:0,14 [51] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new TestComponent.MyRenderMode("This is some text")
+                    IntermediateToken -  - CSharp - ;
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;

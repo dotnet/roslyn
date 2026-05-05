@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             builder.Append('[');
 
             Assert.NotNull(attribute.AttributeClass);
-            var name = attribute.AttributeClass!.Name;
+            var name = attribute.AttributeClass.Name;
             if (name.EndsWith("Attribute")) name = name.Substring(0, name.Length - 9);
             builder.Append(name);
 
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             foreach (var attribute in attributes)
             {
                 Assert.NotNull(attribute.AttributeConstructor);
-                var containingType = attribute.AttributeConstructor!.ContainingType;
+                var containingType = attribute.AttributeConstructor.ContainingType;
                 if (containingType.Name == name && containingType.ContainingNamespace.QualifiedName == namespaceName)
                 {
                     return attribute;

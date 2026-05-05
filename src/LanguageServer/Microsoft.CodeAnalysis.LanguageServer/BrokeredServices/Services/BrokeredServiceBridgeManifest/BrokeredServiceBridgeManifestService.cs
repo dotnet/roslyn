@@ -38,7 +38,7 @@ internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeMani
     /// <summary>
     /// Returns a subset of services registered to Microsoft.VisualStudio.Code.Server container that are proferred by the Language Server process.
     /// </summary>
-    public ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
+    public async ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
     {
         var services = (IReadOnlyCollection<ServiceMoniker>)[.. _serviceBrokerFactory.GetRequiredServiceBrokerContainer().GetRegisteredServices()
             .Select(s => s.Key)
@@ -46,12 +46,11 @@ internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeMani
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServer.", StringComparison.Ordinal) ||
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))];
         _logger.LogDebug($"Proffered services: {string.Join(',', services.Select(s => s.ToString()))}");
-        return ValueTask.FromResult(services);
+        return services;
     }
 
-    public Task InitializeAsync(CancellationToken cancellationToken)
+    public async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
     }
 }
 #pragma warning restore RS0030 // Do not used banned APIs

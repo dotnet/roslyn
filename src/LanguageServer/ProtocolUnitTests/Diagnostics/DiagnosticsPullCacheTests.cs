@@ -118,12 +118,12 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
     {
         public const string Id = "Id";
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref provider.DiagnosticsRequestedCount);
-            return Task.FromResult<ImmutableArray<DiagnosticData>>([new DiagnosticData(Id, category: "category", context.Document!.Name, DiagnosticSeverity.Error, DiagnosticSeverity.Error,
+            return [new DiagnosticData(Id, category: "category", context.Document!.Name, DiagnosticSeverity.Error, DiagnosticSeverity.Error,
                 isEnabledByDefault: true, warningLevel: 0, [], ImmutableDictionary<string, string?>.Empty,context.Document!.Project.Id,
-                new DiagnosticDataLocation(new FileLinePositionSpan(context.Document!.FilePath!, new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))))]);
+                new DiagnosticDataLocation(new FileLinePositionSpan(context.Document!.FilePath!, new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))))];
         }
     }
 
@@ -138,9 +138,9 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
 
         public int DiagnosticsRequestedCount = 0;
 
-        public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return new ValueTask<ImmutableArray<IDiagnosticSource>>([new TestDiagnosticSource(context.Document!, this)]);
+            return [new TestDiagnosticSource(context.Document!, this)];
         }
 
         public bool IsEnabled(LSP.ClientCapabilities clientCapabilities)

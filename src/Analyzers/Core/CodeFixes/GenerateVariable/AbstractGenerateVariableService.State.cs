@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
@@ -149,7 +150,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 return false;
             }
 
-            TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(
+            TypeToGenerateIn = await SymbolFinderInternal.FindSourceDefinitionAsync(
                 TypeToGenerateIn, _document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
             if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
@@ -159,7 +160,11 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
             IsContainedInUnsafeType = _service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
 
-            return CanGenerateLocal() || CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, cancellationToken);
+            var codeGenerationContext = new CodeGenerationContext(
+                contextLocation: IdentifierToken.GetLocation(),
+                allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
+
+            return CanGenerateLocal() || CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, codeGenerationContext, cancellationToken);
         }
 
         internal bool CanGeneratePropertyOrField()
@@ -178,8 +183,10 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         {
             // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
             // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
+            // Don't offer to generate a parameter if we're inside an accessor (property/event/indexer get/set/add/remove).
             return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
-                && !IsInMemberContext && !IsConstant && !IsInSourceGeneratedDocument;
+                && !IsInMemberContext && !IsConstant && !IsInSourceGeneratedDocument
+                && !ContainingMethod.IsAccessor();
         }
 
         private bool TryInitializeExplicitInterface(

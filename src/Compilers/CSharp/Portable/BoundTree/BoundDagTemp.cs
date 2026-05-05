@@ -24,10 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Equals(BoundDagTemp other)
         {
-            return
-                this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) &&
-                object.Equals(this.Source, other.Source) &&
-                this.Index == other.Index;
+            if (IsEquivalentTo(other) &&
+                Equals(other.Source, this.Source))
+            {
+                Debug.Assert(other.GetHashCode() == this.GetHashCode());
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -60,7 +64,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 null => "t0",
                 var id => $"t{id}"
             };
-            return $"{name}{(Source is BoundDagDeconstructEvaluation ? $".Item{(Index + 1).ToString()}" : "")}";
+
+            if (Source is BoundDagDeconstructEvaluation)
+            {
+                if (Index == -1)
+                {
+                    return name + ".ReturnItem";
+                }
+                else
+                {
+                    return name + ".Item" + (Index + 1).ToString();
+                }
+            }
+
+            return name;
         }
 #endif
     }

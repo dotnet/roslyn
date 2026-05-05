@@ -4,11 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -95,6 +93,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
+        /// <summary>
+        /// Whether the method is in an unsafe context.
+        /// For property/event accessors, this includes the containing property's unsafe modifier.
+        /// Do not confuse with <see cref="CallerUnsafeMode"/>.
+        /// </summary>
+        internal abstract bool IsUnsafe { get; }
+
+        /// <summary>
+        /// Whether the method can require callers to be in an unsafe context
+        /// (i.e., can have <see cref="CallerUnsafeMode.Explicit"/>).
+        /// </summary>
+        internal abstract bool CanBeCallerUnsafe { get; }
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    Debug.Assert(AssociatedSymbol?.CallerUnsafeMode != CallerUnsafeMode.Implicit);
+
+                    if (!CanBeCallerUnsafe)
+                    {
+                        return CallerUnsafeMode.None;
+                    }
+
+                    return IsUnsafe || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                        ? CallerUnsafeMode.Explicit
+                        : CallerUnsafeMode.None;
+                }
+
+                return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
+                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+            }
+        }
+
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {
             return SourceMemberContainerTypeSymbol.HasAsyncMethodBuilderAttribute(this, out builderArgument);
@@ -117,6 +151,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = target.DeclaringCompilation;
 
+            if (target.CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
+            }
+
             if (compilation.ShouldEmitNullableAttributes(target) &&
                 target.ShouldEmitNullableContextValue(out byte nullableContextValue))
             {
@@ -132,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isAsync = target.IsAsync;
             bool isIterator = target.IsIterator;
 
-            if ((isAsync || isIterator) && !target.GetIsNewExtensionMember())
+            if ((isAsync || isIterator) && !target.IsExtensionBlockMember())
             {
                 // The async state machine type is not synthesized until the async method body is rewritten. If we are
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
@@ -168,7 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Regular async (not async-iterator) kick-off method calls MoveNext, which contains user code.
                     // This means we need to emit DebuggerStepThroughAttribute in order
                     // to have correct stepping behavior during debugging.
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                    // However, when runtime async is enabled, no state machine is generated and the kickoff method
+                    // directly contains the async logic, so the attribute should not be added.
+                    if (!compilation.IsRuntimeAsyncEnabledIn(target))
+                    {
+                        AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                    }
                 }
             }
 
@@ -232,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ));
             }
 
-            if (target.GetIsNewExtensionMember())
+            if (target.IsExtensionBlockMember())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerAttribute(target, ((SourceNamedTypeSymbol)target.ContainingType).ExtensionMarkerName));
             }

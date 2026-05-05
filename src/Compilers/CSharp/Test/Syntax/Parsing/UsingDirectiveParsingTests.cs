@@ -602,7 +602,7 @@ public sealed class UsingDirectiveParsingTests : ParsingTests
 
 struct A { }";
         UsingTree(text);
-        CreateCompilation(text).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using x = A*;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = A*;").WithLocation(1, 1),
@@ -612,6 +612,17 @@ struct A { }";
             // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // using x = A*;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "A*").WithLocation(1, 11));
+        var expectedPreviewDiagnostics = new[]
+        {
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using x = A*;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = A*;").WithLocation(1, 1),
+            // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+            // using x = A*;
+            Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7),
+        };
+        CreateCompilation(text).VerifyDiagnostics(expectedPreviewDiagnostics);
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -706,7 +717,7 @@ struct A { }";
         var text = @"using x = delegate*<int, void>;";
 
         UsingTree(text);
-        CreateCompilation(text).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using x = delegate*<int, void>;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = delegate*<int, void>;").WithLocation(1, 1),
@@ -716,6 +727,17 @@ struct A { }";
             // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // using x = delegate*<int, void>;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 11));
+        var expectedPreviewDiagnostics = new[]
+        {
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using x = delegate*<int, void>;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = delegate*<int, void>;").WithLocation(1, 1),
+            // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+            // using x = delegate*<int, void>;
+            Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7),
+        };
+        CreateCompilation(text).VerifyDiagnostics(expectedPreviewDiagnostics);
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1061,7 +1083,7 @@ struct A { }";
     {
         var text = @"using x = int*;";
         UsingTree(text);
-        CreateCompilation(text).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using x = int*;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = int*;").WithLocation(1, 1),
@@ -1071,6 +1093,17 @@ struct A { }";
             // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // using x = int*;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 11));
+        var expectedPreviewDiagnostics = new[]
+        {
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using x = int*;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = int*;").WithLocation(1, 1),
+            // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+            // using x = int*;
+            Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7),
+        };
+        CreateCompilation(text).VerifyDiagnostics(expectedPreviewDiagnostics);
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1153,13 +1186,21 @@ namespace N
     using Y = X;
 }";
         UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
             // (6,5): hidden CS8019: Unnecessary using directive.
             //     using Y = X;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X;").WithLocation(6, 5),
             // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     using Y = X;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 15));
+        var expectedPreviewDiagnostics = new[]
+        {
+            // (6,5): hidden CS8019: Unnecessary using directive.
+            //     using Y = X;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X;").WithLocation(6, 5),
+        };
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedPreviewDiagnostics);
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedPreviewDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1301,13 +1342,21 @@ namespace N
     using unsafe Y = X;
 }";
         UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
             // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // using X = int*;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 11),
             // (6,5): hidden CS8019: Unnecessary using directive.
             //     using unsafe Y = X;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe Y = X;").WithLocation(6, 5));
+        var expectedPreviewDiagnostics = new[]
+        {
+            // (6,5): hidden CS8019: Unnecessary using directive.
+            //     using unsafe Y = X;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe Y = X;").WithLocation(6, 5),
+        };
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedPreviewDiagnostics);
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedPreviewDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1376,13 +1425,21 @@ namespace N
     using Y = X[];
 }";
         UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
             // (6,5): hidden CS8019: Unnecessary using directive.
             //     using Y = X[];
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X[];").WithLocation(6, 5),
             // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     using Y = X[];
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 15));
+        var expectedPreviewDiagnostics = new[]
+        {
+            // (6,5): hidden CS8019: Unnecessary using directive.
+            //     using Y = X[];
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X[];").WithLocation(6, 5),
+        };
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedPreviewDiagnostics);
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedPreviewDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2093,10 +2150,12 @@ class C
     void M(VP vp) { }
 }";
         UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
             // (5,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     void M(VP vp) { }
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "VP").WithLocation(5, 12));
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2245,10 +2304,12 @@ class C
     unsafe void M(VP vp) { }
 }";
         UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
             // (1,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // using VP = void*;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(1, 12));
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+        CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
 
         N(SyntaxKind.CompilationUnit);
         {

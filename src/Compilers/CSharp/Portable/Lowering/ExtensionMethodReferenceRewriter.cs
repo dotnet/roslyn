@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: NotNullIfNotNull(nameof(method))]
         private static MethodSymbol? VisitMethodSymbolWithExtensionRewrite(BoundTreeRewriter rewriter, MethodSymbol? method)
         {
-            if (method?.GetIsNewExtensionMember() == true &&
+            if (method?.IsExtensionBlockMember() == true &&
                 method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is MethodSymbol implementationMethod)
             {
                 method = implementationMethod.AsMember(method.ContainingSymbol.ContainingType).
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: NotNullIfNotNull(nameof(method))]
         public override MethodSymbol? VisitMethodSymbol(MethodSymbol? method)
         {
-            Debug.Assert(method?.GetIsNewExtensionMember() != true ||
+            Debug.Assert(method?.IsExtensionBlockMember() != true ||
                          method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is null);
             // All possibly interesting methods should go through VisitMethodSymbolWithExtensionRewrite first
 
@@ -247,11 +247,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
             Debug.Assert(node.InterpolatedStringHandlerData is null);
+            Debug.Assert(!node.OperatorKind.IsDynamic());
 
-            MethodSymbol? method = VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method);
+            var binaryOperatorMethod = node.BinaryOperatorMethod;
+            MethodSymbol? method = VisitMethodSymbolWithExtensionRewrite(rewriter, binaryOperatorMethod);
             TypeSymbol? constrainedToType = rewriter.VisitType(node.ConstrainedToType);
 
-            if (Symbol.Equals(method, node.Method, TypeCompareKind.AllIgnoreOptions) && TypeSymbol.Equals(constrainedToType, node.ConstrainedToType, TypeCompareKind.AllIgnoreOptions))
+            if (Symbol.Equals(method, binaryOperatorMethod, TypeCompareKind.AllIgnoreOptions) && TypeSymbol.Equals(constrainedToType, node.ConstrainedToType, TypeCompareKind.AllIgnoreOptions))
             {
                 return node.Data;
             }
@@ -266,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: NotNullIfNotNull(nameof(symbol))]
         public override PropertySymbol? VisitPropertySymbol(PropertySymbol? symbol)
         {
-            Debug.Assert(symbol?.GetIsNewExtensionMember() != true);
+            Debug.Assert(symbol?.IsExtensionBlockMember() != true);
             return base.VisitPropertySymbol(symbol);
         }
 

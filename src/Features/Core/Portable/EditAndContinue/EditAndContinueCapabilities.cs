@@ -67,7 +67,7 @@ internal enum EditAndContinueCapabilities
     GenericAddFieldToExistingType = 1 << 9,
 
     /// <summary>
-    /// The runtime supports adding to InterfaceImpl table.
+    /// The runtime supports adding to MethodImpl table.
     /// </summary>
     AddExplicitInterfaceImplementation = 1 << 10,
 

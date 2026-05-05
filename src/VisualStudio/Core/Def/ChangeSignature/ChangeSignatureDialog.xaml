@@ -210,7 +210,14 @@
                         </DataGridTextColumn.HeaderStyle>
                         <DataGridTextColumn.CellStyle>
                             <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
-                                <Setter Property="AutomationProperties.Name" Value="{Binding FullAutomationText}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRemoved}" Value="False">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding FullAutomationText}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsRemoved}" Value="True">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding RemovedParameterAutomationText}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
                             </Style>
                         </DataGridTextColumn.CellStyle>
                     </DataGridTextColumn>

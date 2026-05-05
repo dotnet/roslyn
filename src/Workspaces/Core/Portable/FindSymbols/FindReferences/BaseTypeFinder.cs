@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 
 internal static partial class BaseTypeFinder
 {
-    public static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
-        => FindBaseTypes(type).AddRange(type.AllInterfaces);
+    public static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type, bool transitive)
+        => FindBaseTypes(type, transitive).AddRange(transitive ? type.AllInterfaces : type.Interfaces);
 
     public static ImmutableArray<ISymbol> FindOverriddenAndImplementedMembers(
         ISymbol symbol, Solution solution, CancellationToken cancellationToken)
@@ -36,7 +36,7 @@ internal static partial class BaseTypeFinder
         void AddOverrides(bool allowLooseMatch)
         {
             // The type scenario. Iterate over all base classes to find overridden and hidden (new/Shadows) methods.
-            foreach (var type in FindBaseTypes(symbol.ContainingType))
+            foreach (var type in FindBaseTypes(symbol.ContainingType, transitive: true))
             {
                 foreach (var member in type.GetMembers(symbol.Name))
                 {
@@ -77,8 +77,14 @@ internal static partial class BaseTypeFinder
         }
     }
 
-    private static ImmutableArray<INamedTypeSymbol> FindBaseTypes(INamedTypeSymbol type)
+    private static ImmutableArray<INamedTypeSymbol> FindBaseTypes(INamedTypeSymbol type, bool transitive)
     {
+        if (type.BaseType == null)
+            return [];
+
+        if (!transitive)
+            return [type.BaseType];
+
         var typesBuilder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
 
         var currentType = type.BaseType;

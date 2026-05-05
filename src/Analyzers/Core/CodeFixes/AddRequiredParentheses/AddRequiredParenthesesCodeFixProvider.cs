@@ -27,14 +27,13 @@ internal sealed class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBase
         => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll) &&
            diagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey] == equivalenceKey;
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(
             context, AnalyzersResources.Add_parentheses_for_clarity, context.Diagnostics[0].Properties[AddRequiredParenthesesConstants.EquivalenceKey]!);
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -51,7 +50,5 @@ internal sealed class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBase
                 (current, _) => generator.AddParentheses(
                     current, includeElasticTrivia: false, addSimplifierAnnotation: false));
         }
-
-        return Task.CompletedTask;
     }
 }

@@ -1,0 +1,14 @@
+﻿Source Location: (33:0,33 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|s|
+Generated Location: (1038:29,33 [1] )
+|s|
+
+Source Location: (49:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string s = "abc";
+|
+Generated Location: (1556:49,7 [33] )
+|
+    private string s = "abc";
+|
+

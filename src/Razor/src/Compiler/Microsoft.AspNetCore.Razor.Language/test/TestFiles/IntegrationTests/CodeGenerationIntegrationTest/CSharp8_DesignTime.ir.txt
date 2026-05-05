@@ -1,0 +1,79 @@
+﻿Document - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective -  - TModel = global::System.Object
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [32] CSharp8.cshtml) - System.Collections.Generic
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_CSharp8 - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            DesignTimeDirective - 
+                DirectiveToken - (287:7,8 [62] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TModel>
+                DirectiveToken - (350:7,71 [4] ) - Html
+                DirectiveToken - (364:8,8 [54] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper
+                DirectiveToken - (419:8,63 [4] ) - Json
+                DirectiveToken - (433:9,8 [53] ) - global::Microsoft.AspNetCore.Mvc.IViewComponentHelper
+                DirectiveToken - (487:9,62 [9] ) - Component
+                DirectiveToken - (506:10,8 [43] ) - global::Microsoft.AspNetCore.Mvc.IUrlHelper
+                DirectiveToken - (550:10,52 [3] ) - Url
+                DirectiveToken - (563:11,8 [70] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider
+                DirectiveToken - (634:11,79 [23] ) - ModelExpressionProvider
+                DirectiveToken - (673:12,14 [104] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (793:13,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (904:14,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (33:0,33 [4] CSharp8.cshtml)
+                    LazyIntermediateToken - (33:0,33 [4] CSharp8.cshtml) - Html - \n\n
+                CSharpCode - (39:2,2 [396] CSharp8.cshtml)
+                    LazyIntermediateToken - (39:2,2 [396] CSharp8.cshtml) - CSharp - \n    IAsyncEnumerable<bool> GetAsyncEnumerable()\n    {\n        return null;\n    }\n\n    await foreach (var val in GetAsyncEnumerable())\n    {\n\n    }\n\n    Range range = 1..5;\n    using var disposable = GetLastDisposableInRange(range);\n\n    var words = Array.Empty<string>();\n    var testEnum = GetEnum();\n    static TestEnum GetEnum()\n    {\n        return TestEnum.First;\n    }\n
+                HtmlContent - (438:23,0 [2] CSharp8.cshtml)
+                    LazyIntermediateToken - (438:23,0 [2] CSharp8.cshtml) - Html - \n
+                CSharpExpression - (441:24,1 [11] CSharp8.cshtml)
+                    LazyIntermediateToken - (441:24,1 [11] CSharp8.cshtml) - CSharp - words[1..2]
+                HtmlContent - (452:24,12 [2] CSharp8.cshtml)
+                    LazyIntermediateToken - (452:24,12 [2] CSharp8.cshtml) - Html - \n
+                CSharpExpression - (456:25,2 [13] CSharp8.cshtml)
+                    LazyIntermediateToken - (456:25,2 [13] CSharp8.cshtml) - CSharp - words[^2..^0]
+                HtmlContent - (470:25,16 [4] CSharp8.cshtml)
+                    LazyIntermediateToken - (470:25,16 [4] CSharp8.cshtml) - Html - \n\n
+                CSharpExpression - (476:27,2 [121] CSharp8.cshtml)
+                    LazyIntermediateToken - (476:27,2 [121] CSharp8.cshtml) - CSharp - testEnum switch\n{\n    TestEnum.First => "The First!",\n    TestEnum.Second => "The Second!",\n    _ => "The others",\n}
+                HtmlContent - (598:32,2 [4] CSharp8.cshtml)
+                    LazyIntermediateToken - (598:32,2 [4] CSharp8.cshtml) - Html - \n\n
+                CSharpCode - (603:34,1 [56] CSharp8.cshtml)
+                    LazyIntermediateToken - (603:34,1 [56] CSharp8.cshtml) - CSharp - await foreach (var val in GetAsyncEnumerable())\n{\n    
+                CSharpExpression - (660:36,5 [3] CSharp8.cshtml)
+                    LazyIntermediateToken - (660:36,5 [3] CSharp8.cshtml) - CSharp - val
+                CSharpCode - (663:36,8 [3] CSharp8.cshtml)
+                    LazyIntermediateToken - (663:36,8 [3] CSharp8.cshtml) - CSharp - \n}
+                HtmlContent - (666:37,1 [4] CSharp8.cshtml)
+                    LazyIntermediateToken - (666:37,1 [4] CSharp8.cshtml) - Html - \n\n
+                CSharpExpression - (671:39,1 [12] CSharp8.cshtml)
+                    LazyIntermediateToken - (671:39,1 [12] CSharp8.cshtml) - CSharp - Person!.Name
+                HtmlContent - (683:39,13 [2] CSharp8.cshtml)
+                    LazyIntermediateToken - (683:39,13 [2] CSharp8.cshtml) - Html - \n
+                CSharpExpression - (686:40,1 [20] CSharp8.cshtml)
+                    LazyIntermediateToken - (686:40,1 [20] CSharp8.cshtml) - CSharp - People![0]!.Name![1]
+                HtmlContent - (706:40,21 [2] CSharp8.cshtml)
+                    LazyIntermediateToken - (706:40,21 [2] CSharp8.cshtml) - Html - \n
+                CSharpExpression - (709:41,1 [21] CSharp8.cshtml)
+                    LazyIntermediateToken - (709:41,1 [21] CSharp8.cshtml) - CSharp - DoSomething!(Person!)
+                HtmlContent - (730:41,22 [4] CSharp8.cshtml)
+                    LazyIntermediateToken - (730:41,22 [4] CSharp8.cshtml) - Html - \n\n
+            CSharpCode - (746:43,12 [480] CSharp8.cshtml)
+                LazyIntermediateToken - (746:43,12 [480] CSharp8.cshtml) - CSharp - \n    enum TestEnum\n    {\n        First,\n        Second\n    }\n\n    IDisposable GetLastDisposableInRange(Range range)\n    {\n        var disposables = (IDisposable[])ViewData["disposables"];\n        return disposables[range][^1];\n    }\n\n    private Human? Person { get; set; }\n\n    private Human?[]? People { get; set; }\n\n    private Func<Human, string>? DoSomething { get; set; }\n\n    private class Human\n    {\n        public string? Name { get; set; }\n    }\n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

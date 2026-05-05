@@ -14,9 +14,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Host.TemporaryStorageService;
 
-#if DEBUG
-#endif
-
 namespace Microsoft.CodeAnalysis.Serialization;
 
 #pragma warning disable CA1416 // Validate platform compatibility
@@ -115,30 +112,26 @@ internal sealed class SerializableSourceText
         return text;
     }
 
-    public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(
+    public static async ValueTask<SerializableSourceText> FromTextDocumentStateAsync(
         TextDocumentState state, CancellationToken cancellationToken)
     {
         if (state.TextAndVersionSource.TextLoader is SerializableSourceTextLoader serializableLoader)
         {
             // If we're already pointing at a serializable loader, we can just use that directly.
-            return new(serializableLoader.SerializableSourceText);
+            return serializableLoader.SerializableSourceText;
         }
         else if (state.StorageHandle is TemporaryStorageTextHandle storageHandle)
         {
             // Otherwise, if we're pointing at a memory mapped storage location, we can create the source text that directly wraps that.
-            return new(new SerializableSourceText(storageHandle));
+            return new SerializableSourceText(storageHandle);
         }
         else
         {
             // Otherwise, the state object has reified the text into some other form, and dumped any original
             // information on how it got it.  In that case, we create a new text instance to represent the serializable
             // source text out of.
-
-            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-                static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
-                static (text, _) => new SerializableSourceText(text, text.GetContentHash()),
-                state,
-                cancellationToken);
+            var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return new SerializableSourceText(text, text.GetContentHash());
         }
     }
 
@@ -169,7 +162,7 @@ internal sealed class SerializableSourceText
 
     public static SerializableSourceText Deserialize(
         ObjectReader reader,
-        TemporaryStorageService storageService,
+        ITemporaryStorageServiceInternal storageService,
         ITextFactoryService textService,
         CancellationToken cancellationToken)
     {
@@ -180,11 +173,13 @@ internal sealed class SerializableSourceText
 
         if (kind == SerializationKinds.MemoryMapFile)
         {
+            // Can only get here with the TemporaryStorageService is the implementation of ITemporaryStorageServiceInternal
+            var temporaryStorageService = (TemporaryStorageService)storageService;
             var identifier = TemporaryStorageIdentifier.ReadFrom(reader);
             var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
             var encoding = reader.ReadEncoding();
             var contentHash = ImmutableCollectionsMarshal.AsImmutableArray(reader.ReadByteArray());
-            var storageHandle = storageService.GetTextHandle(identifier, checksumAlgorithm, encoding, contentHash);
+            var storageHandle = temporaryStorageService.GetTextHandle(identifier, checksumAlgorithm, encoding, contentHash);
 
             return new SerializableSourceText(storageHandle);
         }

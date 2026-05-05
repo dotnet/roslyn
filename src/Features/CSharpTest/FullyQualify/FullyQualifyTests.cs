@@ -1615,7 +1615,7 @@ class C
                     Project p = new [|ProjectLib.Project()|];
                 }
             }
-            """, new TestParameters(testHost: testHost));
+            """.NormalizeLineEndings(), new TestParameters(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
     public Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
@@ -1679,7 +1679,7 @@ class C
                     ProjectLib.Project p = new Project();
                 }
             }
-            """, new TestParameters(testHost: testHost));
+            """.NormalizeLineEndings(), new TestParameters(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
     public Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
@@ -1746,7 +1746,7 @@ class C
             {
                 class Something { }
             }
-            """, new TestParameters(testHost: testHost));
+            """.NormalizeLineEndings(), new TestParameters(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
     public Task TestWithinSourceGeneratedFile(TestHost testHost)

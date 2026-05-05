@@ -172,15 +172,9 @@ namespace x
                 // (3,18): error CS1056: Unexpected character '\'
                 //     public class \e
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(3, 18),
-                // (3,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (3,20): error CS1001: Identifier expected
                 //     public class \e
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(3, 19),
-                // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(4, 5),
-                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 20));
         }
 
         [Fact]
@@ -205,15 +199,9 @@ namespace x
                 // (3,19): error CS1056: Unexpected character '\'
                 //     public class X\e
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(3, 19),
-                // (3,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (3,21): error CS1001: Identifier expected
                 //     public class X\e
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(3, 20),
-                // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(4, 5),
-                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 21));
         }
 
         [Fact]
@@ -241,15 +229,9 @@ namespace x
                 // (3,18): error CS1056: Unexpected character '\'
                 //     public class \eX
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(3, 18),
-                // (3,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (3,21): error CS1001: Identifier expected
                 //     public class \eX
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "eX").WithLocation(3, 19),
-                // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(4, 5),
-                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 21));
         }
 
         [Fact]
@@ -425,15 +407,6 @@ public class C
 }
 ";
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (7,15): error CS1031: Type expected
-                //         const const double d = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(7, 15),
-                // (8,15): error CS1031: Type expected
-                //         const const const long l = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 15),
-                // (8,21): error CS1031: Type expected
-                //         const const const long l = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 21),
                 // (9,15): error CS0106: The modifier 'readonly' is not valid for this item
                 //         const readonly readonly readonly const double r = 0;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 15),
@@ -442,11 +415,84 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 24),
                 // (9,33): error CS0106: The modifier 'readonly' is not valid for this item
                 //         const readonly readonly readonly const double r = 0;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 33),
-                // (9,42): error CS1031: Type expected
-                //         const readonly readonly readonly const double r = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(9, 42)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 33)
             );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateModifiers_NotReportedDuringParsing()
+        {
+            // Duplicate modifiers for local declarations and local functions should not produce
+            // parsing errors. They will be reported during binding.
+            var localDeclaration = """
+                class C
+                {
+                    void M()
+                    {
+                        const const int a = 0;
+                    }
+                }
+                """;
+            ParserErrorMessageTests.ParseAndValidate(localDeclaration);
+
+            var localFunction = """
+                class C
+                {
+                    void M()
+                    {
+                        static static void F() {}
+                    }
+                }
+                """;
+            ParserErrorMessageTests.ParseAndValidate(localFunction);
+
+            var typeDeclaration = """public public class C {}""";
+            ParserErrorMessageTests.ParseAndValidate(typeDeclaration);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateModifiers_StillFailDuringBinding()
+        {
+            // Verify that duplicate modifiers still produce errors during binding/compilation
+            var localDeclaration = """
+                class C
+                {
+                    void M()
+                    {
+                        const const int a = 0;
+                    }
+                }
+                """;
+            CreateCompilation(localDeclaration).VerifyDiagnostics(
+                // (5,15): error CS1004: Duplicate 'const' modifier
+                //         const const int a = 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "const").WithArguments("const").WithLocation(5, 15),
+                // (5,25): warning CS0219: The variable 'a' is assigned but its value is never used
+                //         const const int a = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(5, 25));
+
+            var localFunction = """
+                class C
+                {
+                    void M()
+                    {
+                        static static void F() {}
+                    }
+                }
+                """;
+            CreateCompilation(localFunction).VerifyDiagnostics(
+                // (5,16): error CS1004: Duplicate 'static' modifier
+                //         static static void F() {}
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
+                // (5,28): warning CS8321: The local function 'F' is declared but never used
+                //         static static void F() {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 28));
+
+            var typeDeclaration = """public public class C {}""";
+            CreateCompilation(typeDeclaration).VerifyDiagnostics(
+                // (1,8): error CS1004: Duplicate 'public' modifier
+                // public public class C {}
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(1, 8));
         }
 
         [WorkItem(553293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553293")]

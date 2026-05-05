@@ -54,12 +54,12 @@ namespace IdeCoreBenchmarks
         private Task LoadSolutionAsync()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
+            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.slnx");
 
             if (!File.Exists(_solutionPath))
-                throw new ArgumentException("Couldn't find Roslyn.sln");
+                throw new ArgumentException("Couldn't find Roslyn.slnx");
 
-            Console.WriteLine("Found Roslyn.sln: " + Process.GetCurrentProcess().Id);
+            Console.WriteLine("Found Roslyn.slnx: " + Process.GetCurrentProcess().Id);
             var assemblies = MSBuildMefHostServices.DefaultAssemblies
                 .Add(typeof(AnalyzerRunnerHelper).Assembly)
                 .Add(typeof(FindReferencesBenchmarks).Assembly);

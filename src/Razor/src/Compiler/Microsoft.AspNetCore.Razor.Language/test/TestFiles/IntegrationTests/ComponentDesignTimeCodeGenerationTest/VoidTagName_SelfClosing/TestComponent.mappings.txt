@@ -1,0 +1,26 @@
+﻿Source Location: (1:0,1 [37] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components|
+Generated Location: (309:11,0 [37] )
+|using Microsoft.AspNetCore.Components|
+
+Source Location: (53:3,2 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    |
+Generated Location: (1304:40,2 [6] )
+|
+    |
+
+Source Location: (66:4,11 [32] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    RenderFragment template = |
+Generated Location: (1709:54,11 [32] )
+|
+    RenderFragment template = |
+
+Source Location: (106:5,38 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|;
+|
+Generated Location: (2276:74,38 [3] )
+|;
+|
+

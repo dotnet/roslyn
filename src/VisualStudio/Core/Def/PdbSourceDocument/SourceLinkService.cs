@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Debugger.Contracts.SymbolLocator;
 
 namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument;
 
-[Export(typeof(ISourceLinkService)), Shared]
+[ExportWorkspaceService(typeof(ISourceLinkService), ServiceLayer.Host), Shared]
 internal sealed class SourceLinkService : AbstractSourceLinkService
 {
     private readonly IDebuggerSymbolLocatorService _debuggerSymbolLocatorService;

@@ -61,6 +61,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\CSharpGenerateMethodService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\CSharpGenerateParameterizedMemberService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\CSharpGenerateVariableCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HiddenExplicitCast\CSharpHiddenExplicitCastCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.AddNewKeywordAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
@@ -75,6 +76,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberRequired\CSharpMakeMemberRequiredCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\CSharpMakeMemberStaticCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\CSharpMakeMethodAsynchronousCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\CSharpMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeRefStruct\MakeRefStructCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructMemberReadOnly\CSharpMakeStructMemberReadOnlyCodeFixProvider.cs" />
@@ -84,6 +86,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ArrowExpressionClausePlacement\ArrowExpressionClausePlacementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConditionalExpressionPlacement\ConditionalExpressionPlacementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Nullable\CSharpDeclareAsNullableCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveAsyncModifier\CSharpRemoveAsyncModifierCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveAsyncModifier\RemoveAsyncModifierHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveInKeyword\RemoveInKeywordCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveNewModifier\RemoveNewModifierCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnneccessaryUnsafeModifier\CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider.cs" />

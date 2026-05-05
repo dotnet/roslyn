@@ -30,14 +30,12 @@ public sealed class FindReferencesCommandHandlerTests
     {
         public readonly List<DefinitionItem> Result = [];
 
-        public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+        public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {
             lock (Result)
             {
                 Result.Add(definition);
             }
-
-            return default;
         }
     }
 

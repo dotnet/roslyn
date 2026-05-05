@@ -37,10 +37,9 @@ internal sealed class CSharpUseImplicitObjectCreationCodeFixProvider() : SyntaxE
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.IsSuppressed;
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_new, nameof(CSharpAnalyzersResources.Use_new));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (interceptor.GetIsNewExtensionMember())
+            if (interceptor.IsExtensionBlockMember())
             {
                 if (interceptor.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
                 {
@@ -614,6 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 case ConversionKind.ExplicitUserDefined:
                                 case ConversionKind.ImplicitUserDefined:
+                                case ConversionKind.Union: // https://github.com/dotnet/roslyn/issues/82636: Add coverage
                                 // expression trees rewrite this later.
                                 // it is a kind of user defined conversions on IntPtr and in some cases can fail
                                 case ConversionKind.IntPtr:
@@ -687,9 +688,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 RefKind refKind;
 
-                if (methodOrIndexer.GetIsNewExtensionMember())
+                if (methodOrIndexer.IsExtensionBlockMember())
                 {
-                    refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
+                    refKind = GetExtensionBlockMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
                 }
                 else
                 {
@@ -799,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator? extraRefInitialization = null;
 
                 if (receiverTemp.LocalSymbol.IsRef &&
-                   (methodOrIndexer.GetIsNewExtensionMember() ?
+                   (methodOrIndexer.IsExtensionBlockMember() ?
                      !receiverTemp.Type.IsValueType :
                      CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
                     !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
@@ -946,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private RefKind GetNewExtensionMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
+        private RefKind GetExtensionBlockMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
         {
             Debug.Assert(rewrittenReceiver.Type is { });
             Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is { });
@@ -1327,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
                 }
 
-                if (methodOrIndexer.GetIsNewExtensionMember())
+                if (methodOrIndexer.IsExtensionBlockMember())
                 {
                     Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
                     return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;

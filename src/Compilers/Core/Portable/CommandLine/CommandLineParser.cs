@@ -177,10 +177,10 @@ namespace Microsoft.CodeAnalysis
 
             int colon = arg.IndexOf(':', 1);
 
-            // temporary heuristic to detect Unix-style rooted paths
-            // pattern /goo/*  or  //* will not be treated as a compiler option
-            //
-            // TODO: consider introducing "/s:path" to disambiguate paths starting with /
+            // Heuristic to detect Unix-style rooted paths.
+            // Patterns like "/goo/*" or "//*" are not treated as compiler options.
+            // See https://github.com/dotnet/roslyn/issues/80865 for the MSBuild task
+            // that relies on this heuristic.
             if (arg.Length > 1 && arg[0] != '-')
             {
                 int separator = colon < 0
@@ -1215,40 +1215,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static Encoding? TryParseEncodingName(string arg)
-        {
-            if (!string.IsNullOrWhiteSpace(arg)
-                && long.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out long codepage)
-                && (codepage > 0))
-            {
-                try
-                {
-                    return Encoding.GetEncoding((int)codepage);
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
-            }
-
-            return null;
-        }
-
-        internal static SourceHashAlgorithm TryParseHashAlgorithmName(string arg)
-        {
-            if (string.Equals("sha1", arg, StringComparison.OrdinalIgnoreCase))
-            {
-                return SourceHashAlgorithm.Sha1;
-            }
-
-            if (string.Equals("sha256", arg, StringComparison.OrdinalIgnoreCase))
-            {
-                return SourceHashAlgorithm.Sha256;
-            }
-
-            // MD5 is legacy, not supported
-
-            return SourceHashAlgorithm.None;
-        }
+            => int.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out var codepage) && codepage > 0
+                ? EncodedStringText.TryGetCodePageEncoding(codepage)
+                : null;
 
         private IEnumerable<string> ExpandFileNamePattern(
             string path,

@@ -30,12 +30,11 @@ internal abstract partial class AbstractUpgradeProjectCodeFixProvider : CodeFixP
         return null;
     }
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostics = context.Diagnostics;
 
         context.RegisterFixes(GetUpgradeProjectCodeActions(context), diagnostics);
-        return Task.CompletedTask;
     }
 
     protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActions(CodeFixContext context)
@@ -56,7 +55,7 @@ internal abstract partial class AbstractUpgradeProjectCodeFixProvider : CodeFixP
 
         var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
         var fixOneProject = ProjectOptionsChangeAction.Create(fixOneProjectTitle,
-            _ => Task.FromResult(UpgradeProject(project, newVersion)));
+            async _ => UpgradeProject(project, newVersion));
 
         result.Add(fixOneProject);
 
@@ -65,7 +64,7 @@ internal abstract partial class AbstractUpgradeProjectCodeFixProvider : CodeFixP
             var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
 
             var fixAllProjects = ProjectOptionsChangeAction.Create(fixAllProjectsTitle,
-                ct => Task.FromResult(UpgradeAllProjects(solution, language, newVersion, ct)));
+                async ct => UpgradeAllProjects(solution, language, newVersion, ct));
 
             result.Add(fixAllProjects);
         }
@@ -111,8 +110,8 @@ internal sealed class ProjectOptionsChangeAction : CodeAction
     public static ProjectOptionsChangeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
         => new(title, createChangedSolution);
 
-    protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-        => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+    protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        => [];
 
     protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
         => await _createChangedSolution(cancellationToken).ConfigureAwait(false);
@@ -132,8 +131,8 @@ internal sealed class ProjectOptionsChangeAction : SolutionChangeAction
     public static ProjectOptionsChangeAction Create(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution)
         => new(title, createChangedSolution);
 
-    protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-        => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+    protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        => [];
 }
 
 #endif

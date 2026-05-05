@@ -23,8 +23,8 @@ internal sealed class DocumentEditAndContinueDiagnosticSourceProvider() : IDiagn
 
     public bool IsEnabled(ClientCapabilities capabilities) => true;
 
-    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return new([EditAndContinueDiagnosticSource.CreateOpenDocumentSource(context.GetRequiredDocument())]);
+        return [EditAndContinueDiagnosticSource.CreateOpenDocumentSource(context.GetRequiredDocument())];
     }
 }

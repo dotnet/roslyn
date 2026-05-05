@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,6 +53,32 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
                 #line 1000
             #error
             """);
+
+    [Fact]
+    public Task FileBasedAppDirective()
+    {
+        var parseOptions = CSharpParseOptions.Default.WithFeatures([new KeyValuePair<string, string>("FileBasedProgram", "true")]);
+        return AssertNoFormattingChangesAsync("""
+            #:package Newtonsoft.Json@13.0.3
+
+            Console.WriteLine("Hello");
+            """, parseOptions: parseOptions);
+    }
+
+    [Fact]
+    public Task FileBasedAppDirective_WithLeadingWhitespace()
+    {
+        var parseOptions = CSharpParseOptions.Default.WithFeatures([new KeyValuePair<string, string>("FileBasedProgram", "true")]);
+        return AssertFormatAsync("""
+            #:package Newtonsoft.Json@13.0.3
+
+            Console.WriteLine("Hello");
+            """, """
+             #:package Newtonsoft.Json@13.0.3
+
+            Console.WriteLine("Hello");
+            """, parseOptions: parseOptions);
+    }
 
     [Fact]
     public Task Comment1()
@@ -1192,7 +1219,7 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
 
                 void Method()
                 {
-                    #endregion
+                #endregion
                     int i = 10;
                 }
             }
@@ -1533,6 +1560,58 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
                     if (true)
                         a++;
                         #endregion
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75919")]
+    public Task EndRegionFollowedByLabel()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    int i = 0;
+
+                    #region region one
+                    if (i == 0)
+                    {
+                        goto label0;
+                    }
+                    else if (i == 1)
+                    {
+                        goto label1;
+                    }
+                    #endregion
+
+                label0:
+                    return;
+                label1:
+                    return;
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    int i = 0;
+
+                    #region region one
+                    if (i == 0)
+                    {
+                        goto label0;
+                    }
+                    else if (i == 1)
+                    {
+                        goto label1;
+                    }
+            #endregion
+
+            label0:
+                    return;
+            label1:
+                    return;
                 }
             }
             """);

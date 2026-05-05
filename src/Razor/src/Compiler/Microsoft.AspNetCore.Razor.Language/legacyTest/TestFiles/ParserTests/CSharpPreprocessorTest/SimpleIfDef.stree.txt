@@ -1,0 +1,37 @@
+﻿RazorDocument - [0..39)::39 - [@{LF#if trueLF    var x = 1;LF#endifLF}]
+    MarkupBlock - [0..39)::39
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..39)::39
+            CSharpStatement - [0..39)::39
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpStatementBody - [1..39)::38
+                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..38)::36
+                        CSharpStatementLiteral - [2..38)::36 - [LF#if trueLF    var x = 1;LF#endifLF] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                            NewLine;[LF];
+                            Hash;[#];
+                            Keyword;[if];
+                            Whitespace;[ ];
+                            Keyword;[true];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Identifier;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            IntegerLiteral;[1];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[endif];
+                            NewLine;[LF];
+                    RazorMetaCode - [38..39)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        RightBrace;[}];
+        MarkupTextLiteral - [39..39)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+    EndOfFile;[];

@@ -1,0 +1,12 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml(8,7): error CS0103: The name 'Foo' does not exist in the current context
+// __o = Foo(Bar.Baz);
+Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(8, 7),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml(8,11): error CS0103: The name 'Bar' does not exist in the current context
+// __o = Foo(Bar.Baz);
+Diagnostic(ErrorCode.ERR_NameNotInContext, "Bar").WithArguments("Bar").WithLocation(8, 11),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml(9,7): error CS0103: The name 'Foo' does not exist in the current context
+// __o = Foo(item => new global::Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_template_writer) => {
+Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(9, 7),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml(14,7): error CS0103: The name 'bar' does not exist in the current context
+// __o = bar;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "bar").WithArguments("bar").WithLocation(14, 7)

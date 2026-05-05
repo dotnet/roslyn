@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -35,7 +33,4 @@ internal abstract class AbstractMainMethodSnippetProvider<TMethodDeclarationSynt
 
         return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), method.NormalizeWhitespace().ToFullString()));
     }
-
-    protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TMethodDeclarationSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        => [];
 }

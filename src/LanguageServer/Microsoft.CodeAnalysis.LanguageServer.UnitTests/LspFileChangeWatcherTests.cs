@@ -88,12 +88,13 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
 
         // Try creating a single file watch and ensure we created the registration
         var context = lspFileChangeWatcher.CreateContext([]);
-        var watchedFile = context.EnqueueWatchingFile("Z:\\SingleFile.txt");
+        var filePath = Path.Combine(tempDirectory.Path, "SingleFile.txt");
+        var watchedFile = context.EnqueueWatchingFile(filePath);
         await WaitForFileWatcherAsync(testLspServer);
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal("Z:\\", watcher.GlobPattern.Second.BaseUri.Second.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.Second.GetRequiredParsedUri().LocalPath);
         Assert.Equal("SingleFile.txt", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
@@ -118,21 +119,17 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
         public readonly ConcurrentDictionary<string, Registration> Registrations = new();
 
         [JsonRpcMethod("client/registerCapability", UseSingleObjectParameterDeserialization = true)]
-        public Task RegisterCapabilityAsync(RegistrationParams registrationParams, CancellationToken _)
+        public async Task RegisterCapabilityAsync(RegistrationParams registrationParams, CancellationToken _)
         {
             foreach (var registration in registrationParams.Registrations)
                 Assert.True(Registrations.TryAdd(registration.Id, registration));
-
-            return Task.CompletedTask;
         }
 
         [JsonRpcMethod("client/unregisterCapability", UseSingleObjectParameterDeserialization = true)]
-        public Task UnregisterCapabilityAsync(UnregistrationParams unregistrationParams, CancellationToken _)
+        public async Task UnregisterCapabilityAsync(UnregistrationParams unregistrationParams, CancellationToken _)
         {
             foreach (var unregistration in unregistrationParams.Unregistrations)
                 Assert.True(Registrations.TryRemove(unregistration.Id, out var _));
-
-            return Task.CompletedTask;
         }
     }
 }

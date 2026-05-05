@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     LoadAndValidateAttributes(
                         OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true,
                         binderOpt: rootBinder,
-                        attributeMatchesOpt: this.GetIsNewExtensionMember() ? isPossibleIndexerNameAttributeInExtension : isPossibleIndexerNameAttribute);
+                        attributeMatchesOpt: this.IsExtensionBlockMember() ? isPossibleIndexerNameAttributeInExtension : isPossibleIndexerNameAttribute);
                     if (temp != null)
                     {
                         Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
@@ -624,6 +624,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool HasReadOnlyModifier => (_modifiers & DeclarationModifiers.ReadOnly) != 0;
+
+        internal bool HasUnsafeModifier => (_modifiers & DeclarationModifiers.Unsafe) != 0;
 
 #nullable enable
         /// <summary>
@@ -1016,10 +1018,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable disable
 
-            Location location = TypeLocation;
+            Location typeLocation = TypeLocation;
+            var location = GetFirstLocation();
             var compilation = DeclaringCompilation;
 
-            Debug.Assert(location != null);
+            Debug.Assert(typeLocation != null);
 
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // property name location for any such errors. We'll do the same for return
@@ -1040,7 +1043,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, typeLocation, modifyCompilation: true);
+            }
+
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                var modifiers = (CSharpSyntaxNode as MemberDeclarationSyntax)?.Modifiers ?? default;
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(location), modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
@@ -1048,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
-                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, typeLocation, modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
@@ -1058,16 +1067,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 this.TypeWithAnnotations.NeedsNullableAttribute())
             {
-                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNullableAttributeExists(diagnostics, typeLocation, modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
 
-            if (this.GetIsNewExtensionMember())
+            if (this.IsExtensionBlockMember())
             {
                 ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
 
-                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
+                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
 
@@ -1421,6 +1430,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
+            }
+
             if (IsRequired)
             {
                 AddSynthesizedAttribute(
@@ -1428,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
 
-            if (this.GetIsNewExtensionMember())
+            if (this.IsExtensionBlockMember())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerAttribute(this, ((SourceNamedTypeSymbol)this.ContainingType).ExtensionMarkerName));
             }
@@ -1483,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return (null, null);
             }
-            else if ((IsIndexer || this.GetIsNewExtensionMember()) && CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
+            else if ((IsIndexer || this.IsExtensionBlockMember()) && CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
             {
                 (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out var hasAnyDiagnostics);
 
@@ -1620,6 +1634,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
+            }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
             {
                 MessageID.IDS_FeatureOverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
@@ -1736,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, node.ArgumentList.Arguments[0].Location, node.GetErrorDisplayName());
                 }
-                else if (this.GetIsNewExtensionMember() && SourceName != indexerName)
+                else if (this.IsExtensionBlockMember() && SourceName != indexerName)
                 {
                     // Tracked by https://github.com/dotnet/roslyn/issues/78829 : extension indexers, Report more descriptive error
                     // error CS8078: An expression is too long or complex to compile
@@ -1747,7 +1765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override int TryGetOverloadResolutionPriority()
         {
-            Debug.Assert(this.IsIndexer || this.GetIsNewExtensionMember());
+            Debug.Assert(this.IsIndexer || this.IsExtensionBlockMember());
             return GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority ?? 0;
         }
 

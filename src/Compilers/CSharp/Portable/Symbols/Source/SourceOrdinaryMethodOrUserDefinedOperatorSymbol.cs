@@ -171,6 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool IsUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal sealed override bool CanBeCallerUnsafe => true;
+
         protected abstract int GetParameterCountFromSyntax();
 
         public sealed override ImmutableArray<ParameterSymbol> Parameters
@@ -263,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
 
-            if (this.GetIsNewExtensionMember())
+            if (this.IsExtensionBlockMember())
             {
                 if (MethodKind != MethodKind.Ordinary)
                 {

@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<BoundDecisionDagNode> loweredNodes,
                 BoundDagTemp input)
             {
-                IValueSetFactory fac = ValueSetFactory.ForInput(input);
+                IConstantValueSetFactory fac = ValueSetFactory.ForInput(input);
                 return GatherValueDispatchNodes(node, loweredNodes, input, fac);
             }
 
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundDecisionDagNode node,
                 HashSet<BoundDecisionDagNode> loweredNodes,
                 BoundDagTemp input,
-                IValueSetFactory fac)
+                IConstantValueSetFactory fac)
             {
                 if (loweredNodes.Contains(node))
                 {
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode syntax,
                 ValueDispatchNode otherwise,
                 ImmutableArray<(ConstantValue value, LabelSymbol label)> cases,
-                IValueSetFactory fac)
+                IConstantValueSetFactory fac)
             {
                 if (cases.IsEmpty)
                     return otherwise;
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private sealed class CasesComparer : IComparer<(ConstantValue value, LabelSymbol label)>
             {
-                private readonly IValueSetFactory _fac;
+                private readonly IConstantValueSetFactory _fac;
                 public CasesComparer(TypeSymbol type)
                 {
                     _fac = ValueSetFactory.ForType(type);
@@ -789,13 +789,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case SpecialType.System_IntPtr:
                             {
-                                input = _factory.Convert(_factory.SpecialType(SpecialType.System_Int64), input);
+                                NamedTypeSymbol int64Type = _factory.SpecialType(SpecialType.System_Int64);
+                                Conversion c = _factory.ClassifyEmitConversion(input, int64Type);
+                                Debug.Assert(c.IsImplicit);
+                                Debug.Assert(c.IsNumeric);
+                                input = _factory.Convert(int64Type, input, c);
                                 cases = node.Cases.SelectAsArray(p => (ConstantValue.Create((long)p.value.Int32Value), p.label));
                                 break;
                             }
                         case SpecialType.System_UIntPtr:
                             {
-                                input = _factory.Convert(_factory.SpecialType(SpecialType.System_UInt64), input);
+                                NamedTypeSymbol uint64Type = _factory.SpecialType(SpecialType.System_UInt64);
+                                Conversion c = _factory.ClassifyEmitConversion(input, uint64Type);
+                                Debug.Assert(c.IsImplicit);
+                                Debug.Assert(c.IsNumeric);
+                                input = _factory.Convert(uint64Type, input, c);
                                 cases = node.Cases.SelectAsArray(p => (ConstantValue.Create((ulong)p.value.UInt32Value), p.label));
                                 break;
                             }

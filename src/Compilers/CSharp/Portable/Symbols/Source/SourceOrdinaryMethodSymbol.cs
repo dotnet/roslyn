@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
                 signatureBinder, this, syntax.ParameterList, out _,
                 allowRefOrOut: true,
-                allowThis: !this.GetIsNewExtensionMember(),
+                allowThis: !this.IsExtensionBlockMember(),
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 

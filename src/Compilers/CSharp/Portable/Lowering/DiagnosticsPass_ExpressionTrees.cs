@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda &&
                 node.Indices.Length == 1 &&
-                !node.Indices[0].Type!.SpecialType.CanOptimizeBehavior())
+                !node.Indices[0].Type.SpecialType.CanOptimizeBehavior())
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, node);
             }
@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool hasBaseReceiver = node.ReceiverOpt != null && node.ReceiverOpt.Kind == BoundKind.BaseReference;
                 Binder.ReportDiagnosticsIfObsolete(_diagnostics, node.EventSymbol.AssociatedField, node.Syntax, hasBaseReceiver, _containingSymbol, _containingSymbol.ContainingType, BinderFlags.None);
+                Binder.AssertNotUnsafeMemberAccess(node.EventSymbol.AssociatedField);
             }
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitEventAccess(node);
@@ -290,6 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasBaseReceiver = node.ReceiverOpt != null && node.ReceiverOpt.Kind == BoundKind.BaseReference;
             Binder.ReportDiagnosticsIfObsolete(_diagnostics, node.Event, ((AssignmentExpressionSyntax)node.Syntax).Left, hasBaseReceiver, _containingSymbol, _containingSymbol.ContainingType, BinderFlags.None);
+            // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitEventAssignmentOperator(node);
         }
@@ -466,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.MemberSymbol is PropertySymbol property)
             {
-                if (_inExpressionLambda && property.GetIsNewExtensionMember())
+                if (_inExpressionLambda && property.IsExtensionBlockMember())
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, node);
                 }
@@ -545,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
-            if (_inExpressionLambda && (node.AddMethod.IsStatic || node.AddMethod.GetIsNewExtensionMember()))
+            if (_inExpressionLambda && (node.AddMethod.IsStatic || node.AddMethod.IsExtensionBlockMember()))
             {
                 Error(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, node);
             }
@@ -592,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                 }
-                else if (property.GetIsNewExtensionMember())
+                else if (property.IsExtensionBlockMember())
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, node);
                 }
@@ -756,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                 }
 
-                if (binary.GetIsNewExtensionMember())
+                if (binary.IsExtensionBlockMember())
                 {
                     // An expression tree factory isn't happy in this case. It throws
                     //            System.ArgumentException : The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
@@ -768,8 +770,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!node.TrueOperator.GetIsNewExtensionMember());
-                    Debug.Assert(!node.FalseOperator.GetIsNewExtensionMember());
+                    Debug.Assert(!node.TrueOperator.IsExtensionBlockMember());
+                    Debug.Assert(!node.FalseOperator.IsExtensionBlockMember());
                 }
             }
 
@@ -890,6 +892,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (_inExpressionLambda)
                     {
                         Error(ErrorCode.ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion, node);
+                    }
+                    break;
+
+                case ConversionKind.Union:
+                    if (_inExpressionLambda)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsUnionConversion, node);
                     }
                     break;
 

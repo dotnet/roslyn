@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -20,14 +20,19 @@ internal abstract class AbstractInlineHintsService : IInlineHintsService
         var inlineParameterService = document.GetLanguageService<IInlineParameterNameHintsService>();
         var inlineTypeService = document.GetLanguageService<IInlineTypeHintsService>();
 
-        var parameters = inlineParameterService == null
-            ? []
-            : await inlineParameterService.GetInlineHintsAsync(document, textSpan, options.ParameterOptions, options.DisplayOptions, displayAllOverride, cancellationToken).ConfigureAwait(false);
+        // Allow large array instances in the pool, as these arrays often exceed the ArrayBuilder reuse size threshold
+        using var _ = ArrayBuilder<InlineHint>.GetInstance(discardLargeInstances: false, out var result);
 
-        var types = inlineTypeService == null
-            ? []
-            : await inlineTypeService.GetInlineHintsAsync(document, textSpan, options.TypeOptions, options.DisplayOptions, displayAllOverride, cancellationToken).ConfigureAwait(false);
+        if (inlineParameterService is not null)
+        {
+            await inlineParameterService.AddInlineHintsAsync(document, textSpan, options.ParameterOptions, options.DisplayOptions, displayAllOverride, result, cancellationToken).ConfigureAwait(false);
+        }
 
-        return [.. parameters, .. types];
+        if (inlineTypeService is not null)
+        {
+            await inlineTypeService.AddInlineHintsAsync(document, textSpan, options.TypeOptions, options.DisplayOptions, displayAllOverride, result, cancellationToken).ConfigureAwait(false);
+        }
+
+        return result.ToImmutableAndClear();
     }
 }

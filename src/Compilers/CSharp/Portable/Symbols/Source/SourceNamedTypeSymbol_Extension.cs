@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static Symbol? ReduceExtensionMember(CSharpCompilation? compilation, Symbol extensionMember, TypeSymbol receiverType, out bool wasExtensionFullyInferred)
         {
-            Debug.Assert(extensionMember.GetIsNewExtensionMember());
+            Debug.Assert(extensionMember.IsExtensionBlockMember());
 
             NamedTypeSymbol extension = extensionMember.ContainingType;
             if (extension.ExtensionParameter is null)

@@ -501,11 +501,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            if (this.BaseTypeNoUseSiteDiagnostics?.IsErrorType() == true)
+            var baseType = this.BaseTypeNoUseSiteDiagnostics;
+            if (baseType?.IsErrorType() == true)
             {
                 // Avoid cascading diagnostics
                 return;
             }
+
+            // Check if the base type is a valid record base first. If it's not a record, then ERR_BadRecordBase
+            // will have already been reported, and we don't need to report cascaded warnings and errors for the
+            // members in this type.
+            var hasInvalidRecordInheritance = this.IsRecord && !baseType.IsObjectType() && !baseType.IsRecord;
 
             switch (this.TypeKind)
             {
@@ -528,6 +534,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in this.GetMembersUnordered())
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // If we have invalid record inheritance (a record deriving from a non-record), skip checking the
+                // synthesized members for proper new/override usage as we will end up just reporting cascaded
+                // errors that all stem from the same root cause.
+                if (hasInvalidRecordInheritance &&
+                    member is SynthesizedRecordBaseEquals or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPrintMembers)
+                {
+                    continue;
+                }
 
                 bool suppressAccessors;
                 switch (member.Kind)
@@ -926,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // As in dev11, we don't compare obsoleteness to the immediately-overridden member,
                     // but to the least-overridden member.
-                    var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(overriddenMember.ContainingType);
+                    var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(this);
 
                     overridingMember.ForceCompleteObsoleteAttribute();
                     leastOverriddenMember.ForceCompleteObsoleteAttribute();
@@ -974,6 +989,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             diagnostics,
                                                             (diagnostics, overriddenEvent, overridingEvent, location) => diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, location),
                                                             overridingMemberLocation);
+
+                            CheckCallerUnsafeMismatch(
+                                implementedMember: null,
+                                overridingEvent,
+                                ErrorCode.ERR_CallerUnsafeOverridingSafe,
+                                overridingMemberLocation,
+                                static l => l,
+                                diagnostics);
                         }
                     }
                     else
@@ -1189,6 +1212,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     },
                     overridingMemberLocation,
                     invokedAsExtensionMethod: false);
+
+                CheckCallerUnsafeMismatch(
+                    implementedMember: null,
+                    overridingMethod,
+                    ErrorCode.ERR_CallerUnsafeOverridingSafe,
+                    overridingMemberLocation,
+                    static l => l,
+                    diagnostics);
             }
         }
 
@@ -1528,6 +1559,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, (baseParameter, extraArgument));
                 }
+            }
+        }
+
+        internal static void CheckCallerUnsafeMismatch<TArg>(
+            Symbol? implementedMember,
+            Symbol? overridingMember,
+            ErrorCode errorCode,
+            TArg arg,
+            Func<TArg, Location> overridingMemberLocation,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (overridingMember is null)
+            {
+                return;
+            }
+
+            Debug.Assert(implementedMember is not null || overridingMember.IsDefinition);
+
+            var leastOverriddenMember = implementedMember ?? overridingMember.GetLeastOverriddenMember(overridingMember.ContainingType);
+            if (overridingMember.CallerUnsafeMode == CallerUnsafeMode.Explicit && leastOverriddenMember.CallerUnsafeMode == CallerUnsafeMode.None)
+            {
+                diagnostics.Add(errorCode, overridingMemberLocation(arg), overridingMember, leastOverriddenMember);
             }
         }
 #nullable disable

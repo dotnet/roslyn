@@ -632,7 +632,7 @@ A(); // 1
     static void D() { }
 }".NormalizeLineEndings();
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
-            verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL:
+            verifier.VerifyIL("Program.Main", sequencePointDisplay: SequencePointDisplayMode.Minimal, expectedIL:
 @"{
   // Code size       26 (0x1a)
   .maxstack  0

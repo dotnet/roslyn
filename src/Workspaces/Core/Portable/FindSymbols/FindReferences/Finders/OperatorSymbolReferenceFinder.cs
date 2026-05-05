@@ -33,7 +33,7 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    private static Task FindDocumentsAsync<TData>(
+    private static async Task FindDocumentsAsync<TData>(
         Project project,
         IImmutableSet<Document>? documents,
         PredefinedOperator op,
@@ -42,10 +42,10 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
         CancellationToken cancellationToken)
     {
         if (op == PredefinedOperator.None)
-            return Task.CompletedTask;
+            return;
 
-        return FindDocumentsWithPredicateAsync(
-            project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, processResult, processResultData, cancellationToken);
+        await FindDocumentsWithPredicateAsync(
+            project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected sealed override void FindReferencesInDocument<TData>(
@@ -75,5 +75,17 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
         SyntaxToken token)
     {
         return syntaxFacts.TryGetPredefinedOperator(token, out var actualOperator) && actualOperator == op;
+    }
+
+    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        IMethodSymbol symbol,
+        Solution solution,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        // If given an extension operator `E.extension(...).operator+`, we cascade to the its implementation method `E.op_Addition(...)`
+        return symbol.AssociatedExtensionImplementation is { } associatedExtensionMethod
+            ? new([associatedExtensionMethod])
+            : new([]);
     }
 }

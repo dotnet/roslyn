@@ -47,7 +47,7 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
         bool hasMissingCases, bool hasMissingDefaultCase,
         TSwitchSyntax switchNode, TSwitchOperation switchOperation);
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
         var properties = diagnostic.Properties;
@@ -92,8 +92,6 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
                     nameof(CodeFixesResources.Add_both)),
                 context.Diagnostics);
         }
-
-        return Task.CompletedTask;
     }
 
     private Task<Document> FixAsync(

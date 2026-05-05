@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -79,6 +80,8 @@ namespace Microsoft.CodeAnalysis
         /// The base directory for the <see cref="SyntaxTree.FilePath"/> of generated files.
         /// </summary>
         internal string? BaseDirectory => _driverOptions.BaseDirectory;
+
+        internal SourceHashAlgorithm ChecksumAlgorithm => _driverOptions.ChecksumAlgorithm;
 
         /// <summary>
         /// ParseOptions to use when parsing generator provided source.

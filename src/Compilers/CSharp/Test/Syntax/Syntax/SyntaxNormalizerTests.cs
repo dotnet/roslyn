@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3492,7 +3493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void TestNormalizeDeclaration(string text, string expected)
         {
-            var node = SyntaxFactory.ParseCompilationUnit(text.NormalizeLineEndings());
+            var node = SyntaxFactory.ParseCompilationUnit(text.NormalizeLineEndings(), options: TestOptions.RegularPreview);
             Assert.Equal(text.NormalizeLineEndings(), node.ToFullString().NormalizeLineEndings());
             var actual = node.NormalizeWhitespace("  ").ToFullString();
             AssertEx.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
@@ -6233,6 +6234,52 @@ extension ( int  )
 static class E
 {
   extension(int)
+  {
+  }
+}
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_01()
+        {
+            TestNormalizeDeclaration("""
+throw null!;
+""", """
+throw null!;
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_02()
+        {
+            TestNormalizeDeclaration("""
+throw x!;
+""", """
+throw x!;
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_03()
+        {
+            TestNormalizeDeclaration("""
+M()!;
+""", """
+M()!;
+""");
+        }
+
+        [Fact]
+        public void UnionDeclaration_01()
+        {
+            TestNormalizeDeclaration("""
+[Attr1]public   union  Result < T ,  E > ( Ok , Err ):IResult  where  T:class{public   void   M ( ) { }}
+""", """
+[Attr1]
+public union Result<T, E>(Ok, Err) : IResult where T : class
+{
+  public void M()
   {
   }
 }

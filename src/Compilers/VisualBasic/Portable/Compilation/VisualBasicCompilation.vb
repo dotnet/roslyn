@@ -15,6 +15,7 @@ Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.InternalUtilities
@@ -2057,7 +2058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend ReadOnly Property FeatureStrictEnabled As Boolean
             Get
-                Return Me.Feature("strict") IsNot Nothing
+                Return Me.Feature(CodeAnalysis.Feature.Strict) IsNot Nothing
             End Get
         End Property
 
@@ -2960,7 +2961,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim descriptor = New AnonymousTypeDescriptor(
                 fields.ToImmutableAndFree(), Location.None, isImplicitlyDeclared:=False)
-            Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
+            Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor, BindingDiagnosticBag.Discarded)
         End Function
 
         Protected Overrides Function CommonCreateBuiltinOperator(

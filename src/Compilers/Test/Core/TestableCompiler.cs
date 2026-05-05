@@ -118,7 +118,7 @@ namespace Roslyn.Test.Utilities
 
             fileSystem ??= TestableFileSystem.CreateForMap();
             var args = new List<string>();
-            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory!, args, includeVisualBasicRuntime: false);
+            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory, args, includeVisualBasicRuntime: false);
             args.AddRange(commandLineArguments);
 
             var compiler = new CSharpCompilerImpl(args.ToArray(), buildPaths, fileSystem);
@@ -185,7 +185,7 @@ namespace Roslyn.Test.Utilities
                     throw new Exception("invalid value");
             }
 
-            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory!, args, includeVisualBasicRuntime: false);
+            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory, args, includeVisualBasicRuntime: false);
             args.AddRange(commandLineArguments);
 
             var compiler = new BasicCompilerImpl(args.ToArray(), buildPaths, fileSystem);

@@ -1,0 +1,33 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TDomain, TValue
+            DesignTimeDirective - 
+                DirectiveToken - (11:0,11 [7] x:\dir\subdir\Test\TestComponent.cshtml) - TDomain
+                DirectiveToken - (19:0,19 [22] x:\dir\subdir\Test\TestComponent.cshtml) - where TDomain : struct
+                DirectiveToken - (54:1,11 [6] x:\dir\subdir\Test\TestComponent.cshtml) - TValue
+                DirectiveToken - (61:1,18 [21] x:\dir\subdir\Test\TestComponent.cshtml) - where TValue : struct
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (84:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (84:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (86:3,0 [64] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    ComponentAttribute - (107:3,21 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Data - Data - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (107:3,21 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - null
+                    ComponentTypeArgument - (122:3,36 [7] x:\dir\subdir\Test\TestComponent.cshtml) - TDomain
+                        IntermediateToken - (122:3,36 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - decimal
+                    ComponentTypeArgument - (139:3,53 [7] x:\dir\subdir\Test\TestComponent.cshtml) - TValue
+                        IntermediateToken - (139:3,53 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - decimal
+                HtmlContent - (150:3,64 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (150:3,64 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+            CSharpCode - (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public List<(TDomain Domain, TValue Value)> Data { get; set; }\n

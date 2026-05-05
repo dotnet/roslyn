@@ -21,7 +21,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-public sealed class GenerateVariableTests(ITestOutputHelper logger)
+public sealed partial class GenerateVariableTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     private const int FieldIndex = 0;
@@ -10542,4 +10542,88 @@ class Class
                 public int Goo { get; internal set; }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
+    public Task TestNotOfferedInEventAddAccessor()
+        => TestExactActionSetOfferedAsync(
+            """
+            class C
+            {
+                event EventHandler E
+                {
+                    add { [|ev|] += value; }
+                    remove { ev -= value; }
+                }
+            }
+            """, [string.Format(CodeFixesResources.Generate_field_0, "ev"), string.Format(CodeFixesResources.Generate_property_0, "ev"), string.Format(CodeFixesResources.Generate_local_0, "ev")]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
+    public Task TestNotOfferedInEventRemoveAccessor()
+        => TestExactActionSetOfferedAsync(
+            """
+            class C
+            {
+                event EventHandler E
+                {
+                    add { ev += value; }
+                    remove { [|ev|] -= value; }
+                }
+            }
+            """, [string.Format(CodeFixesResources.Generate_field_0, "ev"), string.Format(CodeFixesResources.Generate_property_0, "ev"), string.Format(CodeFixesResources.Generate_local_0, "ev")]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
+    public Task TestNotOfferedInPropertyGetAccessor()
+        => TestExactActionSetOfferedAsync(
+            """
+            class C
+            {
+                int P
+                {
+                    get { return [|x|]; }
+                    set { }
+                }
+            }
+            """, [string.Format(CodeFixesResources.Generate_field_0, "x"), string.Format(CodeFixesResources.Generate_read_only_field_0, "x"), string.Format(CodeFixesResources.Generate_property_0, "x"), string.Format(CodeFixesResources.Generate_local_0, "x")]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
+    public Task TestNotOfferedInPropertySetAccessor()
+        => TestExactActionSetOfferedAsync(
+            """
+            class C
+            {
+                int P
+                {
+                    get { return 0; }
+                    set { [|x|] = value; }
+                }
+            }
+            """, [string.Format(CodeFixesResources.Generate_field_0, "x"), string.Format(CodeFixesResources.Generate_property_0, "x"), string.Format(CodeFixesResources.Generate_local_0, "x")]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
+    public Task TestNotOfferedInIndexerGetAccessor()
+        => TestExactActionSetOfferedAsync(
+            """
+            class C
+            {
+                int this[int index]
+                {
+                    get { return [|x|]; }
+                    set { }
+                }
+            }
+            """, [string.Format(CodeFixesResources.Generate_field_0, "x"), string.Format(CodeFixesResources.Generate_read_only_field_0, "x"), string.Format(CodeFixesResources.Generate_property_0, "x"), string.Format(CodeFixesResources.Generate_local_0, "x")]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
+    public Task TestNotOfferedInIndexerSetAccessor()
+        => TestExactActionSetOfferedAsync(
+            """
+            class C
+            {
+                int this[int index]
+                {
+                    get { return 0; }
+                    set { [|x|] = value; }
+                }
+            }
+            """, [string.Format(CodeFixesResources.Generate_field_0, "x"), string.Format(CodeFixesResources.Generate_property_0, "x"), string.Format(CodeFixesResources.Generate_local_0, "x")]);
 }

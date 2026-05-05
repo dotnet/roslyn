@@ -1639,7 +1639,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
         WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue = 8524,
-        // available 8525-8596
+        ERR_DesignatorBeforePropertyPattern = 8525,
+        // available 8526-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
@@ -1675,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
         WRN_NullableValueTypeMayBeNull = 8629,
-        ERR_NullableOptionNotAvailable = 8630,
+        ERR_CompilationOptionNotAvailable = 8630,
         WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
         WRN_MissingNonNullTypesContextForAnnotation = 8632,
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
@@ -2160,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParamsArrayInLambdaOnly = 9100,
         ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
-        ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
+        ERR_UnrecognizedAttributeVersion = 9103,
         // ERR_BadSpecialByRefUsing = 9104,
 
         ERR_InvalidPrimaryConstructorParameterReference = 9105,
@@ -2436,6 +2437,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_BadVisBaseType = 9338,
         ERR_AmbigExtension = 9339,
+        ERR_SingleInapplicableBinaryOperator = 9340,
+        ERR_SingleInapplicableUnaryOperator = 9341,
+        ERR_AmbigOperator = 9342,
+
+        ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList = 9343,
+        ERR_EqualityOperatorInPatternNotSupported = 9344,
+        ERR_InequalityOperatorInPatternNotSupported = 9345,
+        ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime = 9346,
+        ERR_ExtensionParameterInStaticContext = 9347,
+        ERR_CompilationUnitUnexpected = 9348,
+
+        ERR_ScopedAfterInOutRefReadonly = 9349,
+        ERR_InvalidModifierAfterScoped = 9350,
+
+        ERR_StructLayoutAndExtendedLayout = 9351,
+        ERR_RuntimeDoesNotSupportExtendedLayoutTypes = 9352,
+
+        ERR_NoAwaitOnAsyncEnumerable = 9353,
+
+        ERR_CollectionArgumentsMustBeFirst = 9354,
+        ERR_CollectionArgumentsNotSupportedForType = 9355,
+        ERR_CollectionArgumentsDynamicBinding = 9356,
+        ERR_CollectionArgumentsMustBeEmpty = 9357,
+        ERR_CollectionRefLikeElementType = 9358,
+        ERR_BadCollectionArgumentsArgCount = 9359,
+
+        ERR_UnsafeOperation = 9360,
+        ERR_UnsafeUninitializedStackAlloc = 9361,
+        ERR_UnsafeMemberOperation = 9362,
+        ERR_UnsafeMemberOperationCompat = 9363,
+        ERR_CallerUnsafeOverridingSafe = 9364,
+        ERR_CallerUnsafeImplicitlyImplementingSafe = 9365,
+        ERR_CallerUnsafeExplicitlyImplementingSafe = 9366,
+
+        ERR_ExpressionTreeContainsUnionConversion = 9369,
+        ERR_UnionDeclarationNeedsCaseTypes = 9370,
+        ERR_NoImplicitConversionToObject = 9371,
+        ERR_UnionMatchingWrongPattern = 9372,
+        ERR_InstanceFieldInUnion = 9373,
+        ERR_InstanceCtorWithOneParameterInUnion = 9374,
+        ERR_UnionConstructorCallsDefaultConstructor = 9375,
+
+        ERR_UnsafeConstructorConstraint = 9376,
+        WRN_UnsafeMeaningless = 9377,
+
+        ERR_PPShebangNotOnFirstLine = 9378,
+
+        ERR_RequiresUnsafeAttributeInSource = 9379,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

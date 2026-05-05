@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 using static Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles.EditorConfigNamingStylesParser;
@@ -45,7 +46,7 @@ public sealed class NamingStyleParserTests
     [Fact]
     public void TestParseRoslynEditorConfig()
     {
-        var editorconfig = SourceText.From(RoslynEditorConfigText);
+        var editorconfig = SourceText.From(RoslynEditorConfigText.NormalizeLineEndings());
         var namingStyles = Parse(editorconfig, null);
 
         var namingStyleSection = Assert.Single(namingStyles.Sections);
@@ -947,7 +948,7 @@ public sealed class NamingStyleParserTests
         csharp_space_after_keywords_in_control_flow_statements = true
         csharp_space_after_semicolon_in_for_statement = true
         csharp_space_around_binary_operators = before_and_after
-        csharp_space_around_declaration_statements = do_not_ignore
+        csharp_space_around_declaration_statements = false
         csharp_space_before_colon_in_inheritance_clause = true
         csharp_space_before_comma = false
         csharp_space_before_dot = false

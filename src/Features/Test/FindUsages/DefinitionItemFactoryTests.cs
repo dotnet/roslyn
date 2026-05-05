@@ -378,7 +378,7 @@ public sealed class DefinitionItemFactoryTests
         using var workspace = TestWorkspace.CreateCSharp("""
             namespace System { class C {} }
             namespace System { class D {} }
-            """);
+            """.NormalizeLineEndings());
 
         var solution = workspace.CurrentSolution;
         var project = solution.Projects.Single();
@@ -1327,7 +1327,7 @@ public sealed class DefinitionItemFactoryTests
             {
                 void M(int p) { }
             }
-            """);
+            """.NormalizeLineEndings());
 
         var solution = workspace.CurrentSolution;
         var project = solution.Projects.Single();
@@ -1387,7 +1387,7 @@ public sealed class DefinitionItemFactoryTests
             {
                 void M<T>() { }
             }
-            """);
+            """.NormalizeLineEndings());
 
         var solution = workspace.CurrentSolution;
         var project = solution.Projects.Single();
@@ -1502,7 +1502,7 @@ public sealed class DefinitionItemFactoryTests
             {
                 void M() { int x; }
             }
-            """);
+            """.NormalizeLineEndings());
 
         var solution = workspace.CurrentSolution;
         var project = solution.Projects.Single();
@@ -1601,7 +1601,7 @@ public sealed class DefinitionItemFactoryTests
         VerifyDefinitionItem(item, project, symbols: [(c, nameof(c)), (r, nameof(r)), (i, nameof(i))],
             displayParts:
             [
-                (tag: "ErrorType", text: "?", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Keyword", text: "int", TaggedTextStyle.None, target: SymbolKey.CreateString(i), hint: "int"),
                 (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "RangeVariable", text: "x", TaggedTextStyle.None, target: SymbolKey.CreateString(r), hint: "? x")
             ],

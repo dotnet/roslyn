@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -1383,6 +1384,45 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         }
     }
 
+    [Theory, CombinatorialData]
+    public async Task TwoProjectInstancesOnlyInitializeGeneratorOnce(TestHost testHost)
+    {
+        using var workspace = CreateWorkspace(testHost: testHost);
+
+        var initializationCount = 0;
+
+        var allowGeneratorToCompleteEvent = new ManualResetEventSlim(initialState: false);
+        var generatorBeingInitializedEvent = new ManualResetEventSlim(initialState: false);
+
+        var analyzerReference = new TestGeneratorReference(
+            new PipelineCallbackGenerator(
+                _ =>
+                {
+                    generatorBeingInitializedEvent.Set();
+                    if (Interlocked.Increment(ref initializationCount) == 1)
+                        allowGeneratorToCompleteEvent.Wait();
+                }));
+
+        // Create two projects that contain this generator, but do not request anything yet.
+        var project = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReference(analyzerReference);
+        var project2 = project.AddDocument("Test.cs", "").Project;
+
+        // Now we'll request generators for both in "parallel". We'll wait until the first generator is initializing before we start the second work
+        var first = Task.Run(() => project.GetCompilationAsync());
+
+        generatorBeingInitializedEvent.Wait();
+
+        // The generator is being initialized now, so let's start the second request
+        var second = Task.Run(() => project2.GetCompilationAsync());
+
+        allowGeneratorToCompleteEvent.Set();
+
+        await first;
+        await second;
+
+        Assert.Equal(1, initializationCount);
+    }
+
 #if NET
 
     private sealed class DoNotLoadAssemblyLoader : IAnalyzerAssemblyLoader
@@ -1397,7 +1437,8 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             => throw new InvalidOperationException("These tests should not be loading analyzer assemblies in those host workspace, only in the remote one.");
     }
 
-    [Theory, CombinatorialData]
+    [Theory]
+    [CombinatorialData]
     internal async Task UpdatingAnalyzerReferenceReloadsGenerators(
         SourceGeneratorExecutionPreference executionPreference)
     {
@@ -1446,6 +1487,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         }
 
         // Now, overwrite the analyzer reference with a new version that generates different contents
+        TestSerializerService.ClearCachedTestReferences();
         {
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2"))
             using (var destination = File.OpenWrite(analyzerPath))

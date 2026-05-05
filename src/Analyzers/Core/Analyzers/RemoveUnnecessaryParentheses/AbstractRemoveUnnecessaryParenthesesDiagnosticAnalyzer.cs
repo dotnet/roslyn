@@ -25,7 +25,6 @@ internal abstract class AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<
         : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
               EnforceOnBuildValues.RemoveUnnecessaryParentheses,
               options: ParenthesesDiagnosticAnalyzersHelper.Options,
-              fadingOption: null,
               new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
               new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     {

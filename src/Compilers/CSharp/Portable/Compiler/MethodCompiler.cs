@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
             var context = new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true);
-            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelAndNestedTypeMethods(context)))
+            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context))
             {
                 var method = (MethodSymbol)definition.GetInternalSymbol();
                 if (method is not null)
@@ -725,6 +725,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 compilationState.Free();
+
+                CompileSynthesizedMethods(additionalType.GetTypeMembers(), diagnostics);
             }
         }
 
@@ -789,6 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         SetGlobalErrorIfTrue(diagnosticsThisMethod.HasAnyErrors());
+                        PipelinePhaseValidator.AssertAfterStateMachineRewriting(loweredBody);
 
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
@@ -1497,6 +1500,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return body;
             }
 
+            PipelinePhaseValidator.AssertAfterInitialBinding(body);
+
             try
             {
                 var loweredBody = LocalRewriter.Rewrite(
@@ -1583,6 +1588,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutLambdas;
                 }
 
+                PipelinePhaseValidator.AssertAfterClosureConversion(bodyWithoutLambdas);
+
                 BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
                     out IteratorStateMachine iteratorStateMachine);
 
@@ -1605,6 +1612,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(iteratorStateMachine is null || asyncStateMachine is null);
                 stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
+
+                PipelinePhaseValidator.AssertAfterStateMachineRewriting(bodyWithoutAsync);
 
                 return bodyWithoutAsync;
             }

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundBinaryOperator binary => binary.Update(
                         binary.OperatorKind,
-                        binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binary.Method)),
+                        binary.BinaryOperatorMethod is { } binaryOperatorMethod ? binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binaryOperatorMethod)) : binary.Data,
                         binary.ResultKind,
                         leftChild,
                         right,

@@ -1,0 +1,14 @@
+﻿Source Location: (2:0,2 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/HiddenSpansInCode.cshtml)
+|
+    |
+Generated Location: (1488:33,2 [6] )
+|
+    |
+
+Source Location: (9:1,5 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/HiddenSpansInCode.cshtml)
+|@Da
+|
+Generated Location: (1663:41,5 [5] )
+|@Da
+|
+

@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
         private SynthesizedPrivateImplementationDetailsType _lazyPrivateImplementationDetailsClass;
+        private readonly ConcurrentDictionary<int, NamedTypeSymbol> _inlineArrayTypes = new ConcurrentDictionary<int, NamedTypeSymbol>();
+        private readonly NamedTypeSymbol[] _readOnlyListTypes = new NamedTypeSymbol[(int)SynthesizedReadOnlyListKind.List + 1];
 
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
@@ -1870,6 +1872,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor, arguments, isOptionalUse: true);
         }
 
+        internal virtual SynthesizedAttributeData TrySynthesizeMemorySafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor, arguments);
+        }
+
         internal bool ShouldEmitNullablePublicOnlyAttribute()
         {
             // No need to look at this.GetNeedsGeneratedAttributes() since those bits are
@@ -1893,6 +1901,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
+        }
+
+        internal SynthesizedAttributeData TrySynthesizeRequiresUnsafeAttribute()
+        {
+            return TrySynthesizeRequiresUnsafeAttributeCore();
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeRequiresUnsafeAttributeCore()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor);
         }
 
         protected virtual SynthesizedAttributeData TrySynthesizeParamCollectionAttribute()
@@ -2109,22 +2128,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
 
-            string typeName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, CurrentGenerationOrdinal);
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics.DiagnosticBag).PrivateImplementationDetails;
-            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
+            return _inlineArrayTypes.GetOrAdd(arrayLength, static (arrayLength, arg) =>
+                {
+                    var attributeConstructor = (MethodSymbol)arg.factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
+                    Debug.Assert(attributeConstructor is { });
 
-            if (typeAdapter is null)
-            {
-                var attributeConstructor = (MethodSymbol)factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
-                Debug.Assert(attributeConstructor is { });
-
-                var typeSymbol = new SynthesizedInlineArrayTypeSymbol(SourceModule, typeName, arrayLength, attributeConstructor);
-                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
-                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
-            }
-
-            Debug.Assert(typeAdapter.Name == typeName);
-            return (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
+                    string typeName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, arg.@this.CurrentGenerationOrdinal);
+                    var typeSymbol = new SynthesizedInlineArrayTypeSymbol(arg.@this.SourceModule, typeName, arrayLength, attributeConstructor);
+                    return typeSymbol;
+                },
+                (@this: this, factory));
         }
 
         internal NamedTypeSymbol EnsureReadOnlyListTypeExists(SyntaxNode syntaxNode, SynthesizedReadOnlyListKind kind, DiagnosticBag diagnostics)
@@ -2132,21 +2145,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(syntaxNode is { });
             Debug.Assert(diagnostics is { });
 
-            string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(kind, CurrentGenerationOrdinal);
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics).PrivateImplementationDetails;
-            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
+            ref NamedTypeSymbol readOnlyListType = ref _readOnlyListTypes[(int)kind];
             NamedTypeSymbol typeSymbol;
 
-            if (typeAdapter is null)
+            if (readOnlyListType is null)
             {
+                string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(kind, CurrentGenerationOrdinal);
                 typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, kind);
-                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
-                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
+                Interlocked.CompareExchange(ref readOnlyListType, typeSymbol, null);
             }
 
-            Debug.Assert(typeAdapter.Name == typeName);
-            typeSymbol = (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
-
+            typeSymbol = readOnlyListType;
             var info = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
             if (info is { })
             {
@@ -2240,6 +2249,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                    .Select(type => type.GetCciAdapter())
 #endif
                    ;
+        }
+
+        public override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        {
+            ImmutableArray<NamedTypeSymbol> prepend = [];
+
+            if (_inlineArrayTypes.Count != 0 || _readOnlyListTypes.Any(t => t is not null))
+            {
+                ArrayBuilder<NamedTypeSymbol> builder = ArrayBuilder<NamedTypeSymbol>.GetInstance(_inlineArrayTypes.Count + _readOnlyListTypes.Length);
+                builder.AddRange(_inlineArrayTypes.Values);
+                foreach (var type in _readOnlyListTypes)
+                {
+                    if (type is not null)
+                    {
+                        builder.Add(type);
+                    }
+                }
+
+                builder.Sort(static (a, b) => StringComparer.Ordinal.Compare(a.MetadataName, b.MetadataName));
+
+                prepend = builder.ToImmutableAndFree();
+            }
+
+            return prepend.Concat(base.GetAdditionalTopLevelTypes());
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context)

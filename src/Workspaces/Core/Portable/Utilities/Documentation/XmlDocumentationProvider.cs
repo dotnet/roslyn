@@ -68,7 +68,7 @@ public abstract class XmlDocumentationProvider : DocumentationProvider
                         var comments = new Dictionary<string, string>();
                         while (xmlReader.Read())
                         {
-                            if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.Name == "member")
+                            if (xmlReader is { NodeType: XmlNodeType.Element, Name: "member" })
                             {
                                 var name = xmlReader.GetAttribute("name");
                                 if (name != null)

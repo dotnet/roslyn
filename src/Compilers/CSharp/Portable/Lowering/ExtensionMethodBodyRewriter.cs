@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: NotNullIfNotNull(nameof(symbol))]
         public override PropertySymbol? VisitPropertySymbol(PropertySymbol? symbol)
         {
-            Debug.Assert(symbol?.GetIsNewExtensionMember() != true);
+            Debug.Assert(symbol?.IsExtensionBlockMember() != true);
             return base.VisitPropertySymbol(symbol);
         }
 

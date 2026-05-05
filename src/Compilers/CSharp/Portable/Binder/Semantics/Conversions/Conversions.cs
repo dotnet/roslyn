@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
-                if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
+                if (!_binder.HasCollectionExpressionApplicableConstructor(
+                        node.WithElement, node.WithElement?.Syntax ?? syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
@@ -241,6 +242,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
                 targetType,
                 ref useSiteInfo);
+        }
+
+        protected override Conversion AnalyzeImplicitUnionConversions(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol target, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (_binder.InParameterDefaultValue || _binder.InAttributeArgument)
+            {
+                // We don't consider when we're in default parameter values or attributes to avoid cycles. This is an error scenario,
+                // so we don't care if we accidentally miss a parameter being applicable.
+                return Conversion.NoConversion;
+            }
+
+            return base.AnalyzeImplicitUnionConversions(sourceExpression, source, target, ref useSiteInfo);
         }
 #nullable disable
 
@@ -330,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)method != null);
                         if (resolution.MethodGroup.IsExtensionMethodGroup)
                         {
-                            Debug.Assert(method.IsExtensionMethod || method.GetIsNewExtensionMember());
+                            Debug.Assert(method.IsExtensionMethod || method.IsExtensionBlockMember());
 
                             ParameterSymbol thisParameter;
 
@@ -470,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (methodGroup.IsExtensionMethodGroup)
             {
-                if (!(method.GetIsNewExtensionMember() && method.IsStatic) && !Binder.GetReceiverParameter(method).Type.IsReferenceType)
+                if (!(method.IsExtensionBlockMember() && method.IsStatic) && !Binder.GetReceiverParameter(method).Type.IsReferenceType)
                 {
                     return Conversion.NoConversion;
                 }
@@ -498,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: Delegate type compatibility is important, but is not part of the existence check.
 
-            bool isExtensionMethod = methodGroup.IsExtensionMethodGroup && !method.GetIsNewExtensionMember();
+            bool isExtensionMethod = methodGroup.IsExtensionMethodGroup && !method.IsExtensionBlockMember();
             Debug.Assert(method.ParameterCount == parameterCount + (isExtensionMethod ? 1 : 0));
 
             return new Conversion(ConversionKind.MethodGroup, method, isExtensionMethod: isExtensionMethod);

@@ -4120,9 +4120,6 @@ unsafe class C
                 // (9,10): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(9, 10),
-                // (9,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('var')
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "var*").WithArguments("var").WithLocation(9, 10),
                 // (9,21): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y4").WithArguments("dynamic", "int").WithLocation(9, 21)
@@ -6610,6 +6607,31 @@ void m(out int x) => x = 0;
                 // void m(out int x) => x = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "m").WithArguments("m").WithLocation(9, 6)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68979")]
+        public void GetDeconstructionInfo_01()
+        {
+            string source = """
+var c1 = new C();
+var c2 = new C();
+c1 = (_, _) = c2;
+
+class C
+{
+    public void Deconstruct(out int a, out string b) => throw null;
+    public static implicit operator C((int i, string s) tuple) => throw null;
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var discardAssignment = GetSyntax<AssignmentExpressionSyntax>(tree, "(_, _) = c2");
+            var deconstructionInfo = model.GetDeconstructionInfo(discardAssignment);
+            Assert.Equal("void C.Deconstruct(out System.Int32 a, out System.String b)", deconstructionInfo.Method.ToTestDisplayString());
         }
     }
 }

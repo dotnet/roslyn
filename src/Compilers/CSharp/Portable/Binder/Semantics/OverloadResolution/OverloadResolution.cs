@@ -812,7 +812,7 @@ outerDefault:
                     nullabilityDiagnosticsBuilderOpt: null,
                     ref useSiteDiagnosticsBuilder);
             }
-            else if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
+            else if (member.IsExtensionBlockMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
             {
                 constraintsSatisfied = ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
                     extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
@@ -1263,9 +1263,15 @@ outerDefault:
                         expandedResult.Result.ParamsElementTypeOpt.HasType &&
                         expandedResult.Result.ParamsElementTypeOpt.Type != (object)ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel)
                     {
-                        if (haveBadArgumentForLastParameter(normalResult) && haveBadArgumentForLastParameter(expandedResult))
+                        // Prefer expanded form if the normal form has a bad argument for the last parameter.
+                        // This handles two cases:
+                        // 1. Both normal and expanded forms have bad arguments for the last parameter
+                        //    (e.g., both fail but expanded gives better error messages)
+                        // 2. Normal form has a bad argument for the last parameter but expanded form doesn't
+                        //    (e.g., M(char c, params object[] args) called with M(string[], string) where
+                        //    string -> object[] is bad in normal form but string -> object is good in expanded form)
+                        if (haveBadArgumentForLastParameter(normalResult))
                         {
-                            // Errors are better if we use the expanded form in this case.
                             return true;
                         }
                     }
@@ -1351,7 +1357,8 @@ outerDefault:
 
                         if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                         {
-                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
+                            if (!binder.HasCollectionExpressionApplicableConstructor(
+                                    withElement: null, syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
                             }
@@ -1476,7 +1483,7 @@ outerDefault:
                 if (result.Result.IsValid)
                 {
                     if (!typeArgumentsAccessible(result.Member.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo)
-                        || (result.Member.GetIsNewExtensionMember() && !typeArgumentsAccessible(result.Member.ContainingType.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo)))
+                        || (result.Member.IsExtensionBlockMember() && !typeArgumentsAccessible(result.Member.ContainingType.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo)))
                     {
                         results[f] = result.WithResult(MemberAnalysisResult.InaccessibleTypeArgument());
                     }
@@ -1890,7 +1897,7 @@ outerDefault:
                     continue;
                 }
 
-                NamedTypeSymbol containingType = memberWithPriority.GetIsNewExtensionMember()
+                NamedTypeSymbol containingType = memberWithPriority.IsExtensionBlockMember()
                     ? memberWithPriority.ContainingType.ContainingType
                     : memberWithPriority.ContainingType;
 
@@ -2589,7 +2596,7 @@ outerDefault:
             static ParameterSymbol getParameterOrExtensionParameter(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, TMember member)
             {
                 int paramIndex = result.ParameterFromArgument(argIndex);
-                if (member.GetIsNewExtensionMember())
+                if (member.IsExtensionBlockMember())
                 {
                     if (paramIndex == 0)
                     {
@@ -2710,7 +2717,7 @@ outerDefault:
         // Note: includes the extension parameter
         private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
         {
-            declaredParameterCount = m.Member.GetParameterCount() + (m.Member.GetIsNewExtensionMember() ? 1 : 0);
+            declaredParameterCount = m.Member.GetParameterCount() + (m.Member.IsExtensionBlockMember() ? 1 : 0);
 
             if (m.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
@@ -3900,8 +3907,8 @@ outerDefault:
             if (argumentCount == parameterCount && argToParamMap.IsDefaultOrEmpty)
             {
                 bool hasSomeRefKinds = !member.GetParameterRefKinds().IsDefaultOrEmpty;
-                bool isNewExtensionMember = member.GetIsNewExtensionMember();
-                if (isNewExtensionMember)
+                bool isExtensionBlockMember = member.IsExtensionBlockMember();
+                if (isExtensionBlockMember)
                 {
                     Debug.Assert(member.ContainingType.ExtensionParameter is not null);
                     hasSomeRefKinds |= member.ContainingType.ExtensionParameter.RefKind != RefKind.None;
@@ -3909,7 +3916,7 @@ outerDefault:
 
                 if (!hasSomeRefKinds)
                 {
-                    var parameterTypes = isNewExtensionMember ? GetParameterTypesIncludingReceiver(member) : member.GetParameterTypes();
+                    var parameterTypes = isExtensionBlockMember ? GetParameterTypesIncludingReceiver(member) : member.GetParameterTypes();
                     return new EffectiveParameters(parameterTypes, refKinds: default, firstParamsElementIndex: -1);
                 }
             }
@@ -4265,7 +4272,7 @@ outerDefault:
                 member.GetMemberArityIncludingExtension() > 0)
             {
                 ImmutableArray<TypeWithAnnotations> typeArguments;
-                bool isNewExtensionMember = member.GetIsNewExtensionMember();
+                bool isExtensionBlockMember = member.IsExtensionBlockMember();
 
                 if (typeArgumentsBuilder.Count == 0 && arguments.HasDynamicArgument && !inferWithDynamic)
                 {
@@ -4279,7 +4286,7 @@ outerDefault:
                     // We don't need to check constraints of types of the non-elided parameters since they 
                     // have no effect on applicability of this candidate.
                     ignoreOpenTypes = true;
-                    typeArguments = getAllTypeArguments(member, isNewExtensionMember);
+                    typeArguments = getAllTypeArguments(member, isExtensionBlockMember);
                 }
                 else
                 {
@@ -4338,7 +4345,7 @@ outerDefault:
                     // the generic method still needs to be discarded, even though type inference
                     // never saw the second formal parameter.
 
-                    var parameterTypes = isNewExtensionMember
+                    var parameterTypes = isExtensionBlockMember
                         ? GetParameterTypesIncludingReceiver(leastOverriddenMember)
                         : leastOverriddenMember.GetParameterTypes();
 
@@ -4353,7 +4360,7 @@ outerDefault:
                     ignoreOpenTypes = false;
                 }
 
-                var methodForTypeParameters = isNewExtensionMember ? leastOverriddenMember.OriginalDefinition : leastOverriddenMember;
+                var methodForTypeParameters = isExtensionBlockMember ? leastOverriddenMember.OriginalDefinition : leastOverriddenMember;
                 var map = new TypeMap(methodForTypeParameters.GetTypeParametersIncludingExtension(), typeArguments, allowAlpha: true);
 
                 constructedEffectiveParameters = new EffectiveParameters(
@@ -4383,17 +4390,17 @@ outerDefault:
                 useSiteInfo: ref useSiteInfo);
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, hasTypeArgumentsInferredFromFunctionType);
 
-            static ImmutableArray<TypeWithAnnotations> getAllTypeArguments(TMember member, bool isNewExtensionMember)
+            static ImmutableArray<TypeWithAnnotations> getAllTypeArguments(TMember member, bool isExtensionBlockMember)
             {
                 if (member is MethodSymbol method)
                 {
-                    return isNewExtensionMember
+                    return isExtensionBlockMember
                         ? method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations)
                         : method.TypeArgumentsWithAnnotations;
                 }
                 else if (member is PropertySymbol property)
                 {
-                    Debug.Assert(isNewExtensionMember);
+                    Debug.Assert(isExtensionBlockMember);
                     var result = property.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
                     Debug.Assert(!result.IsDefaultOrEmpty);
                     return result;
@@ -4443,7 +4450,7 @@ outerDefault:
             if (arguments.IncludesReceiverAsArgument)
             {
                 bool canInfer;
-                if (member.GetIsNewExtensionMember())
+                if (member.IsExtensionBlockMember())
                 {
                     if (member.ContainingType.Arity > 0)
                     {
@@ -4768,7 +4775,7 @@ outerDefault:
                 return true;
             }
 
-            return container.GetIsNewExtensionMember() && parameterType.ContainsTypeParameter(typeParameterContainer: container.ContainingType);
+            return container.IsExtensionBlockMember() && parameterType.ContainsTypeParameter(typeParameterContainer: container.ContainingType);
         }
 
         private static TMember GetConstructedFrom<TMember>(TMember member) where TMember : Symbol

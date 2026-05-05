@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckBinaryOperator(BoundBinaryOperator node)
         {
-            if (node.Method is MethodSymbol method)
+            if (node.BinaryOperatorMethod is MethodSymbol method)
             {
                 if (_inExpressionLambda)
                 {
@@ -288,8 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.Operator.Kind.IsDynamic() && node.LeftConversion is BoundConversion { Conversion: { IsIdentity: false, Exists: true } conversion })
             {
                 // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
-                left = new BoundConversion(left.Syntax, left, conversion, node.Operator.Kind.IsChecked(),
-                                           explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: null, type: node.Operator.LeftType);
+                left = node.LeftConversion;
             }
 
             CheckForBitwiseOrSignExtend(node, node.Operator.Kind, left, node.Right);

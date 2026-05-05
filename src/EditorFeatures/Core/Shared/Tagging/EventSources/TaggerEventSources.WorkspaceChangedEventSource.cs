@@ -27,10 +27,9 @@ internal partial class TaggerEventSources
             // only process a tag change once.
             _asyncDelay = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Short,
-                processBatchAsync: cancellationToken =>
+                processBatchAsync: async cancellationToken =>
                 {
                     RaiseChanged();
-                    return ValueTask.CompletedTask;
                 },
                 asyncListener,
                 CancellationToken.None);

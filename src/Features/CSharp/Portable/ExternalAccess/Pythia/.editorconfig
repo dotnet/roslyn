@@ -1,0 +1,3 @@
+[*.cs]
+dotnet_diagnostic.RS0051.severity = none # Symbol is not part of the declared API
+dotnet_diagnostic.RS0056.severity = none # InternalAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.

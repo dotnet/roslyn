@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -224,11 +223,18 @@ internal sealed class CodeLensReferencesService : ICodeLensReferencesService
 
             var descriptor = descriptorAndDocument.Descriptor;
             var span = new TextSpan(descriptor.SpanStart, descriptor.SpanLength);
-            var results = await SpanMappingHelper.TryGetMappedSpanResultAsync(document, [span], cancellationToken).ConfigureAwait(false);
-            if (results is null)
+
+            if (!SpanMappingHelper.CanMapSpans(document))
             {
                 // for normal document, just add one as they are
                 list.Add(descriptor);
+                continue;
+            }
+
+            var results = await SpanMappingHelper.TryGetMappedSpanResultAsync(document, [span], cancellationToken).ConfigureAwait(false);
+            if (results is null)
+            {
+                // If the document can map spans, but this span wasn't mapped, drop the result
                 continue;
             }
 
@@ -246,36 +252,13 @@ internal sealed class CodeLensReferencesService : ICodeLensReferencesService
                 continue;
             }
 
-            var excerpter = document.DocumentServiceProvider.GetService<IDocumentExcerptService>();
-            if (excerpter == null)
+            if (!DocumentExcerptHelper.CanExcerpt(document))
             {
-                if (document.IsRazorSourceGeneratedDocument())
-                {
-                    // HACK: Razor doesn't have has a workspace level excerpt service, but if we just return a simple descriptor here,
-                    // the user at least sees something, can navigate, and Razor can improve this later if necessary. Until
-                    // https://github.com/dotnet/roslyn/issues/79699 is fixed this won't get hit anyway.
-                    list.Add(new ReferenceLocationDescriptor(
-                        descriptor.LongDescription,
-                        descriptor.Language,
-                        descriptor.Glyph,
-                        result.Span.Start,
-                        result.Span.Length,
-                        result.LinePositionSpan.Start.Line,
-                        result.LinePositionSpan.Start.Character,
-                        result.FilePath,
-                        descriptor.ReferenceLineText,
-                        descriptor.ReferenceStart,
-                        descriptor.ReferenceLength,
-                        "",
-                        "",
-                        "",
-                        ""));
-                }
                 continue;
             }
 
-            var referenceExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.SingleLine, classificationOptions, cancellationToken).ConfigureAwait(false);
-            var tooltipExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.Tooltip, classificationOptions, cancellationToken).ConfigureAwait(false);
+            var referenceExcerpt = await DocumentExcerptHelper.TryExcerptAsync(document, span, ExcerptMode.SingleLine, classificationOptions, cancellationToken).ConfigureAwait(false);
+            var tooltipExcerpt = await DocumentExcerptHelper.TryExcerptAsync(document, span, ExcerptMode.Tooltip, classificationOptions, cancellationToken).ConfigureAwait(false);
 
             var (text, start, length) = GetReferenceInfo(referenceExcerpt, descriptor);
             var (before1, before2, after1, after2) = GetReferenceTexts(referenceExcerpt, tooltipExcerpt, descriptor);

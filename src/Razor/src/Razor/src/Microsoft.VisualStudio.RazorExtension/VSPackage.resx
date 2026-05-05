@@ -1,0 +1,255 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="1050" xml:space="preserve">
+    <value>Advanced</value>
+    <comment>Advanced Page Group. Name must match the pkgdef definition</comment>
+  </data>
+  <data name="1060" xml:space="preserve">
+    <value>Formatting; Format On Type;</value>
+    <comment>Delimited list of search terms for the advanced options page</comment>
+  </data>
+  <data name="110" xml:space="preserve">
+    <value>Razor (ASP.NET Core)</value>
+  </data>
+  <data name="112" xml:space="preserve">
+    <value>Provides languages services for ASP.NET Core Razor.</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="400" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\RazorPackage.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="500" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>SyntaxTree.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Completion" xml:space="preserve">
+    <value>Completion</value>
+  </data>
+  <data name="Formatting" xml:space="preserve">
+    <value>Formatting</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="RazorSyntaxVisualizer" xml:space="preserve">
+    <value>Razor Syntax Visualizer</value>
+  </data>
+  <data name="Setting_AutoClosingTagsDescription" xml:space="preserve">
+    <value>If true, closing tags will be automatically inserted</value>
+  </data>
+  <data name="Setting_AutoClosingTagsDisplayName" xml:space="preserve">
+    <value>Auto insert closing tag</value>
+  </data>
+  <data name="Setting_AutoInsertAttributeQuotesDescription" xml:space="preserve">
+    <value>If true, completion on attributes will add quotation marks</value>
+  </data>
+  <data name="Setting_AutoInsertAttributeQuotesDisplayName" xml:space="preserve">
+    <value>Auto insert attribute quotes</value>
+  </data>
+  <data name="Setting_CodeBlockBraceOnNextLineDescription" xml:space="preserve">
+    <value>Forces the open brace after an @code or @functions directive to be on the following line</value>
+  </data>
+  <data name="Setting_CodeBlockBraceOnNextLineDisplayName" xml:space="preserve">
+    <value>Code/functions block open brace on next line</value>
+  </data>
+  <data name="Setting_ColorBackgroundDescription" xml:space="preserve">
+    <value>If true, gives C# code in Razor files a background color</value>
+  </data>
+  <data name="Setting_ColorBackgroundDisplayName" xml:space="preserve">
+    <value>Background for C# code</value>
+  </data>
+  <data name="Setting_CommitElementsWithSpaceDescription" xml:space="preserve">
+    <value>If true, pressing space will commit suggestions for HTML elements and components</value>
+  </data>
+  <data name="Setting_CommitElementsWithSpaceDisplayName" xml:space="preserve">
+    <value>Commit elements with space</value>
+  </data>
+  <data name="Setting_FormattingOnPasteDisplayName" xml:space="preserve">
+    <value>Format on paste</value>
+  </data>
+  <data name="Setting_FormattingOnPasteDescription" xml:space="preserve">
+    <value>If true, formatting will be enabled when pasting content</value>
+  </data>
+  <data name="Setting_FormattingOnTypeDescription" xml:space="preserve">
+    <value>If true, formatting will be enabled while typing</value>
+  </data>
+  <data name="Setting_FormattingOnTypeDisplayName" xml:space="preserve">
+    <value>Format on type</value>
+  </data>
+  <data name="Setting_LogLevelCritical" xml:space="preserve">
+    <value>Critical</value>
+  </data>
+  <data name="Setting_LogLevelDebug" xml:space="preserve">
+    <value>Debug</value>
+  </data>
+  <data name="Setting_LogLevelDescription" xml:space="preserve">
+    <value>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</value>
+  </data>
+  <data name="Setting_LogLevelDisplayName" xml:space="preserve">
+    <value>Output Window Log Level</value>
+  </data>
+  <data name="Setting_LogLevelError" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Setting_LogLevelInformation" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="Setting_LogLevelNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Setting_LogLevelTrace" xml:space="preserve">
+    <value>Trace</value>
+  </data>
+  <data name="Setting_LogLevelWarning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Setting_SnippetsAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Setting_SnippetsCustom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="Setting_SnippetsDescription" xml:space="preserve">
+    <value>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </value>
+  </data>
+  <data name="Setting_SnippetsDisplayName" xml:space="preserve">
+    <value>Included Snippets</value>
+  </data>
+  <data name="Setting_SnippetsNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Typing" xml:space="preserve">
+    <value>Typing</value>
+  </data>
+  <data name="Setting_AttributeIndentStyleDisplayName" xml:space="preserve">
+    <value>Attribute Indent Style</value>
+  </data>
+  <data name="Setting_AttributeIndentStyleDescription" xml:space="preserve">
+    <value>Defines how Html and component tag attributes should be indented</value>
+  </data>
+  <data name="Setting_AttributeIndentStyleAlignWithFirst" xml:space="preserve">
+    <value>Align with first attribute</value>
+  </data>
+  <data name="Setting_AttributeIndentStyleIndentByOne" xml:space="preserve">
+    <value>Indent by one level</value>
+  </data>
+  <data name="Setting_AttributeIndentStyleIndentByTwo" xml:space="preserve">
+    <value>Indent by two levels</value>
+  </data>
+</root>

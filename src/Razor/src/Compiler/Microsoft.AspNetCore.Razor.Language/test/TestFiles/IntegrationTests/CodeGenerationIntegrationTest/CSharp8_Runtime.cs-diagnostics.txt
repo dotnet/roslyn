@@ -1,0 +1,9 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp8.cshtml(6,16): warning CS8603: Possible null reference return.
+//         return null;
+Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 16),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp8.cshtml(53,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+//         var disposables = (IDisposable[])ViewData["disposables"];
+Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, @"(IDisposable[])ViewData[""disposables""]").WithLocation(53, 27),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp8.cshtml(54,16): warning CS8602: Dereference of a possibly null reference.
+//         return disposables[range][^1];
+Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "disposables").WithLocation(54, 16)

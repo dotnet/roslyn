@@ -2795,7 +2795,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,20): error CS1031: Type expected
                 //         _ = sizeof(new());
@@ -2819,6 +2819,33 @@ class C
                 //         _ = sizeof(new());
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 20)
                 );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (6,20): error CS1031: Type expected
+                //         _ = sizeof(new());
+                Diagnostic(ErrorCode.ERR_TypeExpected, "new").WithLocation(6, 20),
+                // (6,20): error CS1026: ) expected
+                //         _ = sizeof(new());
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "new").WithLocation(6, 20),
+                // (6,20): error CS1002: ; expected
+                //         _ = sizeof(new());
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "new").WithLocation(6, 20),
+                // (6,25): error CS1002: ; expected
+                //         _ = sizeof(new());
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 25),
+                // (6,25): error CS1513: } expected
+                //         _ = sizeof(new());
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 25),
+                // (6,20): error CS8754: There is no target type for 'new()'
+                //         _ = sizeof(new());
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 20),
+            };
+
+            comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]

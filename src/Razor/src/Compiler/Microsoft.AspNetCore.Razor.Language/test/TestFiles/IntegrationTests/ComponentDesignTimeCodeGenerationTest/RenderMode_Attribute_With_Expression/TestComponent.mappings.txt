@@ -1,0 +1,20 @@
+﻿Source Location: (30:0,30 [38] x:\dir\subdir\Test\TestComponent.cshtml)
+|new MyRenderMode() { Extra = "Hello" }|
+Generated Location: (1096:29,28 [38] )
+|new MyRenderMode() { Extra = "Hello" }|
+
+Source Location: (83:2,1 [135] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+    {
+        public string Extra {get;set;}
+    }
+|
+Generated Location: (1648:49,1 [135] )
+|
+    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+    {
+        public string Extra {get;set;}
+    }
+|
+

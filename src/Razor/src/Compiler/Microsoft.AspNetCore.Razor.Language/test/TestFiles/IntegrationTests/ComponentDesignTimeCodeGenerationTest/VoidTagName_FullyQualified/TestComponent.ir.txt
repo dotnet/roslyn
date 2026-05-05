@@ -1,0 +1,39 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (1:0,1 [37] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (38:0,38 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (38:0,38 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                Component - (42:2,0 [30] x:\dir\subdir\Test\TestComponent.cshtml) - Test.Col
+                    ComponentChildContent -  - ChildContent - context
+                        HtmlContent - (52:2,10 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (52:2,10 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Html - in markup
+                HtmlContent - (72:2,30 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (72:2,30 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                CSharpCode - (76:3,2 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (76:3,2 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    
+                Component - (82:4,4 [34] x:\dir\subdir\Test\TestComponent.cshtml) - Test.Col
+                    ComponentChildContent -  - ChildContent - context
+                        HtmlContent - (92:4,14 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (92:4,14 [13] x:\dir\subdir\Test\TestComponent.cshtml) - Html - in code block
+                CSharpCode - (116:4,38 [32] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (116:4,38 [32] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    RenderFragment template = 
+                Template - (149:5,31 [32] x:\dir\subdir\Test\TestComponent.cshtml)
+                    Component - (149:5,31 [32] x:\dir\subdir\Test\TestComponent.cshtml) - Test.Col
+                        ComponentChildContent -  - ChildContent - context
+                            HtmlContent - (159:5,41 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+                                LazyIntermediateToken - (159:5,41 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Html - in template
+                CSharpCode - (181:5,63 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (181:5,63 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ;\n

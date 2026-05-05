@@ -12,6 +12,7 @@ using Microsoft.Build.Tasks.Hosting;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -200,10 +201,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
-            // Pass sdkpath if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
+            // Pass sdkpath and csc.rsp if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
             if (IsSdkFrameworkToCoreBridgeTask)
             {
                 commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
+
+                if (!NoConfig)
+                {
+                    var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "csc.rsp");
+                    if (File.Exists(rspFile))
+                    {
+                        commandLine.AppendSwitchIfNotNull("@", rspFile);
+                    }
+                }
             }
 
             commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");

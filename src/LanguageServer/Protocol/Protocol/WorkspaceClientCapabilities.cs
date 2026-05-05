@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#clientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class WorkspaceClientCapabilities
+internal class WorkspaceClientCapabilities
 {
     // NOTE: these are kept in the same order as the spec to make them easier to update
 
@@ -121,4 +121,12 @@ internal sealed class WorkspaceClientCapabilities
     [JsonPropertyName("diagnostics")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DiagnosticWorkspaceSetting? Diagnostics { get; set; }
+
+    /// <summary>
+    /// Gets or sets capabilities indicating what support the client has for text document content requests.
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    [JsonPropertyName("textDocumentContent")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextDocumentContentClientCapabilities? TextDocumentContent { get; set; }
 }

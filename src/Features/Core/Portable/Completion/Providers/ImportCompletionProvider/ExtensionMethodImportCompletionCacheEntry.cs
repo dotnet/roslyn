@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal sealed class ExtensionMethodImportCompletionCacheEntry
+internal sealed class ExtensionMemberImportCompletionCacheEntry
 {
     public Checksum Checksum { get; }
     public string Language { get; }
@@ -16,43 +16,36 @@ internal sealed class ExtensionMethodImportCompletionCacheEntry
     /// <summary>
     /// Mapping from the name of receiver type to extension method symbol infos.
     /// </summary>
-    public MultiDictionary<string, DeclaredSymbolInfo> ReceiverTypeNameToExtensionMethodMap { get; }
+    public MultiDictionary<string, DeclaredSymbolInfo> ReceiverTypeNameToExtensionMemberMap { get; }
 
-    public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
+    public bool ContainsExtensionMember => !ReceiverTypeNameToExtensionMemberMap.IsEmpty;
 
-    private ExtensionMethodImportCompletionCacheEntry(
+    private ExtensionMemberImportCompletionCacheEntry(
         Checksum checksum,
         string language,
-        MultiDictionary<string, DeclaredSymbolInfo> receiverTypeNameToExtensionMethodMap)
+        MultiDictionary<string, DeclaredSymbolInfo> receiverTypeNameToExtensionMemberMap)
     {
         Checksum = checksum;
         Language = language;
-        ReceiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
+        ReceiverTypeNameToExtensionMemberMap = receiverTypeNameToExtensionMemberMap;
     }
 
-    public sealed class Builder(Checksum checksum, string langauge, IEqualityComparer<string> comparer)
+    public sealed class Builder(Checksum checksum, string language, IEqualityComparer<string> comparer)
     {
         private readonly Checksum _checksum = checksum;
-        private readonly string _language = langauge;
+        private readonly string _language = language;
 
         private readonly MultiDictionary<string, DeclaredSymbolInfo> _mapBuilder = new(comparer);
 
-        public ExtensionMethodImportCompletionCacheEntry ToCacheEntry()
-        {
-            return new ExtensionMethodImportCompletionCacheEntry(
-                _checksum,
-                _language,
-                _mapBuilder);
-        }
+        public ExtensionMemberImportCompletionCacheEntry ToCacheEntry()
+            => new(_checksum, _language, _mapBuilder);
 
         public void AddItem(TopLevelSyntaxTreeIndex syntaxIndex)
         {
-            foreach (var (receiverType, symbolInfoIndices) in syntaxIndex.ReceiverTypeNameToExtensionMethodMap)
+            foreach (var (receiverType, symbolInfoIndices) in syntaxIndex.ReceiverTypeNameToExtensionMemberMap)
             {
                 foreach (var index in symbolInfoIndices)
-                {
                     _mapBuilder.Add(receiverType, syntaxIndex.DeclaredSymbolInfos[index]);
-                }
             }
         }
     }

@@ -53,7 +53,7 @@ internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider() : Cod
         => new CSharpUsePrimaryConstructorFixAllProvider();
 #endif
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var cancellationToken = context.CancellationToken;
         var document = context.Document;
@@ -88,8 +88,6 @@ internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider() : Cod
                     diagnostic);
             }
         }
-
-        return Task.CompletedTask;
     }
 
     private static async Task<Solution> UsePrimaryConstructorAsync(

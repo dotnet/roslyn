@@ -340,6 +340,10 @@ public class FSharpGlyphTests
                 {
                     return FSharpGlyph.TargetTypeMatch;
                 }
+            case Microsoft.CodeAnalysis.Glyph.Copilot:
+                {
+                    return FSharpGlyph.Copilot;
+                }
             default:
                 {
                     throw ExceptionUtilities.UnexpectedValue(glyph);
@@ -654,6 +658,10 @@ public class FSharpGlyphTests
             case FSharpGlyph.TargetTypeMatch:
                 {
                     return Microsoft.CodeAnalysis.Glyph.TargetTypeMatch;
+                }
+            case FSharpGlyph.Copilot:
+                {
+                    return Microsoft.CodeAnalysis.Glyph.Copilot;
                 }
             default:
                 {

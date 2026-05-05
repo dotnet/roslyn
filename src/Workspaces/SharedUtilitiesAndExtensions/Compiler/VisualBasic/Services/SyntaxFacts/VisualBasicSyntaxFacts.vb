@@ -81,6 +81,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
+        Public Function SupportsKeyValuePairElement(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsKeyValuePairElement
+            Return False
+        End Function
+
         Public Function SupportsNullConditionalAssignment(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsNullConditionalAssignment
             Return False
         End Function
@@ -670,6 +674,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             End If
 
             Return False
+        End Function
+
+        Public Function IsAnonymousObjectMemberDeclaratorNameIdentifier(expression As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnonymousObjectMemberDeclaratorNameIdentifier
+            Dim identifier = TryCast(expression, IdentifierNameSyntax)
+            Dim namedFieldInit = TryCast(identifier?.Parent, NamedFieldInitializerSyntax)
+
+            Return TypeOf namedFieldInit?.Parent Is AnonymousObjectCreationExpressionSyntax AndAlso
+                namedFieldInit.Name Is identifier
         End Function
 
         Public Function IsAnyInitializerExpression(node As SyntaxNode, ByRef creationExpression As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyInitializerExpression

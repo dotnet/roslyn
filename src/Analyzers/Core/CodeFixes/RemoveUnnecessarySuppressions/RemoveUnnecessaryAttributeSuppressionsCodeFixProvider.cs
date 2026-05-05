@@ -36,14 +36,12 @@ internal sealed class RemoveUnnecessaryAttributeSuppressionsCodeFixProvider() : 
         }
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {
             var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
             editor.RemoveNode(node);
         }
-
-        return Task.CompletedTask;
     }
 }

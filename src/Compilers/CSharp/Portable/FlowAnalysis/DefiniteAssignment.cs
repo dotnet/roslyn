@@ -882,6 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // user-defined conversion. Therefore the IntPtr ConversionKind is included
                         // here.
                         if (boundConversion.ConversionKind.IsUserDefinedConversion() ||
+                            boundConversion.ConversionKind.IsUnionConversion() || // https://github.com/dotnet/roslyn/issues/82636: Add coverage
                             boundConversion.ConversionKind == ConversionKind.IntPtr)
                         {
                             return true;
@@ -2632,7 +2633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
+        public override BoundNode VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             DeclareVariables(catchBlock.Locals);
 
@@ -2642,12 +2643,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Assign(exceptionSource, value: null, read: false);
             }
 
-            base.VisitCatchBlock(catchBlock, ref finallyState);
+            base.VisitCatchBlock(catchBlock);
 
             foreach (var local in catchBlock.Locals)
             {
                 ReportIfUnused(local, assigned: local.DeclarationKind != LocalDeclarationKind.CatchVariable);
             }
+
+            return null;
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)

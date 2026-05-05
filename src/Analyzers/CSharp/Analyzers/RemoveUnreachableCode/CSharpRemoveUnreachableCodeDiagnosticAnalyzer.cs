@@ -24,7 +24,6 @@ internal sealed class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBu
         : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
                EnforceOnBuildValues.RemoveUnreachableCode,
                option: null,
-               fadingOption: FadingOptions.FadeOutUnreachableCode,
                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Unreachable_code_detected), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                configurable: false)
     {

@@ -1,0 +1,6 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml(2,41): error CS1002: ; expected
+//     Layout = "_SectionTestLayout.cshtml"
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 41),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml(8,23): error CS0103: The name 'thing' does not exist in the current context
+//                 __o = thing;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "thing").WithArguments("thing").WithLocation(8, 23)

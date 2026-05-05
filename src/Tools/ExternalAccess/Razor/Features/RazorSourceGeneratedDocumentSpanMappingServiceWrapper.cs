@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -69,7 +70,8 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingServiceWrapper(
         }
 
         var mappedSpans = await _implementation.MapSpansAsync(document, spans, cancellationToken).ConfigureAwait(false);
-        if (mappedSpans.Length != spans.Length)
+        if (mappedSpans.IsDefault ||
+            mappedSpans.Length != spans.Length)
         {
             return [];
         }

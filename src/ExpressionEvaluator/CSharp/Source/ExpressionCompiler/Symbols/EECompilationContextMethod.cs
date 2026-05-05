@@ -4,7 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -57,6 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             get { return _parameters; }
         }
+
+        public override bool IsAsync => false;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations => _underlyingMethod.ReturnTypeWithAnnotations;
 
@@ -112,5 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             builderArgument = null;
             return false;
         }
+
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

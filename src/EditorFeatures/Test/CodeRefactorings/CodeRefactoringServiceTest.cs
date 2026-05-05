@@ -63,11 +63,9 @@ public sealed class CodeRefactoringServiceTest
         {
         }
 
-        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             context.RegisterRefactoring(CodeAction.Create($"Blocking=false", _ => Task.FromResult<Document>(null)));
-
-            return Task.CompletedTask;
         }
     }
 
@@ -117,14 +115,12 @@ public sealed class CodeRefactoringServiceTest
 
     internal sealed class StubRefactoring : CodeRefactoringProvider
     {
-        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             context.RegisterRefactoring(CodeAction.Create(
                 nameof(StubRefactoring),
-                cancellationToken => Task.FromResult(context.Document),
+                async cancellationToken => context.Document,
                 equivalenceKey: nameof(StubRefactoring)));
-
-            return Task.CompletedTask;
         }
     }
 
@@ -295,7 +291,7 @@ public sealed class CodeRefactoringServiceTest
         protected AbstractNonSourceFileRefactoring(string title)
             => Title = title;
 
-        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             context.RegisterRefactoring(CodeAction.Create(Title,
                 createChangedSolution: async ct =>
@@ -307,8 +303,6 @@ public sealed class CodeRefactoringServiceTest
                         return document.Project.Solution.WithAdditionalDocumentText(document.Id, newText);
                     return document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, newText);
                 }));
-
-            return Task.CompletedTask;
         }
     }
 

@@ -66,6 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property Utf8SingleLineRawStringLiteralToken As Integer? Implements ISyntaxKinds.Utf8SingleLineRawStringLiteralToken
         Public ReadOnly Property Utf8MultiLineRawStringLiteralToken As Integer? Implements ISyntaxKinds.Utf8MultiLineRawStringLiteralToken
 
+        Public ReadOnly Property XmlCrefAttribute As Integer = SyntaxKind.XmlCrefAttribute Implements ISyntaxKinds.XmlCrefAttribute
         Public ReadOnly Property XmlTextLiteralToken As Integer = SyntaxKind.XmlTextLiteralToken Implements ISyntaxKinds.XmlTextLiteralToken
 
         Public ReadOnly Property DelegateKeyword As Integer = SyntaxKind.DelegateKeyword Implements ISyntaxKinds.DelegateKeyword
@@ -97,6 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property ArrayCreationExpression As Integer = SyntaxKind.ArrayCreationExpression Implements ISyntaxKinds.ArrayCreationExpression
         Public ReadOnly Property AwaitExpression As Integer = SyntaxKind.AwaitExpression Implements ISyntaxKinds.AwaitExpression
         Public ReadOnly Property BaseExpression As Integer = SyntaxKind.MyBaseExpression Implements ISyntaxKinds.BaseExpression
+        Public ReadOnly Property CollectionExpression As Integer? Implements ISyntaxKinds.CollectionExpression
         Public ReadOnly Property CollectionInitializerExpression As Integer = SyntaxKind.CollectionInitializer Implements ISyntaxKinds.CollectionInitializerExpression
         Public ReadOnly Property ConditionalAccessExpression As Integer = SyntaxKind.ConditionalAccessExpression Implements ISyntaxKinds.ConditionalAccessExpression
         Public ReadOnly Property ConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.ConditionalExpression

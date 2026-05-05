@@ -94,6 +94,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
 
         var logger = LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>();
         var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, logger, CancellationToken.None);
+        Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         var virtualProjectXml = content.VirtualProjectXml;
         logger.LogTrace(virtualProjectXml);
@@ -126,6 +127,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             """);
 
         var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(content.VirtualProjectXml);
 
@@ -177,6 +179,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             """);
 
         var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         var diagnostic = content.Diagnostics.Single();
         Assert.Contains("Unrecognized directive 'BAD'", diagnostic.Message);
