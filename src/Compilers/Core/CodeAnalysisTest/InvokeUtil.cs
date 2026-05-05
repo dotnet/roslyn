@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     continue;
                 }
 
-            var location = assembly.Location;
+                var location = assembly.Location;
 
                 // Only truly dynamic assemblies are exempt from location-based checks.
                 // Stream-loaded assemblies can also have no location and should still be flagged.
