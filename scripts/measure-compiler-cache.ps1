@@ -114,6 +114,9 @@ function Invoke-Build([string]$Name) {
 
 function Invoke-DownloadCache {
   $arguments = @(
+    "run",
+    "--no-cache",
+    "--file",
     $enableCacheScript,
     "--",
     "--configuration",
