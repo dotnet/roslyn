@@ -1,0 +1,31 @@
+﻿Source Location: (9:0,9 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestDecimal|
+Generated Location: (812:22,24 [11] )
+|TestDecimal|
+
+Source Location: (34:2,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestComponent|
+Generated Location: (1035:30,49 [13] )
+|TestComponent|
+
+Source Location: (48:2,15 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestDecimal|
+Generated Location: (1220:34,0 [11] )
+|TestDecimal|
+
+Source Location: (61:2,28 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|4|
+Generated Location: (1488:42,0 [1] )
+|4|
+
+Source Location: (77:4,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public decimal TestDecimal { get; set; }
+|
+Generated Location: (1728:53,0 [65] )
+|
+    [Parameter]
+    public decimal TestDecimal { get; set; }
+|
+

@@ -41,6 +41,10 @@ jobs:
     - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }}
       displayName: Build
 
+    - template: post-cache-roslyn-outputs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+
     - template: publish-compiler-cache.yml
       parameters:
         cacheArtifactName: ${{ parameters.cacheArtifactName }}

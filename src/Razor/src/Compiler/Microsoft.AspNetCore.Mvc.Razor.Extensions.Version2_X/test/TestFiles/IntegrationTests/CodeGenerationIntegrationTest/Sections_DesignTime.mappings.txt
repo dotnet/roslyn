@@ -1,0 +1,29 @@
+﻿Source Location: (7:0,7 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml)
+|DateTime|
+Generated Location: (1273:27,0 [8] )
+|DateTime|
+
+Source Location: (33:2,14 [29] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml)
+|"InputTestTagHelper, AppCode"|
+Generated Location: (1527:35,37 [29] )
+|"InputTestTagHelper, AppCode"|
+
+Source Location: (152:10,9 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml)
+|Section1|
+Generated Location: (1765:43,22 [8] )
+|Section1|
+
+Source Location: (68:4,2 [46] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml)
+| 
+    Layout = "_SectionTestLayout.cshtml";
+|
+Generated Location: (2224:58,2 [46] )
+| 
+    Layout = "_SectionTestLayout.cshtml";
+|
+
+Source Location: (222:12,21 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml)
+|Date|
+Generated Location: (2649:66,102 [4] )
+|Date|
+

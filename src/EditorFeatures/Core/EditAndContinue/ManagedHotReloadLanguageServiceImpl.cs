@@ -5,14 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -21,12 +19,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 /// <summary>
 /// Implementation of a brokered service available in Visual Studio in-proc container and in DevKit.
+/// Created via <see cref="ManagedHotReloadLanguageServiceFactory"/>.
 /// </summary>
-[Shared]
-[Export(typeof(IEditAndContinueSolutionProvider))]
-[Export(typeof(ManagedHotReloadLanguageServiceImpl))]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ManagedHotReloadLanguageServiceImpl(
     EditAndContinueSessionState sessionState,
     Lazy<IHostWorkspaceProvider> workspaceProvider,

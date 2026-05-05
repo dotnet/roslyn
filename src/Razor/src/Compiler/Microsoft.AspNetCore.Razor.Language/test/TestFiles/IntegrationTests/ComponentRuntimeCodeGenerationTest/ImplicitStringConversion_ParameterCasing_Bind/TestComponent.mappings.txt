@@ -1,0 +1,24 @@
+﻿Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (703:19,49 [11] )
+|MyComponent|
+
+Source Location: (19:0,19 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|PlaceHolder|
+Generated Location: (884:23,0 [11] )
+|Placeholder|
+
+Source Location: (32:0,32 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|s|
+Generated Location: (1151:31,0 [1] )
+|s|
+
+Source Location: (48:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string s = "abc";
+|
+Generated Location: (1887:43,0 [33] )
+|
+    private string s = "abc";
+|
+

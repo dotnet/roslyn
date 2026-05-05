@@ -1,0 +1,59 @@
+﻿Source Location: (1:0,1 [43] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Forms|
+Generated Location: (372:12,0 [43] )
+|using Microsoft.AspNetCore.Components.Forms|
+
+Source Location: (78:2,30 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|value1|
+Generated Location: (995:28,0 [6] )
+|value1|
+
+Source Location: (113:3,25 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|"false"|
+Generated Location: (1516:37,0 [7] )
+|"false"|
+
+Source Location: (152:4,25 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|"true"|
+Generated Location: (1843:47,0 [6] )
+|"true"|
+
+Source Location: (194:7,7 [39] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string value1 = "true";
+|
+Generated Location: (2082:59,0 [39] )
+|
+    private string value1 = "true";
+|
+
+Source Location: (49:2,1 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|InputRadioGroup|
+Generated Location: (2977:75,78 [15] )
+|InputRadioGroup|
+
+Source Location: (71:2,23 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (3218:79,0 [5] )
+|Value|
+
+Source Location: (93:3,5 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+|InputRadio|
+Generated Location: (4153:92,78 [10] )
+|InputRadio|
+
+Source Location: (104:3,16 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (4384:96,0 [5] )
+|Value|
+
+Source Location: (132:4,5 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+|InputRadio|
+Generated Location: (4942:106,78 [10] )
+|InputRadio|
+
+Source Location: (143:4,16 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (5173:110,0 [5] )
+|Value|
+

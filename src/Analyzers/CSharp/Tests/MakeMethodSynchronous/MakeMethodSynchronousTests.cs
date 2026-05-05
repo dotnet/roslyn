@@ -792,7 +792,9 @@ public sealed class MakeMethodSynchronousTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/18307")]
     public Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
-        => VerifyCS.VerifyCodeFixAsync(
+    {
+        expectedReturn = expectedReturn.ReplaceLineEndings();
+        return VerifyCS.VerifyCodeFixAsync(
             $$"""
             using System;
             using System.Threading.Tasks;
@@ -819,6 +821,7 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
+    }
 
     [Fact]
     public async Task MethodWithUsingAwait()

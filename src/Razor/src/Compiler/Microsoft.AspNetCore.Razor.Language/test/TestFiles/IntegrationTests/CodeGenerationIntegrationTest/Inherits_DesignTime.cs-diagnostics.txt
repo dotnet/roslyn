@@ -1,0 +1,21 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(1,1): error CS0246: The type or namespace name 'foo' could not be found (are you missing a using directive or an assembly reference?)
+// foo.bar<baz<biz>>.boz __typeHelper = default!;
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "foo").WithArguments("foo").WithLocation(1, 1),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(1,9): error CS0246: The type or namespace name 'baz<>' could not be found (are you missing a using directive or an assembly reference?)
+// foo.bar<baz<biz>>.boz __typeHelper = default!;
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "baz<biz>").WithArguments("baz<>").WithLocation(1, 9),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(1,13): error CS0246: The type or namespace name 'biz' could not be found (are you missing a using directive or an assembly reference?)
+// foo.bar<baz<biz>>.boz __typeHelper = default!;
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "biz").WithArguments("biz").WithLocation(1, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(3,7): error CS0103: The name 'foo' does not exist in the current context
+// __o = foo();
+Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo").WithLocation(3, 7),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(19,95): error CS0246: The type or namespace name 'foo' could not be found (are you missing a using directive or an assembly reference?)
+//     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Inherits : foo.bar<baz<biz>>.boz
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "foo").WithArguments("foo").WithLocation(19, 95),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(19,103): error CS0246: The type or namespace name 'baz<>' could not be found (are you missing a using directive or an assembly reference?)
+//     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Inherits : foo.bar<baz<biz>>.boz
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "baz<biz>").WithArguments("baz<>").WithLocation(19, 103),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(19,107): error CS0246: The type or namespace name 'biz' could not be found (are you missing a using directive or an assembly reference?)
+//     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Inherits : foo.bar<baz<biz>>.boz
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "biz").WithArguments("biz").WithLocation(19, 107)

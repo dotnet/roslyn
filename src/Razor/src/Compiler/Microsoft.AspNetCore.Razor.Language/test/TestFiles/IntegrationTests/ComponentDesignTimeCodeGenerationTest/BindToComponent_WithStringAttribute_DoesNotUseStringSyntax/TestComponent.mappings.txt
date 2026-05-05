@@ -1,0 +1,19 @@
+﻿Source Location: (24:0,24 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|person.Name|
+Generated Location: (1134:29,24 [11] )
+|person.Name|
+
+Source Location: (17:0,17 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (1672:44,17 [5] )
+|Value|
+
+Source Location: (56:3,1 [37] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    Person person = new Person();
+|
+Generated Location: (2077:62,1 [37] )
+|
+    Person person = new Person();
+|
+

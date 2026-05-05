@@ -120,12 +120,12 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
             $" {d.Message}";
 
-    private static string Inspect(ManagedHotReloadDiagnostic d)
+    private static string Inspect(Microsoft.VisualStudio.Debugger.Contracts.HotReload.ManagedHotReloadDiagnostic d)
         => $"{d.Severity} {d.Id}:" +
             (!string.IsNullOrWhiteSpace(d.FilePath) ? $" {d.FilePath}({d.Span.StartLine}, {d.Span.StartColumn}, {d.Span.EndLine}, {d.Span.EndColumn}):" : "") +
             $" {d.Message}";
 
-    private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out ManagedHotReloadLanguageServiceImpl languageService, Type[] additionalParts = null)
+    private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out ManagedHotReloadLanguageService languageService, Type[] additionalParts = null)
     {
         var composition = EditorTestCompositions.EditorFeatures
             .AddExcludedPartTypes(typeof(ServiceBrokerProvider))
@@ -151,7 +151,11 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
 
         solution = workspace.CurrentSolution;
         service = GetEditAndContinueService(workspace);
-        languageService = workspace.GetService<ManagedHotReloadLanguageServiceImpl>();
+
+        var factory = workspace.GetService<ManagedHotReloadLanguageServiceFactory>();
+        var serviceBroker = workspace.GetService<IServiceBrokerProvider>().ServiceBroker;
+        var solutionSnapshotProvider = workspace.GetService<ISolutionSnapshotProvider>();
+        languageService = factory.Create(serviceBroker, solutionSnapshotProvider);
         return workspace;
     }
 
@@ -269,7 +273,10 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
 
         mockEncService = (MockEditAndContinueService)localWorkspace.GetService<IEditAndContinueService>();
 
-        var localService = localWorkspace.GetService<ManagedHotReloadLanguageServiceImpl>();
+        var localFactory = localWorkspace.GetService<ManagedHotReloadLanguageServiceFactory>();
+        var localBroker = localWorkspace.GetService<IServiceBrokerProvider>().ServiceBroker;
+        var localSnapshotProvider = localWorkspace.GetService<ISolutionSnapshotProvider>();
+        var localService = localFactory.Create(localBroker, localSnapshotProvider);
 
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
             .AddTestProject("proj", out var projectId)
@@ -369,11 +376,11 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             };
         };
 
-        var runningProjectInfo = new RunningProjectInfo(
-            new ProjectInstanceId(project.FilePath, "net10.0"),
+        var runningProjectInfo = new Microsoft.VisualStudio.Debugger.Contracts.HotReload.RunningProjectInfo(
+            new Microsoft.VisualStudio.Debugger.Contracts.HotReload.ProjectInstanceId(project.FilePath, "net10.0"),
             restartAutomatically: false);
 
-        var updates = await localService.GetUpdatesAsync(runningProjects: [runningProjectInfo], CancellationToken.None);
+        var updates = await localService.GetUpdatesAsync([runningProjectInfo], CancellationToken.None);
 
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
 

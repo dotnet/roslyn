@@ -775,13 +775,16 @@ class C
                 //     void M(X x)
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(7, 12));
 
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43),
                 // (7,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(X x)
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(7, 12));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -841,7 +844,7 @@ class C
                 //         var y = x[0][0];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(9, 17));
 
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43),
@@ -857,6 +860,9 @@ class C
                 // (9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var y = x[0][0];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(9, 17));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -888,7 +894,10 @@ class C
             };
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expected);
-            CreateCompilation(text).VerifyDiagnostics(expected);
+            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expected);
+
+            CreateCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]

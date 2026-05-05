@@ -199,7 +199,7 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
         {
             if (WorkspaceDidChangeConfigurationRegistered)
             {
-                AssertEx.Fail($"{Methods.WorkspaceDidChangeConfigurationName} is registered twice.");
+                Assert.Fail($"{Methods.WorkspaceDidChangeConfigurationName} is registered twice.");
                 return;
             }
 

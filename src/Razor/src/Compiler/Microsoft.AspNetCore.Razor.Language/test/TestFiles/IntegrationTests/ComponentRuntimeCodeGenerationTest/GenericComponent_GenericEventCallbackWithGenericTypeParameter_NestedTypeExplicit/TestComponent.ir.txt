@@ -1,0 +1,15 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (20:1,1 [10] x:\dir\subdir\Test\TestComponent.cshtml) - Test
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TChild
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (32:2,0 [57] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentTypeArgument - (52:2,20 [6] x:\dir\subdir\Test\TestComponent.cshtml) - TItem
+                        IntermediateToken - (52:2,20 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - TChild
+                    ComponentAttribute - (69:2,37 [16] x:\dir\subdir\Test\TestComponent.cshtml) - MyEvent - MyEvent - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (69:2,37 [16] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - (TChild x) => {}

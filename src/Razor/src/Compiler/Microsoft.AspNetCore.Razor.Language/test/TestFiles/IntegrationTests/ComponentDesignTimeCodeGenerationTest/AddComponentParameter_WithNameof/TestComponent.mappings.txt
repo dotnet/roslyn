@@ -1,0 +1,14 @@
+﻿Source Location: (13:0,13 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (1278:34,13 [5] )
+|Value|
+
+Source Location: (38:1,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public string nameof(string s) => string.Empty;
+|
+Generated Location: (1691:52,7 [55] )
+|
+    public string nameof(string s) => string.Empty;
+|
+

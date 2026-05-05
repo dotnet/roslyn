@@ -1,0 +1,30 @@
+﻿Source Location: (16:0,16 [56] x:\dir\subdir\Test\TestComponent.cshtml)
+|new System.Collections.Generic.Dictionary<int, string>()|
+Generated Location: (1117:30,16 [56] )
+|new System.Collections.Generic.Dictionary<int, string>()|
+
+Source Location: (83:0,83 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|DateTime.MinValue|
+Generated Location: (1435:38,83 [17] )
+|DateTime.MinValue|
+
+Source Location: (133:1,29 [23] x:\dir\subdir\Test\TestComponent.cshtml)
+|new[] { 'a', 'b', 'c' }|
+Generated Location: (2111:48,29 [23] )
+|new[] { 'a', 'b', 'c' }|
+
+Source Location: (115:1,11 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|ChildOnlyItems|
+Generated Location: (2395:58,11 [14] )
+|ChildOnlyItems|
+
+Source Location: (8:0,8 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Data|
+Generated Location: (2920:78,8 [4] )
+|Data|
+
+Source Location: (75:0,75 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Other|
+Generated Location: (3199:87,75 [5] )
+|Other|
+

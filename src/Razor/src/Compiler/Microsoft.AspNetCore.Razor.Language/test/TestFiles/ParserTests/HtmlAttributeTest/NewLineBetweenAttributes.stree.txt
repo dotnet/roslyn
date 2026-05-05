@@ -1,0 +1,57 @@
+﻿RazorDocument - [0..32)::32 - [@{<aLFhref='Foo'LFabcd='Bar' />}]
+    MarkupBlock - [0..32)::32
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..32)::32
+            CSharpStatement - [0..32)::32
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..32)::31
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..31)::29
+                        MarkupBlock - [2..31)::29
+                            MarkupElement - [2..31)::29
+                                MarkupStartTag - [2..31)::29 - [<aLFhref='Foo'LFabcd='Bar' />] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[a];
+                                    MarkupAttributeBlock - [4..16)::12 - [LFhref='Foo']
+                                        MarkupTextLiteral - [4..6)::2 - [LF] - Gen<Markup>
+                                            NewLine;[LF];
+                                        MarkupTextLiteral - [6..10)::4 - [href] - Gen<Markup>
+                                            Text;[href];
+                                        Equals;[=];
+                                        MarkupTextLiteral - [11..12)::1 - ['] - Gen<Markup>
+                                            SingleQuote;['];
+                                        GenericBlock - [12..15)::3
+                                            MarkupLiteralAttributeValue - [12..15)::3 - [Foo]
+                                                MarkupTextLiteral - [12..15)::3 - [Foo] - Gen<Markup>
+                                                    Text;[Foo];
+                                        MarkupTextLiteral - [15..16)::1 - ['] - Gen<Markup>
+                                            SingleQuote;['];
+                                    MarkupAttributeBlock - [16..28)::12 - [LFabcd='Bar']
+                                        MarkupTextLiteral - [16..18)::2 - [LF] - Gen<Markup>
+                                            NewLine;[LF];
+                                        MarkupTextLiteral - [18..22)::4 - [abcd] - Gen<Markup>
+                                            Text;[abcd];
+                                        Equals;[=];
+                                        MarkupTextLiteral - [23..24)::1 - ['] - Gen<Markup>
+                                            SingleQuote;['];
+                                        GenericBlock - [24..27)::3
+                                            MarkupLiteralAttributeValue - [24..27)::3 - [Bar]
+                                                MarkupTextLiteral - [24..27)::3 - [Bar] - Gen<Markup>
+                                                    Text;[Bar];
+                                        MarkupTextLiteral - [27..28)::1 - ['] - Gen<Markup>
+                                            SingleQuote;['];
+                                    MarkupMiscAttributeContent - [28..29)::1
+                                        MarkupTextLiteral - [28..29)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                    ForwardSlash;[/];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [31..31)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [31..32)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [32..32)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

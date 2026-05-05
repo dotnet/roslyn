@@ -94,12 +94,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
         /// <summary>
-        /// Whether the method has the <see langword="unsafe"/> keyword in its signature.
+        /// Whether the method is in an unsafe context.
+        /// For property/event accessors, this includes the containing property's unsafe modifier.
         /// Do not confuse with <see cref="CallerUnsafeMode"/>.
         /// </summary>
         internal abstract bool IsUnsafe { get; }
 
-        internal bool HasRequiresUnsafeAttribute => GetDecodedWellKnownAttributeData()?.HasRequiresUnsafeAttribute == true;
+        /// <summary>
+        /// Whether the method can require callers to be in an unsafe context
+        /// (i.e., can have <see cref="CallerUnsafeMode.Explicit"/>).
+        /// </summary>
+        internal abstract bool CanBeCallerUnsafe { get; }
 
         internal sealed override CallerUnsafeMode CallerUnsafeMode
         {
@@ -109,23 +114,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Debug.Assert(AssociatedSymbol?.CallerUnsafeMode != CallerUnsafeMode.Implicit);
 
-                    return HasRequiresUnsafeAttribute || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                    if (!CanBeCallerUnsafe)
+                    {
+                        return CallerUnsafeMode.None;
+                    }
+
+                    return IsUnsafe || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }
 
                 return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
                     ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
-            }
-        }
-
-        protected bool NeedsSynthesizedRequiresUnsafeAttribute
-        {
-            get
-            {
-                return ContainingModule.UseUpdatedMemorySafetyRules &&
-                    !HasRequiresUnsafeAttribute &&
-                    (IsExtern || AssociatedSymbol?.IsExtern == true);
             }
         }
 
@@ -151,10 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = target.DeclaringCompilation;
 
-            if (target is SourceMethodSymbol { NeedsSynthesizedRequiresUnsafeAttribute: true })
+            if (target.CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                Debug.Assert(target.CallerUnsafeMode == CallerUnsafeMode.Explicit);
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
 
             if (compilation.ShouldEmitNullableAttributes(target) &&

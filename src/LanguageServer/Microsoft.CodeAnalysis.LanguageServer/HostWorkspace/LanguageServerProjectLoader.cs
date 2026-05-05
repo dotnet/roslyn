@@ -175,11 +175,11 @@ internal abstract class LanguageServerProjectLoader
                 produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
                 {
                     var (@this, toastErrorReporter, buildHostProcessManager) = args;
-                    var projectNeedsRestore = await @this.ReloadProjectAsync(
+                    var projectRestorePath = await @this.ReloadProjectAsync(
                         projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
 
-                    if (projectNeedsRestore)
-                        produceItem(projectToLoad.Path);
+                    if (projectRestorePath is not null)
+                        produceItem(projectRestorePath);
                 },
                 args: (@this: this, toastErrorReporter, buildHostProcessManager),
                 cancellationToken).ConfigureAwait(false);
@@ -200,6 +200,7 @@ internal abstract class LanguageServerProjectLoader
     {
         public required ImmutableArray<ProjectFileInfo> ProjectFileInfos { get; init; }
         public required ImmutableArray<DiagnosticLogItem> DiagnosticLogItems { get; init; }
+        public required string? ProjectRestorePath { get; init; }
         public required ProjectSystemProjectFactory ProjectFactory { get; init; }
         public required bool IsFileBasedProgram { get; init; }
         public required bool IsMiscellaneousFile { get; init; }
@@ -213,8 +214,8 @@ internal abstract class LanguageServerProjectLoader
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
-    /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
-    private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
+    /// <returns>The project file path that needs a NuGet restore, if any.</returns>
+    private async Task<string?> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
         BuildHostProcessKind? preferredBuildHostKindThatWeDidNotGet = null;
         var projectPath = projectToLoad.Path;
@@ -224,7 +225,7 @@ internal abstract class LanguageServerProjectLoader
         {
             if (!_loadedProjects.ContainsKey(projectPath))
             {
-                return false;
+                return null;
             }
         }
 
@@ -238,7 +239,7 @@ internal abstract class LanguageServerProjectLoader
                 // - Reloading file-based app projects, where edits were performed to e.g. delete all `#:` directives,
                 //   making the file no longer a file-based app entry point.
                 _logger.LogDebug("Reload of '{projectPath}' was canceled.", projectPath);
-                return false;
+                return null;
             }
 
             var projectFactory = remoteProjectLoadResult.ProjectFactory;
@@ -252,7 +253,7 @@ internal abstract class LanguageServerProjectLoader
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
                 // We have total failures in evaluation, no point in continuing.
-                return false;
+                return null;
             }
 
             var loadedProjectInfos = remoteProjectLoadResult.ProjectFileInfos;
@@ -262,18 +263,18 @@ internal abstract class LanguageServerProjectLoader
             var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
             if (projectLanguage != null && projectFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
             {
-                return false;
+                return null;
             }
 
             Dictionary<ProjectFileInfo, ProjectLoadTelemetryReporter.TelemetryInfo> telemetryInfos = [];
-            var needsRestore = false;
+            string? projectRestorePath = null;
 
             using (await _gate.DisposableWaitAsync(cancellationToken))
             {
                 if (!_loadedProjects.TryGetValue(projectPath, out var currentLoadState))
                 {
                     // Project was unloaded. Do not proceed with reloading it.
-                    return false;
+                    return null;
                 }
 
                 var previousProjectTargets = currentLoadState is ProjectLoadState.LoadedTargets loaded ? loaded.LoadedProjectTargets : [];
@@ -284,7 +285,11 @@ internal abstract class LanguageServerProjectLoader
                     newProjectTargetsBuilder.Add(target);
 
                     var (outputKind, metadataReferences, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, remoteProjectLoadResult.HasAllInformation, _logger);
-                    needsRestore |= targetNeedsRestore;
+                    if (targetNeedsRestore)
+                    {
+                        projectRestorePath = remoteProjectLoadResult.ProjectRestorePath;
+                    }
+
                     if (!targetAlreadyExists)
                     {
                         telemetryInfos[loadedProjectInfo] = new ProjectLoadTelemetryReporter.TelemetryInfo
@@ -338,7 +343,7 @@ internal abstract class LanguageServerProjectLoader
                 _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
             }
 
-            return needsRestore;
+            return projectRestorePath;
         }
         catch (Exception e)
         {
@@ -347,7 +352,7 @@ internal abstract class LanguageServerProjectLoader
             var diagnosticLogItem = new DiagnosticLogItem(DiagnosticLogItemKind.Error, message, projectPath);
             await LogDiagnosticsAsync([diagnosticLogItem]);
 
-            return false;
+            return null;
         }
 
         async Task<(LoadedProject, bool alreadyExists)> GetOrCreateProjectTargetAsync(ImmutableArray<LoadedProject> previousProjectTargets, ProjectSystemProjectFactory projectFactory, ProjectFileInfo loadedProjectInfo)

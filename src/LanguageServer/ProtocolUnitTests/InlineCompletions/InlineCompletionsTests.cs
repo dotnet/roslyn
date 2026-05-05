@@ -244,11 +244,11 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
 
         var result = await GetInlineCompletionsAsync(testLspServer, locationTyped, options ?? new LSP.FormattingOptions { InsertSpaces = true, TabSize = 4 });
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Single(result.Items);
 
         var item = result.Items.Single();
-        AssertEx.NotNull(item.Range);
+        Assert.NotNull(item.Range);
         Assert.Equal(LSP.InsertTextFormat.Snippet, item.TextFormat);
         Assert.Equal(expected.ReplaceLineEndings("\r\n"), item.Text.ReplaceLineEndings("\r\n"));
     }

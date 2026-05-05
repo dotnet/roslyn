@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
@@ -89,7 +90,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                         new CodeGenerationContext(
                             afterThisLocation: _state.Location,
                             generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface,
-                            allowGenerationIntoHiddenCode: IsRazorSourceGeneratedDocument)),
+                            allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument())),
                     _state.TypeToGenerateIn,
                     method,
                     cancellationToken).ConfigureAwait(false);

@@ -1,0 +1,10 @@
+﻿Source Location: (2:0,2 [67] x:\dir\subdir\Test\TestComponent.cshtml)
+| var validationMessage = @Html.ValidationMessage("test", "", new { |
+Generated Location: (987:28,2 [67] )
+| var validationMessage = @Html.ValidationMessage("test", "", new { |
+
+Source Location: (70:0,70 [39] x:\dir\subdir\Test\TestComponent.cshtml)
+|@class = "invalid-feedback" }, "div"); |
+Generated Location: (1246:35,70 [39] )
+|@class = "invalid-feedback" }, "div"); |
+

@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="RazorExtension.Dependencies" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
+    <DisplayName>Razor Extension Dependencies</DisplayName>
+    <Description xml:space="preserve">Razor Extension additional dependencies for F5 and integration tests</Description>
+
+    <!-- This is needed to mark this extension as cloud compliant. -->
+    <AllowClientRole>true</AllowClientRole>
+  </Metadata>
+  <Installation AllUsers="true" Experimental="true">
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+
+</PackageManifest>

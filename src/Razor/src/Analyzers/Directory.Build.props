@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))\Directory.Build.props" />
+
+  <PropertyGroup>
+    <PackageTags>aspnetcore;cshtml;razor</PackageTags>
+    <IsPackable>true</IsPackable>
+    <IsShipping>true</IsShipping>
+    <IncludeSymbols>true</IncludeSymbols>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <RollForward Condition="'$(IsTestProject)' == 'true'">LatestMajor</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" NoWarn="NU1608" PrivateAssets="all" />
+    
+  </ItemGroup>
+
+</Project>

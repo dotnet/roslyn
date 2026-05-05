@@ -1,0 +1,3 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpressionInCode.cshtml(2,7): error CS1525: Invalid expression term ';'
+// __o = ;
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(2, 7)

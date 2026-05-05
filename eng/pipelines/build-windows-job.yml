@@ -55,6 +55,10 @@ jobs:
         filePath: eng/build.ps1
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
 
+    - template: post-cache-roslyn-outputs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+
     - template: publish-compiler-cache.yml
       parameters:
         cacheArtifactName: ${{ parameters.cacheArtifactName }}

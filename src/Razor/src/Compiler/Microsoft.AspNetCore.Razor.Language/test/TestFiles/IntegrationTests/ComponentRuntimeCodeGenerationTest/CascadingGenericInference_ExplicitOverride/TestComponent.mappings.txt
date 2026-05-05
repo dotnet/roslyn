@@ -1,0 +1,30 @@
+﻿Source Location: (1:0,1 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Grid|
+Generated Location: (703:19,49 [4] )
+|Grid|
+
+Source Location: (13:0,13 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|DateTime|
+Generated Location: (792:22,0 [8] )
+|DateTime|
+
+Source Location: (23:0,23 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Items|
+Generated Location: (1038:31,0 [5] )
+|Items|
+
+Source Location: (32:0,32 [23] x:\dir\subdir\Test\TestComponent.cshtml)
+|Array.Empty<DateTime>()|
+Generated Location: (1334:39,0 [23] )
+|Array.Empty<DateTime>()|
+
+Source Location: (59:0,59 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Column|
+Generated Location: (1610:46,54 [6] )
+|Column|
+
+Source Location: (73:0,73 [19] x:\dir\subdir\Test\TestComponent.cshtml)
+|System.TimeZoneInfo|
+Generated Location: (1701:49,0 [19] )
+|System.TimeZoneInfo|
+

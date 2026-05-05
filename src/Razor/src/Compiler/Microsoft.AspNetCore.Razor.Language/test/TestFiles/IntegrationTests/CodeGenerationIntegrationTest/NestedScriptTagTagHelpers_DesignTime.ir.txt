@@ -1,0 +1,115 @@
+﻿Document - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective -  - TModel = global::System.Object
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_NestedScriptTagTagHelpers - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::TestNamespace.PTagHelper - __TestNamespace_PTagHelper
+            FieldDeclaration -  - private - global::TestNamespace.InputTagHelper - __TestNamespace_InputTagHelper
+            FieldDeclaration -  - private - global::TestNamespace.InputTagHelper2 - __TestNamespace_InputTagHelper2
+            DesignTimeDirective - 
+                DirectiveToken - (287:7,8 [62] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TModel>
+                DirectiveToken - (350:7,71 [4] ) - Html
+                DirectiveToken - (364:8,8 [54] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper
+                DirectiveToken - (419:8,63 [4] ) - Json
+                DirectiveToken - (433:9,8 [53] ) - global::Microsoft.AspNetCore.Mvc.IViewComponentHelper
+                DirectiveToken - (487:9,62 [9] ) - Component
+                DirectiveToken - (506:10,8 [43] ) - global::Microsoft.AspNetCore.Mvc.IUrlHelper
+                DirectiveToken - (550:10,52 [3] ) - Url
+                DirectiveToken - (563:11,8 [70] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider
+                DirectiveToken - (634:11,79 [23] ) - ModelExpressionProvider
+                DirectiveToken - (673:12,14 [104] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (793:13,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (904:14,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (14:0,14 [17] NestedScriptTagTagHelpers.cshtml) - "*, TestAssembly"
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (31:0,31 [108] NestedScriptTagTagHelpers.cshtml)
+                    LazyIntermediateToken - (31:0,31 [4] NestedScriptTagTagHelpers.cshtml) - Html - \n\n
+                    LazyIntermediateToken - (35:2,0 [7] NestedScriptTagTagHelpers.cshtml) - Html - <script
+                    LazyIntermediateToken - (42:2,7 [17] NestedScriptTagTagHelpers.cshtml) - Html -  type="text/html"
+                    LazyIntermediateToken - (59:2,24 [1] NestedScriptTagTagHelpers.cshtml) - Html - >
+                    LazyIntermediateToken - (60:2,25 [6] NestedScriptTagTagHelpers.cshtml) - Html - \n    
+                    LazyIntermediateToken - (66:3,4 [4] NestedScriptTagTagHelpers.cshtml) - Html - <div
+                    LazyIntermediateToken - (70:3,8 [17] NestedScriptTagTagHelpers.cshtml) - Html -  data-animation="
+                    LazyIntermediateToken - (87:3,25 [4] NestedScriptTagTagHelpers.cshtml) - Html - fade
+                    LazyIntermediateToken - (91:3,29 [1] NestedScriptTagTagHelpers.cshtml) - Html - "
+                    LazyIntermediateToken - (92:3,30 [36] NestedScriptTagTagHelpers.cshtml) - Html -  class="randomNonTagHelperAttribute"
+                    LazyIntermediateToken - (128:3,66 [1] NestedScriptTagTagHelpers.cshtml) - Html - >
+                    LazyIntermediateToken - (129:3,67 [10] NestedScriptTagTagHelpers.cshtml) - Html - \n        
+                TagHelper - (139:4,8 [433] NestedScriptTagTagHelpers.cshtml) - p - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (180:4,49 [14] NestedScriptTagTagHelpers.cshtml)
+                            LazyIntermediateToken - (180:4,49 [14] NestedScriptTagTagHelpers.cshtml) - Html - \n            
+                        CSharpCode - (195:5,13 [46] NestedScriptTagTagHelpers.cshtml)
+                            LazyIntermediateToken - (195:5,13 [46] NestedScriptTagTagHelpers.cshtml) - CSharp - for(var i = 0; i < 5; i++) {\n                
+                        HtmlContent - (241:6,16 [68] NestedScriptTagTagHelpers.cshtml)
+                            LazyIntermediateToken - (241:6,16 [7] NestedScriptTagTagHelpers.cshtml) - Html - <script
+                            LazyIntermediateToken - (248:6,23 [21] NestedScriptTagTagHelpers.cshtml) - Html -  id="nestedScriptTag"
+                            LazyIntermediateToken - (269:6,44 [17] NestedScriptTagTagHelpers.cshtml) - Html -  type="text/html"
+                            LazyIntermediateToken - (286:6,61 [1] NestedScriptTagTagHelpers.cshtml) - Html - >
+                            LazyIntermediateToken - (287:6,62 [22] NestedScriptTagTagHelpers.cshtml) - Html - \n                    
+                        TagHelper - (309:7,20 [86] NestedScriptTagTagHelpers.cshtml) - input - TagMode.StartTagOnly
+                            DefaultTagHelperBody - 
+                            DefaultTagHelperCreate -  - TestNamespace.InputTagHelper
+                            DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
+                            DefaultTagHelperHtmlAttribute -  - data-interval - HtmlAttributeValueStyle.DoubleQuotes
+                                HtmlContent - (331:7,42 [7] NestedScriptTagTagHelpers.cshtml)
+                                    LazyIntermediateToken - (331:7,42 [7] NestedScriptTagTagHelpers.cshtml) - Html - 2000 + 
+                                CSharpExpression - (339:7,50 [23] NestedScriptTagTagHelpers.cshtml)
+                                    LazyIntermediateToken - (339:7,50 [23] NestedScriptTagTagHelpers.cshtml) - CSharp - ViewBag.DefaultInterval
+                                HtmlContent - (362:7,73 [4] NestedScriptTagTagHelpers.cshtml)
+                                    LazyIntermediateToken - (362:7,73 [4] NestedScriptTagTagHelpers.cshtml) - Html -  + 1
+                            DefaultTagHelperProperty - (374:7,85 [4] NestedScriptTagTagHelpers.cshtml) - type - string TestNamespace.InputTagHelper.Type - HtmlAttributeValueStyle.DoubleQuotes
+                                HtmlContent - (374:7,85 [4] NestedScriptTagTagHelpers.cshtml)
+                                    LazyIntermediateToken - (374:7,85 [4] NestedScriptTagTagHelpers.cshtml) - Html - text
+                            DefaultTagHelperProperty - (374:7,85 [4] NestedScriptTagTagHelpers.cshtml) - type - string TestNamespace.InputTagHelper2.Type - HtmlAttributeValueStyle.DoubleQuotes
+                                HtmlContent - (374:7,85 [4] NestedScriptTagTagHelpers.cshtml)
+                                    LazyIntermediateToken - (374:7,85 [4] NestedScriptTagTagHelpers.cshtml) - Html - text
+                            DefaultTagHelperProperty - (389:7,100 [4] NestedScriptTagTagHelpers.cshtml) - checked - bool TestNamespace.InputTagHelper2.Checked - HtmlAttributeValueStyle.DoubleQuotes
+                                IntermediateToken - (389:7,100 [4] NestedScriptTagTagHelpers.cshtml) - CSharp - true
+                            DefaultTagHelperExecute - 
+                        HtmlContent - (395:7,106 [27] NestedScriptTagTagHelpers.cshtml)
+                            LazyIntermediateToken - (395:7,106 [18] NestedScriptTagTagHelpers.cshtml) - Html - \n                
+                            LazyIntermediateToken - (413:8,16 [9] NestedScriptTagTagHelpers.cshtml) - Html - </script>
+                        CSharpCode - (422:8,25 [15] NestedScriptTagTagHelpers.cshtml)
+                            LazyIntermediateToken - (422:8,25 [15] NestedScriptTagTagHelpers.cshtml) - CSharp - \n            }
+                        HtmlContent - (437:9,13 [131] NestedScriptTagTagHelpers.cshtml)
+                            LazyIntermediateToken - (437:9,13 [14] NestedScriptTagTagHelpers.cshtml) - Html - \n            
+                            LazyIntermediateToken - (451:10,12 [7] NestedScriptTagTagHelpers.cshtml) - Html - <script
+                            LazyIntermediateToken - (458:10,19 [23] NestedScriptTagTagHelpers.cshtml) - Html -  type="text/javascript"
+                            LazyIntermediateToken - (481:10,42 [1] NestedScriptTagTagHelpers.cshtml) - Html - >
+                            LazyIntermediateToken - (482:10,43 [67] NestedScriptTagTagHelpers.cshtml) - Html - \n                var tag = '<input checked="true">';\n            
+                            LazyIntermediateToken - (549:12,12 [9] NestedScriptTagTagHelpers.cshtml) - Html - </script>
+                            LazyIntermediateToken - (558:12,21 [10] NestedScriptTagTagHelpers.cshtml) - Html - \n        
+                    DefaultTagHelperCreate -  - TestNamespace.PTagHelper
+                    DefaultTagHelperHtmlAttribute -  - class - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (149:4,18 [11] NestedScriptTagTagHelpers.cshtml)
+                            LazyIntermediateToken - (149:4,18 [11] NestedScriptTagTagHelpers.cshtml) - Html - Hello World
+                    DefaultTagHelperHtmlAttribute -  - data-delay - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (174:4,43 [4] NestedScriptTagTagHelpers.cshtml)
+                            LazyIntermediateToken - (174:4,43 [4] NestedScriptTagTagHelpers.cshtml) - Html - 1000
+                    DefaultTagHelperExecute - 
+                HtmlContent - (572:13,12 [23] NestedScriptTagTagHelpers.cshtml)
+                    LazyIntermediateToken - (572:13,12 [6] NestedScriptTagTagHelpers.cshtml) - Html - \n    
+                    LazyIntermediateToken - (578:14,4 [6] NestedScriptTagTagHelpers.cshtml) - Html - </div>
+                    LazyIntermediateToken - (584:14,10 [2] NestedScriptTagTagHelpers.cshtml) - Html - \n
+                    LazyIntermediateToken - (586:15,0 [9] NestedScriptTagTagHelpers.cshtml) - Html - </script>
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
