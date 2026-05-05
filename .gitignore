@@ -200,3 +200,4 @@ $RECYCLE.BIN/
 
 # Agent directories
 .claude/
+.scion/agents/
