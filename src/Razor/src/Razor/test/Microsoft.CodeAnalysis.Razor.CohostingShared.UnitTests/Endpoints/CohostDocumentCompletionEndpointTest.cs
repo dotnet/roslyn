@@ -912,7 +912,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             input: """
                 This is a Razor document.
 
-                <input @bind:fo$$=""></div>
+                <input @bind-Value:fo$$=""></div>
 
                 The end.
                 """,
@@ -922,7 +922,8 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"]);
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"],
+            unexpectedItemLabels: ["dir", "lang", "@bind-Value"]);
     }
 
     // Tests that cursor immediately after colon (no parameter text yet) shows bind modifiers
@@ -933,7 +934,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             input: """
                 This is a Razor document.
 
-                <input @bind:$$></div>
+                <input @bind-Value:$$></div>
 
                 The end.
                 """,
@@ -943,7 +944,8 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"]);
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"],
+            unexpectedItemLabels: ["dir", "lang", "@bind-Value"]);
     }
 
     // Tests that committing a directive attribute parameter completion with an existing parameter
@@ -955,7 +957,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             input: """
                 This is a Razor document.
 
-                <input @bind-$$:after=""></div>
+                <input @bind-Value$$:after=""></div>
 
                 The end.
                 """,
@@ -965,22 +967,23 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["bind-Value:after"]);
+            expectedItemLabels: ["@bind-value", "@bind-value:format"],
+            unexpectedItemLabels: ["dir", "lang"]);
 
         Assert.NotNull(result);
 
-        var item = Assert.Single(result.Items, i => i.Label == "bind-Value:after");
+        var item = Assert.Single(result.Items, i => i.Label == "@bind-value:format");
 
-        // The item should have a TextEdit that replaces the full "bind-:after" span (not just "bind-")
+        // The list should have a TextEdit that replaces the full "bind-Value:after" span (not just "bind-")
         // This prevents the editor's word-boundary heuristic from stopping at the colon and duplicating ":after"
-        Assert.True(item.TextEdit.HasValue, "Expected a TextEdit on the completion item to prevent duplication");
-        var textEdit = Assert.IsType<TextEdit>(item.TextEdit!.Value.Value);
-        Assert.Equal("bind-Value:after", textEdit.NewText);
+        Assert.True(result.ItemDefaults!.EditRange.HasValue, "Expected a TextEdit on the completion list to prevent duplication");
+        Assert.Equal("bind-value:format", item.TextEditText);
+        var textEditRange = Assert.IsType<LspRange>(result.ItemDefaults!.EditRange.Value.Value);
 
-        // The range should cover "bind-:after" (everything after '@' through end of parameter name)
-        Assert.Equal(textEdit.Range.Start.Line, textEdit.Range.End.Line);
-        var replacedLength = textEdit.Range.End.Character - textEdit.Range.Start.Character;
-        Assert.Equal("bind-:after".Length, replacedLength);
+        // The range should cover "bind-Value:after" (everything after '@' through end of parameter name)
+        Assert.Equal(textEditRange.Start.Line, textEditRange.End.Line);
+        var replacedLength = (textEditRange.End.Character - textEditRange.Start.Character) + 1;
+        Assert.Equal("bind-value:format".Length, replacedLength);
     }
 
     [Fact]
