@@ -22,3 +22,26 @@ use by analyzers.
 
 AnalyzerConfig files can be passed to the command-line compiler through the
 `/analyzerconfig:<file-path>` parameter.
+
+Path Matching and Case Sensitivity
+-----------------------------------
+
+The compiler matches source file paths against AnalyzerConfig directories
+using **case-sensitive (ordinal) string comparison**, even on Windows. This is
+a deliberate design decision: on Windows, individual directories can be
+configured as case-sensitive (e.g. via
+[WSL case sensitivity](https://learn.microsoft.com/en-us/windows/wsl/case-sensitivity)),
+and it is possible for a single path to traverse both case-sensitive and
+case-insensitive segments. Since there is no reliable way to determine the
+case-sensitivity of each segment without querying the file system per
+directory, the compiler uses ordinal comparison to give a consistent answer
+regardless of the environment.
+
+The one exception is the drive letter on Windows: `c:\src` and `C:\src` are
+normalized to the same uppercase form (`C:\src`) before comparison, since
+Windows treats drive letters as case-insensitive in all configurations.
+
+In practice this means that the casing of the directory containing the
+`.editorconfig` file must exactly match the casing of the source file paths
+passed to the compiler for the configuration to apply (aside from the drive
+letter).
