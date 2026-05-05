@@ -359,42 +359,42 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
         // Act
         reporter.ReportRequestTiming(
             Methods.TextDocumentCodeActionName,
-            WellKnownLspServerKinds.RazorLspServer.GetContractName(),
+            WellKnownLspServerKinds.AlwaysActiveVSLspServer.GetContractName(),
             TimeSpan.FromMilliseconds(100),
             TimeSpan.FromMilliseconds(100),
             CodeAnalysis.Razor.Telemetry.TelemetryResult.Succeeded);
 
         reporter.ReportRequestTiming(
             Methods.TextDocumentCodeActionName,
-            WellKnownLspServerKinds.RazorLspServer.GetContractName(),
+            WellKnownLspServerKinds.AlwaysActiveVSLspServer.GetContractName(),
             TimeSpan.FromMilliseconds(200),
             TimeSpan.FromMilliseconds(200),
             CodeAnalysis.Razor.Telemetry.TelemetryResult.Cancelled);
 
         reporter.ReportRequestTiming(
             Methods.TextDocumentCodeActionName,
-            WellKnownLspServerKinds.RazorLspServer.GetContractName(),
+            WellKnownLspServerKinds.AlwaysActiveVSLspServer.GetContractName(),
             TimeSpan.FromMilliseconds(300),
             TimeSpan.FromMilliseconds(300),
             CodeAnalysis.Razor.Telemetry.TelemetryResult.Failed);
 
         reporter.ReportRequestTiming(
             Methods.TextDocumentCompletionName,
-             WellKnownLspServerKinds.RazorLspServer.GetContractName(),
+             WellKnownLspServerKinds.AlwaysActiveVSLspServer.GetContractName(),
             TimeSpan.FromMilliseconds(100),
             TimeSpan.FromMilliseconds(100),
             CodeAnalysis.Razor.Telemetry.TelemetryResult.Succeeded);
 
         reporter.ReportRequestTiming(
             Methods.TextDocumentCompletionName,
-             WellKnownLspServerKinds.RazorLspServer.GetContractName(),
+             WellKnownLspServerKinds.AlwaysActiveVSLspServer.GetContractName(),
             TimeSpan.FromMilliseconds(200),
             TimeSpan.FromMilliseconds(200),
             CodeAnalysis.Razor.Telemetry.TelemetryResult.Cancelled);
 
         reporter.ReportRequestTiming(
             Methods.TextDocumentCompletionName,
-             WellKnownLspServerKinds.RazorLspServer.GetContractName(),
+             WellKnownLspServerKinds.AlwaysActiveVSLspServer.GetContractName(),
             TimeSpan.FromMilliseconds(300),
             TimeSpan.FromMilliseconds(300),
             CodeAnalysis.Razor.Telemetry.TelemetryResult.Failed);
