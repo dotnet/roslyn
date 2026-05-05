@@ -35,6 +35,7 @@ const string AzdoProject = "public";
 // Pipeline definition ID for the public Roslyn CI pipeline.
 // https://dev.azure.com/dnceng-public/public/_build?definitionId=95
 const int DefaultPipelineDefinitionId = 95;
+const string DefaultCacheDirectoryName = "roslyn-cache";
 
 var configOption = new Option<string>("--configuration", "-c")
 {
@@ -100,14 +101,15 @@ static async Task RunAsync(
     var os = GetCurrentOsName();
     var artifactName = $"compiler-cache-{os}-{configuration.ToLowerInvariant()}";
 
-    // If the user already has a cache path configured (e.g., via environment variable),
-    // download there and skip writing Directory.Build.props.user.
     var existingCachePath = Environment.GetEnvironmentVariable("ROSLYN_CACHE_PATH");
-    var alreadyEnabled = string.Equals(Environment.GetEnvironmentVariable("ROSLYN_USE_CACHING_COMPILER"), "true", StringComparison.OrdinalIgnoreCase)
-        || !string.IsNullOrEmpty(existingCachePath);
-    var cacheDestination = !string.IsNullOrEmpty(existingCachePath)
-        ? existingCachePath
-        : Path.Combine(repoRoot, "artifacts", "compiler-cache");
+    var useCachingCompiler = string.Equals(Environment.GetEnvironmentVariable("ROSLYN_USE_CACHING_COMPILER"), "true", StringComparison.OrdinalIgnoreCase);
+    var alreadyEnabled = useCachingCompiler || !string.IsNullOrEmpty(existingCachePath);
+    var cacheDestination = existingCachePath switch
+    {
+        { Length: > 0 } => existingCachePath,
+        _ when useCachingCompiler => GetDefaultGlobalCachePath(),
+        _ => Path.Combine(repoRoot, "artifacts", "compiler-cache"),
+    };
 
     Console.WriteLine($"OS:            {os}");
     Console.WriteLine($"Configuration: {configuration}");
@@ -260,6 +262,15 @@ static string GetCurrentOsName()
     if (OperatingSystem.IsWindows()) return "windows";
     if (OperatingSystem.IsMacOS()) return "macos";
     return "linux";
+}
+
+static string GetDefaultGlobalCachePath()
+{
+    var parentPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+    if (string.IsNullOrEmpty(parentPath))
+        throw new InvalidOperationException("Could not determine the compiler's default global cache path because LocalApplicationData is unavailable.");
+
+    return Path.Combine(parentPath, DefaultCacheDirectoryName);
 }
 
 static List<string> GetBranchFallbackSequence(string? explicitBranch, string repoRoot)
