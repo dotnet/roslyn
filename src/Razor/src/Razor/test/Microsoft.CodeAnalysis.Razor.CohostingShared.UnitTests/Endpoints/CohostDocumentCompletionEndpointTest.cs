@@ -946,6 +946,43 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["culture", "event", "format", "get", "set", "after"]);
     }
 
+    // Tests that committing a directive attribute parameter completion with an existing parameter
+    // does not duplicate the parameter portion (e.g., @bind-:after="" -> @bind-Value:after="", not @bind-Value:after:after="")
+    [Fact]
+    public async Task DirectiveAttributeParameterCompletion_WithExistingParameter_HasTextEditReplacingFullSpan()
+    {
+        var result = await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind-$$:after=""></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["bind-Value:after"]);
+
+        Assert.NotNull(result);
+
+        var item = Assert.Single(result.Items, i => i.Label == "bind-Value:after");
+
+        // The item should have a TextEdit that replaces the full "bind-:after" span (not just "bind-")
+        // This prevents the editor's word-boundary heuristic from stopping at the colon and duplicating ":after"
+        Assert.True(item.TextEdit.HasValue, "Expected a TextEdit on the completion item to prevent duplication");
+        var textEdit = Assert.IsType<TextEdit>(item.TextEdit!.Value.Value);
+        Assert.Equal("bind-Value:after", textEdit.NewText);
+
+        // The range should cover "bind-:after" (everything after '@' through end of parameter name)
+        Assert.Equal(textEdit.Range.Start.Line, textEdit.Range.End.Line);
+        var replacedLength = textEdit.Range.End.Character - textEdit.Range.Start.Character;
+        Assert.Equal("bind-:after".Length, replacedLength);
+    }
+
     [Fact]
     public async Task HtmlAndDirectiveAttributeEventParameterEmptyNoSuffixHtmlEventNamesCompletion()
     {

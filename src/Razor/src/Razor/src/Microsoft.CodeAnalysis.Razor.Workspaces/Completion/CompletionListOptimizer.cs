@@ -16,6 +16,8 @@ internal static class CompletionListOptimizer
             completionList = OptimizeCommitCharacters(completionList, completionCapability);
         }
 
+        completionList = PromoteEditRangeToListDefaults(completionList, completionCapability);
+
         return completionList;
     }
 
@@ -79,6 +81,56 @@ internal static class CompletionListOptimizer
         }
 
         completionList.CommitCharacters = mostUsedCommitCharacterToItems.Value.VsCommitCharacters;
+        return completionList;
+    }
+
+    private static RazorVSInternalCompletionList PromoteEditRangeToListDefaults(RazorVSInternalCompletionList completionList, VSInternalCompletionSetting? completionCapability)
+    {
+        // Check if client supports editRange in ItemDefaults
+        var itemDefaults = completionCapability?.CompletionListSetting?.ItemDefaults;
+        if (itemDefaults is null || !itemDefaults.Contains("editRange"))
+        {
+            return completionList;
+        }
+
+        var items = completionList.Items;
+
+        // Find the common TextEdit range across all items.
+        // If any item lacks a TextEdit or has a different range, bail out.
+        LspRange? commonRange = null;
+        foreach (var item in items)
+        {
+            if (item.TextEdit?.Value is not TextEdit textEdit)
+            {
+                return completionList;
+            }
+
+            if (commonRange is null)
+            {
+                commonRange = textEdit.Range;
+            }
+            else if (!commonRange.Equals(textEdit.Range))
+            {
+                return completionList;
+            }
+        }
+
+        if (commonRange is null)
+        {
+            return completionList;
+        }
+
+        // Promote the common range to ItemDefaults.EditRange and replace per-item TextEdits with TextEditText
+        completionList.ItemDefaults ??= new CompletionListItemDefaults();
+        completionList.ItemDefaults.EditRange = commonRange;
+
+        foreach (var item in items)
+        {
+            var textEdit = (TextEdit)item.TextEdit!.Value;
+            item.TextEditText = textEdit.NewText;
+            item.TextEdit = null;
+        }
+
         return completionList;
     }
 
