@@ -648,7 +648,9 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
     {
         public TypeInferenceArgName VariableName { get; } = variableName;
     }
-private readonly ImmutableArray<IntermediateToken>.Builder _currentAttributeValues = ImmutableArray.CreateBuilder<IntermediateToken>();
+
+    private readonly ImmutableArray<IntermediateToken>.Builder _currentAttributeValues = ImmutableArray.CreateBuilder<IntermediateToken>();
+
     private int _sourceSequence;
 
     public override void WriteCSharpCode(CodeRenderingContext context, CSharpCodeIntermediateNode node)

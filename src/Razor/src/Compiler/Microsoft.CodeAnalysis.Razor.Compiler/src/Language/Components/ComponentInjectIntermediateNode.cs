@@ -19,13 +19,12 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
         "private" // Encapsulation is the default
     ];
 
-    public ComponentInjectIntermediateNode(string typeName, string memberName, SourceSpan? typeSpan, SourceSpan? memberSpan, bool isMalformed)
+    public ComponentInjectIntermediateNode(string typeName, string memberName, SourceSpan? typeSpan, SourceSpan? memberSpan)
     {
         TypeName = typeName;
         MemberName = memberName;
         TypeSpan = typeSpan;
         MemberSpan = memberSpan;
-        IsMalformed = isMalformed;
      }
 
     public string TypeName { get; }
@@ -35,8 +34,6 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
     public SourceSpan? TypeSpan { get; }
 
     public SourceSpan? MemberSpan { get; }
-
-    public bool IsMalformed { get; }
 
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 

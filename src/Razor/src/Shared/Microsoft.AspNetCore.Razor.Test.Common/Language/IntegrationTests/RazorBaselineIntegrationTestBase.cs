@@ -11,7 +11,6 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
