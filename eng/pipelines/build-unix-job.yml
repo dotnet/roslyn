@@ -44,9 +44,6 @@ jobs:
     - template: post-cache-roslyn-outputs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
-
-    - template: publish-compiler-cache.yml
-      parameters:
         cacheArtifactName: ${{ parameters.cacheArtifactName }}
 
     - script: ./eng/prepare-tests.sh
