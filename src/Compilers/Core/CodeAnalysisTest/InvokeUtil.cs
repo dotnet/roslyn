@@ -160,17 +160,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     continue;
                 }
 
-                var location = assembly.Location;
-
-                // Only truly dynamic assemblies are exempt from location-based checks.
-                // Stream-loaded assemblies can also have no location and should still be flagged.
-                if (string.IsNullOrEmpty(location))
-                {
                     if (assembly.IsDynamic)
                     {
                         continue;
                     }
 
+                    var location = assembly.Location;
+
+                // Only truly dynamic assemblies are exempt from location-based checks.
+                // Stream-loaded assemblies can also have no location and should still be flagged.
+                if (string.IsNullOrEmpty(location))
+                {
                     unexpectedAssemblies.Add($"{assembly.FullName} at <no location>");
                     continue;
                 }
