@@ -982,8 +982,8 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
         // The range should cover "bind-Value:after" (everything after '@' through end of parameter name)
         Assert.Equal(textEditRange.Start.Line, textEditRange.End.Line);
-        var replacedLength = (textEditRange.End.Character - textEditRange.Start.Character) + 1;
-        Assert.Equal("bind-value:format".Length, replacedLength);
+        var replacedLength = textEditRange.End.Character - textEditRange.Start.Character;
+        Assert.Equal("bind-Value:after".Length, replacedLength);
     }
 
     [Fact]
