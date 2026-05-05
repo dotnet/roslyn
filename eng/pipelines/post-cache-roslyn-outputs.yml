@@ -26,6 +26,11 @@ steps:
         }
 
         $cachePath = "$(ROSLYN_CACHE_PATH)"
+        if ([string]::IsNullOrWhiteSpace($cachePath)) {
+          Write-AzureDevOpsWarning "Roslyn compiler cache path was not set. Skipping cache stats and purge."
+          exit 0
+        }
+
         if (-not (Test-Path -LiteralPath $cachePath)) {
           Write-AzureDevOpsWarning "Roslyn compiler cache path does not exist: $cachePath"
           exit 0
