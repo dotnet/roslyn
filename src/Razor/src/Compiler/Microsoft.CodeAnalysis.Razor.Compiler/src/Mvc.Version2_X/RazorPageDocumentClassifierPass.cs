@@ -44,6 +44,22 @@ public sealed class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
         return PageDirective.TryGetPageDirective(documentNode, out _);
     }
 
+    protected override string GetClassName(RazorCodeDocument codeDocument)
+    {
+        var filePath = codeDocument.Source.RelativePath ?? codeDocument.Source.FilePath;
+        if (string.IsNullOrEmpty(filePath))
+        {
+            // It's possible for a Razor document to not have a file path.
+            // Eg. When we try to generate code for an in memory document like default imports.
+            var checksum = ChecksumUtilities.BytesToString(codeDocument.Source.Text.GetChecksum());
+            return $"AspNetCore_{checksum}";
+        }
+        else
+        {
+            return CSharpIdentifier.GetClassNameFromPath(filePath);
+        }
+    }
+
     protected override void OnDocumentStructureCreated(
         RazorCodeDocument codeDocument,
         NamespaceDeclarationIntermediateNode @namespace,
@@ -55,19 +71,6 @@ public sealed class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
         @namespace.Name = "AspNetCore";
 
         @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.RazorPages.Page");
-
-        var filePath = codeDocument.Source.RelativePath ?? codeDocument.Source.FilePath;
-        if (string.IsNullOrEmpty(filePath))
-        {
-            // It's possible for a Razor document to not have a file path.
-            // Eg. When we try to generate code for an in memory document like default imports.
-            var checksum = ChecksumUtilities.BytesToString(codeDocument.Source.Text.GetChecksum());
-            @class.Name = $"AspNetCore_{checksum}";
-        }
-        else
-        {
-            @class.Name = CSharpIdentifier.GetClassNameFromPath(filePath);
-        }
 
         @class.Modifiers = CommonModifiers.Public;
 

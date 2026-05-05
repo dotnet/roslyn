@@ -46,19 +46,9 @@ internal sealed class ComponentDocumentClassifierPass : DocumentClassifierPassBa
     protected override CodeTarget CreateTarget(RazorCodeDocument codeDocument)
         => new ComponentCodeTarget(codeDocument, TargetExtensions);
 
-    /// <inheritdoc />
-    protected override void OnDocumentStructureCreated(
-        RazorCodeDocument codeDocument,
-        NamespaceDeclarationIntermediateNode @namespace,
-        ClassDeclarationIntermediateNode @class,
-        MethodDeclarationIntermediateNode method)
+    protected override string GetClassName(RazorCodeDocument codeDocument)
     {
-        if (!codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var computedNamespace, out var computedNamespaceSpan))
-        {
-            computedNamespace = FallbackRootNamespace;
-        }
-
-        if (!TryComputeClassName(codeDocument, out var computedClass))
+        if(!TryComputeClassName(codeDocument, out var computedClass))
         {
             var checksum = ChecksumUtilities.BytesToString(codeDocument.Source.Text.GetChecksum());
             computedClass = $"AspNetCore_{checksum}";
@@ -77,11 +67,25 @@ internal sealed class ComponentDocumentClassifierPass : DocumentClassifierPassBa
             computedClass = ComponentHelpers.MangleClassName(computedClass);
         }
 
+        return computedClass;
+    }
+
+    /// <inheritdoc />
+    protected override void OnDocumentStructureCreated(
+        RazorCodeDocument codeDocument,
+        NamespaceDeclarationIntermediateNode @namespace,
+        ClassDeclarationIntermediateNode @class,
+        MethodDeclarationIntermediateNode method)
+    {
+        if (!codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var computedNamespace, out var computedNamespaceSpan))
+        {
+            computedNamespace = FallbackRootNamespace;
+        }
+
         @class.NullableContext = true;
 
         @namespace.Name = computedNamespace;
         @namespace.Source = computedNamespaceSpan;
-        @class.Name = computedClass;
         @class.Modifiers = CommonModifiers.PublicPartial;
 
         if (codeDocument.FileKind.IsComponentImport())
@@ -104,6 +108,8 @@ internal sealed class ComponentDocumentClassifierPass : DocumentClassifierPassBa
             var directiveType = razorLanguageVersion >= RazorLanguageVersion.Version_6_0
                 ? ComponentConstrainedTypeParamDirective.Directive
                 : ComponentTypeParamDirective.Directive;
+
+            var documentNode = codeDocument.GetRequiredDocumentNode();
 
             using var typeParameters = new PooledArrayBuilder<TypeParameter>();
 

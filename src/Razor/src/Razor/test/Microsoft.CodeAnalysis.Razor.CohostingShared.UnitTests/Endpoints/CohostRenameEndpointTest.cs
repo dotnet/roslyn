@@ -1457,6 +1457,159 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     """),
             ]);
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/XXXX")]
+    public Task Component_WithClassNameDirective_RenamesDirectiveValue()
+        => VerifyRenamesAsync(
+            input: """
+                            This is a Razor document.
+
+                            <MyCustom$$Component />
+
+                            The end.
+                            """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                                @classname MyCustomComponent
+
+                                <div>Hello</div>
+                                """)
+            ],
+            newName: "RenamedComponent",
+            expected: """
+                            This is a Razor document.
+
+                            <RenamedComponent />
+
+                            The end.
+                            """,
+            additionalExpectedFiles: [
+                // File name stays the same, but @classname value is updated
+                (FileUri("Component.razor"), """
+                                @classname RenamedComponent
+
+                                <div>Hello</div>
+                                """)
+            ]);
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/XXXX")]
+    public Task Component_WithClassNameDirective_MultipleReferences()
+        => VerifyRenamesAsync(
+            input: """
+                            <MyCustom$$Component />
+                            <MyCustomComponent></MyCustomComponent>
+                            <MyCustomComponent>
+                                <MyCustomComponent />
+                            </MyCustomComponent>
+                            """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                                @classname MyCustomComponent
+
+                                <div>Hello</div>
+                                """),
+                            (FilePath("OtherFile.razor"), """
+                                <MyCustomComponent />
+                                """)
+            ],
+            newName: "RenamedComponent",
+            expected: """
+                            <RenamedComponent />
+                            <RenamedComponent></RenamedComponent>
+                            <RenamedComponent>
+                                <RenamedComponent />
+                            </RenamedComponent>
+                            """,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                                @classname RenamedComponent
+
+                                <div>Hello</div>
+                                """),
+                            (FileUri("OtherFile.razor"), """
+                                <RenamedComponent />
+                                """)
+            ]);
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/XXXX")]
+    public Task Component_WithClassNameDirective_AndNamespace()
+        => VerifyRenamesAsync(
+            input: """
+                            <My.Custom.Namespace.MyCustom$$Component />
+                            """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                                @namespace My.Custom.Namespace
+                                @classname MyCustomComponent
+
+                                <div>Hello</div>
+                                """)
+            ],
+            newName: "RenamedComponent",
+            expected: """
+                            <My.Custom.Namespace.RenamedComponent />
+                            """,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                                @namespace My.Custom.Namespace
+                                @classname RenamedComponent
+
+                                <div>Hello</div>
+                                """)
+            ]);
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/XXXX")]
+    public Task Component_WithClassNameDirective_AndTypeParam()
+        => VerifyRenamesAsync(
+            input: """
+                            <MyGeneric$$Component TItem="string" />
+                            """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                                @classname MyGenericComponent
+                                @typeparam TItem
+
+                                <div>@typeof(TItem).Name</div>
+                                """)
+            ],
+            newName: "RenamedGenericComponent",
+            expected: """
+                            <RenamedGenericComponent TItem="string" />
+                            """,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                                @classname RenamedGenericComponent
+                                @typeparam TItem
+
+                                <div>@typeof(TItem).Name</div>
+                                """)
+            ]);
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/XXXX")]
+    public Task Component_WithClassNameDirective_DoesNotRenameFile()
+        => VerifyRenamesAsync(
+            input: """
+                            <MyCustom$$Component />
+                            """,
+            additionalFiles: [
+                (FilePath("DifferentFileName.razor"), """
+                                @classname MyCustomComponent
+
+                                <div>Hello</div>
+                                """)
+            ],
+            newName: "RenamedComponent",
+            expected: """
+                            <RenamedComponent />
+                            """,
+            additionalExpectedFiles: [
+                // File keeps its original name (DifferentFileName.razor), only @classname is updated
+                (FileUri("DifferentFileName.razor"), """
+                                @classname RenamedComponent
+
+                                <div>Hello</div>
+                                """)
+            ]);
+
     private async Task VerifyRenamesAsync(
         string input,
         string newName,

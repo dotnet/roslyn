@@ -51,6 +51,8 @@ public abstract class DocumentClassifierPassBase : IntermediateNodePassBase, IRa
         Rewrite(codeDocument, documentNode);
     }
 
+    protected abstract string GetClassName(RazorCodeDocument codeDocument);
+
     private void Rewrite(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
         // Rewrite the document from a flat structure to use a sensible default structure,
@@ -65,7 +67,8 @@ public abstract class DocumentClassifierPassBase : IntermediateNodePassBase, IRa
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            IsPrimaryClass = true
+            IsPrimaryClass = true,
+            Name = IntermediateNodeFactory.CSharpToken(GetClassName(codeDocument))
         };
 
         var method = new MethodDeclarationIntermediateNode

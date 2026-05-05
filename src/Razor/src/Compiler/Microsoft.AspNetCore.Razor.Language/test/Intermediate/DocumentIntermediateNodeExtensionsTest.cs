@@ -16,7 +16,8 @@ public class DocumentIntermediateNodeExtensionsTest
         var document = new DocumentIntermediateNode();
         var @class = new ClassDeclarationIntermediateNode
         {
-            IsPrimaryClass = true
+            IsPrimaryClass = true,
+            Name = IntermediateNodeFactory.CSharpToken("")
         };
 
         var builder = IntermediateNodeBuilder.Create(document);

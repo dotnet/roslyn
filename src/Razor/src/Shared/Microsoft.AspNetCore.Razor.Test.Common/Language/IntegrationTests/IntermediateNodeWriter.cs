@@ -41,7 +41,7 @@ public class IntermediateNodeWriter :
         var entries = new List<string>()
         {
             string.Join(" ", node.Modifiers),
-            node.Name,
+            node.Name.Content,
             node.BaseType is { } baseType ? $"{baseType.BaseType.Content}{baseType.GreaterThan?.Content}{baseType.ModelType?.Content}{baseType.LessThan?.Content}" : "",
             string.Join(", ", node.Interfaces.Select(i => i.Content))
         };

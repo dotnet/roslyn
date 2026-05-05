@@ -378,7 +378,7 @@ public sealed class RazorProjectEngine
         features.Add(configurationFeature);
         configurationFeature.ConfigureClass.Add((document, @class) =>
         {
-            @class.Name = "Template";
+            @class.Name = IntermediateNodeFactory.CSharpToken("Template");
             @class.Modifiers = CommonModifiers.Public;
         });
 
@@ -405,6 +405,11 @@ public sealed class RazorProjectEngine
         ComponentInjectDirective.Register(builder);
         ComponentLayoutDirective.Register(builder);
         ComponentPageDirective.Register(builder);
+
+        if (razorLanguageVersion >= RazorLanguageVersion.Preview)
+        {
+            ComponentClassNameDirective.Register(builder);
+        }
 
         if (razorLanguageVersion >= RazorLanguageVersion.Version_6_0)
         {

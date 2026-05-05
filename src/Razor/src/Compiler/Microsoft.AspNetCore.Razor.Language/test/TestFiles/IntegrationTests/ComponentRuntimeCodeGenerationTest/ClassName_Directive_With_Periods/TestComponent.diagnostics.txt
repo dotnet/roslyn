@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(1,14): Error RZ1017: Unexpected literal following the 'classname' directive. Expected 'line break'.

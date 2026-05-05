@@ -111,7 +111,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            Name = "Test"
+            Name = IntermediateNodeFactory.CSharpToken("Test")
         };
 
         builder.Add(@class);
@@ -133,43 +133,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         Assert.Equal("/test.cshtml", checksum.Identifier);
 
         var foundClass = Assert.IsType<ClassDeclarationIntermediateNode>(@namespace.Children[1]);
-        Assert.Equal("Test", foundClass.Name);
-    }
-
-    [Fact]
-    public void Execute_NoClassNameSet_Noops()
-    {
-        // Arrange
-        var source = TestRazorSourceDocument.Create();
-        var codeDocument = ProjectEngine.CreateCodeDocument(source);
-
-        var documentNode = new DocumentIntermediateNode()
-        {
-            DocumentKind = "test",
-            Options = codeDocument.CodeGenerationOptions
-        };
-
-        var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
-        {
-            IsPrimaryNamespace = true,
-            Name = "Some.Namespace"
-        };
-
-        builder.Push(@namespace);
-
-        var @class = new ClassDeclarationIntermediateNode
-        {
-            IsPrimaryClass = true,
-        };
-
-        builder.Add(@class);
-
-        // Act
-        ProjectEngine.ExecutePass<MetadataAttributePass>(codeDocument, documentNode);
-
-        // Assert
-        SingleChild<NamespaceDeclarationIntermediateNode>(documentNode);
+        Assert.Equal("Test", foundClass.Name.Content);
     }
 
     [Fact]
@@ -193,7 +157,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            Name = "Test"
+            Name = IntermediateNodeFactory.CSharpToken("Test")
         };
 
         builder.Add(@class);
@@ -230,7 +194,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            Name = "Test"
+            Name = IntermediateNodeFactory.CSharpToken("Test")
         };
 
         builder.Add(@class);
@@ -267,7 +231,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            Name = "Test",
+            Name = IntermediateNodeFactory.CSharpToken("Test"),
         };
 
         builder.Add(@class);
@@ -315,7 +279,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            Name = "Test",
+            Name = IntermediateNodeFactory.CSharpToken("Test"),
         };
 
         builder.Add(@class);
@@ -375,7 +339,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            Name = "Test"
+            Name = IntermediateNodeFactory.CSharpToken("Test")
         };
 
         builder.Add(@class);

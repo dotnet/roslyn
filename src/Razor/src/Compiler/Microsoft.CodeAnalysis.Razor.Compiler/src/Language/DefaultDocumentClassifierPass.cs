@@ -16,6 +16,8 @@ internal sealed class DefaultDocumentClassifierPass : DocumentClassifierPassBase
         return true;
     }
 
+    protected override string GetClassName(RazorCodeDocument codeDocument) => "DefaultDocument";
+
     protected override void OnDocumentStructureCreated(
         RazorCodeDocument codeDocument,
         NamespaceDeclarationIntermediateNode @namespace,

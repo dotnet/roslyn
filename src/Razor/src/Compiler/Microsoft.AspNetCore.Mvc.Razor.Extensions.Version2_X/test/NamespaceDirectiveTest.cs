@@ -133,7 +133,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode() { Name = "default" };
+        var @class = new ClassDeclarationIntermediateNode() { Name = IntermediateNodeFactory.CSharpToken("default") };
         builder.Add(@class);
 
         documentNode.DocumentKind = RazorPageDocumentClassifierPass.RazorPageDocumentKind;
@@ -143,7 +143,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
 
         // Assert
         Assert.Equal("WebApplication.Account.Manage", @namespace.Name);
-        Assert.Equal("default", @class.Name);
+        Assert.Equal("default", @class.Name.Content);
     }
 
     // This is the case where the source file sets the namespace.
@@ -180,7 +180,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode() { Name = "default" };
+        var @class = new ClassDeclarationIntermediateNode() { Name = IntermediateNodeFactory.CSharpToken("default") };
         builder.Add(@class);
 
         documentNode.DocumentKind = RazorPageDocumentClassifierPass.RazorPageDocumentKind;
@@ -190,7 +190,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
 
         // Assert
         Assert.Equal("WebApplication.Account.Manage", @namespace.Name);
-        Assert.Equal("default", @class.Name);
+        Assert.Equal("default", @class.Name.Content);
     }
 
     // Handles cases where invalid characters appears in FileNames. Note that we don't sanitize the part of
@@ -217,7 +217,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode() { Name = "default" };
+        var @class = new ClassDeclarationIntermediateNode() { Name = IntermediateNodeFactory.CSharpToken("default") };
         builder.Add(@class);
 
         documentNode.DocumentKind = RazorPageDocumentClassifierPass.RazorPageDocumentKind;
@@ -227,7 +227,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
 
         // Assert
         Assert.Equal("WebApplication.Account.Manage_Info", @namespace.Name);
-        Assert.Equal("default", @class.Name);
+        Assert.Equal("default", @class.Name.Content);
     }
 
     // This is the case where the source file sets the namespace.
@@ -264,7 +264,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode() { Name = "default" };
+        var @class = new ClassDeclarationIntermediateNode() { Name = IntermediateNodeFactory.CSharpToken("default") };
         builder.Add(@class);
 
         documentNode.DocumentKind = MvcViewDocumentClassifierPass.MvcViewDocumentKind;
@@ -274,7 +274,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
 
         // Assert
         Assert.Equal("WebApplication.Account.Manage", @namespace.Name);
-        Assert.Equal("default", @class.Name);
+        Assert.Equal("default", @class.Name.Content);
     }
 
     // This handles an error case where we can't determine the relationship between the
@@ -301,7 +301,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode() { Name = "default" };
+        var @class = new ClassDeclarationIntermediateNode() { Name = IntermediateNodeFactory.CSharpToken("default") };
         builder.Add(@class);
 
         documentNode.DocumentKind = RazorPageDocumentClassifierPass.RazorPageDocumentKind;
@@ -311,7 +311,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
 
         // Assert
         Assert.Equal("WebApplication.Account", @namespace.Name);
-        Assert.Equal("default", @class.Name);
+        Assert.Equal("default", @class.Name.Content);
     }
 
     [Fact]
@@ -336,7 +336,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode() { Name = "default" };
+        var @class = new ClassDeclarationIntermediateNode() { Name = IntermediateNodeFactory.CSharpToken("default") };
         builder.Add(@class);
 
         documentNode.DocumentKind = null;
@@ -346,6 +346,6 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
 
         // Assert
         Assert.Equal("default", @namespace.Name);
-        Assert.Equal("default", @class.Name);
+        Assert.Equal("default", @class.Name.Content);
     }
 }

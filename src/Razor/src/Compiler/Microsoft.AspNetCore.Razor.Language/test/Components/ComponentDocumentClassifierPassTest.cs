@@ -77,7 +77,7 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
 
         Assert.Equal($"global::{ComponentsApi.ComponentBase.FullTypeName}", classNode.BaseType?.BaseType.Content);
         Assert.Equal<string>(["public", "partial"], classNode.Modifiers);
-        Assert.Equal("Test", classNode.Name);
+        Assert.Equal("Test", classNode.Name.Content);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
         var namespaceNode = documentNode.GetNamespaceNode();
         var classNode = documentNode.GetClassNode();
 
-        Assert.Equal("Banner", classNode.Name);
+        Assert.Equal("Banner", classNode.Name.Content);
         Assert.Equal("MyApp.Pages.Announcements", namespaceNode.Name);
     }
 
@@ -127,7 +127,7 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
         var namespaceNode = documentNode.GetNamespaceNode();
         var classNode = documentNode.GetClassNode();
 
-        Assert.Equal("path_with_invalid_chars", classNode.Name);
+        Assert.Equal("path_with_invalid_chars", classNode.Name.Content);
         Assert.Equal("My._App", namespaceNode.Name);
     }
 

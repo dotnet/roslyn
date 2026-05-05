@@ -97,7 +97,85 @@ public class ComponentDirectiveIntegrationTest : RazorIntegrationTestBase
             .Where(p => p.GetAttributes().Any(a => a.AttributeClass.Name == "InjectAttribute"));
         Assert.Collection(injectableProperties.OrderBy(p => p.Name),
             s => AssertEx.Equal("private TestNamespace.IMyService1 Test.TestComponent.MyService1 { get; set; }", s.ToTestDisplayString()),
-            s => AssertEx.Equal("private TestNamespace.IMyService2 Test.TestComponent.MyService2 { get; set; }", s.ToTestDisplayString()));
+                                    s => AssertEx.Equal("private TestNamespace.IMyService2 Test.TestComponent.MyService2 { get; set; }", s.ToTestDisplayString()));
+}
+
+    [Fact]
+    public void SupportsClassNameDirective()
+    {
+        // Arrange/Act
+        var assemblyResult = CompileToAssembly("TestComponent.razor",
+            "@classname MyCustomComponent\n" +
+            "Hello");
+
+        // Assert
+        var component = assemblyResult.Compilation.GetTypeByMetadataName("Test.MyCustomComponent");
+            Assert.NotNull(component);
+            AssertEx.Equal("Test.MyCustomComponent", component.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void MultipleClassNameDirectives_ProducesError()
+    {
+        // Arrange/Act
+        var cSharpResult = CompileToCSharp(
+            cshtmlRelativePath: "TestComponent.razor",
+            cshtmlContent: "@classname FirstName\n" +
+            "@classname SecondName\n" +
+            "Hello");
+
+        // Assert - should have an error for duplicate directive
+        var diagnostic = cSharpResult.RazorDiagnostics.Single();
+        Assert.Equal("RZ2001", diagnostic.Id);
+            Assert.Contains("classname", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public void ClassNameDirective_NotAvailableInNonPreviewLanguageVersion()
+    {
+        // Arrange - Use an earlier language version
+        var configuration = RazorConfiguration.Default with { LanguageVersion = RazorLanguageVersion.Version_10_0 };
+
+        // Act
+        var cSharpResult = CompileToCSharp(
+            cshtmlRelativePath: "TestComponent.razor",
+            cshtmlContent: "@classname MyCustomComponent\nHello",
+            configuration: configuration);
+
+        // Assert - the directive is not recognized, so it's treated as a C# expression
+        // which results in generated code that references an undefined 'classname' identifier.
+        // The component class is still generated with the original file name.
+        Assert.Contains("classname", cSharpResult.Code);
+    }
+
+    [Fact]
+    public void ClassNameDirective_WithTypeParam()
+    {
+        // Arrange/Act
+        var assemblyResult = CompileToAssembly("TestComponent.razor",
+            """
+            @classname MyGenericComponent
+            @typeparam TItem
+
+            <div>@typeof(TItem).Name</div>
+
+            @code {
+                [Parameter] public TItem Item { get; set; }
+            }
+            """);
+
+        // Assert - component should have custom name and be generic
+        var component = assemblyResult.Compilation.GetTypeByMetadataName("Test.MyGenericComponent`1");
+        Assert.NotNull(component);
+        AssertEx.Equal("Test.MyGenericComponent<TItem>", component.ToTestDisplayString());
+
+        // Verify type parameter
+        var typeParam = Assert.Single(component.TypeParameters);
+        AssertEx.Equal("TItem", typeParam.Name);
+
+        // Verify the Item property exists with the correct type
+        var itemProperty = component.GetMembers().OfType<IPropertySymbol>().Single(p => p.Name == "Item");
+        AssertEx.Equal("TItem", itemProperty.Type.ToTestDisplayString());
     }
 
     [Fact]

@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(1,12): Error RZ1015: The 'classname' directive expects an identifier.

@@ -53,7 +53,7 @@ internal abstract class ViewComponentTagHelperTargetExtensionBase : IViewCompone
         // Initialize declaration.
         using (context.CodeWriter.BuildClassDeclaration(
             CommonModifiers.Public,
-            node.ClassName,
+            IntermediateNodeFactory.CSharpToken(node.ClassName),
             new BaseTypeWithModel(ViewComponentsApi.TagHelper.FullTypeName),
             interfaces: default,
             typeParameters: default,
