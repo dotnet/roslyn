@@ -15,6 +15,7 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $artifactsPath = Join-Path $repoRoot "artifacts"
 $solutionPath = Join-Path $repoRoot $Solution
 $enableCacheScript = Join-Path $repoRoot "eng/enable-compiler-cache.cs"
+$compilerServerPath = [System.IO.Path]::Combine($repoRoot, "artifacts", "bin", "VBCSCompiler", $Configuration, "net10.0", "VBCSCompiler.dll")
 
 if ($CachePath -eq "") {
   $repoName = Split-Path $repoRoot -Leaf
@@ -35,14 +36,22 @@ function Format-Duration([TimeSpan]$duration) {
   return "{0:hh\:mm\:ss\.fff}" -f $duration
 }
 
+function Get-CacheStatsTimestamp {
+  return [System.DateTimeOffset]::UtcNow.ToString("O", [System.Globalization.CultureInfo]::InvariantCulture)
+}
+
+function Invoke-NativeCommand([string]$FilePath, [string[]]$Arguments) {
+  & $FilePath @Arguments 2>&1 | ForEach-Object { Write-Host $_ }
+  return $LASTEXITCODE
+}
+
 function Invoke-TimedCommand([string]$Name, [string]$FilePath, [string[]]$Arguments) {
   Write-Host ""
   Write-Host "== $Name =="
   Write-Host "> $FilePath $($Arguments -join ' ')"
 
   $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-  & $FilePath @Arguments
-  $exitCode = $LASTEXITCODE
+  $exitCode = Invoke-NativeCommand $FilePath $Arguments
   $stopwatch.Stop()
 
   if ($exitCode -ne 0) {
@@ -76,9 +85,9 @@ function Clear-CompilerCache {
 function Stop-BuildServers {
   Write-Host ""
   Write-Host "Stopping dotnet build servers"
-  & dotnet build-server shutdown
-  if ($LASTEXITCODE -ne 0) {
-    throw "dotnet build-server shutdown failed with exit code $LASTEXITCODE."
+  $exitCode = Invoke-NativeCommand "dotnet" @("build-server", "shutdown")
+  if ($exitCode -ne 0) {
+    throw "dotnet build-server shutdown failed with exit code $exitCode."
   }
 }
 
@@ -135,6 +144,33 @@ function Invoke-BuildPass([string]$Label) {
   return @($restore, $build)
 }
 
+function Show-CacheStats([string]$Since) {
+  Write-Host ""
+  Write-Host "Compiler cache stats since downloaded-cache pass start ($Since):"
+
+  if (-not (Test-Path -LiteralPath $compilerServerPath)) {
+    Write-Warning "VBCSCompiler was not found at '$compilerServerPath'. Skipping cache stats."
+    return
+  }
+
+  if (-not (Test-Path -LiteralPath $CachePath)) {
+    Write-Warning "Compiler cache path does not exist: $CachePath. Skipping cache stats."
+    return
+  }
+
+  $exitCode = Invoke-NativeCommand "dotnet" @(
+    "exec",
+    $compilerServerPath,
+    "-cachepath:$CachePath",
+    "-cachestats:$Since",
+    "-cachestatsverbosity:1"
+  )
+
+  if ($exitCode -ne 0) {
+    Write-Warning "Failed to show compiler cache stats. Exit code: $exitCode"
+  }
+}
+
 $oldCachePath = $env:ROSLYN_CACHE_PATH
 $oldUseCachingCompiler = $env:ROSLYN_USE_CACHING_COMPILER
 
@@ -161,7 +197,9 @@ try {
   $results += Invoke-BuildPass "Empty local cache"
   Stop-BuildServers
   $results += Invoke-DownloadCache
+  $downloadedCachePassStart = Get-CacheStatsTimestamp
   $results += Invoke-BuildPass "Downloaded local cache"
+  Show-CacheStats $downloadedCachePassStart
 
   Write-Host ""
   Write-Host "Summary"
