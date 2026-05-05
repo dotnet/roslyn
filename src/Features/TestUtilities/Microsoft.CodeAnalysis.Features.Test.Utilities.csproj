@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Test.Utilities</RootNamespace>
-    <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetVS);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsShipping>false</IsShipping>
     <IsTestUtilityProject>true</IsTestUtilityProject>
