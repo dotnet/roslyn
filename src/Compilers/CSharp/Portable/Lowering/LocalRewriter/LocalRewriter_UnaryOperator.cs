@@ -463,8 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            // PROTOTYPE revisit as part of increment/decrement assignment
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(left, tempInitializers, tempSymbols, isDynamicAssignment: false, out _);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(left, tempInitializers, tempSymbols, isDynamicAssignment: false);
             Debug.Assert(TypeSymbol.Equals(operandType, transformedLHS.Type, TypeCompareKind.AllIgnoreOptions));
 
             BoundAssignmentOperator tempAssignment;
@@ -528,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression makeAssignmentBack(SyntaxNode syntax, BoundExpression transformedLHS, BoundLocal boundTemp, bool isChecked, AssignmentKind assignmentKind)
             {
-                return MakeAssignmentOperator(syntax, transformedLHS, boundTemp, used: false, isChecked: isChecked, assignmentKind, receiverIsKnownToBeCaptured: false);
+                return MakeAssignmentOperator(syntax, transformedLHS, boundTemp, used: false, isChecked: isChecked, assignmentKind, receiverIsKnownToBeCaptured: false); // PROTOTYPE revisit as part of null-coalescing assignment
             }
         }
 
@@ -583,8 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            // PROTOTYPE revisit as part of increment/decrement assignment
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, tempInitializers, tempSymbols, isDynamic, out _);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, tempInitializers, tempSymbols, isDynamic);
             TypeSymbol? operandType = transformedLHS.Type; //type of the variable being incremented
             Debug.Assert(operandType is { });
             Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2));
@@ -663,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // prefix:  temp = (X)(T.Increment((T)operand)));  operand = temp; 
                 // postfix: temp = operand;                        operand = (X)(T.Increment((T)temp)));
-                tempInitializers.Add(MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: false));
+                tempInitializers.Add(MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: false)); // PROTOTYPE revisit as part of null-coalescing assignment
 
                 if (!isPrefix && IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
@@ -671,11 +669,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundLocal incrementResult = _factory.StoreToTemp(newValue, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
                     tempSymbols.Add(incrementResult.LocalSymbol);
                     tempInitializers.Add(assignmentToTemp);
-                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, incrementResult, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement, receiverIsKnownToBeCaptured: false));
+                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, incrementResult, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement, receiverIsKnownToBeCaptured: false)); // PROTOTYPE revisit as part of null-coalescing assignment
                 }
                 else
                 {
-                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement, receiverIsKnownToBeCaptured: false));
+                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement, receiverIsKnownToBeCaptured: false)); // PROTOTYPE revisit as part of null-coalescing assignment
                 }
 
                 // prefix:  Seq( operand initializers; temp = (T)(operand + 1); operand = temp;          result: temp)
@@ -702,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var tempValue = isPrefix ? newValue : MakeRValue(operand);
                 Debug.Assert(tempValue.Type is { });
-                var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: false);
+                var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: false); // PROTOTYPE revisit as part of null-coalescing assignment
 
                 var operandValue = isPrefix ? boundTemp : newValue;
                 var tempAssignedAndOperandValue = new BoundSequence(
@@ -714,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // prefix:  operand = Seq{temp = (T)(operand + 1);  temp;}
                 // postfix: operand = Seq{temp = operand;        ;  (T)(temp + 1);}
-                BoundExpression operandAssignment = MakeAssignmentOperator(syntax, operand, tempAssignedAndOperandValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement, receiverIsKnownToBeCaptured: false);
+                BoundExpression operandAssignment = MakeAssignmentOperator(syntax, operand, tempAssignedAndOperandValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement, receiverIsKnownToBeCaptured: false); // PROTOTYPE revisit as part of null-coalescing assignment
 
                 // prefix:  Seq{operand initializers; operand = Seq{temp = (T)(operand + 1);  temp;}          result: temp}
                 // postfix: Seq{operand initializers; operand = Seq{temp = operand;        ;  (T)(temp + 1);} result: temp}

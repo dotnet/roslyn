@@ -40619,5 +40619,441 @@ class Program
 """);
         }
     }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_CompoundAssignment_FromEndIndexExpr_01()
+    {
+        // sibling to ExtensionTests.IndexerAccess_CompoundAssignment_01
+        // ^GetInt()
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return 0; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        this[^Program.GetInt()] += Program.GetValue();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F[^GetInt()] += GetValue();
+    }
+
+    public static int GetValue() { System.Console.Write($"GetValue:{Program.F.F1} "); Program.F.F1++; return 1; }
+
+    public static int GetInt() { System.Console.Write($"GetInt:{Program.F.F1} "); Program.F.F1++; return 0; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetInt:3 length:4 get:5 GetValue:6 set:7 final:7, GetInt:3 length:4 get:5 GetValue:6 set:7 final:7"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       59 (0x3b)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldsflda    "S1 Program.F"
+  IL_0006:  call       "int Program.GetInt()"
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldobj      "S1"
+  IL_0012:  call       "int E.get_Length(S1)"
+  IL_0017:  ldloc.0
+  IL_0018:  sub
+  IL_0019:  stloc.1
+  IL_001a:  dup
+  IL_001b:  ldobj      "S1"
+  IL_0020:  ldloc.1
+  IL_0021:  call       "int E.get_Item(S1, int)"
+  IL_0026:  call       "int Program.GetValue()"
+  IL_002b:  add
+  IL_002c:  stloc.2
+  IL_002d:  ldobj      "S1"
+  IL_0032:  ldloc.1
+  IL_0033:  ldloc.2
+  IL_0034:  call       "void E.set_Item(S1, int, int)"
+  IL_0039:  nop
+  IL_003a:  ret
+}
+""");
+
+        verifier.VerifyIL("S1.Test2", """
+{
+  // Code size       55 (0x37)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "int Program.GetInt()"
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  ldobj      "S1"
+  IL_000e:  call       "int E.get_Length(S1)"
+  IL_0013:  ldloc.0
+  IL_0014:  sub
+  IL_0015:  stloc.1
+  IL_0016:  dup
+  IL_0017:  ldobj      "S1"
+  IL_001c:  ldloc.1
+  IL_001d:  call       "int E.get_Item(S1, int)"
+  IL_0022:  call       "int Program.GetValue()"
+  IL_0027:  add
+  IL_0028:  stloc.2
+  IL_0029:  ldobj      "S1"
+  IL_002e:  ldloc.1
+  IL_002f:  ldloc.2
+  IL_0030:  call       "void E.set_Item(S1, int, int)"
+  IL_0035:  nop
+  IL_0036:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_CompoundAssignment_ConversionFromIntIndexExpr_01()
+    {
+        // sibling to ExtensionTests.IndexerAccess_CompoundAssignment_01
+        // (Index)GetInt()
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return 0; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        this[(System.Index)Program.GetInt()] += Program.GetValue();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F[(System.Index)Program.GetInt()] += Program.GetValue();
+    }
+
+    public static int GetValue() { System.Console.Write($"GetValue:{Program.F.F1} "); Program.F.F1++; return 1; }
+
+    public static int GetInt() { System.Console.Write($"GetInt:{Program.F.F1} "); Program.F.F1++; return 0; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetInt:3 get:4 GetValue:5 set:6 final:6, GetInt:3 get:4 GetValue:5 set:6 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldsflda    "S1 Program.F"
+  IL_0006:  call       "int Program.GetInt()"
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldobj      "S1"
+  IL_0012:  ldloc.0
+  IL_0013:  call       "int E.get_Item(S1, int)"
+  IL_0018:  call       "int Program.GetValue()"
+  IL_001d:  add
+  IL_001e:  stloc.1
+  IL_001f:  ldobj      "S1"
+  IL_0024:  ldloc.0
+  IL_0025:  ldloc.1
+  IL_0026:  call       "void E.set_Item(S1, int, int)"
+  IL_002b:  nop
+  IL_002c:  ret
+}
+""");
+
+        verifier.VerifyIL("S1.Test2", """
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "int Program.GetInt()"
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  ldobj      "S1"
+  IL_000e:  ldloc.0
+  IL_000f:  call       "int E.get_Item(S1, int)"
+  IL_0014:  call       "int Program.GetValue()"
+  IL_0019:  add
+  IL_001a:  stloc.1
+  IL_001b:  ldobj      "S1"
+  IL_0020:  ldloc.0
+  IL_0021:  ldloc.1
+  IL_0022:  call       "void E.set_Item(S1, int, int)"
+  IL_0027:  nop
+  IL_0028:  ret
+}
+""");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void ImplicitIndexIndexerAccess_CompoundAssignment_ConversionFromIntIndexExpr_02(string refKind)
+    {
+        // sibling to ExtensionTests.IndexerAccess_CompoundAssignment_02
+        // struct extension parameter passed by ref, (Index)GetInt()
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return 0; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        this[(System.Index)Program.GetInt()] += Program.GetValue();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F[(System.Index)Program.GetInt()] += Program.GetValue();
+    }
+
+    public static int GetValue() { System.Console.Write($"GetValue:{Program.F.F1} "); Program.F.F1++; return 1; }
+
+    public static int GetInt() { System.Console.Write($"GetInt:{Program.F.F1} "); Program.F.F1++; return 0; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetInt:3 get:4 GetValue:5 set:6 final:6, GetInt:3 get:4 GetValue:5 set:6 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", $$"""
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (S1& V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldsflda    "S1 Program.F"
+  IL_0006:  stloc.0
+  IL_0007:  call       "int Program.GetInt()"
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.0
+  IL_0010:  ldloc.1
+  IL_0011:  call       "int E.get_Item({{refKind}} S1, int)"
+  IL_0016:  call       "int Program.GetValue()"
+  IL_001b:  add
+  IL_001c:  call       "void E.set_Item({{refKind}} S1, int, int)"
+  IL_0021:  nop
+  IL_0022:  ret
+}
+""");
+
+        verifier.VerifyIL("S1.Test2", $$"""
+{
+  // Code size       31 (0x1f)
+  .maxstack  4
+  .locals init (S1& V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       "int Program.GetInt()"
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  call       "int E.get_Item({{refKind}} S1, int)"
+  IL_0012:  call       "int Program.GetValue()"
+  IL_0017:  add
+  IL_0018:  call       "void E.set_Item({{refKind}} S1, int, int)"
+  IL_001d:  nop
+  IL_001e:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_CompoundAssignment_ConversionFromIntIndexExpr_03()
+    {
+        // sibling to ExtensionTests.IndexerAccess_CompoundAssignment_03
+        // class extension parameter, (Index)GetInt()
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return 0; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return 3; } }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 3 };
+        Test();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        F[GetIndex()] += GetValue();
+    }
+
+    static int GetValue() { System.Console.Write($"GetValue:{Program.F.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return 1; }
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:3 get:3 GetValue:6 set:3 final:7"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test", """
+{
+  // Code size       49 (0x31)
+  .maxstack  4
+  .locals init (C1 V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  ldsfld     "C1 Program.F"
+  IL_0006:  stloc.0
+  IL_0007:  call       "System.Index Program.GetIndex()"
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  call       "int E.get_Length(C1)"
+  IL_0015:  call       "int System.Index.GetOffset(int)"
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldloc.1
+  IL_001d:  ldloc.0
+  IL_001e:  ldloc.1
+  IL_001f:  call       "int E.get_Item(C1, int)"
+  IL_0024:  call       "int Program.GetValue()"
+  IL_0029:  add
+  IL_002a:  call       "void E.set_Item(C1, int, int)"
+  IL_002f:  nop
+  IL_0030:  ret
+}
+""");
+    }
 }
 

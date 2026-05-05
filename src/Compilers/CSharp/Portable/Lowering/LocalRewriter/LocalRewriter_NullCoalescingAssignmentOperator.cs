@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.LeftOperand.Type is { });
 
             // Rewrite LHS with temporaries to prevent double-evaluation of side effects, as we'll need to use it multiple times.
-            // PROTOTYPE revisit as part of null-coalescing assignment
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, stores, temps, node.LeftOperand.HasDynamicType(), out _);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, stores, temps, node.LeftOperand.HasDynamicType());
             Debug.Assert(transformedLHS.Type is { });
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression loweredRight = VisitExpression(node.RightOperand);
@@ -46,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the right hand side value
                     BoundLocal rightResult = _factory.StoreToTemp(loweredRight, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
-                    assignment = MakeAssignmentOperator(syntax, transformedLHS, rightResult, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment, receiverIsKnownToBeCaptured: false);
+                    assignment = MakeAssignmentOperator(syntax, transformedLHS, rightResult, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment, receiverIsKnownToBeCaptured: false); // PROTOTYPE revisit as part of null-coalescing assignment
                     Debug.Assert(assignment.Type is { });
                     assignment = new BoundSequence(syntax, [rightResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
                 else
                 {
-                    assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment, receiverIsKnownToBeCaptured: false);
+                    assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment, receiverIsKnownToBeCaptured: false); // PROTOTYPE revisit as part of null-coalescing assignment
                 }
 
                 // lhsRead ?? (transformedLHS = loweredRight)
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 temps.Add(tmp.LocalSymbol);
 
                 // tmp = loweredRight;
-                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, used: true, isChecked: false, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: false);
+                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, used: true, isChecked: false, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: false); // PROTOTYPE revisit as part of null-coalescing assignment
 
                 Debug.Assert(transformedLHS.Type.GetNullableUnderlyingType().Equals(tmp.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions));
 
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         used: true,
                         isChecked: false,
                         AssignmentKind.NullCoalescingAssignment,
-                        receiverIsKnownToBeCaptured: false);
+                        receiverIsKnownToBeCaptured: false); // PROTOTYPE revisit as part of null-coalescing assignment
 
                 // lhsRead.HasValue
                 var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, hasValue);

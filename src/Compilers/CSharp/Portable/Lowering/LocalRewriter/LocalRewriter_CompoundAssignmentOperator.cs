@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, stores, temps, isDynamic, out bool receiverIsKnownToBeCaptured);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, stores, temps, isDynamic);
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression rewrittenAssignment;
 
@@ -227,16 +227,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
 
+                // Note: the receiver is known to be captured because of TransformCompoundAssignmentLHS
                 if (IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the binary operation
                     BoundLocal binaryResult = _factory.StoreToTemp(opFinal, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
-                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured);
+                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured: true);
                     Debug.Assert(assignment.Type is { });
                     return new BoundSequence(syntax, [binaryResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
 
-                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured);
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured: true);
             }
         }
 
@@ -536,21 +537,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundImplicitIndexerAccess indexerAccess,
             ArrayBuilder<BoundExpression> stores,
             ArrayBuilder<LocalSymbol> temps,
-            bool isDynamicAssignment,
-            out bool receiverIsKnownToBeCaptured)
+            bool isDynamicAssignment)
         {
             if (TypeSymbol.Equals(
                 indexerAccess.Argument.Type,
                 _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything))
             {
-                return TransformIndexPatternIndexerAccess(indexerAccess, stores, temps, isDynamicAssignment, out receiverIsKnownToBeCaptured);
+                return TransformIndexPatternIndexerAccess(indexerAccess, stores, temps, isDynamicAssignment);
             }
 
             throw ExceptionUtilities.UnexpectedValue(indexerAccess.Argument.Type);
         }
 
-        private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment, out bool receiverIsKnownToBeCaptured)
+        private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
         {
             Debug.Assert(implicitIndexerAccess.IndexerOrSliceAccess.GetRefKind() == RefKind.None);
             var access = VisitIndexPatternIndexerAccess(
@@ -559,7 +559,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isRegularAssignment: false,
                 cacheAllArgumentsOnly: false,
                 stores, temps,
-                out receiverIsKnownToBeCaptured);
+                out bool receiverIsKnownToBeCaptured);
+
+            Debug.Assert(receiverIsKnownToBeCaptured);
 
             if (access is BoundIndexerAccess indexerAccess)
             {
@@ -568,8 +570,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var arrayAccess = (BoundArrayAccess)access;
-
-                receiverIsKnownToBeCaptured = false;
 
                 if (isDynamicAssignment || !IsInvariantArray(arrayAccess.Expression.Type))
                 {
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A side-effect-free expression representing the LHS.
         /// The returned node needs to be lowered but its children are already lowered.
         /// </returns>
-        private BoundExpression TransformCompoundAssignmentLHS(BoundExpression originalLHS, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment, out bool receiverIsKnownToBeCaptured)
+        private BoundExpression TransformCompoundAssignmentLHS(BoundExpression originalLHS, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
         {
             // There are five possible cases.
             //
@@ -719,8 +719,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we have a variable on the left. Transform it into:
             // ref temp = ref variable
             // temp = temp + value
-
-            receiverIsKnownToBeCaptured = false;
 
             switch (originalLHS.Kind)
             {
@@ -759,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (implicitIndexerAccess.GetRefKind() == RefKind.None)
                         {
-                            return TransformImplicitIndexerAccess(implicitIndexerAccess, stores, temps, isDynamicAssignment, out receiverIsKnownToBeCaptured);
+                            return TransformImplicitIndexerAccess(implicitIndexerAccess, stores, temps, isDynamicAssignment);
                         }
                     }
                     break;
