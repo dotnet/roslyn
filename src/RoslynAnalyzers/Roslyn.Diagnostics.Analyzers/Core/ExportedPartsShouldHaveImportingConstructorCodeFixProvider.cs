@@ -173,8 +173,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 return document;
             }
 
-            var exportedType = semanticModel.GetDeclaredSymbol(declaration, cancellationToken) as INamedTypeSymbol
-                ?? semanticModel.GetDeclaredSymbol(declaration, cancellationToken)?.ContainingType;
+            var exportedTypeSymbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+            var exportedType = exportedTypeSymbol as INamedTypeSymbol
+                ?? exportedTypeSymbol?.ContainingType;
             if (exportedType is null)
             {
                 return document;
