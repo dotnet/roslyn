@@ -162,15 +162,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 var location = assembly.Location;
 
-                // Assemblies with no location (e.g. in-memory / dynamic) are fine
+                // Only truly dynamic assemblies are exempt from location-based checks.
+                // Stream-loaded assemblies can also have no location and should still be flagged.
                 if (string.IsNullOrEmpty(location))
                 {
+                    if (assembly.IsDynamic)
+                    {
+                        continue;
+                    }
+
+                    unexpectedAssemblies.Add($"{assembly.FullName} at <no location>");
                     continue;
                 }
 
                 // Assemblies next to the unit test DLL are expected lazy loads
                 var assemblyDirectory = Path.GetDirectoryName(location)!;
-                if (string.Equals(assemblyDirectory, testDllDirectory, StringComparison.OrdinalIgnoreCase))
+                if (PathUtilities.Comparer.Equals(assemblyDirectory, testDllDirectory))
                 {
                     continue;
                 }
