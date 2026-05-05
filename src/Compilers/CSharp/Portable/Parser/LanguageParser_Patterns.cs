@@ -163,6 +163,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ConvertToKeyword(this.EatToken()),
                     ParseNegatedPattern(precedence, afterIs, inSwitchArmPattern));
             }
+            else if (this.CurrentToken.Kind == SyntaxKind.EqualsEqualsToken)
+            {
+                return AddLeadingSkippedSyntax(
+                    skippedSyntax: AddError(this.EatToken(), ErrorCode.ERR_EqualityOperatorInPatternNotSupported),
+                    node: ParseNegatedPattern(precedence, afterIs, inSwitchArmPattern));
+            }
+            else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+            {
+                // Handle != in patterns - suggest using 'not' instead
+                return _syntaxFactory.UnaryPattern(
+                    this.AddTrailingSkippedSyntax(
+                        SyntaxFactory.MissingToken(SyntaxKind.NotKeyword),
+                        this.AddError(this.EatToken(), ErrorCode.ERR_InequalityOperatorInPatternNotSupported)),
+                    ParseNegatedPattern(precedence, afterIs, inSwitchArmPattern));
+            }
             else
             {
                 return ParsePrimaryPattern(precedence, afterIs, inSwitchArmPattern);
@@ -357,9 +372,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool parsePropertyPatternClause([NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClauseResult)
             {
+                // Check for the `id {` and report that the designator has to come after the property pattern.
+                var misplacedIdentifier =
+                    this.IsTrueIdentifier() &&
+                    this.IsValidPatternDesignation(inSwitchArmPattern) &&
+                    this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken
+                        ? AddError(this.EatToken(), ErrorCode.ERR_DesignatorBeforePropertyPattern)
+                        : null;
+
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                 {
-                    propertyPatternClauseResult = ParsePropertyPatternClause();
+                    propertyPatternClauseResult = AddLeadingSkippedSyntax(ParsePropertyPatternClause(), misplacedIdentifier);
                     return true;
                 }
 
@@ -370,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool looksLikeCast()
             {
                 using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-                return this.ScanCast(forPattern: true);
+                return this.ScanCast(forPattern: true, inSwitchArmPattern);
             }
         }
 
@@ -381,14 +404,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : null;
         }
 
-        private bool IsValidPatternDesignation(bool whenIsKeyword)
+        private bool IsValidPatternDesignation(bool inSwitchArmPattern)
         {
             if (CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
                 switch (CurrentToken.ContextualKind)
                 {
                     case SyntaxKind.WhenKeyword:
-                        return !whenIsKeyword;
+                        // When directly in a switch arm, we *always* treat 'when' as a keyword starting the 'when
+                        // clause'.  In other patterns, we allow 'when' to be a normal designator.
+                        return !inSwitchArmPattern;
                     case SyntaxKind.AndKeyword:
                     case SyntaxKind.OrKeyword:
                         var tk = PeekToken(1).Kind;

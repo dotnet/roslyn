@@ -10,13 +10,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
 [Export(typeof(IHostWorkspaceProvider)), PartNotDiscoverable, Shared]
-internal sealed class MockHostWorkspaceProvider : IHostWorkspaceProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class MockHostWorkspaceProvider() : IHostWorkspaceProvider
 {
     public Workspace Workspace { get; set; } = null!;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public MockHostWorkspaceProvider()
-    {
-    }
 }

@@ -80,7 +80,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         bool isTrivialSetAccessor,
         CancellationToken cancellationToken);
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var solution = context.Document.Project.Solution;
 
@@ -97,8 +97,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                     priority),
                 diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     private async Task<Solution> ProcessResultAsync(
@@ -484,9 +482,12 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         CancellationToken cancellationToken)
     {
         var isWrittenOutsideConstructor = false;
+
+        // Only include constructors that match the static-ness of the field. For a static field, only static
+        // constructors are relevant. For an instance field, only instance constructors are relevant.
         var constructorSpans = field.ContainingType
             .GetMembers()
-            .Where(m => m.IsConstructor())
+            .Where(m => field.IsStatic ? m.IsStaticConstructor() : m.IsConstructor())
             .SelectMany(c => c.DeclaringSyntaxReferences)
             .Select(s => s.GetSyntax(cancellationToken))
             .Select(n => n.FirstAncestorOrSelf<TConstructorDeclaration>())

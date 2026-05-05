@@ -632,4 +632,56 @@ public sealed class FormattingTests_Patterns : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54434")]
+    public Task FormatPositionPattern1()
+        => AssertFormatAsync("""
+            public class Goo
+            {
+                public void DoThing()
+                {
+                    OrderingSyntax former = orderings[i], latter = orderings[j];
+                    if ((former, latter) is not (
+                        {
+                            Expression: IdentifierNameSyntax
+                            {
+                                Identifier: { ValueText: var formerIdentifier }
+                            }
+                        },
+                        {
+                            Expression: IdentifierNameSyntax
+                            {
+                                Identifier: { ValueText: var latterIdentifier }
+                            }
+                        }))
+                    {
+                        continue;
+                    }
+                }
+            }
+            """, """
+            public class Goo
+            {
+                public void DoThing()
+                {
+            OrderingSyntax former = orderings[i], latter = orderings[j];
+            if ((former, latter) is not (
+            {
+            Expression: IdentifierNameSyntax
+            {
+            Identifier: { ValueText: var formerIdentifier }
+            }
+            },
+            {
+            Expression: IdentifierNameSyntax
+            {
+            Identifier: { ValueText: var latterIdentifier }
+            }
+            }))
+            {
+                continue;
+            }
+                }
+            }
+            """);
 }

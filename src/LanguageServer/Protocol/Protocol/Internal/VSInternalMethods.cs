@@ -22,6 +22,7 @@ internal static class VSInternalMethods
     public const string TextDocumentUriPresentationName = "textDocument/_vs_uriPresentation";
     public const string TextDocumentValidateBreakableRangeName = "textDocument/_vs_validateBreakableRange";
     public const string WorkspaceMapCodeName = "workspace/_vs_mapCode";
+    public const string WorkspaceProjectContextRefreshName = "workspace/projectContext/_vs_refresh";
     public const string WorkspacePullDiagnosticName = "workspace/_vs_diagnostic";
     public const string WorkspaceSpellCheckableRangesName = "workspace/_vs_spellCheckableRanges";
 

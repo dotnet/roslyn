@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -244,8 +244,8 @@ internal static class DefinitionItemFactory
         foreach (var location in locations)
         {
             if (location.IsInSource &&
-                (includeHiddenLocations || location.IsVisibleSourceLocation()) &&
-                solution.GetDocument(location.SourceTree) is { } document)
+                solution.GetDocument(location.SourceTree) is { } document &&
+                (includeHiddenLocations || document.IsRazorSourceGeneratedDocument() || location.IsVisibleSourceLocation()))
             {
                 var isGeneratedCode = await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false);
                 source.Add(new DocumentSpan(document, location.SourceSpan, isGeneratedCode));
@@ -299,6 +299,10 @@ internal static class DefinitionItemFactory
         CancellationToken cancellationToken)
     {
         var location = referenceLocation.Location;
+
+        // Razor has a mapping service that can map from hidden locations, or will drop results if it wants to,
+        // so hidden locations aren't a problem, and are actually desirable.
+        includeHiddenLocations |= referenceLocation.Document.IsRazorSourceGeneratedDocument();
 
         Debug.Assert(location.IsInSource);
         if (!location.IsVisibleSourceLocation() &&

@@ -7749,7 +7749,7 @@ class C
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44291")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/44291")]
     public Task TestIntroduceWithAmbiguousExtensionClass()
         => TestInRegularAndScriptAsync(
             """
@@ -8559,4 +8559,64 @@ namespace ConsoleApp1
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81337")]
+    public Task TestExtensionBlockIntroduceConstant()
+        => TestInRegularAndScriptAsync(
+            """
+            public static class CEx
+            {
+                extension(C c)
+                {
+                    public string P => c[[|"P"|]];
+                }
+            }
+
+            public class C { public string this[string k] => ""; }
+            """,
+            """
+            public static class CEx
+            {
+                private const string {|Rename:V|} = "P";
+
+                extension(C c)
+                {
+                    public string P => c[V];
+                }
+            }
+
+            public class C { public string this[string k] => ""; }
+            """,
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81337")]
+    public Task TestExtensionBlockIntroduceConstant_AllOccurrences()
+        => TestInRegularAndScriptAsync(
+            """
+            public static class CEx
+            {
+                extension(C c)
+                {
+                    public string P => c[[|"P"|]];
+                    public string P2 => c["P"];
+                }
+            }
+
+            public class C { public string this[string k] => ""; }
+            """,
+            """
+            public static class CEx
+            {
+                private const string {|Rename:V|} = "P";
+
+                extension(C c)
+                {
+                    public string P => c[V];
+                    public string P2 => c[V];
+                }
+            }
+
+            public class C { public string this[string k] => ""; }
+            """,
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14), index: 1));
 }

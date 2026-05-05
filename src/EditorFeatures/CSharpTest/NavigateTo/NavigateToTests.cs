@@ -94,6 +94,30 @@ public sealed class NavigateToTests : AbstractNavigateToTests
     }
 
     [Theory, CombinatorialData]
+    public async Task FindUnion(TestHost testHost, Composition composition)
+    {
+        // Exercises the full NavigateTo pipeline for union declarations
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            union Goo(int)
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            // Tracked by https://github.com/dotnet/roslyn/issues/82607
+            // Consider using separate NavigateToItemKind and Glyph for unions
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
+        });
+    }
+
+    [Theory, CombinatorialData]
     public async Task FindClassInFileScopedNamespace(TestHost testHost, Composition composition)
     {
         var content = XElement.Parse("""
@@ -1004,6 +1028,30 @@ public sealed class NavigateToTests : AbstractNavigateToTests
         });
 
     [Theory, CombinatorialData]
+    public Task TermSplittingTest_DotStarRegex_NoExtractableLiterals(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+        {
+            // G.*W is a valid regex but G and W are single-char literals — no 2+ char literals
+            // can be extracted for pre-filtering, so the regex search is skipped entirely.
+            var items = await _aggregator.GetItemsAsync("G.*W");
+            Assert.Empty(items);
+        });
+
+    [Theory, CombinatorialData]
+    public Task TermSplittingTest_DotStarRegex_WithExtractableLiterals(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+        {
+            // Ge.*Wo has 2+ char literals ("ge", "wo") so the regex search runs.
+            // Matches any symbol containing "Ge" followed eventually by "Wo" (case-insensitive).
+            var items = await _aggregator.GetItemsAsync("Ge.*Wo");
+            Assert.Equal(4, items.Count());
+            Assert.Contains(items, i => i.Name == "GetKeyWord");
+            Assert.Contains(items, i => i.Name == "get_key_word");
+            Assert.Contains(items, i => i.Name == "get_keyword");
+            Assert.Contains(items, i => i.Name == "getkeyword");
+        });
+
+    [Theory, CombinatorialData]
     public Task TestIndexer1(TestHost testHost, Composition composition)
         => TestAsync(testHost, composition, """
             class C
@@ -1792,5 +1840,114 @@ public sealed class NavigateToTests : AbstractNavigateToTests
             VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
         });
     }
+
+    #region Pre-filter integration tests
+    // These tests verify that the NavigateToSearchInfo pre-filter (hump bigrams, trigram filter,
+    // length bitset, and the split fuzzy/non-fuzzy signal) correctly allows matches through the
+    // full NavigateTo pipeline. Exhaustive unit tests for each individual filter are in
+    // TopLevelSyntaxTreeIndexTests (src/Workspaces/CoreTest/FindSymbols/TopLevelSyntaxTreeIndexTests.cs).
+
+    /// <summary>
+    /// Verifies that a CamelCase pattern passes the hump bigram filter and produces a match.
+    /// The pre-filter stores ordered pairs of adjacent hump initials (e.g., "GB" for GooBar)
+    /// and the DP checks against them. "GB" should match "GooBar" as CamelCaseExact.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task PreFilter_CamelCaseHumpBigram(TestHost testHost, Composition composition)
+        => TestAsync(
+            testHost, composition, """
+            class GooBar
+            {
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("GB")).Single(x => x.Kind != "Method");
+                VerifyNavigateToResultItem(item, "GooBar", "[|G|]oo[|B|]ar", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Class, Glyph.ClassInternal);
+            });
+
+    /// <summary>
+    /// Verifies that an all-lowercase pattern passes the hump prefix filter via the DP algorithm.
+    /// The pre-filter stores lowercased prefixes of each hump (e.g., "g", "go", "goo" from "Goo").
+    /// The DP tries to split the all-lowercase pattern into segments that are each a valid prefix
+    /// of some hump. "goo" matches the "Goo" hump prefix, so the filter lets it through.
+    /// PatternMatcher returns Prefix (not CamelCasePrefix) because "goo" is a literal
+    /// case-insensitive prefix of "GooBar" and literal prefix takes priority.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task PreFilter_AllLowercaseDPHumpPrefix(TestHost testHost, Composition composition)
+        => TestAsync(
+            testHost, composition, """
+            class GooBar
+            {
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("goo")).Single(x => x.Kind != "Method");
+                VerifyNavigateToResultItem(item, "GooBar", "[|Goo|]Bar", PatternMatchKind.Prefix, NavigateToItemKind.Class, Glyph.ClassInternal);
+            });
+
+    /// <summary>
+    /// Verifies that a lowercase substring pattern passes the trigram filter and produces a match.
+    /// The pre-filter stores all 3-char sliding windows of the lowercased symbol name. The pattern
+    /// "line" has trigrams "lin" and "ine", both present in "readline", so the filter lets it through.
+    /// The PatternMatcher returns <see cref="PatternMatchKind.Fuzzy"/> because "line"
+    /// is all-lowercase and lands at a non-word-boundary in "Readline". NavigateToMatchKind has no
+    /// dedicated bucket for this, so it maps to Fuzzy (see s_kindPairs). Exhaustive coverage of the
+    /// underlying PatternMatchKind is in NavigateToSearchIndexTests.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task PreFilter_TrigramSubstring(TestHost testHost, Composition composition)
+        => TestAsync(
+            testHost, composition, """
+            class C
+            {
+                void Readline() { }
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("line")).Single();
+                VerifyNavigateToResultItem(item, "Readline", "Read[|line|]()", PatternMatchKind.Fuzzy, NavigateToItemKind.Method, Glyph.MethodPrivate);
+            });
+
+    /// <summary>
+    /// Verifies that a fuzzy match is found when the length bitset check passes (symbol length
+    /// within ±2 of pattern length). With the split fuzzy/non-fuzzy pre-filtering, the length
+    /// and bigram checks enable the FuzzyPatternMatcher's edit-distance computation.
+    /// "ToEror" (length 6) fuzzy-matches "ToError" (length 7), delta=1, within ±2.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task PreFilter_FuzzyMatchEnabledByLengthCheck(TestHost testHost, Composition composition)
+        => TestAsync(
+            testHost, composition, """
+            class C
+            {
+                public void ToError() { }
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("ToEror")).Single();
+                VerifyNavigateToResultItem(item, "ToError", "ToError()", PatternMatchKind.Fuzzy, NavigateToItemKind.Method, Glyph.MethodPublic);
+            });
+
+    /// <summary>
+    /// Verifies that a pattern completely unrelated to any symbol in the document produces no
+    /// results. All three pre-filter checks (hump, trigram, length) must fail for the document
+    /// to be skipped entirely. "XyzXyzXyzXyz" shares no hump structure, no trigrams, and has
+    /// length 12 which is far from "GooBar" (length 6).
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task PreFilter_NoMatchWhenAllChecksFail(TestHost testHost, Composition composition)
+        => TestAsync(
+            testHost, composition, """
+            class GooBar
+            {
+            }
+            """, async w =>
+            {
+                var items = await _aggregator.GetItemsAsync("XyzXyzXyzXyz");
+                Assert.Empty(items);
+            });
+
+    #endregion
 }
 #pragma warning restore CS0618 // MatchKind is obsolete

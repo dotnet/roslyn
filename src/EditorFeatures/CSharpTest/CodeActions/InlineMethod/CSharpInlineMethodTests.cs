@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod;
@@ -95,7 +96,7 @@ public sealed class CSharpInlineMethodTests
             var secondMarkerIndex = expectedMarkUpForCallee.LastIndexOf(Marker);
             if (firstMarkerIndex == -1 || secondMarkerIndex == -1 || firstMarkerIndex == secondMarkerIndex)
             {
-                Assert.True(false, "Can't find proper marks that contains inlined method.");
+                Assert.Fail("Can't find proper marks that contains inlined method.");
             }
 
             var firstPartitionBeforeMarkUp = expectedMarkUpForCallee[..firstMarkerIndex];
@@ -129,7 +130,7 @@ public sealed class CSharpInlineMethodTests
             var secondMarkerIndex = expectedMarkUp.LastIndexOf(Marker);
             if (firstMarkerIndex == -1 || secondMarkerIndex == -1 || firstMarkerIndex == secondMarkerIndex)
             {
-                Assert.True(false, "Can't find proper marks that contains inlined method.");
+                Assert.Fail("Can't find proper marks that contains inlined method.");
             }
 
             var firstPartitionBeforeMarkUp = expectedMarkUp[..firstMarkerIndex];
@@ -3927,4 +3928,41 @@ public sealed class CSharpInlineMethodTests
             private static object M() => null!;
         }
         """, keepInlinedMethod: true);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81406")]
+    public Task TestInlineRecursiveCall()
+        => new TestVerifier
+        {
+            TestCode =
+                """
+                class C
+                {
+                    private void M()
+                    {
+                        System.Console.WriteLine();
+                        [||]M();
+                    }
+
+                    private void N()
+                    {
+                        M();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    private void M()
+                    {
+                        System.Console.WriteLine();
+                        M();
+                    }
+
+                    private void N()
+                    {
+                        M();
+                    }
+                }
+                """,
+        }.RunAsync();
 }

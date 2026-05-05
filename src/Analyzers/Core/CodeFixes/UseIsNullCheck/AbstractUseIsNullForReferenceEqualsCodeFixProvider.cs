@@ -31,7 +31,7 @@ internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<
     private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
         => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.ReferenceEqualsKey;
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
         if (IsSupportedDiagnostic(diagnostic))
@@ -40,11 +40,9 @@ internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<
             var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
             RegisterCodeFix(context, title, title);
         }
-
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -76,7 +74,5 @@ internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<
                 toReplace,
                 replacement.WithTriviaFrom(toReplace));
         }
-
-        return Task.CompletedTask;
     }
 }

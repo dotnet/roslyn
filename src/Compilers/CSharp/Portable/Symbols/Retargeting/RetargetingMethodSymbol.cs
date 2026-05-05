@@ -126,6 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        public override bool IsAsync => _underlyingMethod.IsAsync;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
@@ -393,5 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             builderArgument = null;
             return false;
         }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

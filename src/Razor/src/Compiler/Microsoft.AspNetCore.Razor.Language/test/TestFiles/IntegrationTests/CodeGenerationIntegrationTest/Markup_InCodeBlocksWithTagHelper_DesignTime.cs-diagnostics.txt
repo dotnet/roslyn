@@ -1,0 +1,6 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml(71,13): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+//             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await __tagHelperRunner.RunAsync(__tagHelperExecutionContext)").WithLocation(71, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml(115,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task>'.
+//         await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await __tagHelperRunner.RunAsync(__tagHelperExecutionContext)").WithArguments("System.Threading.Tasks.Task").WithLocation(115, 9)

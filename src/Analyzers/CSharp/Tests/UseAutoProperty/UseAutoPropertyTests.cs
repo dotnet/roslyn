@@ -2813,7 +2813,8 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25408")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/25408")]
     public Task TestLinkedFile()
         => TestInRegularAndScriptAsync(
             """
@@ -3214,4 +3215,93 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 public string Goo { get => field ?? throw new System.InvalidOperationException(); } = "";
             }
             """ + s_allowNullAttribute);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81320")]
+    public Task TestStaticFieldWrittenInInstanceConstructor_ReadOnlyProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Test
+            {
+                [|private static Test? s_instance;|]
+                public static Test Instance => s_instance!;
+
+                public Test()
+                {
+                    s_instance = this;
+                }
+            }
+            """,
+            """
+            public sealed class Test
+            {
+                public static Test Instance { get => field!; private set; }
+
+                public Test()
+                {
+                    Instance = this;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    public Task TestStaticFieldWrittenInStaticConstructor_ReadOnlyProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Test
+            {
+                [|private static Test? s_instance;|]
+                public static Test Instance => s_instance!;
+
+                static Test()
+                {
+                    s_instance = new Test();
+                }
+            }
+            """,
+            """
+            public sealed class Test
+            {
+                public static Test Instance => field!;
+
+                static Test()
+                {
+                    Instance = new Test();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    public Task TestStaticFieldWrittenInInstanceConstructor_WithSetter()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Test
+            {
+                [|private static Test? s_instance;|]
+                public static Test Instance
+                {
+                    get => s_instance!;
+                    set => s_instance = value;
+                }
+
+                public Test()
+                {
+                    s_instance = this;
+                }
+            }
+            """,
+            """
+            public sealed class Test
+            {
+                public static Test Instance
+                {
+                    get => field!;
+                    set;
+                }
+
+                public Test()
+                {
+                    Instance = this;
+                }
+            }
+            """);
 }

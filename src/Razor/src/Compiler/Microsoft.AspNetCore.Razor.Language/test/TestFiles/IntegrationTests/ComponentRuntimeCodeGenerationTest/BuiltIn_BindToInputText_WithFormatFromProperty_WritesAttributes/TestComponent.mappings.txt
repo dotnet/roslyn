@@ -1,0 +1,23 @@
+﻿Source Location: (27:0,27 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|CurrentDate|
+Generated Location: (889:24,0 [11] )
+|CurrentDate|
+
+Source Location: (55:0,55 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Format|
+Generated Location: (1106:33,0 [6] )
+|Format|
+
+Source Location: (73:1,7 [135] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
+
+    public string Format { get; set; } = "MM/dd/yyyy";
+|
+Generated Location: (1348:44,0 [135] )
+|
+    public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
+
+    public string Format { get; set; } = "MM/dd/yyyy";
+|
+

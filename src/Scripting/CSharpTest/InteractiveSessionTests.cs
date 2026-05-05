@@ -490,7 +490,6 @@ Environment.ProcessorCount
             var c2C1 = c2C2.BaseType;
             var c2X = lookupMember(compilation1, "Submission#0", "X");
             Assert.True(compilation2.IsSymbolAccessibleWithin(c2C1, c2C2));
-            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C2, c2C1));
             Assert.True(compilation2.IsSymbolAccessibleWithin(c2X, c2C2));  // access not enforced among submission symbols
 
             var state3 = state2.ContinueWith("private class C3 : C2 { }   3");
@@ -498,9 +497,11 @@ Environment.ProcessorCount
             compilation3.VerifyDiagnostics();
             Assert.Equal(3, state3.Result.ReturnValue);
             var c3C3 = (INamedTypeSymbol)lookupMember(compilation3, "Submission#2", "C3");
-            var c3C1 = c3C3.BaseType;
+            var c3C2 = c3C3.BaseType;
+            var c3C1 = c3C2.BaseType;
             Assert.Throws<ArgumentException>(() => compilation2.IsSymbolAccessibleWithin(c3C3, c3C1));
-            Assert.True(compilation3.IsSymbolAccessibleWithin(c3C3, c3C1));
+            Assert.True(compilation3.IsSymbolAccessibleWithin(c3C1, c3C3));
+            Assert.True(compilation3.IsSymbolAccessibleWithin(c3C2, c3C3));
 
             INamedTypeSymbol lookupType(Compilation c, string name)
             {
@@ -1434,7 +1435,7 @@ d
             try
             {
                 CSharpScript.RunAsync<C<int>>("null", ScriptOptions);
-                Assert.True(false, "Expected an exception");
+                Assert.Fail("Expected an exception");
             }
             catch (CompilationErrorException e)
             {
@@ -1453,7 +1454,7 @@ d
             try
             {
                 CSharpScript.RunAsync<int>("null", ScriptOptions);
-                Assert.True(false, "Expected an exception");
+                Assert.Fail("Expected an exception");
             }
             catch (CompilationErrorException e)
             {
@@ -1466,7 +1467,7 @@ d
             try
             {
                 CSharpScript.RunAsync<string>("1+1", ScriptOptions);
-                Assert.True(false, "Expected an exception");
+                Assert.Fail("Expected an exception");
             }
             catch (CompilationErrorException e)
             {

@@ -23,5 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
         protected override SyntaxNode GetReferenceSyntaxNodeFromXmlCref(SyntaxNode syntaxNode) => ((XmlCrefAttributeSyntax)syntaxNode).Cref;
 
         protected override IEnumerable<SyntaxNode> GetTypeSyntaxNodesFromBaseType(SyntaxNode syntaxNode) => ((BaseListSyntax)syntaxNode).Types.Select(t => (SyntaxNode)t.Type);
+
+        protected override bool IsRegularCommentOrDocumentationComment(SyntaxTrivia trivia)
+            => trivia.Kind() is SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia;
     }
 }

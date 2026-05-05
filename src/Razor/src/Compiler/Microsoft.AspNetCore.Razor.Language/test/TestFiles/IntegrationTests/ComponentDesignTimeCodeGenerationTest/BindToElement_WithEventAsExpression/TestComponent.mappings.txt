@@ -1,0 +1,24 @@
+﻿Source Location: (2:0,2 [25] x:\dir\subdir\Test\TestComponent.cshtml)
+| var x = "anotherevent"; |
+Generated Location: (987:28,2 [25] )
+| var x = "anotherevent"; |
+
+Source Location: (49:1,19 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentValue|
+Generated Location: (1239:36,19 [11] )
+|ParentValue|
+
+Source Location: (82:1,52 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|x|
+Generated Location: (1440:44,52 [1] )
+|x|
+
+Source Location: (96:2,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public string ParentValue { get; set; } = "hi";
+|
+Generated Location: (1768:54,7 [55] )
+|
+    public string ParentValue { get; set; } = "hi";
+|
+

@@ -26,10 +26,9 @@ internal sealed class SimplifyConditionalCodeFixProvider() : SyntaxEditorBasedCo
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId];
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Simplify_conditional_expression, nameof(AnalyzersResources.Simplify_conditional_expression));
-        return Task.CompletedTask;
     }
 
     protected sealed override async Task FixAllAsync(

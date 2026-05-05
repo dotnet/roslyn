@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -79,37 +80,7 @@ internal sealed class CSharpSyntaxFormattingService(LanguageServices languageSer
         var token = root.FindToken(Math.Max(0, caretPosition - 1), findInsideTrivia: true);
         var formattingRules = GetFormattingRules(document, caretPosition, token);
 
-        // Do not attempt to format on open/close brace if autoformat on close brace feature is off, instead just smart
-        // indent.
-        //
-        // We want this behavior because it's totally reasonable for a user to want to not have on automatic formatting
-        // because they feel it is too aggressive.  However, by default, if you have smart-indentation on and are just
-        // hitting enter, you'll common have the caret placed one indent higher than your current construct.  For
-        // example, if you have:
-        //
-        //      if (true)
-        //          $ <-- smart indent will have placed the caret here here.
-        //
-        // This is acceptable given that the user may want to just write a simple statement there. However, if they
-        // start writing `{`, then things should snap over to be:
-        //
-        //      if (true)
-        //      {
-        //
-        // Importantly, this is just an indentation change, no actual 'formatting' is done.  We do the same with close
-        // brace.  If you have:
-        //
-        //      if (...)
-        //      {
-        //          bad . ly ( for (mmated+code) )  ;
-        //          $ <-- smart indent will have placed the care here.
-        //
-        // If the user hits `}` then we will properly smart indent the `}` to match the `{`. However, we won't touch any
-        // of the other code in that block, unlike if we were formatting.
-        var onlySmartIndent =
-            (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(indentationOptions.AutoFormattingOptions)) ||
-            (token.IsKind(SyntaxKind.OpenBraceToken) && OnlySmartIndentOpenBrace(indentationOptions.AutoFormattingOptions));
-
+        var onlySmartIndent = OnlySmartIndentBraceToken() || OnlySmartIndentElseKeyword();
         if (onlySmartIndent)
         {
             // if we're only doing smart indent, then ignore all edits to this token that occur before the span of the
@@ -124,6 +95,76 @@ internal sealed class CSharpSyntaxFormattingService(LanguageServices languageSer
             return changes;
 
         return [.. FormatToken(document, indentationOptions, token, formattingRules, cancellationToken)];
+
+        bool OnlySmartIndentBraceToken()
+        {
+            // Do not attempt to format on open/close brace if autoformat on close brace feature is off, instead just smart
+            // indent.
+            //
+            // We want this behavior because it's totally reasonable for a user to want to not have on automatic formatting
+            // because they feel it is too aggressive.  However, by default, if you have smart-indentation on and are just
+            // hitting enter, you'll common have the caret placed one indent higher than your current construct.  For
+            // example, if you have:
+            //
+            //      if (true)
+            //          $ <-- smart indent will have placed the caret here here.
+            //
+            // This is acceptable given that the user may want to just write a simple statement there. However, if they
+            // start writing `{`, then things should snap over to be:
+            //
+            //      if (true)
+            //      {
+            //
+            // Importantly, this is just an indentation change, no actual 'formatting' is done.  We do the same with close
+            // brace.  If you have:
+            //
+            //      if (...)
+            //      {
+            //          bad . ly ( for (mmated+code) )  ;
+            //          $ <-- smart indent will have placed the care here.
+            //
+            // If the user hits `}` then we will properly smart indent the `}` to match the `{`. However, we won't touch any
+            // of the other code in that block, unlike if we were formatting.
+            return
+                (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(indentationOptions.AutoFormattingOptions)) ||
+                (token.IsKind(SyntaxKind.OpenBraceToken) && OnlySmartIndentOpenBrace(indentationOptions.AutoFormattingOptions));
+        }
+
+        bool OnlySmartIndentElseKeyword()
+        {
+            // If the user has typed the `e` in `else` we only want to indent the 'else' token itself (the purpose is to
+            // place the `else` token properly in cases like:
+            //
+            //  foreach (var item in collection)
+            //      if (item.IsValid)
+            //          Process(item);
+            //  els  //<-- user types 'e' here
+            //  
+            // In this case we want to indent 'else' to match the 'if' above.  We do not want to adjust the formatting
+            // of anything else.  This is especially important as 'else' takes an embedded statement, and we don't want
+            // a following unrelated statement to get reformatted.  Exceptions to this are:
+            //
+            // 1. if a 'block' follows.  Naked if blocks are rare, so it's much more likely that this is a block that belongs
+            //    to the else-clause.
+            // 2. if an 'if statement' follows and the `else if` are on the same line.  This is clearly an associated
+            //    construct that we want to format together.
+            if (token.Kind() != SyntaxKind.ElseKeyword ||
+                token.Parent is not ElseClauseSyntax elseClause)
+            {
+                return false;
+            }
+
+            if (elseClause.Statement is BlockSyntax)
+                return false;
+
+            if (elseClause.Statement is IfStatementSyntax ifStatement &&
+                document.Text.AreOnSameLine(token, ifStatement.IfKeyword))
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 
     private static bool OnlySmartIndentCloseBrace(in AutoFormattingOptions options)

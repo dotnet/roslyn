@@ -1774,9 +1774,9 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 {
                     localFunction(s);
 
-                    void localFunction(string s)
+                    void localFunction(string s1)
                     {
-                        _ = {|Rename:s|}.ToString();
+                        _ = {|Rename:s1|}.ToString();
                     }
                 }
             }
@@ -1874,4 +1874,145 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 };
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81400")]
+    public Task TestDuplicateParameterName_Refactor()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class C
+            {
+                int M(int v)
+                {
+                    return [|v + 1|];
+                }
+            }
+            """, """
+            using System;
+            class C
+            {
+                int M(int v, int v1)
+                {
+                    return {|Rename:v1|};
+                }
+            }
+            """, index: 0);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81400")]
+    public Task TestDuplicateParameterName_Trampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class C
+            {
+                int M(int v)
+                {
+                    return [|v + 1|];
+                }
+
+                void Caller()
+                {
+                    M(5);
+                }
+            }
+            """, """
+            using System;
+            class C
+            {
+                private int GetV1(int v)
+                {
+                    return v + 1;
+                }
+
+                int M(int v, int v1)
+                {
+                    return {|Rename:v1|};
+                }
+
+                void Caller()
+                {
+                    M(5, GetV1(5));
+                }
+            }
+            """, index: 1);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81400")]
+    public Task TestDuplicateParameterName_Overload()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class C
+            {
+                int M(int v)
+                {
+                    return [|v + 1|];
+                }
+
+                void Caller()
+                {
+                    M(5);
+                }
+            }
+            """, """
+            using System;
+            class C
+            {
+                private int M(int v)
+                {
+                    return M(v, v + 1);
+                }
+
+                int M(int v, int v1)
+                {
+                    return {|Rename:v1|};
+                }
+
+                void Caller()
+                {
+                    M(5);
+                }
+            }
+            """, index: 2);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81400")]
+    public Task TestDuplicateParameterName_MultipleConflicts()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class C
+            {
+                int M(int v, int v1)
+                {
+                    return [|v + v1 + 1|];
+                }
+            }
+            """, """
+            using System;
+            class C
+            {
+                int M(int v, int v1, int v2)
+                {
+                    return {|Rename:v2|};
+                }
+            }
+            """, index: 0);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81400")]
+    public Task TestDuplicateParameterName_WithLocalVariable()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class C
+            {
+                int M(int v)
+                {
+                    int result = [|v + 1|];
+                    return result;
+                }
+            }
+            """, """
+            using System;
+            class C
+            {
+                int M(int v, int result)
+                {
+                    return result;
+                }
+            }
+            """, index: 0);
 }

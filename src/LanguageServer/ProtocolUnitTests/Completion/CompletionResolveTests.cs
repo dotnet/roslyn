@@ -337,7 +337,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             • Item 2.
 
             link text
-            """, results.Documentation.Value.Second.Value);
+            """.NormalizeLineEndings(), results.Documentation.Value.Second.Value.NormalizeLineEndings());
     }
 
     [Theory, CombinatorialData]
@@ -387,7 +387,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         Assert.NotNull(results.TextEdit);
         Assert.Null(results.InsertText);
-        Assert.Equal("static void Main(string[] args)\r\n    {\r\n        \r\n    }", results.TextEdit.Value.First.NewText);
+        Assert.Equal("static void Main(string[] args)\r\n    {\r\n        \r\n    }", results.TextEdit.Value.First.NewText.NormalizeLineEndings());
 
         var editRange = testLspServer.GetLocations("editRange").Single().Range;
         Assert.Equal(editRange, results.TextEdit.Value.First.Range);
@@ -505,28 +505,30 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         public override string Language => LanguageNames.CSharp;
 
-        internal override Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(Document document,
+        internal override async Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(Document document,
             int caretPosition,
             CodeAnalysis.Completion.CompletionOptions options,
             OptionSet passThroughOptions,
             CompletionTrigger trigger = default,
             ImmutableHashSet<string> roles = null,
-            CancellationToken cancellationToken = default) => Task.FromResult(CodeAnalysis.Completion.CompletionList.Empty);
+            CancellationToken cancellationToken = default) => CodeAnalysis.Completion.CompletionList.Empty;
 
-        public override Task<CompletionChange> GetChangeAsync(
+        public override async Task<CompletionChange> GetChangeAsync(
             Document document,
             CodeAnalysis.Completion.CompletionItem item,
             char? commitCharacter = null,
             CancellationToken cancellationToken = default)
         {
-            var textChange = new TextChange(span: new TextSpan(start: 77, length: 9), newText: """
+            var text = await document.GetTextAsync(cancellationToken);
+            var start = text.ToString().IndexOf("override ");
+            var textChange = new TextChange(span: new TextSpan(start: start, length: 9), newText: """
                 public override void M()
                     {
                         throw new System.NotImplementedException();
                     }
                 """);
 
-            return Task.FromResult(CompletionChange.Create(textChange, newPosition: 0));
+            return CompletionChange.Create(textChange, newPosition: 0);
         }
 
         internal override bool ShouldTriggerCompletion(Project project, LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CodeAnalysis.Completion.CompletionOptions options, OptionSet passthroughOptions, ImmutableHashSet<string> roles = null)
@@ -535,7 +537,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
         internal override CompletionRules GetRules(CodeAnalysis.Completion.CompletionOptions options)
             => CompletionRules.Default;
 
-        internal override Task<CompletionDescription> GetDescriptionAsync(Document document, CodeAnalysis.Completion.CompletionItem item, CodeAnalysis.Completion.CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
-            => Task.FromResult(CompletionDescription.Empty);
+        internal override async Task<CompletionDescription> GetDescriptionAsync(Document document, CodeAnalysis.Completion.CompletionItem item, CodeAnalysis.Completion.CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
+            => CompletionDescription.Empty;
     }
 }

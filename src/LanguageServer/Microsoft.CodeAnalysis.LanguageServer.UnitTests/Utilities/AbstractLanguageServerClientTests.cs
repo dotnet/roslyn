@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -74,9 +75,10 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
             documents: files,
             locations: annotatedLocations);
 
-        // Perform restore and mock up project restore client handler
+        // Perform restore
         ProcessUtilities.Run("dotnet", $"restore --project {projectPath}");
-        lspClient.AddClientLocalRpcTarget(ProjectDependencyHelper.ProjectNeedsRestoreName, (string[] projectFilePaths) => { });
+
+        lspClient.AddClientLocalRpcTarget(new WorkDoneProgressTarget());
 
         // Listen for project initialization
         var projectInitialized = new TaskCompletionSource();
@@ -90,6 +92,15 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         await projectInitialized.Task;
 
         return lspClient;
+    }
+
+    private class WorkDoneProgressTarget
+    {
+        [JsonRpcMethod(Methods.WindowWorkDoneProgressCreateName, UseSingleObjectParameterDeserialization = true)]
+        public Task HandleCreateWorkDoneProgress(WorkDoneProgressCreateParams _1, CancellationToken _2) => Task.CompletedTask;
+
+        [JsonRpcMethod(Methods.ProgressNotificationName, UseSingleObjectParameterDeserialization = true)]
+        public Task HandleProgress((string token, object value) _1, CancellationToken _2) => Task.CompletedTask;
     }
 
     private protected static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(DocumentUri codeUri, SourceText text, ImmutableDictionary<string, ImmutableArray<TextSpan>> spanMap)

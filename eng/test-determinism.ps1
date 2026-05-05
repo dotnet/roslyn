@@ -31,8 +31,16 @@ $script:skipList = @(
   # Work around XLF issues https://github.com/dotnet/roslyn/issues/58840
   "Roslyn.VisualStudio.DiagnosticsWindow.dll.key",
 
+  # Work around the same XLF ResXFileRef determinism issue in Razor's VSIX package resources.
+  "Microsoft.VisualStudio.RazorExtension.dll.key",
+
   # Work around resx issues https://github.com/dotnet/roslyn/issues/77544
-  "Text.Analyzers.dll.key"
+  "Text.Analyzers.dll.key",
+
+  # The integration test framework uses a VSIX as an embedded resource in this dll.
+  # The VSIX build is not deterministic (for example the catalog.json contains a randomly generated identifier for the install location).
+  "Microsoft.VisualStudio.Extensibility.Testing.Xunit.dll",
+  "Microsoft.VisualStudio.Extensibility.Testing.Xunit.dll.key"
 )
 
 function Run-Build([string]$rootDir, [string]$logFileName) {

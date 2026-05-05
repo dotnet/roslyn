@@ -1,0 +1,35 @@
+﻿Source Location: (31:1,17 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|123|
+Generated Location: (1126:29,17 [3] )
+|123|
+
+Source Location: (55:2,18 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|true|
+Generated Location: (1411:38,18 [4] )
+|true|
+
+Source Location: (114:4,20 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|new SomeType()|
+Generated Location: (1721:48,20 [14] )
+|new SomeType()|
+
+Source Location: (18:1,4 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|IntProperty|
+Generated Location: (2134:61,4 [11] )
+|IntProperty|
+
+Source Location: (41:2,4 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|BoolProperty|
+Generated Location: (2346:70,4 [12] )
+|BoolProperty|
+
+Source Location: (66:3,4 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|StringProperty|
+Generated Location: (2559:79,4 [14] )
+|StringProperty|
+
+Source Location: (98:4,4 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|ObjectProperty|
+Generated Location: (2774:88,4 [14] )
+|ObjectProperty|
+

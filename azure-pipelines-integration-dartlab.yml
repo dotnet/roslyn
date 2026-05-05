@@ -17,7 +17,7 @@ resources:
     name: DartLab.Templates
     ref: main
   - repository: RoslynMirror
-    endpoint: dnceng/internal
+    endpoint: dnceng-internal-code-access
     type: git
     name: internal/dotnet-roslyn
     ref: $(Build.SourceBranch)
@@ -25,6 +25,15 @@ resources:
     - main
 
 parameters:
+  - name: prNumber
+    type: string
+    default: 'None'
+  - name: sha
+    type: string
+    default: 'None'
+  - name: EnforceLatestCommit
+    type: boolean
+    default: true
   - name: visualStudioBootstrapperURI
     type: string
     default: '(default)'
@@ -103,6 +112,13 @@ stages:
       fetchDepth: 1
       fetchTags: false
       persistCredentials: true
+    - ${{ if ne(parameters.prNumber, 'None') }}:
+      - task: PowerShell@2
+        displayName: Setup branch for validation
+        inputs:
+          filePath: 'eng\setup-pr-validation.ps1'
+          arguments: "-sourceBranchName $(Build.SourceBranch) -prNumber ${{ parameters.prNumber }} -commitSHA ${{ parameters.sha }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
+        condition: succeeded()
     - powershell: |
         git fetch origin ${{ parameters.testsCommitHash }}
         git checkout FETCH_HEAD

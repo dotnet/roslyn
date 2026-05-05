@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Analyzer.Utilities.Lightup;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -120,7 +119,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsOperationNoneRoot(this IOperation operation)
         {
-            return operation.Kind == OperationKind.None && operation.Parent == null;
+            return operation is { Kind: OperationKind.None, Parent: null };
         }
 
         /// <summary>

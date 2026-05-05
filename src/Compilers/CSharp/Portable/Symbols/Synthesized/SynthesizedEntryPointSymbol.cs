@@ -148,6 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => ThreeState.Unknown;
+
         public override MethodKind MethodKind
         {
             get { return MethodKind.Ordinary; }
@@ -316,6 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {
             builderArgument = null;
@@ -405,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Fall back to the old GetAwaiter().GetResult() pattern
                     // The diagnostics that would be produced here will already have been captured and returned.
-                    var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _userEntryPointInvocation!, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
+                    var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _userEntryPointInvocation, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
                 }
 
                 Debug.Assert(

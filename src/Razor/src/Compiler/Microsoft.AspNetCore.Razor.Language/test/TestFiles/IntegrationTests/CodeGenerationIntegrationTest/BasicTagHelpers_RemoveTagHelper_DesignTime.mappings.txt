@@ -1,0 +1,15 @@
+﻿Source Location: (14:0,14 [17] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers_RemoveTagHelper.cshtml)
+|"*, TestAssembly"|
+Generated Location: (1969:34,37 [17] )
+|"*, TestAssembly"|
+
+Source Location: (50:1,17 [20] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers_RemoveTagHelper.cshtml)
+|"doesntmatter, nice"|
+Generated Location: (2270:44,37 [20] )
+|"doesntmatter, nice"|
+
+Source Location: (234:7,40 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers_RemoveTagHelper.cshtml)
+|true|
+Generated Location: (3798:72,42 [4] )
+|true|
+

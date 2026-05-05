@@ -1,0 +1,30 @@
+﻿// (20,8): error CS0246: The type or namespace name 'Namespace' could not be found (are you missing a using directive or an assembly reference?)
+// public Namespace.DictionaryWithoutParameterlessConstructor<string, string> StringDictionaryProperty
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Namespace").WithArguments("Namespace").WithLocation(20, 8),
+// (36,8): error CS0246: The type or namespace name 'Namespace' could not be found (are you missing a using directive or an assembly reference?)
+// public Namespace.DictionaryWithoutParameterlessConstructor<string, string> StringDictionaryProperty
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Namespace").WithArguments("Namespace").WithLocation(36, 8),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml(74,69): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.IDictionary<string, int>' to 'int'
+//             __TestNamespace_InputTagHelper2.IntDictionaryProperty = __TestNamespace_InputTagHelper1.IntDictionaryProperty;
+Diagnostic(ErrorCode.ERR_NoImplicitConv, "__TestNamespace_InputTagHelper1.IntDictionaryProperty").WithArguments("System.Collections.Generic.IDictionary<string, int>", "int").WithLocation(74, 69),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml(93,69): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.IDictionary<string, int>' to 'int'
+//             __TestNamespace_InputTagHelper2.IntDictionaryProperty = __TestNamespace_InputTagHelper1.IntDictionaryProperty;
+Diagnostic(ErrorCode.ERR_NoImplicitConv, "__TestNamespace_InputTagHelper1.IntDictionaryProperty").WithArguments("System.Collections.Generic.IDictionary<string, int>", "int").WithLocation(93, 69),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml(101,13): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
+//             __TestNamespace_InputTagHelper2.IntDictionaryProperty["garlic"] = __TestNamespace_InputTagHelper1.IntDictionaryProperty["garlic"];
+Diagnostic(ErrorCode.ERR_BadIndexLHS, @"__TestNamespace_InputTagHelper2.IntDictionaryProperty[""garlic""]").WithArguments("int").WithLocation(101, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml(109,13): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
+//             __TestNamespace_InputTagHelper2.IntDictionaryProperty["grabber"] = __TestNamespace_InputTagHelper1.IntProperty;
+Diagnostic(ErrorCode.ERR_BadIndexLHS, @"__TestNamespace_InputTagHelper2.IntDictionaryProperty[""grabber""]").WithArguments("int").WithLocation(109, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml(120,13): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
+//             __TestNamespace_InputTagHelper2.IntDictionaryProperty["grabber"] = __TestNamespace_InputTagHelper1.IntProperty;
+Diagnostic(ErrorCode.ERR_BadIndexLHS, @"__TestNamespace_InputTagHelper2.IntDictionaryProperty[""grabber""]").WithArguments("int").WithLocation(120, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml(128,13): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
+//             __TestNamespace_InputTagHelper2.IntDictionaryProperty["salt"] = __TestNamespace_InputTagHelper1.IntDictionaryProperty["salt"];
+Diagnostic(ErrorCode.ERR_BadIndexLHS, @"__TestNamespace_InputTagHelper2.IntDictionaryProperty[""salt""]").WithArguments("int").WithLocation(128, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml(136,13): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
+//             __TestNamespace_InputTagHelper2.IntDictionaryProperty["pepper"] = __TestNamespace_InputTagHelper1.IntDictionaryProperty["pepper"];
+Diagnostic(ErrorCode.ERR_BadIndexLHS, @"__TestNamespace_InputTagHelper2.IntDictionaryProperty[""pepper""]").WithArguments("int").WithLocation(136, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PrefixedAttributeTagHelpers.cshtml(160,13): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
+//             __TestNamespace_InputTagHelper2.IntDictionaryProperty["value"] = __TestNamespace_InputTagHelper1.IntDictionaryProperty["value"];
+Diagnostic(ErrorCode.ERR_BadIndexLHS, @"__TestNamespace_InputTagHelper2.IntDictionaryProperty[""value""]").WithArguments("int").WithLocation(160, 13)

@@ -56,12 +56,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub Features()
             Dim excludedFeatures = {
-                Feature.InterpolatedStrings, ' https://github.com/dotnet/roslyn/issues/17761
-                Feature.InferredTupleNames,
-                Feature.NonTrailingNamedArguments
+                Syntax.InternalSyntax.Feature.InterpolatedStrings, ' https://github.com/dotnet/roslyn/issues/17761
+                Syntax.InternalSyntax.Feature.InferredTupleNames,
+                Syntax.InternalSyntax.Feature.NonTrailingNamedArguments
             }
             Dim [set] = New HashSet(Of ERRID)
-            For Each feature As Feature In [Enum].GetValues(GetType(Feature))
+            For Each feature As Syntax.InternalSyntax.Feature In [Enum].GetValues(GetType(Syntax.InternalSyntax.Feature))
                 If Array.IndexOf(excludedFeatures, feature) >= 0 Then
                     Continue For
                 End If
@@ -94,26 +94,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                         Assert.True(errString.StartsWith("ERR_"), GetErrorMessage(errString))
 
                     Case < WarningsStart
-                        Assert.True(False, GetErrorMessage(errString))
+                        Assert.Fail(GetErrorMessage(errString))
 
                     Case WarningsStart To ERRID.WRN_NextAvailable
                         Assert.True(errString.StartsWith("WRN_"), GetErrorMessage(errString))
 
                     Case < HiddenInfoStart
-                        Assert.True(False, GetErrorMessage(errString))
+                        Assert.Fail(GetErrorMessage(errString))
 
                     Case HiddenInfoStart To ERRID.HDN_NextAvailable
                         Assert.True(errString.StartsWith("HDN_") OrElse errString.StartsWith("INF_"),
                                     GetErrorMessage(errString))
 
                     Case < IdsStart
-                        Assert.True(False, GetErrorMessage(errString))
+                        Assert.Fail(GetErrorMessage(errString))
 
                     Case IdsStart To ERRID.IDS_NextAvailable
                         Assert.True(errString.StartsWith("IDS_"), GetErrorMessage(errString))
 
                     Case < FeatureStart
-                        Assert.True(False, GetErrorMessage(errString))
+                        Assert.Fail(GetErrorMessage(errString))
 
                     Case >= FeatureStart
                         Assert.True(errString.StartsWith("FEATURE_"), GetErrorMessage(errString))
@@ -153,7 +153,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                          ERRID.ERR_MissingRuntimeHelper,
                          ERRID.ERR_CannotGotoNonScopeBlocksWithClosure,
                          ERRID.ERR_SymbolDefinedInAssembly,
-                         ERRID.ERR_AsyncSubMain
+                         ERRID.ERR_AsyncSubMain,
+                         ERRID.ERR_EncUpdateFailedMissingSymbol,
+                         ERRID.ERR_EncNoPIAReference,
+                         ERRID.ERR_EncReferenceToAddedMember,
+                         ERRID.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
                         Assert.True(isBuildOnly, $"Check failed for ERRID.{err}")
                     Case Else
                         Assert.False(isBuildOnly, $"Check failed for ERRID.{err}")

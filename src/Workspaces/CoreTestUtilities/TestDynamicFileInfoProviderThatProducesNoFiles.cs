@@ -27,8 +27,8 @@ internal sealed class TestDynamicFileInfoProviderThatProducesNoFiles : IDynamicF
 
     event EventHandler<string> IDynamicFileInfoProvider.Updated { add { } remove { } }
 
-    public Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
-        => SpecializedTasks.Null<DynamicFileInfo>();
+    public async Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
+        => null;
 
     public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
         => Task.CompletedTask;

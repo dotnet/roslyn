@@ -13,12 +13,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 internal static class FoldingRanges
 {
-    [Obsolete("Use GetFoldingRangesAsync(Document, bool, CancellationToken) instead", error: true)]
-    public static Task<FoldingRange[]> GetFoldingRangesAsync(Document document, CancellationToken cancellationToken)
-    {
-        return GetFoldingRangesAsync(document, lineFoldingOnly: false, cancellationToken);
-    }
-
     public static Task<FoldingRange[]> GetFoldingRangesAsync(Document document, bool lineFoldingOnly, CancellationToken cancellationToken)
     {
         // We need to manually get the IGlobalOptionsService out of the Mef composition, because Razor has its own

@@ -1,0 +1,21 @@
+﻿RazorDocument - [0..14)::14 - [@(foo barLFbaz]
+    MarkupBlock - [0..14)::14
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..14)::14
+            CSharpExplicitExpression - [0..14)::14
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpExplicitExpressionBody - [1..14)::13
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftParenthesis;[(];
+                    CSharpCodeBlock - [2..14)::12
+                        CSharpExpressionLiteral - [2..14)::12 - [foo barLFbaz] - Gen<Expr>
+                            Identifier;[foo];
+                            Whitespace;[ ];
+                            Identifier;[bar];
+                            NewLine;[LF];
+                            Identifier;[baz];
+                    RazorMetaCode - [14..14)::0 - Gen<None>
+                        RightParenthesis;[<Missing>];
+    EndOfFile;[];

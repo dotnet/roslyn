@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression inputExpression,
             BoundPattern pattern,
+            bool hasUnionMatching,
             BindingDiagnosticBag diagnostics)
         {
             if (pattern.HasErrors)
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var redundantNodes = PooledHashSet<SyntaxNode>.GetInstance();
 
             var noPreviousCases = ArrayBuilder<StateForCase>.GetInstance(0);
-            CheckOrAndAndReachability(noPreviousCases, patternIndex: 0, pattern: pattern, builder: builder, rootIdentifier: rootIdentifier, syntax: syntax, diagnostics: diagnostics, redundantNodes);
+            CheckOrAndAndReachability(noPreviousCases, patternIndex: 0, pattern: pattern, hasUnionMatching: hasUnionMatching, builder: builder, rootIdentifier: rootIdentifier, syntax: syntax, diagnostics: diagnostics, redundantNodes);
             ReportRedundant(redundantNodes, diagnostics);
 
             redundantNodes.Free();
@@ -126,12 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    existingCases.Add(builder.MakeTestsForPattern(++index, switchArm.Syntax, rootIdentifier, switchArm.Pattern, whenClause: switchArm.WhenClause, label: switchArm.Label));
+                    existingCases.Add(builder.MakeTestsForPattern(++index, switchArm.Syntax, rootIdentifier, switchArm.Pattern, switchArm.HasUnionMatching, whenClause: switchArm.WhenClause, label: switchArm.Label));
                 }
 
                 for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
                 {
-                    CheckOrAndAndReachability(existingCases, patternIndex, switchArms[patternIndex].Pattern, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                    BoundSwitchExpressionArm switchArm = switchArms[patternIndex];
+                    CheckOrAndAndReachability(existingCases, patternIndex, switchArm.Pattern, switchArm.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
                 }
 
                 ReportRedundant(redundantNodes, diagnostics);
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return;
                             }
 
-                            existingCases.Add(builder.MakeTestsForPattern(++index, label.Syntax, rootIdentifier, label.Pattern, label.WhenClause, label.Label));
+                            existingCases.Add(builder.MakeTestsForPattern(++index, label.Syntax, rootIdentifier, label.Pattern, label.HasUnionMatching, label.WhenClause, label.Label));
                         }
                     }
                 }
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                         {
-                            CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                            CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, label.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
                             patternIndex++;
                         }
                     }
@@ -336,6 +338,7 @@ start:
             ArrayBuilder<StateForCase> previousCases,
             int patternIndex,
             BoundPattern pattern,
+            bool hasUnionMatching,
             DecisionDagBuilder builder,
             BoundDagTemp rootIdentifier,
             SyntaxNode syntax,
@@ -346,6 +349,11 @@ start:
 
             try
             {
+                if (hasUnionMatching)
+                {
+                    pattern = UnionMatchingRewriter.Rewrite(builder._compilation, pattern);
+                }
+
                 var normalizedPattern = PatternNormalizer.Rewrite(pattern, rootIdentifier.Type);
 
 #if ROSLYN_TEST_REDUNDANT_PATTERN
@@ -359,7 +367,7 @@ start:
                 // but our method for detecting redundancies only detects those in `or` cases (which we bring to the top after normalization).
                 // By analyzing `not A` too we can report more redundancies.
                 // For example: `if (o is not (<any pattern including a redundancy>))`, `if (i is 42 and not 43)` (which is the negation of `not 42 or 43`)
-                var negated = new BoundNegatedPattern(pattern.Syntax, negated: pattern, pattern.InputType, narrowedType: pattern.InputType);
+                var negated = new BoundNegatedPattern(pattern.Syntax, negated: pattern, isUnionMatching: false, pattern.InputType, narrowedType: pattern.InputType);
                 var normalizedNegatedPattern = PatternNormalizer.Rewrite(negated, rootIdentifier.Type);
 
 #if ROSLYN_TEST_REDUNDANT_PATTERN
@@ -403,7 +411,7 @@ start:
                     }
 
                     Debug.Assert(diagSyntax is not null);
-                    casesBuilder.Add(context.Builder.MakeTestsForPattern(++index, diagSyntax, context.RootIdentifier, pattern, whenClause: null, label: label));
+                    casesBuilder.Add(context.Builder.MakeTestsForPattern(++index, diagSyntax, context.RootIdentifier, pattern, hasUnionMatching: false, whenClause: null, label: label));
                 }
             }
 
@@ -787,6 +795,7 @@ start:
 
             public override BoundNode? Visit(BoundNode? node)
             {
+                Debug.Assert(node is not BoundPattern { IsUnionMatching: true });
                 Debug.Assert(node is BoundBinaryPattern
                     or BoundRecursivePattern
                     or BoundListPattern
@@ -928,7 +937,7 @@ start:
                     return negated;
                 }
 
-                var result = new BoundNegatedPattern(node.Syntax, node, node.InputType, narrowedType: node.InputType);
+                var result = new BoundNegatedPattern(node.Syntax, node, isUnionMatching: false, node.InputType, narrowedType: node.InputType);
                 if (node.WasCompilerGenerated)
                 {
                     result.MakeCompilerGenerated();
@@ -976,7 +985,7 @@ start:
 
                 if (pattern is BoundTypePattern typePattern1)
                 {
-                    return typePattern1.Update(typePattern1.DeclaredType, typePattern1.IsExplicitNotNullTest, inputType, typePattern1.NarrowedType);
+                    return typePattern1.Update(typePattern1.DeclaredType, typePattern1.IsExplicitNotNullTest, isUnionMatching: false, inputType, typePattern1.NarrowedType);
                 }
 
                 if (pattern is BoundRecursivePattern recursivePattern)
@@ -987,7 +996,7 @@ start:
                         recursivePattern.DeconstructMethod, recursivePattern.Deconstruction,
                         recursivePattern.Properties, recursivePattern.IsExplicitNotNullTest,
                         recursivePattern.Variable, recursivePattern.VariableAccess,
-                        inputType, recursivePattern.NarrowedType);
+                        isUnionMatching: false, inputType, recursivePattern.NarrowedType);
                 }
 
                 if (pattern is BoundDiscardPattern discardPattern)
@@ -999,25 +1008,25 @@ start:
                 {
                     return negatedPattern.Update(
                         WithInputTypeCheckIfNeeded(negatedPattern.Negated, inputType),
-                        inputType, inputType);
+                        isUnionMatching: false, inputType, inputType);
                 }
 
                 if (pattern is BoundConstantPattern constantPattern)
                 {
                     var narrowedType = constantPattern.ConstantValue.IsNull ? inputType : constantPattern.NarrowedType;
-                    return constantPattern.Update(constantPattern.Value, constantPattern.ConstantValue, inputType, narrowedType);
+                    return constantPattern.Update(constantPattern.Value, constantPattern.ConstantValue, isUnionMatching: false, inputType, narrowedType);
                 }
 
                 if (pattern is BoundRelationalPattern relationalPattern)
                 {
-                    return relationalPattern.Update(relationalPattern.Relation, relationalPattern.Value, relationalPattern.ConstantValue, inputType, relationalPattern.NarrowedType);
+                    return relationalPattern.Update(relationalPattern.Relation, relationalPattern.Value, relationalPattern.ConstantValue, isUnionMatching: false, inputType, relationalPattern.NarrowedType);
                 }
 
                 if (pattern is BoundDeclarationPattern declarationPattern)
                 {
                     // We drop the variable symbol and access to avoid input type mismtaches, resulting in a designation discard
                     return declarationPattern.Update(declarationPattern.DeclaredType, declarationPattern.IsVar,
-                        variable: null, variableAccess: null, inputType, declarationPattern.NarrowedType);
+                        variable: null, variableAccess: null, isUnionMatching: false, inputType, declarationPattern.NarrowedType);
                 }
 
                 Debug.Assert(pattern is BoundITuplePattern or BoundListPattern);
@@ -1026,7 +1035,7 @@ start:
 
                 BoundPattern typePattern = new BoundTypePattern(pattern.Syntax,
                     new BoundTypeExpression(pattern.Syntax, aliasOpt: null, pattern.InputType),
-                    isExplicitNotNullTest: false, inputType, narrowedType: pattern.InputType).MakeCompilerGenerated();
+                    isExplicitNotNullTest: false, isUnionMatching: false, inputType, narrowedType: pattern.InputType).MakeCompilerGenerated();
 
                 var result = new BoundBinaryPattern(pattern.Syntax, disjunction: false, left: typePattern, right: pattern, inputType, pattern.NarrowedType);
 
@@ -1040,7 +1049,7 @@ start:
 
             public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
             {
-                var result = new BoundDeclarationPattern(node.Syntax, node.DeclaredType, node.IsVar, node.Variable, node.VariableAccess, node.InputType, node.NarrowedType)
+                var result = new BoundDeclarationPattern(node.Syntax, node.DeclaredType, node.IsVar, node.Variable, node.VariableAccess, isUnionMatching: false, node.InputType, node.NarrowedType)
                     .MakeCompilerGenerated();
                 TryPushOperand(NegateIfNeeded(result));
                 return null;
@@ -1080,21 +1089,21 @@ start:
                 if (node.DeclaredType is not null)
                 {
                     // `Type`
-                    initialCheck = new BoundTypePattern(node.Syntax, node.DeclaredType, node.IsExplicitNotNullTest, node.InputType, node.NarrowedType, node.HasErrors);
+                    initialCheck = new BoundTypePattern(node.Syntax, node.DeclaredType, node.IsExplicitNotNullTest, isUnionMatching: false, node.InputType, node.NarrowedType, node.HasErrors);
                 }
                 else if (node.InputType.CanContainNull())
                 {
                     // `not null`
                     var nullCheck = new BoundConstantPattern(node.Syntax,
                         new BoundLiteral(node.Syntax, constantValueOpt: ConstantValue.Null, type: node.InputType, hasErrors: false),
-                        ConstantValue.Null, node.InputType, node.InputType, hasErrors: false);
-                    initialCheck = new BoundNegatedPattern(node.Syntax, nullCheck, node.InputType, narrowedType: node.InputType);
+                        ConstantValue.Null, isUnionMatching: false, node.InputType, node.InputType, hasErrors: false);
+                    initialCheck = new BoundNegatedPattern(node.Syntax, nullCheck, isUnionMatching: false, node.InputType, narrowedType: node.InputType);
                 }
                 else
                 {
                     // `{ }`
                     initialCheck = new BoundRecursivePattern(node.Syntax, declaredType: null, deconstructMethod: null, deconstruction: default,
-                        ImmutableArray<BoundPropertySubpattern>.Empty, isExplicitNotNullTest: false, variable: null, variableAccess: null, node.InputType, node.InputType);
+                        ImmutableArray<BoundPropertySubpattern>.Empty, isExplicitNotNullTest: false, variable: null, variableAccess: null, isUnionMatching: false, node.InputType, node.InputType);
                 }
                 TryPushOperand(NegateIfNeeded(initialCheck));
                 Debug.Assert(_evalSequence.Count == startOfLeft + 1);
@@ -1120,7 +1129,7 @@ start:
                             newPattern.Syntax, declaredType: node.DeclaredType, deconstructMethod: node.DeconstructMethod,
                             deconstruction: newSubPatterns,
                             properties: default, isExplicitNotNullTest: false, variable: null, variableAccess: null,
-                            node.InputType, node.NarrowedType, node.HasErrors);
+                            isUnionMatching: false, node.InputType, node.NarrowedType, node.HasErrors);
 
                         if (wasCompilerGenerated)
                         {
@@ -1155,7 +1164,7 @@ start:
                             newPattern.Syntax, declaredType: node.DeclaredType, deconstructMethod: null, deconstruction: default,
                             properties: newSubPatterns,
                             isExplicitNotNullTest: false, variable: null, variableAccess: null,
-                            node.InputType, node.NarrowedType, node.HasErrors);
+                            isUnionMatching: false, node.InputType, node.NarrowedType, node.HasErrors);
 
                         if (wasCompilerGenerated)
                         {
@@ -1223,7 +1232,7 @@ start:
 
                 // `(_, ..., _)` (effectively a not null and Length test)
                 var lengthTest = new BoundITuplePattern(ituplePattern.Syntax, ituplePattern.GetLengthMethod, ituplePattern.GetItemMethod, discards,
-                    ituplePattern.InputType, ituplePattern.NarrowedType);
+                    isUnionMatching: false, ituplePattern.InputType, ituplePattern.NarrowedType);
                 TryPushOperand(NegateIfNeeded(lengthTest));
                 Debug.Assert(_evalSequence.Count == startOfLeft + 1);
 
@@ -1240,7 +1249,7 @@ start:
                     ImmutableArray<BoundPositionalSubpattern> newSubpatterns = discards.SetItem(i, subpatterns[i].WithPattern(newPattern));
 
                     BoundPattern newITuple = new BoundITuplePattern(newPattern.Syntax, ituplePattern.GetLengthMethod,
-                        ituplePattern.GetItemMethod, newSubpatterns, ituplePattern.InputType, ituplePattern.NarrowedType);
+                        ituplePattern.GetItemMethod, newSubpatterns, isUnionMatching: false, ituplePattern.InputType, ituplePattern.NarrowedType);
 
                     if (wasCompilerGenerated)
                     {
@@ -1305,7 +1314,7 @@ start:
                     BoundPattern newList = new BoundListPattern(
                         newPattern.Syntax, newSubpatterns, hasSlice, listPattern.LengthAccess, listPattern.IndexerAccess,
                         listPattern.ReceiverPlaceholder, listPattern.ArgumentPlaceholder, listPattern.Variable, listPattern.VariableAccess,
-                        listPattern.InputType, listPattern.NarrowedType);
+                        isUnionMatching: false, listPattern.InputType, listPattern.NarrowedType);
 
                     if (wasCompilerGenerated)
                     {
@@ -1336,7 +1345,7 @@ start:
                         BoundPattern newList = new BoundListPattern(
                             newPattern.Syntax, newSubpatterns, hasSlice: true, listPattern.LengthAccess, listPattern.IndexerAccess,
                             listPattern.ReceiverPlaceholder, listPattern.ArgumentPlaceholder, listPattern.Variable, listPattern.VariableAccess,
-                            listPattern.InputType, listPattern.NarrowedType);
+                            isUnionMatching: false, listPattern.InputType, listPattern.NarrowedType);
 
                         if (wasCompilerGenerated)
                         {

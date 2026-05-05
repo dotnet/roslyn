@@ -244,7 +244,7 @@ internal partial class SyntacticClassificationTaggerProvider
             }
         }
 
-        private ValueTask<TextChangeRange?> ComputeChangedRangeAsync(
+        private async ValueTask<TextChangeRange?> ComputeChangedRangeAsync(
             SolutionServices solutionServices,
             IClassificationService classificationService,
             Document currentDocument,
@@ -254,20 +254,20 @@ internal partial class SyntacticClassificationTaggerProvider
             CancellationToken cancellationToken)
         {
             if (lastProcessedDocument is null)
-                return ValueTask.FromResult<TextChangeRange?>(null);
+                return null;
 
             if (lastProcessedRoot != null)
             {
                 // If we have syntax available fast path the change computation without async or blocking.
                 if (currentRoot is not null)
-                    return new(classificationService.ComputeSyntacticChangeRange(solutionServices, lastProcessedRoot, currentRoot, _diffTimeout, cancellationToken));
+                    return classificationService.ComputeSyntacticChangeRange(solutionServices, lastProcessedRoot, currentRoot, _diffTimeout, cancellationToken);
                 else
-                    return ValueTask.FromResult<TextChangeRange?>(null);
+                    return null;
             }
             else
             {
                 // Otherwise, fall back to the language to compute the difference based on the document contents.
-                return classificationService.ComputeSyntacticChangeRangeAsync(lastProcessedDocument, currentDocument, _diffTimeout, cancellationToken);
+                return await classificationService.ComputeSyntacticChangeRangeAsync(lastProcessedDocument, currentDocument, _diffTimeout, cancellationToken).ConfigureAwait(false);
             }
         }
 

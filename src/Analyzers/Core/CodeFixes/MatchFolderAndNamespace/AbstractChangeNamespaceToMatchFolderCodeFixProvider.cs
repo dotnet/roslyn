@@ -22,7 +22,7 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.MatchFolderAndNamespaceDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var service = context.Document.Project.Solution.Services.GetRequiredService<ISupportedChangesService>();
         if (service.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
@@ -35,8 +35,6 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
                     nameof(AnalyzersResources.Change_namespace_to_match_folder_structure)),
                 context.Diagnostics);
         }
-
-        return Task.CompletedTask;
     }
 
     private static async Task<Solution> FixAllInDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)

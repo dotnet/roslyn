@@ -876,7 +876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If haveGrantedAssemblies IsNot Nothing Then
                 For Each otherAssembly In haveGrantedAssemblies.Keys
-                    Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(otherAssembly)
+                    Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(otherAssembly, assertUnexpectedGiver:=True)
 
                     Debug.Assert(conclusion <> IVTConclusion.NoRelationshipClaimed)
 
@@ -1076,8 +1076,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyCompanyAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
             ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyProductAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyProductAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
-            ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttribute) Then
-                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyInformationalVersionAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
             ElseIf attrData.IsTargetAttribute(AttributeDescription.SatelliteContractVersionAttribute) Then
                 'just check the format of this one, don't do anything else with it.
                 Dim dummy As Version = Nothing
@@ -1659,7 +1657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(potentialGiverOfAccess)
+            Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver:=True)
             Return conclusion = IVTConclusion.Match
             ' Note that C#, for error recovery, includes OrElse conclusion = IVTConclusion.OneSignedOneNot
         End Function

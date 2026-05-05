@@ -1,0 +1,24 @@
+﻿Source Location: (30:0,30 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|x|
+Generated Location: (1140:29,30 [1] )
+|x|
+
+Source Location: (39:0,39 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|"string"|
+Generated Location: (1302:36,39 [8] )
+|"string"|
+
+Source Location: (13:0,13 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|StringProperty|
+Generated Location: (1718:49,13 [14] )
+|StringProperty|
+
+Source Location: (63:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    int x = 1;
+|
+Generated Location: (2140:67,7 [18] )
+|
+    int x = 1;
+|
+

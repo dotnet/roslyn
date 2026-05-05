@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,18 +14,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal sealed partial class TopLevelSyntaxTreeIndex : AbstractSyntaxIndex<TopLevelSyntaxTreeIndex>
 {
     private readonly DeclarationInfo _declarationInfo;
-    private readonly ExtensionMethodInfo _extensionMethodInfo;
+    private readonly ExtensionMemberInfo _extensionMemberInfo;
 
     private readonly Lazy<HashSet<DeclaredSymbolInfo>> _declaredSymbolInfoSet;
 
     private TopLevelSyntaxTreeIndex(
         Checksum? checksum,
         DeclarationInfo declarationInfo,
-        ExtensionMethodInfo extensionMethodInfo)
+        ExtensionMemberInfo extensionMemberInfo)
         : base(checksum)
     {
         _declarationInfo = declarationInfo;
-        _extensionMethodInfo = extensionMethodInfo;
+        _extensionMemberInfo = extensionMemberInfo;
 
         _declaredSymbolInfoSet = new(() => [.. this.DeclaredSymbolInfos]);
     }
@@ -37,11 +37,11 @@ internal sealed partial class TopLevelSyntaxTreeIndex : AbstractSyntaxIndex<TopL
     /// </summary>
     public HashSet<DeclaredSymbolInfo> DeclaredSymbolInfoSet => _declaredSymbolInfoSet.Value;
 
-    public ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap
-        => _extensionMethodInfo.ReceiverTypeNameToExtensionMethodMap;
+    public ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMemberMap
+        => _extensionMemberInfo.ReceiverTypeNameToExtensionMemberMap;
 
-    public bool ContainsExtensionMethod
-        => _extensionMethodInfo.ContainsExtensionMethod;
+    public bool ContainsExtensionMember
+        => _extensionMemberInfo.ContainsExtensionMember;
 
     public static ValueTask<TopLevelSyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
         => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);

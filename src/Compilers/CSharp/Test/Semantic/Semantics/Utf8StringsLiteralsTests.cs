@@ -147,12 +147,6 @@ class C
                 // (11,34): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<byte>'. An explicit conversion exists (are you missing a cast?)
                 //     static Span<byte> Test2() => nullConstant;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.Span<byte>").WithLocation(11, 34),
-                // (11,34): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<byte>'. An explicit conversion exists (are you missing a cast?)
-                //     static Span<byte> Test2() => nullConstant;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.Span<byte>").WithLocation(11, 34),
-                // (12,42): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<byte>'. An explicit conversion exists (are you missing a cast?)
-                //     static ReadOnlySpan<byte> Test3() => nullConstant;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.ReadOnlySpan<byte>").WithLocation(12, 42),
                 // (12,42): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<byte>'. An explicit conversion exists (are you missing a cast?)
                 //     static ReadOnlySpan<byte> Test3() => nullConstant;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullConstant").WithArguments("object", "System.ReadOnlySpan<byte>").WithLocation(12, 42)

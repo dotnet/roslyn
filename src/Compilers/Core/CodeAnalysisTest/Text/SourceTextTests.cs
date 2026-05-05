@@ -92,8 +92,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         }
 
         [Theory]
+        [InlineData(SourceHashAlgorithm.Sha1, "ff1816ec-aa5e-4d10-87f7-6f4963833460")]
+        [InlineData(SourceHashAlgorithm.Sha256, "8829d00f-11b8-4213-878b-770e8597ac16")]
+        [InlineData(SourceHashAlgorithm.Sha384, "d99cfeb1-8c43-444a-8a6c-b61269d2a0bf")]
+        [InlineData(SourceHashAlgorithm.Sha512, "ef2d1afc-6550-46d6-b14b-d70afe9a5566")]
+        public void ChecksumAlgorithm_GuidRoundTrip(SourceHashAlgorithm algorithm, string expectedGuid)
+        {
+            var guid = SourceHashAlgorithms.GetAlgorithmGuid(algorithm);
+            Assert.Equal(new Guid(expectedGuid), guid);
+            Assert.Equal(algorithm, SourceHashAlgorithms.GetSourceHashAlgorithm(guid));
+        }
+
+        [Theory]
         [InlineData(SourceHashAlgorithm.Sha1)]
         [InlineData(SourceHashAlgorithm.Sha256)]
+        [InlineData(SourceHashAlgorithm.Sha384)]
+        [InlineData(SourceHashAlgorithm.Sha512)]
         public void ChecksumAlgorithm1(SourceHashAlgorithm algorithm)
         {
             Assert.Equal(algorithm, SourceText.From(HelloWorld, checksumAlgorithm: algorithm).ChecksumAlgorithm);
@@ -249,7 +263,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             // Try all permutations of encodings and algorithms.  None of them should affect the final result.
             var encodings = new[] { null, Encoding.ASCII, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false) };
-            var hashAlgorithms = new[] { SourceHashAlgorithm.Sha1, SourceHashAlgorithm.Sha256 };
+            var hashAlgorithms = new[] { SourceHashAlgorithm.Sha1, SourceHashAlgorithm.Sha256, SourceHashAlgorithm.Sha384, SourceHashAlgorithm.Sha512 };
 
             var randomText = builder.ToString();
 

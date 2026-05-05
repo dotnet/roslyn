@@ -1,0 +1,25 @@
+﻿Source Location: (19:0,19 [23] x:\dir\subdir\Test\TestComponent.cshtml)
+|Array.Empty<DateTime>()|
+Generated Location: (854:23,0 [23] )
+|Array.Empty<DateTime>()|
+
+Source Location: (46:0,46 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|Passthrough|
+Generated Location: (1195:30,58 [11] )
+|Passthrough|
+
+Source Location: (1:0,1 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|Ancestor|
+Generated Location: (2206:51,45 [8] )
+|Ancestor|
+
+Source Location: (10:0,10 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Items|
+Generated Location: (2398:55,0 [5] )
+|Items|
+
+Source Location: (59:0,59 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Child|
+Generated Location: (3122:71,45 [5] )
+|Child|
+

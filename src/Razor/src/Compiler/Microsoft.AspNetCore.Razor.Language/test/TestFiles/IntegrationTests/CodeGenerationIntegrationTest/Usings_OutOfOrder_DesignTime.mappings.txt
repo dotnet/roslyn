@@ -1,0 +1,83 @@
+﻿Source Location: (1:0,1 [15] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|using System.IO|
+Generated Location: (548:14,0 [15] )
+|using System.IO|
+
+Source Location: (60:6,1 [32] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|using Foo = System.Text.Encoding|
+Generated Location: (699:19,0 [32] )
+|using Foo = System.Text.Encoding|
+
+Source Location: (136:12,1 [12] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|using System|
+Generated Location: (868:24,0 [12] )
+|using System|
+
+Source Location: (153:14,1 [19] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|using static System|
+Generated Location: (1017:29,0 [19] )
+|using static System|
+
+Source Location: (175:15,1 [27] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|using static System.Console|
+Generated Location: (1173:34,0 [27] )
+|using static System.Console|
+
+Source Location: (246:21,1 [41] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|using static global::System.Text.Encoding|
+Generated Location: (1337:39,0 [41] )
+|using static global::System.Text.Encoding|
+
+Source Location: (576:31,1 [17] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|using System.Text|
+Generated Location: (1515:44,0 [17] )
+|using System.Text|
+
+Source Location: (293:23,2 [158] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+| 
+    using var disposable = (IDisposable)ViewData["disposable"];
+    using System.IDisposable otherDisposable = (IDisposable)ViewData["otherdisposable"];
+|
+Generated Location: (2574:67,2 [158] )
+| 
+    using var disposable = (IDisposable)ViewData["disposable"];
+    using System.IDisposable otherDisposable = (IDisposable)ViewData["otherdisposable"];
+|
+
+Source Location: (485:28,29 [21] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|typeof(Path).FullName|
+Generated Location: (2924:76,29 [21] )
+|typeof(Path).FullName|
+
+Source Location: (547:29,35 [20] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|typeof(Foo).FullName|
+Generated Location: (3146:83,35 [20] )
+|typeof(Foo).FullName|
+
+Source Location: (32:2,12 [22] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|
+    // functions 1
+|
+Generated Location: (3392:92,12 [22] )
+|
+    // functions 1
+|
+
+Source Location: (108:8,12 [22] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|
+    // functions 2
+|
+Generated Location: (3588:100,12 [22] )
+|
+    // functions 2
+|
+
+Source Location: (218:17,12 [22] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml)
+|
+    // functions 3
+|
+Generated Location: (3785:108,12 [22] )
+|
+    // functions 3
+|
+

@@ -1,0 +1,29 @@
+﻿RazorDocument - [0..38)::38 - [@foreach(var f in Foo) { / foo bar baz]
+    MarkupBlock - [0..38)::38
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..38)::38
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..38)::37 - [foreach(var f in Foo) { / foo bar baz] - Gen<Stmt>
+                Keyword;[foreach];
+                LeftParenthesis;[(];
+                Keyword;[var];
+                Whitespace;[ ];
+                Identifier;[f];
+                Whitespace;[ ];
+                Keyword;[in];
+                Whitespace;[ ];
+                Identifier;[Foo];
+                RightParenthesis;[)];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+                CSharpOperator;[/];
+                Whitespace;[ ];
+                Identifier;[foo];
+                Whitespace;[ ];
+                Identifier;[bar];
+                Whitespace;[ ];
+                Identifier;[baz];
+    EndOfFile;[];

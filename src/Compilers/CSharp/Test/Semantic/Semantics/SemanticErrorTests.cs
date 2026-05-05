@@ -2749,7 +2749,7 @@ int AIProp { get ; set ; }
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 5, Column = 10 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 10, Column = 5 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CompilationUnitUnexpected, Line = 10, Column = 5 });
         }
 
         [Fact]
@@ -8630,7 +8630,7 @@ public class MyClass
    }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (16,27): error CS0233: 'S' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
                 //         Console.WriteLine(sizeof(S));   // CS0233
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(S)").WithArguments("S"),
@@ -8638,6 +8638,15 @@ public class MyClass
                 // (15,11): warning CS0219: The variable 'myS' is assigned but its value is never used
                 //         S myS = new S();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "myS").WithArguments("myS"));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,11): warning CS0219: The variable 'myS' is assigned but its value is never used
+                //         S myS = new S();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "myS").WithArguments("myS")
+            };
+            CreateCompilation(text).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -16158,7 +16167,7 @@ class Test
 }
 ";
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (13,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         System.Console.Write(inst.field.buffer[0]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "inst.field.buffer").WithLocation(13, 30),
@@ -16166,6 +16175,20 @@ class Test
                 //         return (field.buffer[0] = 7);   // OK
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "field.buffer").WithLocation(20, 17)
                  );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (13,47): error CS9360: This operation may only be used in an unsafe context
+                //         System.Console.Write(inst.field.buffer[0]);
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(13, 47),
+                // (20,29): error CS9360: This operation may only be used in an unsafe context
+                //         return (field.buffer[0] = 7);   // OK
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(20, 29)
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedPreviewDiagnostics);
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -24356,11 +24379,28 @@ class Program
 }
 
 ";
-            CreateCompilationWithMscorlib461(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,24): error CS8977: 'void*' cannot be made nullable.
-                //         var p = intPtr?.ToPointer();
-                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToPointer()").WithArguments("void*").WithLocation(9, 24)
-                );
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics()
+                .VerifyIL("Program.Main", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  1
+                  .locals init (System.IntPtr? V_0, //intPtr
+                                System.IntPtr V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.IntPtr?"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  call       "bool System.IntPtr?.HasValue.get"
+                  IL_000f:  brfalse.s  IL_0021
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "System.IntPtr System.IntPtr?.GetValueOrDefault()"
+                  IL_0018:  stloc.1
+                  IL_0019:  ldloca.s   V_1
+                  IL_001b:  call       "void* System.IntPtr.ToPointer()"
+                  IL_0020:  pop
+                  IL_0021:  ret
+                }
+                """);
         }
 
         [Fact]

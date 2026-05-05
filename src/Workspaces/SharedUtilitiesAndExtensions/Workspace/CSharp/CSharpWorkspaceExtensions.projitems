@@ -63,6 +63,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeDeclarationSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\UsingDirectiveSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\WithElementSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\TypingFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\CSharpIndentationService.cs" />
@@ -88,7 +89,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpReplaceDiscardDeclarationsWithAssignmentsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\InitializeParameter\InitializeParameterHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableSyntaxAnnotationEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticModelReuse\CSharpSemanticModelReuseLanguageService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxIterator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CSharpSimplificationHelpers.cs" />

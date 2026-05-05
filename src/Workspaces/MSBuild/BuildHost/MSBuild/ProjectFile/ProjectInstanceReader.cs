@@ -1,0 +1,276 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using Roslyn.Utilities;
+using MSB = Microsoft.Build;
+
+namespace Microsoft.CodeAnalysis.MSBuild;
+
+internal readonly struct ProjectInstanceReader
+{
+    private readonly ProjectCommandLineProvider? _commandLineProvider;
+    public readonly MSB.Evaluation.Project? Project;
+    public readonly MSB.Execution.ProjectInstance _projectInstance;
+
+    private readonly string _projectDirectory;
+
+    public string Language { get; }
+
+    public ProjectInstanceReader(
+        string language,
+        ProjectCommandLineProvider? commandLineReader,
+        MSB.Execution.ProjectInstance projectInstance,
+        MSB.Evaluation.Project? project)
+    {
+        Language = language;
+        _commandLineProvider = commandLineReader;
+        _projectInstance = projectInstance;
+        Project = project;
+        _projectDirectory = PathUtilities.EnsureTrailingSeparator(PathUtilities.GetDirectoryName(_projectInstance.FullPath));
+    }
+
+    public string FilePath
+        => _projectInstance.FullPath;
+
+    public ProjectFileInfo CreateProjectFileInfo()
+    {
+        var commandLineArgs = TryGetCommandLineArgs(_projectInstance);
+
+        var outputFilePath = _projectInstance.ReadPropertyString(PropertyNames.TargetPath);
+        if (!RoslynString.IsNullOrWhiteSpace(outputFilePath))
+        {
+            outputFilePath = GetAbsolutePathRelativeToProject(outputFilePath);
+        }
+
+        var outputRefFilePath = _projectInstance.ReadPropertyString(PropertyNames.TargetRefPath);
+        if (!RoslynString.IsNullOrWhiteSpace(outputRefFilePath))
+        {
+            outputRefFilePath = GetAbsolutePathRelativeToProject(outputRefFilePath);
+        }
+
+        var generatedFilesOutputDirectory = _projectInstance.ReadPropertyString(PropertyNames.CompilerGeneratedFilesOutputPath);
+        generatedFilesOutputDirectory = RoslynString.IsNullOrWhiteSpace(generatedFilesOutputDirectory)
+            ? null
+            : GetAbsolutePathRelativeToProject(generatedFilesOutputDirectory);
+
+        var intermediateOutputFilePath = _projectInstance.GetItems(ItemNames.IntermediateAssembly).FirstOrDefault()?.EvaluatedInclude;
+        if (!RoslynString.IsNullOrWhiteSpace(intermediateOutputFilePath))
+        {
+            intermediateOutputFilePath = GetAbsolutePathRelativeToProject(intermediateOutputFilePath);
+        }
+
+        var projectAssetsFilePath = _projectInstance.ReadPropertyString(PropertyNames.ProjectAssetsFile);
+
+        // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+        // by assigning the value of the project's root namespace to it. So various feature can choose to 
+        // use it for their own purpose.
+        // In the future, we might consider officially exposing "default namespace" for VB project 
+        // (e.g. through a <defaultnamespace> msbuild property)
+        var defaultNamespace = _projectInstance.ReadPropertyString(PropertyNames.RootNamespace) ?? string.Empty;
+
+        var targetFramework = _projectInstance.ReadPropertyString(PropertyNames.TargetFramework);
+        if (RoslynString.IsNullOrWhiteSpace(targetFramework))
+        {
+            targetFramework = null;
+        }
+
+        var targetFrameworkIdentifier = _projectInstance.ReadPropertyString(PropertyNames.TargetFrameworkIdentifier);
+
+        var targetFrameworkVersion = _projectInstance.ReadPropertyString(PropertyNames.TargetFrameworkVersion);
+
+        var docs = _projectInstance.GetDocuments().SelectAsArray(
+            predicate: IsNotTemporaryGeneratedFile,
+            selector: MakeDocumentFileInfo);
+
+        var additionalDocs = _projectInstance.GetAdditionalFiles()
+            .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
+
+        var analyzerConfigDocs = _projectInstance.GetEditorConfigFiles()
+            .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
+
+        var packageReferences = _projectInstance.GetPackageReferences();
+
+        // Do not pass metadata references if we have command line args that already specify them.
+        var metadataReferences = commandLineArgs.IsEmpty ? _projectInstance.GetMetadataReferences().ToImmutableArray() : [];
+
+        var projectCapabilities = _projectInstance.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
+        var contentFileInfo = GetContentFiles(_projectInstance);
+        var codePage = _projectInstance.ReadCodePage();
+
+        var checksumAlgorithm = _projectInstance.ReadPropertyString(PropertyNames.ChecksumAlgorithm);
+        if (string.IsNullOrEmpty(checksumAlgorithm))
+        {
+            // F# uses PdbChecksumAlgorithm property name
+            checksumAlgorithm = _projectInstance.ReadPropertyString(PropertyNames.PdbChecksumAlgorithm);
+        }
+
+        var fileGlobs = Project?.GetAllGlobs().SelectAsArray(GetFileGlobs) ?? [];
+
+        return new ProjectFileInfo()
+        {
+            Language = Language,
+            FilePath = _projectInstance.FullPath,
+            OutputFilePath = outputFilePath,
+            OutputRefFilePath = outputRefFilePath,
+            GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
+            IntermediateOutputFilePath = intermediateOutputFilePath,
+            DefaultNamespace = defaultNamespace,
+            TargetFramework = targetFramework,
+            TargetFrameworkIdentifier = targetFrameworkIdentifier,
+            TargetFrameworkVersion = targetFrameworkVersion,
+            ProjectAssetsFilePath = projectAssetsFilePath,
+            CommandLineArgs = commandLineArgs,
+            Documents = docs,
+            AdditionalDocuments = additionalDocs,
+            AnalyzerConfigDocuments = analyzerConfigDocs,
+            ProjectReferences = [.. _projectInstance.GetProjectReferences()],
+            PackageReferences = packageReferences,
+            MetadataReferences = metadataReferences,
+            CodePage = codePage,
+            ChecksumAlgorithm = checksumAlgorithm,
+            ProjectCapabilities = projectCapabilities,
+            ContentFilePaths = contentFileInfo,
+            FileGlobs = fileGlobs
+        };
+
+        static FileGlobs GetFileGlobs(MSB.Evaluation.GlobResult g)
+        {
+            return new FileGlobs(
+                Includes: [.. g.IncludeGlobs.Select(PathUtilities.ExpandAbsolutePathWithRelativeParts)],
+                Excludes: [.. g.Excludes.Select(PathUtilities.ExpandAbsolutePathWithRelativeParts)],
+                Removes: [.. g.Removes.Select(PathUtilities.ExpandAbsolutePathWithRelativeParts)]);
+        }
+    }
+
+    private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
+    {
+        var contentFiles = project
+            .GetItems(ItemNames.Content)
+            .SelectAsArray(item => item.GetMetadataValue(MetadataNames.FullPath));
+        return contentFiles;
+    }
+
+    private ImmutableArray<string> TryGetCommandLineArgs(MSB.Execution.ProjectInstance project)
+    {
+        if (_commandLineProvider == null)
+        {
+            return [];
+        }
+
+        var commandLineArgs = _commandLineProvider.GetCompilerCommandLineArgs(project)
+            .SelectAsArray(item => item.ItemSpec);
+
+        if (commandLineArgs.Length == 0)
+        {
+            // We didn't get any command-line args, which likely means that the build
+            // was not successful. In that case, try to read the command-line args from
+            // the ProjectInstance that we have. This is a best effort to provide something
+            // meaningful for the user, though it will likely be incomplete.
+            commandLineArgs = _commandLineProvider.ReadCommandLineArgs(project);
+        }
+
+        return commandLineArgs;
+    }
+
+    private static bool IsNotTemporaryGeneratedFile(MSB.Framework.ITaskItem item)
+        => !Path.GetFileName(item.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal);
+
+    private DocumentFileInfo MakeDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
+    {
+        var filePath = GetDocumentFilePath(documentItem);
+        var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);
+        var isLinked = IsDocumentLinked(documentItem);
+
+        var folders = GetRelativeFolders(documentItem);
+        return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated: false, folders);
+    }
+
+    private DocumentFileInfo MakeNonSourceFileDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
+    {
+        var filePath = GetDocumentFilePath(documentItem);
+        var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);
+        var isLinked = IsDocumentLinked(documentItem);
+
+        var folders = GetRelativeFolders(documentItem);
+        return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated: false, folders);
+    }
+
+    private ImmutableArray<string> GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
+    {
+        var linkPath = documentItem.GetMetadata(MetadataNames.Link);
+        if (!RoslynString.IsNullOrEmpty(linkPath))
+        {
+            return [.. PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar)];
+        }
+        else
+        {
+            var filePath = documentItem.ItemSpec;
+            var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
+            var folders = relativePath == null ? [] : relativePath.Split([PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+            return folders;
+        }
+    }
+
+    /// <summary>
+    /// Resolves the given path that is possibly relative to the project directory.
+    /// </summary>
+    /// <remarks>
+    /// The resulting path is absolute but might not be normalized.
+    /// </remarks>
+    private string GetAbsolutePathRelativeToProject(string path)
+    {
+        // TODO (tomat): should we report an error when drive-relative path (e.g. "C:goo.cs") is encountered?
+        var absolutePath = FileUtilities.ResolveRelativePath(path, _projectDirectory) ?? path;
+        return FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
+    }
+
+    private string GetDocumentFilePath(MSB.Framework.ITaskItem documentItem)
+        => GetAbsolutePathRelativeToProject(documentItem.ItemSpec);
+
+    private static bool IsDocumentLinked(MSB.Framework.ITaskItem documentItem)
+        => !RoslynString.IsNullOrEmpty(documentItem.GetMetadata(MetadataNames.Link));
+
+    private static string GetDocumentLogicalPath(MSB.Framework.ITaskItem documentItem, string projectDirectory)
+    {
+        var link = documentItem.GetMetadata(MetadataNames.Link);
+        if (!RoslynString.IsNullOrEmpty(link))
+        {
+            // if a specific link is specified in the project file then use it to form the logical path.
+            return link;
+        }
+        else
+        {
+            var filePath = documentItem.ItemSpec;
+
+            if (!PathUtilities.IsAbsolute(filePath))
+            {
+                return filePath;
+            }
+
+            var normalizedPath = FileUtilities.TryNormalizeAbsolutePath(filePath);
+            if (normalizedPath == null)
+            {
+                return filePath;
+            }
+
+            // If the document is within the current project directory (or subdirectory), then the logical path is the relative path 
+            // from the project's directory.
+            if (normalizedPath.StartsWith(projectDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                return normalizedPath[projectDirectory.Length..];
+            }
+            else
+            {
+                // if the document lies outside the project's directory (or subdirectory) then place it logically at the root of the project.
+                // if more than one document ends up with the same logical name then so be it (the workspace will survive.)
+                return PathUtilities.GetFileName(normalizedPath);
+            }
+        }
+    }
+}

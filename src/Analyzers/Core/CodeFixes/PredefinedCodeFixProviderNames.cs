@@ -67,6 +67,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string GenerateMethod = nameof(GenerateMethod);
     public const string GenerateType = nameof(GenerateType);
     public const string GenerateVariable = nameof(GenerateVariable);
+    public const string HiddenExplicitCast = nameof(HiddenExplicitCast);
     public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
     public const string ImplementInterface = nameof(ImplementInterface);
     public const string InlineDeclaration = nameof(InlineDeclaration);

@@ -93,8 +93,8 @@ internal sealed class CSharpSnippetExpansionLanguageHelper(
 
         var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
         var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(true);
-        var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, addImportOptions, cancellationToken);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(true);
+        var newRoot = addImportService.AddImports(semanticModel, root, contextLocation, newUsingDirectives, generator, addImportOptions, cancellationToken);
 
         var newDocument = document.WithSyntaxRoot(newRoot);
 

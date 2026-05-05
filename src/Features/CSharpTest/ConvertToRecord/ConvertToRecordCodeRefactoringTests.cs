@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
@@ -321,7 +322,7 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 {
                 }
 
-                public record {|CS0115:{|CS0115:{|CS0115:{|CS8867:C|}|}|}|}(int P) : {|CS8864:B|};
+                public record C(int P) : {|CS8864:B|};
             }
             """);
 
@@ -3027,7 +3028,7 @@ public sealed class ConvertToRecordCodeRefactoringTests
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestMovePropertiesWithMultilineDocComments_NoClassSummary()
         => TestRefactoringAsync("""
             namespace N
@@ -3181,7 +3182,7 @@ public sealed class ConvertToRecordCodeRefactoringTests
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestMovePropertiesWithDocComments_NoClassSummary()
         => TestRefactoringAsync("""
             namespace N
@@ -3953,7 +3954,7 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 ExpectedDiagnostics =
                 {
                     // Microsoft.CodeAnalysis.CSharp.Features.UnitTests\Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord.ConvertToRecordCodeRefactoringTests+ConvertToRecordTestGenerator\file.cs(7,24): error CS7036: There is no argument given that corresponds to the required parameter 'P' of 'C.C(int, bool)'
-                    DiagnosticResult.CompilerError("CS7036").WithSpan(@"Microsoft.CodeAnalysis.CSharp.Features.UnitTests\Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord.ConvertToRecordCodeRefactoringTests+ConvertToRecordTestGenerator\file.cs", 7, 24, 7, 25).WithArguments("P", "N.C.C(int, bool)"),
+                    DiagnosticResult.CompilerError("CS7036").WithSpan($"Microsoft.CodeAnalysis.CSharp.Features.UnitTests{Path.DirectorySeparatorChar}Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord.ConvertToRecordCodeRefactoringTests+ConvertToRecordTestGenerator{Path.DirectorySeparatorChar}file.cs", 7, 24, 7, 25).WithArguments("P", "N.C.C(int, bool)"),
                 }
             }
         }.RunAsync();

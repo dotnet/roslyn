@@ -1,0 +1,89 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components.Web
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (42:0,42 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (42:0,42 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                MarkupElement - (44:1,0 [63] x:\dir\subdir\Test\TestComponent.cshtml) - form
+                    HtmlAttribute -  - method=" - "
+                        HtmlAttributeValue - (58:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (58:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                    HtmlAttribute - (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml) - onsubmit=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
+                            IntermediateToken - (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
+                            IntermediateToken -  - CSharp - )
+                    FormName - (97:1,53 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                        HtmlContent - (97:1,53 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (97:1,53 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - 1
+                HtmlContent - (107:1,63 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (107:1,63 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (109:2,0 [287] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    ComponentChildContent -  - ChildContent - context
+                        HtmlContent - (124:2,15 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (124:2,15 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
+                        MarkupElement - (130:3,4 [63] x:\dir\subdir\Test\TestComponent.cshtml) - form
+                            HtmlAttribute -  - method=" - "
+                                HtmlAttributeValue - (144:3,18 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                                    LazyIntermediateToken - (144:3,18 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                            HtmlAttribute - (161:3,35 [9] x:\dir\subdir\Test\TestComponent.cshtml) - onsubmit=" - "
+                                CSharpExpressionAttributeValue -  - 
+                                    IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
+                                    IntermediateToken - (161:3,35 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
+                                    IntermediateToken -  - CSharp - )
+                            FormName - (183:3,57 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                                HtmlContent - (183:3,57 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                                    LazyIntermediateToken - (183:3,57 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - 2
+                        HtmlContent - (193:3,67 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (193:3,67 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
+                        Component - (199:4,4 [110] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                            ComponentChildContent -  - ChildContent - context
+                                HtmlContent - (214:4,19 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+                                    LazyIntermediateToken - (214:4,19 [10] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n        
+                                MarkupElement - (224:5,8 [63] x:\dir\subdir\Test\TestComponent.cshtml) - form
+                                    HtmlAttribute -  - method=" - "
+                                        HtmlAttributeValue - (238:5,22 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                                            LazyIntermediateToken - (238:5,22 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                                    HtmlAttribute - (255:5,39 [9] x:\dir\subdir\Test\TestComponent.cshtml) - onsubmit=" - "
+                                        CSharpExpressionAttributeValue -  - 
+                                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
+                                            IntermediateToken - (255:5,39 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
+                                            IntermediateToken -  - CSharp - )
+                                    FormName - (277:5,61 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                                        HtmlContent - (277:5,61 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                                            LazyIntermediateToken - (277:5,61 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - 3
+                                HtmlContent - (287:5,71 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                                    LazyIntermediateToken - (287:5,71 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
+                        HtmlContent - (309:6,20 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (309:6,20 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
+                        MarkupElement - (315:7,4 [63] x:\dir\subdir\Test\TestComponent.cshtml) - form
+                            HtmlAttribute -  - method=" - "
+                                HtmlAttributeValue - (329:7,18 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                                    LazyIntermediateToken - (329:7,18 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                            HtmlAttribute - (346:7,35 [9] x:\dir\subdir\Test\TestComponent.cshtml) - onsubmit=" - "
+                                CSharpExpressionAttributeValue -  - 
+                                    IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
+                                    IntermediateToken - (346:7,35 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
+                                    IntermediateToken -  - CSharp - )
+                            FormName - (368:7,57 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                                HtmlContent - (368:7,57 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                                    LazyIntermediateToken - (368:7,57 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - 4
+                        HtmlContent - (378:7,67 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (378:7,67 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                HtmlContent - (396:8,16 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (396:8,16 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+            CSharpCode - (405:9,7 [68] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (405:9,7 [68] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public RenderFragment ChildContent { get; set; }\n

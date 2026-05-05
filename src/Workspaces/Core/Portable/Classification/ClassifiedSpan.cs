@@ -3,14 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
+[DataContract]
 public readonly struct ClassifiedSpan(TextSpan textSpan, string classificationType) : IEquatable<ClassifiedSpan>
 {
+    [DataMember(Order = 0)]
     public string ClassificationType { get; } = classificationType;
+    [DataMember(Order = 1)]
     public TextSpan TextSpan { get; } = textSpan;
 
     public ClassifiedSpan(string classificationType, TextSpan textSpan)

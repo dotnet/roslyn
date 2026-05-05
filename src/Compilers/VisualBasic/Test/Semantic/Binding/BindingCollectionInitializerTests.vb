@@ -2002,7 +2002,7 @@ End Class
             For Each name In nodes
                 Assert.Equal("List(Of String)", name.ToString())
                 Assert.Equal("System.Collections.Generic.List(Of System.String)", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString())
-                Assert.Null(semanticModel.GetTypeInfo(name).Type)
+                Assert.Equal("System.Collections.Generic.List(Of System.String)", semanticModel.GetTypeInfo(name).Type.ToTestDisplayString())
             Next
         End Sub
 

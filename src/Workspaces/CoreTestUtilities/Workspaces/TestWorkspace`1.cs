@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -339,6 +339,9 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
             case ApplyChangesKind.RemoveDocument:
                 return KindSupportsAddRemoveDocument();
 
+            case ApplyChangesKind.RemoveProject:
+                return KindSupportsRemoveProject();
+
             case ApplyChangesKind.AddAdditionalDocument:
             case ApplyChangesKind.RemoveAdditionalDocument:
             case ApplyChangesKind.AddAnalyzerConfigDocument:
@@ -365,6 +368,15 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
     }
 
     private bool KindSupportsAddRemoveDocument()
+        => _workspaceKind switch
+        {
+            WorkspaceKind.MiscellaneousFiles => false,
+            WorkspaceKind.Interactive => false,
+            WorkspaceKind.SemanticSearch => false,
+            _ => true
+        };
+
+    private bool KindSupportsRemoveProject()
         => _workspaceKind switch
         {
             WorkspaceKind.MiscellaneousFiles => false,
@@ -404,7 +416,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         var hostProject = this.GetTestProject(info.Id.ProjectId);
         Contract.ThrowIfNull(hostProject);
 
-        var hostDocument = CreateDocument(text.ToString(), info.Name, id: info.Id, exportProvider: ExportProvider);
+        var hostDocument = CreateDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders, exportProvider: ExportProvider);
         hostProject.AddAdditionalDocument(hostDocument);
         this.OnAdditionalDocumentAdded(hostDocument.ToDocumentInfo());
     }
@@ -468,14 +480,13 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
     /// Overriding base impl so that when we close a document it goes back to the initial state when the test
     /// workspace was loaded, throwing away any changes made to the open version.
     /// </summary>
-    internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
+    internal override async ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
     {
         var testDocument = this.GetTestDocument(documentId);
         Contract.ThrowIfNull(testDocument);
         Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
 
         this.OnDocumentClosedEx(documentId, testDocument.Loader, requireDocumentPresentAndOpen: false);
-        return ValueTask.CompletedTask;
     }
 
     public override void CloseDocument(DocumentId documentId)

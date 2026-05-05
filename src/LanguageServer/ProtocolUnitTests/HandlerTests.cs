@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -127,11 +128,18 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task ShutsdownIfDeserializationFailsOnMutatingRequest(bool mutatingLspWorkspace)
     {
-        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+        var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
-        var request = new TestRequestTypeThree("value");
-        await Assert.ThrowsAnyAsync<Exception>(async () => await server.ExecuteRequestAsync<TestRequestTypeThree, string>(TestDocumentHandler.MethodName, request, CancellationToken.None));
-        await server.AssertServerShuttingDownAsync();
+        try
+        {
+            var request = new TestRequestTypeThree("value");
+            await Assert.ThrowsAnyAsync<Exception>(async () => await server.ExecuteRequestAsync<TestRequestTypeThree, string>(TestDocumentHandler.MethodName, request, CancellationToken.None));
+            await server.AssertServerShuttingDownAsync();
+        }
+        finally
+        {
+            await Assert.ThrowsAsync<JsonException>(async () => await server.DisposeAsync());
+        }
     }
 
     [Theory, CombinatorialData]
@@ -279,19 +287,42 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task TestMutatingHandlerCrashesIfUnableToDetermineLanguage(bool mutatingLspWorkspace)
     {
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
-        // Run a mutating request against a file which we have no saved languageId for
-        // and where the language cannot be determined from the URI.
-        // This should crash the server.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"untitled:untitledFile");
+        try
+        {
+            // Run a mutating request against a file which we have no saved languageId for
+            // and where the language cannot be determined from the URI.
+            // This should crash the server.
+            var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"untitled:untitledFile");
+            var request = new TestRequestTypeOne(new TextDocumentIdentifier
+            {
+                DocumentUri = looseFileUri
+            });
+
+            await Assert.ThrowsAnyAsync<Exception>(async () => await testLspServer.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None)).ConfigureAwait(false);
+            await testLspServer.AssertServerShuttingDownAsync();
+        }
+        finally
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await testLspServer.DisposeAsync());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task DoesNotCrashOnRequestForMissingHandler(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
         var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-            DocumentUri = looseFileUri
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
-        await Assert.ThrowsAnyAsync<Exception>(async () => await testLspServer.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None)).ConfigureAwait(false);
-        await testLspServer.AssertServerShuttingDownAsync();
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await server.ExecuteRequestAsync<TestRequestTypeOne, string>("nonExistentMethod", request, CancellationToken.None));
+        Assert.False(server.GetServerAccessor().HasShutdownStarted());
+        Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
     }
 
     internal sealed record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
@@ -316,9 +347,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             return request.TextDocumentIdentifier;
         }
 
-        public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 
@@ -338,9 +369,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             return request.TextDocumentIdentifier;
         }
 
-        public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 
@@ -355,9 +386,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 
@@ -370,10 +401,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task HandleNotificationAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
             ResultSource.SetResult(this.GetType().Name);
-            return Task.CompletedTask;
         }
     }
 
@@ -400,10 +430,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task HandleNotificationAsync(RequestContext context, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(RequestContext context, CancellationToken cancellationToken)
         {
             ResultSource.SetResult(this.GetType().Name);
-            return Task.CompletedTask;
         }
     }
 
@@ -438,9 +467,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             return request.TextDocumentIdentifier;
         }
 
-        public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 
@@ -462,9 +491,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             return request.TextDocumentIdentifier;
         }
 
-        public Task<string> HandleRequestAsync(TestRequestTypeTwo request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(TestRequestTypeTwo request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 
@@ -481,9 +510,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 }

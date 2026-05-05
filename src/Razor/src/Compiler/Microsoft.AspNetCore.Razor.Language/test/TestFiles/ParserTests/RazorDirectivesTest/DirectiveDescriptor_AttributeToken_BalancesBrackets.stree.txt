@@ -1,0 +1,39 @@
+﻿RazorDocument - [0..45)::45 - [LF@custom [SomeCustom(new int[] { 1, 2, 3 }LF]
+    MarkupBlock - [0..45)::45
+        MarkupTextLiteral - [0..2)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [2..45)::43
+            RazorDirective - [2..45)::43 - Directive:{custom;SingleLine;Unrestricted}
+                CSharpTransition - [2..3)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [3..45)::42
+                    RazorMetaCode - [3..9)::6 - Gen<None>
+                        Identifier;[custom];
+                    CSharpCodeBlock - [9..45)::36
+                        CSharpStatementLiteral - [9..10)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [10..45)::35 - [[SomeCustom(new int[] { 1, 2, 3 }LF] - Gen<DirectiveToken {;Attribute;Opt:False}>
+                            LeftBracket;[[];
+                            Identifier;[SomeCustom];
+                            LeftParenthesis;[(];
+                            Keyword;[new];
+                            Whitespace;[ ];
+                            Keyword;[int];
+                            LeftBracket;[[];
+                            RightBracket;[]];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                            Whitespace;[ ];
+                            NumericLiteral;[1];
+                            Comma;[,];
+                            Whitespace;[ ];
+                            NumericLiteral;[2];
+                            Comma;[,];
+                            Whitespace;[ ];
+                            NumericLiteral;[3];
+                            Whitespace;[ ];
+                            RightBrace;[}];
+                            NewLine;[LF];
+        MarkupTextLiteral - [45..45)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

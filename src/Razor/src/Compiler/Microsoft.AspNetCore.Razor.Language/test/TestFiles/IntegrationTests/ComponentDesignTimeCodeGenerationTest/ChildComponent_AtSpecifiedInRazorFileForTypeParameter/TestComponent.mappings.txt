@@ -1,0 +1,15 @@
+﻿Source Location: (7:0,7 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (1019:29,7 [6] )
+|string|
+
+Source Location: (21:0,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|1|
+Generated Location: (1308:38,21 [1] )
+|1|
+
+Source Location: (15:0,15 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Item|
+Generated Location: (1717:51,15 [4] )
+|Item|
+

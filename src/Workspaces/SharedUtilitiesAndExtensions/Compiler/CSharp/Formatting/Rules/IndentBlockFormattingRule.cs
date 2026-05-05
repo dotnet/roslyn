@@ -49,19 +49,12 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         nextOperation.Invoke();
 
         AddAlignmentBlockOperation(list, node);
-
         AddBlockIndentationOperation(list, node);
-
         AddBracketIndentationOperation(list, node);
-
         AddParenthesizedPatternIndentationOperation(list, node);
-
         AddLabelIndentationOperation(list, node);
-
         AddSwitchIndentationOperation(list, node);
-
         AddEmbeddedStatementsIndentationOperation(list, node);
-
         AddTypeParameterConstraintClauseOperation(list, node);
     }
 
@@ -289,18 +282,22 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
     private static void AddParenthesizedPatternIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
-        if (node is not ParenthesizedPatternSyntax parenthesizedPattern)
+        var (openParen, closeParen) = node switch
+        {
+            ParenthesizedPatternSyntax parenthesizedPattern => (parenthesizedPattern.OpenParenToken, parenthesizedPattern.CloseParenToken),
+            PositionalPatternClauseSyntax positionalPatternClause => (positionalPatternClause.OpenParenToken, positionalPatternClause.CloseParenToken),
+            _ => default,
+        };
+
+        if (openParen == default || closeParen == default)
             return;
 
-        // Add indentation for the content inside the parentheses.
         // This indents the pattern content between the opening and closing parens.
-        var startToken = parenthesizedPattern.OpenParenToken.GetNextToken(includeZeroWidth: true);
-        var endToken = parenthesizedPattern.CloseParenToken.GetPreviousToken(includeZeroWidth: true);
+        var startToken = openParen.GetNextToken(includeZeroWidth: true);
+        var endToken = closeParen.GetPreviousToken(includeZeroWidth: true);
         AddIndentBlockOperation(
             list, startToken, endToken,
-            TextSpan.FromBounds(
-                parenthesizedPattern.OpenParenToken.Span.End,
-                parenthesizedPattern.CloseParenToken.Span.Start));
+            TextSpan.FromBounds(openParen.Span.End, closeParen.Span.Start));
     }
 
     private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)

@@ -1,0 +1,57 @@
+﻿RazorDocument - [0..58)::58 - [<a onclick="() => {}"><a/></a><strong>Miscolored!</strong>]
+    MarkupBlock - [0..58)::58
+        MarkupTagHelperElement - [0..30)::30 - a[StartTagAndEndTag] - InputTagHelper1
+            MarkupTagHelperStartTag - [0..22)::22 - [<a onclick="() => {}">] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                Text;[a];
+                MarkupTagHelperAttribute - [2..21)::19 - onclick - DoubleQuotes - Unbound - [ onclick="() => {}"]
+                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [3..10)::7 - [onclick] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Text;[onclick];
+                    Equals;[=];
+                    MarkupTextLiteral - [11..12)::1 - ["] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [12..20)::8
+                        MarkupLiteralAttributeValue - [12..14)::2 - [()]
+                            MarkupTextLiteral - [12..14)::2 - [()] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                Text;[()];
+                        MarkupLiteralAttributeValue - [14..17)::3 - [ =>]
+                            MarkupTextLiteral - [14..15)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [15..17)::2 - [=>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                Equals;[=];
+                                CloseAngle;[>];
+                        MarkupLiteralAttributeValue - [17..20)::3 - [ {}]
+                            MarkupTextLiteral - [17..18)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                Whitespace;[ ];
+                            MarkupTextLiteral - [18..20)::2 - [{}] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                Text;[{}];
+                    MarkupTextLiteral - [20..21)::1 - ["] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupElement - [22..26)::4
+                MarkupStartTag - [22..26)::4 - [<a/>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                    OpenAngle;[<];
+                    Text;[a];
+                    ForwardSlash;[/];
+                    CloseAngle;[>];
+            MarkupTagHelperEndTag - [26..30)::4 - [</a>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[a];
+                CloseAngle;[>];
+        MarkupElement - [30..58)::28
+            MarkupStartTag - [30..38)::8 - [<strong>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                Text;[strong];
+                CloseAngle;[>];
+            MarkupTextLiteral - [38..49)::11 - [Miscolored!] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                Text;[Miscolored];
+                Bang;[!];
+            MarkupEndTag - [49..58)::9 - [</strong>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[strong];
+                CloseAngle;[>];
+    EndOfFile;[];

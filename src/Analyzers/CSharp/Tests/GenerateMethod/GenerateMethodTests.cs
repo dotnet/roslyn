@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMethod;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
+public sealed partial class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new GenerateMethodCodeFixProvider());
@@ -9504,7 +9504,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                             </Workspace>
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIfGeneratingInPartialClassWithFileFromSourceGenerator()
         => TestInRegularAndScriptAsync(
             """
@@ -10579,6 +10579,264 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """);
+
+    [Fact]
+    public async Task GenerateInCollection1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<string> s = [[|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    List<string> s = [Goo()];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInCollection2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    string[] s = [[|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    string[] s = [Goo()];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    public async Task GenerateInCollection3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+             <Workspace>
+                <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferencesNetCoreApp="true">
+                    <Document>using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    ReadOnlySpan&lt;string&gt; s = [[|Goo|]()];
+                }
+            }</Document>
+                </Project>
+            </Workspace>
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    ReadOnlySpan<string> s = [Goo()];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInCollection4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    IList<string> s = [[|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    IList<string> s = [Goo()];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    public async Task GenerateInCollection5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+             <Workspace>
+                <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferencesNet9="true">
+                    <Document>using System;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            
+            class C
+            {
+                void M()
+                {
+                    ImmutableArray&lt;string&gt; s = [[|Goo|]()];
+                }
+            }</Document>
+                </Project>
+            </Workspace>
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            
+            class C
+            {
+                void M()
+                {
+                    ImmutableArray<string> s = [Goo()];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    // Enable when dictionary-expressions come online.
+#if false
+    [Fact]
+    public async Task GenerateInDictionaryExpressionKey()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = [[|Goo|](): 0];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = [Goo(): 0];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInDictionaryExpressionValue()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = ["": [|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = ["": Goo()];
+                }
+            
+                private int Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+#endif
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60136")]
     public Task GenerateIntoTopLevelProgramWithPartialType()

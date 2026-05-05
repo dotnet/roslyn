@@ -1,0 +1,22 @@
+﻿RazorDocument - [0..10)::10 - [@{LF    @@]
+    MarkupBlock - [0..10)::10
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..10)::10
+            CSharpStatement - [0..10)::10
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..10)::9
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..10)::8
+                        CSharpStatementLiteral - [2..8)::6 - [LF    ] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                        CSharpEphemeralTextLiteral - [8..9)::1 - [@] - Gen<None>
+                            Transition;[@];
+                        CSharpStatementLiteral - [9..10)::1 - [@] - Gen<Stmt>
+                            Transition;[@];
+                    RazorMetaCode - [10..10)::0 - Gen<None>
+                        RightBrace;[<Missing>];
+    EndOfFile;[];

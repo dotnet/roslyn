@@ -1,0 +1,15 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(10,34): error CS1525: Invalid expression term 'int'
+// __TestNamespace_PTagHelper.Age = int;
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 34),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(12,38): error CS1525: Invalid expression term ''
+// __TestNamespace_PTagHelper.Age = 4 * @(@int + 2);
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@").WithArguments("").WithLocation(12, 38),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(12,38): error CS1002: ; expected
+// __TestNamespace_PTagHelper.Age = 4 * @(@int + 2);
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "@").WithLocation(12, 38),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(12,38): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+// __TestNamespace_PTagHelper.Age = 4 * @(@int + 2);
+Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(12, 38),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TransitionsInTagHelperAttributes.cshtml(12,39): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+// __TestNamespace_PTagHelper.Age = 4 * @(@int + 2);
+Diagnostic(ErrorCode.ERR_IllegalStatement, "(@int + 2)").WithLocation(12, 39)

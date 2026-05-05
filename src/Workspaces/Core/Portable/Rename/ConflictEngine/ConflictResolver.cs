@@ -244,8 +244,8 @@ internal static partial class ConflictResolver
                 if (semanticFactsService.SupportsParameterizedProperties)
                 {
                     otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
-                        .Where(s => !s.MatchesKind(SymbolKind.Method, SymbolKind.Property) ||
-                            !renamedSymbol.MatchesKind(SymbolKind.Method, SymbolKind.Property));
+                        .Where(s => s is not IMethodSymbol and not IPropertySymbol ||
+                                    renamedSymbol is not IMethodSymbol and not IPropertySymbol);
                 }
                 else
                 {
@@ -256,21 +256,23 @@ internal static partial class ConflictResolver
                 AddConflictingSymbolLocations(otherThingsNamedTheSameExcludeMethodAndParameterizedProperty, conflictResolution, reverseMappedLocations);
             }
 
-            if (renamedSymbol.IsKind(SymbolKind.Namespace) && renamedSymbol.ContainingSymbol.IsKind(SymbolKind.Namespace))
+            if (renamedSymbol is INamespaceSymbol { ContainingSymbol: INamespaceSymbol containingNamespace })
             {
-                var otherThingsNamedTheSame = ((INamespaceSymbol)renamedSymbol.ContainingSymbol).GetMembers(renamedSymbol.Name)
-                                                        .Where(s => !s.Equals(renamedSymbol) &&
-                                                                    !s.IsKind(SymbolKind.Namespace) &&
-                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
+                var otherThingsNamedTheSame = containingNamespace
+                    .GetMembers(renamedSymbol.Name)
+                    .Where(s => !s.Equals(renamedSymbol) &&
+                                !s.IsKind(SymbolKind.Namespace) &&
+                                string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
 
                 AddConflictingSymbolLocations(otherThingsNamedTheSame, conflictResolution, reverseMappedLocations);
             }
 
-            if (renamedSymbol.IsKind(SymbolKind.NamedType) && renamedSymbol.ContainingSymbol is INamespaceOrTypeSymbol)
+            if (renamedSymbol is INamedTypeSymbol { ContainingSymbol: INamespaceOrTypeSymbol containingTypeOrNamespace })
             {
-                var otherThingsNamedTheSame = ((INamespaceOrTypeSymbol)renamedSymbol.ContainingSymbol).GetMembers(renamedSymbol.Name)
-                                                        .Where(s => !s.Equals(renamedSymbol) &&
-                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
+                var otherThingsNamedTheSame = containingTypeOrNamespace
+                    .GetMembers(renamedSymbol.Name)
+                    .Where(s => !s.Equals(renamedSymbol) &&
+                                string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
 
                 var conflictingSymbolLocations = otherThingsNamedTheSame.Where(s => !s.IsKind(SymbolKind.Namespace));
                 if (otherThingsNamedTheSame.Any(s => s.IsKind(SymbolKind.Namespace)))

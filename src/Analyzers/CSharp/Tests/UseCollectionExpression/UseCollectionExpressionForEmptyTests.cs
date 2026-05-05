@@ -19,18 +19,6 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
 public sealed class UseCollectionExpressionForEmptyTests
 {
-    public const string CollectionBuilderAttributeDefinition = """
-
-        namespace System.Runtime.CompilerServices
-        {
-            [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
-            public sealed class CollectionBuilderAttribute : Attribute
-            {
-                public CollectionBuilderAttribute(Type builderType, string methodName) { }
-            }
-        }
-        """;
-
     [Fact]
     public Task ArrayEmpty1()
         => new VerifyCS.Test
@@ -523,7 +511,7 @@ public sealed class UseCollectionExpressionForEmptyTests
     public Task TestBuilder1()
         => new VerifyCS.Test
         {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
             TestCode = """
             using System;
             using System.Collections;
@@ -552,7 +540,7 @@ public sealed class UseCollectionExpressionForEmptyTests
             {
                 public static MyList<T> Create<T>(ReadOnlySpan<T> values) => default;
             }
-            """ + CollectionBuilderAttributeDefinition,
+            """,
             FixedCode = """
             using System;
             using System.Collections;
@@ -581,7 +569,7 @@ public sealed class UseCollectionExpressionForEmptyTests
             {
                 public static MyList<T> Create<T>(ReadOnlySpan<T> values) => default;
             }
-            """ + CollectionBuilderAttributeDefinition,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
 
@@ -589,7 +577,7 @@ public sealed class UseCollectionExpressionForEmptyTests
     public Task TestBuilder2()
         => new VerifyCS.Test
         {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
             TestCode = """
             using System;
             using System.Collections;
@@ -618,7 +606,7 @@ public sealed class UseCollectionExpressionForEmptyTests
             {
                 public static MyList<T> Create<T>(ReadOnlySpan<T> values, int x) => default;
             }
-            """ + CollectionBuilderAttributeDefinition,
+            """,
             FixedCode = """
             using System;
             using System.Collections;
@@ -647,7 +635,7 @@ public sealed class UseCollectionExpressionForEmptyTests
             {
                 public static MyList<T> Create<T>(ReadOnlySpan<T> values, int x) => default;
             }
-            """ + CollectionBuilderAttributeDefinition,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
 

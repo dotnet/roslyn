@@ -77,7 +77,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         return (PropertyDeclarationSyntax)rewriter.Visit(property);
     }
 
-    protected override Task<SyntaxNode> UpdatePropertyAsync(
+    protected override async Task<SyntaxNode> UpdatePropertyAsync(
         Document propertyDocument,
         Compilation compilation,
         IFieldSymbol fieldSymbol,
@@ -105,7 +105,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
             // Nothing to actually do.  We're not changing the accessors to `get;set;` accessors, and we didn't have to
             // add an setter.  We also had no field initializer to move over.  This can happen when we're converting to
             // using `field` and that rewrite already happened.
-            return Task.FromResult<SyntaxNode>(propertyDeclaration);
+            return propertyDeclaration;
         }
 
         // 1. If we have a trivial getters/setter then we want to convert to an accessor list to have `get;set;`
@@ -140,7 +140,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         var finalProperty = updatedProperty
             .WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia())
             .WithAdditionalAnnotations(SpecializedFormattingAnnotation);
-        return Task.FromResult<SyntaxNode>(finalProperty);
+        return finalProperty;
 
         static PropertyDeclarationSyntax MoveAttributes(
             PropertyDeclarationSyntax property,

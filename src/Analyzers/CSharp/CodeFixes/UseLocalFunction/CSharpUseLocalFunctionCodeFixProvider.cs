@@ -43,10 +43,9 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.IsSuppressed;
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_local_function, nameof(CSharpAnalyzersResources.Use_local_function));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
@@ -64,7 +63,7 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
 
         foreach (var diagnostic in diagnostics)
         {
-            var localDeclaration = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+            var localDeclaration = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
 
             var references = new List<ExpressionSyntax>(diagnostic.AdditionalLocations.Count - 2);
@@ -167,7 +166,9 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
         {
             // This is the split decl+init form.  Remove the second statement as we're
             // merging into the first one.
-            editor.RemoveNode(anonymousFunctionStatement);
+            editor.RemoveNode(anonymousFunctionStatement.Parent is GlobalStatementSyntax globalStatement
+                ? globalStatement
+                : anonymousFunctionStatement);
         }
 
         return editor.GetChangedRoot();
