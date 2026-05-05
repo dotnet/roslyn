@@ -1,0 +1,86 @@
+﻿Document - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective -  - TModel = global::System.Object
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (8:1,1 [17] Utf8StringLiterals.cshtml) - System.Text
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Utf8StringLiterals - global::Microsoft.AspNetCore.Mvc.RazorPages.Page - 
+            DesignTimeDirective - 
+                DirectiveToken - (287:7,8 [62] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TModel>
+                DirectiveToken - (350:7,71 [4] ) - Html
+                DirectiveToken - (364:8,8 [54] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper
+                DirectiveToken - (419:8,63 [4] ) - Json
+                DirectiveToken - (433:9,8 [53] ) - global::Microsoft.AspNetCore.Mvc.IViewComponentHelper
+                DirectiveToken - (487:9,62 [9] ) - Component
+                DirectiveToken - (506:10,8 [43] ) - global::Microsoft.AspNetCore.Mvc.IUrlHelper
+                DirectiveToken - (550:10,52 [3] ) - Url
+                DirectiveToken - (563:11,8 [70] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider
+                DirectiveToken - (634:11,79 [23] ) - ModelExpressionProvider
+                DirectiveToken - (673:12,14 [104] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (793:13,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (904:14,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (25:1,18 [35] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (25:1,18 [4] Utf8StringLiterals.cshtml) - Html - \n\n
+                    LazyIntermediateToken - (29:3,0 [4] Utf8StringLiterals.cshtml) - Html - <div
+                    LazyIntermediateToken - (33:3,4 [20] Utf8StringLiterals.cshtml) - Html -  class="text-center"
+                    LazyIntermediateToken - (53:3,24 [1] Utf8StringLiterals.cshtml) - Html - >
+                    LazyIntermediateToken - (54:3,25 [6] Utf8StringLiterals.cshtml) - Html - \n    
+                CSharpCode - (62:4,6 [518] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (62:4,6 [518] Utf8StringLiterals.cshtml) - CSharp - \n        // UTF-8 string literal with lowercase u8 suffix\n        ReadOnlySpan<byte> span1 = "hello"u8;\n        \n        // UTF-8 string literal with uppercase U8 suffix\n        ReadOnlySpan<byte> span2 = "world"U8;\n        \n        // Empty UTF-8 string\n        ReadOnlySpan<byte> empty = ""u8;\n        \n        // UTF-8 string with escape sequences\n        ReadOnlySpan<byte> escaped = "hello\nworld"u8;\n        \n        // UTF-8 raw string literal\n        ReadOnlySpan<byte> raw = """hello"""u8;\n    
+                HtmlContent - (583:20,0 [2] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (583:20,0 [2] Utf8StringLiterals.cshtml) - Html - \n
+                HtmlContent - (623:22,0 [7] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (623:22,0 [4] Utf8StringLiterals.cshtml) - Html -     
+                    LazyIntermediateToken - (627:22,4 [2] Utf8StringLiterals.cshtml) - Html - <p
+                    LazyIntermediateToken - (629:22,6 [1] Utf8StringLiterals.cshtml) - Html - >
+                CSharpExpression - (631:22,8 [33] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (631:22,8 [33] Utf8StringLiterals.cshtml) - CSharp - Encoding.UTF8.GetString("test"u8)
+                HtmlContent - (664:22,41 [12] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (664:22,41 [4] Utf8StringLiterals.cshtml) - Html - </p>
+                    LazyIntermediateToken - (668:22,45 [8] Utf8StringLiterals.cshtml) - Html - \n    \n
+                HtmlContent - (729:25,0 [4] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (729:25,0 [4] Utf8StringLiterals.cshtml) - Html -     
+                CSharpCode - (735:25,6 [37] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (735:25,6 [37] Utf8StringLiterals.cshtml) - CSharp - \n        var bytes = "data"u8;\n    
+                HtmlContent - (775:28,0 [6] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (775:28,0 [6] Utf8StringLiterals.cshtml) - Html -     \n
+                HtmlContent - (814:30,0 [4] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (814:30,0 [4] Utf8StringLiterals.cshtml) - Html -     
+                CSharpCode - (820:30,6 [64] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (820:30,6 [64] Utf8StringLiterals.cshtml) - CSharp - \n        ReadOnlySpan<byte> verbatim = @"path\to\file"u8;\n    
+                HtmlContent - (887:33,0 [6] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (887:33,0 [6] Utf8StringLiterals.cshtml) - Html -     \n
+                HtmlContent - (934:35,0 [4] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (934:35,0 [4] Utf8StringLiterals.cshtml) - Html -     
+                CSharpCode - (940:35,6 [96] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (940:35,6 [96] Utf8StringLiterals.cshtml) - CSharp - \n        ReadOnlySpan<byte> rawContent = """\n            raw content\n            """u8;\n    
+                HtmlContent - (1039:40,0 [10] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (1039:40,0 [6] Utf8StringLiterals.cshtml) - Html - </div>
+                    LazyIntermediateToken - (1045:40,6 [4] Utf8StringLiterals.cshtml) - Html - \n\n
+                HtmlContent - (1349:54,1 [2] Utf8StringLiterals.cshtml)
+                    LazyIntermediateToken - (1349:54,1 [2] Utf8StringLiterals.cshtml) - Html - \n
+            CSharpCode - (1061:42,12 [287] Utf8StringLiterals.cshtml)
+                LazyIntermediateToken - (1061:42,12 [287] Utf8StringLiterals.cshtml) - CSharp - \n    // UTF-8 string in @functions block\n    private ReadOnlySpan<byte> GetFunctionData()\n    {\n        return "function data"u8;\n    }\n    \n    // UTF-8 raw string literal in functions\n    private ReadOnlySpan<byte> GetRawData()\n    {\n        return """raw data"""u8;\n    }\n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #nullable restore\npublic global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Utf8StringLiterals> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Utf8StringLiterals>)PageContext?.ViewData!;\n#nullable disable
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #nullable restore\npublic TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Utf8StringLiterals Model => ViewData.Model!;\n#nullable disable

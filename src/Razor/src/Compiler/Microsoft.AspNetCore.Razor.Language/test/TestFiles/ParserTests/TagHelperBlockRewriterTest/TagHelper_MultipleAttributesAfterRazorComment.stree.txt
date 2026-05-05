@@ -1,0 +1,60 @@
+﻿RazorDocument - [0..67)::67 - [<p attr-1="first" @* comment *@ attr-2="second" attr-3="third"></p>]
+    MarkupBlock - [0..67)::67
+        MarkupTagHelperElement - [0..67)::67 - p[StartTagAndEndTag] - PTagHelper
+            MarkupTagHelperStartTag - [0..63)::63 - [<p attr-1="first" @* comment *@ attr-2="second" attr-3="third">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTagHelperAttribute - [2..17)::15 - attr-1 - DoubleQuotes - Bound - [ attr-1="first"]
+                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [3..9)::6 - [attr-1] - Gen<Markup>
+                        Text;[attr-1];
+                    Equals;[=];
+                    MarkupTextLiteral - [10..11)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [11..16)::5
+                        MarkupTextLiteral - [11..16)::5 - [first] - Gen<Markup>
+                            Text;[first];
+                    MarkupTextLiteral - [16..17)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTextLiteral - [17..18)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                RazorComment - [18..31)::13
+                    RazorCommentTransition;[@];
+                    RazorCommentStar;[*];
+                    RazorCommentLiteral;[ comment ];
+                    RazorCommentStar;[*];
+                    RazorCommentTransition;[@];
+                MarkupTagHelperAttribute - [31..47)::16 - attr-2 - DoubleQuotes - Bound - [ attr-2="second"]
+                    MarkupTextLiteral - [31..32)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [32..38)::6 - [attr-2] - Gen<Markup>
+                        Text;[attr-2];
+                    Equals;[=];
+                    MarkupTextLiteral - [39..40)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [40..46)::6
+                        MarkupTextLiteral - [40..46)::6 - [second] - Gen<Markup>
+                            Text;[second];
+                    MarkupTextLiteral - [46..47)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [47..62)::15 - attr-3 - DoubleQuotes - Bound - [ attr-3="third"]
+                    MarkupTextLiteral - [47..48)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [48..54)::6 - [attr-3] - Gen<Markup>
+                        Text;[attr-3];
+                    Equals;[=];
+                    MarkupTextLiteral - [55..56)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [56..61)::5
+                        MarkupTextLiteral - [56..61)::5 - [third] - Gen<Markup>
+                            Text;[third];
+                    MarkupTextLiteral - [61..62)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTagHelperEndTag - [63..67)::4 - [</p>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -1,0 +1,10 @@
+﻿Source Location: (27:0,27 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|"very-cool"|
+Generated Location: (1136:29,27 [11] )
+|"very-cool"|
+
+Source Location: (15:0,15 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|Coolness|
+Generated Location: (1559:42,15 [8] )
+|Coolness|
+

@@ -1,0 +1,10 @@
+﻿Source Location: (2:0,2 [26] x:\dir\subdir\Test\TestComponent.cshtml)
+| var section = "Section"; |
+Generated Location: (987:28,2 [26] )
+| var section = "Section"; |
+
+Source Location: (32:1,1 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|section|
+Generated Location: (1141:35,6 [7] )
+|section|
+

@@ -1,0 +1,44 @@
+﻿Source Location: (1:0,1 [43] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Forms|
+Generated Location: (361:12,0 [43] )
+|using Microsoft.AspNetCore.Components.Forms|
+
+Source Location: (78:2,30 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|value1|
+Generated Location: (1297:34,30 [6] )
+|value1|
+
+Source Location: (113:3,25 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|"false"|
+Generated Location: (1891:44,25 [7] )
+|"false"|
+
+Source Location: (104:3,16 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (2157:54,16 [5] )
+|Value|
+
+Source Location: (152:4,25 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|"true"|
+Generated Location: (2729:71,25 [6] )
+|"true"|
+
+Source Location: (143:4,16 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (2994:81,16 [5] )
+|Value|
+
+Source Location: (71:2,23 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (3545:101,23 [5] )
+|Value|
+
+Source Location: (194:7,7 [39] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string value1 = "true";
+|
+Generated Location: (3997:119,7 [39] )
+|
+    private string value1 = "true";
+|
+

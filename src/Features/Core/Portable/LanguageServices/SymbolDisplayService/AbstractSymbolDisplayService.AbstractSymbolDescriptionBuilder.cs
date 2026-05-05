@@ -149,6 +149,12 @@ internal abstract partial class AbstractSymbolDisplayService
         protected Compilation Compilation
             => _semanticModel.Compilation;
 
+        protected SemanticModel SemanticModel
+            => _semanticModel;
+
+        protected int Position
+            => _position;
+
         protected virtual ImmutableArray<SymbolDisplayPart> WrapConstraints(ISymbol symbol, ImmutableArray<SymbolDisplayPart> displayParts)
             => displayParts;
 
@@ -247,7 +253,7 @@ internal abstract partial class AbstractSymbolDisplayService
                 => index < 0 || index >= leadingTrivia.Count ? default : leadingTrivia[index];
         }
 
-        private void AddDocumentationContent(
+        protected virtual void AddDocumentationContent(
             ISymbol symbol,
             DocumentationComment documentationComment,
             StructuralTypeDisplayInfo typeDisplayInfo)

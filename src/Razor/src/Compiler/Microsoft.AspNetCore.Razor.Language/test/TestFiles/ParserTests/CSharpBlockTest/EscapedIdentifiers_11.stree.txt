@@ -1,0 +1,59 @@
+﻿RazorDocument - [0..118)::118 - [ @{ var validationMessage = @Html.ValidationMessage(Model.Binding, "", new { @@class = "invalid-feedback" }, "div"); }]
+    MarkupBlock - [0..118)::118
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..118)::118
+            CSharpStatementLiteral - [0..1)::1 - [ ] - Gen<Stmt>
+                Whitespace;[ ];
+            CSharpStatement - [1..118)::117
+                CSharpTransition - [1..2)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [2..118)::116
+                    RazorMetaCode - [2..3)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [3..117)::114
+                        CSharpStatementLiteral - [3..77)::74 - [ var validationMessage = @Html.ValidationMessage(Model.Binding, "", new { ] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[validationMessage];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Identifier;[@Html];
+                            Dot;[.];
+                            Identifier;[ValidationMessage];
+                            LeftParenthesis;[(];
+                            Identifier;[Model];
+                            Dot;[.];
+                            Identifier;[Binding];
+                            Comma;[,];
+                            Whitespace;[ ];
+                            StringLiteral;[""];
+                            Comma;[,];
+                            Whitespace;[ ];
+                            Keyword;[new];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                            Whitespace;[ ];
+                        CSharpEphemeralTextLiteral - [77..78)::1 - [@] - Gen<Stmt>
+                            Transition;[@];
+                        CSharpStatementLiteral - [78..117)::39 - [@class = "invalid-feedback" }, "div"); ] - Gen<Stmt>
+                            Identifier;[@class];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["invalid-feedback"];
+                            Whitespace;[ ];
+                            RightBrace;[}];
+                            Comma;[,];
+                            Whitespace;[ ];
+                            StringLiteral;["div"];
+                            RightParenthesis;[)];
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                    RazorMetaCode - [117..118)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [118..118)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

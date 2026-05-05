@@ -1,0 +1,70 @@
+﻿Document - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective -  - TModel = global::System.Object
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ExpressionsInCode - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            DesignTimeDirective - 
+                DirectiveToken - (287:7,8 [62] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TModel>
+                DirectiveToken - (350:7,71 [4] ) - Html
+                DirectiveToken - (364:8,8 [54] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper
+                DirectiveToken - (419:8,63 [4] ) - Json
+                DirectiveToken - (433:9,8 [53] ) - global::Microsoft.AspNetCore.Mvc.IViewComponentHelper
+                DirectiveToken - (487:9,62 [9] ) - Component
+                DirectiveToken - (506:10,8 [43] ) - global::Microsoft.AspNetCore.Mvc.IUrlHelper
+                DirectiveToken - (550:10,52 [3] ) - Url
+                DirectiveToken - (563:11,8 [70] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider
+                DirectiveToken - (634:11,79 [23] ) - ModelExpressionProvider
+                DirectiveToken - (673:12,14 [104] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (793:13,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (904:14,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                CSharpCode - (2:0,2 [51] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (2:0,2 [51] ExpressionsInCode.cshtml) - CSharp - \n    object foo = null;\n    string bar = "Foo";\n
+                HtmlContent - (56:4,0 [2] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (56:4,0 [2] ExpressionsInCode.cshtml) - Html - \n
+                CSharpCode - (59:5,1 [23] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (59:5,1 [23] ExpressionsInCode.cshtml) - CSharp - if(foo != null) {\n    
+                CSharpExpression - (83:6,5 [3] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (83:6,5 [3] ExpressionsInCode.cshtml) - CSharp - foo
+                CSharpCode - (86:6,8 [16] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (86:6,8 [16] ExpressionsInCode.cshtml) - CSharp - \n} else {\n    
+                HtmlContent - (102:8,4 [19] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (102:8,4 [2] ExpressionsInCode.cshtml) - Html - <p
+                    LazyIntermediateToken - (104:8,6 [1] ExpressionsInCode.cshtml) - Html - >
+                    LazyIntermediateToken - (105:8,7 [12] ExpressionsInCode.cshtml) - Html - Foo is Null!
+                    LazyIntermediateToken - (117:8,19 [4] ExpressionsInCode.cshtml) - Html - </p>
+                CSharpCode - (121:8,23 [3] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (121:8,23 [3] ExpressionsInCode.cshtml) - CSharp - \n}
+                HtmlContent - (124:9,1 [9] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (124:9,1 [4] ExpressionsInCode.cshtml) - Html - \n\n
+                    LazyIntermediateToken - (128:11,0 [2] ExpressionsInCode.cshtml) - Html - <p
+                    LazyIntermediateToken - (130:11,2 [1] ExpressionsInCode.cshtml) - Html - >
+                    LazyIntermediateToken - (131:11,3 [2] ExpressionsInCode.cshtml) - Html - \n
+                CSharpCode - (134:12,1 [38] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (134:12,1 [38] ExpressionsInCode.cshtml) - CSharp - if(!String.IsNullOrEmpty(bar)) {\n    
+                CSharpExpression - (174:13,6 [21] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (174:13,6 [21] ExpressionsInCode.cshtml) - CSharp - bar.Replace("F", "B")
+                CSharpCode - (196:13,28 [3] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (196:13,28 [3] ExpressionsInCode.cshtml) - CSharp - \n}
+                HtmlContent - (199:14,1 [6] ExpressionsInCode.cshtml)
+                    LazyIntermediateToken - (199:14,1 [2] ExpressionsInCode.cshtml) - Html - \n
+                    LazyIntermediateToken - (201:15,0 [4] ExpressionsInCode.cshtml) - Html - </p>
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

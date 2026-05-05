@@ -1,0 +1,23 @@
+﻿Source Location: (19:0,19 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentValue|
+Generated Location: (1090:29,19 [11] )
+|ParentValue|
+
+Source Location: (49:0,49 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|UpdateValue|
+Generated Location: (1496:38,49 [11] )
+|UpdateValue|
+
+Source Location: (73:1,7 [124] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public string ParentValue { get; set; } = "hi";
+
+    public void UpdateValue(string value) => ParentValue = value;
+|
+Generated Location: (1735:48,7 [124] )
+|
+    public string ParentValue { get; set; } = "hi";
+
+    public void UpdateValue(string value) => ParentValue = value;
+|
+

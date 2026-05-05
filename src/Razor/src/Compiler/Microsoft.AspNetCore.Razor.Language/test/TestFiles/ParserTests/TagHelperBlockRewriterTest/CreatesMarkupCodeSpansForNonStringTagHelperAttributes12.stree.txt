@@ -1,0 +1,48 @@
+﻿RazorDocument - [0..39)::39 - [<person age="@{flag == 0 ? 11 : 12}" />]
+    MarkupBlock - [0..39)::39
+        MarkupTagHelperElement - [0..39)::39 - person[SelfClosing] - PersonTagHelper
+            MarkupTagHelperStartTag - [0..39)::39 - [<person age="@{flag == 0 ? 11 : 12}" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[person];
+                MarkupTagHelperAttribute - [7..36)::29 - age - DoubleQuotes - Bound - [ age="@{flag == 0 ? 11 : 12}"]
+                    MarkupTextLiteral - [7..8)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [8..11)::3 - [age] - Gen<Markup>
+                        Text;[age];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [13..35)::22
+                        MarkupBlock - [13..35)::22
+                            CSharpCodeBlock - [13..35)::22
+                                CSharpStatement - [13..35)::22
+                                    CSharpTransition - [13..14)::1 - Gen<None>
+                                        Transition;[@];
+                                    CSharpStatementBody - [14..35)::21
+                                        RazorMetaCode - [14..15)::1 - Gen<None>
+                                            LeftBrace;[{];
+                                        CSharpCodeBlock - [15..34)::19
+                                            CSharpStatementLiteral - [15..34)::19 - [flag == 0 ? 11 : 12] - Gen<Stmt>
+                                                Identifier;[flag];
+                                                Whitespace;[ ];
+                                                CSharpOperator;[==];
+                                                Whitespace;[ ];
+                                                NumericLiteral;[0];
+                                                Whitespace;[ ];
+                                                QuestionMark;[?];
+                                                Whitespace;[ ];
+                                                NumericLiteral;[11];
+                                                Whitespace;[ ];
+                                                Colon;[:];
+                                                Whitespace;[ ];
+                                                NumericLiteral;[12];
+                                        RazorMetaCode - [34..35)::1 - Gen<None>
+                                            RightBrace;[}];
+                    MarkupTextLiteral - [35..36)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [36..37)::1
+                    MarkupTextLiteral - [36..37)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

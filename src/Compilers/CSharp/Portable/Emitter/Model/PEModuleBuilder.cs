@@ -1903,6 +1903,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
         }
 
+        internal SynthesizedAttributeData TrySynthesizeRequiresUnsafeAttribute()
+        {
+            return TrySynthesizeRequiresUnsafeAttributeCore();
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeRequiresUnsafeAttributeCore()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor);
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeParamCollectionAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.

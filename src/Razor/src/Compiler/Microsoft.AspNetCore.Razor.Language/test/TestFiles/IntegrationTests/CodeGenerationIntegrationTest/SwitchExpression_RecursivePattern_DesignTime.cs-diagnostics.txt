@@ -1,0 +1,15 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml(6,10): error CS8985: List patterns may not be used for a value of type 'DateTimeOffset'. No suitable 'Length' or 'Count' property was found.
+//     case [{ Test: true }]:
+Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[{ Test: true }]").WithArguments("System.DateTimeOffset").WithLocation(6, 10),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml(6,10): error CS0021: Cannot apply indexing with [] to an expression of type 'DateTimeOffset'
+//     case [{ Test: true }]:
+Diagnostic(ErrorCode.ERR_BadIndexLHS, "[{ Test: true }]").WithArguments("System.DateTimeOffset").WithLocation(6, 10),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml(8,13): error CS0117: 'DateTimeOffset' does not contain a definition for 'Test'
+//     case ({ Test: { Nested.Pattern: global::Qualifier } }):
+Diagnostic(ErrorCode.ERR_NoSuchMember, "Test").WithArguments("System.DateTimeOffset", "Test").WithLocation(8, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml(8,45): error CS0400: The type or namespace name 'Qualifier' could not be found in the global namespace (are you missing an assembly reference?)
+//     case ({ Test: { Nested.Pattern: global::Qualifier } }):
+Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "Qualifier").WithArguments("Qualifier").WithLocation(8, 45),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml(10,18): error CS0400: The type or namespace name 'Test' could not be found in the global namespace (are you missing an assembly reference?)
+//     case global::Test:
+Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "Test").WithArguments("Test").WithLocation(10, 18)

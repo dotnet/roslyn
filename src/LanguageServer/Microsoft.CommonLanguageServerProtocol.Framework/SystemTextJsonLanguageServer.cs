@@ -71,7 +71,7 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
         /// StreamJsonRpc entry point for handlers with no parameters.
         /// Unlike Newtonsoft, we have to differentiate instead of using default parameters.
         /// </summary>
-        private Task<JsonElement?> ExecuteRequest0Async(CancellationToken cancellationToken = default)
+        private Task<object?> ExecuteRequest0Async(CancellationToken cancellationToken = default)
         {
             return ExecuteRequestAsync(null, cancellationToken);
         }
@@ -79,19 +79,20 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
         /// <summary>
         /// StreamJsonRpc entry point for handlers with parameters (and any response) type.
         /// </summary>
-        private async Task<JsonElement?> ExecuteRequestAsync(JsonElement? request, CancellationToken cancellationToken = default)
+        /// <remarks>
+        /// Returns the handler's typed result directly as <see cref="object"/> rather than
+        /// pre-serializing it into a <see cref="JsonElement"/>. StreamJsonRpc will serialize the
+        /// result to the wire using <see cref="JsonSerializer"/> with the runtime type's converter,
+        /// producing identical JSON. Returning <see cref="object"/> avoids a redundant
+        /// serialize-then-reserialize round-trip that <see cref="JsonSerializer.SerializeToElement(object?, Type, JsonSerializerOptions?)"/>
+        /// would otherwise cause (object → byte[] → JsonDocument → JsonElement → wire bytes).
+        /// </remarks>
+        private async Task<object?> ExecuteRequestAsync(JsonElement? request, CancellationToken cancellationToken = default)
         {
             var queue = target.GetRequestExecutionQueue();
             var lspServices = target.GetLspServices();
 
-            var result = await InvokeAsync(queue, request, lspServices, cancellationToken).ConfigureAwait(false);
-            if (result is null)
-            {
-                return null;
-            }
-
-            var serializedResult = JsonSerializer.SerializeToElement(result, target._jsonSerializerOptions);
-            return serializedResult;
+            return await InvokeAsync(queue, request, lspServices, cancellationToken).ConfigureAwait(false);
         }
     }
 }

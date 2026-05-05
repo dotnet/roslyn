@@ -1,0 +1,6 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml(2,12): error CS0246: The type or namespace name 'HelperResult' could not be found (are you missing a using directive or an assembly reference?)
+//     public HelperResult Repeat(int times, Func<int, object> template) {
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "HelperResult").WithArguments("HelperResult").WithLocation(2, 12),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml(3,20): error CS0246: The type or namespace name 'HelperResult' could not be found (are you missing a using directive or an assembly reference?)
+//         return new HelperResult((writer) => {
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "HelperResult").WithArguments("HelperResult").WithLocation(3, 20)

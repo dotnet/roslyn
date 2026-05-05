@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
+    <IsShipping>false</IsShipping>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <TargetFrameworks>$(NetVSAndVSCode)</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(SharedFilesRoot)Compiler\MSN.cshtml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(SharedFilesRoot)Compiler\BlazorServerTagHelpers.razor" CopyToOutputDirectory="PreserveNewest" />
+
+    <Compile Remove="Resources\**\*.*" />
+    <None Remove="Resources\**\*.*" />
+
+    <EmbeddedResource Include="Resources\**\*.*" />
+    <EmbeddedResource Include="$(SharedFilesRoot)\Tooling\**\*.*" Link="Resources\Tooling\%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="$(SharedFilesRoot)\Compiler\**\*.*" Link="Resources\Compiler\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>
