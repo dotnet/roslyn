@@ -386,7 +386,7 @@ internal partial class CSharpFormattingPass
                 else
                 {
                     // Take the users indentation, and subtract our desired attribute indentation, so its not added repeatedly.
-                    var indentationWidth = Math.Abs(_currentLine.GetIndentationSize(_tabSize) - attributeIndentationWidth);
+                    var indentationWidth = Math.Max(_currentLine.GetIndentationSize(_tabSize) - attributeIndentationWidth, 0);
                     _builder.Append(FormattingUtilities.GetIndentationString(indentationWidth, _insertSpaces, _tabSize));
 
                     // Because nobody said lambdas weren't painful, or rather I always complain that they are
