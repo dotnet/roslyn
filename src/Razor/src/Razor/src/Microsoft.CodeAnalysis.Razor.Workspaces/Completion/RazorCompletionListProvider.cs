@@ -142,7 +142,7 @@ internal class RazorCompletionListProvider(
             IsIncomplete = false,
         };
 
-        var completionCapability = clientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
+        var completionCapability = clientCapabilities.TextDocument?.Completion;
 
         return CompletionListOptimizer.Optimize(completionList, completionCapability);
     }

@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal static class CompletionListOptimizer
 {
-    public static RazorVSInternalCompletionList Optimize(RazorVSInternalCompletionList completionList, VSInternalCompletionSetting? completionCapability)
+    public static RazorVSInternalCompletionList Optimize(RazorVSInternalCompletionList completionList, CompletionSetting? completionCapability)
     {
-        if (completionCapability is not null)
+        if (completionCapability is VSInternalCompletionSetting vsCompletionCapability)
         {
-            completionList = OptimizeCommitCharacters(completionList, completionCapability);
+            completionList = OptimizeCommitCharacters(completionList, vsCompletionCapability);
         }
 
         completionList = PromoteEditRangeToListDefaults(completionList, completionCapability);
@@ -84,7 +84,7 @@ internal static class CompletionListOptimizer
         return completionList;
     }
 
-    private static RazorVSInternalCompletionList PromoteEditRangeToListDefaults(RazorVSInternalCompletionList completionList, VSInternalCompletionSetting? completionCapability)
+    private static RazorVSInternalCompletionList PromoteEditRangeToListDefaults(RazorVSInternalCompletionList completionList, CompletionSetting? completionCapability)
     {
         // Check if client supports editRange in ItemDefaults
         var itemDefaults = completionCapability?.CompletionListSetting?.ItemDefaults;
