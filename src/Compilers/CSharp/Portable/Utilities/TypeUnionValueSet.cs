@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal readonly struct CaseInfo(TypeSymbol caseType, TypeSymbol? originalClosedBase)
         {
-            internal TypeSymbol CaseType { get; } = caseType;
+            internal readonly TypeSymbol CaseType = caseType;
 
             /// <summary>If <see cref="CaseType"/> was included in the set due to being a subtype of a closed type, this is the original closed type it was expanded from.</summary>
-            internal TypeSymbol? OriginalClosedBase { get; } = originalClosedBase;
+            internal readonly TypeSymbol? OriginalClosedBase = originalClosedBase;
 
             private string GetDebuggerDisplay()
             {
@@ -283,6 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return sampleType;
                 }
 
+                Debug.Assert(originalClosedBase is NamedTypeSymbol { IsClosed: true });
                 while (isInvalidClosedSubtype(namedType, originalClosedBase, binder, ref useSiteInfo))
                     namedType = namedType.BaseTypeNoUseSiteDiagnostics;
 
@@ -290,9 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 static bool isInvalidClosedSubtype(NamedTypeSymbol possibleClosedSubtype, TypeSymbol originalClosedBase, Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
                 {
-                    if (possibleClosedSubtype.BaseTypeNoUseSiteDiagnostics?.IsClosed is null or false)
-                        return false;
-
                     // Do not suggest matching a type which is "more base" than original base type it was expanded from.
                     if (originalClosedBase.OriginalDefinition.Equals(possibleClosedSubtype.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
                         return false;

@@ -52,23 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static void AddCaseInfo(ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, TypeSymbol caseType, NamedTypeSymbol? originalClosedBase)
             {
-                var index = builder.FindIndex((existingCaseInfo, caseType) => existingCaseInfo.CaseType.Equals(caseType, TypeCompareKind.AllIgnoreOptions), caseType);
-                if (index != -1)
-                {
-                    // Subtype is already present, possibly with a different 'originalClosedBase'.
-                    // One scenario where this can occur is when a union contains multiple closed types in the same hierarchy.
-                    // In this case, apply the following rule:
-                    // - If one case is missing an 'originalClosedBase', pick the other 'originalClosedBase'.
-                    // - If both cases have an originalBase, pick the more base of the two.
-                    // This is thought to keep a similarity in behavior, between a union which includes both a base and derived type, and a union which includes only the base type.
-                    var existingCaseInfo = builder[index];
-                    var discardedInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    if (originalClosedBase is not null && (existingCaseInfo.OriginalClosedBase is null || existingCaseInfo.OriginalClosedBase.IsDerivedFrom(originalClosedBase, TypeCompareKind.AllIgnoreOptions, ref discardedInfo)))
-                    {
-                        builder[index] = new TypeUnionValueSet.CaseInfo(caseType, originalClosedBase);
-                    }
-                }
-                else
+                // PROTOTYPE(cc): There may be a need to report diagnostics when "runtime-equivalent" yet distinct caseTypes flow in.
+                // For example, when the caseTypes have nullability differences.
+                if (!builder.Any((existing, caseType) => existing.CaseType.Equals(caseType, TypeCompareKind.AllIgnoreOptions), caseType))
                 {
                     builder.Add(new TypeUnionValueSet.CaseInfo(caseType, originalClosedBase));
                 }
