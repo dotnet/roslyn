@@ -979,7 +979,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
         // The list should have a TextEdit that replaces the full "bind-Value:after" span (not just "bind-")
         // This prevents the editor's word-boundary heuristic from stopping at the colon and duplicating ":after"
-        Assert.True(result.ItemDefaults!.EditRange.HasValue, "Expected a TextEdit on the completion list to prevent duplication");
+        Assert.True(result.ItemDefaults!.EditRange.HasValue, "Expected ItemDefaults.EditRange on the completion list to prevent duplication");
         Assert.Equal("bind-value:format", item.TextEditText);
         var textEditRange = Assert.IsType<LspRange>(result.ItemDefaults!.EditRange.Value.Value);
 
