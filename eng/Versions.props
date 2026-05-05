@@ -17,6 +17,26 @@
     <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
   </PropertyGroup>
 
+  <!-- Razor version (used by src/Razor projects and VS insertion) -->
+  <PropertyGroup>
+    <RazorMajorVersion>10</RazorMajorVersion>
+    <RazorMinorVersion>4</RazorMinorVersion>
+    <RazorPatchVersion>0</RazorPatchVersion>
+    <RazorPreReleaseVersionLabel>preview</RazorPreReleaseVersionLabel>
+    <RazorDotNetFinalVersionKind></RazorDotNetFinalVersionKind>
+    <RazorVersionPrefix>$(RazorMajorVersion).$(RazorMinorVersion).$(RazorPatchVersion)</RazorVersionPrefix>
+    <RazorAssemblyVersion>$(RazorMajorVersion).$(RazorMinorVersion).0.0</RazorAssemblyVersion>
+  </PropertyGroup>
+
+  <!-- Razor tooling version -->
+  <PropertyGroup>
+    <RazorVsixVersionPrefix>18.8.1</RazorVsixVersionPrefix>
+    <RazorAddinMajorVersion>18.8</RazorAddinMajorVersion>
+    <RazorAddinVersion>$(RazorAddinMajorVersion)</RazorAddinVersion>
+    <RazorAddinVersion Condition="'$(OfficialBuildId)' != ''">$(RazorAddinVersion).$(OfficialBuildId)</RazorAddinVersion>
+    <RazorAddinVersion Condition="'$(OfficialBuildId)' == ''">$(RazorAddinVersion).42424242.42</RazorAddinVersion>
+  </PropertyGroup>
+
   <!--
     The maintenance-packages dependency versions need to be conditionally selected:
     https://github.com/dotnet/sdk/issues/45155
