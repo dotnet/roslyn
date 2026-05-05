@@ -222,7 +222,7 @@ static async Task RunAsync(
     var (downloadUrl, artifactSize) = await GetArtifactDownloadUrlAsync(httpClient, azdoBaseUrl, buildInfo.buildId, artifactName).ConfigureAwait(false);
 
     if (artifactSize.HasValue)
-        Console.WriteLine($"  Artifact size: {artifactSize.Value / 1024 / 1024:N0} MB");
+        Console.WriteLine($"  Artifact size (uncompressed): {artifactSize.Value / 1024 / 1024:N0} MB");
 
     if (!dryRun)
     {
@@ -536,8 +536,11 @@ static async Task DownloadAndExtractArtifactAsync(HttpClient client, string down
     if (!response.IsSuccessStatusCode)
         throw new InvalidOperationException($"Failed to download artifact ({(int)response.StatusCode}).");
 
-    // Prefer Content-Length from the response, fall back to the artifact size from the API.
-    var contentLength = response.Content.Headers.ContentLength ?? artifactSize;
+    // The artifact size from the API is the pipeline artifact's logical size, not necessarily
+    // the compressed zip download size. Only use Content-Length for percentage progress.
+    var contentLength = response.Content.Headers.ContentLength;
+    if (!contentLength.HasValue && artifactSize.HasValue)
+        Console.WriteLine("  Compressed download size is not available; showing compressed bytes downloaded.");
 
     var tempZipPath = Path.GetTempFileName();
     try
@@ -603,20 +606,32 @@ static void ExtractZipToDirectory(string zipPath, string artifactName, string de
 
 static async Task CopyWithProgressAsync(Stream source, Stream destination, long? totalBytes, CancellationToken cancellationToken)
 {
+    const long ReportIntervalBytes = 10 * 1024 * 1024;
+
     var buffer = new byte[81920];
     long bytesRead = 0;
+    long lastReportedBytes = 0;
     int read;
     while ((read = await source.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
     {
         await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
         bytesRead += read;
-        if (totalBytes.HasValue)
+        if (totalBytes is > 0)
         {
             var percent = bytesRead * 100 / totalBytes.Value;
             Console.Write($"\r  Progress: {percent}% ({bytesRead / 1024 / 1024:N0} / {totalBytes.Value / 1024 / 1024:N0} MB)  ");
         }
+        else if (bytesRead - lastReportedBytes >= ReportIntervalBytes)
+        {
+            Console.Write($"\r  Downloaded (compressed): {bytesRead / 1024 / 1024:N0} MB  ");
+            lastReportedBytes = bytesRead;
+        }
     }
-    if (totalBytes.HasValue)
+    if (totalBytes is > 0)
+        Console.WriteLine();
+    else if (bytesRead > 0)
+        Console.WriteLine($"\r  Downloaded (compressed): {bytesRead / 1024 / 1024:N0} MB  ");
+    else
         Console.WriteLine();
 }
 
