@@ -56,13 +56,12 @@ internal sealed class OnAutoInsertHandler(
             return null;
 
         var servicesForDocument = _braceCompletionServices.SelectAsArray(s => s.Metadata.Language == document.Project.Language, s => s.Value);
-        var isRazorRequest = context.ServerKind == WellKnownLspServerKinds.RazorLspServer;
         var position = ProtocolConversions.PositionToLinePosition(request.Position);
         var supportsVSExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
 
-        // We want adjust the braces after enter for razor and non-VS clients.
+        // We want adjust the braces after enter for non-VS clients.
         // We don't do this via on type formatting as it does not support snippets.
-        var includeNewLineBraceFormatting = isRazorRequest || !supportsVSExtensions;
+        var includeNewLineBraceFormatting = !supportsVSExtensions;
         return await GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, request.Options, includeNewLineBraceFormatting, cancellationToken).ConfigureAwait(false);
     }
 

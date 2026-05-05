@@ -381,22 +381,4 @@ public sealed partial class OnAutoInsertTests(ITestOutputHelper testOutputHelper
                 }
             }
             """, mutatingLspWorkspace, useVSCapabilities: true);
-
-    [Theory, CombinatorialData]
-    public Task OnAutoInsert_BraceFormattingForRazorVS(bool mutatingLspWorkspace, bool useVSCapabilities)
-        => VerifyCSharpMarkupAndExpected("\n", """
-            class A
-            {
-                void M() {{|type:|}
-                }
-            }
-            """, """
-            class A
-            {
-                void M()
-                {
-                    $0
-                }
-            }
-            """, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer, useVSCapabilities: useVSCapabilities);
 }
