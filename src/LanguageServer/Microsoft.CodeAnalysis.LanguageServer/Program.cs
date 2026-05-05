@@ -211,12 +211,6 @@ static RootCommand CreateCommand()
         Required = false
     };
 
-    var razorDesignTimePathOption = new Option<string?>("--razorDesignTimePath")
-    {
-        Description = "Full path to the Razor design time target path (optional).",
-        Required = false
-    };
-
     var csharpDesignTimePathOption = new Option<string?>("--csharpDesignTimePath")
     {
         Description = "Full path to the C# design time target path (optional).",
@@ -266,7 +260,6 @@ static RootCommand CreateCommand()
         sessionIdOption,
         extensionAssemblyPathsOption,
         devKitDependencyPathOption,
-        razorDesignTimePathOption,
         csharpDesignTimePathOption,
         extensionLogDirectoryOption,
         serverPipeNameOption,
@@ -284,7 +277,6 @@ static RootCommand CreateCommand()
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
-        var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var csharpDesignTimePath = parseResult.GetValue(csharpDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption);
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
@@ -300,7 +292,6 @@ static RootCommand CreateCommand()
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
-            RazorDesignTimePath: razorDesignTimePath,
             CSharpDesignTimePath: csharpDesignTimePath,
             ServerPipeName: serverPipeName,
             UseStdIo: useStdIo,
