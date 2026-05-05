@@ -160,10 +160,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     continue;
                 }
 
-                    if (assembly.IsDynamic)
-                    {
-                        continue;
-                    }
+                if (assembly.IsDynamic)
+                {
+                    continue;
+                }
 
                     var location = assembly.Location;
 
