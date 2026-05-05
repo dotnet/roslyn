@@ -42,9 +42,6 @@ stages:
     displayName: Roslyn VS Integration
     templateContext:
       filter: ${{ parameters.testStageFilter }}
-    variables:
-    - name: XUNIT_LOGS
-      value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
     testLabPoolName: VS-Platform
     testMachineCleanUpStrategy: ${{ parameters.testMachineCleanUpStrategy }}
     testMachineRetention: ${{ parameters.testMachineRetention }}
@@ -65,6 +62,9 @@ stages:
         release_64:
           _configuration: Release
           _oop64bit: true
+    testExecutionJobVariables:
+    - name: XUNIT_LOGS
+      value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
     testMachineTotalCount: 4
     testAgentElevated: true
     preTestMachineConfigurationStepList:
