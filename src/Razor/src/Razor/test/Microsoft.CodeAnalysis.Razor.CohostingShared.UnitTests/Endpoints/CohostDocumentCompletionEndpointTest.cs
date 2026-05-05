@@ -923,7 +923,8 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["culture", "event", "format", "get", "set", "after"],
-            unexpectedItemLabels: ["dir", "lang", "@bind-Value"]);
+            unexpectedItemLabels: ["dir", "lang", "@bind-Value"],
+            htmlItemLabels: ["dir", "lang"]);
     }
 
     // Tests that cursor immediately after colon (no parameter text yet) shows bind modifiers
@@ -945,7 +946,8 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["culture", "event", "format", "get", "set", "after"],
-            unexpectedItemLabels: ["dir", "lang", "@bind-Value"]);
+            unexpectedItemLabels: ["dir", "lang", "@bind-Value"],
+            htmlItemLabels: ["dir", "lang"]);
     }
 
     // Tests that committing a directive attribute parameter completion with an existing parameter
@@ -968,7 +970,8 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["@bind-value", "@bind-value:format"],
-            unexpectedItemLabels: ["dir", "lang"]);
+            unexpectedItemLabels: ["dir", "lang"],
+            htmlItemLabels: ["dir", "lang"]);
 
         Assert.NotNull(result);
 
