@@ -15822,14 +15822,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
 
-            // https://github.com/dotnet/roslyn/issues/82636: This is another case of behavior consistent with explicit property patterns. See below
             comp.VerifyDiagnostics(
                 // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19),
-                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { int => 1, bool => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19)
                 );
 
             var src2 = @"
@@ -15844,7 +15840,7 @@ class Program
     static void Test2(S1 s)
     {
         _ = s.Value;
-        if (s is  { Value: not int })
+        if (s is not { Value: int })
         {
 #line 1000
             _ = s switch { { Value: {} } => 1 };
@@ -16047,14 +16043,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
 
-            // https://github.com/dotnet/roslyn/issues/82636: This is another case of behavior consistent with explicit property patterns. See below
             comp.VerifyDiagnostics(
                 // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19),
-                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { int => 1, bool => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19)
                 );
 
             var src2 = @"
@@ -16069,7 +16061,7 @@ class Program
     static void Test2(S1 s)
     {
         _ = s.Value;
-        if (s is  { Value: not 1 })
+        if (s is not { Value: 1 })
         {
 #line 1000
             _ = s switch { { Value: {} } => 1 };
@@ -17130,6 +17122,816 @@ class Program
                 // (400,13): warning CS8602: Dereference of a possibly null reference.
                 //             s.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(400, 13)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_46_State_From_isExplicitNotNullTest([CombinatorialValues("int", "System.Int32")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object? Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S2 s)
+    {
+        if (s is " + typeNameSyntax + @") return;
+
+#line 100
+        s.Value.ToString();
+    } 
+
+    static void Test2(S3 s)
+    {
+        if (s is { Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_47_State_From_isExplicitNotNullTest([CombinatorialValues("object", "System.Object")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S2 s)
+    {
+        if (s is " + typeNameSyntax + @") return;
+
+#line 100
+        s.Value.ToString();
+    } 
+
+    static void Test2(S3 s)
+    {
+        if (s is { Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 9),
+                // (200,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_48_State_From_isExplicitNotNullTest([CombinatorialValues("int", "System.Int32")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+struct S0<T>
+{
+    public T S => default(T)!;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object? Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S0<S2> s)
+    {
+        if (s is { S: " + typeNameSyntax + @" }) return;
+
+#line 100
+        s.S.Value.ToString();
+    } 
+
+    static void Test2(S0<S3> s)
+    {
+        if (s is { S.Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.S.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_49_State_From_isExplicitNotNullTest([CombinatorialValues("object", "System.Object")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+struct S0<T>
+{
+    public T S => default(T)!;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S0<S2> s)
+    {
+        if (s is { S: " + typeNameSyntax + @" }) return;
+
+#line 100
+        s.S.Value.ToString();
+    } 
+
+    static void Test2(S0<S3> s)
+    {
+        if (s is { S.Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.S.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.S.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(100, 9),
+                // (200,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.S.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(200, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_50_State_From_isExplicitNotNullTest([CombinatorialValues("int", "System.Int32")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object? Value => throw null!;
+}
+
+class S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S2 s)
+    {
+        if (s is " + typeNameSyntax + @") return;
+
+#line 100
+        s.Value.ToString();
+    } 
+
+    static void Test2(S3 s)
+    {
+        if (s is { Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_51_State_From_isExplicitNotNullTest([CombinatorialValues("object", "System.Object")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object Value => throw null!;
+}
+
+class S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S2 s)
+    {
+        if (s is " + typeNameSyntax + @") return;
+
+#line 100
+        s.Value.ToString();
+    } 
+
+    static void Test2(S3 s)
+    {
+        if (s is { Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 9),
+                // (200,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_52_State_From_isExplicitNotNullTest([CombinatorialValues("int", "System.Int32")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+struct S0<T> where T : class
+{
+    public T S => default(T)!;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object? Value => throw null!;
+}
+
+class S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S0<S2> s)
+    {
+        if (s is { S: " + typeNameSyntax + @" }) return;
+
+#line 100
+        s.S.Value.ToString();
+    } 
+
+    static void Test2(S0<S3> s)
+    {
+        if (s is { S.Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.S.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_53_State_From_isExplicitNotNullTest([CombinatorialValues("object", "System.Object")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+struct S0<T> where T : class
+{
+    public T S => default(T)!;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object Value => throw null!;
+}
+
+class S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S0<S2> s)
+    {
+        if (s is { S: " + typeNameSyntax + @" }) return;
+
+#line 100
+        s.S.Value.ToString();
+    } 
+
+    static void Test2(S0<S3> s)
+    {
+        if (s is { S.Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.S.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.S.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(100, 9),
+                // (200,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.S.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(200, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_54_State_From_isExplicitNotNullTest([CombinatorialValues("int", "System.Int32")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object? Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S2? s)
+    {
+        if (s is null) return;
+        if (s is " + typeNameSyntax + @") return;
+
+#line 100
+        s.Value.Value.ToString();
+    } 
+
+    static void Test2(S3? s)
+    {
+        if (s is null) return;
+        if (s is { Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.Value.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_55_State_From_isExplicitNotNullTest([CombinatorialValues("object", "System.Object")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S2? s)
+    {
+        if (s is null) return;
+        if (s is " + typeNameSyntax + @") return;
+
+#line 100
+        s.Value.Value.ToString();
+    } 
+
+    static void Test2(S3? s)
+    {
+        if (s is null) return;
+        if (s is { Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.Value.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Value").WithLocation(100, 9),
+                // (200,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Value").WithLocation(200, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_56_State_From_isExplicitNotNullTest([CombinatorialValues("int", "System.Int32")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+struct S0<T> where  T : struct
+{
+    public T? S => default(T)!;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object? Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S0<S2> s)
+    {
+        if (s.S is null) return;
+        if (s is { S: " + typeNameSyntax + @" }) return;
+
+#line 100
+        s.S.Value.Value.ToString();
+    } 
+
+    static void Test2(S0<S3> s)
+    {
+        if (s.S is null) return;
+        if (s is { S.Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.S.Value.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_57_State_From_isExplicitNotNullTest([CombinatorialValues("object", "System.Object")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+struct S0<T> where T : struct
+{
+    public T? S => default(T)!;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S0<S2> s)
+    {
+        if (s.S is null) return;
+        if (s is { S: " + typeNameSyntax + @" }) return;
+
+#line 100
+        s.S.Value.Value.ToString();
+    } 
+
+    static void Test2(S0<S3> s)
+    {
+        if (s.S is null) return;
+        if (s is { S.Value: " + typeNameSyntax + @" }) return;
+
+#line 200
+        s.S.Value.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.S.Value.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value.Value").WithLocation(100, 9),
+                // (200,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.S.Value.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value.Value").WithLocation(200, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_58_State_From_isExplicitNotNullTest([CombinatorialValues("int", "System.Int32")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object? Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S2 s)
+    {
+        switch (s)
+        {
+            case " + typeNameSyntax + @": return;
+            default:
+#line 100
+                s.Value.ToString();
+                break;
+        }
+    } 
+
+    static void Test2(S3 s)
+    {
+        switch (s)
+        {
+            case { Value: " + typeNameSyntax + @" }: return;
+            default:
+#line 200
+                s.Value.ToString();
+                break;
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_59_State_From_isExplicitNotNullTest([CombinatorialValues("object", "System.Object")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static void Test1(S2 s)
+    {
+        switch (s)
+        {
+            case " + typeNameSyntax + @": return;
+            default:
+#line 100
+                s.Value.ToString();
+                break;
+        }
+    } 
+
+    static void Test2(S3 s)
+    {
+        switch (s)
+        {
+            case { Value: " + typeNameSyntax + @" }: return;
+            default:
+#line 200
+                s.Value.ToString();
+                break;
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,17): warning CS8602: Dereference of a possibly null reference.
+                //                 s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 17),
+                // (200,17): warning CS8602: Dereference of a possibly null reference.
+                //                 s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 17)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_61_State_From_isExplicitNotNullTest([CombinatorialValues("int", "System.Int32")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object? Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static string? Test1(S2 s)
+    {
+        return s switch
+        {
+            " + typeNameSyntax + @" => null,
+            _ =>
+#line 100
+                s.Value.ToString()
+        };
+    } 
+
+    static string? Test2(S3 s)
+    {
+        return s switch
+        {
+            { Value: " + typeNameSyntax + @" } => null,
+            _ =>
+#line 200
+                s.Value.ToString()
+        };
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableAnalysis_62_State_From_isExplicitNotNullTest([CombinatorialValues("object", "System.Object")] string typeNameSyntax)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object Value => throw null!;
+}
+
+struct S3
+{
+    public object Value => throw null!;
+}
+
+class Program
+{
+    static string? Test1(S2 s)
+    {
+        return s switch
+        {
+            " + typeNameSyntax + @" => null,
+            _ =>
+#line 100
+                s.Value.ToString()
+        };
+    } 
+
+    static string? Test2(S3 s)
+    {
+        return s switch
+        {
+            { Value: " + typeNameSyntax + @" } => null,
+            _ =>
+#line 200
+                s.Value.ToString()
+        };
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,17): warning CS8602: Dereference of a possibly null reference.
+                //                 s.Value.ToString()
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 17),
+                // (200,17): warning CS8602: Dereference of a possibly null reference.
+                //                 s.Value.ToString()
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 17)
                 );
         }
 
