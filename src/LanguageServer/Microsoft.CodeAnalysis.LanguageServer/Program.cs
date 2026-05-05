@@ -211,12 +211,6 @@ static RootCommand CreateCommand()
         Required = false
     };
 
-    var razorSourceGeneratorOption = new Option<string?>("--razorSourceGenerator")
-    {
-        Description = "Full path to the Razor source generator (optional).",
-        Required = false
-    };
-
     var razorDesignTimePathOption = new Option<string?>("--razorDesignTimePath")
     {
         Description = "Full path to the Razor design time target path (optional).",
@@ -272,7 +266,6 @@ static RootCommand CreateCommand()
         sessionIdOption,
         extensionAssemblyPathsOption,
         devKitDependencyPathOption,
-        razorSourceGeneratorOption,
         razorDesignTimePathOption,
         csharpDesignTimePathOption,
         extensionLogDirectoryOption,
