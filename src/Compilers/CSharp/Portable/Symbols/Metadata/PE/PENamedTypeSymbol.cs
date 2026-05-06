@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             if (tryHandleTypeDefOrTypeRef(baseTypeHandle, candidateTypeDefHandle))
                                 continue;
 
-                            if (baseTypeHandle.Kind == HandleKind.TypeSpecification)
+                            if (IsGenericType && baseTypeHandle.Kind == HandleKind.TypeSpecification)
                             {
                                 // Dig through the TypeSpec and check the handle for the original definition.
                                 var sigReader = decoder.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)baseTypeHandle);
@@ -1293,9 +1293,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             // A TypeRef usually refers to a type in a different module, but, strictly, it is possible for it to refer to the current module.
                             // Dig through any containing types of the TypeRef, to see if it is ultimately a reference to the current module.
                             // In that case, we can fall through to handling it in the slow path.
+                            // Reject cases where 'this' and the candidate type, have a different ContainingType nesting depth.
                             var typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)baseTypeHandle);
+                            NamedTypeSymbol container = this;
                             while (typeRef.ResolutionScope.Kind == HandleKind.TypeReference)
+                            {
+                                if (container.ContainingType is null)
+                                    return true;
+
                                 typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)typeRef.ResolutionScope);
+                                container = container.ContainingType;
+                            }
+
+                            if (container.ContainingType is not null)
+                                return true;
 
                             return typeRef.ResolutionScope != EntityHandle.ModuleDefinition;
                         }
