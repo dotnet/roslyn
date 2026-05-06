@@ -540,5 +540,410 @@ IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'await M2()'
 
             VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        // =========================================================================================
+        // Null-conditional await (`await? e`). See NullConditionalAwaitSemanticModelTests.cs
+        // (in the CSharp15 test project) for the rest of the public SemanticModel surface.
+        // The tests below pin the IOperation shape specifically.
+        //
+        // Design note: IAwaitOperation does NOT currently expose an "is null-conditional" flag.
+        // Analyzers walking the tree see `await e` and `await? e` as the same OperationKind.Await
+        // with a child expression; the observable difference is the (lifted) `Type` and the
+        // syntax text. Exposing a flag is a separate design question tracked with the feature.
+        // =========================================================================================
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_TaskVoidOperand()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(Task t)
+    {
+        /*<bind>*/await? t/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_TaskOfInt_LiftsResultToNullableInt()
+        {
+            // Demonstrates the core result-type rule: a non-nullable value R (int) becomes
+            // Nullable<R> (Int32?) in the IAwaitOperation.Type. The child operand's type is
+            // unchanged.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(Task<int> t)
+    {
+        var v = /*<bind>*/await? t/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.Int32?) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<System.Int32>) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_TaskOfString_ReferenceResultUnchanged()
+        {
+            // Reference-type R is not structurally lifted (no `Nullable<String>`). The `?`
+            // short-circuit surfaces via NRT annotation, not via the type symbol itself.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(Task<string> t)
+    {
+        var v = /*<bind>*/await? t/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<System.String>) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_NullableValueTaskOfInt()
+        {
+            // Operand is Nullable<ValueTask<int>>. The binder strips Nullable<> and resolves
+            // the awaitable pattern on ValueTask<int>; the outer result still lifts to int?.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(ValueTask<int>? t)
+    {
+        var v = /*<bind>*/await? t/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.Int32?) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.ValueTask<System.Int32>?) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.NetCoreApp);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_Dynamic()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(dynamic d)
+    {
+        var v = /*<bind>*/await? d/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: dynamic) (Syntax: 'await? d')
+  Expression: 
+    IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_NonNullableValueTypeOperand_IsInvalid()
+        {
+            // `await?` on a non-nullable value type (ValueTask) is rejected with CS9379.
+            // On this error path the IOperation factory reports the overall expression as
+            // IInvalidOperation — NOT an IAwaitOperation. Pinned here so analyzers know
+            // what to expect.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(ValueTask vt)
+    {
+        /*<bind>*/await? vt/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'await? vt')
+  Children(1):
+      IParameterReferenceOperation: vt (OperationKind.ParameterReference, Type: System.Threading.Tasks.ValueTask) (Syntax: 'vt')
+";
+            var expectedDiagnostics = new[]
+            {
+                // (8,24): error CS9379: 'await?' cannot be applied to an operand of non-nullable value type 'ValueTask'.
+                //         /*<bind>*/await? vt/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(8, 24)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.NetCoreApp);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_Nested()
+        {
+            // `await? await? outer` produces a nested IAwaitOperation whose child is another
+            // IAwaitOperation. This is the most structurally distinct IOperation shape
+            // producible with `await?`, even though each IAwaitOperation is flat.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(Task<Task<int>> outer)
+    {
+        var v = /*<bind>*/await? await? outer/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.Int32?) (Syntax: 'await? await? outer')
+  Expression: 
+    IAwaitOperation (OperationKind.Await, Type: System.Threading.Tasks.Task<System.Int32>) (Syntax: 'await? outer')
+      Expression: 
+        IParameterReferenceOperation: outer (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<System.Threading.Tasks.Task<System.Int32>>) (Syntax: 'outer')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_TaskOfAlreadyNullableInt_NotDoubleLifted()
+        {
+            // Pin the "R is already Nullable<V>" row of the spec's Table B. The result type
+            // stays int? (not Nullable<Nullable<int>> — which isn't even a legal form, but a
+            // buggy factory could surface some variant of it here).
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(Task<int?> t)
+    {
+        var v = /*<bind>*/await? t/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.Int32?) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<System.Int32?>) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_NullableValueTask_VoidResult()
+        {
+            // Void-result case on a Nullable<V> operand — distinct from Task void because
+            // the binder has to strip Nullable<> off the operand to find the awaitable.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(ValueTask? t)
+    {
+        /*<bind>*/await? t/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.ValueTask?) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.NetCoreApp);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_GenericTaskOfTStruct_LiftsToNullableT()
+        {
+            // Generic `Task<T>` with `T : struct` — spec requires Nullable<T> as the result.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M<T>(Task<T> t) where T : struct
+    {
+        var v = /*<bind>*/await? t/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: T?) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<T>) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_AsCallArgument_Spills()
+        {
+            // `await?` as a call argument goes through spilling (like `await`). The
+            // IOperation tree for the await node is still a single flat IAwaitOperation —
+            // the spilling happens during lowering and is not visible here.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static void F(int a, int? b, int c) { }
+    static async Task M(Task<int> t)
+    {
+        F(1, /*<bind>*/await? t/*</bind>*/, 2);
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.Int32?) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<System.Int32>) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void TestAwaitQuestionExpression_FlowGraph_NoShortCircuitBranch()
+        {
+            // The IOperation CFG for `await?` does NOT introduce a branch for the short-
+            // circuit: the whole expression shows up as a single linear block containing an
+            // IAwaitOperation, just like a plain `await`. Analyzers that want to observe
+            // the short-circuit need to look at the AwaitExpressionSyntax.QuestionToken
+            // instead.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(Task<int> t)
+    /*<bind>*/{
+        int? v = await? t;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Int32? v]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsImplicit) (Syntax: 'v = await? t')
+              Left: 
+                ILocalReferenceOperation: v (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32?, IsImplicit) (Syntax: 'v = await? t')
+              Right: 
+                IAwaitOperation (OperationKind.Await, Type: System.Int32?) (Syntax: 'await? t')
+                  Expression: 
+                    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<System.Int32>) (Syntax: 't')
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var compilation = CreateCompilation(
+                source,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }
