@@ -125,4 +125,4 @@ The value of `preserveLocalVariables` passed to the constructors is no longer us
 
 On platforms with `NumericIntPtr` capability (.NET 7 and beyond) `n[u]int` and `System.[U]IntPtr` represent the same types. Now on such platforms `SymbolDisplayMiscellaneousOptions.UseSpecialTypes` controls whether they are represented as keywords or respective type names in symbol display routines (`ToDisplayString`, `ToDisplayParts` etc.). On platforms without `NumericIntPtr` capability they are different types thus behavior is unchanged: native integers are represented as `n[u]int` keywords and `System.[U]IntPtr` as type names regardless of `SymbolDisplayMiscellaneousOptions.UseSpecialTypes` option.
 
-PR: TODO
+PR: https://github.com/dotnet/roslyn/pull/83583
