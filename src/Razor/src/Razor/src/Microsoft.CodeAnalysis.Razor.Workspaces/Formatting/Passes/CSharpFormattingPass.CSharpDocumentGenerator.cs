@@ -1211,13 +1211,10 @@ internal partial class CSharpFormattingPass
                 //
                 // The formatted offset tells the mapping code to ignore whichever representation Roslyn chose, because
                 // the synthetic lambda opener is scaffolding for formatting and should not be copied back into Razor.
-                return RoslynWillMoveLambdaBraceToNextLine()
+                return _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
                     ? SyntheticLambdaSignatureLength
                     : SyntheticLambdaBodyStart.Length;
             }
-
-            private bool RoslynWillMoveLambdaBraceToNextLine()
-                => _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true;
 
             private bool TryGetMultilineTemplateClosure(RazorSyntaxNode node, out bool appendSemicolon)
             {
