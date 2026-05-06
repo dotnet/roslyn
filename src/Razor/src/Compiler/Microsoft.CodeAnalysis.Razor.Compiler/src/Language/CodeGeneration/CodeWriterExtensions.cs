@@ -540,7 +540,7 @@ internal static class CodeWriterExtensions
 
         writer.WriteLine(" set; }");
 
-        if (defaultValue && context?.Options is { SuppressNullabilityEnforcement: false, DesignTime: false })
+        if (defaultValue && context?.Options is { SuppressNullabilityEnforcement: false })
         {
             writer.WriteLine(" = default!;");
         }
@@ -565,7 +565,7 @@ internal static class CodeWriterExtensions
 
         static void WriteToken(CodeWriter writer, string content, SourceSpan? span, CodeRenderingContext context)
         {
-            if (span is not null && context?.Options.DesignTime == false)
+            if (span is not null)
             {
                 using (context.BuildEnhancedLinePragma(span))
                 {
@@ -663,7 +663,7 @@ internal static class CodeWriterExtensions
         }
 
         writer.Write("namespace ");
-        if (context.Options.DesignTime || span is null)
+        if (span is null)
         {
             writer.WriteLine(name);
         }
@@ -797,20 +797,9 @@ internal static class CodeWriterExtensions
         {
             var writer = context.CodeWriter;
 
-            if (context.Options.DesignTime)
+            using (context.BuildEnhancedLinePragma(source))
             {
-                using (context.BuildLinePragma(source))
-                {
-                    context.AddSourceMappingFor(source);
-                    writer.Write(content);
-                }
-            }
-            else
-            {
-                using (context.BuildEnhancedLinePragma(source))
-                {
-                    writer.Write(content);
-                }
+                writer.Write(content);
             }
         }
     }

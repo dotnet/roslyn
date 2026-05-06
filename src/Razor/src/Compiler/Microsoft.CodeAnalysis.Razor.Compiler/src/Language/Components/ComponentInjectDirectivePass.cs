@@ -44,7 +44,7 @@ internal sealed class ComponentInjectDirectivePass : IntermediateNodePassBase, I
                 continue;
             }
 
-            classNode!.Children.Add(new ComponentInjectIntermediateNode(typeName, memberName, typeSpan, memberSpan, isMalformed));
+            classNode!.Children.Add(new ComponentInjectIntermediateNode(typeName, memberName, typeSpan, memberSpan));
         }
     }
 

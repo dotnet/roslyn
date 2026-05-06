@@ -33,13 +33,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     #region Runtime
 
     [ConditionalFact(typeof(IsEnglishLocal))]
-    public void UsingDirectives_Runtime()
+    public void UsingDirectives()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false, throwOnFailure: false);
+        var compiled = CompileToAssembly(projectItem, throwOnFailure: false);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -51,13 +51,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void InvalidNamespaceAtEOF_Runtime()
+    public void InvalidNamespaceAtEOF()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToCSharp(projectItem, designTime: false);
+        var compiled = CompileToCSharp(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -69,7 +69,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void IncompleteDirectives_Runtime()
+    public void IncompleteDirectives()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -83,7 +83,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToCSharp(projectItem, designTime: false);
+        var compiled = CompileToCSharp(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -95,7 +95,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void InheritsViewModel_Runtime()
+    public void InheritsViewModel()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -120,7 +120,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -129,7 +129,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void InheritsWithViewImports_Runtime()
+    public void InheritsWithViewImports()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -155,7 +155,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -164,7 +164,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [ConditionalFact(typeof(IsEnglishLocal))]
-    public void AttributeDirectiveWithViewImports_Runtime()
+    public void AttributeDirectiveWithViewImports()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
@@ -175,7 +175,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
             """);
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false, throwOnFailure: false);
+        var compiled = CompileToAssembly(projectItem, throwOnFailure: false);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -187,13 +187,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void MalformedPageDirective_Runtime()
+    public void MalformedPageDirective()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToCSharp(projectItem, designTime: false);
+        var compiled = CompileToCSharp(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -205,13 +205,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void Basic_Runtime()
+    public void Basic()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -220,13 +220,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void BasicComponent_Runtime()
+    public void BasicComponent()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile(fileKind: RazorFileKind.Component);
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -235,7 +235,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void Sections_Runtime()
+    public void Sections()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -251,7 +251,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -260,13 +260,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void _ViewImports_Runtime()
+    public void _ViewImports()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -275,7 +275,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void Inject_Runtime()
+    public void Inject()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -290,7 +290,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -300,7 +300,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void InjectWithModel_Runtime()
+    public void InjectWithModel()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -324,7 +324,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -334,7 +334,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void InjectWithSemicolon_Runtime()
+    public void InjectWithSemicolon()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -359,7 +359,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -369,13 +369,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void Model_Runtime()
+    public void Model()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -385,7 +385,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void ModelExpressionTagHelper_Runtime()
+    public void ModelExpressionTagHelper()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -400,7 +400,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -409,7 +409,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void RazorPages_Runtime()
+    public void RazorPages()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -422,7 +422,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -431,13 +431,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void RazorPagesWithRouteTemplate_Runtime()
+    public void RazorPagesWithRouteTemplate()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -447,7 +447,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void RazorPagesWithoutModel_Runtime()
+    public void RazorPagesWithoutModel()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -460,7 +460,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -469,13 +469,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void PageWithNamespace_Runtime()
+    public void PageWithNamespace()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -484,13 +484,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void ViewWithNamespace_Runtime()
+    public void ViewWithNamespace()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -499,7 +499,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void ViewComponentTagHelper_Runtime()
+    public void ViewComponentTagHelper()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -521,7 +521,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -530,7 +530,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void ViewComponentTagHelperOptionalParam_Runtime()
+    public void ViewComponentTagHelperOptionalParam()
     {
         // Arrange
         AddCSharpSyntaxTree($$"""
@@ -569,7 +569,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToAssembly(projectItem, designTime: false);
+        var compiled = CompileToAssembly(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -578,13 +578,13 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void RazorPageWithNoLeadingPageDirective_Runtime()
+    public void RazorPageWithNoLeadingPageDirective()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
 
         // Act
-        var compiled = CompileToCSharp(projectItem, designTime: false);
+        var compiled = CompileToCSharp(projectItem);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
@@ -882,7 +882,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void InheritsDirective_RazorPages_Runtime()
+    public void InheritsDirective_RazorPages()
     {
         // Arrange
         AddCSharpSyntaxTree("""
@@ -906,7 +906,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/10965")]
-    public void InvalidCode_EmptyImplicitExpression_Runtime()
+    public void InvalidCode_EmptyImplicitExpression()
     {
         // Act
         var generated = CompileToCSharp("""
@@ -915,7 +915,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
                     @
                 </head>
             </html>
-            """, designTime: false);
+            """);
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentNode();
@@ -928,640 +928,8 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     #endregion
 
-    #region DesignTime
-
-    [ConditionalFact(typeof(IsEnglishLocal))]
-    public void UsingDirectives_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true, throwOnFailure: false);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-
-        var diagnostics = compiled.Compilation.GetDiagnostics().Where(d => d.Severity >= DiagnosticSeverity.Warning);
-        Assert.Equal("The using directive for 'System' appeared previously in this namespace", Assert.Single(diagnostics).GetMessage());
-    }
-
-    [Fact]
-    public void InvalidNamespaceAtEOF_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToCSharp(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-
-        var diagnotics = compiled.CodeDocument.GetCSharpDocument().Diagnostics;
-        Assert.Equal("RZ1014", Assert.Single(diagnotics).Id);
-    }
-
-    [Fact]
-    public void IncompleteDirectives_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-
-            public class MyService<TModel>
-            {
-                public string Html { get; set; }
-            }
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToCSharp(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-
-        // We expect this test to generate a bunch of errors.
-        Assert.NotEmpty(compiled.CodeDocument.GetCSharpDocument().Diagnostics);
-    }
-
-    [Fact]
-    public void InheritsViewModel_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-
-            using System.Threading.Tasks;
-            using Microsoft.AspNetCore.Mvc.Razor;
-
-            public class MyBasePageForViews<TModel> : RazorPage
-            {
-                public override Task ExecuteAsync()
-                {
-                    throw new System.NotImplementedException();
-                }
-            }
-            public class MyModel
-            {
-
-            }
-
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void InheritsWithViewImports_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-
-            using System.Threading.Tasks;
-            using Microsoft.AspNetCore.Mvc.RazorPages;
-
-            public abstract class MyPageModel<T> : Page
-            {
-                public override Task ExecuteAsync()
-                {
-                    throw new System.NotImplementedException();
-                }
-            }
-
-            public class MyModel
-            {
-
-            }
-            """);
-
-        AddProjectItemFromText(@"@inherits MyPageModel<TModel>");
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [ConditionalFact(typeof(IsEnglishLocal))]
-    public void AttributeDirectiveWithViewImports_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-        AddProjectItemFromText("""
-
-            @using System
-            @attribute [Serializable]
-            """);
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true, throwOnFailure: false);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-
-        var diagnostics = compiled.Compilation.GetDiagnostics().Where(d => d.Severity >= DiagnosticSeverity.Warning);
-        Assert.Equal("Duplicate 'Serializable' attribute", Assert.Single(diagnostics).GetMessage());
-    }
-
-    [Fact]
-    public void MalformedPageDirective_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToCSharp(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-
-        var diagnotics = compiled.CodeDocument.GetCSharpDocument().Diagnostics;
-        Assert.Equal("RZ1016", Assert.Single(diagnotics).Id);
-    }
-
-    [Fact]
-    public void Basic_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void BasicComponent_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile(fileKind: RazorFileKind.Component);
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void Sections_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-            using Microsoft.AspNetCore.Mvc.ViewFeatures;
-
-            public class InputTestTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
-            {
-                public ModelExpression For { get; set; }
-            }
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void _ViewImports_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void Inject_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-
-            public class MyApp
-            {
-                public string MyProperty { get; set; }
-            }
-
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void InjectWithModel_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-
-            public class MyModel
-            {
-
-            }
-
-            public class MyService<TModel>
-            {
-                public string Html { get; set; }
-            }
-
-            public class MyApp
-            {
-                public string MyProperty { get; set; }
-            }
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void InjectWithSemicolon_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-
-            public class MyModel
-            {
-
-            }
-
-            public class MyApp
-            {
-                public string MyProperty { get; set; }
-            }
-
-            public class MyService<TModel>
-            {
-                public string Html { get; set; }
-            }
-
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void Model_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void MultipleModels_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-
-            public class ThisShouldBeGenerated
-            {
-
-            }
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToCSharp(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-
-        var diagnotics = compiled.CodeDocument.GetCSharpDocument().Diagnostics;
-        Assert.Equal("RZ2001", Assert.Single(diagnotics).Id);
-    }
-
-    [Fact]
-    public void ModelExpressionTagHelper_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-            using Microsoft.AspNetCore.Mvc.ViewFeatures;
-
-            public class InputTestTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
-            {
-                public ModelExpression For { get; set; }
-            }
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void RazorPages_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-            public class DivTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
-            {
-
-            }
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void RazorPagesWithRouteTemplate_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void RazorPagesWithoutModel_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-            public class DivTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
-            {
-
-            }
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void PageWithNamespace_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void ViewWithNamespace_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void ViewComponentTagHelper_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-            public class TestViewComponent
-            {
-                public string Invoke(string firstName)
-                {
-                    return firstName;
-                }
-            }
-
-            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute]
-            public class AllTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
-            {
-                public string Bar { get; set; }
-            }
-            """);
-
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToAssembly(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-    }
-
-    [Fact]
-    public void RazorPageWithNoLeadingPageDirective_DesignTime()
-    {
-        // Arrange
-        var projectItem = CreateProjectItemFromFile();
-
-        // Act
-        var compiled = CompileToCSharp(projectItem, designTime: true);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
-        AssertLinePragmas(compiled.CodeDocument);
-        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
-
-        var diagnotics = compiled.CodeDocument.GetCSharpDocument().Diagnostics;
-        Assert.Equal("RZ3906", Assert.Single(diagnotics).Id);
-    }
-
-    [Fact]
-    public void InheritsDirective_RazorPages_DesignTime()
-    {
-        // Arrange
-        AddCSharpSyntaxTree("""
-            public abstract class MyBase : global::Microsoft.AspNetCore.Mvc.RazorPages.Page {
-
-            }
-            """);
-
-        // Act
-        var generated = CompileToCSharp("""
-            @page
-            @inherits MyBase
-            """, designTime: true);
-
-        // Assert
-        var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
-        AssertDocumentNodeMatchesBaseline(intermediate);
-        AssertCSharpDocumentMatchesBaseline(csharp);
-        CompileToAssembly(generated);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10965")]
-    public void InvalidCode_EmptyImplicitExpression_DesignTime()
-    {
-        // Act
-        var generated = CompileToCSharp("""
-            <html>
-                <head>
-                    @
-                </head>
-            </html>
-            """, designTime: true);
-
-        // Assert
-        var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
-        AssertDocumentNodeMatchesBaseline(intermediate);
-        AssertCSharpDocumentMatchesBaseline(csharp);
-        CompileToAssembly(generated, throwOnFailure: false, ignoreRazorDiagnostics: true);
-    }
-
-    #endregion
-
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/razor/issues/7286")]
-    public void RazorPage_NullableModel(bool nullableModel, bool nullableContextEnabled, bool designTime,
+    public void RazorPage_NullableModel(bool nullableModel, bool nullableContextEnabled,
         [CombinatorialValues("8.0", "9.0", "Latest")] string razorLangVersion)
     {
         // Arrange
@@ -1570,9 +938,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var testName = "RazorPage_With" +
             (nullableModel ? "" : "Non") +
             "NullableModel_Lang" +
-            (razorLangVersion == "8.0" ? "Old" : "New") +
-            "_" +
-            (designTime ? "DesignTime" : "Runtime");
+            (razorLangVersion == "8.0" ? "Old" : "New");
 
         _configuration = _configuration with { LanguageVersion = RazorLanguageVersion.Parse(razorLangVersion) };
 
@@ -1599,8 +965,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
             <h1>@Model.Name</h1>
 
             <h2>@Model?.Address</h2>
-            """,
-            designTime: designTime);
+            """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetDocumentNode(), testName: testName);
@@ -1648,10 +1013,6 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
             else
             {
                 diagnostics.Verify([
-                    ..(designTime ? [
-                        // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(3,10): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-                        // TestModel? __typeHelper = default!;
-                        Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?")] : DiagnosticDescription.None),
                     // TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml(74,80): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                     //         public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TestModel?> Html { get; private set; } = default!;
                     Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?"),

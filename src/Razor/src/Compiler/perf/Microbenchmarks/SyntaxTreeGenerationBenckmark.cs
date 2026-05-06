@@ -41,21 +41,6 @@ public class SyntaxTreeGenerationBenchmark
 
     public ImmutableArray<DirectiveDescriptor> Directives { get; }
 
-    [Benchmark(Description = "Razor Design Time Syntax Tree Generation of MSN.com")]
-    public void SyntaxTreeGeneration_DesignTime_LargeStaticFile()
-    {
-        var options = RazorParserOptions.Default
-            .WithDirectives(Directives)
-            .WithFlags(designTime: true);
-
-        var syntaxTree = RazorSyntaxTree.Parse(MSN, options);
-
-        if (syntaxTree.Diagnostics.Length != 0)
-        {
-            throw new Exception("Error!" + Environment.NewLine + string.Join(Environment.NewLine, syntaxTree.Diagnostics));
-        }
-    }
-
     [Benchmark(Description = "Razor Runtime Syntax Tree Generation of MSN.com")]
     public void SyntaxTreeGeneration_Runtime_LargeStaticFile()
     {
