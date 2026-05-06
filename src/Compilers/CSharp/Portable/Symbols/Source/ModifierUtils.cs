@@ -86,11 +86,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ReportPartialError(errorLocation, diagnostics, modifierTokens);
                         break;
 
+                    case DeclarationModifiers.Ref when !isForTypeDeclaration:
+                        // `ref` as a "modifier" on a member only reaches CheckModifiers when the
+                        // parser accepted it in a non-canonical position (it is never present in
+                        // `allowedModifiers` for members).  Report a targeted diagnostic on the
+                        // `ref` token itself so the fix-it location is clear.
+                        ReportRefNotMemberModifier(errorLocation, diagnostics, modifierTokens);
+                        break;
+
                     case DeclarationModifiers.Scoped:
                         // `scoped` as a "modifier" on a type or member only reaches CheckModifiers
                         // when the parser accepted it in a non-canonical position (it is never
                         // present in `allowedModifiers`).  Point the diagnostic at the `scoped`
-                        // token itself when we can find it, matching how `partial` is reported.
+                        // token itself when we can find it, matching how `partial` and `ref` are
+                        // reported.
                         ReportScopedNotMemberModifier(errorLocation, diagnostics, modifierTokens);
                         break;
 
@@ -137,6 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void ReportPartialError(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
             => ReportBadModifier(SyntaxKind.PartialKeyword, ErrorCode.ERR_PartialMisplaced, errorLocation, diagnostics, modifierTokens, []);
+
+        private static void ReportRefNotMemberModifier(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
+            => ReportBadModifier(SyntaxKind.RefKeyword, ErrorCode.ERR_RefNotMemberModifier, errorLocation, diagnostics, modifierTokens, []);
 
         private static void ReportScopedNotMemberModifier(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
             => ReportBadModifier(SyntaxKind.ScopedKeyword, ErrorCode.ERR_BadMemberFlag, errorLocation, diagnostics, modifierTokens, [SyntaxFacts.GetText(SyntaxKind.ScopedKeyword)]);
