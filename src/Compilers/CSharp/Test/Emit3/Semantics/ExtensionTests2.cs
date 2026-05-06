@@ -16880,6 +16880,148 @@ class Program
 ");
     }
 
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_ReadonlyReceiver_041(string refKind)
+    {
+        // unconstrained extension parameter, ref/ref readonly/in struct value
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{((S1)(object)x).F1} "); Program<S1>.F.F1++; return 0; }
+            set { System.Console.Write($"set:{((S1)(object)x).F1} "); }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<S1>.F);
+        System.Console.Write($"final:{Program<S1>.F.F1}");
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    static int GetIndex() { System.Console.Write($"GetIndex:{Program<S1>.F.F1} "); Program<S1>.F.F1++; return 1; }
+    static int GetValue() { System.Console.Write($"GetValue:{Program<S1>.F.F1} "); Program<S1>.F.F1++; return 1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        if (refKind == "ref")
+        {
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 get:4 GetValue:5 set:6 final:6"), verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3,
+                int V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    "T"
+  IL_000b:  ldloc.3
+  IL_000c:  box        "T"
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      "T"
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       "int Program.GetIndex()"
+  IL_0024:  stloc.2
+  IL_0025:  dup
+  IL_0026:  ldobj      "T"
+  IL_002b:  ldloc.2
+  IL_002c:  call       "int E.get_Item<T>(T, int)"
+  IL_0031:  call       "int Program.GetValue()"
+  IL_0036:  add
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldobj      "T"
+  IL_003e:  ldloc.2
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       "void E.set_Item<T>(T, int, int)"
+  IL_0046:  nop
+  IL_0047:  ret
+}
+""");
+        }
+        else
+        {
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 get:4 GetValue:5 set:6 final:6"), verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3,
+                int V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    "T"
+  IL_000b:  ldloc.3
+  IL_000c:  box        "T"
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      "T"
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       "int Program.GetIndex()"
+  IL_0024:  stloc.2
+  IL_0025:  dup
+  IL_0026:  ldobj      "T"
+  IL_002b:  ldloc.2
+  IL_002c:  call       "int E.get_Item<T>(T, int)"
+  IL_0031:  call       "int Program.GetValue()"
+  IL_0036:  add
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldobj      "T"
+  IL_003e:  ldloc.2
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       "void E.set_Item<T>(T, int, int)"
+  IL_0046:  nop
+  IL_0047:  ret
+}
+""");
+        }
+    }
+
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01()

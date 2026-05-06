@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (leftTarget.Kind != BoundKind.DiscardExpression)
                     {
                         effects.assignments.Add(MakeAssignmentOperator(resultPart.Syntax, leftTarget, resultPart,
-                            used: false, isChecked: false, AssignmentKind.Deconstruction));
+                            used: false, isChecked: false, AssignmentKind.Deconstruction, receiverIsKnownToBeCaptured: false)); // PROTOTYPE revisit for deconstruction assignment
                     }
                 }
                 Debug.Assert(builder is null || resultPart is { });

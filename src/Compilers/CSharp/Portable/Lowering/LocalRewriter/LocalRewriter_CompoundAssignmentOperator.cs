@@ -227,16 +227,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
 
+                // Note: the receiver is known to be captured because of TransformCompoundAssignmentLHS
                 if (IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the binary operation
                     BoundLocal binaryResult = _factory.StoreToTemp(opFinal, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
-                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment);
+                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured: true);
                     Debug.Assert(assignment.Type is { });
                     return new BoundSequence(syntax, [binaryResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
 
-                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment);
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured: true);
             }
         }
 
@@ -558,7 +559,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isRegularAssignment: false,
                 cacheAllArgumentsOnly: false,
                 stores, temps,
-                receiverIsKnownToBeCaptured: out _); // PROTOTYPE likely need to use this for compound assignment scenarios
+                out bool receiverIsKnownToBeCaptured);
+
+            Debug.Assert(receiverIsKnownToBeCaptured);
 
             if (access is BoundIndexerAccess indexerAccess)
             {
