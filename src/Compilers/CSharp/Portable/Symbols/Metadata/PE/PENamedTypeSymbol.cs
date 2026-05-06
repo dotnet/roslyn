@@ -1249,14 +1249,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                             if (baseTypeHandle.Kind == HandleKind.TypeSpecification)
                             {
+                                if (!IsGenericType)
+                                    continue;
+
                                 // Dig through the TypeSpec and check the handle for the original definition.
                                 var sigReader = decoder.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)baseTypeHandle);
                                 var typeCode = sigReader.ReadSignatureTypeCode();
                                 if (typeCode != SignatureTypeCode.GenericTypeInstance)
-                                    continue;
-
-                                // Candidate base type is generic, but this type isn't generic. This couldn't possibly be a match.
-                                if (!IsGenericType)
                                     continue;
 
                                 var elementType = sigReader.ReadSignatureTypeCode();
