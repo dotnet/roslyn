@@ -88,5 +88,29 @@
     </ItemGroup>
   </Target>
 
+  <!-- Copy the Razor companion assemblies into the local build output for manual VS Code testing without affecting CI packaging. -->
+  <Target Name="PopulateLocalDevelopmentOutput" AfterTargets="Build" Condition="'$(ContinuousIntegrationBuild)' != 'true'">
+    <ItemGroup>
+      <_LocalRootOutput Include="
+          $(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll;
+          $(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.xml;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.dll;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.pdb;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Workspaces.dll;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Workspaces.xml;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Remote.Razor\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Remote.Razor.dll;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Remote.Razor\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Remote.Razor.xml" />
+
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(_LocalRootOutput)"
+      DestinationFiles="@(_LocalRootOutput->'$(TargetDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true"
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)" />
+
+    <RemoveDir Directories="$(TargetDir)win-arm64;$(TargetDir)win-x64" />
+  </Target>
+
   <Import Project="..\Microsoft.CodeAnalysis.Razor.CohostingShared\Microsoft.CodeAnalysis.Razor.CohostingShared.projitems" Label="Shared" />
 </Project>

@@ -28,12 +28,6 @@ public sealed partial class RazorParserOptions
             _flags = GetDefaultFlags(LanguageVersion, FileKind);
         }
 
-        public bool DesignTime
-        {
-            get => _flags.IsFlagSet(Flags.DesignTime);
-            set => _flags.UpdateFlag(Flags.DesignTime, value);
-        }
-
         public bool ParseLeadingDirectives
         {
             get => _flags.IsFlagSet(Flags.ParseLeadingDirectives);

@@ -94,6 +94,20 @@ internal static partial class DocumentExtensions
         return workspace != null && workspace.IsDocumentOpen(document.Id);
     }
 
+    public static bool IsRazorSourceGeneratedDocument(this Document document)
+    {
+        const string RazorSourceGeneratorTypeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
+
+#if WORKSPACE
+        return document is SourceGeneratedDocument { Identity.Generator.TypeName: RazorSourceGeneratorTypeName };
+#else
+        // SourceGeneratedDocument.Identity is internal to the Workspaces assembly.
+        return document is SourceGeneratedDocument &&
+               document.FilePath is string filePath &&
+               filePath.IndexOf(RazorSourceGeneratorTypeName, StringComparison.Ordinal) >= 0;
+#endif
+    }
+
     /// <summary>
     /// Attempts to return an speculative semantic model for <paramref name="document"/> if possible if <paramref
     /// name="position"/> is contained within a method body in the tree.  Specifically, this will attempt to get an

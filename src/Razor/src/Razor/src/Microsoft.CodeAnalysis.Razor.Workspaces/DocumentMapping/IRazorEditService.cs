@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,11 +23,13 @@ internal interface IRazorEditService
     /// <param name="textChanges">The text changes to map.</param>
     /// <param name="snapshot">The document snapshot to use for mapping.</param>
     /// <param name="includeCSharpLanguageFeatureEdits">Whether to include edits that might be present in unmapped areas of the generated C# document. These requires extra processing, so pass <see langword="false"/> if the scenario makes them unnecessary/impossible</param>
+    /// <param name="directlyMappedEditFilter">An optional filter applied to directly mapped edits before synthesized Razor language feature edits are added.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
         IDocumentSnapshot snapshot,
         bool includeCSharpLanguageFeatureEdits,
+        Func<RazorTextChange, bool>? directlyMappedEditFilter,
         CancellationToken cancellationToken);
 
     /// <summary>

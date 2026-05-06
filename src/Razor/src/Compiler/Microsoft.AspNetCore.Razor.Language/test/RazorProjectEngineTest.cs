@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public class RazorProjectEngineTest
 {
     [Fact]
-    public void CreateDesignTime_Lambda_AddsFeaturesAndPhases()
+    public void Create_Lambda_AddsFeaturesAndPhases()
     {
         // Arrange
 
@@ -82,7 +82,6 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<DefaultMetadataIdentifierFeature>(feature),
             feature => Assert.IsType<DefaultRazorTargetExtensionFeature>(feature),
             feature => Assert.IsType<DefaultTagHelperOptimizationPass>(feature),
-            feature => Assert.IsType<DesignTimeDirectivePass>(feature),
             feature => Assert.IsType<DirectiveRemovalOptimizationPass>(feature),
             feature => Assert.IsType<EliminateMethodBodyPass>(feature),
             feature => Assert.IsType<FunctionsDirectivePass>(feature),
@@ -118,7 +117,6 @@ public class RazorProjectEngineTest
         Assert.Collection(
             extensions,
             extension => Assert.IsType<DefaultTagHelperTargetExtension>(extension),
-            extension => Assert.IsType<DesignTimeDirectiveTargetExtension>(extension),
             extension => Assert.IsType<MetadataAttributeTargetExtension>(extension),
             extension => Assert.IsType<PreallocatedAttributeTargetExtension>(extension));
     }
@@ -153,23 +151,5 @@ public class RazorProjectEngineTest
         // Act & Assert
         var exception = Assert.Throws<IOException>(() => RazorProjectEngine.GetImportSourceDocuments(in items));
         Assert.Equal("Couldn't read file.", exception.Message);
-    }
-
-    [Fact]
-    public void GetImportSourceDocuments_WithSuppressExceptions_UnreadableItem_DoesNotThrow()
-    {
-        // Arrange
-        var projectItem = new TestRazorProjectItem(
-            filePath: "path/to/file.cshtml",
-            physicalPath: "path/to/file.cshtml",
-            relativePhysicalPath: "path/to/file.cshtml",
-            onRead: () => throw new IOException("Couldn't read file."));
-        using PooledArrayBuilder<RazorProjectItem> items = [projectItem];
-
-        // Act
-        var sourceDocuments = RazorProjectEngine.GetImportSourceDocuments(in items, suppressExceptions: true);
-
-        // Assert - Does not throw
-        Assert.Empty(sourceDocuments);
     }
 }

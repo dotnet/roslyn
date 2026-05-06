@@ -89,6 +89,60 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
 
     [Theory]
     [CombinatorialData]
+    public Task CSharp_Property(bool useLsp, bool fromRazor)
+        => VerifyRenamesAsync(
+            csharpFile: """
+                public class MyClass
+                {
+                    public string MyPr$$operty { get; } = nameof(MyProperty);
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <h1>@_myClass.MyPr$$operty</h1>
+
+                @code
+                {
+                    private MyClass _myClass = new MyClass();
+
+                    public string M()
+                    {
+                        return _myClass.MyProperty;
+                    }
+                }
+
+                The end.
+                """,
+            newName: "CallThisProperty",
+            expectedCSharpFile: """
+                public class MyClass
+                {
+                    public string CallThisProperty { get; } = nameof(CallThisProperty);
+                }
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+
+                <h1>@_myClass.CallThisProperty</h1>
+
+                @code
+                {
+                    private MyClass _myClass = new MyClass();
+
+                    public string M()
+                    {
+                        return _myClass.CallThisProperty;
+                    }
+                }
+
+                The end.
+                """,
+            useLsp,
+            fromRazor);
+
+    [Theory]
+    [CombinatorialData]
     public Task Component(bool useLsp, bool fromRazor)
         => VerifyRenamesAsync(
             csharpFile: """

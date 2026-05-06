@@ -89,16 +89,6 @@
     <None Include="**\*_NetCore\**\*.*" />
   </ItemGroup>
 
-  <!--
-    Warn consumers until the underlying issue is fixed
-    https://github.com/dotnet/roslyn/issues/72657
-  -->
-  <Target Name="CheckNuPkgEnvEndsWithSlash"
-          AfterTargets="AfterCompile">
-    <Warning Condition="'$(NUGET_PACKAGES)' != '' AND !$(NUGET_PACKAGES.EndsWith($([System.String]::new($([System.IO.Path]::DirectorySeparatorChar)))))"
-             Text="NUGET_PACKAGES should end with a slash or it will lead to editorconfig issues: $(NUGET_PACKAGES)" />
-  </Target>
-
   <Target Name="GetCustomAssemblyAttributes"
           BeforeTargets="GetAssemblyAttributes"
           Condition=" '$(MSBuildProjectExtension)' == '.csproj' "

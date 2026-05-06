@@ -18,19 +18,11 @@ internal sealed class RouteAttributeExtensionNode(string template) : ExtensionIn
     {
         context.CodeWriter.Write("[global::");
         context.CodeWriter.Write(ComponentsApi.RouteAttribute.FullTypeName);
-        if (context.Options.DesignTime)
+        context.CodeWriter.WriteLine("(");
+        context.CodeWriter.WriteLine("// language=Route,Component");
+        using (context.BuildEnhancedLinePragma(Source))
         {
-            context.CodeWriter.Write("(");
-            context.CodeWriter.Write(Template);
-        }
-        else
-        {
-            context.CodeWriter.WriteLine("(");
-            context.CodeWriter.WriteLine("// language=Route,Component");
-            using (context.BuildEnhancedLinePragma(Source))
-            {
-                context.CodeWriter.WriteLine(Template);
-            }
+            context.CodeWriter.WriteLine(Template);
         }
         context.CodeWriter.WriteLine(")]");
     }

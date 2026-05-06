@@ -24,7 +24,6 @@ internal sealed class Utf8WriteLiteralDetectionPass : IntermediateNodePassBase, 
         if (_utf8Feature is null ||
             !codeDocument.FileKind.IsLegacy() ||
             documentNode.Options is null ||
-            documentNode.Options.DesignTime ||
             documentNode.Options.WriteHtmlUtf8StringLiterals)
         {
             return;

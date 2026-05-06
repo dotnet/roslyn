@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
@@ -29,6 +30,35 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
             """;
 
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.FullyQualify);
+    }
+
+    [Fact]
+    public async Task FullyQualify_LegacyWithPageDirective()
+    {
+        var input = """
+            @page "/"
+
+            @functions
+            {
+                private [||]StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        var expected = """
+            @page "/"
+
+            @functions
+            {
+                private System.Text.StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            LanguageServerConstants.CodeActions.FullyQualify,
+            fileKind: RazorFileKind.Legacy,
+            makeDiagnosticsRequest: true);
     }
 
 #if !VSCODE
@@ -170,6 +200,98 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
             """;
 
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
+    }
+
+    [Fact]
+    public async Task AddUsing_LegacyWithPageDirective()
+    {
+        var input = """
+            @page "/"
+
+            @functions
+            {
+                private [||]StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        var expected = """
+            @page "/"
+            @using System.Text
+
+            @functions
+            {
+                private StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            RazorPredefinedCodeFixProviderNames.AddImport,
+            fileKind: RazorFileKind.Legacy,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task AddUsing_LegacyWithPageDirectiveAndTagHelpers_HtmlString()
+    {
+        var input = """
+            @page "/"
+            @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+            @{
+             var z = new [||]HtmlString("asdf");
+            }
+            """;
+
+        var expected = """
+            @page "/"
+            @using Microsoft.AspNetCore.Html
+            @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+            @{
+             var z = new HtmlString("asdf");
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            RazorPredefinedCodeFixProviderNames.AddImport,
+            fileKind: RazorFileKind.Legacy,
+            addDefaultImports: false,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task AddUsing_LegacyWithPageDirectiveWithoutRouteAndTagHelpers_HtmlString()
+    {
+        var input = """
+            @page
+            @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+            @{
+             var z = new [||]HtmlString("asdf");
+            }
+            """;
+
+        var expected = """
+            @page
+            @using Microsoft.AspNetCore.Html
+            @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+            @{
+             var z = new HtmlString("asdf");
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            RazorPredefinedCodeFixProviderNames.AddImport,
+            fileKind: RazorFileKind.Legacy,
+            addDefaultImports: false,
+            makeDiagnosticsRequest: true);
     }
 
     [Fact]

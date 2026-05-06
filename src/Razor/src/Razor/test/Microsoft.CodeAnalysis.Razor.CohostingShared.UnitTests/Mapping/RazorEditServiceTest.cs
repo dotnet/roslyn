@@ -671,6 +671,713 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """);
 
     [Fact]
+    public Task NewConstructor_ExistingCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    public MyComponent(int value)
+                    {
+                    }
+
+                    private int M()
+                    {
+                        return 1;
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    public MyComponent(int value)
+                    {
+                    }
+
+                    private int M()
+                    {
+                        return 1;
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task NewConstructor_NoCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+          razorSource: """
+                <div></div>
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    public MyComponent(int value)
+                    {
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                <div></div>
+                @code {
+                    public MyComponent(int value)
+                    {
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task ChangedConstructorBody_ExistingCodeBlock_IsNotAdded()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+
+                    public MyComponent(int value)
+                    {
+                        _ = value;
+                    }
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int M()
+                    {
+                        return 2;
+                    }
+
+                    public MyComponent(int value)
+                    {
+                        _ = value + 1;
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int M()
+                    {
+                        return 2;
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task NewConversionOperator_ExistingCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    public static explicit operator int(MyComponent component)
+                    {
+                        return 0;
+                    }
+
+                    private int M()
+                    {
+                        return 1;
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    public static explicit operator int(MyComponent component)
+                    {
+                        return 0;
+                    }
+
+                    private int M()
+                    {
+                        return 1;
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task NewConversionOperator_NoCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+          razorSource: """
+                <div></div>
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    public static explicit operator int(MyComponent component)
+                    {
+                        return 0;
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                <div></div>
+                @code {
+                    public static explicit operator int(MyComponent component)
+                    {
+                        return 0;
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task ChangedConversionOperatorBody_ExistingCodeBlock_IsNotAdded()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+
+                    public static explicit operator int(MyComponent component)
+                    {
+                        return 0;
+                    }
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int M()
+                    {
+                        return 2;
+                    }
+
+                    public static explicit operator int(MyComponent component)
+                    {
+                        return 1;
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int M()
+                    {
+                        return 2;
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task NewType_ExistingCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private object M()
+                    {
+                        return new MissingType();
+                    }|}
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private object M()
+                    {
+                        return new MissingType();
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private object M()
+                    {
+                        return new MissingType();
+                    }
+
+                    private class MissingType
+                    {
+                        public MissingType()
+                        {
+                        }
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private object M()
+                    {
+                        return new MissingType();
+                    }
+
+                    private class MissingType
+                    {
+                        public MissingType()
+                        {
+                        }
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task NewType_NoCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+          razorSource: """
+                <div></div>
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private class MissingType
+                    {
+                        public MissingType()
+                        {
+                        }
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                <div></div>
+                @code {
+                    private class MissingType
+                    {
+                        public MissingType()
+                        {
+                        }
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task ChangedTypeBody_ExistingCodeBlock_IsNotAdded()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+
+                    private class MissingType
+                    {
+                    }
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int M()
+                    {
+                        return 2;
+                    }
+
+                    private class MissingType
+                    {
+                        public int Value { get; }
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int M()
+                    {
+                        return 2;
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task NewProperty_ExistingCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return NewProperty;
+                    }|}
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return NewProperty;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int M()
+                    {
+                        return NewProperty;
+                    }
+
+                    public int NewProperty { get; private set; }
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int M()
+                    {
+                        return NewProperty;
+                    }
+
+                    public int NewProperty { get; private set; }
+                }
+                """);
+
+    [Fact]
+    public Task NewProperty_NoCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+          razorSource: """
+                <div></div>
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    public object NewProperty { get; private set; }
+                }
+                """,
+          expectedRazorSource: """
+                <div></div>
+                @code {
+                    public object NewProperty { get; private set; }
+                }
+                """);
+
+    [Fact]
+    public Task NewField_ExistingCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return NewField;
+                    }|}
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return NewField;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int M()
+                    {
+                        return NewField;
+                    }
+
+                    private readonly int NewField;
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int M()
+                    {
+                        return NewField;
+                    }
+
+                    private readonly int NewField;
+                }
+                """);
+
+    [Fact]
+    public Task NewField_NoCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+          razorSource: """
+                <div></div>
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private object newField;
+                }
+                """,
+          expectedRazorSource: """
+                <div></div>
+                @code {
+                    private object newField;
+                }
+                """);
+
+    [Fact]
+    public Task ChangedFieldInitializer_ExistingCodeBlock_IsNotAdded()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+
+                    private int _foo = 2;
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int M()
+                    {
+                        return 2;
+                    }
+
+                    private int _foo = 4;
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int M()
+                    {
+                        return 2;
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task ChangedPropertyAccessorList_ExistingCodeBlock_IsNotAdded()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+
+                    public int MyProperty { get; private set; }
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int M()
+                    {
+                        return 2;
+                    }
+
+                    public int MyProperty { get; }
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int M()
+                    {
+                        return 2;
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task ChangedPropertyInitializer_ExistingCodeBlock_IsNotAdded()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+
+                    public int MyProperty { get; } = 2;
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int M()
+                    {
+                        return 2;
+                    }
+
+                    public int MyProperty { get; } = 4;
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int M()
+                    {
+                        return 2;
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task ChangedFieldVisibility_ExistingCodeBlock_IsNotAdded()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+
+                    private int _foo;
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int M()
+                    {
+                        return 1;
+                    }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int M()
+                    {
+                        return 2;
+                    }
+
+                    public int _foo;
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int M()
+                    {
+                        return 2;
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task ChangedMiddleFieldInMultiFieldDeclaration_ExistingCodeBlock_IsNotAdded()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private int _a, _b, _c;|}
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:private int _a, _b, _c;|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int _a, _z_, _c;
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    private int _a, _z_, _c;
+                }
+                """);
+
+    [Fact]
     public Task NewUsing_TopOfFile()
         => TestAsync(
             csharpSource: """

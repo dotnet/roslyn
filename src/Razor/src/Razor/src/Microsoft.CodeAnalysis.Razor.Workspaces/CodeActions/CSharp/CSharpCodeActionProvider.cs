@@ -40,12 +40,20 @@ internal class CSharpCodeActionProvider(LanguageServerFeatureOptions languageSer
         RazorPredefinedCodeFixProviderNames.ImplementAbstractClass,
         RazorPredefinedCodeFixProviderNames.ImplementInterface,
         RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
+        RazorPredefinedCodeFixProviderNames.GenerateConversion,
+        RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+        RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod,
         RazorPredefinedCodeFixProviderNames.GenerateMethod,
+        RazorPredefinedCodeFixProviderNames.GenerateType,
+        RazorPredefinedCodeFixProviderNames.GenerateVariable,
     ];
 
     internal static readonly HashSet<string> SupportedImplicitExpressionCodeActionNames =
     [
-         RazorPredefinedCodeFixProviderNames.GenerateMethod,
+        RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+        RazorPredefinedCodeFixProviderNames.GenerateMethod,
+        RazorPredefinedCodeFixProviderNames.GenerateType,
+        RazorPredefinedCodeFixProviderNames.GenerateVariable,
     ];
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;

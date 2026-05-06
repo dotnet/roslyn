@@ -49,4 +49,16 @@ internal sealed class RemoteSnapshotManager(IFilePathService filePathService, IT
         var snapshot = GetSnapshot(project);
         return snapshot.TryGetCodeDocumentForGeneratedDocumentAsync(identity, cancellationToken);
     }
+
+    public Task<TextDocument?> TryGetRazorDocumentAsync(Solution solution, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    {
+        if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
+            !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))
+        {
+            return SpecializedTasks.Null<TextDocument>();
+        }
+
+        var snapshot = GetSnapshot(project);
+        return snapshot.TryGetRazorDocumentForGeneratedDocumentAsync(identity, cancellationToken);
+    }
 }

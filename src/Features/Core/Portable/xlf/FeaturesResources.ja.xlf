@@ -2600,6 +2600,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">条件式をステートメントに置き換える</target>
         <note />
       </trans-unit>
+      <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
+        <source>Represents the character '{0}' as a UTF-16 code unit.</source>
+        <target state="new">Represents the character '{0}' as a UTF-16 code unit.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Required">
         <source>required</source>
         <target state="translated">必須</target>

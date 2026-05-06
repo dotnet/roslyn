@@ -19,10 +19,11 @@ internal static class IRazorEditServiceExtensions
         CancellationToken cancellationToken)
     {
         var mappedChanges = await service.MapCSharpEditsAsync(
-                textChanges.SelectAsArray(static c => c.ToRazorTextChange()),
-                snapshot,
-                includeCSharpLanguageFeatureEdits: true,
-                cancellationToken).ConfigureAwait(false);
+            textChanges.SelectAsArray(static c => c.ToRazorTextChange()),
+            snapshot,
+            includeCSharpLanguageFeatureEdits: true,
+            directlyMappedEditFilter: null,
+            cancellationToken).ConfigureAwait(false);
 
         return mappedChanges.SelectAsArray(static c => c.ToTextChange());
     }

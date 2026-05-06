@@ -147,7 +147,7 @@ internal partial class RazorEditService
         var razorSourceText = codeDocument.Source.Text;
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var textChanges = edits.SelectAsArray(csharpSourceText.GetRazorTextChange);
-        var mappedEdits = await MapCSharpEditsAsync(textChanges, documentContext.Snapshot, includeCSharpLanguageFeatureEdits: true, cancellationToken).ConfigureAwait(false);
+        var mappedEdits = await MapCSharpEditsAsync(textChanges, documentContext.Snapshot, includeCSharpLanguageFeatureEdits: true, directlyMappedEditFilter: null, cancellationToken).ConfigureAwait(false);
 
         return mappedEdits.SelectAsArray(razorSourceText.GetTextEdit);
     }

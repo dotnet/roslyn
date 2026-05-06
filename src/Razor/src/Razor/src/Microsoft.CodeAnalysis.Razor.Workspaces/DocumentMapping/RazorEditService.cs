@@ -37,13 +37,13 @@ internal abstract partial class RazorEditService(
         ImmutableArray<RazorTextChange> textChanges,
         IDocumentSnapshot snapshot,
         bool includeCSharpLanguageFeatureEdits,
+        Func<RazorTextChange, bool>? directlyMappedEditFilter,
         CancellationToken cancellationToken)
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var originalRazorSourceText = codeDocument.Source.Text;
 
         using var edits = new PooledArrayBuilder<RazorTextChange>();
-        AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, cancellationToken, out var skippedEdits);
+        AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, directlyMappedEditFilter, cancellationToken, out var skippedEdits);
 
         if (includeCSharpLanguageFeatureEdits && skippedEdits.Length != 0)
         {
@@ -85,11 +85,11 @@ internal abstract partial class RazorEditService(
 
         AddUsingsChanges(ref edits, codeDocument, addedUsings, removedUsings, cancellationToken);
 
-        var oldMethods = FindMethods(originalCSharpSyntaxRoot, originalCSharpSourceText);
-        var newMethods = FindMethods(newCSharpSyntaxRoot, newCSharpSourceText);
-        var addedMethods = Delta.Compute(oldMethods, newMethods);
+        var oldMembers = FindMembers(originalCSharpSyntaxRoot, originalCSharpSourceText);
+        var newMembers = FindMembers(newCSharpSyntaxRoot, newCSharpSourceText);
+        var addedMembers = Delta.Compute(oldMembers, newMembers);
 
-        AddMethodChanges(ref edits, codeDocument, addedMethods, options);
+        AddMemberChanges(ref edits, codeDocument, addedMembers, options);
     }
 
     /// <summary>
@@ -290,6 +290,7 @@ internal abstract partial class RazorEditService(
         ref PooledArrayBuilder<RazorTextChange> edits,
         ImmutableArray<RazorTextChange> csharpEdits,
         RazorCodeDocument codeDocument,
+        Func<RazorTextChange, bool>? directlyMappedEditFilter,
         CancellationToken cancellationToken,
         out ImmutableArray<RazorTextChange> skippedEdits)
     {
@@ -307,6 +308,11 @@ internal abstract partial class RazorEditService(
             if (TryGetMappedEdit(csharpDocument, csharpEdit) is not { } mappedEdit)
             {
                 skipped.Add(csharpEdit);
+                continue;
+            }
+
+            if (directlyMappedEditFilter?.Invoke(mappedEdit) == false)
+            {
                 continue;
             }
 

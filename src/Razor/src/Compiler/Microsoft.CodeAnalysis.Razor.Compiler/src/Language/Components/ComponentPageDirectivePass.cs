@@ -59,10 +59,7 @@ internal sealed class ComponentPageDirectivePass : IntermediateNodePassBase, IRa
                 pageDirective.AddDiagnostic(ComponentDiagnosticFactory.CreatePageDirective_MustSpecifyRoute(pageDirective.Source));
             }
 
-            if (!codeDocument.CodeGenerationOptions.DesignTime || !pageDirective.HasDiagnostics)
-            {
-                @namespace.Children.Insert(index++, new RouteAttributeExtensionNode(routeToken.Content) { Source = routeToken.Source });
-            }
+            @namespace.Children.Insert(index++, new RouteAttributeExtensionNode(routeToken.Content) { Source = routeToken.Source });
         }
     }
 }

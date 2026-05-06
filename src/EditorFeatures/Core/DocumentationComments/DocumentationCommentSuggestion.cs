@@ -62,6 +62,13 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
             Logger.Log(FunctionId.Copilot_Generate_Documentation_Diverged, logLevel: LogLevel.Information);
             await session.DismissAsync(ReasonForDismiss.DismissedAfterBufferChange, cancel).ConfigureAwait(false);
         }
+        else if (originalProposal is null && reason == ReasonForUpdate.DivergedAfterCaretMove)
+        {
+            // If the caret has moved and no proposal has been generated yet (still showing thinking dots),
+            // dismiss the session so the dots don't follow the caret around.
+            Logger.Log(FunctionId.Copilot_Generate_Documentation_Dismissed, logLevel: LogLevel.Information);
+            await session.DismissAsync(ReasonForDismiss.DismissedAfterCaretMove, cancel).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
