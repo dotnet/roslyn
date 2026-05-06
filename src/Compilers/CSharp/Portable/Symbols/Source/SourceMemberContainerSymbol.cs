@@ -4866,10 +4866,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                         }
 
-                        // https://github.com/dotnet/roslyn/issues/82636: Complain for anything but a type syntax in the parameter syntax
+                        TypeSyntax? typeSyntax = parameterSyntax.Type;
+                        Debug.Assert(typeSyntax != null);
+                        typesBuilder.Add(typeSyntax);
 
-                        Debug.Assert(parameterSyntax.Type != null);
-                        typesBuilder.Add(parameterSyntax.Type);
+                        SyntaxToken syntaxToken = parameterSyntax.GetFirstToken();
+                        if (syntaxToken != typeSyntax.GetFirstToken())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, syntaxToken.GetLocation(), syntaxToken.ValueText);
+                        }
+
+                        syntaxToken = parameterSyntax.GetLastToken();
+                        if (syntaxToken != typeSyntax.GetLastToken())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, syntaxToken.GetLocation(), syntaxToken.ValueText);
+                        }
                     }
 
                     int memberOffset = members.Count + typesBuilder.Count; // In order to keep the same relative order between constructors during emit we assign offset in decreasing order
