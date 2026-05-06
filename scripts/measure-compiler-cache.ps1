@@ -96,6 +96,7 @@ function Invoke-Restore([string]$Name) {
     "restore",
     $solutionPath,
     "-p:Configuration=$Configuration",
+    "-v:quiet",
     "-tl:off"
   )
 }
@@ -108,6 +109,7 @@ function Invoke-Build([string]$Name) {
     "-p:Configuration=$Configuration",
     "-p:RunAnalyzersDuringBuild=false",
     "-p:GenerateFullPaths=true",
+    "-v:quiet",
     "-tl:off"
   )
 }
@@ -141,15 +143,17 @@ function Invoke-DownloadCache {
 function Invoke-BuildPass([string]$Label) {
   Stop-BuildServers
   Clear-Artifacts
+  $cacheStatsStart = Get-CacheStatsTimestamp
   $restore = Invoke-Restore "$Label restore"
   $build = Invoke-Build "$Label build"
+  Show-CacheStats $Label $cacheStatsStart
 
   return @($restore, $build)
 }
 
-function Show-CacheStats([string]$Since) {
+function Show-CacheStats([string]$Label, [string]$Since) {
   Write-Host ""
-  Write-Host "Compiler cache stats since downloaded-cache pass start ($Since):"
+  Write-Host "Compiler cache stats for $Label since pass start ($Since):"
 
   if (-not (Test-Path -LiteralPath $compilerServerPath)) {
     Write-Warning "VBCSCompiler was not found at '$compilerServerPath'. Skipping cache stats."
@@ -200,9 +204,7 @@ try {
   $results += Invoke-BuildPass "Empty local cache"
   Stop-BuildServers
   $results += Invoke-DownloadCache
-  $downloadedCachePassStart = Get-CacheStatsTimestamp
   $results += Invoke-BuildPass "Downloaded local cache"
-  Show-CacheStats $downloadedCachePassStart
 
   Write-Host ""
   Write-Host "Summary"
