@@ -4873,13 +4873,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         SyntaxToken syntaxToken = parameterSyntax.GetFirstToken();
                         if (syntaxToken != typeSyntax.GetFirstToken())
                         {
-                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, syntaxToken.GetLocation(), syntaxToken.ValueText);
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, syntaxToken.GetLocation(), syntaxToken.Text);
                         }
 
                         syntaxToken = parameterSyntax.GetLastToken();
                         if (syntaxToken != typeSyntax.GetLastToken())
                         {
-                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, syntaxToken.GetLocation(), syntaxToken.ValueText);
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, syntaxToken.GetLocation(), syntaxToken.Text);
                         }
                     }
 
