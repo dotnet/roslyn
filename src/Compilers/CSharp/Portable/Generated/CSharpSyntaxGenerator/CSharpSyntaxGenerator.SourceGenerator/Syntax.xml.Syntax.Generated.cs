@@ -4300,6 +4300,7 @@ public sealed partial class WithElementSyntax : CollectionElementSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithElement(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWithElement(this);
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public WithElementSyntax Update(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
         if (withKeyword != this.WithKeyword || argumentList != this.ArgumentList)
