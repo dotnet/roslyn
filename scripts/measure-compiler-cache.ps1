@@ -205,6 +205,7 @@ try {
   Stop-BuildServers
   $results += Invoke-DownloadCache
   $results += Invoke-BuildPass "Downloaded local cache"
+  $results += Invoke-BuildPass "Warm local cache"
 
   Write-Host ""
   Write-Host "Summary"
