@@ -1290,10 +1290,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         if (baseTypeHandle.Kind == HandleKind.TypeReference)
                         {
+                            // A TypeRef usually refers to a type in a different module, but, strictly, it is possible for it to refer to the current module.
+                            // Dig through any containing types of the TypeRef, to see if it is ultimately a reference to the current module.
+                            // In that case, we can fall through to handling it in the slow path.
                             var typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)baseTypeHandle);
-                            // A TypeRef is usually used to refer to a type in another module.
-                            // However, if the ResolutionScope is the ModuleDefinition, it refers to a type in the current module.
-                            // This is the only situation where we should actually inspect such types.
+                            while (typeRef.ResolutionScope.Kind == HandleKind.TypeReference)
+                                typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)typeRef.ResolutionScope);
+
                             return typeRef.ResolutionScope != EntityHandle.ModuleDefinition;
                         }
 
