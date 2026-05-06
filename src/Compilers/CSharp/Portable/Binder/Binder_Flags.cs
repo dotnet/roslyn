@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BinderWithContainingMemberOrLambda(this, this.Flags | flags, containing);
         }
 
-        internal Binder SetOrClearUnsafeRegionIfNecessary(SyntaxTokenList modifiers, bool isIteratorBody = false, bool isFieldInitializer = false)
+        internal Binder SetOrClearUnsafeRegionIfNecessary(SyntaxTokenList modifiers, bool isIteratorBody = false, bool isFieldDeclaration = false)
         {
             // In C# 13 and above, iterator bodies define a safe context even when nested in an unsafe context.
             // In C# 12 and below, we keep the (spec violating) behavior that iterator bodies inherit the safe/unsafe context
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Under the updated memory safety rules, the `unsafe` modifier on a type or member declaration (except field)
             // does not introduce an unsafe context (no interior meaning).
             // Only `unsafe { }` blocks introduce an unsafe context.
-            return !withoutUnsafe && modifiers.Any(SyntaxKind.UnsafeKeyword) && (isFieldInitializer || !this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
+            return !withoutUnsafe && modifiers.Any(SyntaxKind.UnsafeKeyword) && (isFieldDeclaration || !this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
                 ? new Binder(this, this.Flags | BinderFlags.UnsafeRegion)
                 : this;
         }
