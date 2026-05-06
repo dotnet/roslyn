@@ -205,10 +205,11 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions = null,
             Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
-            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default,
+            StrongNameKeys? strongNameKeys = null)
         {
             return DeterministicKey.GetDeterministicKey(
-                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkStream, resources, options);
+                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkStream, resources, options, strongNameKeys);
         }
 
         internal string GetDeterministicKey(
@@ -233,7 +234,8 @@ namespace Microsoft.CodeAnalysis
                 emitOptions,
                 sourceLinkStream,
                 resources,
-                options);
+                options,
+                StrongNameKeys);
         }
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)

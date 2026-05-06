@@ -77,7 +77,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Sub New(compilation As VisualBasicCompilation,
                        assemblySimpleName As String,
                        moduleName As String,
-                       netModules As ImmutableArray(Of PEModule))
+                       netModules As ImmutableArray(Of PEModule),
+                       Optional strongNameKeys As StrongNameKeys = Nothing)
 
             Debug.Assert(compilation IsNot Nothing)
             Debug.Assert(assemblySimpleName IsNot Nothing)
@@ -103,8 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             _modules = moduleBuilder.ToImmutableAndFree()
 
-            If compilation.Options.StrongNameKeys IsNot Nothing Then
-                _lazyStrongNameKeys = compilation.Options.StrongNameKeys
+            If strongNameKeys IsNot Nothing Then
+                _lazyStrongNameKeys = strongNameKeys
             ElseIf Not compilation.Options.CryptoPublicKey.IsEmpty Then
                 ' Private key Is Not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
                 _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey:=Nothing, MessageProvider.Instance)
@@ -1692,12 +1693,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Creating strong names is a potentially expensive operation, so we will check
             ' if keys could have been created and published already.
+            ' When pre-read keys were provided via the constructor, _lazyStrongNameKeys
+            ' is already set and this code won't be reached. This path handles the
+            ' non-command-line case (IDE, tests) where keys are computed lazily.
             If _lazyStrongNameKeys IsNot Nothing Then
-                Return
-            End If
-
-            If _compilation.Options.StrongNameKeys IsNot Nothing Then
-                Interlocked.CompareExchange(_lazyStrongNameKeys, _compilation.Options.StrongNameKeys, Nothing)
                 Return
             End If
 

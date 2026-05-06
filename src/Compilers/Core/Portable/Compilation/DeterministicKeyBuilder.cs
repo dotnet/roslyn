@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis
             Stream? sourceLinkStream,
             ImmutableArray<ResourceDescription> resources,
             DeterministicKeyOptions options,
+            StrongNameKeys? strongNameKeys,
             CancellationToken cancellationToken)
         {
             Debug.Assert(!syntaxTrees.IsDefault);
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
 
             writer.WriteKey("compilation");
-            WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, options, cancellationToken);
+            WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, options, strongNameKeys, cancellationToken);
             writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
             writer.WriteKey("analyzers");
@@ -242,12 +243,19 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<byte> publicKey,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             DeterministicKeyOptions options,
+            StrongNameKeys? strongNameKeys,
             CancellationToken cancellationToken)
         {
             writer.WriteObjectStart();
             writeToolsVersions();
 
             WriteByteArrayValue(writer, "publicKey", publicKey.AsSpan());
+
+            if (strongNameKeys is { } keys && !keys.PublicKey.IsDefault)
+            {
+                WriteByteArrayValue(writer, "strongNamePublicKey", keys.PublicKey.AsSpan());
+            }
+
             writer.WriteKey("options");
             WriteCompilationOptions(writer, compilationOptions);
 
@@ -408,6 +416,7 @@ namespace Microsoft.CodeAnalysis
                     compilation.Assembly.Identity.PublicKey,
                     pathMap,
                     deterministicKeyOptions,
+                    strongNameKeys: null,
                     cancellationToken);
             }
             else
@@ -523,29 +532,6 @@ namespace Microsoft.CodeAnalysis
             writer.Write("scriptClassName", options.ScriptClassName);
             writer.Write("mainTypeName", options.MainTypeName);
             WriteByteArrayValue(writer, "cryptoPublicKey", options.CryptoPublicKey.AsSpan());
-
-            // When pre-read key content is available, write a checksum of the content
-            // instead of the file path. This ensures the deterministic key is based on
-            // what the compilation actually uses rather than where it came from on disk.
-            if (options.StrongNameKeys is { } strongNameKeys)
-            {
-                if (!strongNameKeys.KeyPair.IsDefault)
-                {
-                    WriteByteArrayValue(writer, "cryptoKeyFileContents", strongNameKeys.KeyPair.AsSpan());
-                }
-                else if (!strongNameKeys.PublicKey.IsDefault)
-                {
-                    WriteByteArrayValue(writer, "cryptoKeyFileContents", strongNameKeys.PublicKey.AsSpan());
-                }
-                else
-                {
-                    writer.Write("cryptoKeyFile", options.CryptoKeyFile);
-                }
-            }
-            else
-            {
-                writer.Write("cryptoKeyFile", options.CryptoKeyFile);
-            }
 
             writer.Write("delaySign", options.DelaySign);
             writer.Write("publicSign", options.PublicSign);

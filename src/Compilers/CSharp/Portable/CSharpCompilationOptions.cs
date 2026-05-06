@@ -273,7 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // https://github.com/dotnet/roslyn/issues/82546: should be in the constructor
             MemorySafetyRules = other.MemorySafetyRules;
-            StrongNameKeys = other.StrongNameKeys;
         }
 
         public override string Language => LanguageNames.CSharp;
@@ -650,16 +649,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { StrongNameProvider = provider };
-        }
-
-        internal CSharpCompilationOptions WithStrongNameKeys(StrongNameKeys? keys)
-        {
-            if (ReferenceEquals(keys, this.StrongNameKeys))
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { StrongNameKeys = keys };
         }
 
         protected override CompilationOptions CommonWithConcurrentBuild(bool concurrent) => WithConcurrentBuild(concurrent);

@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return identity1.Version = identity2.Version
             End Function
 
-            Public Sub CreateSourceAssemblyForCompilation(compilation As VisualBasicCompilation)
+            Public Sub CreateSourceAssemblyForCompilation(compilation As VisualBasicCompilation, strongNameKeys As StrongNameKeys)
                 ' We are reading the Reference Manager state outside of a lock by accessing 
                 ' IsBound and HasCircularReference properties.
                 ' Once isBound flag is flipped the state of the manager is available and doesn't change.
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Given compilation is the first compilation that shares this manager and its symbols are requested.
                 ' Perform full reference resolution and binding.
-                If Not IsBound AndAlso CreateAndSetSourceAssemblyFullBind(compilation) Then
+                If Not IsBound AndAlso CreateAndSetSourceAssemblyFullBind(compilation, strongNameKeys) Then
 
                     ' we have successfully bound the references for the compilation
 
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' already bound its references and produced tables that we can use to construct 
                     ' source assembly symbol faster.
 
-                    CreateAndSetSourceAssemblyReuseData(compilation)
+                    CreateAndSetSourceAssemblyReuseData(compilation, strongNameKeys)
                 Else
                     ' We encountered a circular reference while binding the previous compilation.
                     ' This compilation can't share bound references with other compilations. Create a new manager.
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' NOTE: The CreateSourceAssemblyFullBind is going to replace compilation's reference manager with newManager.
 
                     Dim newManager = New ReferenceManager(Me.SimpleAssemblyName, Me.IdentityComparer, Me.ObservedMetadata)
-                    Dim successful = newManager.CreateAndSetSourceAssemblyFullBind(compilation)
+                    Dim successful = newManager.CreateAndSetSourceAssemblyFullBind(compilation, strongNameKeys)
 
                     ' The new manager isn't shared with any other compilation so there is no other 
                     ' thread but the current one could have initialized it.
@@ -250,14 +250,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New MissingAssemblySymbol(identity)
             End Function
 
-            Private Sub CreateAndSetSourceAssemblyReuseData(compilation As VisualBasicCompilation)
+            Private Sub CreateAndSetSourceAssemblyReuseData(compilation As VisualBasicCompilation, strongNameKeys As StrongNameKeys)
                 AssertBound()
 
                 ' If the compilation has a reference from metadata to source assembly we can't share the referenced PE symbols.
                 Debug.Assert(Not HasCircularReference)
 
                 Dim moduleName As String = compilation.MakeSourceModuleName()
-                Dim assemblySymbol = New SourceAssemblySymbol(compilation, Me.SimpleAssemblyName, moduleName, Me.ReferencedModules)
+                Dim assemblySymbol = New SourceAssemblySymbol(compilation, Me.SimpleAssemblyName, moduleName, Me.ReferencedModules, strongNameKeys)
 
                 InitializeAssemblyReuseData(assemblySymbol, Me.ReferencedAssemblies, Me.UnifiedAssemblies)
 
@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             ' Returns false if another compilation sharing this manager finished binding earlier and we should reuse its results.
-            Friend Function CreateAndSetSourceAssemblyFullBind(compilation As VisualBasicCompilation) As Boolean
+            Friend Function CreateAndSetSourceAssemblyFullBind(compilation As VisualBasicCompilation, strongNameKeys As StrongNameKeys) As Boolean
 
                 Dim resolutionDiagnostics = DiagnosticBag.GetInstance()
                 Dim supersedeLowerVersions = compilation.Options.ReferencesSupersedeLowerVersions
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(allAssemblyData(i).IsLinked = bindingResult(i).AssemblySymbol.IsLinked)
                     Next
 
-                    Dim assemblySymbol = New SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), modules)
+                    Dim assemblySymbol = New SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), modules, strongNameKeys)
 
                     Dim corLibrary As AssemblySymbol
 

@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             string assemblySimpleName,
             string moduleName,
-            ImmutableArray<PEModule> netModules)
+            ImmutableArray<PEModule> netModules,
+            StrongNameKeys strongNameKeys = null)
         {
             Debug.Assert(compilation != null);
             Debug.Assert(assemblySimpleName != null);
@@ -143,9 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _modules = moduleBuilder.ToImmutableAndFree();
 
-            if (compilation.Options.StrongNameKeys is not null)
+            if (strongNameKeys is not null)
             {
-                _lazyStrongNameKeys = compilation.Options.StrongNameKeys;
+                _lazyStrongNameKeys = strongNameKeys;
             }
             else if (!compilation.Options.CryptoPublicKey.IsEmpty)
             {
@@ -483,13 +484,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private StrongNameKeys ComputeStrongNameKeys()
         {
-            // The precedence order for strong name keys is: options, commnad line and 
-            // then attributes.
-            if (_compilation.Options.StrongNameKeys is { } preReadKeys)
-            {
-                return preReadKeys;
-            }
-
+            // When pre-read keys were provided via the constructor, _lazyStrongNameKeys
+            // is already set and this method won't be called. This path handles the
+            // non-command-line case (IDE, tests) where keys are computed lazily.
             string keyFile = _compilation.Options.CryptoKeyFile;
 
             // Public sign requires a keyfile

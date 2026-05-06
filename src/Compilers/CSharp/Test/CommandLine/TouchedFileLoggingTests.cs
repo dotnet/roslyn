@@ -32,7 +32,7 @@ class C
     }
 }";
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void TrivialSourceFileOnlyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -60,7 +60,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void AppConfigCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -106,7 +106,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void StrongNameKeyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -127,6 +127,7 @@ class C
                               Path.ChangeExtension(hello, "exe"),
                               out expectedReads,
                               out expectedWrites);
+            expectedReads.Add(snkPath);
 
             var exitCode = cmd.Run(outWriter);
 
@@ -140,7 +141,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void XmlDocumentFileCsc()
         {
             var sourcePath = Temp.CreateFile().WriteAllText(@"
@@ -157,7 +158,7 @@ public class C { }").Path;
                 "/nologo",
                 "/target:library",
                 "/doc:" + xml.Path,
-                "/touchedfiles:" + touchedDir.Path + "\\touched",
+                "/touchedfiles:" + touchedBase,
                 sourcePath
             });
 
@@ -231,11 +232,11 @@ public class C { }").Path;
             var touchedWritesPath = touchedFilesBase + ".write";
 
             var expected = expectedReads.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
-            Assert.Equal(string.Join("\r\n", expected),
+            Assert.Equal(string.Join(Environment.NewLine, expected),
                          File.ReadAllText(touchedReadPath).Trim());
 
             expected = expectedWrites.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
-            Assert.Equal(string.Join("\r\n", expected),
+            Assert.Equal(string.Join(Environment.NewLine, expected),
                          File.ReadAllText(touchedWritesPath).Trim());
         }
     }

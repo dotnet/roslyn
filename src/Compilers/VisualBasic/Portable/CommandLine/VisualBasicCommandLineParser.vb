@@ -1467,13 +1467,6 @@ lVbRuntimePlus:
                 parseOptions:=parseOptions,
                 reportSuppressedDiagnostics:=reportSuppressedDiagnostics)
 
-            ' Pre-read strong name key material during command line parsing so all
-            ' input is read before compilation begins. This ensures compilations are
-            ' immutable and repeatable even with disk changes.
-            If Not String.IsNullOrEmpty(keyFileSetting) OrElse Not String.IsNullOrEmpty(keyContainerSetting) Then
-                options = options.WithStrongNameKeys(DesktopStrongNameProvider.CreateKeys(keyFileSetting, keyContainerSetting, StrongNameFileSystem.Instance, keyFileSearchPaths.AsImmutable(), MessageProvider))
-            End If
-
             Dim emitOptions = New EmitOptions(
                 metadataOnly:=refOnly,
                 includePrivateMembers:=Not refOnly AndAlso outputRefFileName Is Nothing,

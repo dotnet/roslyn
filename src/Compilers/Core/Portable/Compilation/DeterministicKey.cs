@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis
             Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
+            StrongNameKeys? strongNameKeys = null,
             CancellationToken cancellationToken = default)
         {
             var keyBuilder = compilationOptions.CreateDeterministicKeyBuilder();
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis
                 sourceLinkStream,
                 resources,
                 options,
+                strongNameKeys,
                 cancellationToken);
         }
     }
