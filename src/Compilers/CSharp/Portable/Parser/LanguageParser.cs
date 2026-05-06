@@ -1661,60 +1661,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // We're now positioned at what should be the declaration head.  Return true if the
             // current token begins a declaration for which 'partial' is a plausible modifier.
 
-            var kind = this.CurrentToken.Kind;
-            var contextualKind = this.CurrentToken.ContextualKind;
-
-            // Type declarations where 'partial' is legal.
-            if (kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword)
+            if (CheckDefinitelyAtMemberDeclarationHead(out var isDeclarationHead))
             {
-                return true;
+                return isDeclarationHead;
             }
 
-            switch (contextualKind)
-            {
-                case SyntaxKind.RecordKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                    }
-
-                case SyntaxKind.UnionKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 15 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                    }
-            }
-
-            // Constructs where 'partial' is illegal but we still want to consume it so the binder
-            // can produce a targeted diagnostic instead of cascading parse errors.
-            if (kind is SyntaxKind.NamespaceKeyword or SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword)
-            {
-                return true;
-            }
-
-            // Partial members.
-
-            // 'partial event ...' is unambiguously a partial event on every language version:
-            // 'event' is a reserved keyword and cannot start any other member/statement form, so
-            // we commit to treating 'partial' as a modifier regardless of whether partial events
-            // are actually supported by the current language version.  The binder reports a
-            // feature-availability diagnostic if needed.
-            if (kind == SyntaxKind.EventKeyword)
-            {
-                return true;
-            }
+            // Partial members other than events (events are handled in the helper above).
 
             // 'partial Identifier(...' is a partial constructor only on language versions that
             // support partial constructors.  On earlier language versions the same tokens must
             // be parsed as a method whose return type is 'Identifier', so we explicitly gate on
             // the feature here to avoid changing the parse of existing code.
-            if (kind == SyntaxKind.IdentifierToken &&
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
                 this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
                 return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
@@ -1724,6 +1682,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // (inside a reset-point, so the advance is local) to determine whether this looks like
             // a member declaration head.
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+        }
+
+        /// <summary>
+        /// Assumes the current token is positioned at what should be the declaration head (after
+        /// any modifier tokens have been skipped past).  Tells the caller whether this position
+        /// is a conclusive signal about the enclosing modifier parse.
+        /// <para>
+        /// Returns <see langword="true"/> if the position is conclusive: either we are at a type,
+        /// namespace, or event declaration head (<paramref name="isDeclarationHead"/> is set to
+        /// <see langword="true"/>), or we are at a <c>record</c>/<c>union</c> contextual keyword
+        /// whose feature is disabled (<paramref name="isDeclarationHead"/> is set to
+        /// <see langword="false"/>).  In the latter case the caller should decline to commit to
+        /// the enclosing modifier parse: the user is almost certainly trying to declare a type
+        /// and we want the ordinary feature-availability diagnostic to surface downstream rather
+        /// than producing a surprising member/expression parse.
+        /// </para>
+        /// <para>
+        /// Returns <see langword="false"/> if we did not land on any such keyword at all; in
+        /// that case the caller must decide based on its own context.
+        /// </para>
+        /// <para>
+        /// We accept the broader set of declaration keywords here -- including positions where a
+        /// given modifier is not actually legal -- so that the binder can report targeted
+        /// diagnostics for things like <c>partial namespace</c> or <c>partial event E</c> instead
+        /// of surfacing cascading parse errors.  <c>partial event E</c> in particular is
+        /// syntactically unambiguous on every language version: the <c>event</c> keyword is
+        /// reserved and cannot start any other member, statement, or expression form.
+        /// </para>
+        /// </summary>
+        private bool CheckDefinitelyAtMemberDeclarationHead(out bool isDeclarationHead)
+        {
+            switch (this.CurrentToken.Kind)
+            {
+                case SyntaxKind.ClassKeyword:
+                case SyntaxKind.StructKeyword:
+                case SyntaxKind.InterfaceKeyword:
+                case SyntaxKind.NamespaceKeyword:
+                case SyntaxKind.EnumKeyword:
+                case SyntaxKind.EventKeyword:
+                    isDeclarationHead = true;
+                    return true;
+
+                case SyntaxKind.DelegateKeyword:
+                    // `delegate*` is the function-pointer type and is part of a type expression,
+                    // not a delegate declaration head.  For example, `ref delegate*<void> M()`
+                    // is a method whose return type is `ref delegate*<void>`, and the enclosing
+                    // `ref` must remain part of the return-type prefix.  Let the caller decide
+                    // based on its own context in that case.
+                    if (this.PeekToken(1).Kind == SyntaxKind.AsteriskToken)
+                    {
+                        break;
+                    }
+
+                    isDeclarationHead = true;
+                    return true;
+            }
+
+            switch (this.CurrentToken.ContextualKind)
+            {
+                case SyntaxKind.RecordKeyword:
+                    // This is an unusual use of LangVersion.  Normally we only produce errors when the
+                    // langversion does not support a feature, but in this case we are effectively making
+                    // a language breaking change to consider "record" a type declaration in all ambiguous
+                    // cases.  To avoid breaking older code that is not using C# 9 we conditionally parse
+                    // based on langversion.  Either way the answer is conclusive for the enclosing
+                    // modifier parse.
+                    isDeclarationHead = IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    return true;
+
+                case SyntaxKind.UnionKeyword:
+                    // Same rationale as for "record" above; conditional on the C# 15 unions feature.
+                    isDeclarationHead = IsFeatureEnabled(MessageID.IDS_FeatureUnions);
+                    return true;
+            }
+
+            isDeclarationHead = false;
+            return false;
         }
 
         private bool IsPossibleMemberName()
