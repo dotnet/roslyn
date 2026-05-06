@@ -388,7 +388,6 @@ internal partial class CSharpFormattingPass
                     // Take the user's indentation, and subtract our desired attribute indentation, so it's not added repeatedly.
                     var indentationWidth = Math.Max(_currentLine.GetIndentationSize(_tabSize) - attributeIndentationWidth, 0);
                     _builder.Append(FormattingUtilities.GetIndentationString(indentationWidth, _insertSpaces, _tabSize));
-
                 }
 
                 // Now emit the contents of the line. If this is the last line of the expression literal, then we want to stop at the
