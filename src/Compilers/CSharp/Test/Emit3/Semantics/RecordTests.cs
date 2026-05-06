@@ -25868,10 +25868,13 @@ partial public record C  // CS0267
 }
 ";
 
-            CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial public class C  // CS0267
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
+            // Before C# preview, 'partial' was required to be the last modifier. With the relaxed-modifier-ordering feature it can appear anywhere.
+            CreateCompilation(new[] { test, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+                // (2,1): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // partial public record C  // CS0267
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(2, 1));
+
+            CreateCompilation(test).VerifyDiagnostics();
         }
 
         [Fact]
