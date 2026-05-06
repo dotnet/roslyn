@@ -37,11 +37,24 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private static string GetCreationExperimentalUrl(Node node)
+        // Returns the experimental URL that should annotate a factory method whose signature
+        // includes the given fields. Node-level and kind-level marks apply regardless of which
+        // fields appear in the signature; field-level marks only apply if that field actually
+        // appears as a parameter. This prevents the shorthand factory from being annotated as
+        // experimental when it doesn't take the experimental field as a parameter.
+        private static string GetFactorySignatureExperimentalUrl(Node node, IEnumerable<Field> signatureFields)
         {
             if (!string.IsNullOrEmpty(node.ExperimentalUrl))
             {
                 return node.ExperimentalUrl;
+            }
+
+            foreach (var field in signatureFields)
+            {
+                if (!string.IsNullOrEmpty(field.ExperimentalUrl))
+                {
+                    return field.ExperimentalUrl;
+                }
             }
 
             if (node.Kinds.Count <= 1)
@@ -63,6 +76,22 @@ namespace CSharpSyntaxGenerator
             // We use this to flag the transitional factory shape introduced when adding a new
             // syntax kind, while avoiding broad experimental annotation of long-standing APIs.
             return experimentalKindCount == node.Kinds.Count - 1 ? experimentalUrl : null;
+        }
+
+        // Used by Update: its signature always includes every field on the node, so any
+        // field-level ExperimentalUrl always applies. Kind additions don't change Update's
+        // signature, so kind-level marks are intentionally not propagated here.
+        private static string GetFieldExperimentalUrl(Node node)
+        {
+            foreach (var field in node.Fields)
+            {
+                if (!string.IsNullOrEmpty(field.ExperimentalUrl))
+                {
+                    return field.ExperimentalUrl;
+                }
+            }
+
+            return null;
         }
 
         private void WriteFileHeader()
@@ -1144,6 +1173,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedUpdateMethod(Node node)
         {
             WriteLine();
+            WriteExperimentalIfNeeded(node.ExperimentalUrl ?? GetFieldExperimentalUrl(node));
             Write($"public {node.Name} Update(");
             Write(CommaJoin(
                 node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")));
@@ -1491,7 +1521,7 @@ namespace CSharpSyntaxGenerator
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
 
-            WriteExperimentalIfNeeded(GetCreationExperimentalUrl(nd));
+            WriteExperimentalIfNeeded(GetFactorySignatureExperimentalUrl(nd, nd.Fields));
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             WriteRedFactoryParameters(nd);
 
@@ -1677,7 +1707,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
-            WriteExperimentalIfNeeded(GetCreationExperimentalUrl(nd));
+            WriteExperimentalIfNeeded(GetFactorySignatureExperimentalUrl(nd, nd.Fields.Where(factoryWithNoAutoCreatableTokenFields.Contains)));
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
@@ -1767,7 +1797,7 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
-            WriteExperimentalIfNeeded(GetCreationExperimentalUrl(nd));
+            WriteExperimentalIfNeeded(GetFactorySignatureExperimentalUrl(nd, nd.Fields.Where(minimalFactoryfields.Contains)));
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",

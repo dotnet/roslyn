@@ -14,6 +14,11 @@
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> void
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> TResult?
 
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.QuestionToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken awaitKeyword, Microsoft.CodeAnalysis.SyntaxToken questionToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.WithQuestionToken(Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax!
+[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AwaitExpression(Microsoft.CodeAnalysis.SyntaxToken awaitKeyword, Microsoft.CodeAnalysis.SyntaxToken questionToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax!
+
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Conversion.IsUnion.get -> bool
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnionKeyword = 8452 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnionDeclaration = 9082 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
