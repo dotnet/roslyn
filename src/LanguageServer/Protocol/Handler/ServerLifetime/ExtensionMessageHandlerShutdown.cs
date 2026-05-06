@@ -34,7 +34,5 @@ internal class ExtensionMessageHandlerShutdown(LspWorkspaceRegistrationService l
         }
     }
 
-    public async Task ExitAsync()
-    {
-    }
+    public Task ExitAsync() => Task.CompletedTask;
 }

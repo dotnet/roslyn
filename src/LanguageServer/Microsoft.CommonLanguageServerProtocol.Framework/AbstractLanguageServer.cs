@@ -307,7 +307,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 var lspServices = GetLspServices();
 
                 // Allow implementations to do any additional cleanup on exit.
-                var exitHooks = GetLspServices().GetRequiredServices<IOnServerShutdown>();
+                var exitHooks = lspServices.GetRequiredServices<IOnServerShutdown>();
                 foreach (var hook in exitHooks)
                 {
                     await hook.ExitAsync().ConfigureAwait(false);

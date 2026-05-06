@@ -79,10 +79,10 @@ internal sealed class ServiceBrokerFactory : ILspService
             });
             container.Proffer(
                 BrokeredServiceBridgeManifest.ServiceDescriptor,
-                async (moniker, options, innerServiceBroker, cancellationToken) =>
+                (moniker, options, innerServiceBroker, cancellationToken) =>
                 {
                     var bridgeManifestService = new BrokeredServiceBridgeManifest(container, loggerFactory);
-                    return bridgeManifestService;
+                    return new ValueTask<object?>(bridgeManifestService);
                 });
         }
     }

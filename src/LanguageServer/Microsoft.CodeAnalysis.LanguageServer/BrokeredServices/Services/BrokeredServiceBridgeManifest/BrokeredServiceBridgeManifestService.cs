@@ -30,7 +30,7 @@ internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeMani
     /// <summary>
     /// Returns a subset of services registered to Microsoft.VisualStudio.Code.Server container that are proferred by the Language Server process.
     /// </summary>
-    public async ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
+    public ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
     {
 
         var services = (IReadOnlyCollection<ServiceMoniker>)[.. _container.GetRegisteredServices()
@@ -39,6 +39,6 @@ internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeMani
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServer.", StringComparison.Ordinal) ||
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))];
         _logger.LogDebug($"Proffered services: {string.Join(',', services.Select(s => s.ToString()))}");
-        return services;
+        return new ValueTask<IReadOnlyCollection<ServiceMoniker>>(services);
     }
 }

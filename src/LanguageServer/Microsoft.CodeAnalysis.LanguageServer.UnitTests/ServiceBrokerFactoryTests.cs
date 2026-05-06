@@ -61,7 +61,8 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
 
             await server1.DisposeAsync();
             server1Disposed = true;
-            await brokeredServiceClient1.Connection.WaitAsync(s_timeout);
+            // Now that the server is disposed, the client connection should close.
+            await brokeredServiceClient1.Connection;
 
             Assert.False(brokeredServiceClient2.Connection.IsCompleted);
             Assert.NotNull(await workspaceProjectFactory2.GetSupportedBuildSystemPropertiesAsync(CancellationToken.None));
