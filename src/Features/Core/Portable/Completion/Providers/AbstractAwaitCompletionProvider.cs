@@ -100,6 +100,11 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         builder.Add(KeyValuePair.Create(Position, position.ToString()));
         builder.Add(KeyValuePair.Create(LeftTokenPosition, leftToken.SpanStart.ToString()));
 
+        // Compute the identifier length at the trigger position so GetChangeAsync can
+        // distinguish pre-existing text from characters the user typed after the trigger.
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        builder.Add(CompletionUtilities.GetOriginalIdentifierEndProperty(position, text, syntaxFacts));
+
         var makeContainerAsync = declaration is not null && !SyntaxGenerator.GetGenerator(document).GetModifiers(declaration).IsAsync;
         if (makeContainerAsync)
             builder.Add(KeyValuePair.Create(MakeContainerAsync, string.Empty));
@@ -204,9 +209,16 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
             builder.AddIfNotNull(returnTypeChange);
         }
 
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
+        // item.Span was captured when the completion session started and does not advance as the
+        // user types. Use the original identifier length (stored at trigger time) to detect how
+        // many characters the user has typed since, so the replacement span covers them all.
+        var currentSpanEnd = CompletionUtilities.GetCurrentSpanEnd(item, text, syntaxFacts);
+
         if (item.TryGetProperty(AddAwaitAtCurrentPosition, out var _))
         {
-            builder.Add(new TextChange(item.Span, _awaitKeyword));
+            builder.Add(new TextChange(TextSpan.FromBounds(item.Span.Start, currentSpanEnd), _awaitKeyword));
         }
         else
         {
@@ -225,10 +237,9 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
                 ? $".{nameof(Task.ConfigureAwait)}({_falseKeyword})"
                 : "";
 
-            builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, item.Span.End), replacementText));
+            builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, currentSpanEnd), replacementText));
         }
 
-        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var newText = text.WithChanges(builder);
         var allChanges = builder.ToImmutable();
 

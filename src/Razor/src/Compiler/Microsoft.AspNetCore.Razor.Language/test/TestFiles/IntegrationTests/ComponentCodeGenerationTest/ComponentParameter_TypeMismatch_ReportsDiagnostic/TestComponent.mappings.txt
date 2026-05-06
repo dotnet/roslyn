@@ -1,0 +1,15 @@
+﻿Source Location: (1:0,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|CoolnessMeter|
+Generated Location: (703:19,49 [13] )
+|CoolnessMeter|
+
+Source Location: (15:0,15 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|Coolness|
+Generated Location: (888:23,0 [8] )
+|Coolness|
+
+Source Location: (27:0,27 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|"very-cool"|
+Generated Location: (1151:31,0 [11] )
+|"very-cool"|
+

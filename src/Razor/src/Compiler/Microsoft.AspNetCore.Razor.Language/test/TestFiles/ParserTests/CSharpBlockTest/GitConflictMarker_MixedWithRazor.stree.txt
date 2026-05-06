@@ -1,0 +1,35 @@
+﻿RazorDocument - [0..116)::116 - [@if (true)LF{LF<<<<<<< HEADLF    <p>@currentValue</p>LF=======LF    <p>@incomingValue</p>LF>>>>>>> feature-branchLF}]
+    MarkupBlock - [0..116)::116
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..116)::116
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..116)::115 - [if (true)LF{LF<<<<<<< HEADLF    <p>@currentValue</p>LF=======LF    <p>@incomingValue</p>LF>>>>>>> feature-branchLF}] - Gen<Stmt>
+                Keyword;[if];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                Keyword;[true];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                LeftBrace;[{];
+                NewLine;[LF];
+                ConflictMarkerTrivia;[<<<<<<< HEAD];
+                NewLine;[LF];
+                Whitespace;[    ];
+                LessThan;[<];
+                Identifier;[p];
+                GreaterThan;[>];
+                Identifier;[@currentValue];
+                LessThan;[<];
+                CSharpOperator;[/];
+                Identifier;[p];
+                GreaterThan;[>];
+                NewLine;[LF];
+                ConflictMarkerTrivia;[=======];
+                NewLine;[LF];
+                CSharpDisabledText;[    <p>@incomingValue</p>LF];
+                ConflictMarkerTrivia;[>>>>>>> feature-branch];
+                NewLine;[LF];
+                RightBrace;[}];
+    EndOfFile;[];

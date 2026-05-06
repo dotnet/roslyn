@@ -1,0 +1,3 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocks.cshtml(14,24): error CS1002: ; expected
+//  PrintName(people[0]) 
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(14, 24)

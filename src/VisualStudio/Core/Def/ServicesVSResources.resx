@@ -1922,4 +1922,7 @@ Additional information: {1}</value>
   <data name="Show_Inheritance" xml:space="preserve">
     <value>Show Inheritance</value>
   </data>
+  <data name="Formatting_new_document" xml:space="preserve">
+    <value>Formatting new document...</value>
+  </data>
 </root>

@@ -375,7 +375,7 @@ End Class
                 End If
             Next
 
-            Assert.True(False, "Didn't find child with name '" + text + "'")
+            Assert.Fail("Didn't find child with name '" + text + "'")
         End Sub
 
     End Class

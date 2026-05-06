@@ -22114,7 +22114,7 @@ class C1(int* x)
     public int X => *x;
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // struct S1(int* x)
@@ -22129,6 +22129,21 @@ class C1(int* x)
                 //     public int X => *x;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(9, 22)
                 );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (4,21): error CS9360: This operation may only be used in an unsafe context
+                //     public int X => *x;
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 21),
+                // (9,21): error CS9360: This operation may only be used in an unsafe context
+                //     public int X => *x;
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(9, 21),
+            };
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]

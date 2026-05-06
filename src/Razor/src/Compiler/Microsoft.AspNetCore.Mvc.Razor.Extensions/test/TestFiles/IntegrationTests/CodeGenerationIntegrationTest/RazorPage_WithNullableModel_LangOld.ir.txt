@@ -1,0 +1,40 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (8:1,1 [19] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - TestNamespace
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_test - global::Microsoft.AspNetCore.Mvc.RazorPages.Page - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (48:3,0 [6] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
+                    LazyIntermediateToken - (48:3,0 [2] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n
+                    LazyIntermediateToken - (50:4,0 [3] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - <h1
+                    LazyIntermediateToken - (53:4,3 [1] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - >
+                CSharpExpression - (55:4,5 [10] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
+                    LazyIntermediateToken - (55:4,5 [10] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - CSharp - Model.Name
+                HtmlContent - (65:4,15 [13] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
+                    LazyIntermediateToken - (65:4,15 [5] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - </h1>
+                    LazyIntermediateToken - (70:4,20 [4] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n\n
+                    LazyIntermediateToken - (74:6,0 [3] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - <h2
+                    LazyIntermediateToken - (77:6,3 [1] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - >
+                CSharpExpression - (79:6,5 [14] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
+                    LazyIntermediateToken - (79:6,5 [14] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - CSharp - Model?.Address
+                HtmlContent - (93:6,19 [5] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
+                    LazyIntermediateToken - (93:6,19 [5] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - </h2>
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel?>)PageContext?.ViewData;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - public TestModel? Model => ViewData.Model;

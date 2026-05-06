@@ -87,4 +87,13 @@ public class NavigateToRegexPreFilterBenchmarks
 
     [Benchmark(Description = "IsRegexPattern: regex")]
     public bool DetectRegex() => RegexPatternDetector.IsRegexPattern("(Read|Write)Line");
+
+    [Benchmark(Description = "NgramFilter: short pattern (match)")]
+    public bool NgramCheckShort() => _index.GetTestAccessor().NgramCheckPasses("read");
+
+    [Benchmark(Description = "NgramFilter: long pattern (match)")]
+    public bool NgramCheckLong() => _index.GetTestAccessor().NgramCheckPasses("readline");
+
+    [Benchmark(Description = "NgramFilter: no match")]
+    public bool NgramCheckNoMatch() => _index.GetTestAccessor().NgramCheckPasses("xyzwvq");
 }

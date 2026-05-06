@@ -96,7 +96,7 @@ public sealed class CSharpInlineMethodTests
             var secondMarkerIndex = expectedMarkUpForCallee.LastIndexOf(Marker);
             if (firstMarkerIndex == -1 || secondMarkerIndex == -1 || firstMarkerIndex == secondMarkerIndex)
             {
-                Assert.True(false, "Can't find proper marks that contains inlined method.");
+                Assert.Fail("Can't find proper marks that contains inlined method.");
             }
 
             var firstPartitionBeforeMarkUp = expectedMarkUpForCallee[..firstMarkerIndex];
@@ -130,7 +130,7 @@ public sealed class CSharpInlineMethodTests
             var secondMarkerIndex = expectedMarkUp.LastIndexOf(Marker);
             if (firstMarkerIndex == -1 || secondMarkerIndex == -1 || firstMarkerIndex == secondMarkerIndex)
             {
-                Assert.True(false, "Can't find proper marks that contains inlined method.");
+                Assert.Fail("Can't find proper marks that contains inlined method.");
             }
 
             var firstPartitionBeforeMarkUp = expectedMarkUp[..firstMarkerIndex];
