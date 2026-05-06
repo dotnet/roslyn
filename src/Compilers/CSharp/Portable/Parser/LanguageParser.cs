@@ -8439,15 +8439,7 @@ done:
 
         private StatementSyntax TryParseStatementStartingWithIdentifier(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
         {
-            // `await [?] foreach` / `await [?] using (...)` — the statement-level await-keyword
-            // forms. The `?` is not legal here, but the intent is clearly an await-foreach /
-            // await-using, so eat the `?` as skipped syntax on the await keyword with an
-            // ERR_UnexpectedToken and parse the rest as normal. If we fall out of this block
-            // without returning, the remaining chain below handles the rest (including plain
-            // `await expr;` via IsPossibleAwaitExpressionStatement); the non-parenthesized
-            // declaration form `await [?] using Type …` falls all the way through to the final
-            // `return null` so the caller's ParseStatementCoreRest can route it to
-            // ParseLocalDeclarationStatement.
+            // parse `await foreach` / `await using` and gracefully handle `await? foreach` / `await? using`
             if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
             {
                 var peekIndex = 1;
@@ -8460,11 +8452,6 @@ done:
 
                 if (nextToken.Kind == SyntaxKind.UsingKeyword)
                 {
-                    // `await [?] using (…)` goes to ParseUsingStatement here. The non-parenthesized
-                    // declaration form `await [?] using Type …` is routed directly to
-                    // ParseLocalDeclarationStatement so we bypass the non-async await-retry in
-                    // ParseStatementCoreRest — that retry would otherwise trip on the
-                    // ERR_UnexpectedToken we attach to a stray `?` and produce a worse cascade.
                     return PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken
                         ? this.ParseUsingStatement(attributes)
                         : this.ParseLocalDeclarationStatement(attributes);
@@ -8511,13 +8498,7 @@ done:
         }
 
         /// <summary>
-        /// If the current token is an <c>await</c> keyword, eats it and returns it; otherwise
-        /// returns <see langword="null"/>. If a stray <c>?</c> immediately follows the <c>await</c>
-        /// keyword (the user wrote <c>await? foreach</c> or <c>await? using</c>), eats the <c>?</c>
-        /// too and attaches it as trailing skipped syntax on the await keyword with an
-        /// <see cref="ErrorCode.ERR_UnexpectedToken"/> diagnostic. That way we recover cleanly:
-        /// one diagnostic anchored on the <c>?</c>, and the rest of the statement parses normally
-        /// as <c>await foreach</c> / <c>await using</c>.
+        /// Eat an <c>await</c> token, but handle an <c>await?</c> gracefully (attach the <c>?</c> as trailing skipped syntax).
         /// </summary>
         private SyntaxToken TryEatAwaitKeywordWithOptionalSkippedQuestion()
         {
@@ -9770,8 +9751,6 @@ done:
 
         private CommonForEachStatementSyntax ParseForEachStatement(SyntaxList<AttributeListSyntax> attributes)
         {
-            // Eat the optional `await` / `await?` prefix up front. Returns null when the caller
-            // dispatches directly on `foreach`/`for` without a preceding `await`.
             var awaitTokenOpt = TryEatAwaitKeywordWithOptionalSkippedQuestion();
 
             // Can be a 'for' keyword if the user typed: 'for (SomeType t in'
@@ -10372,8 +10351,6 @@ done:
 
         private UsingStatementSyntax ParseUsingStatement(SyntaxList<AttributeListSyntax> attributes)
         {
-            // Eat the optional `await` / `await?` prefix up front. See ParseForEachStatement for
-            // the `?`-as-skipped-syntax recovery convention.
             var awaitTokenOpt = TryEatAwaitKeywordWithOptionalSkippedQuestion();
 
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
@@ -11421,9 +11398,7 @@ done:
                 return false;
 
             // `await [?] using` and `await [?] foreach` are statement-level keyword forms,
-            // not expression statements. The parenthesized shapes are handled directly by
-            // the statement dispatcher; the declaration form `await [?] using Type …` is
-            // handled by ParseLocalDeclarationStatement. Don't let them be hijacked here.
+            // not expression statements.
             var peekIndex = 1;
             if (PeekToken(peekIndex).Kind == SyntaxKind.QuestionToken)
                 peekIndex++;
@@ -11445,13 +11420,7 @@ done:
                 // BindAwait() catches the cases where await successfully parses as a unop but is not in an async
                 // function, and reports an appropriate ERR_BadAwaitWithoutAsync* error.
                 //
-                // Note: we deliberately do NOT peek past a `?` here to detect the null-conditional-await
-                // form `await? X`. In a non-async context, `await ? expr1 : expr2` is a perfectly legal
-                // ternary expression on the identifier `await`, and we cannot disambiguate the two forms
-                // from the `await ?` prefix alone with one token of lookahead (that would require scanning
-                // ahead for a matching `:`). We pessimistically leave `await ?` to be parsed as a ternary
-                // in non-async code; users who want the null-conditional-await form must be inside an
-                // async function (see the `this.IsInAsync` branch above).
+                // Note: in a non-async context, `await ? expr1 : expr2` is a ternary expression
                 var next = PeekToken(1);
                 switch (next.Kind)
                 {

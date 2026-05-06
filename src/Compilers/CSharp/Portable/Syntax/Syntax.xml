@@ -530,7 +530,7 @@
     <Field Name="QuestionToken" Type="SyntaxToken" Optional="true" ExperimentalUrl="https://github.com/dotnet/roslyn/issues/83237">
       <Kind Name="QuestionToken"/>
       <PropertyComment>
-        <summary>Optional SyntaxToken representing the "?" of a null-conditional "await?" expression. If present, the operand is only awaited when it is non-null; otherwise the result of the expression is null.</summary>
+        <summary>Optional SyntaxToken representing the "?" of a null-conditional "await?" expression.</summary>
       </PropertyComment>
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax">
