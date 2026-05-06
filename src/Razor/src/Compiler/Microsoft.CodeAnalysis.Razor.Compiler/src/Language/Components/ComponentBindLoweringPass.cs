@@ -633,9 +633,11 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
                 builder.Add(expressionNode);
             }
 
-            // We don't need to generate any runtime code for these attributes normally, as they're handled by the above nodes,
-            // but in order for IDE scenarios around component attributes to work we need to generate a little bit of design
-            // time code, so we create design time specific nodes with minimal information in order to do so.
+            // The bind set/event/after parameter nodes don't normally need separate runtime code
+            // (they're already handled by the value/change/expression nodes above). However, the IDE
+            // needs to see a C# reference to those parameters' properties so that Find All References,
+            // Rename, etc. work. We synthesize a minimal node here that the runtime writer will emit
+            // as a no-op assignment (``_ = TheProperty;``) referencing the bind property.
             ref var builderRef = ref builder.AsRef();
 
             TryAddDesignTimePropertyAccessHelperNode(ref builderRef, bindEntry.BindSetNode, valueAttribute);

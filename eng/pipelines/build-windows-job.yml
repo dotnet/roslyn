@@ -50,6 +50,10 @@ jobs:
         filePath: eng/build.ps1
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
 
+    - template: post-cache-roslyn-outputs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+
     - task: PowerShell@2
       displayName: Prepare Unit Tests
       inputs:

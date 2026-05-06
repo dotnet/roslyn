@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
-internal class TagHelperHtmlAttributeRuntimeNodeWriter : RuntimeNodeWriter
+internal class TagHelperHtmlAttributeRuntimeNodeWriter : IntermediateNodeWriter
 {
     public static new readonly TagHelperHtmlAttributeRuntimeNodeWriter Instance = new TagHelperHtmlAttributeRuntimeNodeWriter();
 

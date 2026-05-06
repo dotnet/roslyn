@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -25,6 +26,13 @@ internal sealed class RazorCompletionItem
     public ImmutableArray<RazorCommitCharacter> CommitCharacters { get; }
     public bool IsSnippet { get; }
     public TextEdit[]? AdditionalTextEdits { get; }
+
+    /// <summary>
+    /// An optional range in the source document that should be replaced by <see cref="InsertText"/>
+    /// when the item is committed. When set, a <c>TextEdit</c> is used instead of relying on the
+    /// editor's word-boundary heuristic for the applicable span.
+    /// </summary>
+    public LinePositionSpan? ReplacementRange { get; }
 
     private string GetDebuggerDisplay()
         => $"{Kind}: {DisplayText}";
@@ -49,7 +57,8 @@ internal sealed class RazorCompletionItem
         object descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters,
         bool isSnippet,
-        TextEdit[]? additionalTextEdits = null)
+        TextEdit[]? additionalTextEdits = null,
+        LinePositionSpan? replacementRange = null)
     {
         ArgHelper.ThrowIfNull(displayText);
         ArgHelper.ThrowIfNull(insertText);
@@ -62,6 +71,7 @@ internal sealed class RazorCompletionItem
         CommitCharacters = commitCharacters.NullToEmpty();
         IsSnippet = isSnippet;
         AdditionalTextEdits = additionalTextEdits;
+        ReplacementRange = replacementRange;
     }
 
     public static RazorCompletionItem CreateDirective(
@@ -74,15 +84,17 @@ internal sealed class RazorCompletionItem
         string displayText, string insertText,
         AggregateBoundAttributeDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters,
-        bool isSnippet)
-        => new(RazorCompletionItemKind.DirectiveAttribute, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet);
+        bool isSnippet,
+        LinePositionSpan? replacementRange = null)
+        => new(RazorCompletionItemKind.DirectiveAttribute, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet, replacementRange: replacementRange);
 
     public static RazorCompletionItem CreateDirectiveAttributeParameter(
         string displayText, string insertText,
         AggregateBoundAttributeDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters,
-        bool isSnippet)
-        => new(RazorCompletionItemKind.DirectiveAttributeParameter, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet);
+        bool isSnippet,
+        LinePositionSpan? replacementRange = null)
+        => new(RazorCompletionItemKind.DirectiveAttributeParameter, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet, replacementRange: replacementRange);
 
     public static RazorCompletionItem CreateMarkupTransition(
         string displayText, string insertText,

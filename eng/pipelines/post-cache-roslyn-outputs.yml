@@ -1,0 +1,53 @@
+parameters:
+- name: configuration
+  type: string
+  default: 'Debug'
+
+steps:
+  - task: PowerShell@2
+    displayName: Show and Purge Roslyn Output Cache
+    inputs:
+      targetType: 'inline'
+      script: |
+        function Write-AzureDevOpsWarning([string] $message) {
+          Write-Host "##vso[task.logissue type=warning]$message"
+        }
+
+        $buildStart = "$(RoslynCompilerCacheBuildStartTime)"
+        if ([string]::IsNullOrWhiteSpace($buildStart)) {
+          Write-AzureDevOpsWarning "Roslyn compiler cache build start time was not recorded. Skipping cache stats and purge."
+          exit 0
+        }
+
+        $compilerServerPath = [System.IO.Path]::Combine("$(Build.SourcesDirectory)", "artifacts", "bin", "VBCSCompiler", "${{ parameters.configuration }}", "net10.0", "VBCSCompiler.dll")
+        if (-not (Test-Path -LiteralPath $compilerServerPath)) {
+          Write-AzureDevOpsWarning "VBCSCompiler was not found at '$compilerServerPath'. Skipping cache stats and purge."
+          exit 0
+        }
+
+        $cachePath = "$(ROSLYN_CACHE_PATH)"
+        if ([string]::IsNullOrWhiteSpace($cachePath)) {
+          Write-AzureDevOpsWarning "Roslyn compiler cache path was not set. Skipping cache stats and purge."
+          exit 0
+        }
+
+        if (-not (Test-Path -LiteralPath $cachePath)) {
+          Write-AzureDevOpsWarning "Roslyn compiler cache path does not exist: $cachePath"
+          exit 0
+        }
+
+        Write-Host "Roslyn compiler cache stats since build start ($buildStart):"
+        dotnet exec $compilerServerPath "-cachepath:$cachePath" "-cachestats:$buildStart" "-cachestatsverbosity:1"
+        if ($LASTEXITCODE -ne 0) {
+          Write-AzureDevOpsWarning "Failed to show Roslyn compiler cache stats. Exit code: $LASTEXITCODE"
+        }
+
+        Write-Host "Purging Roslyn compiler cache entries unused since build start ($buildStart):"
+        dotnet exec $compilerServerPath "-cachepath:$cachePath" "-purgecache:$buildStart"
+        if ($LASTEXITCODE -ne 0) {
+          Write-AzureDevOpsWarning "Failed to purge Roslyn compiler cache. Exit code: $LASTEXITCODE"
+        }
+
+        exit 0
+    continueOnError: true
+    condition: succeededOrFailed()

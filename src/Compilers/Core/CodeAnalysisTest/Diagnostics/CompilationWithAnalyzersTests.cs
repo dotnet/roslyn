@@ -8,7 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -75,6 +77,44 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.
             var analyzer = new AnalyzerThatThrowsInSupportedDiagnostics();
             _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, s_dllWithMaxWarningLevel, onAnalyzerException: null);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80395")]
+        public void CreateCompilationWithDefaultAnalyzersArrayThrows()
+        {
+            var comp = CSharpCompilation.Create("c");
+
+            Assert.Throws<ArgumentNullException>(() => comp.WithAnalyzers(default));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80395")]
+        public async Task CreateCompilationWithEmptyAnalyzersArray()
+        {
+            var syntaxTree = CSharpSyntaxTree.ParseText("""
+                class C
+                {
+                    int M() { }
+                }
+                """);
+
+            var comp = CSharpCompilation.Create("c", [syntaxTree], [NetStandard20Ref], options: TestOptions.DebugDll);
+            var compWithAnalyzers = comp.WithAnalyzers([]);
+
+            Assert.Empty(compWithAnalyzers.Analyzers);
+
+            var allDiagnostics = await compWithAnalyzers.GetAllDiagnosticsAsync();
+            allDiagnostics.Verify(
+                // (3,9): error CS0161: 'C.M()': not all code paths return a value
+                //     int M() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(3, 9));
+
+            var analysisResult = await compWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None);
+            Assert.Empty(analysisResult.Analyzers);
+            Assert.Empty(analysisResult.SyntaxDiagnostics);
+            Assert.Empty(analysisResult.SemanticDiagnostics);
+            Assert.Empty(analysisResult.AdditionalFileDiagnostics);
+            Assert.Empty(analysisResult.CompilationDiagnostics);
+            Assert.Empty(analysisResult.AnalyzerTelemetryInfo);
         }
     }
 }

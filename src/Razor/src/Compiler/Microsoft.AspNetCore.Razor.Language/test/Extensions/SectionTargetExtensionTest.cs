@@ -44,38 +44,4 @@ public class SectionTargetExtensionTest
         var output = context.CodeWriter.GetText().ToString();
         Assert.Equal(expected, output);
     }
-
-    [Fact]
-    public void WriteSection_WritesSectionCode_DesignTime()
-    {
-        // Arrange
-        var node = new SectionIntermediateNode()
-        {
-            Children =
-                {
-                    new CSharpExpressionIntermediateNode(),
-                },
-            SectionName = "MySection"
-        };
-
-        var extension = new SectionTargetExtension()
-        {
-            SectionMethodName = "CreateSection"
-        };
-
-        using var context = TestCodeRenderingContext.CreateDesignTime();
-
-        // Act
-        extension.WriteSection(context, node);
-
-        // Assert
-        var expected = @"CreateSection(""MySection"", async(__razor_section_writer) => {
-    Render Children
-}
-);
-";
-
-        var output = context.CodeWriter.GetText().ToString();
-        Assert.Equal(expected, output);
-    }
 }

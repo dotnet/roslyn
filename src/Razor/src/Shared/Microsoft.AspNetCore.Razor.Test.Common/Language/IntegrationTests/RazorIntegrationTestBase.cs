@@ -96,8 +96,6 @@ public class RazorIntegrationTestBase
 
     internal string DefaultDocumentPath => WorkingDirectory + PathSeparator + DefaultFileName;
 
-    internal virtual bool DesignTime { get; }
-
     internal virtual bool DeclarationOnly { get; }
 
     /// <summary>
@@ -243,11 +241,6 @@ public class RazorIntegrationTestBase
         CSharpParseOptions? csharpParseOptions = null,
         params DiagnosticDescription[] expectedCSharpDiagnostics)
     {
-        if (DeclarationOnly && DesignTime)
-        {
-            throw new InvalidOperationException($"{nameof(DeclarationOnly)} cannot be used with {nameof(DesignTime)}.");
-        }
-
         if (DeclarationOnly && UseTwoPhaseCompilation)
         {
             throw new InvalidOperationException($"{nameof(DeclarationOnly)} cannot be used with {nameof(UseTwoPhaseCompilation)}.");
@@ -303,7 +296,7 @@ public class RazorIntegrationTestBase
             foreach (var item in AdditionalRazorItems)
             {
                 // Result of generating definition
-                codeDocument = DesignTime ? projectEngine.ProcessDesignTime(item) : projectEngine.Process(item);
+                codeDocument = projectEngine.Process(item);
                 Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
 
                 // Replace the 'declaration' syntax tree
@@ -313,7 +306,7 @@ public class RazorIntegrationTestBase
             }
 
             // Result of real code generation for the document under test
-            codeDocument = DesignTime ? projectEngine.ProcessDesignTime(projectItem) : projectEngine.Process(projectItem);
+            codeDocument = projectEngine.Process(projectItem);
             return new CompileToCSharpResult
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
@@ -335,10 +328,6 @@ public class RazorIntegrationTestBase
             if (DeclarationOnly)
             {
                 codeDocument = projectEngine.ProcessDeclarationOnly(projectItem);
-            }
-            else if (DesignTime)
-            {
-                codeDocument = projectEngine.ProcessDesignTime(projectItem);
             }
             else
             {
