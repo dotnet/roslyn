@@ -81,6 +81,19 @@ stages:
       fetchDepth: 1
       fetchTags: false
       persistCredentials: true
+    - powershell: |
+        $roslynMirrorVersion = '$(resources.repositories.RoslynMirror.version)'
+        Write-Host "RoslynMirror resource version: '$roslynMirrorVersion'"
+
+        if ([string]::IsNullOrWhiteSpace($roslynMirrorVersion) -or $roslynMirrorVersion.StartsWith('$(')) {
+          Write-Host "No RoslynMirror resource version was provided by Azure Pipelines. Keeping the default checkout."
+          exit 0
+        }
+
+        Write-Host "Checking out RoslynMirror resource version: $roslynMirrorVersion"
+        git fetch origin $roslynMirrorVersion
+        git checkout $roslynMirrorVersion
+      displayName: 'Checkout selected RoslynMirror version'
     - ${{ if ne(parameters.prNumber, 'None') }}:
       - task: PowerShell@2
         displayName: Setup branch for validation
