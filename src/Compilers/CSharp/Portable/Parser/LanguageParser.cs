@@ -1441,21 +1441,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
 
                     case DeclarationModifiers.Ref:
-                        // 'ref' is accepted as a modifier whenever it is not part of a return-type
-                        // prefix ('ref T ...' or 'ref readonly T ...').  For type declarations this
-                        // matches its canonical use ('ref struct', 'ref partial struct', ...).  For
-                        // members, consuming 'ref' in non-canonical positions lets the binder report
-                        // a targeted error rather than producing cascading parse errors.  The binder
-                        // (ModifierUtils.ToDeclarationModifiers / CheckModifiers) decides whether
-                        // the position is allowed and gates older language versions via the
-                        // relaxed-modifier-ordering feature.
-                        if (this.IsRefModifierInDeclarationHead(forAccessors))
+                        // 'ref' is only a modifier if used on a ref struct
+                        // it must be either immediately before the 'struct'
+                        // keyword, or immediately before 'partial struct' if
+                        // this is a partial ref struct declaration
                         {
-                            modTok = this.EatToken();
+                            var next = PeekToken(1);
+                            if (isStructOrRecordOrUnionKeyword(next) ||
+                                (next.ContextualKind == SyntaxKind.PartialKeyword &&
+                                 isStructOrRecordOrUnionKeyword(PeekToken(2))))
+                            {
+                                modTok = this.EatToken();
+                            }
+                            else if (forAccessors && this.IsPossibleAccessorModifier())
+                            {
+                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
+                                modTok = this.EatToken();
+                            }
+                            else
+                            {
+                                return;
+                            }
                             break;
                         }
-
-                        return;
 
                     case DeclarationModifiers.File:
                         if ((!IsFeatureEnabled(MessageID.IDS_FeatureFileTypes) || forTopLevelStatements) && !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
@@ -1497,6 +1505,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 Debug.Assert(modTok.Kind is not (SyntaxKind.OutKeyword or SyntaxKind.InKeyword));
                 tokens.Add(modTok);
+            }
+
+            bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
+            {
+                if (token.Kind == SyntaxKind.StructKeyword)
+                {
+                    return true;
+                }
+
+                switch (token.ContextualKind)
+                {
+                    case SyntaxKind.RecordKeyword:
+                        {
+                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                            // does not support a feature, but in this case we are effectively making a language breaking
+                            // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
+                            // older code that is not using C# 9 we conditionally parse based on langversion
+                            return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                        }
+
+                    case SyntaxKind.UnionKeyword:
+                        {
+                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                            // does not support a feature, but in this case we are effectively making a language breaking
+                            // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
+                            // older code that is not using C# 15 we conditionally parse based on langversion
+                            return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
+                        }
+                }
+
+                return false;
             }
         }
 
@@ -1691,82 +1730,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // (inside a reset-point, so the advance is local) to determine whether this looks like
             // a member declaration head.
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
-        }
-
-        /// <summary>
-        /// Returns true if the current <c>ref</c> token should be consumed as a modifier (for a
-        /// type declaration, or as a misplaced modifier on a member that the binder will error on)
-        /// rather than as part of a return-type prefix (<c>ref T</c> or <c>ref readonly T</c>).
-        /// </summary>
-        /// <remarks>
-        /// Like the equivalent helper for <c>partial</c>, this is intentionally permissive at the
-        /// parse layer.  Whether the position is actually valid for the language version, and
-        /// whether <c>ref</c> is allowed on the given kind of declaration, are reported by the
-        /// binder (<see cref="Microsoft.CodeAnalysis.CSharp.Symbols.ModifierUtils"/>).
-        /// </remarks>
-        private bool IsRefModifierInDeclarationHead(bool forAccessors)
-        {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
-
-            if (forAccessors && this.IsPossibleAccessorModifier())
-            {
-                // Historical carve-out: accessor lists accept 'ref' so the binder can produce a
-                // targeted "not valid for this item" error.
-                return true;
-            }
-
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-
-            this.EatToken();
-
-            // 'ref readonly T' can be a return-type prefix where T is a type.  We tentatively
-            // consume 'readonly' here; if what follows turns out to be another modifier or a
-            // type-declaration head, this 'readonly' will be a misplaced modifier too and we'll
-            // still commit to 'ref' being a modifier.
-            if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
-            {
-                this.EatToken();
-            }
-
-            // Scan past any additional modifier tokens.  We track whether we saw anything here so
-            // we can distinguish 'ref [readonly] T ...' (return-type form) from 'ref [readonly]
-            // modifier... T ...' (ref must be a misplaced modifier).
-            bool skippedContextualModifier = false;
-            while (true)
-            {
-                var nextMod = GetModifierExcludingScoped(this.CurrentToken);
-                if (nextMod == DeclarationModifiers.None)
-                {
-                    break;
-                }
-
-                // Reserved-keyword modifier: 'ref' is unambiguously a (possibly misplaced) modifier.
-                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
-                {
-                    return true;
-                }
-
-                // Contextual modifier: could still be either an identifier/type or a modifier.
-                // Keep scanning.
-                this.EatToken();
-                skippedContextualModifier = true;
-            }
-
-            // At the end of the modifier chain, 'ref' is a member/type-declaration modifier if
-            // we're at a definite declaration head.  Whether the specific declaration kind
-            // actually accepts 'ref' (only struct/record struct/union types do; 'ref' on events
-            // or other members is always invalid) is the binder's concern.
-            if (CheckDefinitelyAtMemberDeclarationHead(out var isDeclarationHead))
-            {
-                return isDeclarationHead;
-            }
-
-            // Otherwise we did not land on a type-decl keyword.  If we got here by skipping pure
-            // contextual modifiers after 'ref' (or 'ref readonly'), those can only be modifiers
-            // in this position -- so 'ref' must also be a modifier.  If we skipped nothing, this
-            // is the canonical 'ref T ...' or 'ref readonly T ...' return-type form and we must
-            // leave 'ref' for the return-type parser.
-            return skippedContextualModifier;
         }
 
         /// <summary>

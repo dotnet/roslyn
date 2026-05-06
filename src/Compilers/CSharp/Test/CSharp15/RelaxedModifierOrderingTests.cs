@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1301,7 +1303,8 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         };
     }
 
-    [Theory, MemberData(nameof(ContextualModifierChains))]
+    [Theory]
+    [MemberData(nameof(ContextualModifierChains))]
     public void PartialThenContextualChain_OnClass(string chain)
     {
         var src = $"partial {chain} class C {{ }}";
@@ -1315,7 +1318,8 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         }
     }
 
-    [Theory, MemberData(nameof(ContextualModifierChains))]
+    [Theory]
+    [MemberData(nameof(ContextualModifierChains))]
     public void PartialThenContextualChainThenReserved_OnClass(string chain)
     {
         var src = $"partial {chain} public class C {{ }}";
@@ -1330,7 +1334,8 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         }
     }
 
-    [Theory, MemberData(nameof(ContextualModifierChains))]
+    [Theory]
+    [MemberData(nameof(ContextualModifierChains))]
     public void PartialThenContextualChain_OnMethod(string chain)
     {
         var src = $"class C {{ public partial {chain} void M() {{ }} }}";
@@ -1409,7 +1414,8 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
     }
 
-    [Theory, MemberData(nameof(ContextualModifierChains))]
+    [Theory]
+    [MemberData(nameof(ContextualModifierChains))]
     public void PartialThenContextualChain_NoDeclHead_FallsBackToIdentifier(string chain)
     {
         var src = $"partial {chain};";

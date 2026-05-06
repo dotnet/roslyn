@@ -1497,11 +1497,6 @@
         <target state="translated">"#!" должны быть первыми символами в первой строке файла</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefNotMemberModifier">
-        <source>The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</source>
-        <target state="new">The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
         <target state="translated">RequiresUnsafeAttribute невозможно применить к этому символу.</target>

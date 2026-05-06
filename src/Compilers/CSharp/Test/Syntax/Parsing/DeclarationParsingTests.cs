@@ -6900,9 +6900,9 @@ class Program
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (6,9): error CS9379: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+                // (6,13): error CS0106: The modifier 'ref' is not valid for this item
                 //         ref get => throw null;
-                Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 13));
         }
 
         [Fact]
@@ -6919,12 +6919,12 @@ class Program
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (6,18): error CS9379: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
-                //         abstract ref get => throw null;
-                Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(6, 18),
                 // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
                 //         abstract ref get => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("abstract").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("abstract").WithLocation(6, 22),
+                // (6,22): error CS0106: The modifier 'ref' is not valid for this item
+                //         abstract ref get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 22));
         }
 
         [Fact]
@@ -6941,9 +6941,9 @@ class Program
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (6,9): error CS9379: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+                // (6,13): error CS0106: The modifier 'ref' is not valid for this item
                 //         ref set => throw null;
-                Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 13));
         }
 
         [Fact]
@@ -6960,12 +6960,12 @@ class Program
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (6,18): error CS9379: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
-                //         abstract ref set => throw null;
-                Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(6, 18),
                 // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
                 //         abstract ref set => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("abstract").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("abstract").WithLocation(6, 22),
+                // (6,22): error CS0106: The modifier 'ref' is not valid for this item
+                //         abstract ref set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 22));
         }
 
         [Fact]
