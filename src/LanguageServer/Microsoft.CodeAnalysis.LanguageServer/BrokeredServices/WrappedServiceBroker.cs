@@ -7,7 +7,6 @@ using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-#pragma warning restore RS0030 // Do not used banned APIs
 
 /// <summary>
 /// Implements a wrapper around <see cref="IServiceBroker"/> that will wait for the service broker to be available before invoking the requested method.
@@ -25,7 +24,7 @@ internal sealed class WrappedServiceBroker : IServiceBroker
                 TaskScheduler.Default);
     }
 
-    public event EventHandler<BrokeredServicesChangedEventArgs>? AvailabilityChanged;
+    public event EventHandler<BrokeredServicesChangedEventArgs>? AvailabilityChanged { add { } remove { } }
 
     public async ValueTask<IDuplexPipe?> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options = default, CancellationToken cancellationToken = default)
     {
