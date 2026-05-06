@@ -483,9 +483,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private StrongNameKeys ComputeStrongNameKeys()
         {
-            // when both attributes and command-line options specified, cmd line wins.
+            // The precedence order for strong name keys is: options, commnad line and 
+            // then attributes.
+            if (_compilation.Options.StrongNameKeys is { } preReadKeys)
+            {
+                return preReadKeys;
+            }
+
             string keyFile = _compilation.Options.CryptoKeyFile;
-            var preReadKeys = _compilation.Options.StrongNameKeys;
 
             // Public sign requires a keyfile
             if (DeclaringCompilation.Options.PublicSign)
@@ -501,12 +506,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // about it
                     Debug.Assert(!DeclaringCompilation.Options.Errors.IsEmpty);
                     return StrongNameKeys.None;
-                }
-
-                // Use pre-read keys if available for the command-line specified key file
-                if (preReadKeys is not null)
-                {
-                    return preReadKeys;
                 }
 
                 // If we're public signing, we don't need a strong name provider
@@ -535,16 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // Use pre-read keys if available and the key settings haven't been
-            // overridden by assembly-level attributes.
-            if (preReadKeys is not null
-                && keyFile == _compilation.Options.CryptoKeyFile
-                && keyContainer == _compilation.Options.CryptoKeyContainer)
-            {
-                return preReadKeys;
-            }
-
-            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
+            return StrongNameProvider.CreateKeys(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
         }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name

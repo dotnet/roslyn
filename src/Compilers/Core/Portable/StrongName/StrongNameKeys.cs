@@ -156,22 +156,6 @@ namespace Microsoft.CodeAnalysis
             return new StrongNameKeys(keyPair, publicKey, privateKey, null, keyFilePath);
         }
 
-        internal static StrongNameKeys Create(StrongNameProvider? providerOpt, string? keyFilePath, string? keyContainerName, CommonMessageProvider messageProvider)
-        {
-            if (string.IsNullOrEmpty(keyFilePath) && string.IsNullOrEmpty(keyContainerName))
-            {
-                return None;
-            }
-
-            if (providerOpt == null)
-            {
-                var diagnostic = GetError(keyFilePath, keyContainerName, new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), messageProvider);
-                return new StrongNameKeys(diagnostic);
-            }
-
-            return providerOpt.CreateKeys(keyFilePath, keyContainerName, messageProvider);
-        }
-
         /// <summary>
         /// True if the compilation can be signed using these keys.
         /// </summary>

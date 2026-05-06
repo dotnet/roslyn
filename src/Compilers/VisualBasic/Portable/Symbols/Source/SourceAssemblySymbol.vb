@@ -1696,9 +1696,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
+            If _compilation.Options.StrongNameKeys IsNot Nothing Then
+                Interlocked.CompareExchange(_lazyStrongNameKeys, _compilation.Options.StrongNameKeys, Nothing)
+                Return
+            End If
+
             Dim keys As StrongNameKeys
             Dim keyFile As String = _compilation.Options.CryptoKeyFile
-            Dim preReadKeys As StrongNameKeys = _compilation.Options.StrongNameKeys
 
             ' Public sign requires a keyfile
             If DeclaringCompilation.Options.PublicSign Then
@@ -1707,9 +1711,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' about it
                     Debug.Assert(Not DeclaringCompilation.Options.Errors.IsEmpty)
                     keys = StrongNameKeys.None
-                ElseIf preReadKeys IsNot Nothing Then
-                    ' Use pre-read keys if available for the command-line specified key file
-                    keys = preReadKeys
                 Else
                     keys = StrongNameKeys.Create(keyFile, MessageProvider.Instance)
                 End If
@@ -1738,16 +1739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            ' Use pre-read keys if available and the key settings haven't been
-            ' overridden by assembly-level attributes.
-            If preReadKeys IsNot Nothing AndAlso
-               keyFile = _compilation.Options.CryptoKeyFile AndAlso
-               keyContainer = _compilation.Options.CryptoKeyContainer Then
-
-                keys = preReadKeys
-            Else
-                keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
-            End If
+            keys = StrongNameProvider.CreateKeys(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
 
             Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub

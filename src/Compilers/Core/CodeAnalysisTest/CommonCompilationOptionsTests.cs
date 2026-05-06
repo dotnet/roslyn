@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "ScriptClassName",
                 "SourceReferenceResolver",
                 "SpecificDiagnosticOptions",
+                "StrongNameKeys",
                 "StrongNameProvider",
                 "SyntaxTreeOptionsProvider",
                 "ReportSuppressedDiagnostics",

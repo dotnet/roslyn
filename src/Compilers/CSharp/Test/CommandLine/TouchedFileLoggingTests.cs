@@ -127,7 +127,6 @@ class C
                               Path.ChangeExtension(hello, "exe"),
                               out expectedReads,
                               out expectedWrites);
-            expectedReads.Add(snkPath);
 
             var exitCode = cmd.Run(outWriter);
 
