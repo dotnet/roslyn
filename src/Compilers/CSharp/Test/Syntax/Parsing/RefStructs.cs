@@ -86,9 +86,9 @@ class Program
                 // (6,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public ref unsafe struct S2{}
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30),
-                // (6,12): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,12): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
                 //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("relaxed modifier ordering").WithLocation(6, 12),
+                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(6, 12),
                 // (8,19): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref interface I1{};
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("ref").WithLocation(8, 19),
@@ -135,7 +135,13 @@ class C
     ref partial readonly struct S {}
     ref partial readonly struct S {}
 }");
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (4,5): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(4, 5),
+                // (5,5): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(5, 5));
         }
 
         [Fact]
@@ -147,7 +153,13 @@ class C
     partial ref readonly struct S {}
     partial ref readonly struct S {}
 }");
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (4,13): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(4, 13),
+                // (5,13): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(5, 13));
         }
 
         [Fact]

@@ -14,16 +14,18 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 /// <summary>
-/// Tests for the relaxed-modifier-ordering feature as it applies to the <c>ref</c> modifier.
-/// See <see cref="MessageID.IDS_FeatureRelaxedModifierOrdering"/>.
+/// Tests for the parser's handling of the <c>ref</c> modifier in non-canonical positions.
 /// Tracking: https://github.com/dotnet/csharplang/issues/8966.
 /// <para>
-/// The parser accepts <c>ref</c> in any modifier-list position on every language version when it
-/// cannot be parsed as a return-type prefix.  The binder then decides:
+/// The parser is permissive: it accepts <c>ref</c> in any modifier-list position on every
+/// language version when the token cannot be parsed as a return-type prefix.  This lets the
+/// binder produce a single targeted diagnostic instead of cascading parse errors.  The
+/// language itself does <em>not</em> relax where <c>ref</c> may appear:
 /// <list type="bullet">
-/// <item>If the declaration is a type kind that accepts <c>ref</c> (struct, union) and the
-/// language version predates the feature, the binder reports <c>ERR_FeatureInPreview</c> at
-/// the non-canonical <c>ref</c> token; on preview+ it accepts silently.</item>
+/// <item>On a type declaration, the binder unconditionally reports
+/// <c>ERR_RefMisplacedOnType</c> (<c>CS9380</c>) at the <c>ref</c> token whenever it isn't
+/// immediately before <c>struct</c>, <c>record struct</c>, or <c>union</c> (or before a
+/// trailing <c>partial struct</c>) -- regardless of language version.</item>
 /// <item>If <c>ref</c> appears as a modifier on a member, the binder reports the targeted
 /// <c>ERR_RefNotMemberModifier</c> (<c>CS9379</c>) on the <c>ref</c> token.  <c>ref</c> belongs
 /// to the return type for members and must appear immediately before it.</item>
@@ -78,11 +80,14 @@ public sealed partial class RelaxedModifierOrderingTests
     }
 
     [Fact]
-    public void Ref_FirstPosition_OnStruct_Preview()
+    public void Ref_FirstPosition_OnStruct_AllLangvers()
     {
+        // Parser is permissive and accepts `ref` in any modifier-list position.  The binder
+        // unconditionally errors on non-canonical positions regardless of language version --
+        // the language doesn't relax where `ref` may appear on a type declaration.
         var src = "ref public struct S { }";
 
-        UsingTree(src, TestOptions.RegularPreview);
+        UsingTree(src);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.StructDeclaration);
@@ -98,42 +103,21 @@ public sealed partial class RelaxedModifierOrderingTests
         }
         EOF();
 
-        CreateCompilation(src).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Ref_FirstPosition_OnStruct_CSharp14_FeatureError()
-    {
-        var src = "ref public struct S { }";
-
-        UsingTree(src, TestOptions.Regular14);
-        N(SyntaxKind.CompilationUnit);
+        foreach (var options in new[] { TestOptions.Regular14, TestOptions.RegularPreview })
         {
-            N(SyntaxKind.StructDeclaration);
-            {
-                N(SyntaxKind.RefKeyword);
-                N(SyntaxKind.PublicKeyword);
-                N(SyntaxKind.StructKeyword);
-                N(SyntaxKind.IdentifierToken, "S");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
+            CreateCompilation(src, parseOptions: options).VerifyDiagnostics(
+                // (1,1): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                // ref public struct S { }
+                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
         }
-        EOF();
-
-        CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // ref public struct S { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("relaxed modifier ordering").WithLocation(1, 1));
     }
 
     [Fact]
-    public void Ref_InMiddleOfTypeModifierList_Preview()
+    public void Ref_InMiddleOfTypeModifierList_AllLangvers()
     {
         var src = "public ref unsafe struct S { }";
 
-        UsingTree(src, TestOptions.RegularPreview);
+        UsingTree(src);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.StructDeclaration);
@@ -150,29 +134,25 @@ public sealed partial class RelaxedModifierOrderingTests
         }
         EOF();
 
-        CreateCompilation(src, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        foreach (var options in new[] { TestOptions.Regular14, TestOptions.RegularPreview })
+        {
+            CreateCompilation(src, parseOptions: options, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (1,8): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                // public ref unsafe struct S { }
+                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 8));
+        }
     }
 
     [Fact]
-    public void Ref_InMiddleOfTypeModifierList_CSharp14_FeatureError()
+    public void Ref_BeforeReadonly_OnStruct_AcceptedByParserButErrorsInBinder()
     {
-        var src = "public ref unsafe struct S { }";
-
-        CreateCompilation(src, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (1,8): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // public ref unsafe struct S { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("relaxed modifier ordering").WithLocation(1, 8));
-    }
-
-    [Fact]
-    public void Ref_BeforeReadonly_OnStruct_Preview()
-    {
-        // `ref readonly struct S` is a new ordering (canonical is `readonly ref struct S`).
-        // Both `ref` and `readonly` must appear as modifiers; the parser must not confuse this
-        // with the return-type form `ref readonly T`.
+        // `ref readonly struct S` is non-canonical (canonical is `readonly ref struct S`).
+        // Parser accepts both `ref` and `readonly` as modifiers without confusing this with
+        // the return-type form `ref readonly T`, but the binder unconditionally rejects the
+        // non-canonical position regardless of language version.
         var src = "public ref readonly struct S { }";
 
-        UsingTree(src, TestOptions.RegularPreview);
+        UsingTree(src);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.StructDeclaration);
@@ -189,18 +169,13 @@ public sealed partial class RelaxedModifierOrderingTests
         }
         EOF();
 
-        CreateCompilation(src).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Ref_BeforeReadonly_OnStruct_CSharp14_FeatureError()
-    {
-        var src = "public ref readonly struct S { }";
-
-        CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,8): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // public ref readonly struct S { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("relaxed modifier ordering").WithLocation(1, 8));
+        foreach (var options in new[] { TestOptions.Regular14, TestOptions.RegularPreview })
+        {
+            CreateCompilation(src, parseOptions: options).VerifyDiagnostics(
+                // (1,8): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                // public ref readonly struct S { }
+                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 8));
+        }
     }
 
     [Theory]
@@ -217,15 +192,19 @@ public sealed partial class RelaxedModifierOrderingTests
     [Theory]
     [InlineData("ref public struct S")]
     [InlineData("ref public partial struct S")]
-    public void Ref_FirstPosition_TypeKinds_PreviewLegal_CSharp14FeatureError(string decl)
+    public void Ref_FirstPosition_TypeKinds_AlwaysError(string decl)
     {
+        // `ref` in non-canonical position always errors regardless of language version: the
+        // parser accepts the placement to enable a clean diagnostic, but the language doesn't
+        // relax where `ref` may appear.
         var src = decl + " { }";
 
-        CreateCompilation(src).VerifyDiagnostics();
-
-        CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("relaxed modifier ordering").WithLocation(1, 1));
+        foreach (var options in new[] { TestOptions.Regular14, TestOptions.RegularPreview })
+        {
+            CreateCompilation(src, parseOptions: options).VerifyDiagnostics(
+                // (1,1): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
+        }
     }
 
     // ---------- ref on record struct ----------
@@ -236,11 +215,14 @@ public sealed partial class RelaxedModifierOrderingTests
     // RecordStructTests.ModifiersErrors_01).
 
     [Fact]
-    public void Ref_FirstPosition_OnRecordStruct_Preview()
+    public void Ref_FirstPosition_OnRecordStruct()
     {
+        // `ref public record struct S` errors with both the position diagnostic
+        // (`ref` not in canonical place) and the kind diagnostic (`ref` isn't valid on record
+        // structs at all, since they aren't `ref struct`s).
         var src = "ref public record struct S(int X);";
 
-        UsingTree(src, TestOptions.RegularPreview);
+        UsingTree(src);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordStructDeclaration);
@@ -270,6 +252,9 @@ public sealed partial class RelaxedModifierOrderingTests
         EOF();
 
         CreateCompilation(src).VerifyDiagnostics(
+            // (1,1): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // ref public record struct S(int X);
+            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
             // (1,26): error CS0106: The modifier 'ref' is not valid for this item
             // ref public record struct S(int X);
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("ref").WithLocation(1, 26));
@@ -298,7 +283,7 @@ public sealed partial class RelaxedModifierOrderingTests
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             // (1,1): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // ref public class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("relaxed modifier ordering").WithLocation(1, 1),
+            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
             // (1,18): error CS0106: The modifier 'ref' is not valid for this item
             // ref public class C { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("ref").WithLocation(1, 18));
@@ -688,6 +673,7 @@ public sealed partial class RelaxedModifierOrderingTests
     public void Branch_Ref_Readonly_Struct()
     {
         // `ref readonly struct` -- readonly is eaten, struct reached.  Not a return-type form.
+        // The binder still rejects the non-canonical `ref` position regardless of language version.
         var src = "ref readonly struct S { }";
 
         UsingTree(src);
@@ -706,7 +692,10 @@ public sealed partial class RelaxedModifierOrderingTests
         }
         EOF();
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (1,1): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // ref readonly struct S { }
+            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
     }
 
     [Fact]
@@ -738,6 +727,7 @@ public sealed partial class RelaxedModifierOrderingTests
     {
         // `ref` followed only by contextual modifiers (which could be identifiers) then a type
         // keyword commits to `ref` being a modifier via CheckDefinitelyAtMemberDeclarationHead.
+        // The binder still rejects the non-canonical `ref` position.
         var src = "ref file partial struct S { }";
 
         UsingTree(src);
@@ -757,7 +747,10 @@ public sealed partial class RelaxedModifierOrderingTests
         }
         EOF();
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (1,1): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // ref file partial struct S { }
+            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
     }
 
     [Fact]
@@ -943,18 +936,21 @@ public sealed partial class RelaxedModifierOrderingTests
     }
 
     [Fact]
-    public void Ref_WithPartial_BothNonCanonical_CSharp14_TwoDiagnostics()
+    public void Ref_WithPartial_BothNonCanonical_TwoDiagnostics()
     {
+        // `ref` errors unconditionally on non-canonical positions; `partial` is gated on the
+        // relaxed-modifier-ordering feature so it only errors on older language versions.
         var src = "ref partial public struct S { }";
 
-        CreateCompilation(src).VerifyDiagnostics();
-
-        // Both `ref` (non-canonical for type) and `partial` (non-canonical for type) drive the
-        // feature diagnostic.  The order of diagnostics here follows token position.
-        CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+        CreateCompilation(src).VerifyDiagnostics(
+            // (1,1): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref partial public struct S { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("relaxed modifier ordering").WithLocation(1, 1),
+            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
+
+        CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,1): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // ref partial public struct S { }
+            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
             // (1,5): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // ref partial public struct S { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 5));
@@ -1086,7 +1082,10 @@ public sealed partial class RelaxedModifierOrderingTests
         }
         EOF();
 
-        CreateCompilation("file ref readonly struct S { }").VerifyDiagnostics();
+        CreateCompilation("file ref readonly struct S { }").VerifyDiagnostics(
+            // (1,6): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // file ref readonly struct S { }
+            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 6));
     }
 
     [Fact]
@@ -1134,6 +1133,9 @@ public sealed partial class RelaxedModifierOrderingTests
         var src = "ref ref struct S { }";
 
         CreateCompilation(src).VerifyDiagnostics(
+            // (1,1): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // ref ref struct S { }
+            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
             // (1,5): error CS1004: Duplicate 'ref' modifier
             // ref ref struct S { }
             Diagnostic(ErrorCode.ERR_DuplicateModifier, "ref").WithArguments("ref").WithLocation(1, 5));
