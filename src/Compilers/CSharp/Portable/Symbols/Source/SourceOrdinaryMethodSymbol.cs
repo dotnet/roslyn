@@ -75,7 +75,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation, diagnostics, location);
 
-            Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
+            // 'scoped' is not a valid modifier on a method. When the parser folds a leading
+            // 'scoped' into the declared return type (mirroring how 'ref' return types are
+            // handled), we surface the same "modifier 'scoped' is not valid for this item"
+            // diagnostic that used to come from modifier-list validation, pointed at the
+            // 'scoped' keyword itself.
+            if (syntax.ReturnType is ScopedTypeSyntax { ScopedKeyword: var scopedKeyword })
+            {
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, scopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
+            }
 
             if (syntax.Arity == 0)
             {
@@ -132,8 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             var returnTypeSyntax = syntax.ReturnType;
-            Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
-
+            // 'scoped' is already diagnosed in the constructor (see ERR_BadMemberFlag emission
+            // there). Here we just strip it before binding the underlying type.
             returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRef();
             TypeWithAnnotations returnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 

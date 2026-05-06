@@ -987,7 +987,7 @@ partial delegate E { }
                     // (2,20): error CS8803: Top-level statements must precede namespace and type declarations.
                     // partial delegate E { }
                     Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20),
-                    // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                    // (2,20): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                     // partial delegate E { }
                     Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20)
                 );
@@ -3056,72 +3056,30 @@ scoped ref struct B { }
 scoped readonly ref struct C { }
 ";
 
-            UsingTree(test,
-                // (2,8): error CS1001: Identifier expected
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(2, 8),
-                // (2,8): error CS1002: ; expected
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(2, 8),
-                // (3,12): error CS1031: Type expected
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(3, 12),
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(4, 1));
+            UsingTree(test);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
                 N(SyntaxKind.StructDeclaration);
                 {
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "A");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.StructDeclaration);
                 {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "B");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.ScopedKeyword);
-                }
                 N(SyntaxKind.StructDeclaration);
                 {
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.StructKeyword);
@@ -3546,21 +3504,15 @@ struct S { }
 partial ext X
 """;
             UsingTree(text,
-                // (1,13): error CS1031: Type expected
+                // (1,12): error CS1519: Invalid token '}' in a member declaration
                 // struct S { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 13),
-                // (1,13): error CS1525: Invalid expression term 'partial'
-                // struct S { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 13),
-                // (1,13): error CS1003: Syntax error, ',' expected
-                // struct S { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
-                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
-                // partial ext X
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "partial").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(1, 12),
                 // (2,14): error CS1002: ; expected
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14),
+                // (2,14): error CS1513: } expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 14));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3569,25 +3521,23 @@ partial ext X
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "S");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                M(SyntaxKind.GlobalStatement);
-                {
-                    M(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        M(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "ext");
                             }
-                            M(SyntaxKind.VariableDeclarator);
+                            N(SyntaxKind.VariableDeclarator);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "X");
                             }
                         }
                         M(SyntaxKind.SemicolonToken);
                     }
+                    M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

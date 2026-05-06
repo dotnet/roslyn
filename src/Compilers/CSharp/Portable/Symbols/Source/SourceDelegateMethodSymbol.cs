@@ -51,7 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Binder binder = delegateType.GetBinder(syntax.ParameterList);
             TypeSyntax returnTypeSyntax = syntax.ReturnType;
-            Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
+            // 'scoped' is not a valid modifier on a delegate. When the parser folds a leading
+            // 'scoped' into the declared return type (mirroring how 'ref' return types are
+            // handled), surface the same "modifier 'scoped' is not valid for this item"
+            // diagnostic that used to come from modifier-list validation, pointed at the
+            // 'scoped' keyword itself.
+            if (returnTypeSyntax is ScopedTypeSyntax { ScopedKeyword: var scopedKeyword })
+            {
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, scopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
+            }
 
             returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRefInLocalOrReturn(diagnostics, out RefKind refKind);
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
