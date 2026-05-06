@@ -8114,6 +8114,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefNotMemberModifier" xml:space="preserve">
     <value>The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</value>
   </data>
+  <data name="ERR_RefMisplacedOnType" xml:space="preserve">
+    <value>The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</value>
+  </data>
   <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
     <value>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</value>
   </data>

@@ -1502,6 +1502,11 @@
         <target state="new">The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefMisplacedOnType">
+        <source>The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</source>
+        <target state="new">The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
         <target state="translated">RequiresUnsafeAttribute をこのシンボルに適用することはできません。</target>

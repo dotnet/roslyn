@@ -494,16 +494,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var i = modifiers.IndexOf(SyntaxKind.RefKeyword);
                 var modifier = modifiers[i];
 
-                // `ref` on a type was historically required to appear immediately before the
-                // `struct`/`record struct`/`union` keyword, or immediately before a trailing
-                // `partial struct` (etc.).  The relaxed-modifier-ordering feature lifts that
-                // restriction; for earlier language versions we emit a feature-availability
-                // diagnostic so the user is directed to upgrade.
+                // `ref` on a type must appear immediately before the `struct`/`record struct`/
+                // `union` keyword, or immediately before a trailing `partial struct` (etc.).
+                // The parser is permissive and accepts `ref` in any modifier-list position so we
+                // can produce a targeted diagnostic here -- but the language doesn't relax the
+                // canonical position rule, so we always reject non-canonical positions
+                // regardless of language version.
                 var isLast = i == modifiers.Count - 1;
                 var isBeforeTrailingPartial = i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.PartialKeyword;
                 if (!isLast && !isBeforeTrailingPartial)
                 {
-                    MessageID.IDS_FeatureRelaxedModifierOrdering.CheckFeatureAvailability(diagnostics, modifier);
+                    diagnostics.Add(ErrorCode.ERR_RefMisplacedOnType, modifier.GetLocation());
                 }
             }
 
