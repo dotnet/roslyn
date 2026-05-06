@@ -20,7 +20,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
     // For testing purposes, track the last cache write task.
     private static Task? s_cacheWriteTask_forTestingPurposesOnly;
 
-    private static readonly FrozenSet<string> s_dllsToExcludeFromMef =
+    private static readonly FrozenSet<string> s_dllsToExcludeFromMef = FrozenSet.ToFrozenSet(
     [
         // These DLLs are part of Razor, but should only be in their MEF composition not ours
         "Microsoft.CodeAnalysis.Razor.Workspaces.dll",
@@ -29,7 +29,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         // This is a runtime dependency of Remote.Razor, but its host-layer exports belong to the remote host
         // composition and conflict with the language server's workspace services if included here.
         "Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
-    ];
+    ], StringComparer.OrdinalIgnoreCase);
 
     private LanguageServerExportProviderBuilder(
         ImmutableArray<string> assemblyPaths,
