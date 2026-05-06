@@ -35,33 +35,8 @@ steps:
   - task: PowerShell@2
     displayName: Build and Test
     inputs:
-      targetType: 'inline'
-      script: |
-        $buildParameters = @{
-          ci = $true
-          restore = $true
-          build = $true
-          binaryLog = $true
-          configuration = '${{ parameters.configuration }}'
-          prepareMachine = $true
-          testVsi = $true
-          oop64bit = [System.Convert]::ToBoolean('${{ parameters.oop64bit }}')
-          collectDumps = $true
-          lspEditor = [System.Convert]::ToBoolean('${{ parameters.lspEditor }}')
-        }
-
-        if ([System.Convert]::ToBoolean('${{ parameters.skipCustomRoslynDeploy }}')) {
-          $buildParameters['skipCustomRoslynDeploy'] = $true
-        }
-
-        $testCaseFilter = $env:ROSLYN_TEST_CASE_FILTER
-        if (-not [string]::IsNullOrWhiteSpace($testCaseFilter)) {
-          $buildParameters['testFilter'] = $testCaseFilter
-        }
-
-        & eng/build.ps1 @buildParameters
-    env:
-      ROSLYN_TEST_CASE_FILTER: ${{ parameters.testCaseFilter }}
+      filePath: eng/build.ps1
+      arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi ${{ iif(eq(parameters.skipCustomRoslynDeploy, true), '-skipCustomRoslynDeploy', '') }} -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }} ${{ iif(ne(parameters.testCaseFilter, ''), format('-testFilter:{0}', parameters.testCaseFilter), '') }}
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
