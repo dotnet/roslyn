@@ -1157,4 +1157,98 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
         Assert.Contains("u8)", indexSource);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_GenericBaseClass_WithTModel_AndModelDirective()
+    {
+        // Arrange - the common MVC pattern: @inherits SomeBase<TModel> + @model SomeType.
+        // ModelDirective.Pass substitutes TModel with the @model type during code generation,
+        // but the support map probes the raw @inherits text. The probe must still bind
+        // SomeBase<TModel> by aliasing TModel to a known type.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase<TModel>
+                    @model MyModel
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyModel.cs"] = """
+                    public class MyModel
+                    {
+                        public string Name { get; set; } = "";
+                    }
+                    """,
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase<TModel> : RazorPage<TModel>
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - even though the raw @inherits text contains the unresolved `TModel`,
+        // the probe should still resolve the open generic and detect the UTF-8 overload.
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_LanguageVersionBelowCSharp11_UsesStringLiterals()
+    {
+        // Arrange - project pinned to C# 10 (no UTF-8 string literal support). Even when the
+        // base class exposes WriteLiteral(ReadOnlySpan<byte>), emitting "..."u8 would produce
+        // uncompilable code, so the generator must fall back to plain string literals.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """
+            },
+            cSharpParseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
+    }
 }

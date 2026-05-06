@@ -86,6 +86,15 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
         /// </summary>
         public static Utf8SupportMap Create(ImmutableArray<InheritsInfo> inheritsInfos, Compilation compilation)
         {
+            // UTF-8 string literals (e.g. "..."u8) require C# 11 or later. If the consuming
+            // compilation is targeting an older C# version (or isn't C# at all), generating
+            // u8 literals would produce uncompilable code, so opt every file out by returning
+            // an empty map.
+            if (compilation is not CSharpCompilation { LanguageVersion: >= LanguageVersion.CSharp11 })
+            {
+                return Empty;
+            }
+
             var fileToType = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
             var typeSupport = ImmutableSortedDictionary.CreateBuilder<string, bool>(StringComparer.Ordinal);
 
@@ -156,6 +165,13 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
                 {
                     sb.Append("    using ").Append(u).AppendLine(";");
                 }
+
+                // Alias TModel to a known type so that the common MVC pattern
+                // `@inherits SomeBase<TModel>` (which is normally rewritten to the actual
+                // model type by ModelDirective.Pass during code generation) still binds in
+                // the probe compilation. WriteLiteral overloads don't depend on the model
+                // type argument, so binding to <object> is sufficient for detection.
+                sb.AppendLine("    using TModel = global::System.Object;");
 
                 sb.Append("    class __Probe__ : ").Append(info.BaseTypeName).AppendLine(" { }");
                 sb.AppendLine("}");
