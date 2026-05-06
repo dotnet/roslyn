@@ -2108,7 +2108,7 @@ internal sealed partial class AwaitExpressionSyntax : ExpressionSyntax
 
     /// <summary>SyntaxToken representing the kind "await" keyword.</summary>
     public SyntaxToken AwaitKeyword => this.awaitKeyword;
-    /// <summary>Optional SyntaxToken representing the "?" of a null-conditional "await?" expression. If present, the operand is only awaited when it is non-null; otherwise the result of the expression is null.</summary>
+    /// <summary>Optional SyntaxToken representing the "?" of a null-conditional "await?" expression.</summary>
     public SyntaxToken? QuestionToken => this.questionToken;
     /// <summary>ExpressionSyntax representing the operand of the "await" operator.</summary>
     public ExpressionSyntax Expression => this.expression;

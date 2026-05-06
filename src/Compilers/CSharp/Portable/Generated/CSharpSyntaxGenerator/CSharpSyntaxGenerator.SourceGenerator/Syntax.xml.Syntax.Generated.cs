@@ -1274,7 +1274,7 @@ public sealed partial class AwaitExpressionSyntax : ExpressionSyntax
     /// <summary>SyntaxToken representing the kind "await" keyword.</summary>
     public SyntaxToken AwaitKeyword => new SyntaxToken(this, ((InternalSyntax.AwaitExpressionSyntax)this.Green).awaitKeyword, Position, 0);
 
-    /// <summary>Optional SyntaxToken representing the "?" of a null-conditional "await?" expression. If present, the operand is only awaited when it is non-null; otherwise the result of the expression is null.</summary>
+    /// <summary>Optional SyntaxToken representing the "?" of a null-conditional "await?" expression.</summary>
     [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83237")]
     public SyntaxToken QuestionToken
     {

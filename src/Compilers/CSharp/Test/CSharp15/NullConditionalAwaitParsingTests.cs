@@ -16,14 +16,8 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
 {
     public NullConditionalAwaitParsingTests(ITestOutputHelper output) : base(output) { }
 
-    // Most tests wrap their body in a top-level local function so the surrounding async
-    // context is what we expect. Context matters because in async code `await? X` is the
-    // new null-conditional-await expression, while in non-async code `await` stays an
+    // In async code `await? X` is a null-conditional-await expression, while in non-async code `await` stays an
     // identifier and the `?` is handled by ordinary expression parsing.
-    //
-    // Note: at statement position in a non-async method, `await X;` is parsed as a
-    // local-variable declaration (type `await`, variable `X`), not as an await expression.
-    // Non-async tests therefore place the await in expression position (e.g. `_ = await X;`).
     private static string InAsync(string bodyStatement) => $$"""
         async void M()
         {
@@ -43,10 +37,6 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     [Fact]
     public void FullShape_ClassAsyncMethodWithDiscardAssignment()
     {
-        // Exhaustive tree walk demonstrating the complete shape for `_ = await? x;` inside
-        // a normal class's async method, including the scaffolding. All other tests skip
-        // the class wrapper and the discard assignment because neither is relevant to what
-        // `await?` parses into.
         UsingTree("""
             class C
             {
