@@ -1273,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool ContainsAdditionalTypeParameter(this TypeSymbol type, HashSet<TypeParameterSymbol> allowedTypeParameters)
         {
             var result = type.VisitType(
-                (type, allowedTypeParameters, isNested) => type is TypeParameterSymbol typeParameter && !allowedTypeParameters.Contains(typeParameter), allowedTypeParameters);
+                static (type, allowedTypeParameters, isNested) => type is TypeParameterSymbol typeParameter && !allowedTypeParameters.Contains(typeParameter), allowedTypeParameters);
             return result is object;
         }
 

@@ -747,8 +747,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (unifiedSubtype.IsGenericType && unifiedSubtype.ContainsAdditionalTypeParameter(allowedTypeParameters: baseTypeTypeParameters))
                         {
-                            // If 'closedSubtype' contains type parameters which are not present in '@this',
-                            // it implies 'closedSubtype' was able to unify but is not speakable at the use site.
+                            // If 'unifiedSubtype' contains type parameters which are not present in '@this',
+                            // it implies 'unifiedSubtype' was able to unify but is not speakable at the use site.
                             return false;
                         }
 
