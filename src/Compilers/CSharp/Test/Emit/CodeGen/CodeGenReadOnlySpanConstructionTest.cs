@@ -3425,7 +3425,7 @@ class Test
   IL_003f:  call       "void System.Console.Write(bool)"
   IL_0044:  ret
 }
-""", ilFormat: SymbolDisplayFormat.ILVisualizationFormat.RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType));
+""");
         }
 
         [Theory]

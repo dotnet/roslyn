@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -15,7 +16,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -8225,7 +8225,7 @@ class C
                 SymbolDisplayPartKind.RangeVariableName);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76895")]
         public void NativeInt()
         {
             var source =
@@ -8240,34 +8240,21 @@ class B
     static void F3(nint? x, UIntPtr? y) { }
     static void F4(nint[] x, A<nuint> y) { }
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular9);
-            var formatWithoutOptions = new SymbolDisplayFormat(
+            var compWithoutNumericIntPtrCapability = CreateCompilation([source], parseOptions: TestOptions.Regular9);
+            Assert.False(compWithoutNumericIntPtrCapability.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+
+            var compWithNumericIntPtrCapability = CreateCompilation([source], targetFramework: TargetFramework.Net100);
+            Assert.True(compWithNumericIntPtrCapability.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+
+            var formatWithoutSpecialTypes = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
-            var formatWithUnderlyingTypes = formatWithoutOptions.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
+            var formatWithSpecialTypes = formatWithoutSpecialTypes.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-            var method = comp.GetMember<MethodSymbol>("B.F1");
+            var methodNoNumericIntPtr = compWithoutNumericIntPtrCapability.GetMember<MethodSymbol>("B.F1");
             Verify(
-                method.ToDisplayParts(formatWithUnderlyingTypes),
-                "static void F1(IntPtr x, UIntPtr y)",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
-                SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.StructName,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.ParameterName,
-                SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.StructName,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.ParameterName,
-                SymbolDisplayPartKind.Punctuation);
-            Verify(
-                method.ToDisplayParts(formatWithoutOptions),
+                methodNoNumericIntPtr.ToDisplayParts(formatWithoutSpecialTypes),
                 "static void F1(nint x, nuint y)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -8285,31 +8272,61 @@ class B
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
             Verify(
-                method.ToDisplayParts(formatWithoutOptions.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)),
+                methodNoNumericIntPtr.ToDisplayParts(formatWithSpecialTypes),
                 "static void F1(nint x, nuint y)");
 
-            method = comp.GetMember<MethodSymbol>("B.F2");
+            var methodNumericIntPtr = compWithNumericIntPtrCapability.GetMember<MethodSymbol>("B.F1");
+            Verify(methodNumericIntPtr.ToDisplayParts(formatWithoutSpecialTypes),
+                "static void F1(IntPtr x, UIntPtr y)");
+            Verify(methodNumericIntPtr.ToDisplayParts(formatWithSpecialTypes),
+                "static void F1(nint x, nuint y)");
+
+            methodNoNumericIntPtr = compWithoutNumericIntPtrCapability.GetMember<MethodSymbol>("B.F2");
             Verify(
-                method.ToDisplayParts(formatWithUnderlyingTypes),
-                "static void F2(IntPtr x, IntPtr y)");
+                methodNoNumericIntPtr.ToDisplayParts(formatWithoutSpecialTypes),
+                "static void F2(nint x, IntPtr y)");
             Verify(
-                method.ToDisplayParts(formatWithoutOptions),
+                methodNoNumericIntPtr.ToDisplayParts(formatWithSpecialTypes),
                 "static void F2(nint x, IntPtr y)");
 
-            method = comp.GetMember<MethodSymbol>("B.F3");
+            methodNumericIntPtr = compWithNumericIntPtrCapability.GetMember<MethodSymbol>("B.F2");
             Verify(
-                method.ToDisplayParts(formatWithUnderlyingTypes),
-                "static void F3(IntPtr? x, UIntPtr? y)");
+                methodNumericIntPtr.ToDisplayParts(formatWithoutSpecialTypes),
+                "static void F2(IntPtr x, IntPtr y)");
             Verify(
-                method.ToDisplayParts(formatWithoutOptions),
+                methodNumericIntPtr.ToDisplayParts(formatWithSpecialTypes),
+                "static void F2(nint x, nint y)");
+
+            methodNoNumericIntPtr = compWithoutNumericIntPtrCapability.GetMember<MethodSymbol>("B.F3");
+            Verify(
+                methodNoNumericIntPtr.ToDisplayParts(formatWithoutSpecialTypes),
+                "static void F3(nint? x, UIntPtr? y)");
+            Verify(
+                methodNoNumericIntPtr.ToDisplayParts(formatWithSpecialTypes),
                 "static void F3(nint? x, UIntPtr? y)");
 
-            method = comp.GetMember<MethodSymbol>("B.F4");
+            methodNumericIntPtr = compWithNumericIntPtrCapability.GetMember<MethodSymbol>("B.F3");
             Verify(
-                method.ToDisplayParts(formatWithUnderlyingTypes),
+                methodNumericIntPtr.ToDisplayParts(formatWithoutSpecialTypes),
+                "static void F3(IntPtr? x, UIntPtr? y)");
+            Verify(
+                methodNumericIntPtr.ToDisplayParts(formatWithSpecialTypes),
+                "static void F3(nint? x, nuint? y)");
+
+            methodNoNumericIntPtr = compWithoutNumericIntPtrCapability.GetMember<MethodSymbol>("B.F4");
+            Verify(
+                methodNoNumericIntPtr.ToDisplayParts(formatWithoutSpecialTypes),
+                "static void F4(nint[] x, A<nuint> y)");
+            Verify(
+                methodNoNumericIntPtr.ToDisplayParts(formatWithSpecialTypes),
+                "static void F4(nint[] x, A<nuint> y)");
+
+            methodNumericIntPtr = compWithNumericIntPtrCapability.GetMember<MethodSymbol>("B.F4");
+            Verify(
+                methodNumericIntPtr.ToDisplayParts(formatWithoutSpecialTypes),
                 "static void F4(IntPtr[] x, A<UIntPtr> y)");
             Verify(
-                method.ToDisplayParts(formatWithoutOptions),
+                methodNumericIntPtr.ToDisplayParts(formatWithSpecialTypes),
                 "static void F4(nint[] x, A<nuint> y)");
         }
 

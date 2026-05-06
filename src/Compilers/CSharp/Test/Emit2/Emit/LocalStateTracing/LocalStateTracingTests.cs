@@ -1425,7 +1425,7 @@ F: Returned
       // sequence point: }}
       IL_0055:  ret
     }}
-", ilFormat: SymbolDisplayFormat.ILVisualizationFormat.RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType));
+");
         }
 
         [Theory]

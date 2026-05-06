@@ -205,12 +205,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (symbol.IsNativeIntegerType)
             {
-                if (!Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType) &&
+                // If the runtime has the NumeriIntPtr capability then `nint` and
+                // `System.IntPtr` are the same type thus we follow user choice
+                // of `UseSpecialTypes` flag. Otherwise they are truly different types
+                // and we represent `nint` with a keyword regardless of user preferences
+                if ((Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes) || !hasNumericIntPtrCapability(symbol)) &&
                     AddSpecialTypeKeyword(symbol))
                 {
                     //if we're using special type keywords and this is a special type, then no other work is required
                     return;
                 }
+
+                static bool hasNumericIntPtrCapability(INamedTypeSymbol type)
+                    => type is Symbols.PublicModel.NamedTypeSymbol { UnderlyingNamedTypeSymbol.ContainingAssembly.RuntimeSupportsNumericIntPtr: true };
             }
             else if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes))
             {
