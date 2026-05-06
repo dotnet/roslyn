@@ -389,20 +389,6 @@ internal partial class CSharpFormattingPass
                     var indentationWidth = Math.Max(_currentLine.GetIndentationSize(_tabSize) - attributeIndentationWidth, 0);
                     _builder.Append(FormattingUtilities.GetIndentationString(indentationWidth, _insertSpaces, _tabSize));
 
-                    // Because nobody said lambdas weren't painful, or rather I always complain that they are
-                    if (expressionStartsBlockLambda &&
-                        RoslynWillMoveLambdaBraceToNextLine() &&
-                        _currentLine.LineNumber > nodeStartLine &&
-                        nodeStartLine + 1 < _sourceText.Lines.Count &&
-                        _sourceText.Lines[nodeStartLine + 1].GetFirstNonWhitespacePosition() is { } bracePosition &&
-                        bracePosition == _sourceText.Lines[nodeStartLine + 1].End - 1 &&
-                        _sourceText[bracePosition] == '{')
-                    {
-                        // When a block lambda's `{` stays on the line after the header, Roslyn's indentation for the brace and body
-                        // lines is already relative to that carried-forward lambda header. Cancel the fixed attribute indentation for
-                        // those lines during remapping so we don't add the attribute baseline twice.
-                        additionalIndentation = additionalIndentation.GetValueOrDefault() - attributeIndentationWidth;
-                    }
                 }
 
                 // Now emit the contents of the line. If this is the last line of the expression literal, then we want to stop at the
