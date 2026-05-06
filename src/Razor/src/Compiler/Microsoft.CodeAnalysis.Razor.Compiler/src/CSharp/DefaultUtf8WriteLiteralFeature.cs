@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
@@ -166,27 +167,27 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
             var augmented = compilation.AddSyntaxTrees(probeTree);
             var semanticModel = augmented.GetSemanticModel(probeTree);
 
-            // Query each probe class's base type.
-            var namespaceDecls = probeTree.GetRoot().DescendantNodes()
-                .OfType<BaseNamespaceDeclarationSyntax>()
-                .ToArray();
+            // Query each probe class's base type. The probe tree has a known shallow shape:
+            //   CompilationUnit -> NamespaceDeclaration (one per entry, in order) -> ClassDeclaration
+            // so we walk only direct children at each level rather than realizing the whole tree,
+            // and rely on entry order to map back to the original index.
+            var namespaceDecls = probeTree.GetRoot().ChildNodes().OfType<BaseNamespaceDeclarationSyntax>();
 
-            for (var i = 0; i < namespaceDecls.Length; i++)
+            var entryIndex = 0;
+            foreach (var namespaceDecl in namespaceDecls)
             {
-                var classDecl = namespaceDecls[i].DescendantNodes()
-                    .OfType<ClassDeclarationSyntax>()
-                    .FirstOrDefault();
+                var classDecl = namespaceDecl.ChildNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
                 var baseTypeSyntax = classDecl?.BaseList?.Types.FirstOrDefault();
-                if (baseTypeSyntax is null)
+                if (baseTypeSyntax is not null)
                 {
-                    continue;
+                    var symbol = semanticModel.GetSymbolInfo(baseTypeSyntax.Type).Symbol as INamedTypeSymbol;
+                    if (symbol is not null && symbol.TypeKind != TypeKind.Error)
+                    {
+                        results.Add((entries[entryIndex].Index, GetFullMetadataName(symbol)));
+                    }
                 }
 
-                var symbol = semanticModel.GetSymbolInfo(baseTypeSyntax.Type).Symbol as INamedTypeSymbol;
-                if (symbol is not null && symbol.TypeKind != TypeKind.Error)
-                {
-                    results.Add((entries[i].Index, GetFullMetadataName(symbol)));
-                }
+                entryIndex++;
             }
 
             return results;
@@ -251,18 +252,18 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
 
         public override int GetHashCode()
         {
-            var hash = 17;
+            var hash = HashCodeCombiner.Start();
 
             foreach (var kvp in _fileToType)
             {
-                hash = hash * 31 + StringComparer.OrdinalIgnoreCase.GetHashCode(kvp.Key);
-                hash = hash * 31 + StringComparer.Ordinal.GetHashCode(kvp.Value);
+                hash.Add(kvp.Key, StringComparer.OrdinalIgnoreCase);
+                hash.Add(kvp.Value, StringComparer.Ordinal);
             }
 
             foreach (var kvp in _typeSupport)
             {
-                hash = hash * 31 + StringComparer.Ordinal.GetHashCode(kvp.Key);
-                hash = hash * 31 + kvp.Value.GetHashCode();
+                hash.Add(kvp.Key, StringComparer.Ordinal);
+                hash.Add(kvp.Value);
             }
 
             return hash;
