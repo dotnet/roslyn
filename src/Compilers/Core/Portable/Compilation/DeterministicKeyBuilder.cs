@@ -523,7 +523,6 @@ namespace Microsoft.CodeAnalysis
             writer.Write("scriptClassName", options.ScriptClassName);
             writer.Write("mainTypeName", options.MainTypeName);
             WriteByteArrayValue(writer, "cryptoPublicKey", options.CryptoPublicKey.AsSpan());
-            writer.Write("cryptoKeyFile", options.CryptoKeyFile);
             writer.Write("delaySign", options.DelaySign);
             writer.Write("publicSign", options.PublicSign);
             writer.Write("checkOverflow", options.CheckOverflow);
