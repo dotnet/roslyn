@@ -4,15 +4,17 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Composition;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCodeActionResolver
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+internal sealed class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCodeActionResolver
 {
     public string Action => LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives;
 
