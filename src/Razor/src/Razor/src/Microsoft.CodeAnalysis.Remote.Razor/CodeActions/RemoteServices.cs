@@ -55,10 +55,6 @@ internal sealed class OOPExtractToCssCodeActionResolver(LanguageServerFeatureOpt
     : ExtractToCssCodeActionResolver(languageServerFeatureOptions, fileSystem);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPCreateComponentCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : CreateComponentCodeActionResolver(languageServerFeatureOptions);
-
-[Export(typeof(IRazorCodeActionResolver)), Shared]
 internal sealed class OOPAddUsingsCodeActionResolver : AddUsingsCodeActionResolver;
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
