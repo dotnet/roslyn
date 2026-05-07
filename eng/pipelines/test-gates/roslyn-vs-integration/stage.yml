@@ -110,7 +110,7 @@ stages:
         }
 
         try {
-          $roslynCommitHash = dotnet .\eng\get-roslyn-commit-hash-in-vs.cs
+          $roslynCommitHash = dotnet .\eng\isolated\get-roslyn-commit-hash-in-vs.cs
           $dotnetExitCode = $LASTEXITCODE
         }
         finally {
