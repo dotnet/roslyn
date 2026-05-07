@@ -1994,9 +1994,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Dim locations As ImmutableArray(Of Location) = If(constructor.IsImplicitlyDeclared, containingType.Locations, constructor.Locations)
-            diagnostics.Add(If(locations.IsDefaultOrEmpty, Location.None, locations(0)), useSiteInfo)
-
             ' Generate an error
             If candidate Is Nothing Then
 
@@ -2071,7 +2068,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
                 End If
+
+                useSiteInfo.Add(candidate.GetUseSiteInfo())
             End If
+
+            Dim locations As ImmutableArray(Of Location) = If(constructor.IsImplicitlyDeclared, containingType.Locations, constructor.Locations)
+            diagnostics.Add(If(locations.IsDefaultOrEmpty, Location.None, locations(0)), useSiteInfo)
 
             Return candidate
         End Function

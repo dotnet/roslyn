@@ -715,14 +715,13 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
 
-        // PROTOTYPE(cc): VB should report an error due to presence of 'CompilerFeatureRequired' on the base constructor
         var source2 = """
             Public Class D
                 Inherits C
             End Class
             """;
         CreateVisualBasicCompilation("Program", source2, referencedCompilations: [comp1], referencedAssemblies: comp1.References).VerifyEmitDiagnostics(
-            );
+            Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, "D").WithArguments("Protected Overloads Sub New()", "ClosedClasses").WithLocation(1, 14));
     }
 
     [Fact]
