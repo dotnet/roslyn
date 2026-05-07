@@ -17,6 +17,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string LanguageServerProtocol = nameof(LanguageServerProtocol);
         }
 
+        public const string TestGate = nameof(TestGate);
+        public static class TestGates
+        {
+            public const string RoslynVSIntegration = nameof(RoslynVSIntegration);
+        }
+
         public const string Feature = nameof(Feature);
         public static class Features
         {

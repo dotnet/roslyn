@@ -383,6 +383,7 @@ HangMitigatingCancellationToken);
     }
 
     [IdeTheory, CombinatorialData]
+    [Trait(Traits.TestGate, Traits.TestGates.RoslynVSIntegration)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33823")]
     public async Task CommitOnShiftEnter(bool showCompletionInArgumentLists)
     {

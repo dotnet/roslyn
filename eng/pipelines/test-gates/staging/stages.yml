@@ -47,7 +47,7 @@ stages:
     sha: ${{ parameters.sha }}
     EnforceLatestCommit: ${{ parameters.EnforceLatestCommit }}
     visualStudioBootstrapperURI: ${{ parameters.visualStudioBootstrapperURI }}
-    testCaseFilter: ${{ parameters.testCaseFilter }}
+    testCaseFilter: ${{ iif(eq(parameters.testCaseFilter, ''), 'TestGate=RoslynVSIntegration', parameters.testCaseFilter) }}
     skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}
     testsCommitHash: ${{ parameters.testsCommitHash }}
     testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
