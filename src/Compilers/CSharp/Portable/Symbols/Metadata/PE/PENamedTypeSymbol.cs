@@ -1238,6 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var subtypeDefinitionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
                     var metadataReader = ContainingPEModule.Module.MetadataReader;
                     var decoder = new MetadataDecoder(ContainingPEModule);
+                    var thisTypeIsGeneric = IsGenericType;
                     try
                     {
                         foreach (var candidateTypeDefHandle in metadataReader.TypeDefinitions)
@@ -1249,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                             if (baseTypeHandle.Kind == HandleKind.TypeSpecification)
                             {
-                                if (!IsGenericType)
+                                if (!thisTypeIsGeneric)
                                     continue;
 
                                 // Dig through the TypeSpec and check the handle for the original definition.
@@ -1283,10 +1284,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     bool tryHandleTypeDefOrTypeRef(EntityHandle baseTypeHandle, TypeDefinitionHandle candidateTypeDefHandle)
                     {
+                        if (baseTypeHandle.IsNil)
+                            return true;
+
                         if (baseTypeHandle.Kind == HandleKind.TypeDefinition)
                         {
                             if (baseTypeHandle == this.Handle)
-                                subtypeDefinitionsBuilder.Add((NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle));
+                            {
+                                var candidateSubtype = (NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle);
+                                if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
+                                {
+                                    subtypeDefinitionsBuilder.Add((NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle));
+                                }
+                            }
 
                             return true;
                         }

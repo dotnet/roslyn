@@ -3708,7 +3708,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
