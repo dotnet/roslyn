@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,11 +16,12 @@ using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using SyntaxFacts = Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal class GenerateEventHandlerCodeActionProvider : IRazorCodeActionProvider
+[Export(typeof(IRazorCodeActionProvider)), Shared]
+internal sealed class GenerateEventHandlerCodeActionProvider : IRazorCodeActionProvider
 {
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
