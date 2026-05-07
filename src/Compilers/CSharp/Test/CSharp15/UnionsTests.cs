@@ -42810,7 +42810,7 @@ class Program
         [Fact]
         public void HasValueProperty_22_Bad()
         {
-            // [System.Runtime.CompilerServices.Union]}
+            // [System.Runtime.CompilerServices.Union]
             // class S1
             // {
             //     private readonly object _value;
@@ -45551,7 +45551,7 @@ class Program
         [Fact]
         public void TryGetValueMethod_53_Bad()
         {
-            // [System.Runtime.CompilerServices.Union]}
+            // [System.Runtime.CompilerServices.Union]
             // class S1
             // {
             //     private readonly object _value;
