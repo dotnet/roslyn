@@ -1294,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                 var candidateSubtype = (NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle);
                                 if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
                                 {
-                                    subtypeDefinitionsBuilder.Add((NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle));
+                                    subtypeDefinitionsBuilder.Add(candidateSubtype);
                                 }
                             }
 
