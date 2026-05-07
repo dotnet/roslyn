@@ -44,10 +44,6 @@ internal sealed class OOPCodeActionResolveService(
 // Code Action Providers
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactory) : ExtractToCodeBehindCodeActionProvider(loggerFactory);
-
-[Export(typeof(IRazorCodeActionProvider)), Shared]
 internal sealed class OOPExtractToComponentCodeActionProvider : ExtractToComponentCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
