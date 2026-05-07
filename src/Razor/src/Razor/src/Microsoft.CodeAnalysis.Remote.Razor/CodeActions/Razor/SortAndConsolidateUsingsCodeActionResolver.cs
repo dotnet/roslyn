@@ -8,6 +8,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 

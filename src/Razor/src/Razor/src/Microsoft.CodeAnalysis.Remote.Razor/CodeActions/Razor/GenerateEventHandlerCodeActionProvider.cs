@@ -13,7 +13,9 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using SyntaxFacts = Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
