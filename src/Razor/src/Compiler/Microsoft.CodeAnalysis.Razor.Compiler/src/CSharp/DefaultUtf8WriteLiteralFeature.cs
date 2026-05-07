@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
@@ -179,7 +180,8 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
 
             var parseOptions = compilation.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions
                 ?? CSharpParseOptions.Default;
-            var probeTree = CSharpSyntaxTree.ParseText(sb.ToString(), parseOptions);
+            var probeText = SourceText.From(sb.ToString());
+            var probeTree = CSharpSyntaxTree.ParseText(probeText, parseOptions);
             var augmented = compilation.AddSyntaxTrees(probeTree);
             var semanticModel = augmented.GetSemanticModel(probeTree);
 
