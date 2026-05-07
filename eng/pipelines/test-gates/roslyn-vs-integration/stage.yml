@@ -34,6 +34,9 @@ parameters:
 - name: testMachineRetention
   type: string
   default: 1:0:0:0
+- name: roslynRepositoryAlias
+  type: string
+  default: self
 
 stages:
 - template: /stages/visual-studio/agent.yml@DartLabTemplates
@@ -100,7 +103,7 @@ stages:
         git checkout FETCH_HEAD
       condition: and(succeeded(), ${{ eq(parameters.testsCommitFromVisualStudioBuild, true) }})
       displayName: 'Checkout tests at commit from Visual Studio build'
-    - template: /eng/pipelines/test-integration-job.yml@self
+    - template: /eng/pipelines/test-integration-job.yml@${{parameters.roslynRepositoryAlias}}
       parameters:
         configuration: $(_configuration)
         oop64bit: $(_oop64bit)

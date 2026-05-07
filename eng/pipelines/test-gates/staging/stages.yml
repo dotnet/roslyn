@@ -31,9 +31,12 @@ parameters:
 - name: testMachineRetention
   type: string
   default: 1:0:0:0
+- name: roslynRepositoryAlias
+  type: string
+  default: self
 
 stages:
-- template: /eng/pipelines/test-gates/roslyn-vs-integration/stage.yml@self
+- template: /eng/pipelines/test-gates/roslyn-vs-integration/stage.yml@${{parameters.roslynRepositoryAlias}}
   parameters:
     testStageFilter:
       or:
@@ -53,3 +56,4 @@ stages:
     testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
     testMachineCleanUpStrategy: ${{ parameters.testMachineCleanUpStrategy }}
     testMachineRetention: ${{ parameters.testMachineRetention }}
+    roslynRepositoryAlias: ${{ parameters.roslynRepositoryAlias }}
