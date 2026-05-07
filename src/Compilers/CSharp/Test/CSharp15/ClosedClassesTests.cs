@@ -2452,6 +2452,77 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_GenericNestedType_01()
+    {
+        var source1 = """
+            public class Container
+            {
+                public closed class C<T>;
+                public class D1<T> : C<T>;
+            }
+
+            public class D2<U> : Container.C<U>;
+            public class D3 : Container.C<string>;
+            public class D4 : Container.C<int>;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(Container.C<string> c)
+                {
+                    return c switch
+                    {
+                        Container.D1<string> => 1,
+                        D2<string> => 2,
+                        D3 => 3,
+                    };
+                }
+
+                int M2(Container.C<int> c)
+                {
+                    return c switch
+                    {
+                        Container.D1<int> => 1,
+                        D2<int> => 2,
+                        D4 => 3,
+                    };
+                }
+
+                int M3<X>(Container.C<X> c)
+                {
+                    return c switch
+                    {
+                        Container.D1<X> => 1,
+                        D2<X> => 2,
+                        D3 => 3,
+                        D4 => 3,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.Equal(["Container.D1<T>", "D2<T>", "D3", "D4"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.Equal(["Container.D1<T>", "D2<T>", "D3", "D4"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.Equal(["D2<T>", "D3", "D4", "Container.D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
     public void Exhaustiveness_ConstrainedToClosedType_01()
     {
         // Attempt to exhaust a type parameter constrained to closed type.

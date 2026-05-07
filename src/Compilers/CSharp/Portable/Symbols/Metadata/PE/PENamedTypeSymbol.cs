@@ -1311,7 +1311,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             if (container.ContainingType is not null)
                                 return true;
 
-                            return typeRef.ResolutionScope != EntityHandle.ModuleDefinition;
+                            if (typeRef.ResolutionScope.Kind == HandleKind.ModuleReference)
+                            {
+                                // Note: module names are case insensitive. See also MetadataDecoder.LookupTopLevelTypeDefSymbol.
+                                var referencedModuleName = decoder.Module.GetModuleRefNameOrThrow((ModuleReferenceHandle)typeRef.ResolutionScope);
+                                if (!decoder.Module.Name.Equals(referencedModuleName, StringComparison.OrdinalIgnoreCase))
+                                    return true;
+                            }
+                            else if (typeRef.ResolutionScope != EntityHandle.ModuleDefinition)
+                            {
+                                return true;
+                            }
+
+                            // We have a TypeRef to a type in the same module.
+                            return !container.MetadataName.Equals(metadataReader.GetString(typeRef.Name), StringComparison.Ordinal);
                         }
 
                         return false;
