@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Composition;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,9 +13,10 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class WrapAttributesCodeActionResolver : IRazorCodeActionResolver
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+internal sealed class WrapAttributesCodeActionResolver : IRazorCodeActionResolver
 {
     public string Action => LanguageServerConstants.CodeActions.WrapAttributes;
 

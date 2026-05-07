@@ -55,9 +55,6 @@ internal sealed class OOPExtractToCssCodeActionResolver(LanguageServerFeatureOpt
     : ExtractToCssCodeActionResolver(languageServerFeatureOptions, fileSystem);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
-internal sealed class OOPWrapAttributesCodeActionResolver : WrapAttributesCodeActionResolver;
-
-[Export(typeof(IRazorCodeActionResolver)), Shared]
 internal sealed class OOPSortAndConsolidateUsingsCodeActionResolver : SortAndConsolidateUsingsCodeActionResolver;
 
 [Export(typeof(ICSharpCodeActionResolver)), Shared]
