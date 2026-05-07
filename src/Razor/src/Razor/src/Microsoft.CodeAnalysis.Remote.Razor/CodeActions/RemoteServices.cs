@@ -55,9 +55,6 @@ internal sealed class OOPExtractToCssCodeActionResolver(LanguageServerFeatureOpt
     : ExtractToCssCodeActionResolver(languageServerFeatureOptions, fileSystem);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
-internal sealed class OOPSimplifyTagToSelfClosingCodeActionResolver : SimplifyTagToSelfClosingCodeActionResolver;
-
-[Export(typeof(IRazorCodeActionResolver)), Shared]
 internal sealed class OOPSimplifyFullyQualifiedComponentCodeActionResolver : SimplifyFullyQualifiedComponentCodeActionResolver;
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
