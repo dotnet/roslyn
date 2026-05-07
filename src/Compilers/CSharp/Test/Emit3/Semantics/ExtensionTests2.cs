@@ -394,6 +394,10 @@ namespace System
     [Fact]
     public void InvocationOnNull()
     {
+        // Under the extension-members-on-typeless-receivers feature, `null.M1("")` /
+        // `null.M2("")` route the typeless null receiver through extension lookup. T is inferred
+        // from the second argument and null is convertible to that inferred reference type, so
+        // both calls bind successfully (instead of producing the pre-feature ERR_BadUnaryOp).
         var src = """
 null.M1("");
 null.M2("");
@@ -409,13 +413,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
-            // null.M1("");
-            Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.M1").WithArguments(".", "<null>").WithLocation(1, 1),
-            // (2,1): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
-            // null.M2("");
-            Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.M2").WithArguments(".", "<null>").WithLocation(2, 1));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]

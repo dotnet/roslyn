@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 errorLoggerOpt: null,
                 analyzerConfigOptions: default,
                 globalConfigOptions: default);
-            AssertEx.NotNull(compilation);
+            Assert.NotNull(compilation);
             Assert.Empty(writer.GetStringBuilder().ToString());
             var obj = GetSyntaxTreeValues(compilation, compiler.Arguments.PathMap);
             AssertJsonCore(expected, obj.ToString(Formatting.Indented));
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 }
             }
 
-            Assert.True(false, $"Could not find reference with MVID {expectedMvid}");
+            Assert.Fail($"Could not find reference with MVID {expectedMvid}");
             throw null!;
         }
 

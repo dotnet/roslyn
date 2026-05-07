@@ -242,9 +242,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 loader.AddDependencyLocation(analyzerDependencyFile);
 
                 var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile, loader);
-                analyzerMainReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
+                analyzerMainReference.AnalyzerLoadFailed += (_, e) => Assert.Fail(e.Exception!.Message);
                 var analyzerDependencyReference = new AnalyzerFileReference(analyzerDependencyFile, loader);
-                analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
+                analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => Assert.Fail(e.Exception!.Message);
 
                 var analyzers = analyzerMainReference.GetAnalyzersForAllLanguages();
                 Assert.Equal(1, analyzers.Length);
@@ -758,9 +758,9 @@ Delta: Gamma: Beta: Test B
                 var analyzerMainFile = testFixture.AnalyzerWithDependency;
 
                 var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile, loader);
-                analyzerMainReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
+                analyzerMainReference.AnalyzerLoadFailed += (_, e) => Assert.Fail(e.Exception!.Message);
                 var analyzerDependencyReference = new AnalyzerFileReference(analyzerDependencyFile, loader);
-                analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
+                analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => Assert.Fail(e.Exception!.Message);
 
                 Assert.NotNull(loader.GetResolvedAnalyzerPath(analyzerMainFile));
                 Assert.NotNull(loader.GetResolvedAnalyzerPath(analyzerDependencyFile));
@@ -1158,7 +1158,7 @@ Delta: Epsilon: Test E
         /// Test the case where a utility is loaded by multiple analyzers at different versions. Ensure that no matter
         /// what order we load the analyzers we correctly resolve the utility version.
         /// </summary>
-        [ConditionalTheory(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
+        [Theory]
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_AnalyzerDependency(AnalyzerTestKind kind, bool normalOrder)
         {

@@ -26,7 +26,7 @@ public sealed class StackTraceExplorerTests
         Assert.Single(result.ParsedFrames);
 
         var stackFrame = result.ParsedFrames[0] as ParsedStackFrame;
-        AssertEx.NotNull(stackFrame);
+        Assert.NotNull(stackFrame);
 
         // Test that ToString() and reparsing keeps the same outcome
         var reparsedResult = await StackTraceAnalyzer.AnalyzeAsync(stackFrame.ToString(), CancellationToken.None);
@@ -38,7 +38,7 @@ public sealed class StackTraceExplorerTests
         // Get the definition for the parsed frame
         var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
         var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, stackFrame, StackFrameSymbolPart.Method, CancellationToken.None);
-        AssertEx.NotNull(definition);
+        Assert.NotNull(definition);
 
         // Get the symbol that was indicated in the source code by cursor position
         var cursorDoc = workspace.Documents.Single();
@@ -49,7 +49,7 @@ public sealed class StackTraceExplorerTests
         var semanticModel = await doc.GetRequiredSemanticModelAsync(CancellationToken.None);
 
         var expectedSymbol = semanticModel.GetDeclaredSymbol(node);
-        AssertEx.NotNull(expectedSymbol);
+        Assert.NotNull(expectedSymbol);
 
         // Compare the definition found to the definition for the test symbol
         var expectedDefinition = await expectedSymbol.ToNonClassifiedDefinitionItemAsync(
@@ -848,7 +848,7 @@ public sealed class StackTraceExplorerTests
         var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
         var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, frame, StackFrameSymbolPart.Method, CancellationToken.None);
 
-        AssertEx.NotNull(definition);
+        Assert.NotNull(definition);
         Assert.Equal("String.ToLower", definition.NameDisplayParts.ToVisibleDisplayString(includeLeftToRightMarker: false));
     }
 
@@ -887,7 +887,7 @@ public sealed class StackTraceExplorerTests
         var (document, line) = service.GetDocumentAndLine(workspace.CurrentSolution, frame);
         Assert.Equal(5, line);
 
-        AssertEx.NotNull(document);
+        Assert.NotNull(document);
         Assert.Equal(@"C:/path/to/Component.razor", document.FilePath);
     }
 
@@ -926,7 +926,7 @@ public sealed class StackTraceExplorerTests
         var (document, line) = service.GetDocumentAndLine(workspace.CurrentSolution, frame);
         Assert.Equal(5, line);
 
-        AssertEx.NotNull(document);
+        Assert.NotNull(document);
         Assert.Equal(@"C:/path/to/Component.razor", document.FilePath);
     }
 }

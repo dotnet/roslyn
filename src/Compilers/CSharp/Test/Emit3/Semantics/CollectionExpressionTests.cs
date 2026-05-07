@@ -3459,10 +3459,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            // Under the extension-members-on-typeless-receivers feature, `[1, 2, 3].AsArray()`
+            // now succeeds: T is inferred as int via the collection-expression conversion to T[].
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_07_CSharp14()
+        {
+            // Pre-feature behavior on C#14: the typeless collection-expression receiver is
+            // gated by ERR_FeatureInPreview. Binding continues (fire-and-forget feature gate),
+            // so no other diagnostics fire here.
+            string source = """
+                static class Program
+                {
+                    static T[] AsArray<T>(this T[] args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        var a = [1, 2, 3].AsArray();
+                        a.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(9,17): error CS9176: There is no target type for the collection expression.
+                // (9,17): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var a = [1, 2, 3].AsArray();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[1, 2, 3]").WithLocation(9, 17));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[1, 2, 3].AsArray").WithArguments("extension members on typeless receivers").WithLocation(9, 17));
         }
 
         [Fact]
@@ -3500,10 +3526,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
+            // Under the extension-members-on-typeless-receivers feature, `[4].AsCollection()`
+            // now succeeds: T is inferred as int via the collection-expression conversion to S<T>.
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_08_CSharp14()
+        {
+            // Pre-feature behavior on C#14: the typeless collection-expression receiver is
+            // gated by ERR_FeatureInPreview. Binding continues, so the second call still
+            // succeeds otherwise.
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct S<T> : IEnumerable<T>
+                {
+                    private List<T> _list;
+                    public void Add(T t)
+                    {
+                        _list ??= new List<T>();
+                        _list.Add(t);
+                    }
+                    public IEnumerator<T> GetEnumerator()
+                    {
+                        _list ??= new List<T>();
+                        return _list.GetEnumerator();
+                    }
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                static class Program
+                {
+                    static S<T> AsCollection<T>(this S<T> args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        var a = AsCollection([1, 2, 3]);
+                        var b = [4].AsCollection();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
-                // (27,17): error CS9176: There is no target type for the collection expression.
+                // (27,17): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var b = [4].AsCollection();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[4]").WithLocation(27, 17));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[4].AsCollection").WithArguments("extension members on typeless receivers").WithLocation(27, 17));
         }
 
         [Fact]
@@ -3530,13 +3599,57 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
+            // Under the extension-members-on-typeless-receivers feature, `[4].AsCollection()` no
+            // longer reports ERR_CollectionExpressionNoTargetType at the receiver: instead, type
+            // inference is run on the full call (with the collection-expression as the first
+            // argument), and reports the same ERR_CantInferMethTypeArgs as the explicit-form call
+            // because S<T> here implements the non-generic IEnumerable.
             comp.VerifyEmitDiagnostics(
                 // (15,13): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = AsCollection([1, 2, 3]);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(15, 13),
-                // (16,13): error CS9176: There is no target type for the collection expression.
+                // (16,17): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = [4].AsCollection();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[4]").WithLocation(16, 13));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(16, 17));
+        }
+
+        [Fact]
+        public void TypeInference_09_CSharp14()
+        {
+            // Pre-feature behavior on C#14: the typeless collection-expression receiver is
+            // gated by ERR_FeatureInPreview. Binding continues and the same type-inference
+            // failure still fires for both call shapes.
+            string source = """
+                using System.Collections;
+                struct S<T> : IEnumerable
+                {
+                    public void Add(T t) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                static class Program
+                {
+                    static S<T> AsCollection<T>(this S<T> args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        _ = AsCollection([1, 2, 3]);
+                        _ = [4].AsCollection();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (15,13): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         _ = AsCollection([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(15, 13),
+                // (16,13): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = [4].AsCollection();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[4].AsCollection").WithArguments("extension members on typeless receivers").WithLocation(16, 13),
+                // (16,17): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         _ = [4].AsCollection();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(16, 17));
         }
 
         [Fact]
@@ -4810,11 +4923,52 @@ static class Program
 }
 """;
             var comp = CreateCompilation(source);
+            // Under the extension-members-on-typeless-receivers feature, `[4].AsCollection()`
+            // succeeds: T is inferred via the collection-expression conversion to S<T>?.
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_NullableValueType_ExtensionMethod_CSharp14()
+        {
+            // Pre-feature behavior on C#14: the typeless collection-expression receiver is
+            // gated by ERR_FeatureInPreview; binding still succeeds otherwise.
+            string source = """
+using System.Collections;
+using System.Collections.Generic;
+struct S<T> : IEnumerable<T>
+{
+    private List<T> _list;
+    public void Add(T t)
+    {
+        _list ??= new List<T>();
+        _list.Add(t);
+    }
+    public IEnumerator<T> GetEnumerator()
+    {
+        _list ??= new List<T>();
+        return _list.GetEnumerator();
+    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+static class Program
+{
+    static S<T>? AsCollection<T>(this S<T>? args)
+    {
+        return args;
+    }
+    static void Main()
+    {
+        var a = AsCollection([1, 2, 3]);
+        var b = [4].AsCollection();
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
-                // (27,17): error CS9176: There is no target type for the collection expression.
+                // (27,17): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var b = [4].AsCollection();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[4]").WithLocation(27, 17)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[4].AsCollection").WithArguments("extension members on typeless receivers").WithLocation(27, 17));
         }
 
         [Fact]
@@ -33677,10 +33831,7 @@ partial class Program
                 // (4,28): error CS0611: Array elements cannot be of type 'S'
                 //     public void Add(params S[] x) => throw null;
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
-                // (15,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
-                //     static S F() => [[]];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(15, 21),
-                // (15,22): error CS9404: Element type of this collection may not be a ref struct or a type parameter allowing ref structs
+                // (15,22): error CS9358: Element type of this collection may not be a ref struct or a type parameter allowing ref structs
                 //     static S F() => [[]];
                 Diagnostic(ErrorCode.ERR_CollectionRefLikeElementType, "[]").WithLocation(15, 22));
         }
@@ -33704,10 +33855,7 @@ partial class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (11,26): error CS9203: A collection expression of type 'S<int>' cannot be used in this context because it may be exposed outside of the current scope.
-                //     static S<int> F() => [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1, 2, 3]").WithArguments("S<int>").WithLocation(11, 26));
+            comp.VerifyEmitDiagnostics();
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
@@ -45735,13 +45883,18 @@ partial class Program
                             }
                             """;
 
-            var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
 
             comp3.VerifyDiagnostics(
                 // (5,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Overloads.Test([2, 3]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "[2, 3]").WithLocation(5, 24)
                 );
+
+            comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics();
+            comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics();
         }
 
         [Fact]
@@ -45815,7 +45968,7 @@ partial class Program
                             }
                             """;
 
-            var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
 
             comp3.VerifyDiagnostics(
                 // (5,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -45825,6 +45978,11 @@ partial class Program
                 //         Overloads.Test([2, 3]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(5, 28)
                 );
+
+            comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics();
+            comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics();
         }
 
         [Fact]
@@ -47120,10 +47278,7 @@ class Program
             // The spec implies the safe-context of 'spans' should be 'caller-context'.
             // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
             var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
-            comp.VerifyDiagnostics(
-                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
-                //         return spans;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
