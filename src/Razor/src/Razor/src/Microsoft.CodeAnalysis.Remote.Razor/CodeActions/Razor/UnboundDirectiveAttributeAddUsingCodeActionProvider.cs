@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,9 +14,10 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeActionProvider
+[Export(typeof(IRazorCodeActionProvider)), Shared]
+internal sealed class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeActionProvider
 {
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {

@@ -44,9 +44,6 @@ internal sealed class OOPCodeActionResolveService(
 // Code Action Providers
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
-internal sealed class OOPUnboundDirectiveAttributeAddUsingCodeActionProvider : UnboundDirectiveAttributeAddUsingCodeActionProvider;
-
-[Export(typeof(IRazorCodeActionProvider)), Shared]
 internal sealed class OOPGenerateEventHandlerCodeActionProvider : GenerateEventHandlerCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
