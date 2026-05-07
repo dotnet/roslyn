@@ -1811,7 +1811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
-        internal ImmutableArray<TypeSymbol> UnionCaseTypes // PROTOTYPE: Cache result for definitions?
+        internal ImmutableArray<TypeSymbol> UnionCaseTypes // https://github.com/dotnet/roslyn/issues/82636: Cache result for definitions?
         {
             get
             {
@@ -1821,13 +1821,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var builder = ArrayBuilder<TypeSymbol>.GetInstance();
-                ForEachUnionFactoryMethod(addCaseType, builder);
+                var set = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
+                ForEachUnionFactoryMethod(addCaseType, (builder, set));
+                set.Free();
                 return builder.ToImmutableAndFree();
 
-                static bool addCaseType(MethodSymbol factory, ArrayBuilder<TypeSymbol> builder)
+                static bool addCaseType(MethodSymbol factory, (ArrayBuilder<TypeSymbol> builder, PooledHashSet<TypeSymbol> set) arg)
                 {
+                    (ArrayBuilder<TypeSymbol> builder, HashSet<TypeSymbol> set) = arg;
                     var candidate = factory.Parameters[0].Type;
-                    if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate)) // PROTOTYPE: Optimize this check?
+                    if (set.Add(candidate))
                     {
                         builder.Add(candidate);
                     }
