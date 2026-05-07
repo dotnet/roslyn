@@ -40215,9 +40215,9 @@ union U3(
                 // (300,11): error CS1073: Unexpected token 'name'
                 //     short name,
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "name").WithArguments("name").WithLocation(300, 11),
-                // (400,14): error CS1073: Unexpected token '0'
+                // (400,12): error CS1073: Unexpected token '='
                 //     ushort = 0,
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "0").WithArguments("0").WithLocation(400, 14),
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "=").WithArguments("=").WithLocation(400, 12),
                 // (500,9): error CS1073: Unexpected token '='
                 //     int = )
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "=").WithArguments("=").WithLocation(500, 9),

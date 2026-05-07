@@ -4879,7 +4879,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         syntaxToken = parameterSyntax.GetLastToken();
                         if (syntaxToken != typeSyntax.GetLastToken())
                         {
-                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, syntaxToken.GetLocation(), syntaxToken.Text);
+                            var nextToken = typeSyntax.GetLastToken().GetNextToken();
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, nextToken.GetLocation(), nextToken.Text);
                         }
                     }
 
