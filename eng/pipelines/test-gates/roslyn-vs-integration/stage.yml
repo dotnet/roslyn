@@ -1,9 +1,6 @@
 # Roslyn VS integration test stage.
 
 parameters:
-- name: testStageFilter
-  type: object
-  default:
 - name: prNumber
   type: string
   default: 'None'
@@ -43,8 +40,6 @@ stages:
   parameters:
     name: RoslynVSIntegration
     displayName: Roslyn VS Integration
-    templateContext:
-      filter: ${{ parameters.testStageFilter }}
     testLabPoolName: VS-Platform
     testMachineCleanUpStrategy: ${{ parameters.testMachineCleanUpStrategy }}
     testMachineRetention: ${{ parameters.testMachineRetention }}

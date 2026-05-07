@@ -39,14 +39,6 @@ parameters:
 stages:
 - template: /eng/pipelines/test-gates/roslyn-vs-integration/stage.yml@${{parameters.roslynRepositoryAlias}}
   parameters:
-    testStageFilter:
-      or:
-      - glob: eng/pipelines/test-gates/staging/stages.yml
-      - glob: eng/pipelines/test-gates/roslyn-vs-integration/stage.yml
-      - glob: eng/pipelines/test-integration-job.yml
-      - glob: eng/build.ps1
-      - glob: src/VisualStudio/IntegrationTest/**
-      - glob: src/VisualStudio/Core/Test/IntegrationTests/**
     prNumber: ${{ parameters.prNumber }}
     sha: ${{ parameters.sha }}
     EnforceLatestCommit: ${{ parameters.EnforceLatestCommit }}
