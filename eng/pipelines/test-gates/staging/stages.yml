@@ -18,13 +18,13 @@ parameters:
   default: '(default)'
 - name: skipCustomRoslynDeploy
   type: boolean
-  default: false
+  default: true
 - name: testsCommitHash
   type: string
   default: '(default)'
 - name: testsCommitFromVisualStudioBuild
   type: boolean
-  default: false
+  default: true
 - name: testMachineCleanUpStrategy
   type: string
   default: delete
