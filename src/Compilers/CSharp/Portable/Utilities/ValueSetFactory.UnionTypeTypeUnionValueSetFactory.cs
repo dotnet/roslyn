@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _unionType = unionType;
             }
 
-            private ImmutableArray<TypeSymbol> AdjustedTypesInUnion()
+            private ImmutableArray<TypeUnionValueSet.CaseInfo> AdjustedTypesInUnion()
             {
                 Debug.Assert(!_unionType.UnionCaseTypes.Any(t => t.IsNullableType()));
 
-                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
                 foreach (var caseType in _unionType.UnionCaseTypes)
                 {
                     ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(caseType, builder);

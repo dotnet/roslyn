@@ -21,25 +21,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _closedClass = closedClass;
             }
 
-            internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeSymbol> builder)
+            internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder)
             {
                 // PROTOTYPE(cc): A closed class with no subtypes, should probably expand into an empty type set.
                 // However, if we produce an empty type set as a result, we fail the non-empty assertion at 'TypeUnionValueSet..ctor' via 'SamplePatternForTemp().tryHandleTypeUnionLimits()'.
-                if (possibleClosedClass is not NamedTypeSymbol { IsClosed: true, ClosedSubtypes: [_, ..] subtypes })
+                if (possibleClosedClass is not NamedTypeSymbol namedType || !namedType.TryGetClosedSubtypes(out var subtypes) || subtypes.IsEmpty)
                 {
-                    builder.Add(possibleClosedClass);
+                    AddCaseInfo(builder, possibleClosedClass, originalClosedBase: null);
                     return;
                 }
 
+                ExpandClosedSubtypesCore(subtypes, originalBase: namedType, builder);
+            }
+
+            private static void ExpandClosedSubtypesCore(ImmutableArray<NamedTypeSymbol> subtypes, NamedTypeSymbol originalBase, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder)
+            {
+                Debug.Assert(!subtypes.IsDefaultOrEmpty);
                 foreach (var subtype in subtypes)
                 {
-                    ExpandClosedSubtypes(subtype, builder);
+                    if (!subtype.TryGetClosedSubtypes(out var innerSubtypes) || innerSubtypes.IsEmpty)
+                    {
+                        AddCaseInfo(builder, subtype, originalBase);
+                    }
+                    else
+                    {
+                        ExpandClosedSubtypesCore(innerSubtypes, originalBase, builder);
+                    }
                 }
             }
 
-            private ImmutableArray<TypeSymbol> ClosedSubtypes()
+            private static void AddCaseInfo(ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, TypeSymbol caseType, NamedTypeSymbol? originalClosedBase)
             {
-                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                // PROTOTYPE(cc): There may be a need to report diagnostics when "runtime-equivalent" yet distinct caseTypes flow in.
+                // For example, when the caseTypes have nullability differences.
+                if (!builder.Any(static (existing, caseType) => existing.CaseType.Equals(caseType, TypeCompareKind.AllIgnoreOptions), caseType))
+                {
+                    builder.Add(new TypeUnionValueSet.CaseInfo(caseType, originalClosedBase));
+                }
+            }
+
+            private ImmutableArray<TypeUnionValueSet.CaseInfo> ClosedSubtypes()
+            {
+                var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
                 ExpandClosedSubtypes(_closedClass, builder);
                 return builder.ToImmutableAndFree();
             }

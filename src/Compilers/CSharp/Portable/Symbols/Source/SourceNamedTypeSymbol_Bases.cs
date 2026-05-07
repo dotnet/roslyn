@@ -427,14 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (IsGenericType)
                     {
                         var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-                        baseType.VisitType(static (type, arg, _) =>
-                        {
-                            var (usedTypeParameters, @this) = arg;
-                            if (type is TypeParameterSymbol typeParameter)
-                                usedTypeParameters.Add(typeParameter);
-
-                            return false;
-                        }, arg: (usedTypeParameters, this));
+                        baseType.FindTypeParameters(usedTypeParameters);
 
                         for (NamedTypeSymbol type = this; type is not null; type = type.ContainingType)
                         {

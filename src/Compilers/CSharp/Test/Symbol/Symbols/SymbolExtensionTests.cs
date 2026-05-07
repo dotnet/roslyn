@@ -256,16 +256,7 @@ class Test
             var typeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
             try
             {
-                method.ContainingType.VisitType(static (typeSymbol, typeParameters, _) =>
-                {
-                    if (typeSymbol is TypeParameterSymbol typeParameter)
-                    {
-                        typeParameters.Add(typeParameter);
-                    }
-
-                    return false;
-                },
-                typeParameters, visitCustomModifiers: true);
+                method.ContainingType.FindTypeParameters(typeParameters);
 
                 var typeParameter = typeParameters.Single();
                 Assert.Equal("G", typeParameter.Name);
