@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool InUnsafeMethod(Symbol symbol)
         {
-            if (symbol is SourceMemberMethodSymbol { IsUnsafe: true })
+            if (symbol is SourceMemberMethodSymbol { IntroducesUnsafeContext: true })
             {
                 return true;
             }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (type is { })
             {
                 var def = type.OriginalDefinition;
-                if (def is SourceMemberContainerTypeSymbol { IsUnsafe: true })
+                if (def is SourceMemberContainerTypeSymbol { IntroducesUnsafeContext: true })
                 {
                     return true;
                 }
@@ -369,7 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var localFunction = (LocalFunctionSymbol)node.Symbol;
-            var analysis = new RefSafetyAnalysis(_compilation, localFunction, node, _inUnsafeRegion || localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics);
+            var inUnsafeRegion = _inUnsafeRegion || localFunction.IntroducesUnsafeContext;
+            var analysis = new RefSafetyAnalysis(_compilation, localFunction, node, inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics);
             analysis.Visit(node.BlockBody);
             analysis.Visit(node.ExpressionBody);
             return null;
