@@ -4,6 +4,7 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Composition;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
@@ -11,9 +12,10 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeActionResolver
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+internal sealed class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeActionResolver
 {
     public string Action => LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent;
 
