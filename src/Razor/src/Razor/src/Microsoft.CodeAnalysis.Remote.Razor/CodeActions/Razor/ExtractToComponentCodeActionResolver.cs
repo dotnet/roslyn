@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
+using System.Composition;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,9 +18,11 @@ using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class ExtractToComponentCodeActionResolver(
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class ExtractToComponentCodeActionResolver(
     LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
