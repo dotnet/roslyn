@@ -1,0 +1,223 @@
+{
+  "properties": {
+    /*
+     * Migration works by using the previous path that we stored in the VsUserSettingsRegister. This comes
+     * from the OptionsStorage strings related to the option with the form of "{collection}\{name}".
+     * Names much match exactly for the setting to work.
+     */
+    "languages.razor.advanced.formatOnType": {
+      "type": "boolean",
+      "default": true,
+      "title": "@Setting_FormattingOnTypeDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_FormattingOnTypeDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Razor\\FormatOnType"
+          }
+        }
+      }
+    },
+    "languages.razor.advanced.formatOnPaste": {
+      "type": "boolean",
+      "default": true,
+      "title": "@Setting_FormattingOnPasteDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_FormattingOnPasteDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Razor\\FormatOnPaste"
+          }
+        }
+      }
+    },
+    "languages.razor.advanced.autoClosingTags": {
+      "type": "boolean",
+      "default": true,
+      "title": "@Setting_AutoClosingTagsDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_AutoClosingTagsDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Razor\\AutoClosingTags"
+          }
+        }
+      }
+    },
+    "languages.razor.advanced.autoInsertAttributeQuotes": {
+      "type": "boolean",
+      "default": true,
+      "title": "@Setting_AutoInsertAttributeQuotesDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_AutoInsertAttributeQuotesDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Razor\\AutoInsertAttributeQuotes"
+          }
+        }
+      }
+    },
+    "languages.razor.advanced.colorBackground": {
+      "type": "boolean",
+      "default": false,
+      "title": "@Setting_ColorBackgroundDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_ColorBackgroundDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Razor\\ColorBackground"
+          }
+        }
+      }
+    },
+    "languages.razor.advanced.codeBlockBraceOnNextLine": {
+      "type": "boolean",
+      "default": false,
+      "title": "@Setting_CodeBlockBraceOnNextLineDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_CodeBlockBraceOnNextLineDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Razor\\CodeBlockBraceOnNextLine"
+          }
+        }
+      }
+    },
+    "languages.razor.advanced.attributeIndentStyle": {
+      "type": "string",
+      "default": "alignWithFirst",
+      "enum": [ "alignWithFirst", "indentByOne", "indentByTwo" ],
+      "enumItemLabels": [
+        "@Setting_AttributeIndentStyleAlignWithFirst;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_AttributeIndentStyleIndentByOne;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_AttributeIndentStyleIndentByTwo;{13b72f58-279e-49e0-a56d-296be02f0805}"
+      ],
+      "title": "@Setting_AttributeIndentStyleDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_AttributeIndentStyleDescription;{13b72f58-279e-49e0-a56d-296be02f0805}"
+    },
+    "languages.razor.advanced.commitElementsWithSpace": {
+      "type": "boolean",
+      "default": true,
+      "title": "@Setting_CommitElementsWithSpaceDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_CommitElementsWithSpaceDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Razor\\CommitElementsWithSpace"
+          }
+        }
+      }
+    },
+    "languages.razor.advanced.snippets": {
+      "type": "string",
+      "default": "all",
+      "enum": [ "all", "custom", "none" ],
+      "enumItemLabels": [
+        "@Setting_SnippetsAll;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_SnippetsCustom;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_SnippetsNone;{13b72f58-279e-49e0-a56d-296be02f0805}"
+      ],
+      "title": "@Setting_SnippetsDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_SnippetsDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Razor\\Snippets"
+          },
+          "map": [
+            {
+              "result": "all",
+              "match": 0
+            },
+            {
+              "result": "custom",
+              "match": 1
+            },
+            {
+              "result": "none",
+              "match": 2
+            }
+          ]
+        }
+      }
+    },
+    "languages.razor.advanced.logLevel": {
+      "type": "string",
+      "default": "warning",
+      "enum": [
+        "trace",
+        "debug",
+        "information",
+        "warning",
+        "error",
+        "critical",
+        "none"
+      ],
+      "enumItemLabels": [
+        "@Setting_LogLevelTrace;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_LogLevelDebug;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_LogLevelInformation;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_LogLevelWarning;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_LogLevelError;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_LogLevelCritical;{13b72f58-279e-49e0-a56d-296be02f0805}",
+        "@Setting_LogLevelNone;{13b72f58-279e-49e0-a56d-296be02f0805}"
+      ],
+      "title": "@Setting_LogLevelDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_LogLevelDescription;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Razor\\LogLevel"
+          },
+          "map": [
+            {
+              "result": "none",
+              "match": 0
+            },
+            {
+              "result": "trace",
+              "match": 1
+            },
+            {
+              "result": "debug",
+              "match": 2
+            },
+            {
+              "result": "information",
+              "match": 3
+            },
+            {
+              "result": "warning",
+              "match": 4
+            },
+            {
+              "result": "error",
+              "match": 5
+            },
+            {
+              "result": "critical",
+              "match": 6
+            }
+          ]
+        }
+      }
+    }
+  },
+  "categories": {
+    "languages.razor": {
+      "title": "@110;{13b72f58-279e-49e0-a56d-296be02f0805}" // Razor (ASP.NET Core)
+    },
+    "languages.razor.advanced": {
+      "title": "@1050;{13b72f58-279e-49e0-a56d-296be02f0805}" // Advanced
+    }
+  }
+}

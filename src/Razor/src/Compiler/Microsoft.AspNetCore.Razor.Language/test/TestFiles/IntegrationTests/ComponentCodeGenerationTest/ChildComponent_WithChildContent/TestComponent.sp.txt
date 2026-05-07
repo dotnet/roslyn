@@ -1,0 +1,8 @@
+﻿get_MyAttr: 
+	IL_0000: (9,32)-(9,36) ""
+set_MyAttr: 
+	IL_0000: (9,37)-(9,41) ""
+get_ChildContent: 
+	IL_0000: (12,46)-(12,50) ""
+set_ChildContent: 
+	IL_0000: (12,51)-(12,55) ""

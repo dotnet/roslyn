@@ -1,0 +1,52 @@
+﻿[$RootKey$\TextMate\Repositories]
+"AspNetCoreRazor"="$PackageFolder$\Grammars"
+
+// Defines where the language configuration file for a given
+// grammar name is (value of the ScopeName tag in the tmlanguage file).
+[$RootKey$\TextMate\LanguageConfiguration\GrammarMapping]
+"text.aspnetcorerazor"="$PackageFolder$\language-configuration.json"
+
+// Defines where the language configuration file for a given
+// language name is (partial value of the content type name).
+[$RootKey$\TextMate\LanguageConfiguration\ContentTypeMapping]
+"Razor"="$PackageFolder$\language-configuration.json"
+
+[$RootKey$\TextMate\LanguageConfiguration\GrammarMapping]
+"source.js"="$PackageFolder$\javascript-language-configuration.json"
+"source.css"="$PackageFolder$\css-language-configuration.json"
+"source.cs"="$PackageFolder$\csharp-language-configuration.json"
+"meta.directive"="$PackageFolder$\razordirective-language-configuration.json"
+
+// Sets up Razor's default settings in Tools->Options.
+// Razor's default settings can be found in the VS repo at:
+//     src/VSCommonContent/profiles/General.vssettings
+[$RootKey$\AutomationProperties\TextEditor\Razor]
+@="#110"
+"Description"="#112"
+"Name"="Razor"
+"Package"="{f5e7e720-1401-11d1-883b-0000f87579d2}"
+"ResourcePackage"="{13b72f58-279e-49e0-a56d-296be02f0805}"
+"ProfileSave"=dword:00000001
+"VSSettingsMigration"=dword:00000001
+
+// Provides additional Tools->Options settings not covered
+// by the settings in General.vssettings.
+[$RootKey$\Languages\Language Services\Razor]
+@="{4513FA64-5B72-4B58-9D4C-1D3C81996C2C}"
+"Package"="{13b72f58-279e-49e0-a56d-296be02f0805}"
+"ShowCompletion"=dword:00000001
+"ShowBraceCompletion"=dword:00000001
+"ShowSmartIndent"=dword:00000001
+
+[$RootKey$\FeatureFlags\Razor\LSP\ShowAllCSharpCodeActions]
+"Description"="Show all C# code actions in Razor files. Note: This is experimental, some actions may not apply correctly, or at all!"
+"Value"=dword:00000000
+"Title"="Show all C# code actions in Razor files (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+// CacheTag value should be changed when registration file changes
+// See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more infomation
+[$RootKey$\SettingsManifests\{13b72f58-279e-49e0-a56d-296be02f0805}]
+@="Microsoft.VisualStudio.RazorExtension.RazorPackage"
+"ManifestPath"="$PackageFolder$\UnifiedSettings\razor.registration.json"
+"CacheTag"=qword:91324F976E73CC57

@@ -1,0 +1,24 @@
+﻿RazorDocument - [0..29)::29 - [<input int-prefix-value='' />]
+    MarkupBlock - [0..29)::29
+        MarkupTagHelperElement - [0..29)::29 - input[SelfClosing] - InputTagHelper3
+            MarkupTagHelperStartTag - [0..29)::29 - [<input int-prefix-value='' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupTagHelperAttribute - [6..26)::20 - int-prefix-value - SingleQuotes - Bound - [ int-prefix-value='']
+                    MarkupTextLiteral - [6..7)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [7..23)::16 - [int-prefix-value] - Gen<Markup>
+                        Text;[int-prefix-value];
+                    Equals;[=];
+                    MarkupTextLiteral - [24..25)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [25..25)::0
+                        CSharpExpressionLiteral - [25..25)::0 - [] - Gen<None>
+                    MarkupTextLiteral - [25..26)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [26..27)::1
+                    MarkupTextLiteral - [26..27)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

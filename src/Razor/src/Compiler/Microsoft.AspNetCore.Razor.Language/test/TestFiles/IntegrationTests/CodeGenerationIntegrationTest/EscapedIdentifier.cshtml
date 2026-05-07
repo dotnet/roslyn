@@ -1,0 +1,11 @@
+﻿@addTagHelper "*, TestAssembly"
+
+@{
+    var count = "1";
+    var alive = true;
+    var obj = new { age = (object)1 };
+    var item = new { Items = new System.List<string>() { "one", "two" } };
+}
+<input age="Convert.ToInt32(@count)" alive="!@alive" />
+<input age="(int)@obj.age" tag="new { @params = 1 }" />
+<input tuple-prefix-test='(@item. Items.Where(i=>i.Contains("one")). Count()>0, @item. Items.FirstOrDefault(i=>i.Contains("one"))?. Replace("one",""))' />

@@ -1,0 +1,19 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupElement - (29:2,0 [126] x:\dir\subdir\Test\TestComponent.cshtml) - ul
+                    CSharpCode - (35:3,0 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (35:3,0 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -     
+                    CSharpCode - (40:3,5 [55] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (40:3,5 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - foreach (var item in Enumerable.Range(1, 100))\n    {\n
+                    MarkupElement - (103:5,8 [38] x:\dir\subdir\Test\TestComponent.cshtml) - li
+                        CSharpExpression - (122:6,13 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (122:6,13 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - item
+                    CSharpCode - (143:8,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (143:8,0 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -     }\n

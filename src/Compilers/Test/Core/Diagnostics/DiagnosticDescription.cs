@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string message = d.ToString(CultureInfo.InvariantCulture);
                 if (Regex.Match(message, @"{\d+}").Success)
                 {
-                    Assert.True(false, "Diagnostic messages should never contain unsubstituted placeholders.\n    " + message);
+                    Assert.Fail("Diagnostic messages should never contain unsubstituted placeholders.\n    " + message);
                 }
 
                 if (i > 0)

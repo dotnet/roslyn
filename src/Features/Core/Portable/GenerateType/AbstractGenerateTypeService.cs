@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -120,6 +121,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var generateIntoContaining = IsGeneratingIntoContainingNamespace(document, node, state, cancellationToken);
 
             if ((isSimpleName || generateIntoContaining) &&
+                !document.Document.IsRazorSourceGeneratedDocument() &&
                 CanGenerateIntoContainingNamespace(document, node, cancellationToken))
             {
                 result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: false));

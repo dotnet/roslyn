@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            Assert.True(false, "Didn't return an error");
+            Assert.Fail("Didn't return an error");
         }
 
         [Fact]
@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 try
                 {
                     RuleSet.LoadEffectiveRuleSetFromFile(file.Path);
-                    Assert.True(false, "Didn't throw an exception");
+                    Assert.Fail("Didn't throw an exception");
                 }
                 catch (InvalidRuleSetException e)
                 {

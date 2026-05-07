@@ -50,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Next
 
             If _failures.Any() Then
-                Assert.False(True, String.Format("The following INotifyPropertyChanged expectations were not met: {0}", Environment.NewLine + String.Join(Environment.NewLine, _failures)))
+                Assert.Fail(String.Format("The following INotifyPropertyChanged expectations were not met: {0}", Environment.NewLine + String.Join(Environment.NewLine, _failures)))
             End If
         End Sub
 

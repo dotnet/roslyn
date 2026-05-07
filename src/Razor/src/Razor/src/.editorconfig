@@ -1,0 +1,4 @@
+[*.cs]
+
+# Call ConfigureAwait
+dotnet_diagnostic.CA2007.severity = warning

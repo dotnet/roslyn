@@ -1,0 +1,33 @@
+﻿RazorDocument - [0..23)::23 - [@while(true) { @(foo) }]
+    MarkupBlock - [0..23)::23
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..23)::23
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..15)::14 - [while(true) { ] - Gen<Stmt>
+                Keyword;[while];
+                LeftParenthesis;[(];
+                Keyword;[true];
+                RightParenthesis;[)];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+            CSharpCodeBlock - [15..21)::6
+                CSharpExplicitExpression - [15..21)::6
+                    CSharpTransition - [15..16)::1 - Gen<None>
+                        Transition;[@];
+                    CSharpExplicitExpressionBody - [16..21)::5
+                        RazorMetaCode - [16..17)::1 - Gen<None>
+                            LeftParenthesis;[(];
+                        CSharpCodeBlock - [17..20)::3
+                            CSharpExpressionLiteral - [17..20)::3 - [foo] - Gen<Expr>
+                                Identifier;[foo];
+                        RazorMetaCode - [20..21)::1 - Gen<None>
+                            RightParenthesis;[)];
+            CSharpStatementLiteral - [21..23)::2 - [ }] - Gen<Stmt>
+                Whitespace;[ ];
+                RightBrace;[}];
+        MarkupTextLiteral - [23..23)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

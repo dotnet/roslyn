@@ -7,11 +7,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal enum WellKnownLspServerKinds
 {
     /// <summary>
-    /// Roslyn LSP server for razor c# requests.
-    /// </summary>
-    RazorLspServer,
-
-    /// <summary>
     /// Roslyn LSP server for liveshare guests.
     /// </summary>
     LiveShareLspServer,
@@ -44,7 +39,6 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
-            WellKnownLspServerKinds.RazorLspServer => "Razor C# Language Server Client",
             WellKnownLspServerKinds.LiveShareLspServer => "Live Share C#/Visual Basic Language Server Client",
             WellKnownLspServerKinds.AlwaysActiveVSLspServer => "Roslyn Language Server Client",
             WellKnownLspServerKinds.CSharpVisualBasicLspServer => "Roslyn Language Server Client",
@@ -59,9 +53,6 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
-            // Telemetry was previously reported as RazorInProcLanguageClient.GetType().Name
-            WellKnownLspServerKinds.RazorLspServer => "RazorInProcLanguageClient",
-
             // Telemtry was previously reported as LiveShareInProcLanguageClient.GetType().Name
             WellKnownLspServerKinds.LiveShareLspServer => "LiveShareInProcLanguageClient",
 
@@ -80,7 +71,6 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
-            WellKnownLspServerKinds.RazorLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.LiveShareLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.AlwaysActiveVSLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.CSharpVisualBasicLspServer => ProtocolConstants.RoslynLspLanguagesContract,

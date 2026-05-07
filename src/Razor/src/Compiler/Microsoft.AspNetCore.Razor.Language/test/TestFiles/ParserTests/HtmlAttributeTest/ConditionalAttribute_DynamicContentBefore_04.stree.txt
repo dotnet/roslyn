@@ -1,0 +1,41 @@
+﻿RazorDocument - [0..20)::20 - [<p @@x class="@c" />]
+    MarkupBlock - [0..20)::20
+        MarkupElement - [0..20)::20
+            MarkupStartTag - [0..20)::20 - [<p @@x class="@c" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupEphemeralTextLiteral - [3..4)::1 - [@] - Gen<Markup>
+                    Transition;[@];
+                MarkupMinimizedAttributeBlock - [4..6)::2 - [@x]
+                    MarkupTextLiteral - [4..6)::2 - [@x] - Gen<Markup>
+                        Transition;[@];
+                        Text;[x];
+                MarkupAttributeBlock - [6..17)::11 - [ class="@c"]
+                    MarkupTextLiteral - [6..7)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [7..12)::5 - [class] - Gen<Markup>
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTextLiteral - [13..14)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [14..16)::2
+                        MarkupDynamicAttributeValue - [14..16)::2 - [@c]
+                            GenericBlock - [14..16)::2
+                                CSharpCodeBlock - [14..16)::2
+                                    CSharpImplicitExpression - [14..16)::2
+                                        CSharpTransition - [14..15)::1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [15..16)::1
+                                            CSharpCodeBlock - [15..16)::1
+                                                CSharpExpressionLiteral - [15..16)::1 - [c] - Gen<Expr>
+                                                    Identifier;[c];
+                    MarkupTextLiteral - [16..17)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [17..18)::1
+                    MarkupTextLiteral - [17..18)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];
