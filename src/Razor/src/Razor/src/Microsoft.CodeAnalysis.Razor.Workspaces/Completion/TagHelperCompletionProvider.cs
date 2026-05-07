@@ -42,6 +42,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         // surface. The attribute path does not depend on HTML labels at all.
         var owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(context.Owner);
         if (owner is not null
+            && owner is not BaseMarkupEndTagSyntax
             && HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out _, out _)
             && containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
@@ -103,7 +104,8 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             return [];
         }
 
-        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var elementAttributes, out _) &&
+        if (owner is not BaseMarkupEndTagSyntax &&
+            HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var elementAttributes, out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
             // When NeedsHtmlCompletions returned false (pure Blazor/component scenario),

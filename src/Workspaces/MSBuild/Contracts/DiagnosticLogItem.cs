@@ -13,6 +13,9 @@ internal enum DiagnosticLogItemKind
 }
 
 [DataContract]
+#if NETFRAMEWORK
+[System.Serializable] // We need to this to be able to serialize across the AppDomain boundary
+#endif
 internal class DiagnosticLogItem(DiagnosticLogItemKind kind, string message, string projectFilePath)
 {
     [DataMember(Order = 0)]

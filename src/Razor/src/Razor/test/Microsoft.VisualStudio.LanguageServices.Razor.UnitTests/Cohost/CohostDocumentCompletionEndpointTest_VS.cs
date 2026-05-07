@@ -267,4 +267,78 @@ public partial class CohostDocumentCompletionEndpointTest
             htmlItemLabels: ["style", "dir"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_NotInEndTag()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <div></$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "/",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["</div>"],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
+            htmlItemLabels: ["</div>"],
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_NotInEndTag_FollowedByContent()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <div></$$</div>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "/",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["</div>"],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
+            htmlItemLabels: ["</div>"],
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task TagHelperElementCompletion_NotInEndTag()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <div></d$$iv>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: [],
+            unexpectedItemLabels: ["EditForm"],
+            htmlItemLabels: []);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_AfterCompleteEndTag()
+    {
+        // Snippets should still be offered when the cursor is immediately after a complete end tag.
+        // This guards against incorrectly suppressing snippets due to the previous token being part of an end tag.
+        await VerifyCompletionListAsync(
+            input: """
+                <div></div>$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["snippet1", "snippet2"],
+            htmlItemLabels: [],
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
 }

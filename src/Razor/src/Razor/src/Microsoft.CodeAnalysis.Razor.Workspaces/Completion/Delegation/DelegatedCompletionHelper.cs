@@ -210,11 +210,12 @@ internal static class DelegatedCompletionHelper
         var token = root.FindToken(absoluteIndex, includeWhitespace: false);
         if (token.Kind == SyntaxKind.EndOfFile &&
             token.GetPreviousToken().Parent is { } parent &&
-            parent.FirstAncestorOrSelf<RazorSyntaxNode>(RazorSyntaxFacts.IsAnyStartTag) is not null)
+            parent.FirstAncestorOrSelf<RazorSyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n)) is { } eofTag &&
+            IsIncompleteTag(eofTag))
         {
-            // If we're at the end of the file, we check if the previous token is part of a start tag, because the parser
-            // treats whitespace at the end different. eg with "<$$[EOF]" or "<div $$", the EndOfFile won't be seen as being
-            // in the tag, so without this special casing snippets would be shown.
+            // If we're at the end of the file, we check if the previous token is part of an incomplete start or end tag,
+            // because the parser treats whitespace at the end different. eg with "<$$[EOF]" or "<div $$" or "</$$[EOF]",
+            // the EndOfFile won't be seen as being in the tag, so without this special casing snippets would be shown.
             return false;
         }
 
@@ -236,10 +237,20 @@ internal static class DelegatedCompletionHelper
         {
             // We're at the start of the tag, we should include snippets. This is the case for things like $$<div></div> or <div>$$</div>, since the
             // index is right associative to the token when using FindToken.
+            // However, if the user just typed "</" (e.g., <div></|</div>), suppress snippets because the previous
+            // token is part of an (incomplete) end tag that precedes this position.
+            if (absoluteIndex > 0 &&
+                root.FindToken(absoluteIndex - 1, includeWhitespace: false).Parent is RazorSyntaxNode previousTokenParent &&
+                RazorSyntaxFacts.IsAnyEndTag(previousTokenParent) &&
+                IsIncompleteTag(previousTokenParent))
+            {
+                return false;
+            }
+
             return true;
         }
 
-        return !startOrEndTag.Span.Contains(absoluteIndex);
+        return !startOrEndTag.Span.IntersectsWith(absoluteIndex);
 
         static bool IsInScriptOrStyleOrHtmlComment(AspNetCore.Razor.Language.Syntax.SyntaxNode? initialNode)
         {
@@ -262,6 +273,16 @@ internal static class DelegatedCompletionHelper
             }
 
             return false;
+        }
+
+        static bool IsIncompleteTag(RazorSyntaxNode tag)
+        {
+            return tag switch
+            {
+                BaseMarkupStartTagSyntax startTag => startTag.CloseAngle.IsMissing,
+                BaseMarkupEndTagSyntax endTag => endTag.CloseAngle.IsMissing,
+                _ => false
+            };
         }
     }
 
