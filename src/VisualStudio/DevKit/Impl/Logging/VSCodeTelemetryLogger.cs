@@ -60,7 +60,10 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
 
     public void Log(string name, List<KeyValuePair<string, object?>> properties)
     {
-        Debug.Assert(_telemetrySession != null);
+        if (_telemetrySession is null)
+        {
+            return;
+        }
 
         var telemetryEvent = new TelemetryEvent(name);
         SetProperties(telemetryEvent, properties);
@@ -69,7 +72,10 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
 
     public void LogBlockStart(string eventName, int kind, int blockId)
     {
-        Debug.Assert(_telemetrySession != null);
+        if (_telemetrySession is null)
+        {
+            return;
+        }
 
         _pendingScopes[blockId] = kind switch
         {
@@ -81,8 +87,10 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
 
     public void LogBlockEnd(int blockId, List<KeyValuePair<string, object?>> properties, CancellationToken cancellationToken)
     {
-        var found = _pendingScopes.TryRemove(blockId, out var scope);
-        Debug.Assert(found);
+        if (!_pendingScopes.TryRemove(blockId, out var scope))
+        {
+            return;
+        }
 
         var endEvent = GetEndEvent(scope);
         SetProperties(endEvent, properties);
@@ -99,7 +107,10 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
 
     public void ReportFault(string eventName, string description, int logLevel, bool forceDump, int processId, Exception exception)
     {
-        Debug.Assert(_telemetrySession != null);
+        if (_telemetrySession is null)
+        {
+            return;
+        }
 
         var faultEvent = new FaultEvent(
             eventName: eventName,
