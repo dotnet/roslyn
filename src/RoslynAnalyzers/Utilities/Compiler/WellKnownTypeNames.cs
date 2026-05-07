@@ -34,6 +34,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcRouteAttribute = "Microsoft.AspNetCore.Mvc.RouteAttribute";
         public const string MicrosoftAspNetCoreMvcRoutingHttpMethodAttribute = "Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute";
         public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
+        public const string MicrosoftAspNetCoreRazorPooledObjectsPooledArrayBuilderExtensions = "Microsoft.AspNetCore.Razor.PooledObjects.PooledArrayBuilderExtensions";
         public const string MicrosoftCodeAnalysisCodeActionsCodeAction = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         public const string MicrosoftCodeAnalysisCodeFixesCodeFixProvider = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
         public const string MicrosoftCodeAnalysisCodeFixesExportCodeFixProviderAttribute = "Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute";
@@ -60,6 +61,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisDiagnosticsSymbolAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext";
         public const string MicrosoftCodeAnalysisDiagnosticsSyntaxNodeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext";
         public const string MicrosoftCodeAnalysisDiagnosticsSyntaxTreeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext";
+        public const string MicrosoftCodeAnalysisDocumentId = "Microsoft.CodeAnalysis.DocumentId";
+        public const string MicrosoftCodeAnalysisExternalAccessRazorRazorPinnedSolutionInfoWrapper = "Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper";
         public const string MicrosoftCodeAnalysisGeneratorAttribute = "Microsoft.CodeAnalysis.GeneratorAttribute";
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
         public const string MicrosoftCodeAnalysisIIncrementalGenerator = "Microsoft.CodeAnalysis.IIncrementalGenerator";
@@ -67,6 +70,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisLocalizableResourceString = "Microsoft.CodeAnalysis.LocalizableResourceString";
         public const string MicrosoftCodeAnalysisLocalizableString = "Microsoft.CodeAnalysis.LocalizableString";
         public const string MicrosoftCodeAnalysisModelExtensions = "Microsoft.CodeAnalysis.ModelExtensions";
+        public const string MicrosoftCodeAnalysisRazorRemoteIRemoteJsonService = "Microsoft.CodeAnalysis.Razor.Remote.IRemoteJsonService";
         public const string MicrosoftCodeAnalysisSharedCollectionsTemporaryArrayExtensions = "Microsoft.CodeAnalysis.Shared.Collections.TemporaryArrayExtensions";
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
         public const string MicrosoftCodeAnalysisSyntaxNode = "Microsoft.CodeAnalysis.SyntaxNode";
@@ -157,6 +161,8 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericList1 = "System.Collections.Generic.List`1";
         public const string SystemCollectionsGenericPriorityQueue2 = "System.Collections.Generic.PriorityQueue`2";
         public const string SystemCollectionsGenericQueue1 = "System.Collections.Generic.Queue`1";
+        public const string SystemCollectionsGenericEnumerableExtensions = "System.Collections.Generic.EnumerableExtensions";
+        public const string SystemCollectionsGenericReadOnlyListExtensions = "System.Collections.Generic.ReadOnlyListExtensions";
         public const string SystemCollectionsGenericStack1 = "System.Collections.Generic.Stack`1";
         public const string SystemCollectionsGenericSortedSet1 = "System.Collections.Generic.SortedSet`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
