@@ -87,10 +87,6 @@ internal sealed class OOPCSharpCodeActionResolver(
     }
 }
 
-[Export(typeof(ICSharpCodeActionResolver)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPUnformattedRemappingCSharpCodeActionResolver(IDocumentMappingService documentMappingService) : UnformattedRemappingCSharpCodeActionResolver(documentMappingService);
-
 [Export(typeof(IHtmlCodeActionResolver)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPHtmlCodeActionResolver(IRazorEditService razorEditService) : HtmlCodeActionResolver(razorEditService);
