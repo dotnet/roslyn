@@ -73,6 +73,13 @@
   -->
   <ItemGroup Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(DotNetSignType)' == 'test'">
     <FileExtensionSignInfo Update=".nupkg" CertificateName="None" />
+    <!--
+      Arcade 9's SignTool still tries to open nupkg containers even when CertificateName="None",
+      and fails if the nupkg lacks a signature marker. Remove nupkgs from signing entirely to
+      avoid this. The DLLs are still signed via VSIX containers.
+    -->
+    <ItemsToSign Remove="$(VisualStudioBuildPackagesDir)**\*.nupkg" />
+    <ItemsToSign Remove="$(ArtifactsPackagesDir)**\*.nupkg" />
   </ItemGroup>
 
 </Project>
