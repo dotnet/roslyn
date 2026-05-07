@@ -40178,6 +40178,56 @@ union S13(int, bool)
         }
 
         [Fact]
+        public void UnionDeclaration_33()
+        {
+            var unionSrc = @"
+union U1(
+#line 100
+    [Optional] byte,
+#line 200
+    out sbyte,
+#line 300
+    short name,
+#line 400
+    ushort = 0,
+#line 500
+    int = )
+;
+
+#line 600
+union U2(
+/*a*/ int /*b*/);
+
+#line 700
+union U3(
+    int // c
+);
+";
+
+            var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (100,5): error CS1073: Unexpected token '['
+                //     [Optional] byte,
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[").WithArguments("[").WithLocation(100, 5),
+                // (200,5): error CS1073: Unexpected token 'out'
+                //     out sbyte,
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "out").WithArguments("out").WithLocation(200, 5),
+                // (300,11): error CS1073: Unexpected token 'name'
+                //     short name,
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "name").WithArguments("name").WithLocation(300, 11),
+                // (400,12): error CS1073: Unexpected token '='
+                //     ushort = 0,
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "=").WithArguments("=").WithLocation(400, 12),
+                // (500,9): error CS1073: Unexpected token '='
+                //     int = )
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "=").WithArguments("=").WithLocation(500, 9),
+                // (500,11): error CS1525: Invalid expression term ')'
+                //     int = )
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(500, 11)
+                );
+        }
+
+        [Fact]
         public void ValueProperty_01()
         {
             var src = @"
