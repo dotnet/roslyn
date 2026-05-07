@@ -368,7 +368,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         workspace.TryApplyChanges(project.Solution);
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-        Assert.True(results.Single().DocumentUri.UriString.EndsWith("generated_file.cs"));
+        Assert.Contains("/generated_file.cs", results.Single().DocumentUri.UriString);
 
         var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
         Assert.True(service.DidMapSpans);
