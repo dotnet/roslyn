@@ -3712,20 +3712,23 @@ public sealed class ClosedClassesTests : CSharpTestBase
         comp.VerifyEmitDiagnostics();
 
         var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
-        Assert.Equal(["Container.D1<T>", "D2<T>", "D3", "D4"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["Container.D1<T>", "D2<T>", "D3", "D4"], subtypes.ToTestDisplayStrings());
 
         var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         classC = comp.GetMember<NamedTypeSymbol>("Container.C");
-        Assert.Equal(["Container.D1<T>", "D2<T>", "D3", "D4"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["Container.D1<T>", "D2<T>", "D3", "D4"], subtypes.ToTestDisplayStrings());
 
         comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         classC = comp.GetMember<NamedTypeSymbol>("Container.C");
-        Assert.Equal(["D2<T>", "D3", "D4", "Container.D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["D2<T>", "D3", "D4", "Container.D1<T>"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
