@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
             var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions, runtime: TimeSpan.Zero);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions, runtime: TimeSpan.Zero, compilationCache: CompilationCache.Empty);
         }
 
         /// <summary>
@@ -226,6 +226,10 @@ namespace Microsoft.CodeAnalysis
                 return _state.With(stateTable: DriverStateTable.Empty, runTime: TimeSpan.Zero);
             }
 
+            // The input compilation reference is used as part of the compilation cache key
+            // below. We capture it before any driver-side AddSyntaxTrees.
+            var inputCompilation = compilation;
+
             // run the actual generation
             using var timer = CodeAnalysisEventSource.Log.CreateGeneratorDriverRunTimer();
             var state = _state;
@@ -327,7 +331,6 @@ namespace Microsoft.CodeAnalysis
             // and add their sources to the compilation before standard output nodes execute.
             // Pre-compilation nodes only depend on non-compilation inputs (AdditionalTexts, ParseOptions, etc.)
             // so they cannot access the compilation or syntax store — doing so will throw.
-            var preCompilationSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             // Create per-generator step tracking builders that will be shared across both passes
             var generatorRunStateBuilders = new GeneratorRunStateTable.Builder[state.IncrementalGenerators.Length];
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
@@ -350,7 +353,6 @@ namespace Microsoft.CodeAnalysis
                     var (sources, _, _, _) = preCompilationContext.ToImmutableAndFree();
 
                     var parsedSources = ParseAdditionalSources(state.Generators[i], sources, cancellationToken);
-                    preCompilationSourcesBuilder.AddRange(parsedSources.Select(t => t.Tree));
                     stateBuilder[i] = generatorState.WithPreCompilationTrees(parsedSources);
                 }
                 catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
@@ -359,13 +361,34 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // Add the pre-compilation sources to the compilation, then set it on the builder
-            // which also creates the syntax store. Both become available for the standard phase.
-            if (preCompilationSourcesBuilder.Count > 0)
+            // Accumulate the inputs that determine the compilation seen by standard-phase
+            // generators, then ask the cache whether to reuse the previous run's compilation
+            // reference or build a new one. Filtered generators don't run their pre-comp
+            // callback this pass, but their state still carries the previously collected
+            // PreCompilationTrees -- feeding those (and the just-produced trees from unfiltered
+            // generators) into the cache keeps the resulting compilation stable across runs.
+            var cacheBuilder = state.CompilationCache.ToBuilder(inputCompilation, compilation);
+            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
-                compilation = compilation.AddSyntaxTrees(preCompilationSourcesBuilder);
+                var generatorState = stateBuilder[i];
+                if (!generatorState.PostInitTrees.IsDefaultOrEmpty)
+                {
+                    foreach (var tree in generatorState.PostInitTrees)
+                    {
+                        cacheBuilder.AddPostInitTree(tree.Tree);
+                    }
+                }
+                if (!generatorState.PreCompilationTrees.IsDefaultOrEmpty)
+                {
+                    foreach (var tree in generatorState.PreCompilationTrees)
+                    {
+                        cacheBuilder.AddPreCompTree(i, tree);
+                    }
+                }
             }
-            preCompilationSourcesBuilder.Free();
+
+            state = state.With(compilationCache: cacheBuilder.ToImmutableAndFree());
+            compilation = state.CompilationCache.Compilation;
 
             driverStateBuilder.SetCompilation(compilation);
 

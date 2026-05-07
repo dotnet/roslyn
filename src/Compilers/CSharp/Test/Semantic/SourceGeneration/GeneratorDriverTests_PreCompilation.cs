@@ -573,6 +573,129 @@ class C { }
             Assert.Equal(IncrementalStepRunReason.Cached, step2.Outputs[0].Reason);
         }
 
+        [Fact]
+        public void PreCompilation_And_Standard_Both_Cached_On_Second_Run()
+        {
+            // Verifies that a generator with both RegisterPreCompilationSourceOutput and
+            // RegisterSourceOutput (consuming CompilationProvider) is fully cached on a second
+            // run with the same compilation. Without the augmented-compilation cache, the
+            // pre-compilation phase would produce a fresh Compilation reference every run,
+            // invalidating the standard phase's CompilationProvider for every generator.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) => c.AddSource("precomp", "class PreCompType {}"));
+                ic.RegisterSourceOutput(ic.CompilationProvider, (c, _) => c.AddSource("standard", "class StandardType {}"));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation1, out _);
+            outputCompilation1.VerifyDiagnostics();
+            var result1 = driver.GetRunResult().Results[0];
+            var preCompStep1 = Assert.Single(result1.TrackedSteps[WellKnownGeneratorOutputs.PreCompilationSourceOutput]);
+            var standardStep1 = Assert.Single(result1.TrackedSteps[WellKnownGeneratorOutputs.SourceOutput]);
+            Assert.Equal(IncrementalStepRunReason.New, preCompStep1.Outputs[0].Reason);
+            Assert.Equal(IncrementalStepRunReason.New, standardStep1.Outputs[0].Reason);
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation2, out _);
+            outputCompilation2.VerifyDiagnostics();
+            var result2 = driver.GetRunResult().Results[0];
+            var preCompStep2 = Assert.Single(result2.TrackedSteps[WellKnownGeneratorOutputs.PreCompilationSourceOutput]);
+            var standardStep2 = Assert.Single(result2.TrackedSteps[WellKnownGeneratorOutputs.SourceOutput]);
+            Assert.Equal(IncrementalStepRunReason.Cached, preCompStep2.Outputs[0].Reason);
+            Assert.Equal(IncrementalStepRunReason.Cached, standardStep2.Outputs[0].Reason);
+        }
+
+        [Fact]
+        public void PreCompilation_Generator_Does_Not_Invalidate_Other_Generators_CompilationProvider()
+        {
+            // Cross-generator regression test: a generator that uses
+            // RegisterPreCompilationSourceOutput must not invalidate CompilationProvider for
+            // other generators in the same driver when nothing has changed between runs.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generatorA = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) => c.AddSource("a", "class TypeFromGenA {}"))));
+
+            var generatorB = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2((ic) =>
+                ic.RegisterSourceOutput(ic.CompilationProvider, (c, _) => c.AddSource("b", "class TypeFromGenB {}"))));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generatorA, generatorB }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+            var resultB = driver.GetRunResult().Results[1];
+            var standardStep = Assert.Single(resultB.TrackedSteps[WellKnownGeneratorOutputs.SourceOutput]);
+            Assert.Equal(IncrementalStepRunReason.Cached, standardStep.Outputs[0].Reason);
+        }
+
+        [Fact]
+        public void PreCompilation_Generator_Filtered_Other_Generator_Stays_Cached()
+        {
+            // When generator A (which uses pre-comp) is filtered out on a re-run, generator B
+            // must still see a stable compilation -- otherwise filtering one generator would
+            // silently invalidate cached state for everyone else.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generatorA = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) => c.AddSource("a", "class TypeFromGenA {}"))));
+
+            var generatorB = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2((ic) =>
+                ic.RegisterSourceOutput(ic.CompilationProvider, (c, _) => c.AddSource("b", "class TypeFromGenB {}"))));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generatorA, generatorB }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGenerators(compilation);
+
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator != generatorA);
+            var resultB = driver.GetRunResult().Results[1];
+            var standardStep = Assert.Single(resultB.TrackedSteps[WellKnownGeneratorOutputs.SourceOutput]);
+            Assert.Equal(IncrementalStepRunReason.Cached, standardStep.Outputs[0].Reason);
+        }
+
+        [Fact]
+        public void PreCompilation_RunResult_Trees_Are_In_Output_Compilation()
+        {
+            // Within-run consistency: trees surfaced in runResult.GeneratedSources for a
+            // pre-compilation source must be present in outputCompilation by reference (not
+            // just by content) so that user code can call outputCompilation.GetSemanticModel(tree)
+            // on those trees.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) => c.AddSource("precomp", "class PreCompType {}"))));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
+
+            var result = driver.GetRunResult().Results[0];
+            var preCompTree = Assert.Single(result.GeneratedSources, s => s.HintName == "precomp.cs").SyntaxTree;
+            Assert.Contains(preCompTree, outputCompilation.SyntaxTrees);
+            var model = outputCompilation.GetSemanticModel(preCompTree);
+            Assert.NotNull(model);
+        }
+
         #endregion
 
         #region Step Tracking

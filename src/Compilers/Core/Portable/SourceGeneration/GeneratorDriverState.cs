@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis
                                       DriverStateTable stateTable,
                                       SyntaxStore syntaxStore,
                                       GeneratorDriverOptions driverOptions,
-                                      TimeSpan runtime)
+                                      TimeSpan runtime,
+                                      CompilationCache compilationCache)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis
             DisabledOutputs = driverOptions.DisabledOutputs;
             TrackIncrementalSteps = driverOptions.TrackIncrementalGeneratorSteps;
             RunTime = runtime;
+            CompilationCache = compilationCache;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
@@ -105,6 +107,11 @@ namespace Microsoft.CodeAnalysis
         // https://github.com/dotnet/roslyn/issues/72129: Change from field to property once issue is addressed
         internal readonly bool TrackIncrementalSteps;
 
+        /// <summary>
+        /// Caches the compilation produced by the pre-compilation phase.
+        /// </summary>
+        internal readonly CompilationCache CompilationCache;
+
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
             ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,
@@ -114,7 +121,8 @@ namespace Microsoft.CodeAnalysis
             SyntaxStore? syntaxStore = null,
             ParseOptions? parseOptions = null,
             AnalyzerConfigOptionsProvider? optionsProvider = null,
-            TimeSpan? runTime = null)
+            TimeSpan? runTime = null,
+            CompilationCache? compilationCache = null)
         {
             return new GeneratorDriverState(
                 parseOptions ?? this.ParseOptions,
@@ -126,7 +134,8 @@ namespace Microsoft.CodeAnalysis
                 stateTable ?? this.StateTable,
                 syntaxStore ?? this.SyntaxStore,
                 this._driverOptions,
-                runTime ?? this.RunTime
+                runTime ?? this.RunTime,
+                compilationCache ?? this.CompilationCache
                 );
         }
     }
