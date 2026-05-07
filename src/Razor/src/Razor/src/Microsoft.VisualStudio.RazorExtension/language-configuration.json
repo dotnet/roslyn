@@ -1,0 +1,68 @@
+﻿{
+  "comments": {
+    "blockComment": [ "@*", "*@" ]
+  },
+  "brackets": [
+    ["<!--", "-->"],
+    ["@*", "*@"],
+    ["<", ">"],
+    ["{", "}"],
+    ["(", ")"]
+  ],
+  "autoCloseBefore": ";:.,/=}])><`\"' \r\n\t",
+  "autoClosingPairs": [
+    { "open": "{", "close": "}"},
+    { "open": "[", "close": "]"},
+    { "open": "(", "close": ")" },
+    { "open": "'", "close": "'" },
+    { "open": "\"", "close": "\"" },
+    { "open": "@*", "close": "*@", "notIn": [ "string" ] },
+    { "open": "<!--", "close":  "-->", "notIn": [ "comment", "string" ] }
+  ],
+  "surroundingPairs": [
+    { "open": "'", "close": "'" },
+    { "open": "\"", "close": "\"" },
+    { "open": "<", "close": ">" }
+  ],
+  "indentationRules": {
+    "increaseIndentPattern": "<(?!\\?|(?:area|base|br|col|frame|hr|html|img|input|keygen|link|menuitem|meta|param|source|track|wbr)\\b|(?:\"[^\"]*\"|'[^']*'|[^>])*\\/>)([-_\\.A-Za-z0-9]+)(?=\\s|>)\\b(?:\"[^\"]*\"|'[^']*'|[^>])*>(?!.*<\\/\\1>)|<!--(?!.*-->)|\\{[^}\"']*$",
+    "decreaseIndentPattern": "^\\s*(<\\/(?!html)[-_\\.A-Za-z0-9]+\\b[^>]*>|-->|\\})"
+  },
+  "onEnterRules": [
+    {
+      "beforeText": "<(?!(?:area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr))([_:\\w][_:\\w-.\\d]*)([^/>]*(=>)*[^/>]*(?<!=)(?!\\/)>)[^<]*$",
+      "afterText": "^<\\/([_:\\w][_:\\w-.\\d]*)\\s*>",
+      "action": {
+        "indent": "indentOutdent"
+      }
+    },
+    {
+      "beforeText": "<(?!(?:area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr))(\\w[\\w\\d]*)([^/>]*(=>)*[^/>]*(?<!=)(?!\\/)>)[^<]*$",
+      "action": {
+        "indent": "indent"
+      }
+    },
+    {
+      "beforeText": "@\\*",
+      "afterText": "\\*@",
+      "action": {
+        "indent": "indentOutdent"
+      }
+    },
+    {
+      "beforeText": "<!--",
+      "afterText": "-->",
+      "action": {
+        "indent": "indentOutdent"
+      }
+    },
+    {
+      "beforeText": "<[\\w\\d]+\\s*[@?\\w+(=(\"')^\"*(\"'))*\\s*]*\\s*$",
+      "action": {
+       "indent": "indent"
+      },
+      "afterText": "\\s*$"
+    },
+  ],
+  "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+}

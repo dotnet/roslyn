@@ -103,7 +103,10 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             }
 
             Contract.ThrowIfNull(TypeToGenerateIn);
-            if (!CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, cancellationToken))
+            var codeGenerationContext = new CodeGenerationContext(
+                contextLocation: Token.GetLocation(),
+                allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
+            if (!CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, codeGenerationContext, cancellationToken))
                 return false;
 
             ParameterTypes = ParameterTypes.IsDefault ? GetParameterTypes(cancellationToken) : ParameterTypes;
@@ -443,7 +446,9 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
             var context = new CodeGenerationSolutionContext(
                 document.Project.Solution,
-                new CodeGenerationContext(Token.GetLocation()));
+                new CodeGenerationContext(
+                    contextLocation: Token.GetLocation(),
+                    allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument()));
 
             return await CodeGenerator.AddMemberDeclarationsAsync(
                 context,
@@ -489,7 +494,9 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             return await CodeGenerator.AddMemberDeclarationsAsync(
                 new CodeGenerationSolutionContext(
                     document.Project.Solution,
-                    new CodeGenerationContext(Token.GetLocation())),
+                    new CodeGenerationContext(
+                        contextLocation: Token.GetLocation(),
+                        allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument())),
                 TypeToGenerateIn,
                 GetRequiredLanguageService<SyntaxGenerator>(TypeToGenerateIn.Language).CreateMemberDelegatingConstructor(
                     GetRequiredLanguageService<SyntaxGeneratorInternal>(TypeToGenerateIn.Language),

@@ -1,0 +1,24 @@
+﻿Source Location: (91:4,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestComponent|
+Generated Location: (703:19,49 [13] )
+|TestComponent|
+
+Source Location: (105:4,15 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Gutter|
+Generated Location: (888:23,0 [6] )
+|Gutter|
+
+Source Location: (113:4,23 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|(32, 16)|
+Generated Location: (1193:31,0 [8] )
+|(32, 16)|
+
+Source Location: (7:0,7 [78] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter] public (int Horizontal, int Vertical) Gutter { get; set; }
+|
+Generated Location: (1440:42,0 [78] )
+|
+    [Parameter] public (int Horizontal, int Vertical) Gutter { get; set; }
+|
+

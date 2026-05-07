@@ -136,6 +136,31 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Equal(expectedUri, uri.GetRequiredParsedUri().AbsoluteUri);
     }
 
+    [ConditionalTheory(typeof(WindowsOnly))]
+    [InlineData(@"\\home$\share\path", @"file://home$/share/path")]
+    [InlineData(@"\\home$\share\path\", @"file://home$/share/path")]
+    public void CreateRelativePatternBaseUri_UncPathWithDollarSign_Windows(string filePath, string expectedUri)
+    {
+        // UNC paths with $ in the server name (e.g. admin shares) are valid Windows paths
+        // but System.Uri cannot parse them. We should still get a DocumentUri back with the
+        // correct URI string, even though System.Uri can't parse it.
+        var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
+        Assert.Equal(expectedUri, uri.UriString);
+        Assert.Null(uri.ParsedUri);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly))]
+    [InlineData(@"\\home$\share\path", @"file://home$/share/path")]
+    public void CreateAbsoluteDocumentUri_UncPathWithDollarSign_Windows(string filePath, string expectedUri)
+    {
+        // UNC paths with $ in the server name (e.g. admin shares) are valid Windows paths
+        // but System.Uri cannot parse them. We should still get a DocumentUri back with the
+        // correct URI string, even though System.Uri can't parse it.
+        var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+        Assert.Equal(expectedUri, uri.UriString);
+        Assert.Null(uri.ParsedUri);
+    }
+
     [ConditionalTheory(typeof(UnixLikeOnly))]
     [InlineData("/u", "file:///u")]
     [InlineData("/unix/", "file:///unix")]

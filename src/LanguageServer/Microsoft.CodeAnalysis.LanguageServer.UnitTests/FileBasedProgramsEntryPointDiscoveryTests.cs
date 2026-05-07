@@ -96,13 +96,13 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var appFile = tempDir.CreateFile("App.cs").WriteAllText(appText);
         // Note: having '#:' is not enough for discovery to detect a file. The file needs to start with '#!'.
         var ordinaryText = """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             public class Ordinary { }
             """;
         var ordinaryFile = tempDir.CreateFile("Ordinary.cs").WriteAllText(ordinaryText);
@@ -152,13 +152,79 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var artifactsDir = tempDir.CreateDirectory("artifacts");
         var app1Text = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var app1File = artifactsDir.CreateFile("App1.cs").WriteAllText(app1Text);
 
         var app2Text = app1Text;
         var app2File = tempDir.CreateFile("App2.cs").WriteAllText(app2Text);
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertSequenceEqualAndStable([app2File.Path], () => discovery.FindEntryPoints(tempDir.Path));
+    }
+
+    [Fact]
+    public async Task TestDiscovery_DotPrefixedFolders()
+    {
+        // Demonstrate that directories starting with '.' are ignored
+        // tempDir/
+        //   .git/App1.cs
+        //   .vs/App2.cs
+        //   .config/App3.cs
+        //   App4.cs
+
+        var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
+
+        var appText = """
+            #!/usr/bin/env dotnet
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World");
+            """;
+
+        var gitDir = tempDir.CreateDirectory(".git");
+        var app1File = gitDir.CreateFile("App1.cs").WriteAllText(appText);
+
+        var vsDir = tempDir.CreateDirectory(".vs");
+        var app2File = vsDir.CreateFile("App2.cs").WriteAllText(appText);
+
+        var configDir = tempDir.CreateDirectory(".config");
+        var app3File = configDir.CreateFile("App3.cs").WriteAllText(appText);
+
+        var app4File = tempDir.CreateFile("App4.cs").WriteAllText(appText);
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertSequenceEqualAndStable([app4File.Path], () => discovery.FindEntryPoints(tempDir.Path));
+    }
+
+    [Fact]
+    public async Task TestDiscovery_NestedDotPrefixedFolders()
+    {
+        // Demonstrate that nested directories starting with '.' are also ignored
+        // tempDir/
+        //   subdir/
+        //     .hidden/App1.cs
+        //     App2.cs
+
+        var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
+
+        var appText = """
+            #!/usr/bin/env dotnet
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World");
+            """;
+
+        var subDir = tempDir.CreateDirectory("subdir");
+        var hiddenDir = subDir.CreateDirectory(".hidden");
+        var app1File = hiddenDir.CreateFile("App1.cs").WriteAllText(appText);
+
+        var app2File = subDir.CreateFile("App2.cs").WriteAllText(appText);
 
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
 
@@ -184,7 +250,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var programFile = projectDir.CreateFile("Program.cs").WriteAllText(appText);
@@ -210,7 +276,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var appFile = tempDir.CreateFile("App1.cs").WriteAllText(appText);
@@ -243,7 +309,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var appFile = tempDir.CreateFile("App1.cs").WriteAllText(appText);
@@ -276,7 +342,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var appFile = tempDir.CreateFile("App1.cs").WriteAllText(appText);
@@ -300,7 +366,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
 
             """;
@@ -596,7 +662,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
     private const string FbaContent = """
         #!/usr/bin/env dotnet
-        #:sdk Microsoft.Net.SDK
+        #:sdk Microsoft.NET.Sdk
         Console.WriteLine("hello");
 
         """;

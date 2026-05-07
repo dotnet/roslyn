@@ -1,0 +1,2 @@
+﻿x:\dir\subdir\Test\TestComponent.razor(1,2): Error RZ1006: The code block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+(5,6): Warning RZ1044: Possible C# preprocessor directive is misplaced. C# preprocessor directives must be at the start of the line, except for whitespace.

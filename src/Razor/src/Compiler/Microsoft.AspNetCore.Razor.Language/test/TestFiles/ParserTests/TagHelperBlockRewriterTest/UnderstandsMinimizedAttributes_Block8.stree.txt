@@ -1,0 +1,34 @@
+﻿RazorDocument - [0..24)::24 - [@{<input int-prefix- />}]
+    MarkupBlock - [0..24)::24
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..24)::24
+            CSharpStatement - [0..24)::24
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..24)::23
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..23)::21
+                        MarkupBlock - [2..23)::21
+                            MarkupTagHelperElement - [2..23)::21 - input[SelfClosing] - InputTagHelper3
+                                MarkupTagHelperStartTag - [2..23)::21 - [<input int-prefix- />] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[input];
+                                    MarkupMinimizedTagHelperAttribute - [8..20)::12 - int-prefix- - Minimized - Bound - [ int-prefix-]
+                                        MarkupTextLiteral - [8..9)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                        MarkupTextLiteral - [9..20)::11 - [int-prefix-] - Gen<Markup>
+                                            Text;[int-prefix-];
+                                    MarkupMiscAttributeContent - [20..21)::1
+                                        MarkupTextLiteral - [20..21)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                    ForwardSlash;[/];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [23..23)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [23..24)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [24..24)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

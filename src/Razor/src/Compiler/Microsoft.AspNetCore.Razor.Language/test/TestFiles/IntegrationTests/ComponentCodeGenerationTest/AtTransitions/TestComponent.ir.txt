@@ -1,0 +1,19 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [32] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (2:0,2 [32] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -   \n    var x = "hello";  \n    
+                CSharpExpression - (35:2,5 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (35:2,5 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
+                CSharpCode - (36:2,6 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (36:2,6 [14] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  x = "world"; 
+                CSharpExpression - (51:2,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (51:2,21 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
+                CSharpCode - (52:2,22 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (52:2,22 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -   \n

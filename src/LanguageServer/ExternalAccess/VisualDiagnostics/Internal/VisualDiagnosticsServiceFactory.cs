@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -13,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.ServiceHub.Framework;
-using Roslyn.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Utilities.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics;
 
@@ -21,55 +22,41 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics;
 /// LSP Service responsible for loading IVisualDiagnosticsLanguageService workspace service and delegate the broker service to the workspace service,
 /// and handling MAUI XAML/C#/CSS/Razor Hot Reload support
 /// </summary>
-[Export(typeof(IOnServiceBrokerInitialized))]
 [ExportCSharpVisualBasicLspServiceFactory(typeof(OnInitializedService)), Shared]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 [method: ImportingConstructor]
 internal sealed class VisualDiagnosticsServiceFactory(
-    LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory, IOnServiceBrokerInitialized
+    LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory
 {
-    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-    private readonly Lazy<OnInitializedService> _OnInitializedService = new(() => new OnInitializedService(lspWorkspaceRegistrationService));
+    private readonly Lazy<OnInitializedService> _onInitializedService = new(() => new OnInitializedService(lspWorkspaceRegistrationService));
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return _OnInitializedService.Value;
+        return _onInitializedService.Value;
     }
 
-    public void OnServiceBrokerInitialized(IServiceBroker serviceBroker)
+    private class OnInitializedService(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspService, IServiceBrokerInitializer, IDisposable
     {
-        _OnInitializedService.Value.OnServiceBrokerInitialized(serviceBroker);
-    }
-
-    private class OnInitializedService : ILspService, IOnInitialized, IOnServiceBrokerInitialized, IDisposable
-    {
-        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         private IVisualDiagnosticsLanguageService? _visualDiagnosticsLanguageService;
-        private CancellationToken _cancellationToken;
-        private static readonly TaskCompletionSource<bool> _taskCompletionSource = new();
 
-        public OnInitializedService(LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
-        {
-            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-        }
+        public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => [];
 
         public void Dispose()
         {
             (_visualDiagnosticsLanguageService as IDisposable)?.Dispose();
         }
 
-        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        public void OnServiceBrokerInitialized(IServiceBroker serviceBroker, CancellationToken cancellationToken)
         {
-            _cancellationToken = cancellationToken;
-            _taskCompletionSource.TrySetResult(true);
+            _ = OnInitializeVisualDiagnosticsLanguageServiceAsync(serviceBroker, cancellationToken);
         }
 
-        public void OnServiceBrokerInitialized(IServiceBroker serviceBroker)
+        public void Proffer(GlobalBrokeredServiceContainer container)
         {
-            _taskCompletionSource.Task.ContinueWith((initialized) => OnInitializeVisualDiagnosticsLanguageServiceAsync(serviceBroker), TaskScheduler.Default);
         }
 
-        private async Task OnInitializeVisualDiagnosticsLanguageServiceAsync(IServiceBroker serviceBroker)
+        private async Task OnInitializeVisualDiagnosticsLanguageServiceAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
         {
             // initialize VisualDiagnosticsLanguageService
             Workspace workspace = _lspWorkspaceRegistrationService.GetAllRegistrations().First(w => w.Kind == WorkspaceKind.Host);
@@ -79,7 +66,7 @@ internal sealed class VisualDiagnosticsServiceFactory(
 
             if (visualDiagnosticsLanguageService != null)
             {
-                await visualDiagnosticsLanguageService.InitializeAsync(serviceBroker, _cancellationToken).ConfigureAwait(false);
+                await visualDiagnosticsLanguageService.InitializeAsync(serviceBroker, cancellationToken).ConfigureAwait(false);
                 _visualDiagnosticsLanguageService = visualDiagnosticsLanguageService;
             }
         }

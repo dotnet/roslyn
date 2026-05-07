@@ -1,0 +1,30 @@
+﻿Source Location: (24:1,11 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|AnotherTest|
+Generated Location: (146:5,0 [11] )
+|AnotherTest|
+
+Source Location: (1:0,1 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Test|
+Generated Location: (513:19,0 [10] )
+|using Test|
+
+Source Location: (40:3,1 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|HeaderComponent|
+Generated Location: (965:32,49 [15] )
+|HeaderComponent|
+
+Source Location: (56:3,17 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Header|
+Generated Location: (1154:36,0 [6] )
+|Header|
+
+Source Location: (93:5,1 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|FooterComponent|
+Generated Location: (1386:44,56 [15] )
+|FooterComponent|
+
+Source Location: (109:5,17 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Footer|
+Generated Location: (1582:48,0 [6] )
+|Footer|
+

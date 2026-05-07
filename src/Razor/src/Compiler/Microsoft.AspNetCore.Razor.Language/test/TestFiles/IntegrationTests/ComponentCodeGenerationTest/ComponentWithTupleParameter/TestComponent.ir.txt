@@ -1,0 +1,14 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (90:4,0 [51] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    ComponentAttribute - (113:4,23 [8] x:\dir\subdir\Test\TestComponent.cshtml) - Gutter - Gutter - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (113:4,23 [8] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - (32, 16)
+            CSharpCode - (7:0,7 [78] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (7:0,7 [78] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public (int Horizontal, int Vertical) Gutter { get; set; }\n
