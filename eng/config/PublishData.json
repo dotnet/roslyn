@@ -6,6 +6,7 @@
   },
   "packages": {
     "Microsoft.CodeAnalysis": "arcade",
+    "Microsoft.CodeAnalysis.Build.Tasks": "arcade",
     "Microsoft.CodeAnalysis.Common": "vssdk",
     "Microsoft.CodeAnalysis.Compilers": "arcade",
     "Microsoft.CodeAnalysis.Scripting": "arcade",
@@ -75,6 +76,7 @@
     "Microsoft.CodeAnalysis.AnalyzerUtilities": "arcade",
     "Microsoft.CodeAnalysis.BannedApiAnalyzers": "arcade",
     "Microsoft.CodeAnalysis.Metrics": "arcade",
+    Update PublishData.json with new title prefix
     "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers": "arcade",
     "Microsoft.CodeAnalysis.PublicApiAnalyzers": "arcade",
     "Microsoft.CodeAnalysis.ResxSourceGenerator": "arcade",
