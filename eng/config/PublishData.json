@@ -67,7 +67,7 @@
     "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
     "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
     "Microsoft.CodeAnalysis.SemanticSearch.Extensions": "vs-impl",
-    "Microsoft.CodeAnalysis.SemanticSearch.ReferenceAssemblies": "vs-impl",
+    "Microsoft.CodeAnalysis.SemanticSearch.ReferenceAssemblies": "vs-impl" 18.6,
     "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
     "Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot": "vs-impl",
     "Microsoft.VisualStudio.LanguageServices.Xaml": "vs-impl",
@@ -101,7 +101,7 @@
     ],
     "vsBranch": "rel/stable",
     "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[Stable]"
+    "insertionTitlePrefix": "[Stable 18.6]"
   }
 }
 
