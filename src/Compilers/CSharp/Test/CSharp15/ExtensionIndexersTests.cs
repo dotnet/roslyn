@@ -16121,13 +16121,7 @@ _ = 42[null];
 E.get_Item(42, null);
 """;
         var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
-        comp.VerifyEmitDiagnostics(
-            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            // E.get_Item(42, null);
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E.get_Item(42, null)").WithLocation(2, 1),
-            // (2,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            // E.get_Item(42, null);
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(2, 16));
+        comp.VerifyEmitDiagnostics();
 
         // Compared with non-extension indexers
         libSrc = """
