@@ -1,4 +1,5 @@
 # Staging test gate registration file for Roslyn validation stages.
+# This file is referenced by the Visual Studio repository's official test gate registration.
 
 parameters:
 - name: prNumber
