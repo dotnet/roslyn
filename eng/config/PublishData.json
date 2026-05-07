@@ -76,7 +76,6 @@
     "Microsoft.CodeAnalysis.AnalyzerUtilities": "arcade",
     "Microsoft.CodeAnalysis.BannedApiAnalyzers": "arcade",
     "Microsoft.CodeAnalysis.Metrics": "arcade",
-    Update PublishData.json with new title prefix
     "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers": "arcade",
     "Microsoft.CodeAnalysis.PublicApiAnalyzers": "arcade",
     "Microsoft.CodeAnalysis.ResxSourceGenerator": "arcade",
