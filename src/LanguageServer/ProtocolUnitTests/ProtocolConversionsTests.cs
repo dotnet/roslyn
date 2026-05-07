@@ -236,6 +236,32 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     }
 
     [Fact]
+    public void RangeToTextSpanClampsCharacterPastLineEnd()
+    {
+        var markup = GetTestMarkup();
+        var sourceText = SourceText.From(markup);
+
+        var range = new Range() { Start = new Position(2, 8), End = new Position(2, int.MaxValue) };
+        var textSpan = ProtocolConversions.RangeToTextSpan(range, sourceText);
+
+        Assert.Equal(21, textSpan.Start);
+        Assert.Equal(27, textSpan.End);
+    }
+
+    [Fact]
+    public void RangeToTextSpanClampsStartCharacterPastLineEnd()
+    {
+        var markup = GetTestMarkup();
+        var sourceText = SourceText.From(markup);
+
+        var range = new Range() { Start = new Position(2, int.MaxValue), End = new Position(2, int.MaxValue) };
+        var textSpan = ProtocolConversions.RangeToTextSpan(range, sourceText);
+
+        Assert.Equal(27, textSpan.Start);
+        Assert.Equal(27, textSpan.End);
+    }
+
+    [Fact]
     public void RangeToTextSpanLineEndOfDocument()
     {
         var markup = GetTestMarkup();
@@ -321,8 +347,8 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         var markup = GetTestMarkup();
         var sourceText = SourceText.From(markup);
 
-        // This start position will be beyond the end position
-        var range = new Range() { Start = new Position(2, 20), End = new Position(3, 0) };
+        // This start position will still be beyond the end position after clamping.
+        var range = new Range() { Start = new Position(2, int.MaxValue), End = new Position(2, 0) };
         Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
     }
 
