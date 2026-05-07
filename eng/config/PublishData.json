@@ -6,6 +6,7 @@
   },
   "packages": {
     "Microsoft.CodeAnalysis": "arcade",
+    "Microsoft.CodeAnalysis.Build.Tasks": "arcade",
     "Microsoft.CodeAnalysis.Common": "vssdk",
     "Microsoft.CodeAnalysis.Compilers": "arcade",
     "Microsoft.CodeAnalysis.Scripting": "arcade",
