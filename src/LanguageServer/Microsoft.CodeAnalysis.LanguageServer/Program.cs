@@ -120,8 +120,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     // object which is registered by the LspWorkspaceRegistrationEventListener.
     var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
 
-    var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-
     LanguageServerHost server;
     if (serverConfiguration.UseStdIo)
     {
@@ -156,9 +154,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     {
         // After the LSP server shutdown, report session wide telemetry
         RoslynLogger.ShutdownAndReportSessionTelemetry();
-
-        // Server has exited, cancel our service broker service
-        await serviceBrokerFactory.ShutdownAndWaitForCompletionAsync();
     }
 }
 

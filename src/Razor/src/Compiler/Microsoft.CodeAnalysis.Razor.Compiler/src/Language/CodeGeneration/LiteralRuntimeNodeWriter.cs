@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
-internal class LiteralRuntimeNodeWriter : RuntimeNodeWriter
+internal class LiteralRuntimeNodeWriter : IntermediateNodeWriter
 {
     public static new readonly LiteralRuntimeNodeWriter Instance = new LiteralRuntimeNodeWriter();
 

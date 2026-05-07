@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
+using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
@@ -209,11 +210,12 @@ internal static class DelegatedCompletionHelper
         var token = root.FindToken(absoluteIndex, includeWhitespace: false);
         if (token.Kind == SyntaxKind.EndOfFile &&
             token.GetPreviousToken().Parent is { } parent &&
-            parent.FirstAncestorOrSelf<RazorSyntaxNode>(RazorSyntaxFacts.IsAnyStartTag) is not null)
+            parent.FirstAncestorOrSelf<RazorSyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n)) is { } eofTag &&
+            IsIncompleteTag(eofTag))
         {
-            // If we're at the end of the file, we check if the previous token is part of a start tag, because the parser
-            // treats whitespace at the end different. eg with "<$$[EOF]" or "<div $$", the EndOfFile won't be seen as being
-            // in the tag, so without this special casing snippets would be shown.
+            // If we're at the end of the file, we check if the previous token is part of an incomplete start or end tag,
+            // because the parser treats whitespace at the end different. eg with "<$$[EOF]" or "<div $$" or "</$$[EOF]",
+            // the EndOfFile won't be seen as being in the tag, so without this special casing snippets would be shown.
             return false;
         }
 
@@ -235,10 +237,20 @@ internal static class DelegatedCompletionHelper
         {
             // We're at the start of the tag, we should include snippets. This is the case for things like $$<div></div> or <div>$$</div>, since the
             // index is right associative to the token when using FindToken.
+            // However, if the user just typed "</" (e.g., <div></|</div>), suppress snippets because the previous
+            // token is part of an (incomplete) end tag that precedes this position.
+            if (absoluteIndex > 0 &&
+                root.FindToken(absoluteIndex - 1, includeWhitespace: false).Parent is RazorSyntaxNode previousTokenParent &&
+                RazorSyntaxFacts.IsAnyEndTag(previousTokenParent) &&
+                IsIncompleteTag(previousTokenParent))
+            {
+                return false;
+            }
+
             return true;
         }
 
-        return !startOrEndTag.Span.Contains(absoluteIndex);
+        return !startOrEndTag.Span.IntersectsWith(absoluteIndex);
 
         static bool IsInScriptOrStyleOrHtmlComment(AspNetCore.Razor.Language.Syntax.SyntaxNode? initialNode)
         {
@@ -261,6 +273,70 @@ internal static class DelegatedCompletionHelper
             }
 
             return false;
+        }
+
+        static bool IsIncompleteTag(RazorSyntaxNode tag)
+        {
+            return tag switch
+            {
+                BaseMarkupStartTagSyntax startTag => startTag.CloseAngle.IsMissing,
+                BaseMarkupEndTagSyntax endTag => endTag.CloseAngle.IsMissing,
+                _ => false
+            };
+        }
+    }
+
+    /// <summary>
+    /// Returns true if the position is inside the parameter portion of a directive attribute
+    /// (e.g., the "format" in <c>@bind-Value:format</c>). In this context, only directive
+    /// attribute parameter completions are valid — HTML attribute completions should be excluded.
+    /// </summary>
+    public static bool IsInDirectiveAttributeParameterContext(RazorCodeDocument razorCodeDocument, int absoluteIndex)
+    {
+        // Use the tag-helper-rewritten tree so that directive attributes are represented as
+        // structured nodes (e.g. MarkupTagHelperDirectiveAttributeSyntax) with explicit Colon
+        // and ParameterName children, matching what the Razor completion providers see.
+        var syntaxTree = razorCodeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
+        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
+        if (owner is null)
+        {
+            return false;
+        }
+
+        // FindInnermostNode returns token.Parent, which can be:
+        // 1. The attribute node itself (when the token is a direct child like EqualsToken)
+        // 2. A child node like MarkupTextLiteralSyntax (when cursor is inside the Name)
+        // 3. The start tag (boundary case: cursor at exclusive end of last attribute)
+        if (HtmlFacts.TryGetAttributeName(owner, out _, out var name, out var nameLocation)
+            || (owner is MarkupTextLiteralSyntax && HtmlFacts.TryGetAttributeName(owner.Parent, out _, out name, out nameLocation)))
+        {
+            return IsAfterColon(name, nameLocation.Start, absoluteIndex);
+        }
+
+        // Boundary case: cursor is at the exclusive end of an attribute's span, so
+        // FindInnermostNode returns the containing start tag instead. Check the last
+        // attribute, which is the one adjacent to the cursor position.
+        if (owner is BaseMarkupStartTagSyntax startTag && startTag.Attributes.Count > 0)
+        {
+            var lastAttribute = startTag.Attributes[^1];
+            if (lastAttribute.Span.End == absoluteIndex
+                && HtmlFacts.TryGetAttributeName(lastAttribute, out _, out name, out nameLocation))
+            {
+                return IsAfterColon(name, nameLocation.Start, absoluteIndex);
+            }
+        }
+
+        return false;
+
+        static bool IsAfterColon(string? attributeName, int nameSpanStart, int absoluteIndex)
+        {
+            if (attributeName is null || attributeName.Length < 2 || attributeName[0] != '@')
+            {
+                return false;
+            }
+
+            var count = Math.Min(absoluteIndex - nameSpanStart, attributeName.Length);
+            return count > 0 && attributeName.IndexOf(':', 0, count) != -1;
         }
     }
 

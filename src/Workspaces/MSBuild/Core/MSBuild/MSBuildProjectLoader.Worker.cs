@@ -261,7 +261,7 @@ public partial class MSBuildProjectLoader
                     ? algorithm : SourceHashAlgorithms.Default;
 
                 resolvedMetadataReferences = projectFileInfo.MetadataReferences
-                    .Select(r => metadataService.GetReference(r.Path, new MetadataReferenceProperties(aliases: r.Aliases)));
+                    .Select(r => metadataService.GetReference(r.Path, new MetadataReferenceProperties(aliases: [.. r.Aliases])));
             }
 
             var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, encoding);

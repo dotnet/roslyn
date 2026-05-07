@@ -38,6 +38,9 @@
     "dotnet.testWindow.disableAutoDiscovery": true,
     "dotnet.testWindow.disableBuildOnRefresh": true,
 	"dotnet.enableWorkspaceBasedDevelopment": false,
+    "csharp.debug.sourceFileMap": {
+        "/_/": "${workspaceFolder}/"
+    },
     "cSpell.words": [
         "darc",
         "Nerdbank",

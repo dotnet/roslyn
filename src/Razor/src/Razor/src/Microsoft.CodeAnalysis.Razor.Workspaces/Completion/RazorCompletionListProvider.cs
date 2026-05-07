@@ -142,7 +142,7 @@ internal class RazorCompletionListProvider(
             IsIncomplete = false,
         };
 
-        var completionCapability = clientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
+        var completionCapability = clientCapabilities.TextDocument?.Completion;
 
         return CompletionListOptimizer.Optimize(completionList, completionCapability);
     }
@@ -191,39 +191,10 @@ internal class RazorCompletionListProvider(
                     return true;
                 }
             case RazorCompletionItemKind.DirectiveAttribute:
-                {
-                    var directiveAttributeCompletionItem = new VSInternalCompletionItem()
-                    {
-                        Label = razorCompletionItem.DisplayText,
-                        InsertText = razorCompletionItem.InsertText,
-                        FilterText = razorCompletionItem.InsertText,
-                        SortText = razorCompletionItem.SortText,
-                        InsertTextFormat = insertTextFormat,
-                        Kind = tagHelperCompletionItemKind,
-                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
-                    };
-
-                    directiveAttributeCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
-
-                    completionItem = directiveAttributeCompletionItem;
-                    return true;
-                }
             case RazorCompletionItemKind.DirectiveAttributeParameter:
                 {
-                    var parameterCompletionItem = new VSInternalCompletionItem()
-                    {
-                        Label = razorCompletionItem.DisplayText,
-                        InsertText = razorCompletionItem.InsertText,
-                        FilterText = razorCompletionItem.InsertText,
-                        SortText = razorCompletionItem.SortText,
-                        InsertTextFormat = insertTextFormat,
-                        Kind = tagHelperCompletionItemKind,
-                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
-                    };
-
-                    parameterCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
-
-                    completionItem = parameterCompletionItem;
+                    completionItem = CreateDirectiveAttributeCompletionItem(
+                        razorCompletionItem, clientCapabilities, insertTextFormat, tagHelperCompletionItemKind);
                     return true;
                 }
             case RazorCompletionItemKind.DirectiveAttributeParameterEventValue:
@@ -336,5 +307,44 @@ internal class RazorCompletionListProvider(
 
         completionItem = null;
         return false;
+    }
+
+    /// <summary>
+    /// Creates a completion item for directive attribute and directive attribute parameter kinds.
+    /// When a <see cref="RazorCompletionItem.ReplacementRange"/> is set, uses an explicit TextEdit
+    /// to define the replaced range. This prevents duplication when the InsertText contains a ':'
+    /// (e.g., "bind-Value:after") because the editor's word-boundary heuristic would stop at ':'
+    /// and only replace part of the existing text.
+    /// </summary>
+    private static VSInternalCompletionItem CreateDirectiveAttributeCompletionItem(
+        RazorCompletionItem razorCompletionItem,
+        VSInternalClientCapabilities clientCapabilities,
+        InsertTextFormat insertTextFormat,
+        CompletionItemKind kind)
+    {
+        var completionItem = new VSInternalCompletionItem()
+        {
+            Label = razorCompletionItem.DisplayText,
+            InsertText = razorCompletionItem.InsertText,
+            FilterText = razorCompletionItem.InsertText,
+            SortText = razorCompletionItem.SortText,
+            InsertTextFormat = insertTextFormat,
+            Kind = kind,
+            AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
+        };
+
+        if (razorCompletionItem.ReplacementRange is { } replacementRange)
+        {
+            completionItem.TextEdit = new TextEdit()
+            {
+                Range = replacementRange.ToRange(),
+                NewText = razorCompletionItem.InsertText,
+            };
+            completionItem.InsertText = null;
+        }
+
+        completionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+
+        return completionItem;
     }
 }
