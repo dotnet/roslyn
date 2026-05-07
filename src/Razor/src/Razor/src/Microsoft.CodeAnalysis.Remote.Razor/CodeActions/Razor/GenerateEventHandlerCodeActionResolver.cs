@@ -1,7 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -11,21 +13,28 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal abstract class GenerateEventHandlerCodeActionResolver(
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class GenerateEventHandlerCodeActionResolver(
     IRoslynCodeActionHelpers roslynCodeActionHelpers,
-    IRazorFormattingService razorFormattingService) : IRazorCodeActionResolver
+    IRazorFormattingService razorFormattingService,
+    RemoteSnapshotManager snapshotManager) : IRazorCodeActionResolver
 {
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
+    private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
@@ -160,7 +169,29 @@ internal abstract class GenerateEventHandlerCodeActionResolver(
             """;
     }
 
-    protected abstract Task<SyntaxTree?> GetCodeBehindSyntaxTreeAsync(DocumentContext documentContext, string codeBehindPath, CancellationToken cancellationToken);
+    private async Task<SyntaxTree?> GetCodeBehindSyntaxTreeAsync(DocumentContext documentContext, string codeBehindPath, CancellationToken cancellationToken)
+    {
+        if (documentContext is not RemoteDocumentContext remoteDocumentContext)
+        {
+            throw new InvalidOperationException($"{nameof(GenerateEventHandlerCodeActionResolver)} can only be used with {nameof(RemoteDocumentContext)} instances.");
+        }
+
+        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(remoteDocumentContext.TextDocument);
+        var solution = razorDocumentSnapshot.TextDocument.Project.Solution;
+        var projectId = razorDocumentSnapshot.TextDocument.Project.Id;
+
+        if (solution.GetDocumentIdsWithFilePath(codeBehindPath).FirstOrDefault(id => id.ProjectId == projectId) is not { } codeBehindDocumentId)
+        {
+            return null;
+        }
+
+        if (!solution.TryGetDocument(codeBehindDocumentId, out var codeBehindDocument))
+        {
+            return null;
+        }
+
+        return await codeBehindDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+    }
 
     private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(SyntaxTree syntaxTree, string razorNamespace, string razorClassName)
     {
