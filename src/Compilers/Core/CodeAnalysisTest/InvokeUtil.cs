@@ -8,10 +8,10 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers, compilerLoadContext: null);
 
-            // Ensure that test infrastructure assemblies (e.g. DiffPlex and its transitive
-            // dependencies such as Microsoft.Win32.Registry) are already loaded before we
-            // take the snapshot below.  AssertEx has static fields that initialize DiffPlex
-            // on first use; if that first use happens *after* the snapshot is taken then
-            // those assemblies show up as unexpected additions and the assertion at the end
-            // of this method fails intermittently (most visibly in the LoadStream variant).
-            RuntimeHelpers.RunClassConstructor(typeof(AssertEx).TypeHandle);
+            // Ensure that test infrastructure assemblies are already loaded before we
+            // take the snapshot below. These are lazily loaded on first use, and if
+            // that first use happens *after* the snapshot is taken then those assemblies
+            // show up as unexpected additions and the assertion at the end of this method
+            // fails intermittently.
+            TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.Test.Utilities", typeof(AssertEx).TypeHandle);
+            TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.CSharp.Test.Utilities", typeof(TestOptions).TypeHandle);
 
             var compilerContextAssemblies = loader.CompilerLoadContext.Assemblies.SelectAsArray(a => a.FullName);
             try
@@ -81,6 +81,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 // When using the actual compiler load context (the one shared by all of our unit tests) the test
                 // did not load any additional assemblies that could interfere with later tests.
+                //
+                // If this assertion fails due to a normal test assembly, like xunit.assert, being loaded after the snapshot, then 
+                // add that assembly to the list of assemblies loaded before the snapshot is taken.
                 AssertEx.SetEqual(compilerContextAssemblies, loader.CompilerLoadContext.Assemblies.SelectAsArray(a => a.FullName));
             }
         }

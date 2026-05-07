@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNullable;
@@ -517,7 +518,7 @@ public sealed class EnableNullableTests
         }.RunAsync();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public async Task IgnoreGeneratedCode()
     {
         var code1 = """

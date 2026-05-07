@@ -2843,7 +2843,7 @@ public class MyClass
 }
 ";
             // NOTE: only first in scope is reported.
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (11,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         S* s2 = &s;    // CS0214
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S*"),
@@ -2853,6 +2853,16 @@ public class MyClass
                 // (12,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         s2->a = 3;      // CS0214
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s2"));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (12,11): error CS9360: This operation may only be used in an unsafe context
+                //         s2->a = 3;      // CS0214
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "->").WithLocation(12, 11),
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -2873,13 +2883,26 @@ class Program
     }
 }";
             // NOTE: only first in scope is reported.
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (11,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         s.x[1] = s.x[2];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x"),
                 // (11,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         s.x[1] = s.x[2];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x"));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (11,12): error CS9360: This operation may only be used in an unsafe context
+                //         s.x[1] = s.x[2];
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(11, 12),
+                // (11,21): error CS9360: This operation may only be used in an unsafe context
+                //         s.x[1] = s.x[2];
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(11, 21),
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -2890,10 +2913,13 @@ class Program
     public fixed int buf[10];
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public fixed int buf[10];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "buf[10]"));
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2912,10 +2938,13 @@ namespace System
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //             var x = stackalloc int[10];    // ERROR
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[10]").WithLocation(8, 21));
+
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]

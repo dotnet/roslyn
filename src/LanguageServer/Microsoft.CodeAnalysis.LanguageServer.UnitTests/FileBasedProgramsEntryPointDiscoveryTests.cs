@@ -96,13 +96,13 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var appFile = tempDir.CreateFile("App.cs").WriteAllText(appText);
         // Note: having '#:' is not enough for discovery to detect a file. The file needs to start with '#!'.
         var ordinaryText = """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             public class Ordinary { }
             """;
         var ordinaryFile = tempDir.CreateFile("Ordinary.cs").WriteAllText(ordinaryText);
@@ -152,7 +152,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var artifactsDir = tempDir.CreateDirectory("artifacts");
         var app1Text = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var app1File = artifactsDir.CreateFile("App1.cs").WriteAllText(app1Text);
@@ -184,7 +184,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var programFile = projectDir.CreateFile("Program.cs").WriteAllText(appText);
@@ -210,7 +210,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var appFile = tempDir.CreateFile("App1.cs").WriteAllText(appText);
@@ -243,7 +243,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var appFile = tempDir.CreateFile("App1.cs").WriteAllText(appText);
@@ -276,7 +276,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """;
         var appFile = tempDir.CreateFile("App1.cs").WriteAllText(appText);
@@ -300,7 +300,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var appText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.SDK
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
 
             """;
@@ -596,7 +596,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
     private const string FbaContent = """
         #!/usr/bin/env dotnet
-        #:sdk Microsoft.Net.SDK
+        #:sdk Microsoft.NET.Sdk
         Console.WriteLine("hello");
 
         """;

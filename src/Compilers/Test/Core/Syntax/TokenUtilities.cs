@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
@@ -46,7 +47,7 @@ namespace Roslyn.Test.Utilities
                         }
                     }
 
-                    AssertEx.Fail($"Unexpected token.  Actual '{actualAll}' Expected '{expectedAll}'\r\nActual:\r\n{actual}");
+                    Assert.Fail($"Unexpected token.  Actual '{actualAll}' Expected '{expectedAll}'\r\nActual:\r\n{actual}");
                 }
             }
 
@@ -54,8 +55,7 @@ namespace Roslyn.Test.Utilities
             {
                 var expectedDisplay = string.Join(" ", expectedTokens.Select(t => t.ToString()));
                 var actualDisplay = string.Join(" ", actualTokens.Select(t => t.ToString()));
-                AssertEx.Fail(@"Wrong token count. Expected '{0}', Actual '{1}', Expected Text: '{2}', Actual Text: '{3}'",
-                    expectedTokens.Count, actualTokens.Count, expectedDisplay, actualDisplay);
+                Assert.Fail($@"Wrong token count. Expected '{expectedTokens.Count}', Actual '{actualTokens.Count}', Expected Text: '{expectedDisplay}', Actual Text: '{actualDisplay}'");
             }
         }
 

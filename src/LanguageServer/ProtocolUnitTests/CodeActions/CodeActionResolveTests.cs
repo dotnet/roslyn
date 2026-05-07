@@ -239,7 +239,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
 
         var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
-        AssertEx.NotNull(actualResolvedAction.Edit);
+        Assert.NotNull(actualResolvedAction.Edit);
         var textDocumentEdit = (LSP.TextDocumentEdit[])actualResolvedAction.Edit.DocumentChanges!.Value;
         Assert.Single(textDocumentEdit);
         var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.DocumentUri);

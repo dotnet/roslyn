@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements;
@@ -926,7 +927,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task SplitIntoSeparateStatementsIfControlFlowQuits4()
         => VerifyCS.VerifyRefactoringAsync("""
             class C
@@ -972,7 +973,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Refactoring inserts \\r\\n blank lines which don't match on Unix")]
     public Task SplitIntoSeparateStatementsIfControlFlowQuits5()
         => VerifyCS.VerifyRefactoringAsync("""
             class C

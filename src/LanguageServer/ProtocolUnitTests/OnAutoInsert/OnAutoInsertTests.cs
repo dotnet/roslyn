@@ -203,8 +203,7 @@ public sealed partial class OnAutoInsertTests(ITestOutputHelper testOutputHelper
             }
             """, mutatingLspWorkspace);
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83117")]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public Task OnAutoInsert_EnterKey3(bool mutatingLspWorkspace)
         => VerifyCSharpMarkupAndExpected("\n", """
             class A
@@ -224,6 +223,32 @@ public sealed partial class OnAutoInsertTests(ITestOutputHelper testOutputHelper
                 /// <param name="foo"></param>
                 /// <param name="bar"></param>
                 /// <returns></returns>
+                string M(int foo, bool bar)
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_EnterKey3_WithIndentation(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                ///
+                {|type:|}
+                string M(int foo, bool bar)
+                {
+                }
+            }
+            """, """
+            class A
+            {
+                /// <summary>
+                /// $0
+                /// </summary>
+                /// <param name="foo"></param>
+                /// <param name="bar"></param>
+                /// <returns></returns>    
                 string M(int foo, bool bar)
                 {
                 }
