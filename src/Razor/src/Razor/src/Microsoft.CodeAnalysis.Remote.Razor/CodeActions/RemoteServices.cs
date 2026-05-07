@@ -44,9 +44,6 @@ internal sealed class OOPCodeActionResolveService(
 // Code Action Providers
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
-internal sealed class OOPSimplifyTagToSelfClosingCodeActionProvider : SimplifyTagToSelfClosingCodeActionProvider;
-
-[Export(typeof(IRazorCodeActionProvider)), Shared]
 internal sealed class OOPSimplifyFullyQualifiedComponentCodeActionProvider : SimplifyFullyQualifiedComponentCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
