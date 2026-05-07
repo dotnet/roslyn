@@ -72,7 +72,17 @@ stages:
     testAgentElevated: true
     preTestMachineConfigurationStepList:
     - checkout: none
-    - download: VisualStudioBuildUnderTest
+    - task: DownloadBuildArtifacts@1
+      displayName: Download Visual Studio build artifacts
+      inputs:
+        buildType: specific
+        project: $(resources.pipeline.VisualStudioBuildUnderTest.projectID)
+        definition: $(resources.pipeline.VisualStudioBuildUnderTest.pipelineID)
+        buildVersionToDownload: specific
+        buildId: $(resources.pipeline.VisualStudioBuildUnderTest.runID)
+        downloadType: specific
+        artifactName: BuildArtifacts
+        downloadPath: $(Pipeline.Workspace)\VisualStudioBuildUnderTest
     - task: PowerShell@2
       name: SetProductsDropName
       displayName: Set 'VisualStudio.BuildUnderTest.ProductsDropName'
