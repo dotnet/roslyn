@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int extensionMemberArity = extensionMember.GetMemberArity();
                 Debug.Assert(extensionMemberArity == 0); // we currently only apply the check for members which may not be generic
 
-                extensionParameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
+                extensionParameter.Type.FindTypeParameters(usedTypeParameters);
 
                 if (usedTypeParameters.Count == extensionArity && extensionMemberArity == 0)
                 {
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var parameter in parameters)
                 {
-                    parameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
+                    parameter.Type.FindTypeParameters(usedTypeParameters);
 
                     if (usedTypeParameters.Count == extensionArity && extensionMemberArity == 0)
                     {
@@ -579,16 +579,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, extensionMember.GetFirstLocation(), typeParameter);
                     }
                 }
-            }
-
-            static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored)
-            {
-                if (type is TypeParameterSymbol typeParameter)
-                {
-                    typeParameters.Add(typeParameter);
-                }
-
-                return false;
             }
         }
 

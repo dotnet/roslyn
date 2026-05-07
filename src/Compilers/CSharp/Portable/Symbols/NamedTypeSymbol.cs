@@ -701,45 +701,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsClosed { get; }
 
         /// <summary>
-        /// Returns the set of possible subtypes of a closed type.
+        /// Tries to get the set of possible subtypes of a closed type.
         /// </summary>
         /// <remarks>
-        /// This set will be the same size or smaller than <see cref="CandidateClosedSubtypeDefinitions"/>.
-        /// The difference is that <see cref="ClosedSubtypes"/> will perform substitution
-        /// and rule out subtypes whose base types can't unify with 'this'.
+        /// When a closed class contains type parameters, it's possible that some subtype may or
+        /// may not apply, depending on what type substitution is ultimately performed at a later stage.
+        /// This call will return <see langword="false"/> and an empty subtype list in that situation.
         /// </remarks>
-        internal ImmutableArray<NamedTypeSymbol> ClosedSubtypes
+        internal bool TryGetClosedSubtypes(out ImmutableArray<NamedTypeSymbol> subtypes)
         {
-            get
+            if (!IsClosed)
             {
-                if (!IsClosed)
-                    return [];
+                subtypes = [];
+                return false;
+            }
 
-                // https://github.com/dotnet/csharplang/blob/3e15888c804dc632479c94589dcd02c341fd0a4f/proposals/closed-hierarchies.md#type-parameter-restriction
-                // If a closed type lacks type parameters, then, any valid subtype of it also lacks type parameters.
-                var candidateSubtypes = CandidateClosedSubtypeDefinitions;
-                if (!IsGenericType)
-                    return candidateSubtypes;
+            var candidateSubtypes = CandidateClosedSubtypeDefinitions;
+            if (!IsGenericType && candidateSubtypes.All(subtype => !subtype.IsGenericType))
+            {
+                subtypes = candidateSubtypes;
+                return true;
+            }
 
-                return unifyAndCheckSubtypes(this, candidateSubtypes);
+            var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
+            var baseTypeTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            this.FindTypeParameters(baseTypeTypeParameters);
 
-                static ImmutableArray<NamedTypeSymbol> unifyAndCheckSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes)
+            var success = tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder, baseTypeTypeParameters);
+            baseTypeTypeParameters.Free();
+            if (!success)
+            {
+                resultBuilder.Free();
+                subtypes = [];
+                return false;
+            }
+
+            subtypes = resultBuilder.ToImmutableAndFree();
+            return true;
+
+            static bool tryGetSpeakableSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes, ArrayBuilder<NamedTypeSymbol> resultBuilder, HashSet<TypeParameterSymbol> baseTypeTypeParameters)
+            {
+                foreach (var candidateSubtype in candidateSubtypes)
                 {
-                    var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
-                    foreach (var candidateSubtype in candidateSubtypes)
+                    if (TypeUnification.TryUnifyClosedSubtype(candidateSubtype, closedType: @this) is { } unifiedSubtype)
                     {
-                        if (TypeUnification.TryUnifyClosedSubtype(candidateSubtype, closedType: @this) is { } unifiedSubtype)
+                        if (unifiedSubtype.IsGenericType && unifiedSubtype.ContainsAdditionalTypeParameter(allowedTypeParameters: baseTypeTypeParameters))
                         {
-                            // PROTOTYPE(cc): We should probably check the constraints of the 'unifiedSubtype'.
-                            // However, when considering the validity of the 'unifiedSubtype' containing type parameters,
-                            // we don't want to know the typical answer of: are the constraints "always" satisfied.
-                            // Instead we want to know: could any possible type argument satisfy the constraints of both 'this' and 'unifiedSubtype'.
-                            resultBuilder.Add(unifiedSubtype);
+                            // If 'unifiedSubtype' contains type parameters which are not present in '@this',
+                            // it implies 'unifiedSubtype' was able to unify but is not speakable at the use site.
+                            return false;
                         }
-                    }
 
-                    return resultBuilder.ToImmutableAndFree();
+                        // PROTOTYPE(cc): We should probably check the constraints of the 'unifiedSubtype'.
+                        // However, when considering the validity of the 'unifiedSubtype' containing type parameters,
+                        // we don't want to know the typical answer of: are the constraints "always" satisfied.
+                        // Instead we want to know: could any possible type argument satisfy the constraints of both 'this' and 'unifiedSubtype'.
+                        resultBuilder.Add(unifiedSubtype);
+                    }
                 }
+
+                return true;
             }
         }
 
