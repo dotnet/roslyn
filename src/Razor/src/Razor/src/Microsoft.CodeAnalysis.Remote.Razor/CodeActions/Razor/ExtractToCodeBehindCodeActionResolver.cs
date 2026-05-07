@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Composition;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -18,9 +19,11 @@ using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class ExtractToCodeBehindCodeActionResolver(
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class ExtractToCodeBehindCodeActionResolver(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IRoslynCodeActionHelpers roslynCodeActionHelpers) : IRazorCodeActionResolver
 {

@@ -56,13 +56,6 @@ internal sealed class OOPExtractToCssCodeActionResolver(LanguageServerFeatureOpt
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPExtractToCodeBehindCodeActionResolver(
-    LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRoslynCodeActionHelpers roslynCodeActionHelpers)
-    : ExtractToCodeBehindCodeActionResolver(languageServerFeatureOptions, roslynCodeActionHelpers);
-
-[Export(typeof(IRazorCodeActionResolver)), Shared]
-[method: ImportingConstructor]
 internal sealed class OOPExtractToComponentCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : ExtractToComponentCodeActionResolver(languageServerFeatureOptions);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
