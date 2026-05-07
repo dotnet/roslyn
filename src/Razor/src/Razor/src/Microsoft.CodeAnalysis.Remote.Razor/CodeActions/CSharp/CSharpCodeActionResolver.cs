@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -11,14 +12,23 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal abstract class CSharpCodeActionResolver(IRazorFormattingService razorFormattingService, IClientSettingsManager clientSettingsManager, IFilePathService filePathService, ILoggerFactory loggerFactory) : ICSharpCodeActionResolver
+[Export(typeof(ICSharpCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class CSharpCodeActionResolver(
+    IRazorFormattingService razorFormattingService,
+    IClientSettingsManager clientSettingsManager,
+    IFilePathService filePathService,
+    RemoteSnapshotManager snapshotManager,
+    ILoggerFactory loggerFactory) : ICSharpCodeActionResolver
 {
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IFilePathService _filePathService = filePathService;
+    private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpCodeActionResolver>();
 
     public string Action => LanguageServerConstants.CodeActions.Default;
@@ -83,5 +93,23 @@ internal abstract class CSharpCodeActionResolver(IRazorFormattingService razorFo
         return codeAction;
     }
 
-    protected abstract Task<DocumentContext?> CreateDocumentContextAsync(IDocumentSnapshot originDocumentSnapshot, Uri generatedDocumentUri, CancellationToken cancellationToken);
+    private async Task<DocumentContext?> CreateDocumentContextAsync(IDocumentSnapshot originDocumentSnapshot, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    {
+        if (originDocumentSnapshot is not RemoteDocumentSnapshot remoteDocumentSnapshot)
+        {
+            throw new InvalidOperationException($"{nameof(CSharpCodeActionResolver)} can only be used with {nameof(RemoteDocumentSnapshot)} instances.");
+        }
+
+        var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(
+            remoteDocumentSnapshot.TextDocument.Project.Solution,
+            generatedDocumentUri,
+            cancellationToken).ConfigureAwait(false);
+        if (razorDocument is null)
+        {
+            return null;
+        }
+
+        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
+        return new RemoteDocumentContext(razorDocument.CreateUri(), razorDocumentSnapshot);
+    }
 }
