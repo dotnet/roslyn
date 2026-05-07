@@ -529,15 +529,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return builder;
         }
 
-        public static ObjectPool<ArrayBuilder<T>> CreatePool()
+        public static ObjectPool<ArrayBuilder<T>> CreatePool(
+            [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
+            [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
         {
-            return CreatePool(128); // we rarely need more than 10
+            return CreatePool(128, filePath, lineNumber); // we rarely need more than 10
         }
 
-        public static ObjectPool<ArrayBuilder<T>> CreatePool(int size)
+        public static ObjectPool<ArrayBuilder<T>> CreatePool(int size,
+            [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
+            [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
         {
             ObjectPool<ArrayBuilder<T>>? pool = null;
-            pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool!), size);
+            pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool!), size, filePath: filePath, lineNumber: lineNumber);
             return pool;
         }
 

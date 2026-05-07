@@ -129,8 +129,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 #if DEBUG
             if (_trackLeaks)
                 PoolTracker.OnAllocate(inst, _poolName);
-#else
-            PoolTracker.OnAllocate(inst);
 #endif
             return inst;
         }
@@ -213,14 +211,14 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 #if DEBUG
             if (!_trackLeaks)
                 return;
-#endif
 
             PoolTracker.OnFree(old);
 
             if (replacement != null)
             {
-                PoolTracker.OnAllocate(replacement);
+                PoolTracker.OnAllocate(replacement, _poolName);
             }
+#endif
         }
 
         [Conditional("DEBUG")]
