@@ -17,6 +17,8 @@
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false"
                       PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Pin SCI and SRM to 8.0, since this generator is built & consumed in our pipeline so it has to work with stock compiler in msbuild (currently shipped with 8.0) -->
     <PackageReference Include="System.Collections.Immutable" VersionOverride="8.0.0" />
     <PackageReference Include="System.Reflection.Metadata" VersionOverride="8.0.0" />
