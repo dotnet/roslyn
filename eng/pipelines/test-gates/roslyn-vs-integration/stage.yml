@@ -102,7 +102,27 @@ stages:
       condition: and(succeeded(), ${{ not(eq(parameters.testsCommitHash, '(default)')) }})
       displayName: 'Checkout tests at given commit'
     - powershell: |
-        $roslynCommitHash = $(dotnet .\eng\get-roslyn-commit-hash-in-vs.cs)
+        $globalJsonPath = Join-Path (Get-Location) 'global.json'
+        $globalJsonBackupPath = "$globalJsonPath.roslyn-test-gate-$([Guid]::NewGuid())"
+
+        if (Test-Path -LiteralPath $globalJsonPath) {
+          Move-Item -LiteralPath $globalJsonPath -Destination $globalJsonBackupPath
+        }
+
+        try {
+          $roslynCommitHash = dotnet .\eng\get-roslyn-commit-hash-in-vs.cs
+          $dotnetExitCode = $LASTEXITCODE
+        }
+        finally {
+          if (Test-Path -LiteralPath $globalJsonBackupPath) {
+            Move-Item -LiteralPath $globalJsonBackupPath -Destination $globalJsonPath
+          }
+        }
+
+        if ($dotnetExitCode -ne 0) {
+          exit $dotnetExitCode
+        }
+
         Write-Host "Checking out tests at commit from Visual Studio build: $roslynCommitHash"
         git fetch origin $roslynCommitHash
         git checkout FETCH_HEAD
