@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis
                 Options,
                 CommonSyntaxTrees,
                 References.AsImmutable(),
-                StrongNameKeys.PublicKey,
+                StrongNameKeys.PublicKey.NullToEmpty(),
                 additionalTexts,
                 analyzers,
                 generators,
