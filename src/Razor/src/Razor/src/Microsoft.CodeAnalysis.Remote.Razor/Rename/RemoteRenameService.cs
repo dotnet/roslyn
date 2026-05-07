@@ -154,8 +154,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         if (originalHostDocumentIndex != hostDocumentIndex)
         {
             var offset = originalHostDocumentIndex - hostDocumentIndex;
-            if (offset != 0 &&
-                sourceText.TryGetAbsoluteIndex(mappedRange.Start, out var start) &&
+            if (sourceText.TryGetAbsoluteIndex(mappedRange.Start, out var start) &&
                 sourceText.TryGetAbsoluteIndex(mappedRange.End, out var end))
             {
                 mappedRange = sourceText.GetRange(start + offset, end + offset);
