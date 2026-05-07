@@ -55,10 +55,6 @@ internal sealed class OOPExtractToCssCodeActionResolver(LanguageServerFeatureOpt
     : ExtractToCssCodeActionResolver(languageServerFeatureOptions, fileSystem);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPPromoteUsingDirectiveCodeActionResolver(IFileSystem fileSystem) : PromoteUsingCodeActionResolver(fileSystem);
-
-[Export(typeof(IRazorCodeActionResolver)), Shared]
 internal sealed class OOPRemoveUnnecessaryDirectivesCodeActionResolver : RemoveUnnecessaryDirectivesCodeActionResolver;
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
