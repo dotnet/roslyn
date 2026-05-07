@@ -1297,7 +1297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             // Dig through any containing types of the TypeRef, to see if it is ultimately a reference to the current module.
                             // In that case, we can fall through to handling it in the slow path.
                             // Reject cases where 'this' and the candidate type, have a different ContainingType nesting depth.
-                            var typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)baseTypeHandle);
+                            var originalTypeRef = metadataReader.GetTypeReference((TypeReferenceHandle)baseTypeHandle);
+                            var typeRef = originalTypeRef;
                             NamedTypeSymbol container = this;
                             while (typeRef.ResolutionScope.Kind == HandleKind.TypeReference)
                             {
@@ -1324,7 +1325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             }
 
                             // We have a TypeRef to a type in the same module.
-                            return !container.MetadataName.Equals(metadataReader.GetString(typeRef.Name), StringComparison.Ordinal);
+                            // Check for a difference in the simple names of the respective types.
+                            return !this.MetadataName.Equals(metadataReader.GetString(originalTypeRef.Name), StringComparison.Ordinal);
                         }
 
                         return false;
