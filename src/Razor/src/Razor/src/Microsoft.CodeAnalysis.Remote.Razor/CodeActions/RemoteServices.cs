@@ -45,10 +45,6 @@ internal sealed class OOPCodeActionResolveService(
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPExtractToCssCodeActionProvider(ILoggerFactory loggerFactory) : ExtractToCssCodeActionProvider(loggerFactory);
-
-[Export(typeof(IRazorCodeActionProvider)), Shared]
-[method: ImportingConstructor]
 internal sealed class OOPExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactory) : ExtractToCodeBehindCodeActionProvider(loggerFactory);
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -16,9 +17,11 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class ExtractToCssCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
+[Export(typeof(IRazorCodeActionProvider)), Shared]
+[method: ImportingConstructor]
+internal sealed class ExtractToCssCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ExtractToCssCodeActionProvider>();
 
