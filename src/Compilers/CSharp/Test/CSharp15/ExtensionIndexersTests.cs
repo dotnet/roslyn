@@ -41055,5 +41055,1075 @@ class Program
 }
 """);
     }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_PrefixIncrementAssignment_01()
+    {
+        // sibling to ExtensionTests.PropertyAccess_PrefixIncrementAssignment_01
+        // struct extension parameter
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return 0; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        ++this[Program.GetIndex()];
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        ++F[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 set:6 final:6, GetIndex:3 length:4 get:5 set:6 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void ImplicitIndexIndexerAccess_PrefixIncrementAssignment_02(string refKind)
+    {
+        // refKind on extension parameter
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return 0; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        ++this[Program.GetIndex()];
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        ++F[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 set:6 final:6, GetIndex:3 length:4 get:5 set:6 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_PrefixIncrementAssignment_03()
+    {
+        // class receiver
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return 0; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 3 };
+        Test();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        ++F[GetIndex()];
+    }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:3 get:3 set:3 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_PostfixIncrementAssignment_01()
+    {
+        // sibling to ExtensionTests.PropertyAccess_PostfixIncrementAssignment_01
+        // struct extension parameter
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return 0; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        this[Program.GetIndex()]++;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F[GetIndex()]++;
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 set:6 final:6, GetIndex:3 length:4 get:5 set:6 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void ImplicitIndexIndexerAccess_PostfixIncrementAssignment_02(string refKind)
+    {
+        // refKind on extension parameter
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return 0; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        this[Program.GetIndex()]++;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F[GetIndex()]++;
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 set:6 final:6, GetIndex:3 length:4 get:5 set:6 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_PostfixIncrementAssignment_03()
+    {
+        // class receiver
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return 0; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 3 };
+        Test();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        F[GetIndex()]++;
+    }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:3 get:3 set:3 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_ConditionalAssignment_01()
+    {
+        // sibling to ExtensionTests.PropertyAccess_ConditionalAssignment_01 (??=)
+        // struct extension parameter, nullable result
+        var src = """
+#nullable enable
+static class E
+{
+    extension(S1 x)
+    {
+        public string? this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return null; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        this[Program.GetIndex()] ??= Program.GetValue();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F[GetIndex()] ??= GetValue();
+    }
+
+    public static string GetValue() { System.Console.Write($"GetValue:{Program.F.F1} "); Program.F.F1++; return "v"; }
+
+    public static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 GetValue:6 set:7 final:7, GetIndex:3 length:4 get:5 GetValue:6 set:7 final:7"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void ImplicitIndexIndexerAccess_ConditionalAssignment_02(string refKind)
+    {
+        // refKind on extension parameter
+        var src = $$$"""
+#nullable enable
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public string? this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return null; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        this[Program.GetIndex()] ??= Program.GetValue();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F[GetIndex()] ??= GetValue();
+    }
+
+    public static string GetValue() { System.Console.Write($"GetValue:{Program.F.F1} "); Program.F.F1++; return "v"; }
+
+    public static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 GetValue:6 set:7 final:7, GetIndex:3 length:4 get:5 GetValue:6 set:7 final:7"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_ConditionalAssignment_03()
+    {
+        // class receiver
+        var src = """
+#nullable enable
+static class E
+{
+    extension(C1 x)
+    {
+        public string? this[int i]
+        {
+            get { System.Console.Write($"get:{x.F1} "); Program.F.F1++; return null; }
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F = null!;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 3 };
+        Test();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        F[GetIndex()] ??= GetValue();
+    }
+
+    static string GetValue() { System.Console.Write($"GetValue:{Program.F.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return "v"; }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:3 get:3 GetValue:6 set:3 final:7"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_DeconstructAssignment_01()
+    {
+        // sibling to ExtensionTests.PropertyAccess_DeconstructAssignment_01
+        // struct extension parameter, indexer assigned via tuple deconstruction
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        (this[Program.GetIndex()], int y) = Program.GetTuple();
+        System.Console.Write($"y:{y} ");
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        (F[GetIndex()], int y) = GetTuple();
+        System.Console.Write($"y:{y} ");
+    }
+
+    public static (int, int) GetTuple() { System.Console.Write($"GetTuple:{Program.F.F1} "); Program.F.F1++; return (1, 2); }
+
+    public static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 GetTuple:5 set:6 y:2 final:6, GetIndex:3 length:4 GetTuple:5 set:6 y:2 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_DeconstructAssignment_02()
+    {
+        // by-ref struct value (deconstruction needs an assignable receiver, so 'in'/'ref readonly' are not valid)
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1(ref F);
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1(ref S1 f)
+    {
+        (f[GetIndex()], int y) = GetTuple();
+        System.Console.Write($"y:{y} ");
+    }
+
+    static (int, int) GetTuple() { System.Console.Write($"GetTuple:{Program.F.F1} "); Program.F.F1++; return (1, 2); }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 GetTuple:5 set:6 y:2 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        // 'in' and 'ref readonly' are rejected: deconstruction requires an assignable receiver
+        var src2 = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i] { set {} }
+        public int Length => 3;
+    }
+}
+
+struct S1
+{
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Test1(in S1 f)
+    {
+        (f[^1], int _) = (1, 2);
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        (f[^1], int _) = (1, 2);
+    }
+}
+""";
+
+        CreateCompilation(src2, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (16,22): warning CS0649: Field 'Program.F' is never assigned to, and will always have its default value
+            //     public static S1 F;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("Program.F", "").WithLocation(16, 22),
+            // (20,10): error CS8332: Cannot assign to a member of variable 'f' or use it as the right hand side of a ref assignment because it is a readonly variable
+            //         (f[^1], int _) = (1, 2);
+            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "f[^1]").WithArguments("variable", "f").WithLocation(20, 10),
+            // (25,10): error CS8332: Cannot assign to a member of variable 'f' or use it as the right hand side of a ref assignment because it is a readonly variable
+            //         (f[^1], int _) = (1, 2);
+            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "f[^1]").WithArguments("variable", "f").WithLocation(25, 10));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_DeconstructAssignment_03()
+    {
+        // class receiver
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i]
+        {
+            set { System.Console.Write($"set:{x.F1} "); }
+        }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 3 };
+        Test();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        (F[GetIndex()], int y) = GetTuple();
+        System.Console.Write($"y:{y} ");
+    }
+
+    static (int, int) GetTuple() { System.Console.Write($"GetTuple:{Program.F.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return (1, 2); }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:3 GetTuple:5 set:3 y:2 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexerAccess_PrefixIncrementAssignment_01()
+    {
+        // Range pattern with ref-returning extension Slice
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 5; } }
+        public ref int Slice(int start, int length) { System.Console.Write($"Slice:{x.F1} "); Program.F.F1++; return ref Program.Result; }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        ++this[Program.GetRange()];
+    }
+}
+
+class Program
+{
+    public static S1 F;
+    public static int Result;
+
+    static void Main()
+    {
+        Result = 10;
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"result:{Result} final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        Result = 10;
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"result:{Result} final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        ++F[GetRange()];
+    }
+
+    public static System.Range GetRange() { System.Console.Write($"GetRange:{Program.F.F1} "); Program.F.F1++; return 1..^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetRange:3 length:4 Slice:5 result:11 final:6, GetRange:3 length:4 Slice:5 result:11 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexerAccess_PostfixIncrementAssignment_01()
+    {
+        // Range pattern with ref-returning extension Slice
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 5; } }
+        public ref int Slice(int start, int length) { System.Console.Write($"Slice:{x.F1} "); Program.F.F1++; return ref Program.Result; }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        this[Program.GetRange()]++;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+    public static int Result;
+
+    static void Main()
+    {
+        Result = 10;
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"result:{Result} final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        Result = 10;
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"result:{Result} final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F[GetRange()]++;
+    }
+
+    public static System.Range GetRange() { System.Console.Write($"GetRange:{Program.F.F1} "); Program.F.F1++; return 1..^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetRange:3 length:4 Slice:5 result:11 final:6, GetRange:3 length:4 Slice:5 result:11 final:6"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexerAccess_ConditionalAssignment_01()
+    {
+        // Range pattern with ref-returning extension Slice (string?)
+        var src = """
+#nullable enable
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 5; } }
+        public ref string? Slice(int start, int length) { System.Console.Write($"Slice:{x.F1} "); Program.F.F1++; return ref Program.Result; }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        this[Program.GetRange()] ??= Program.GetValue();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+    public static string? Result;
+
+    static void Main()
+    {
+        Result = null;
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"result:{Result} final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        Result = null;
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"result:{Result} final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F[GetRange()] ??= GetValue();
+    }
+
+    public static string GetValue() { System.Console.Write($"GetValue:{Program.F.F1} "); Program.F.F1++; return "v"; }
+
+    public static System.Range GetRange() { System.Console.Write($"GetRange:{Program.F.F1} "); Program.F.F1++; return 1..^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetRange:3 length:4 Slice:5 GetValue:6 result:v final:7, GetRange:3 length:4 Slice:5 GetValue:6 result:v final:7"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexerAccess_DeconstructAssignment_01()
+    {
+        // Range pattern with ref-returning extension Slice (deconstruction target uses ref slice)
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 5; } }
+        public ref int Slice(int start, int length) { System.Console.Write($"Slice:{x.F1} "); Program.F.F1++; return ref Program.Result; }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test2()
+    {
+        (this[Program.GetRange()], int y) = Program.GetTuple();
+        System.Console.Write($"y:{y} ");
+    }
+}
+
+class Program
+{
+    public static S1 F;
+    public static int Result;
+
+    static void Main()
+    {
+        Result = 10;
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"result:{Result} final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        Result = 10;
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"result:{Result} final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        (F[GetRange()], int y) = GetTuple();
+        System.Console.Write($"y:{y} ");
+    }
+
+    public static (int, int) GetTuple() { System.Console.Write($"GetTuple:{Program.F.F1} "); Program.F.F1++; return (1, 2); }
+
+    public static System.Range GetRange() { System.Console.Write($"GetRange:{Program.F.F1} "); Program.F.F1++; return 1..^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetRange:3 length:4 Slice:5 GetTuple:6 y:2 result:1 final:7, GetRange:3 length:4 Slice:5 GetTuple:6 y:2 result:1 final:7"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void ImplicitIndexIndexerAccess_PrefixIncrementAssignment_ReadonlyReceiver_041(string refKind)
+    {
+        // sibling to ExtensionTests.PropertyAccess_PrefixIncrementAssignment_ReadonlyReceiver_041
+        // unconstrained extension parameter, ref/ref readonly/in struct value
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{((S1)(object)x).F1} "); Program<S1>.F.F1++; return 0; }
+            set { System.Console.Write($"set:{((S1)(object)x).F1} "); }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<S1>.F);
+        System.Console.Write($"final:{Program<S1>.F.F1}");
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        ++f[GetIndex()];
+    }
+
+    static int GetIndex() { System.Console.Write($"GetIndex:{Program<S1>.F.F1} "); Program<S1>.F.F1++; return 1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 get:4 set:5 final:5"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void ImplicitIndexIndexerAccess_PostfixIncrementAssignment_ReadonlyReceiver_041(string refKind)
+    {
+        // unconstrained extension parameter, ref/ref readonly/in struct value
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{((S1)(object)x).F1} "); Program<S1>.F.F1++; return 0; }
+            set { System.Console.Write($"set:{((S1)(object)x).F1} "); }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<S1>.F);
+        System.Console.Write($"final:{Program<S1>.F.F1}");
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[GetIndex()]++;
+    }
+
+    static int GetIndex() { System.Console.Write($"GetIndex:{Program<S1>.F.F1} "); Program<S1>.F.F1++; return 1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 get:4 set:5 final:5"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
 }
 
