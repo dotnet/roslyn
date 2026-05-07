@@ -372,11 +372,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!modifierErrors &&
-                (mods & DeclarationModifiers.Closed) != 0 &&
-                (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) != 0)
+                (mods & DeclarationModifiers.Closed) != 0)
             {
-                // PROTOTYPE(cc): It is an error to explicitly use an abstract modifier on a closed class.
-                diagnostics.Add(ErrorCode.ERR_ClosedSealedStatic, GetFirstLocation(), this);
+                if ((mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) != 0)
+                    diagnostics.Add(ErrorCode.ERR_ClosedSealedStatic, GetFirstLocation(), this);
+
+                if ((mods & DeclarationModifiers.Abstract) != 0)
+                    diagnostics.Add(ErrorCode.ERR_ClosedExplicitlyAbstract, GetFirstLocation(), this);
             }
 
             if (!modifierErrors &&

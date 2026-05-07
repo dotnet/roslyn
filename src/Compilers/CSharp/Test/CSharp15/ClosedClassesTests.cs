@@ -247,7 +247,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,23): error CS9604: 'C': a closed type cannot be marked abstract because it is always implicitly abstract.
+            // abstract closed class C { }
+            Diagnostic(ErrorCode.ERR_ClosedExplicitlyAbstract, "C").WithArguments("C").WithLocation(1, 23));
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.True(classC.IsAbstract);
@@ -1544,6 +1547,47 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_UnionOfClosedClasses_03()
+    {
+        // Union of closed classes with no subtypes
+        var source = """
+            class Program
+            {
+                int M1(U u)
+                {
+            #line 100
+                    return u switch
+                    {
+                    };
+                }
+
+                int M2(U u)
+                {
+            #line 200
+                    return u switch
+                    {
+                        C1 => 1,
+                    };
+                }
+            }
+
+            union U(C1, C2);
+
+            closed class C1;
+            closed class C2;
+            """;
+
+        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18),
+            // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C2' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C2").WithLocation(200, 18));
+    }
+
+    [Fact]
     public void Exhaustiveness_ClosedClassCustomUnion_01()
     {
         // Test a class which is both closed and a union.
@@ -2072,7 +2116,6 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(cc): unexpected warnings in all below scenarios
         var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
@@ -2104,7 +2147,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
-    public void Exhaustiveness_BaseTypeSubsumedBySubtypes()
+    public void Exhaustiveness_BaseTypeSubsumedBySubtypes_01()
     {
         var source = """
             class Program
@@ -2133,6 +2176,210 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (9,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //             C => 3,
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C").WithLocation(9, 13));
+
+        VerifyDecisionDagDump<SwitchExpressionSyntax>(comp, """
+            [0]: t0 is D1 ? [1] : [2]
+            [1]: leaf <arm> `D1 => 1`
+            [2]: t0 is D2 ? [3] : [4]
+            [3]: leaf <arm> `D2 => 2`
+            [4]: t0 != null ? [5] : [6]
+            [5]: leaf <arm> `C => 3`
+            [6]: leaf <default> `c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                        C => 3,
+                    }`
+
+            """,
+            forLowering: true);
+    }
+
+    [Fact]
+    public void Exhaustiveness_BaseTypeSubsumedBySubtypes_02()
+    {
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                        _ => 3,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+
+        VerifyDecisionDagDump<SwitchExpressionSyntax>(comp, """
+            [0]: t0 is D1 ? [1] : [2]
+            [1]: leaf <arm> `D1 => 1`
+            [2]: t0 is D2 ? [3] : [4]
+            [3]: leaf <arm> `D2 => 2`
+            [4]: leaf <arm> `_ => 3`
+
+            """,
+            forLowering: true);
+
+        var verifier = CompileAndVerify(comp);
+        verifier.VerifyIL("Program.M", """
+            {
+              // Code size       30 (0x1e)
+              .maxstack  1
+              .locals init (int V_0)
+              IL_0000:  ldarg.1
+              IL_0001:  isinst     "D1"
+              IL_0006:  brtrue.s   IL_0012
+              IL_0008:  ldarg.1
+              IL_0009:  isinst     "D2"
+              IL_000e:  brtrue.s   IL_0016
+              IL_0010:  br.s       IL_001a
+              IL_0012:  ldc.i4.1
+              IL_0013:  stloc.0
+              IL_0014:  br.s       IL_001c
+              IL_0016:  ldc.i4.2
+              IL_0017:  stloc.0
+              IL_0018:  br.s       IL_001c
+              IL_001a:  ldc.i4.3
+              IL_001b:  stloc.0
+              IL_001c:  ldloc.0
+              IL_001d:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Exhaustiveness_BaseTypeSubsumedBySubtypes_03()
+    {
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                        null => 3,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+
+        VerifyDecisionDagDump<SwitchExpressionSyntax>(comp, """
+            [0]: t0 is D1 ? [1] : [2]
+            [1]: leaf <arm> `D1 => 1`
+            [2]: t0 is D2 ? [3] : [4]
+            [3]: leaf <arm> `D2 => 2`
+            [4]: t0 == null ? [5] : [6]
+            [5]: leaf <arm> `null => 3`
+            [6]: leaf <default> `c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                        null => 3,
+                    }`
+
+            """,
+            forLowering: true);
+
+        var verifier = CompileAndVerify(comp);
+        verifier.VerifyIL("Program.M", """
+            {
+              // Code size       41 (0x29)
+              .maxstack  1
+              .locals init (int V_0)
+              IL_0000:  ldarg.1
+              IL_0001:  isinst     "D1"
+              IL_0006:  brtrue.s   IL_0015
+              IL_0008:  ldarg.1
+              IL_0009:  isinst     "D2"
+              IL_000e:  brtrue.s   IL_0019
+              IL_0010:  ldarg.1
+              IL_0011:  brfalse.s  IL_001d
+              IL_0013:  br.s       IL_0021
+              IL_0015:  ldc.i4.1
+              IL_0016:  stloc.0
+              IL_0017:  br.s       IL_0027
+              IL_0019:  ldc.i4.2
+              IL_001a:  stloc.0
+              IL_001b:  br.s       IL_0027
+              IL_001d:  ldc.i4.3
+              IL_001e:  stloc.0
+              IL_001f:  br.s       IL_0027
+              IL_0021:  ldarg.1
+              IL_0022:  call       "void <PrivateImplementationDetails>.ThrowSwitchExpressionException(object)"
+              IL_0027:  ldloc.0
+              IL_0028:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Exhaustiveness_BaseTypeSubsumedBySubtypes_04()
+    {
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                        null => 3,
+                        _ => 4,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (10,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //             _ => 4,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(10, 13));
+
+        VerifyDecisionDagDump<SwitchExpressionSyntax>(comp, """
+            [0]: t0 is D1 ? [1] : [2]
+            [1]: leaf <arm> `D1 => 1`
+            [2]: t0 is D2 ? [3] : [4]
+            [3]: leaf <arm> `D2 => 2`
+            [4]: t0 == null ? [5] : [6]
+            [5]: leaf <arm> `null => 3`
+            [6]: leaf <arm> `_ => 4`
+
+            """,
+            forLowering: true);
     }
 
     [Fact]

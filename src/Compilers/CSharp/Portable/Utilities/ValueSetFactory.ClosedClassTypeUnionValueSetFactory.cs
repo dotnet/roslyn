@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder)
             {
-                // PROTOTYPE(cc): A closed class with no subtypes, should probably expand into an empty type set.
-                // However, if we produce an empty type set as a result, we fail the non-empty assertion at 'TypeUnionValueSet..ctor' via 'SamplePatternForTemp().tryHandleTypeUnionLimits()'.
                 if (possibleClosedClass is not NamedTypeSymbol namedType || !namedType.TryGetClosedSubtypes(out var subtypes) || subtypes.IsEmpty)
                 {
                     AddCaseInfo(builder, possibleClosedClass, originalClosedBase: null);

@@ -8322,4 +8322,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnderspecifiedClosedSubtype" xml:space="preserve">
     <value>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</value>
   </data>
+  <data name="ERR_ClosedExplicitlyAbstract" xml:space="preserve">
+    <value>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</value>
+  </data>
 </root>
