@@ -217,6 +217,17 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         }
 
         [Fact]
+        public void BasicNetModuleCryptoKeyOptions()
+        {
+            var options = new VisualBasicCompilationOptions(OutputKind.NetModule, deterministic: true)
+                .WithCryptoKeyContainer("MyContainer")
+                .WithCryptoKeyFile("MyKeyFile.snk");
+            var obj = GetCompilationOptionsValue(options);
+            Assert.Equal("MyContainer", obj.Value<string>("cryptoKeyContainer"));
+            Assert.Equal("MyKeyFile.snk", obj.Value<string>("cryptoKeyFile"));
+        }
+
+        [Fact]
         public void MetadataReferenceCompilation()
         {
             var utilCompilation = VisualBasicCompilation.Create(

@@ -523,6 +523,16 @@ namespace Microsoft.CodeAnalysis
             writer.Write("scriptClassName", options.ScriptClassName);
             writer.Write("mainTypeName", options.MainTypeName);
             WriteByteArrayValue(writer, "cryptoPublicKey", options.CryptoPublicKey.AsSpan());
+
+            // When outputting a netmodule the crypto key container and file values are
+            // serialized directly into attributes in the output. In all other cases these
+            // values are consumed indirectly via the public key which is already emitted above.
+            if (options.OutputKind == OutputKind.NetModule)
+            {
+                writer.Write("cryptoKeyContainer", options.CryptoKeyContainer);
+                writer.Write("cryptoKeyFile", options.CryptoKeyFile);
+            }
+
             writer.Write("delaySign", options.DelaySign);
             writer.Write("publicSign", options.PublicSign);
             writer.Write("checkOverflow", options.CheckOverflow);
