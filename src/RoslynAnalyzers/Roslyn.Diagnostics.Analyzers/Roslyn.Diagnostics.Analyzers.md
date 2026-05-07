@@ -203,3 +203,39 @@ Primary constructor parameters should not be implicitly captured. Manually assig
 |Severity|Warning|
 |CodeFix|True|
 ---
+
+## RS0064: Instance of PooledArrayBuilder\<T>.AsRef() must be a 'using' variable
+
+Instance of PooledArrayBuilder\<T>.AsRef() must be a 'using' variable.
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+---
+
+## RS0065: Invalid parameter type in IRemoteJsonService method
+
+Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|True|
+|Severity|Error|
+|CodeFix|False|
+---
+
+## RS0066: ImmutableArray\<T> is being boxed to IReadOnlyList\<T>
+
+Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray\<T> causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray\<T> extension methods instead.
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsPerformance|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+---
