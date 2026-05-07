@@ -106,10 +106,10 @@ public class CohostPrepareRenameEndpointTest(ITestOutputHelper testOutputHelper)
 
     [Fact]
     public Task Component_StartTag_FromMetadata()
-    => VerifyPrepareRenameAsync(
-        input: """
-            <Inp$$utText></InputText>
-            """);
+        => VerifyPrepareRenameAsync(
+            input: """
+                <Inp$$utText></InputText>
+                """);
 
     [Fact]
     public Task Component_Attribute_FromMetadata()

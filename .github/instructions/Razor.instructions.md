@@ -30,7 +30,7 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
   `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.CohostingShared\` and
   `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\`
   are compiled through their `.projitems` files. Adding a new `.cs` file in either shared
-  tree is not enough by itself — you must also add a matching `<Compile Include="...">`
+  tree is not enough by itself. You must also add a matching `<Compile Include="...">`
   entry to `Microsoft.CodeAnalysis.Razor.CohostingShared.projitems` or
   `Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.projitems`, or the file will not
   be built or tested by the importing projects.
