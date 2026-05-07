@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -25,7 +25,7 @@ internal sealed class ProjectBuildManager
         XmlResolver = null
     };
 
-    private static readonly ImmutableDictionary<string, string> s_defaultGlobalProperties = new Dictionary<string, string>()
+    private static readonly Dictionary<string, string> s_defaultGlobalProperties = new()
     {
         // this will tell msbuild to not build the dependent projects
         { PropertyNames.DesignTimeBuild, bool.TrueString },
@@ -55,11 +55,11 @@ internal sealed class ProjectBuildManager
         // references to also be built with Configuration=Release. This is necessary for getting
         // a more-likely-to-be-correct output path from project references.
         { PropertyNames.ShouldUnsetParentConfigurationAndPlatform, bool.FalseString }
-    }.ToImmutableDictionary();
+    };
 
-    public ImmutableArray<string> KnownCommandLineParserLanguages { get; }
+    public string[] KnownCommandLineParserLanguages { get; }
 
-    private readonly ImmutableDictionary<string, string> _additionalGlobalProperties;
+    private readonly Dictionary<string, string> _additionalGlobalProperties;
     private readonly ILogger? _msbuildLogger;
     private MSB.Evaluation.ProjectCollection? _batchBuildProjectCollection;
     private MSBuildDiagnosticLogger? _batchBuildLogger;
@@ -72,15 +72,23 @@ internal sealed class ProjectBuildManager
         }
     }
 
-    public ProjectBuildManager(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
+    public ProjectBuildManager(string[] knownCommandLineParserLanguages, Dictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
     {
         KnownCommandLineParserLanguages = knownCommandLineParserLanguages;
-        _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
+        _additionalGlobalProperties = additionalGlobalProperties ?? new Dictionary<string, string>();
         _msbuildLogger = msbuildLogger;
     }
 
-    private ImmutableDictionary<string, string> AllGlobalProperties
-        => s_defaultGlobalProperties.AddRange(_additionalGlobalProperties);
+    private Dictionary<string, string> AllGlobalProperties
+    {
+        get
+        {
+            var result = new Dictionary<string, string>(s_defaultGlobalProperties);
+            foreach (var kvp in _additionalGlobalProperties)
+                result[kvp.Key] = kvp.Value;
+            return result;
+        }
+    }
 
     private static async Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
         string path, MSB.Evaluation.ProjectCollection? projectCollection, CancellationToken cancellationToken)
@@ -98,7 +106,12 @@ internal sealed class ProjectBuildManager
             }
 
             using var stream = FileUtilities.OpenAsyncRead(path);
-            using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+            using var readStream = new MemoryStream();
+
+            // There is no overload that we can call that takes a cancellationToken but doesn't take a bufferSize; this bufferSize
+            // is the default if we call the overload with just a stream.
+            await stream.CopyToAsync(readStream, bufferSize: 81920, cancellationToken).ConfigureAwait(false);
+            readStream.Position = 0;
             return LoadProjectCore(path, readStream, projectCollection, log);
         }
         catch (Exception e)
@@ -224,8 +237,10 @@ internal sealed class ProjectBuildManager
             throw new InvalidOperationException();
         }
 
-        globalProperties ??= ImmutableDictionary<string, string>.Empty;
-        var allProperties = s_defaultGlobalProperties.RemoveRange(globalProperties.Keys).AddRange(globalProperties);
+        globalProperties ??= new Dictionary<string, string>();
+        var allProperties = new Dictionary<string, string>(s_defaultGlobalProperties);
+        foreach (var kvp in globalProperties)
+            allProperties[kvp.Key] = kvp.Value;
 
         _batchBuildLogger = new MSBuildDiagnosticLogger()
         {
@@ -237,8 +252,8 @@ internal sealed class ProjectBuildManager
         // We do not need to include the _batchBuildLogger in the ProjectCollection - it just collects the
         // DiagnosticLog from the build steps, but evaluation already separately reports the DiagnosticLog.
         var loggers = _msbuildLogger is not null
-            ? [_msbuildLogger]
-            : ImmutableArray<MSB.Framework.ILogger>.Empty;
+            ? new MSB.Framework.ILogger[] { _msbuildLogger }
+            : Array.Empty<MSB.Framework.ILogger>();
 
         // Pass empty loggers array to workaround LoggerException when passing binary logger to both evaluation and build. See https://github.com/dotnet/msbuild/issues/11867
         _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers: [], MSB.Evaluation.ToolsetDefinitionLocations.Default);
@@ -247,7 +262,7 @@ internal sealed class ProjectBuildManager
         {
             // The loggers are not inherited from the project collection, so specify both the
             // binlog logger and the _batchBuildLogger for the build steps.
-            Loggers = loggers.Add(_batchBuildLogger),
+            Loggers = [.. loggers, _batchBuildLogger],
             // If we have an additional logger and it's diagnostic, then we need to opt into task inputs globally, or otherwise
             // it won't get any log events. This logic matches https://github.com/dotnet/msbuild/blob/fa6710d2720dcf1230a732a8858ffe71bcdbe110/src/Build/Instance/ProjectInstance.cs#L2365-L2371
             LogTaskInputs = _msbuildLogger is not null && _msbuildLogger.Verbosity == LoggerVerbosity.Diagnostic
@@ -274,7 +289,7 @@ internal sealed class ProjectBuildManager
         BatchBuildStarted = false;
     }
 
-    public async Task<ImmutableArray<MSB.Execution.ProjectInstance>> BuildProjectInstancesAsync(
+    public async Task<MSB.Execution.ProjectInstance[]> BuildProjectInstancesAsync(
         MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
     {
         var targetFrameworkValue = project.GetPropertyValue(PropertyNames.TargetFramework);
@@ -294,7 +309,7 @@ internal sealed class ProjectBuildManager
         if (!project.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
             initialGlobalTargetFrameworkValue = null;
 
-        var results = new FixedSizeArrayBuilder<MSB.Execution.ProjectInstance>(targetFrameworks.Length);
+        var results = new List<MSB.Execution.ProjectInstance>(targetFrameworks.Length);
         foreach (var targetFramework in targetFrameworks)
         {
             project.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
@@ -315,7 +330,7 @@ internal sealed class ProjectBuildManager
 
         project.ReevaluateIfNecessary();
 
-        return results.MoveToImmutable();
+        return results.ToArray();
     }
 
     private Task<MSB.Execution.ProjectInstance> BuildProjectInstanceAsync(

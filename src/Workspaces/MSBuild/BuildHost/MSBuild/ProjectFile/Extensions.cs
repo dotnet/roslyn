@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -49,10 +47,10 @@ internal static class Extensions
             .GetItems(ItemNames.ProjectReference)
             .Select(CreateProjectFileReference);
 
-    public static ImmutableArray<PackageReferenceItem> GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
+    public static PackageReferenceItem[] GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
     {
         var packageReferenceItems = executedProject.GetItems(ItemNames.PackageReference);
-        using var _ = PooledHashSet<PackageReferenceItem>.GetInstance(out var references);
+        var references = new HashSet<PackageReferenceItem>(capacity: packageReferenceItems.Count);
 
         foreach (var item in packageReferenceItems)
         {
@@ -71,7 +69,7 @@ internal static class Extensions
     private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
         => new(reference.EvaluatedInclude, reference.GetAliases(), reference.ReferenceOutputAssemblyIsTrue());
 
-    public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
+    public static string[] GetAliases(this MSB.Framework.ITaskItem item)
     {
         var aliasesText = item.GetMetadata(MetadataNames.Aliases);
 
@@ -109,20 +107,15 @@ internal static class Extensions
 
     public static string ReadItemsAsString(this MSB.Execution.ProjectInstance executedProject, string itemType)
     {
-        var pooledBuilder = PooledStringBuilder.GetInstance();
-        var builder = pooledBuilder.Builder;
+        var items = executedProject.GetItems(itemType);
 
-        foreach (var item in executedProject.GetItems(itemType))
-        {
-            if (builder.Length > 0)
-            {
-                builder.Append(' ');
-            }
+        if (items.Count == 0)
+            return "";
 
-            builder.Append(item.EvaluatedInclude);
-        }
+        if (items.Count == 1)
+            return items.Single().EvaluatedInclude;
 
-        return pooledBuilder.ToStringAndFree();
+        return string.Join(" ", items.Select(static i => i.EvaluatedInclude));
     }
 
     public static IEnumerable<MSB.Framework.ITaskItem> GetTaskItems(this MSB.Execution.ProjectInstance executedProject, string itemType)

@@ -10,6 +10,7 @@ internal sealed class Response
 {
     public int Id { get; init; }
     public JsonElement? Value { get; init; }
-    public string? Exception { get; init; }
+    public string? ExceptionMessage { get; init; }
+    public string? ExceptionStackTrace { get; init; }
 }
 
