@@ -43,10 +43,6 @@ internal sealed class OOPCodeActionResolveService(
 
 // Code Action Providers
 
-[Export(typeof(ICSharpCodeActionProvider)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPDefaultCSharpCodeActionProvider(LanguageServerFeatureOptions languageServerFeatureOptions) : CSharpCodeActionProvider(languageServerFeatureOptions);
-
 [Export(typeof(IHtmlCodeActionProvider)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPDefaultHtmlCodeActionProvider(IRazorEditService razorEditService) : HtmlCodeActionProvider(razorEditService);
