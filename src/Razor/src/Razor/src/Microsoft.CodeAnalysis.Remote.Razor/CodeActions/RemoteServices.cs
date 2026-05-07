@@ -43,9 +43,6 @@ internal sealed class OOPCodeActionResolveService(
 
 // Code Action Providers
 
-[Export(typeof(IRazorCodeActionProvider)), Shared]
-internal sealed class OOPSortAndConsolidateUsingsCodeActionProvider : SortAndConsolidateUsingsCodeActionProvider;
-
 [Export(typeof(ICSharpCodeActionProvider)), Shared]
 internal sealed class OOPTypeAccessibilityCodeActionProvider : TypeAccessibilityCodeActionProvider;
 
