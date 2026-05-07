@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -20,11 +21,12 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
+[Export(typeof(ICSharpCodeActionProvider)), Shared]
+internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
 {
     private static readonly IEnumerable<string> s_supportedDiagnostics = new[]
     {

@@ -44,9 +44,6 @@ internal sealed class OOPCodeActionResolveService(
 // Code Action Providers
 
 [Export(typeof(ICSharpCodeActionProvider)), Shared]
-internal sealed class OOPTypeAccessibilityCodeActionProvider : TypeAccessibilityCodeActionProvider;
-
-[Export(typeof(ICSharpCodeActionProvider)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPDefaultCSharpCodeActionProvider(LanguageServerFeatureOptions languageServerFeatureOptions) : CSharpCodeActionProvider(languageServerFeatureOptions);
 
