@@ -33,7 +33,8 @@ internal static class CompilationExtensions
 
     /// <summary>
     /// Determines whether the given <paramref name="type"/> has a callable
-    /// instance <c>WriteLiteral(ReadOnlySpan&lt;byte&gt;)</c> overload accessible from that type.
+    /// instance <c>WriteLiteral(ReadOnlySpan&lt;byte&gt;)</c> overload that is accessible
+    /// to a generated subclass living in <paramref name="compilation"/>'s assembly.
     /// </summary>
     public static bool HasCallableUtf8WriteLiteralOverload(this Compilation compilation, INamedTypeSymbol type)
     {
@@ -58,7 +59,7 @@ internal static class CompilationExtensions
                         Parameters: [{ Type: var paramType }]
                     } method &&
                     SymbolEqualityComparer.Default.Equals(paramType, readOnlySpanOfByte) &&
-                    compilation.IsSymbolAccessibleWithin(method, type))
+                    IsAccessibleFromGeneratedSubclass(method, compilation))
                 {
                     return true;
                 }
@@ -66,5 +67,34 @@ internal static class CompilationExtensions
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="method"/> would be callable from a class derived
+    /// from its containing type, where the derived class is declared in
+    /// <paramref name="compilation"/>'s assembly. This models the generated Razor page subclass:
+    /// using the base type itself as the lookup context (as <c>IsSymbolAccessibleWithin</c>
+    /// would) is wrong because that would make <see langword="private"/> overloads -- and
+    /// <see langword="internal"/> overloads from a referenced assembly -- look callable.
+    /// </summary>
+    private static bool IsAccessibleFromGeneratedSubclass(IMethodSymbol method, Compilation compilation)
+    {
+        return method.DeclaredAccessibility switch
+        {
+            Accessibility.Public => true,
+
+            // Always accessible from any derived class.
+            Accessibility.Protected or Accessibility.ProtectedOrInternal => true,
+
+            // `internal` and `private protected` need the derived class to live in the
+            // declaring assembly (or one with InternalsVisibleTo to it).
+            Accessibility.Internal or Accessibility.ProtectedAndInternal =>
+                method.ContainingAssembly is { } declaringAssembly &&
+                (SymbolEqualityComparer.Default.Equals(declaringAssembly, compilation.Assembly) ||
+                 declaringAssembly.GivesAccessTo(compilation.Assembly)),
+
+            // `private` (and anything unrecognized) is never accessible from a separate type.
+            _ => false,
+        };
     }
 }

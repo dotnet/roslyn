@@ -105,7 +105,9 @@ public static class RazorCodeDocumentExtensions
     }
 
     /// <summary>
-    /// Returns all <c>@using</c> directives from the document and its import files.
+    /// Returns all <c>@using</c> directives from the document and its import files, in the
+    /// same order as <see cref="DefaultRazorIntermediateNodeLoweringPhase"/> emits them
+    /// during code generation: imports first (outer to inner), then the page's own usings.
     /// </summary>
     internal static ImmutableArray<string> GetUsingDirectives(this RazorCodeDocument codeDocument)
     {
@@ -116,7 +118,6 @@ public static class RazorCodeDocumentExtensions
         }
 
         var usings = new List<string>();
-        CollectUsings(syntaxTree, usings);
 
         if (codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
         {
@@ -125,6 +126,8 @@ public static class RazorCodeDocumentExtensions
                 CollectUsings(importTree, usings);
             }
         }
+
+        CollectUsings(syntaxTree, usings);
 
         return [.. usings];
 

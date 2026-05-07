@@ -1251,4 +1251,210 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         Assert.Single(result.GeneratedSources);
         Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_PrivateOverloadOnReferencedAssembly_NotDetected()
+    {
+        // Arrange - the WriteLiteral(ReadOnlySpan<byte>) overload is `private` on the base.
+        // A generated subclass cannot call a private method on its base, so the page must
+        // fall back to plain string literals (otherwise the generated code won't compile).
+        var baseProject = CreateTestProject(new() { ["_dummy.cshtml"] = "" }, sources: new()
+        {
+            ["MyUtf8PageBase.cs"] = """
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace ExternalLib
+                {
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        private void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                }
+                """
+        });
+
+        var baseCompilation = await baseProject.GetCompilationAsync();
+        using var peStream = new MemoryStream();
+        var emitResult = baseCompilation!.Emit(peStream);
+        Assert.True(emitResult.Success);
+        peStream.Position = 0;
+        var metadataRef = MetadataReference.CreateFromStream(peStream);
+
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits ExternalLib.MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            });
+        project = project.AddMetadataReference(metadataRef);
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_InternalOverloadOnReferencedAssembly_NotDetected()
+    {
+        // Arrange - the WriteLiteral(ReadOnlySpan<byte>) overload is `internal` on a base
+        // type that lives in a *different* assembly with no InternalsVisibleTo. The generated
+        // subclass in our compilation cannot call it, so we must fall back to string literals.
+        var baseProject = CreateTestProject(new() { ["_dummy.cshtml"] = "" }, sources: new()
+        {
+            ["MyUtf8PageBase.cs"] = """
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace ExternalLib
+                {
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        internal void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                }
+                """
+        });
+
+        var baseCompilation = await baseProject.GetCompilationAsync();
+        using var peStream = new MemoryStream();
+        var emitResult = baseCompilation!.Emit(peStream);
+        Assert.True(emitResult.Success);
+        peStream.Position = 0;
+        var metadataRef = MetadataReference.CreateFromStream(peStream);
+
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits ExternalLib.MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            });
+        project = project.AddMetadataReference(metadataRef);
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_ProtectedOverload_Detected()
+    {
+        // Arrange - `protected` WriteLiteral overload should still be callable from the
+        // generated subclass (regardless of which assembly the base is in).
+        var baseProject = CreateTestProject(new() { ["_dummy.cshtml"] = "" }, sources: new()
+        {
+            ["MyUtf8PageBase.cs"] = """
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace ExternalLib
+                {
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        protected void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                }
+                """
+        });
+
+        var baseCompilation = await baseProject.GetCompilationAsync();
+        using var peStream = new MemoryStream();
+        var emitResult = baseCompilation!.Emit(peStream);
+        Assert.True(emitResult.Success);
+        peStream.Position = 0;
+        var metadataRef = MetadataReference.CreateFromStream(peStream);
+
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits ExternalLib.MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            });
+        project = project.AddMetadataReference(metadataRef);
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Contains("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_AliasFromImports_ResolvesInProbe()
+    {
+        // Arrange - the page's @inherits depends on a `using Foo = ...` alias defined in
+        // _ViewImports.cshtml. The probe compilation must see the import's usings before
+        // the page's so that the alias is in scope when binding the @inherits text.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using MyAlias = MyApp.Infrastructure.MyUtf8PageBase
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyAlias
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
 }
