@@ -34,7 +34,7 @@ parameters:
     default: '(default)'
   - name: testCaseFilter
     type: string
-    default: ''
+    default: '(all)'
   - name: skipCustomRoslynDeploy
     type: boolean
     default: false
