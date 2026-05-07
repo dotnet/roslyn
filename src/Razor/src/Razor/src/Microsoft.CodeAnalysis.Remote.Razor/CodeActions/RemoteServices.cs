@@ -44,10 +44,6 @@ internal sealed class OOPCodeActionResolveService(
 // Code Action Providers
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) : ComponentAccessibilityCodeActionProvider(fileSystem);
-
-[Export(typeof(IRazorCodeActionProvider)), Shared]
 internal sealed class OOPUnboundDirectiveAttributeAddUsingCodeActionProvider : UnboundDirectiveAttributeAddUsingCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]

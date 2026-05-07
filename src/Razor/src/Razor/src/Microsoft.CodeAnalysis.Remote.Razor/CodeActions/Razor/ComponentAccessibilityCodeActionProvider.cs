@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -20,9 +21,11 @@ using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) : IRazorCodeActionProvider
+[Export(typeof(IRazorCodeActionProvider)), Shared]
+[method: ImportingConstructor]
+internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) : IRazorCodeActionProvider
 {
     private readonly IFileSystem _fileSystem = fileSystem;
 
