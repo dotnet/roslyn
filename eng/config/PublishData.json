@@ -101,7 +101,7 @@
     ],
     "vsBranch": "rel/stable",
     "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[Stable]"
+    "insertionTitlePrefix": "[Stable 18.6]"
   }
 }
 
