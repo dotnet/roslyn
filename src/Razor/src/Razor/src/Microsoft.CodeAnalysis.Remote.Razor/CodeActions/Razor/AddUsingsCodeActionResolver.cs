@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;
@@ -12,9 +13,10 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class AddUsingsCodeActionResolver : IRazorCodeActionResolver
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
 {
     public string Action => LanguageServerConstants.CodeActions.AddUsing;
 
