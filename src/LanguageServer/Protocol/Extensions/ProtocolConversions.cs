@@ -184,11 +184,6 @@ internal static partial class ProtocolConversions
         }
     }
 
-    public static string GetDocumentFilePathFromUri(Uri uri)
-    {
-        return uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
-    }
-
     public static bool IsSourceGeneratedScheme(string scheme)
     {
         return scheme == SourceGeneratedDocumentUri.Scheme;

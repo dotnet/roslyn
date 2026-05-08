@@ -39,7 +39,7 @@ internal abstract class GenerateEventHandlerCodeActionResolver(
         }
 
         var code = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var razorFilePath = ProtocolConversions.GetDocumentFilePathFromUri(documentContext.Uri);
+        var razorFilePath = documentContext.Uri.GetDocumentFilePathFromUri();
         var razorClassName = Path.GetFileNameWithoutExtension(razorFilePath);
         var codeBehindPath = $"{razorFilePath}.cs";
 

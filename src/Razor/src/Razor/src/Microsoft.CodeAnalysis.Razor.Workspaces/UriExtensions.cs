@@ -13,6 +13,11 @@ internal static class UriExtensions
     public static Uri GetRequiredParsedUri(this DocumentUri uri)
         => uri.ParsedUri.AssumeNotNull();
 
+    public static string GetDocumentFilePathFromUri(this Uri uri)
+    {
+        return uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
+    }
+
     public static string GetAbsoluteOrUNCPath(this DocumentUri uri)
         => GetAbsoluteOrUNCPath(uri.GetRequiredParsedUri());
 

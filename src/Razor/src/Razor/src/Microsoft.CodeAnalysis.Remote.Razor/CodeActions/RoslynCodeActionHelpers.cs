@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -26,7 +27,7 @@ internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
         Debug.Assert(projectSnapshot is RemoteProjectSnapshot);
         var project = ((RemoteProjectSnapshot)projectSnapshot).Project;
 
-        var filePath = ProtocolConversions.GetDocumentFilePathFromUri(csharpFileUri);
+        var filePath = csharpFileUri.GetDocumentFilePathFromUri();
         var source = SourceText.From(newFileContent, Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256);
         var document = project.AddDocument(filePath, source, filePath: filePath);
 

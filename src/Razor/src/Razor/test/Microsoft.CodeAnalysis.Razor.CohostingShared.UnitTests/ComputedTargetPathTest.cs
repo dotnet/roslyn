@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Xunit;
@@ -30,7 +31,7 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
 
         var uri = new Uri(uriString);
         // This calls the same method that Roslyn calls when creating a misc file for unknown documents
-        var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
+        var documentFilePath = uri.GetDocumentFilePathFromUri();
 
         var builder = new RazorProjectBuilder
         {
