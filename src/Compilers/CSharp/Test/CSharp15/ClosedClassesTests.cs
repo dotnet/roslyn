@@ -1052,6 +1052,52 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Subtypes_Retargeting_01()
+    {
+        var retargetedDependencySource = """
+            public class R { }
+            """;
+
+        var dependencyV1 = CreateCompilation(
+            new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true),
+            retargetedDependencySource,
+            TargetFrameworkUtil.StandardReferences);
+
+        var source = """
+            public closed class C
+            {
+                public R P { get; } = new R();
+            }
+
+            public class D1 : C { }
+            public class D2 : C { }
+            """;
+
+        var sourceComp = CreateCompilation(
+            [source, ClosedAttributeDefinition, CompilerFeatureRequiredAttribute],
+            references: [dependencyV1.ToMetadataReference()],
+            targetFramework: TargetFramework.Standard);
+        sourceComp.VerifyEmitDiagnostics();
+
+        var dependencyV2 = CreateCompilation(
+            new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true),
+            retargetedDependencySource,
+            TargetFrameworkUtil.StandardReferences);
+
+        var comp = CreateCompilation(
+            "",
+            references: [sourceComp.ToMetadataReference(), dependencyV2.ToMetadataReference()],
+            targetFramework: TargetFramework.Standard);
+        comp.VerifyEmitDiagnostics();
+
+        var classC = comp.GetTypeByMetadataName("C");
+        Assert.IsType<RetargetingNamedTypeSymbol>(classC);
+
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
     public void Subtypes_02()
     {
         var source = """
