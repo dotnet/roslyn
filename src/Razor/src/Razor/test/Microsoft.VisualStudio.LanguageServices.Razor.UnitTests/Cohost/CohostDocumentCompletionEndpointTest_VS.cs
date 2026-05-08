@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
@@ -161,8 +161,10 @@ public partial class CohostDocumentCompletionEndpointTest
     }
 
     [Fact]
-    public async Task HtmlSnippetsCompletion()
+    public async Task HtmlSnippetsCompletion_NotInTextContent()
     {
+        // Snippets should not appear in plain text content — they're only relevant
+        // when the user is actively writing a tag name (after typing '<').
         await VerifyCompletionListAsync(
             input: """
                 This is a Razor document.
@@ -177,12 +179,13 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["snippet1", "snippet2"],
+            expectedItemLabels: [],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
     [Fact]
-    public async Task HtmlSnippetsCompletion_EmptyDocument()
+    public async Task HtmlSnippetsCompletion_NotInEmptyDocument()
     {
         await VerifyCompletionListAsync(
             input: """
@@ -194,12 +197,13 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["snippet1", "snippet2"],
+            expectedItemLabels: [],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
     [Fact]
-    public async Task HtmlSnippetsCompletion_WhitespaceOnlyDocument1()
+    public async Task HtmlSnippetsCompletion_NotInWhitespaceOnlyDocument1()
     {
         await VerifyCompletionListAsync(
             input: """
@@ -212,12 +216,13 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["snippet1", "snippet2"],
+            expectedItemLabels: [],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
     [Fact]
-    public async Task HtmlSnippetsCompletion_WhitespaceOnlyDocument2()
+    public async Task HtmlSnippetsCompletion_NotInWhitespaceOnlyDocument2()
     {
         await VerifyCompletionListAsync(
             input: """
@@ -230,7 +235,8 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["snippet1", "snippet2"],
+            expectedItemLabels: [],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
@@ -269,7 +275,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = "/",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["/div"],
+            expectedItemLabels: ["/div>"],
             unexpectedItemLabels: ["snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
@@ -305,14 +311,15 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: [],
-            unexpectedItemLabels: ["EditForm"]);
+            unexpectedItemLabels: ["EditForm"],
+            htmlItemLabels: [],
+            snippetLabels: []);
     }
 
     [Fact]
-    public async Task HtmlSnippetsCompletion_AfterCompleteEndTag()
+    public async Task HtmlSnippetsCompletion_NotAfterCompleteEndTag()
     {
-        // Snippets should still be offered when the cursor is immediately after a complete end tag.
-        // This guards against incorrectly suppressing snippets due to the previous token being part of an end tag.
+        // Cursor is in text content after a complete end tag — no snippets here.
         await VerifyCompletionListAsync(
             input: """
                 <div></div>$$
@@ -322,7 +329,8 @@ public partial class CohostDocumentCompletionEndpointTest
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["snippet1", "snippet2"],
+            expectedItemLabels: [],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 }

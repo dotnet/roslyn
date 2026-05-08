@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -784,7 +784,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = "/",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["/div"],
+            expectedItemLabels: ["/div>"],
             unexpectedItemLabels: ["html-should-not-delegate"],
             htmlItemLabels: ["html-should-not-delegate"]);
     }

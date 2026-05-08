@@ -58,11 +58,9 @@ internal static class Program
             var attrGroupsSharedCode = CodeEmitter.EmitAttributeGroupsShared(schema);
             var attrGroupsUniqueCode = CodeEmitter.EmitAttributeGroupsUnique(schema);
             
-            var outputDir = Path.GetDirectoryName(outputFile);
-            if (!string.IsNullOrEmpty(outputDir))
-            {
-                Directory.CreateDirectory(outputDir);
-            }
+            outputFile = Path.GetFullPath(outputFile);
+            var outputDir = Path.GetDirectoryName(outputFile)!;
+            Directory.CreateDirectory(outputDir);
 
             var utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
             File.WriteAllText(outputFile, code, utf8);

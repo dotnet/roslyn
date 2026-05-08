@@ -85,8 +85,11 @@ internal static partial class LocalHtmlCompletionProvider
     /// values like CSS classes or file paths, or positions not recognized as an HTML completion context).
     /// </summary>
     public static RazorVSInternalCompletionList? GetHtmlCompletionList(
-        RazorCompletionContext completionContext)
+        RazorCompletionContext completionContext,
+        out LocalHtmlCompletionResolveContext? resolveContext)
     {
+        resolveContext = null;
+
         var sourceText = completionContext.CodeDocument.Source.Text;
         var positionContext = GetPositionContext(completionContext, sourceText);
 
@@ -98,8 +101,8 @@ internal static partial class LocalHtmlCompletionProvider
         return context.Kind switch
         {
             PositionKind.None => s_emptyCompletionList,
-            PositionKind.Element => GetElementCompletionList(completionContext.Options, context),
-            PositionKind.Attribute => GetAttributeCompletionList(context),
+            PositionKind.Element => GetElementCompletionList(completionContext.Options, context, out resolveContext),
+            PositionKind.Attribute => GetAttributeCompletionList(context, out resolveContext),
             PositionKind.AttributeValue => GetAttributeValueCompletionList(context),
             PositionKind.CloseTag => GetCloseTagCompletionList(context),
             PositionKind.Entity => EntityCompletion.BuildCompletionList(context.ReplacementRange),
@@ -283,8 +286,11 @@ internal static partial class LocalHtmlCompletionProvider
     }
 
     private static RazorVSInternalCompletionList? GetElementCompletionList(
-        RazorCompletionOptions completionOptions, PositionContext context)
+        RazorCompletionOptions completionOptions, PositionContext context,
+        out LocalHtmlCompletionResolveContext? resolveContext)
     {
+        resolveContext = null;
+
         var commitWithSpace = completionOptions.CommitElementsWithSpace;
         var commitChars = commitWithSpace
             ? s_elementCommitCharacters
@@ -351,6 +357,9 @@ internal static partial class LocalHtmlCompletionProvider
                         : CreateElementItem(childName, commitChars, elementRange));
                 }
 
+                // Element resolve uses HtmlCompletionData.GetElement (O(1)), so no
+                // per-item storage is needed — Empty is sufficient.
+                resolveContext = LocalHtmlCompletionResolveContext.Empty;
                 return new RazorVSInternalCompletionList
                 {
                     Items = filteredItems.ToArray(),
@@ -376,6 +385,7 @@ internal static partial class LocalHtmlCompletionProvider
             items.Add(CreateElementItem(element, commitChars, elementRange));
         }
 
+        resolveContext = LocalHtmlCompletionResolveContext.Empty;
         return new RazorVSInternalCompletionList
         {
             Items = items.ToArray(),
@@ -521,7 +531,8 @@ internal static partial class LocalHtmlCompletionProvider
         return false;
     }
 
-    private static RazorVSInternalCompletionList? GetAttributeCompletionList(PositionContext context)
+    private static RazorVSInternalCompletionList? GetAttributeCompletionList(PositionContext context,
+        out LocalHtmlCompletionResolveContext? resolveContext)
     {
         var tagName = context.TagName!;
         var typedPrefix = context.TypedAttributePrefix;
@@ -565,6 +576,7 @@ internal static partial class LocalHtmlCompletionProvider
             }
         }
 
+        resolveContext = new LocalHtmlCompletionResolveContext(elementAttributes, globalAttributes);
         return new RazorVSInternalCompletionList
         {
             Items = [.. items],
@@ -606,16 +618,14 @@ internal static partial class LocalHtmlCompletionProvider
             info.Name,
             commitChars,
             range,
-            info.Description is { Length: > 0 } ? info.Description : null,
-            info.Kind == HtmlElementKind.Angular ? HtmlCompletionImageMonikers.Angular : null);
+            icon: info.Kind == HtmlElementKind.Angular ? HtmlCompletionImageMonikers.Angular : null);
 
-    private static VSInternalCompletionItem CreateElementItem(string name, string[] commitChars, LspRange range, string? detail = null, ImageElement? icon = null)
+    private static VSInternalCompletionItem CreateElementItem(string name, string[] commitChars, LspRange range, ImageElement? icon = null)
         => new()
         {
             Label = name,
             Kind = CompletionItemKind.Element,
             CommitCharacters = commitChars,
-            Detail = detail,
             Icon = icon,
             FilterText = name,
             TextEdit = new TextEdit { Range = range, NewText = name },
@@ -630,10 +640,6 @@ internal static partial class LocalHtmlCompletionProvider
             _ => null,
         };
 
-        var documentation = attr.DocumentationUrl.Length > 0
-            ? CreateDocumentation(description: null, attr.DocumentationUrl)
-            : null;
-
         // When replacing an existing attribute that already has ="value", only insert the name.
         // Otherwise, add ="$0" snippet to let the user type a value immediately.
         var useSnippet = !attr.IsBoolean && !existingAttributeHasValue;
@@ -643,8 +649,6 @@ internal static partial class LocalHtmlCompletionProvider
         {
             Label = attr.Name,
             Kind = attr.Kind == HtmlAttributeKind.Event ? CompletionItemKind.Event : CompletionItemKind.Property,
-            Detail = attr.Description.Length > 0 ? attr.Description : null,
-            Documentation = documentation,
             Icon = icon,
             FilterText = attr.Name,
             InsertTextFormat = useSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext,

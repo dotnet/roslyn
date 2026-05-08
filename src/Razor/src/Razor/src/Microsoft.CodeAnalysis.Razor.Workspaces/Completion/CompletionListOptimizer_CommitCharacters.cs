@@ -1,0 +1,249 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+
+namespace Microsoft.CodeAnalysis.Razor.Completion;
+
+internal static partial class CompletionListOptimizer
+{
+    /// <summary>
+    /// Promotes per-item commit characters to list-level defaults. Items may use either standard LSP
+    /// <see cref="CompletionItem.CommitCharacters"/> (string[]) or VS-internal
+    /// <see cref="VSInternalCompletionItem.VsCommitCharacters"/> (<see cref="VSInternalCommitCharacter"/>[]).
+    /// The most common set is promoted to the appropriate list-level property based on client capabilities:
+    /// <list type="bullet">
+    ///   <item>VS clients (<see cref="VSInternalCompletionSetting"/> with <c>CompletionList.CommitCharacters = true</c>):
+    ///     promoted to the VS-internal list-level commit characters as <see cref="VSInternalCommitCharacter"/>[],
+    ///     preserving <c>Insert = false</c> semantics.</item>
+    ///   <item>Standard LSP clients (<c>ItemDefaults</c> contains <c>"commitCharacters"</c>):
+    ///     promoted to <see cref="CompletionListItemDefaults.CommitCharacters"/> as string[],
+    ///     including only characters where <c>Insert != false</c> (since standard LSP cannot express "commit without inserting").</item>
+    /// </list>
+    /// </summary>
+    private static RazorVSInternalCompletionList PromoteCommitCharacters(RazorVSInternalCompletionList completionList, CompletionSetting? completionCapability)
+    {
+        // Determine which promotion targets are available based on client capabilities.
+        var canPromoteToVsList = completionCapability is VSInternalCompletionSetting { CompletionList.CommitCharacters: true };
+        var itemDefaults = completionCapability?.CompletionListSetting?.ItemDefaults;
+        var canPromoteToItemDefaults = itemDefaults is not null && Array.IndexOf(itemDefaults, "commitCharacters") >= 0;
+
+        if (!canPromoteToVsList && !canPromoteToItemDefaults)
+        {
+            return completionList;
+        }
+
+        if (!TryFindMostCommonCommitCharacterGroup(completionList, out var bestCommitCharacterGroup))
+        {
+            return completionList;
+        }
+
+        // Clear per-item commit characters for items that match the promoted set.
+        foreach (var completionItem in completionList.Items)
+        {
+            if (completionItem is not VSInternalCompletionItem vsItem)
+            {
+                continue;
+            }
+
+            if (TryGetCommitCharacterSource(vsItem, out var strings, out var vsChars) &&
+                CommitCharactersEqual(bestCommitCharacterGroup.Strings, bestCommitCharacterGroup.VsChars, strings, vsChars))
+            {
+                vsItem.CommitCharacters = null;
+                vsItem.VsCommitCharacters = null;
+            }
+        }
+
+        // Promote to the appropriate list-level property.
+        if (canPromoteToVsList)
+        {
+            completionList.CommitCharacters = ToVsInternalCommitCharacters(bestCommitCharacterGroup.Strings, bestCommitCharacterGroup.VsChars);
+        }
+        else
+        {
+            // Standard LSP only supports string[] — include only characters where Insert != false.
+            completionList.ItemDefaults ??= new CompletionListItemDefaults();
+            completionList.ItemDefaults.CommitCharacters = ToStandardCommitCharacters(bestCommitCharacterGroup.Strings, bestCommitCharacterGroup.VsChars);
+        }
+
+        return completionList;
+    }
+
+    /// <summary>
+    /// Groups items by their commit characters and returns the most common group.
+    /// There are typically only 2-3 distinct groups (e.g., elements with [" ", ">"] and
+    /// attributes with ["="] Insert=false), so a linear scan is cheaper than a dictionary
+    /// and avoids per-item allocations entirely. Each group references the original arrays —
+    /// no normalization or copying.
+    /// </summary>
+    private static bool TryFindMostCommonCommitCharacterGroup(
+        RazorVSInternalCompletionList completionList,
+        out CommitCharacterGroup bestCommitCharacterGroup)
+    {
+        var groups = new List<CommitCharacterGroup>(capacity: 4);
+
+        foreach (var completionItem in completionList.Items)
+        {
+            if (completionItem is not VSInternalCompletionItem vsItem)
+            {
+                continue;
+            }
+
+            if (!TryGetCommitCharacterSource(vsItem, out var strings, out var vsChars))
+            {
+                continue;
+            }
+
+            var found = false;
+            for (var i = 0; i < groups.Count; i++)
+            {
+                var group = groups[i];
+                if (CommitCharactersEqual(group.Strings, group.VsChars, strings, vsChars))
+                {
+                    groups[i] = new CommitCharacterGroup(strings, vsChars, group.Count + 1);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                groups.Add(new CommitCharacterGroup(strings, vsChars, Count: 1));
+            }
+        }
+
+        if (groups.Count == 0)
+        {
+            bestCommitCharacterGroup = default;
+            return false;
+        }
+
+        bestCommitCharacterGroup = groups[0];
+        for (var i = 1; i < groups.Count; i++)
+        {
+            if (groups[i].Count > bestCommitCharacterGroup.Count)
+            {
+                bestCommitCharacterGroup = groups[i];
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Extracts the commit character arrays from an item without allocating. Returns false if the item
+    /// has no commit characters. Exactly one of <paramref name="strings"/> or <paramref name="vsChars"/>
+    /// will be non-null on success.
+    /// </summary>
+    private static bool TryGetCommitCharacterSource(
+        VSInternalCompletionItem item,
+        out string[]? strings,
+        out VSInternalCommitCharacter[]? vsChars)
+    {
+        // Prefer VsCommitCharacters if set (it has richer semantics).
+        if (item.VsCommitCharacters is { } vsCommitChars)
+        {
+            switch (vsCommitChars.Value)
+            {
+                case VSInternalCommitCharacter[] vsInternalChars:
+                    strings = null;
+                    vsChars = vsInternalChars;
+                    return true;
+
+                case string[] stringChars:
+                    strings = stringChars;
+                    vsChars = null;
+                    return true;
+            }
+        }
+
+        // Fall back to standard CommitCharacters.
+        if (item.CommitCharacters is { } commitChars)
+        {
+            strings = commitChars;
+            vsChars = null;
+            return true;
+        }
+
+        strings = null;
+        vsChars = null;
+        return false;
+    }
+
+    /// <summary>
+    /// Compares two commit character sources for equality using reference equality.
+    /// This is sufficient because our completion providers use shared static arrays —
+    /// all items in the same group share the same array instance.
+    /// </summary>
+    private static bool CommitCharactersEqual(
+        string[]? aStrings, VSInternalCommitCharacter[]? aVsChars,
+        string[]? bStrings, VSInternalCommitCharacter[]? bVsChars)
+    {
+        return ReferenceEquals(aStrings, bStrings) && ReferenceEquals(aVsChars, bVsChars);
+    }
+
+    /// <summary>
+    /// Converts a commit character source to <see cref="VSInternalCommitCharacter"/>[].
+    /// Only allocates when the source is string[] (needs conversion).
+    /// </summary>
+    private static VSInternalCommitCharacter[] ToVsInternalCommitCharacters(string[]? strings, VSInternalCommitCharacter[]? vsChars)
+    {
+        if (vsChars is not null)
+        {
+            return vsChars;
+        }
+
+        var result = new VSInternalCommitCharacter[strings!.Length];
+        for (var i = 0; i < strings.Length; i++)
+        {
+            result[i] = new VSInternalCommitCharacter { Character = strings[i], Insert = true };
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Converts a commit character source to string[], filtering out characters where Insert is false.
+    /// </summary>
+    private static string[]? ToStandardCommitCharacters(string[]? strings, VSInternalCommitCharacter[]? vsChars)
+    {
+        if (strings is not null)
+        {
+            return strings;
+        }
+
+        // Count insertable characters first to avoid over-allocating.
+        var count = 0;
+        for (var i = 0; i < vsChars!.Length; i++)
+        {
+            if (vsChars[i].Insert)
+            {
+                count++;
+            }
+        }
+
+        if (count == 0)
+        {
+            return null;
+        }
+
+        var result = new string[count];
+        var index = 0;
+        for (var i = 0; i < vsChars.Length; i++)
+        {
+            if (vsChars[i].Insert)
+            {
+                result[index++] = vsChars[i].Character;
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Tracks a group of items sharing the same commit characters. References the original arrays
+    /// without copying — zero per-item allocation.
+    /// </summary>
+    private record struct CommitCharacterGroup(string[]? Strings, VSInternalCommitCharacter[]? VsChars, int Count);
+}

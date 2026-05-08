@@ -8,7 +8,7 @@ namespace HtmlSchemaGenerator;
 
 /// <summary>
 /// Parses html.xsd + CommonHTMLTypes.xsd + aria.xsd + html.loc into an <see cref="HtmlSchema"/>.
-/// Resolves attribute group references, complex type inheritance, and simpleType enumerations.
+/// Resolves attribute group references and simpleType enumerations.
 /// </summary>
 internal static class SchemaParser
 {

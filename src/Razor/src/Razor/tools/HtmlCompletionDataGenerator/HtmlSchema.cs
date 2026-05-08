@@ -7,7 +7,7 @@ namespace HtmlSchemaGenerator;
 
 /// <summary>
 /// Intermediate representation of the parsed HTML schema data. Produced by
-/// <see cref="HtmlSchemaParser"/> and consumed by <see cref="HtmlSchemaEmitter"/>
+/// <see cref="SchemaParser"/> and consumed by <see cref="CodeEmitter"/>
 /// to generate the compiled completion data source files.
 /// </summary>
 internal sealed class HtmlSchema

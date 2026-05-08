@@ -12,7 +12,8 @@ internal sealed class ThrowingSnippetCompletionItemResolveProvider : ISnippetCom
 {
     public void AddSnippetCompletions(ref PooledArrayBuilder<VSInternalCompletionItem> builder, RazorLanguageKind projectedKind, VSInternalCompletionInvokeKind invokeKind, string? triggerCharacter)
     {
-        throw new System.NotImplementedException();
+        // No-op: this test provider intentionally adds no snippets.
+        // Resolve is the only operation that should throw.
     }
 
     public bool TryResolveInsertString(VSInternalCompletionItem completionItem, [NotNullWhen(true)] out string? insertString)

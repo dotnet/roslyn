@@ -145,15 +145,22 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         RazorVSInternalCompletionList? localHtmlCompletionList = null;
         if (isHtmlTrigger)
         {
-            localHtmlCompletionList = LocalHtmlCompletionProvider.GetHtmlCompletionList(razorCompletionContext);
+            localHtmlCompletionList = LocalHtmlCompletionProvider.GetHtmlCompletionList(razorCompletionContext, out var htmlResolveContext);
 
             if (localHtmlCompletionList is not null)
             {
-                // Cache the list so that completionItem/resolve can look up the item
-                // and populate Documentation lazily (matching the HTML editor's two-phase pattern).
-                var resolveContext = new LocalHtmlCompletionResolveContext();
-                var resultId = _completionListCache.Add(localHtmlCompletionList, resolveContext);
+                // Store resolve context so that completionItem/resolve can populate Detail
+                // and Documentation in O(1) without walking the HTML schema.
+                var resultId = _completionListCache.Add(localHtmlCompletionList, htmlResolveContext ?? LocalHtmlCompletionResolveContext.Empty);
                 localHtmlCompletionList.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
+
+                // Optimize the HTML list before it crosses the StreamJsonRpc boundary to devenv.
+                // All HTML items share the same TextEdit range, so PromoteEditRangeToListDefaults
+                // replaces per-item TextEdit (a SumType<TextEdit, InsertReplaceEdit> that triggers
+                // expensive exception-based JSON type probing on deserialization) with a single
+                // ItemDefaults.EditRange + per-item TextEditText (a plain string).
+                var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion;
+                localHtmlCompletionList = CompletionListOptimizer.Optimize(localHtmlCompletionList, completionCapability);
             }
         }
 
@@ -201,7 +208,12 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 var htmlLabels = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var item in items)
                 {
-                    htmlLabels.Add(item.Label);
+                    // Only include element names — these are used by TagHelperCompletionProvider
+                    // to deduplicate tag helpers that share a name with an HTML element.
+                    if (item.Kind == CompletionItemKind.Element)
+                    {
+                        htmlLabels.Add(item.Label);
+                    }
                 }
 
                 razorCompletionContext = razorCompletionContext with { HtmlLabels = htmlLabels };
@@ -323,9 +335,9 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         {
             return ResolveRazorCompletionItemAsync(context, request, razorResolutionContext, cancellationToken);
         }
-        else if (originalRequestContext is LocalHtmlCompletionResolveContext)
+        else if (originalRequestContext is LocalHtmlCompletionResolveContext localHtmlResolveContext)
         {
-            return new(ResolveLocalHtmlCompletionItem(request));
+            return new(ResolveLocalHtmlCompletionItem(request, localHtmlResolveContext));
         }
 
         // We don't know how to resolve this completion item, so just return it as-is.
@@ -348,23 +360,18 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return result ?? request;
     }
 
-    private static VSInternalCompletionItem ResolveLocalHtmlCompletionItem(VSInternalCompletionItem request)
+    private static VSInternalCompletionItem ResolveLocalHtmlCompletionItem(VSInternalCompletionItem request, LocalHtmlCompletionResolveContext resolveContext)
     {
-        // Look up the element in the schema to populate Documentation on demand.
-        // Only element completions have documentation URLs; attribute/value items
-        // already have Detail set and don't need further enrichment.
-        if (request.Kind == CompletionItemKind.Element)
+        if (resolveContext.TryGetResolveData(request.Label, request.Kind, out var description, out var documentationUrl))
         {
-            var elementInfo = HtmlCompletionData.GetElement(request.Label);
-            if (elementInfo is { } info)
+            if (description.Length > 0)
             {
-                var url = info.DocumentationUrl.Length > 0 ? info.DocumentationUrl : null;
+                request.Detail = description;
+            }
 
-                if (url is not null)
-                {
-                    // Detail already shows the description; Documentation adds just the reference link
-                    request.Documentation = LocalHtmlCompletionProvider.CreateDocumentation(description: null, url);
-                }
+            if (documentationUrl.Length > 0)
+            {
+                request.Documentation = LocalHtmlCompletionProvider.CreateDocumentation(description: null, documentationUrl);
             }
         }
 
@@ -419,11 +426,4 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             request.Data = oldData; // Restore original data to avoid side effects, as it may have come from the cache
         }
     }
-
-    /// <summary>
-    /// Resolve context for completion items produced by the local HTML completion provider.
-    /// The provider populates <c>Detail</c> eagerly; documentation is deferred to resolve
-    /// so only the selected item pays the cost.
-    /// </summary>
-    private sealed record LocalHtmlCompletionResolveContext : ICompletionResolveContext;
 }
