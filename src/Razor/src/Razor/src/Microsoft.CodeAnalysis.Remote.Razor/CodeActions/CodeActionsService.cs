@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -19,13 +21,15 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class CodeActionsService(
+[Export(typeof(ICodeActionsService)), Shared]
+[method: ImportingConstructor]
+internal sealed class CodeActionsService(
     IDocumentMappingService documentMappingService,
-    IEnumerable<IRazorCodeActionProvider> razorCodeActionProviders,
-    IEnumerable<ICSharpCodeActionProvider> csharpCodeActionProviders,
-    IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
+    [ImportMany] IEnumerable<IRazorCodeActionProvider> razorCodeActionProviders,
+    [ImportMany] IEnumerable<ICSharpCodeActionProvider> csharpCodeActionProviders,
+    [ImportMany] IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
     LanguageServerFeatureOptions languageServerFeatureOptions) : ICodeActionsService
 {
     private static readonly ImmutableHashSet<string> s_allAvailableCodeActionNames = GetAllAvailableCodeActionNames();

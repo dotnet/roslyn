@@ -21,16 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 // Services
 
-[Export(typeof(ICodeActionsService)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPCodeActionsService(
-    IDocumentMappingService documentMappingService,
-    [ImportMany] IEnumerable<IRazorCodeActionProvider> razorCodeActionProviders,
-    [ImportMany] IEnumerable<ICSharpCodeActionProvider> csharpCodeActionProviders,
-    [ImportMany] IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
-    LanguageServerFeatureOptions languageServerFeatureOptions)
-    : CodeActionsService(documentMappingService, razorCodeActionProviders, csharpCodeActionProviders, htmlCodeActionProviders, languageServerFeatureOptions);
-
 [Export(typeof(ICodeActionResolveService)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPCodeActionResolveService(
