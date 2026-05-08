@@ -39,7 +39,7 @@ internal sealed class CodeActionResolveService(
 
     public async Task<CodeAction> ResolveCodeActionAsync(DocumentContext documentContext, CodeAction request, CodeAction? resolvedDelegatedCodeAction, CancellationToken cancellationToken)
     {
-        var resolutionParams = GetRazorCodeActionResolutionParams(request);
+        var resolutionParams = RazorCodeActionResolutionParams.Unwrap(request);
 
         var codeActionId = GetCodeActionId(resolutionParams);
         _logger.LogDebug($"Resolving workspace edit for action {codeActionId}.");
@@ -77,22 +77,6 @@ internal sealed class CodeActionResolveService(
                 _logger.LogError($"Invalid CodeAction.Data.Language. Received {codeActionId}.");
                 return request;
         }
-    }
-
-    private static RazorCodeActionResolutionParams GetRazorCodeActionResolutionParams(CodeAction request)
-    {
-        if (request.Data is not JsonElement paramsObj)
-        {
-            throw new InvalidOperationException($"Invalid CodeAction Received '{request.Title}'.");
-        }
-
-        var resolutionParams = paramsObj.Deserialize<RazorCodeActionResolutionParams>();
-        if (resolutionParams is null)
-        {
-            throw new InvalidOperationException($"request.Data should be convertible to {nameof(RazorCodeActionResolutionParams)}");
-        }
-
-        return resolutionParams;
     }
 
     private async Task<CodeAction> ResolveRazorCodeActionAsync(

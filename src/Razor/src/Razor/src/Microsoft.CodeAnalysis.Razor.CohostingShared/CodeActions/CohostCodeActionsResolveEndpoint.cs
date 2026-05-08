@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -63,13 +62,13 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(CodeAction request)
     {
-        var resolveParams = GetRazorCodeActionResolutionParams(request);
+        var resolveParams = RazorCodeActionResolutionParams.Unwrap(request);
         return resolveParams.TextDocument.ToRazorTextDocumentIdentifier();
     }
 
     protected override async Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var resolveParams = GetRazorCodeActionResolutionParams(request);
+        var resolveParams = RazorCodeActionResolutionParams.Unwrap(request);
 
         var resolvedDelegatedCodeAction = resolveParams.Language switch
         {
@@ -140,22 +139,6 @@ internal sealed class CohostCodeActionsResolveEndpoint(
         {
             codeAction.Data = originalData;
         }
-    }
-
-    private static RazorCodeActionResolutionParams GetRazorCodeActionResolutionParams(CodeAction request)
-    {
-        if (request.Data is not JsonElement paramsObj)
-        {
-            throw new InvalidOperationException($"Invalid CodeAction Received '{request.Title}'.");
-        }
-
-        var resolutionParams = paramsObj.Deserialize<RazorCodeActionResolutionParams>();
-        if (resolutionParams is null)
-        {
-            throw new InvalidOperationException($"request.Data should be convertible to {nameof(RazorCodeActionResolutionParams)}");
-        }
-
-        return resolutionParams;
     }
 
     internal TestAccessor GetTestAccessor() => new(this);
