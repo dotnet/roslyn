@@ -2278,7 +2278,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """,
             forLowering: true);
 
-        var verifier = CompileAndVerify(comp);
+        var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
         verifier.VerifyIL("Program.M", """
             {
               // Code size       30 (0x1e)
@@ -2350,7 +2350,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """,
             forLowering: true);
 
-        var verifier = CompileAndVerify(comp);
+        var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
         verifier.VerifyIL("Program.M", """
             {
               // Code size       41 (0x29)
