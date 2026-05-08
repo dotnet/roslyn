@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
@@ -73,7 +73,7 @@ internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory
         {
             if (edit.TryGetFirst(out var textDocumentEdit) &&
                 textDocumentEdit.TextDocument.DocumentUri is { UriString: { } uriString } documentUri &&
-                documentUri.GetRequiredParsedUri().GetDocumentFilePath() is { } documentFilePath &&
+                documentUri.GetDocumentFilePathFromUri() is { } documentFilePath &&
                 !fileSystem.FileExists(documentFilePath))
             {
                 var extension = PathUtilities.GetExtension(uriString);
@@ -106,7 +106,7 @@ internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory
             }
             else if (edit.TryGetThird(out var renameEdit))
             {
-                if (fileSystem.FileExists(renameEdit.OldDocumentUri.GetRequiredParsedUri().GetDocumentFilePath()))
+                if (fileSystem.FileExists(renameEdit.OldDocumentUri.GetDocumentFilePathFromUri()))
                 {
                     documentChanges.Add(edit);
                 }

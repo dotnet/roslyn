@@ -73,7 +73,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
         {
             return new WorkspaceEdit
             {
-                Changes = uriToEditsMap.ToDictionary(kvp => ProtocolConversions.GetDocumentFilePathFromUri(kvp.Key.GetRequiredParsedUri()), kvp => kvp.Value)
+                Changes = uriToEditsMap.ToDictionary(kvp => kvp.Key.GetDocumentFilePathFromUri(), kvp => kvp.Value)
             };
         }
 

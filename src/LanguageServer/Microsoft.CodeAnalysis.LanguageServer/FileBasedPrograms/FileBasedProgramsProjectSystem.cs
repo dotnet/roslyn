@@ -94,7 +94,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    private static string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
+    private static string GetDocumentFilePath(DocumentUri uri) => uri.GetDocumentFilePathFromUri();
 
     private bool ClassifyAsMiscellaneousFileWithNoReferences(string filePath, LanguageInformation languageInformation)
     {
