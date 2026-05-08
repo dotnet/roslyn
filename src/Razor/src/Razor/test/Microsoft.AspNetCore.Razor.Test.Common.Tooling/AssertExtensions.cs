@@ -82,7 +82,7 @@ internal static class AssertExtensions
 
         foreach (var (uri, contents) in expectedChanges)
         {
-            var document = solution.GetTextDocuments(uri).First();
+            var document = (await solution.GetTextDocumentsAsync(new DocumentUri(uri), cancellationToken)).Single();
             var text = await document.GetTextAsync(cancellationToken);
             AssertEx.EqualOrDiff(contents, text.ToString());
         }
