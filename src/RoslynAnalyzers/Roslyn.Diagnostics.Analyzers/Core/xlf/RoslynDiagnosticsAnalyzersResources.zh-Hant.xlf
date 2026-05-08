@@ -263,8 +263,8 @@
         <note>{Locked="IRemoteJsonService"}{Locked="RazorPinnedSolutionInfoWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterMessage">
-        <source>'{0}' parameter in '{1}.{2}' has a parameter of type '{3}' which is not allowed in a JSON service</source>
-        <target state="new">'{0}' parameter in '{1}.{2}' has a parameter of type '{3}' which is not allowed in a JSON service</target>
+        <source>Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</source>
+        <target state="new">Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</target>
         <note>{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterTitle">

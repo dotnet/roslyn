@@ -432,7 +432,7 @@
     <comment>{Locked="IRemoteJsonService"}{Locked="RazorPinnedSolutionInfoWrapper"}{Locked="DocumentId"}{Locked="JSON"}</comment>
   </data>
   <data name="IRemoteJsonServiceParameterMessage" xml:space="preserve">
-    <value>'{0}' parameter in '{1}.{2}' has a parameter of type '{3}' which is not allowed in a JSON service</value>
+    <value>Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</value>
     <comment>{Locked="JSON"}</comment>
   </data>
   <data name="IRemoteJsonServiceParameterTitle" xml:space="preserve">

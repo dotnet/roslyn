@@ -143,6 +143,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsConcurrentConcurrentQueue1 = "System.Collections.Concurrent.ConcurrentQueue`1";
         public const string SystemCollectionsConcurrentConcurrentStack1 = "System.Collections.Concurrent.ConcurrentStack`1";
         public const string SystemCollectionsGenericDictionary2 = "System.Collections.Generic.Dictionary`2";
+        public const string SystemCollectionsGenericEnumerableExtensions = "System.Collections.Generic.EnumerableExtensions";
         public const string SystemCollectionsGenericHashSet1 = "System.Collections.Generic.HashSet`1";
         public const string SystemCollectionsGenericIAsyncEnumerable1 = "System.Collections.Generic.IAsyncEnumerable`1";
         public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
@@ -161,7 +162,6 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericList1 = "System.Collections.Generic.List`1";
         public const string SystemCollectionsGenericPriorityQueue2 = "System.Collections.Generic.PriorityQueue`2";
         public const string SystemCollectionsGenericQueue1 = "System.Collections.Generic.Queue`1";
-        public const string SystemCollectionsGenericEnumerableExtensions = "System.Collections.Generic.EnumerableExtensions";
         public const string SystemCollectionsGenericReadOnlyListExtensions = "System.Collections.Generic.ReadOnlyListExtensions";
         public const string SystemCollectionsGenericStack1 = "System.Collections.Generic.Stack`1";
         public const string SystemCollectionsGenericSortedSet1 = "System.Collections.Generic.SortedSet`1";
