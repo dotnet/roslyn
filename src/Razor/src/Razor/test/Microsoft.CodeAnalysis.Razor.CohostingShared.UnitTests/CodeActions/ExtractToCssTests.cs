@@ -375,5 +375,4 @@ public class ExtractToCssTests(ITestOutputHelper testOutputHelper) : CohostCodeA
                         }
                     """)]);
     }
-
 }
