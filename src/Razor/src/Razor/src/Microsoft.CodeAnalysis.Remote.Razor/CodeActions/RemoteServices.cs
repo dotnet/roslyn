@@ -44,7 +44,3 @@ internal sealed class OOPCodeActionResolveService(
 // Code Action Providers
 
 // Code Action Resolvers
-
-[Export(typeof(IHtmlCodeActionResolver)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPHtmlCodeActionResolver(IRazorEditService razorEditService) : HtmlCodeActionResolver(razorEditService);

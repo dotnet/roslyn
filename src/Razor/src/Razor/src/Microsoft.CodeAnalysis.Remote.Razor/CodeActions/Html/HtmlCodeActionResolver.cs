@@ -3,13 +3,17 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using System.Composition;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class HtmlCodeActionResolver(IRazorEditService razorEditService) : IHtmlCodeActionResolver
+[Export(typeof(IHtmlCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class HtmlCodeActionResolver(IRazorEditService razorEditService) : IHtmlCodeActionResolver
 {
     private readonly IRazorEditService _razorEditService = razorEditService;
 
