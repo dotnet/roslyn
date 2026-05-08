@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
@@ -11,18 +12,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class CodeActionResolveService(
-    IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
-    IEnumerable<ICSharpCodeActionResolver> csharpCodeActionResolvers,
-    IEnumerable<IHtmlCodeActionResolver> htmlCodeActionResolvers,
+[Export(typeof(ICodeActionResolveService)), Shared]
+[method: ImportingConstructor]
+internal sealed class CodeActionResolveService(
+    [ImportMany] IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
+    [ImportMany] IEnumerable<ICSharpCodeActionResolver> csharpCodeActionResolvers,
+    [ImportMany] IEnumerable<IHtmlCodeActionResolver> htmlCodeActionResolvers,
     IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory) : ICodeActionResolveService
 
@@ -73,6 +77,22 @@ internal class CodeActionResolveService(
                 _logger.LogError($"Invalid CodeAction.Data.Language. Received {codeActionId}.");
                 return request;
         }
+    }
+
+    private static RazorCodeActionResolutionParams GetRazorCodeActionResolutionParams(CodeAction request)
+    {
+        if (request.Data is not JsonElement paramsObj)
+        {
+            throw new InvalidOperationException($"Invalid CodeAction Received '{request.Title}'.");
+        }
+
+        var resolutionParams = paramsObj.Deserialize<RazorCodeActionResolutionParams>();
+        if (resolutionParams is null)
+        {
+            throw new InvalidOperationException($"request.Data should be convertible to {nameof(RazorCodeActionResolutionParams)}");
+        }
+
+        return resolutionParams;
     }
 
     private async Task<CodeAction> ResolveRazorCodeActionAsync(

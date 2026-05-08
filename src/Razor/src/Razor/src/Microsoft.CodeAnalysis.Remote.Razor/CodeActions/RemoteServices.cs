@@ -21,16 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 // Services
 
-[Export(typeof(ICodeActionResolveService)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPCodeActionResolveService(
-    [ImportMany] IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
-    [ImportMany] IEnumerable<ICSharpCodeActionResolver> csharpCodeActionResolvers,
-    [ImportMany] IEnumerable<IHtmlCodeActionResolver> htmlCodeActionResolvers,
-    IClientSettingsManager clientSettingsManager,
-    ILoggerFactory loggerFactory)
-    : CodeActionResolveService(razorCodeActionResolvers, csharpCodeActionResolvers, htmlCodeActionResolvers, clientSettingsManager, loggerFactory);
-
 // Code Action Providers
 
 // Code Action Resolvers
