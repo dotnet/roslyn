@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static void AddCaseInfo(ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, TypeSymbol caseType, NamedTypeSymbol? originalClosedBase)
             {
-                // PROTOTYPE(cc): There may be a need to report diagnostics when "runtime-equivalent" yet distinct caseTypes flow in.
+                // https://github.com/dotnet/roslyn/issues/83617: There may be a need to report diagnostics when "runtime-equivalent" yet distinct caseTypes flow in.
                 // For example, when the caseTypes have nullability differences.
                 if (!builder.Any(static (existing, caseType) => existing.CaseType.Equals(caseType, TypeCompareKind.AllIgnoreOptions), caseType))
                 {

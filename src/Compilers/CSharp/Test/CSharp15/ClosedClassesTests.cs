@@ -1805,7 +1805,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(cc): The pattern suggested for line 300 is invalid
+        // https://github.com/dotnet/roslyn/issues/83617: The pattern suggested for line 300 is invalid
         var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (100,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'string'.
