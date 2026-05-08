@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -27,6 +27,8 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
 {
     private const string ServiceBrokerConnectMethodName = "serviceBroker/connect";
     private const string ServiceBrokerChannelName = "serviceBroker";
+    private const int MacOSUnixDomainSocketMaxPathLength = 104;
+    private const string HelixUnixPipePathPrefix = "/tmp/helix/working/94B7081D/t/CoreFxPipe_";
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
 
     [Fact]
@@ -96,6 +98,14 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
         Assert.NotNull(languageService);
     }
 
+    [Fact]
+    public void TestBrokeredServicePipeNameFitsWithinMacOSSocketPathLimit()
+    {
+        var pipeName = NamedPipeTestUtilities.CreateShortPipeName("rsb-");
+
+        Assert.InRange((HelixUnixPipePathPrefix + pipeName).Length, 1, MacOSUnixDomainSocketMaxPathLength);
+    }
+
     private static async Task<IReadOnlyCollection<ServiceMoniker>> GetAvailableServerServicesAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
     {
         var manifest = await GetRequiredServiceAsync<IBrokeredServiceBridgeManifest>(serviceBroker, BrokeredServiceBridgeManifest.ServiceDescriptor, cancellationToken);
@@ -127,7 +137,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
 
         public TestBrokeredServiceClient()
         {
-            _pipeName = "roslyn-service-broker-test-" + Guid.NewGuid();
+            _pipeName = NamedPipeTestUtilities.CreateShortPipeName("rsb-");
             _pipeStream = new NamedPipeServerStream(
                 _pipeName,
                 PipeDirection.InOut,
