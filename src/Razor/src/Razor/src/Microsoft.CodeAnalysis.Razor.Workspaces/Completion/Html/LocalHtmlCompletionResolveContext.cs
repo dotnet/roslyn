@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
 

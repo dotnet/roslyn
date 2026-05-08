@@ -542,7 +542,7 @@ public class LocalHtmlCompletionProviderTest(ITestOutputHelper testOutput)
     {
         var testCode = new TestCode(markup);
         var context = CreateContext(testCode.Text, testCode.Position);
-        var completionList = LocalHtmlCompletionProvider.GetHtmlCompletionList(context);
+        var completionList = LocalHtmlCompletionProvider.GetHtmlCompletionList(context, out _);
 
         Assert.NotNull(completionList);
         var item = Assert.Single(completionList.Items, i => i.Label == itemLabel);
@@ -571,7 +571,7 @@ public class LocalHtmlCompletionProviderTest(ITestOutputHelper testOutput)
     {
         var testCode = new TestCode(markup);
         var context = CreateContext(testCode.Text, testCode.Position);
-        return LocalHtmlCompletionProvider.GetHtmlCompletionList(context);
+        return LocalHtmlCompletionProvider.GetHtmlCompletionList(context, out _);
     }
 
     private static RazorCompletionContext CreateContext(string text, int absoluteIndex)
