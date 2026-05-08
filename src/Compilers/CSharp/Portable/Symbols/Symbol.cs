@@ -1541,7 +1541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ClosedAttribute = 1 << 17,
         }
 
-        // PROTOTYPE(cc): Remove unnecessary 'permitted' flags from call sites of this method
+        // https://github.com/dotnet/roslyn/issues/83617: Remove unnecessary 'permitted' flags from call sites of this method
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes permitted)
         {
             var attribute = arguments.Attribute;
