@@ -38,7 +38,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<GenerateEventHandlerCodeActionParams>();
         if (actionParams is null)
@@ -94,7 +94,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
     private async Task<WorkspaceEdit?> GenerateEventHandlerInCodeBlockAsync(
         RazorCodeDocument code,
         GenerateEventHandlerCodeActionParams actionParams,
-        DocumentContext documentContext,
+        RemoteDocumentContext documentContext,
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
@@ -169,14 +169,9 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             """;
     }
 
-    private async Task<SyntaxTree?> GetCodeBehindSyntaxTreeAsync(DocumentContext documentContext, string codeBehindPath, CancellationToken cancellationToken)
+    private async Task<SyntaxTree?> GetCodeBehindSyntaxTreeAsync(RemoteDocumentContext documentContext, string codeBehindPath, CancellationToken cancellationToken)
     {
-        if (documentContext is not RemoteDocumentContext remoteDocumentContext)
-        {
-            throw new InvalidOperationException($"{nameof(GenerateEventHandlerCodeActionResolver)} can only be used with {nameof(RemoteDocumentContext)} instances.");
-        }
-
-        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(remoteDocumentContext.TextDocument);
+        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(documentContext.TextDocument);
         var solution = razorDocumentSnapshot.TextDocument.Project.Solution;
         var projectId = razorDocumentSnapshot.TextDocument.Project.Id;
 

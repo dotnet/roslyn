@@ -37,7 +37,7 @@ internal sealed class CSharpCodeActionResolver(
     public string Action => LanguageServerConstants.CodeActions.Default;
 
     public async Task<CodeAction> ResolveAsync(
-        DocumentContext documentContext,
+        RemoteDocumentContext documentContext,
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
@@ -96,15 +96,10 @@ internal sealed class CSharpCodeActionResolver(
         return codeAction;
     }
 
-    private async Task<DocumentContext?> CreateDocumentContextAsync(IDocumentSnapshot originDocumentSnapshot, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    private async Task<RemoteDocumentContext?> CreateDocumentContextAsync(RemoteDocumentSnapshot originDocumentSnapshot, Uri generatedDocumentUri, CancellationToken cancellationToken)
     {
-        if (originDocumentSnapshot is not RemoteDocumentSnapshot remoteDocumentSnapshot)
-        {
-            throw new InvalidOperationException($"{nameof(CSharpCodeActionResolver)} can only be used with {nameof(RemoteDocumentSnapshot)} instances.");
-        }
-
         var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(
-            remoteDocumentSnapshot.TextDocument.Project.Solution,
+            originDocumentSnapshot.TextDocument.Project.Solution,
             generatedDocumentUri,
             cancellationToken).ConfigureAwait(false);
         if (razorDocument is null)

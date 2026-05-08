@@ -3,11 +3,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal interface ICSharpCodeActionResolver : ICodeActionResolver
 {
-    Task<CodeAction> ResolveAsync(DocumentContext documentContext, CodeAction codeAction, CancellationToken cancellationToken);
+    Task<CodeAction> ResolveAsync(RemoteDocumentContext documentContext, CodeAction codeAction, CancellationToken cancellationToken);
 }

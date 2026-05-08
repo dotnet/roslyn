@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
@@ -19,5 +20,5 @@ internal interface IRoslynCodeActionHelpers
     /// <param name="codeBehindUri">If present, the Roslyn document to apply the edit to. Otherwise the generated C# document will be used</param>
     /// <param name="edit">The edit to apply</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    Task<TextEdit[]?> GetSimplifiedTextEditsAsync(DocumentContext documentContext, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken);
+    Task<TextEdit[]?> GetSimplifiedTextEditsAsync(RemoteDocumentContext documentContext, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken);
 }

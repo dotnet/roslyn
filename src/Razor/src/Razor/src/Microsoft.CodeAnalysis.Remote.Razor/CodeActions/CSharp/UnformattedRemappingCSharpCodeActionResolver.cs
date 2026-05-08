@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
@@ -25,7 +26,7 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver(IDocumentMapp
     public string Action => LanguageServerConstants.CodeActions.UnformattedRemap;
 
     public async Task<CodeAction> ResolveAsync(
-        DocumentContext documentContext,
+        RemoteDocumentContext documentContext,
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
