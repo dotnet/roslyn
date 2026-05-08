@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -64,27 +63,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers, compilerLoadContext: null);
 
-            // Ensure that test infrastructure assemblies are already loaded before we
-            // take the snapshot below. These are lazily loaded on first use, and if
-            // that first use happens *after* the snapshot is taken then those assemblies
-            // show up as unexpected additions and the assertion at the end of this method
-            // fails intermittently.
-            TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.Test.Utilities", typeof(AssertEx).TypeHandle);
-            TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.CSharp.Test.Utilities", typeof(TestOptions).TypeHandle);
-
-            var compilerContextAssemblies = loader.CompilerLoadContext.Assemblies.SelectAsArray(a => a.FullName);
+            var compilerContextAssemblies = new HashSet<string>(loader.CompilerLoadContext.Assemblies.Select(a => a.FullName!));
             try
             {
                 Exec(testOutputHelper, fixture, loader, typeName, methodName, state);
             }
             finally
             {
-                // When using the actual compiler load context (the one shared by all of our unit tests) the test
-                // did not load any additional assemblies that could interfere with later tests.
-                //
-                // If this assertion fails due to a normal test assembly, like xunit.assert, being loaded after the snapshot, then 
-                // add that assembly to the list of assemblies loaded before the snapshot is taken.
-                AssertEx.SetEqual(compilerContextAssemblies, loader.CompilerLoadContext.Assemblies.SelectAsArray(a => a.FullName));
+                // Verify that the test did not load any unexpected assemblies into the compiler load
+                // context. Assemblies that are next to the unit test DLL are fine as those are normal
+                // lazily loaded test infrastructure or runtime assemblies. What we want to catch is
+                // test fixture assemblies (compiled on the fly) being incorrectly loaded here.
+                VerifyNoNewNonLocalAssemblies(
+                    testOutputHelper,
+                    compilerContextAssemblies,
+                    loader.CompilerLoadContext.Assemblies,
+                    "CompilerLoadContext");
             }
         }
 
@@ -101,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // load into the compiler or directory load context.
             //
             // Not only is this bad behavior it also pollutes future test results.
-            var defaultContextAssemblies = AssemblyLoadContext.Default.Assemblies.SelectAsArray(a => a.FullName);
+            var defaultContextAssemblies = new HashSet<string>(AssemblyLoadContext.Default.Assemblies.Select(a => a.FullName!));
             using var tempRoot = new TempRoot();
 
             try
@@ -132,7 +126,74 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.ResolvedAssemblyPath}");
                 }
 
-                AssertEx.SetEqual(defaultContextAssemblies, AssemblyLoadContext.Default.Assemblies.SelectAsArray(a => a.FullName));
+                // Verify that the test did not load any unexpected assemblies into the default load
+                // context. Assemblies next to the unit test DLL are fine (normal lazy loads from test
+                // infrastructure or the runtime). What we want to catch is test fixture assemblies
+                // being incorrectly loaded into the default context.
+                VerifyNoNewNonLocalAssemblies(
+                    testOutputHelper,
+                    defaultContextAssemblies,
+                    AssemblyLoadContext.Default.Assemblies,
+                    "AssemblyLoadContext.Default");
+            }
+        }
+
+        /// <summary>
+        /// Verifies that any new assemblies loaded into the given context since the snapshot was taken
+        /// are located next to the unit test DLL. Assemblies next to the test DLL are expected to be
+        /// lazily loaded by the test infrastructure or the runtime itself. Assemblies from other locations
+        /// (like the test fixture temp directory) would indicate incorrect loading behavior.
+        /// </summary>
+        private static void VerifyNoNewNonLocalAssemblies(
+            ITestOutputHelper testOutputHelper,
+            HashSet<string> snapshotAssemblyNames,
+            IEnumerable<Assembly> currentAssemblies,
+            string contextName)
+        {
+            var testDllDirectory = Path.GetDirectoryName(typeof(InvokeUtil).Assembly.Location)!;
+            var unexpectedAssemblies = new List<string>();
+
+            foreach (var assembly in currentAssemblies)
+            {
+                if (snapshotAssemblyNames.Contains(assembly.FullName!))
+                {
+                    continue;
+                }
+
+                if (assembly.IsDynamic)
+                {
+                    continue;
+                }
+
+                var location = assembly.Location;
+
+                // Only truly dynamic assemblies are exempt from location-based checks.
+                // Stream-loaded assemblies can also have no location and should still be flagged.
+                if (string.IsNullOrEmpty(location))
+                {
+                    unexpectedAssemblies.Add($"{assembly.FullName} at <no location>");
+                    continue;
+                }
+
+                // Assemblies next to the unit test DLL are expected lazy loads
+                var assemblyDirectory = Path.GetDirectoryName(location)!;
+                if (PathUtilities.Comparer.Equals(assemblyDirectory, testDllDirectory))
+                {
+                    continue;
+                }
+
+                unexpectedAssemblies.Add($"{assembly.FullName} at {location}");
+            }
+
+            if (unexpectedAssemblies.Count > 0)
+            {
+                testOutputHelper.WriteLine($"Unexpected assemblies loaded into {contextName}:");
+                foreach (var item in unexpectedAssemblies)
+                {
+                    testOutputHelper.WriteLine($"\t{item}");
+                }
+
+                Assert.Fail($"Test loaded unexpected assemblies into {contextName}:{Environment.NewLine}{string.Join(Environment.NewLine, unexpectedAssemblies)}");
             }
         }
     }
