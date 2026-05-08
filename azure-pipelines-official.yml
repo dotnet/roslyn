@@ -79,7 +79,6 @@ variables:
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - name: ArtifactServices.Drop.PAT
     value: $(dn-bot-devdiv-drop-rw-code-rw)
-  - group: DotNet-Roslyn-Insertion-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BuildConfiguration
@@ -398,7 +397,6 @@ extends:
           displayName: Get Branch Name
         - template: /eng/pipelines/insert.yml@self
           parameters:
-            devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
             dncEngAzureSubscription: 'DncEng Insertion: Roslyn and Razor'
             componentBuildProjectName: internal
             sourceBranch: "$(ComponentBranchName)"
