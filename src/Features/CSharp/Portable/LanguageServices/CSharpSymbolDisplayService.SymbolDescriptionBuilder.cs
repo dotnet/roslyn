@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices;
@@ -165,6 +168,98 @@ internal sealed partial class CSharpSymbolDisplayService
 
         protected override string? GetNavigationHint(ISymbol? symbol)
             => symbol == null ? null : CodeAnalysis.CSharp.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
+
+        protected override void AddDocumentationContent(
+            ISymbol symbol,
+            DocumentationComment documentationComment,
+            StructuralTypeDisplayInfo typeDisplayInfo)
+        {
+            var useReplacement = TryGetReplacementDocumentationComment(symbol, out var replacementDocumentationComment);
+            if (useReplacement)
+            {
+                AddToGroup(SymbolDescriptionGroups.Documentation, replacementDocumentationComment);
+                return;
+            }
+
+            base.AddDocumentationContent(symbol, documentationComment, typeDisplayInfo);
+        }
+
+        /// <summary>
+        /// Returns whether documentation content displaying the glyph of 
+        /// Unicode-escaped <see cref="System.Char"/> symbol should be added.
+        /// If symbol is not a char, returns false.
+        /// If char is not displayable (surrogate, control char, etc.),
+        /// returns false.
+        /// </summary>
+        private bool TryGetReplacementDocumentationComment(ISymbol symbol, out IEnumerable<SymbolDisplayPart> additionalParts)
+        {
+            additionalParts = [];
+            if (symbol is not INamedTypeSymbol { SpecialType: SpecialType.System_Char })
+                return false;
+
+            var root = SemanticModel.SyntaxTree.GetRoot(CancellationToken);
+            var token = root.FindToken(Position);
+            if (token.Value is not char)
+                token = root.FindTokenOnLeftOfPosition(Position);
+
+            if (token.ContainsDiagnostics)
+                return false;
+
+            if (token.Value is not char character)
+                return false;
+
+            if (!IsDisplayableInQuotes(character))
+                return false;
+
+            if (!token.Text.StartsWith("'\\u", System.StringComparison.Ordinal))
+                return false;
+
+            additionalParts = PlainText(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character));
+            return true;
+        }
+
+        /// <summary>
+        /// Determines whether the specified character can be displayed in quotes,
+        /// i.e., whether it has a glyph that is legible when surrounded by quotes.
+        /// </summary>
+        private static bool IsDisplayableInQuotes(char c)
+        {
+            var category = char.GetUnicodeCategory(c);
+            return category switch
+            {
+                UnicodeCategory.UppercaseLetter => true,
+                UnicodeCategory.LowercaseLetter => true,
+                UnicodeCategory.TitlecaseLetter => true,
+                UnicodeCategory.ModifierLetter => true,
+                UnicodeCategory.OtherLetter => true,
+                UnicodeCategory.NonSpacingMark => false, // does not render well when surrounded by single quotes
+                UnicodeCategory.SpacingCombiningMark => true, // adds space, so still legible
+                UnicodeCategory.EnclosingMark => false, // not generally displayable
+                UnicodeCategory.DecimalDigitNumber => true,
+                UnicodeCategory.LetterNumber => true,
+                UnicodeCategory.OtherNumber => true,
+                UnicodeCategory.SpaceSeparator => true,
+                UnicodeCategory.LineSeparator => false, // renders as newline, looks awkward
+                UnicodeCategory.ParagraphSeparator => false, // renders as newline, looks awkward
+                UnicodeCategory.Control => false, // no glyph
+                UnicodeCategory.Format => false, // no glyph
+                UnicodeCategory.Surrogate => false, // no glyph
+                UnicodeCategory.PrivateUse => false, // no glyph
+                UnicodeCategory.ConnectorPunctuation => true,
+                UnicodeCategory.DashPunctuation => true,
+                UnicodeCategory.OpenPunctuation => true,
+                UnicodeCategory.ClosePunctuation => true,
+                UnicodeCategory.InitialQuotePunctuation => true,
+                UnicodeCategory.FinalQuotePunctuation => true,
+                UnicodeCategory.OtherPunctuation => true,
+                UnicodeCategory.MathSymbol => true,
+                UnicodeCategory.CurrencySymbol => true,
+                UnicodeCategory.ModifierSymbol => true,
+                UnicodeCategory.OtherSymbol => true,
+                UnicodeCategory.OtherNotAssigned => false,
+                _ => false // should never get here
+            };
+        }
 
         private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
             IFieldSymbol symbol)

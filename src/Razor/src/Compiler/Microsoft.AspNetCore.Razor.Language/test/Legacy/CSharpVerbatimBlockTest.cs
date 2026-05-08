@@ -29,30 +29,11 @@ public class CSharpVerbatimBlockTest() : ParserTestBase(layer: TestProject.Layer
     }
 
     [Fact]
-    public void InnerImplicitExprWithOnlySingleAtAcceptsSingleSpaceOrNewlineAtDesignTime()
-    {
-        ParseDocumentTest("""
-            @{
-                @
-            }
-            """, designTime: true);
-    }
-
-    [Fact]
     public void InnerImplicitExprDoesNotAcceptTrailingNewlineInRunTimeMode()
     {
         ParseDocumentTest("""
             @{@foo.
             }
             """);
-    }
-
-    [Fact]
-    public void InnerImplicitExprAcceptsTrailingNewlineInDesignTimeMode()
-    {
-        ParseDocumentTest("""
-            @{@foo.
-            }
-            """, designTime: true);
     }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Globalization;
 using System.IO.Pipes;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -39,9 +40,26 @@ internal static class Program
         var pipeServer = NamedPipeUtil.CreateServer(pipeName, PipeDirection.InOut);
         await pipeServer.WaitForConnectionAsync().ConfigureAwait(false);
 
-        var server = new RpcServer(pipeServer);
+        RpcServer server;
+        AbstractBuildHost buildHost;
 
-        var targetObject = server.AddTarget(new BuildHost(logger, server));
+#if NETFRAMEWORK
+
+        if (PlatformInformation.IsRunningOnMono)
+        {
+            server = new RpcServer(pipeServer);
+            buildHost = new MonoBuildHost(logger, server);
+        }
+        else
+        {
+            (buildHost, server) = NetFrameworkBuildHost.Create(logger, pipeServer);
+        }
+#else
+        server = new RpcServer(pipeServer);
+        buildHost = new NetCoreBuildHost(logger, server);
+#endif
+
+        var targetObject = server.AddTarget(buildHost);
         Contract.ThrowIfFalse(targetObject == 0, "The first object registered should have target 0, which is assumed by the client.");
 
         await server.RunAsync().ConfigureAwait(false);

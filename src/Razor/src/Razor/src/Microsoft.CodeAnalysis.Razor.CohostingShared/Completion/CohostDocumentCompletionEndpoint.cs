@@ -150,7 +150,8 @@ internal sealed class CohostDocumentCompletionEndpoint(
             cancellationToken).AsTask();
 
         RazorVSInternalCompletionList? htmlCompletionList = null;
-        if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html &&
+        if (completionPositionInfo.ShouldIncludeHtmlCompletions &&
+            documentPositionInfo.LanguageKind == RazorLanguageKind.Html &&
             _triggerAndCommitCharacters.IsValidHtmlTrigger(completionContext))
         {
             // Fire HTML request concurrently with the OOP request already in flight.

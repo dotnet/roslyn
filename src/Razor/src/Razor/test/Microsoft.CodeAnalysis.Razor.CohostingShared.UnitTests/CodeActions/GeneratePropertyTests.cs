@@ -69,6 +69,54 @@ public class GeneratePropertyTests(ITestOutputHelper testOutputHelper) : CohostC
     }
 
     [Fact]
+    public async Task GenerateProperty_FromRazor_InOtherFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private int M()
+                    {
+                        var x = new Helper();
+                        return x.[||]NewProperty;
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private int M()
+                    {
+                        var x = new Helper();
+                        return x.NewProperty;
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                    }
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                        public int NewProperty { get; internal set; }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionIndex: PropertyActionIndex,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
     public async Task GenerateProperty_Legacy_WithoutFunctionsBlock()
     {
         var input = """

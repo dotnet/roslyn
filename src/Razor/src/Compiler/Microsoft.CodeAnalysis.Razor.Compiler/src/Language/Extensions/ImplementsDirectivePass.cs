@@ -30,8 +30,7 @@ internal class ImplementsDirectivePass : IntermediateNodePassBase, IRazorDirecti
             var token = implements.Node.Tokens.FirstOrDefault();
             if (token != null)
             {
-                var source = codeDocument.ParserOptions.DesignTime ? null : token.Source;
-                interfaces.Add(IntermediateNodeFactory.CSharpToken(token.Content, source));
+                interfaces.Add(IntermediateNodeFactory.CSharpToken(token.Content, token.Source));
             }
         }
 

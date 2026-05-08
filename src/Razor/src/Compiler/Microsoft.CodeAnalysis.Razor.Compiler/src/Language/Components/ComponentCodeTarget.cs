@@ -20,7 +20,5 @@ internal sealed class ComponentCodeTarget(
     }
 
     public override IntermediateNodeWriter CreateNodeWriter()
-        => Options.DesignTime
-            ? new ComponentDesignTimeNodeWriter(Version)
-            : new ComponentRuntimeNodeWriter(Version);
+        => new ComponentNodeWriter(Version);
 }

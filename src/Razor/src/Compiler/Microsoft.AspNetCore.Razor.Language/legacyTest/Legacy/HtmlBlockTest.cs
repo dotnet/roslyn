@@ -35,8 +35,7 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler,
             @{
             <
             </html>
-            """,
-                        designTime: true);
+            """);
     }
 
     [Fact]

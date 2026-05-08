@@ -25,6 +25,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.Razor.FoldingRange" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteFoldingRangeService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.Razor.SignatureHelp" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteSignatureHelpService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.Razor.DocumentHighlight" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDocumentHighlightService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.SelectionRange" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteSelectionRangeService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.Razor.InlayHint" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteInlayHintService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.Razor.DocumentSymbol" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDocumentSymbolService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.Razor.GoToDefinition" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteGoToDefinitionService+Factory" />

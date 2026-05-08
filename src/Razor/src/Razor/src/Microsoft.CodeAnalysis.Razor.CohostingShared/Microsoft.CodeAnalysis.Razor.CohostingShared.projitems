@@ -38,8 +38,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentExcerptService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentSpanMappingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratorLocator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rename\CohostPrepareRenameEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\CohostRenameEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\WorkspaceWillRenameEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SelectionRanges\CohostSelectionRangeEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SignatureHelp\CohostSignatureHelpEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FoldingRange\CohostFoldingRangeEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Hover\CohostHoverEndpoint.cs" />

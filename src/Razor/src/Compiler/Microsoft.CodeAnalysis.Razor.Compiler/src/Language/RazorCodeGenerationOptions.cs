@@ -19,15 +19,6 @@ public sealed partial class RazorCodeGenerationOptions
         razorWarningLevel: 0,
         flags: Flags.DefaultFlags);
 
-    public static RazorCodeGenerationOptions DesignTimeDefault { get; } = new(
-        indentSize: DefaultIndentSize,
-        newLine: DefaultNewLine,
-        rootNamespace: null,
-        cssScope: null,
-        suppressUniqueIds: null,
-        razorWarningLevel: 0,
-        flags: Flags.DefaultDesignTimeFlags);
-
     public int IndentSize { get; }
     public string NewLine { get; }
 
@@ -80,9 +71,6 @@ public sealed partial class RazorCodeGenerationOptions
 
         return builder.ToOptions();
     }
-
-    public bool DesignTime
-        => (_flags & Flags.DesignTime) == Flags.DesignTime;
 
     public bool IndentWithTabs
         => (_flags & Flags.IndentWithTabs) == Flags.IndentWithTabs;
@@ -201,7 +189,6 @@ public sealed partial class RazorCodeGenerationOptions
             : new(IndentSize, NewLine, RootNamespace, CssScope, SuppressUniqueIds, value, _flags);
 
     public RazorCodeGenerationOptions WithFlags(
-        Optional<bool> designTime = default,
         Optional<bool> indentWithTabs = default,
         Optional<bool> suppressChecksum = default,
         Optional<bool> suppressMetadataAttributes = default,
@@ -215,11 +202,6 @@ public sealed partial class RazorCodeGenerationOptions
         Optional<bool> remapLinePragmaPathsOnWindows = default)
     {
         var flags = _flags;
-
-        if (designTime.HasValue)
-        {
-            flags.UpdateFlag(Flags.DesignTime, designTime.Value);
-        }
 
         if (indentWithTabs.HasValue)
         {

@@ -37,7 +37,7 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
 
         var forkedInfos = canonicalInfos.SelectAsArray(info => info with
         {
-            Documents = info.Documents.Add(miscDocFileInfo),
+            Documents = [.. info.Documents, miscDocFileInfo],
             FileGlobs = [],
         });
 
