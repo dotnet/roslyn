@@ -62,7 +62,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.Second.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), watcher.GlobPattern.Second.BaseUri.Second);
         Assert.Equal("**/*", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
@@ -94,7 +94,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.Second.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), watcher.GlobPattern.Second.BaseUri.Second);
         Assert.Equal("SingleFile.txt", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again

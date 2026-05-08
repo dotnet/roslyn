@@ -6,7 +6,7 @@
     <IsShipping>false</IsShipping>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFrameworks>$(NetVSCode)</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);VSCODE;COHOSTING</DefineConstants>
+    <DefineConstants>$(DefineConstants);VSCODE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1280,10 +1280,15 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         // These attributes don't really exist in the emitted code, but have a representation in the razor document.
         // We emit a small piece of empty code that is elided by the compiler, so that the IDE has something to reference
         // for Find All References etc.
+        //
+        // We use `var (_, _) = (nameof(...), 0);` rather than `_ = nameof(...);` so that `_` is unambiguously a
+        // discard pattern. A bare `_ = ...` would bind to any outer `_` lambda parameter (introduced e.g. by
+        // `Context="_"` on a templated parent component), turning the discard into a typed assignment that fails
+        // with CS0029 / cascading CS1662 errors.
         Debug.Assert(attribute.BoundAttribute?.ContainingType is not null);
-        context.CodeWriter.Write(" _ = ");
+        context.CodeWriter.Write(" var (_, _) = (");
         WriteComponentAttributeName(context, attribute);
-        context.CodeWriter.WriteLine(";");
+        context.CodeWriter.WriteLine(", 0);");
     }
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)

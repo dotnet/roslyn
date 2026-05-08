@@ -3,11 +3,10 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 public class MoreHtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
@@ -620,7 +619,7 @@ public class MoreHtmlFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             allowDiagnostics: true);
     }
 
-    private string GetComponents() => """
+    private static string GetComponents() => """
         using Microsoft.AspNetCore.Components;
         namespace Test
         {

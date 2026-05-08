@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -13,6 +12,9 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// the information from a single target framework.
 /// </summary>
 [DataContract]
+#if NETFRAMEWORK
+[System.Serializable] // We need to this to be able to serialize across the AppDomain boundary
+#endif
 internal sealed record ProjectFileInfo
 {
     [DataMember]
@@ -83,43 +85,43 @@ internal sealed record ProjectFileInfo
     /// The command line args used to compile the project.
     /// </summary>
     [DataMember]
-    public ImmutableArray<string> CommandLineArgs { get; init; }
+    public required string[] CommandLineArgs { get; init; }
 
     /// <summary>
     /// The source documents.
     /// </summary>
     [DataMember]
-    public ImmutableArray<DocumentFileInfo> Documents { get; init; }
+    public required DocumentFileInfo[] Documents { get; init; }
 
     /// <summary>
     /// The additional documents.
     /// </summary>
     [DataMember]
-    public ImmutableArray<DocumentFileInfo> AdditionalDocuments { get; init; }
+    public required DocumentFileInfo[] AdditionalDocuments { get; init; }
 
     /// <summary>
     /// The analyzer config documents.
     /// </summary>
     [DataMember]
-    public ImmutableArray<DocumentFileInfo> AnalyzerConfigDocuments { get; init; }
+    public required DocumentFileInfo[] AnalyzerConfigDocuments { get; init; }
 
     /// <summary>
     /// References to other projects.
     /// </summary>
     [DataMember]
-    public ImmutableArray<ProjectFileReference> ProjectReferences { get; init; }
+    public required ProjectFileReference[] ProjectReferences { get; init; }
 
     /// <summary>
     /// The msbuild project capabilities.
     /// </summary>
     [DataMember]
-    public ImmutableArray<string> ProjectCapabilities { get; init; }
+    public required string[] ProjectCapabilities { get; init; }
 
     /// <summary>
     /// The paths to content files included in the project.
     /// </summary>
     [DataMember]
-    public ImmutableArray<string> ContentFilePaths { get; init; }
+    public required string[] ContentFilePaths { get; init; }
 
     /// <summary>
     /// The path to the project.assets.json path in obj/.
@@ -131,13 +133,13 @@ internal sealed record ProjectFileInfo
     /// Any package references defined on the project.
     /// </summary>
     [DataMember]
-    public ImmutableArray<PackageReferenceItem> PackageReferences { get; init; }
+    public required PackageReferenceItem[] PackageReferences { get; init; }
 
     /// <summary>
     /// Metadata references referenced by the project if not specified in <see cref="CommandLineArgs"/>.
     /// </summary>
     [DataMember]
-    public ImmutableArray<MetadataReferenceItem> MetadataReferences { get; init; }
+    public required MetadataReferenceItem[] MetadataReferences { get; init; }
 
     /// <summary>
     /// The value of `CodePage` property. Zero if not specified.
@@ -158,7 +160,7 @@ internal sealed record ProjectFileInfo
     public string? TargetFrameworkVersion { get; init; }
 
     [DataMember]
-    public ImmutableArray<FileGlobs> FileGlobs { get; init; }
+    public required FileGlobs[] FileGlobs { get; init; }
 
     public override string ToString()
         => string.IsNullOrWhiteSpace(TargetFramework)

@@ -9,7 +9,7 @@ using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 
-[Export(typeof(IServiceBrokerProvider)), PartNotDiscoverable, Shared]
+[ExportWorkspaceService(typeof(IServiceBrokerProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class MockServiceBrokerProvider() : IServiceBrokerProvider
