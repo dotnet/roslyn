@@ -75,22 +75,6 @@ internal class CodeActionResolveService(
         }
     }
 
-    public static RazorCodeActionResolutionParams GetRazorCodeActionResolutionParams(CodeAction request)
-    {
-        if (request.Data is not JsonElement paramsObj)
-        {
-            throw new InvalidOperationException($"Invalid CodeAction Received '{request.Title}'.");
-        }
-
-        var resolutionParams = paramsObj.Deserialize<RazorCodeActionResolutionParams>();
-        if (resolutionParams is null)
-        {
-            throw new InvalidOperationException($"request.Data should be convertible to {nameof(RazorCodeActionResolutionParams)}");
-        }
-
-        return resolutionParams;
-    }
-
     private async Task<CodeAction> ResolveRazorCodeActionAsync(
         DocumentContext documentContext,
         CodeAction codeAction,
