@@ -5,8 +5,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
@@ -14,11 +14,11 @@ internal interface ICodeActionsService
 {
     Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(
         VSCodeActionParams request,
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         RazorVSInternalCodeAction[] delegatedCodeActions,
         Uri? delegatedDocumentUri,
         bool supportsCodeActionResolve,
         CancellationToken cancellationToken);
 
-    Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(IDocumentSnapshot documentSnapshot, VSCodeActionParams request, CancellationToken cancellationToken);
+    Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(RemoteDocumentSnapshot documentSnapshot, VSCodeActionParams request, CancellationToken cancellationToken);
 }

@@ -16,10 +16,10 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
@@ -40,7 +40,7 @@ internal sealed class CodeActionsService(
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
-    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, IDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] delegatedCodeActions, Uri? delegatedDocumentUri, bool supportsCodeActionResolve, CancellationToken cancellationToken)
+    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, RemoteDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] delegatedCodeActions, Uri? delegatedDocumentUri, bool supportsCodeActionResolve, CancellationToken cancellationToken)
     {
         var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentSnapshot, delegatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
         if (razorCodeActionContext is null)
@@ -98,7 +98,7 @@ internal sealed class CodeActionsService(
 
     private async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(
         VSCodeActionParams request,
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         Uri? delegatedDocumentUri,
         bool supportsCodeActionResolve,
         CancellationToken cancellationToken)
@@ -132,7 +132,7 @@ internal sealed class CodeActionsService(
         return context;
     }
 
-    public async Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(IDocumentSnapshot documentSnapshot, VSCodeActionParams request, CancellationToken cancellationToken)
+    public async Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(RemoteDocumentSnapshot documentSnapshot, VSCodeActionParams request, CancellationToken cancellationToken)
     {
         // For C# we have to map the ranges to the generated document
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);

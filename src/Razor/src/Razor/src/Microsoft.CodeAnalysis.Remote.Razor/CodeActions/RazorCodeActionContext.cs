@@ -3,15 +3,15 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal sealed record class RazorCodeActionContext(
     VSCodeActionParams Request,
-    IDocumentSnapshot DocumentSnapshot,
+    RemoteDocumentSnapshot DocumentSnapshot,
     RazorCodeDocument CodeDocument,
     Uri? DelegatedDocumentUri,
     int StartAbsoluteIndex,

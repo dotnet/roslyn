@@ -2,24 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.IO;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Moq;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
@@ -33,15 +43,17 @@ public class HtmlCodeActionProviderTest
         var contents = "<$$h1>Goo</h1>";
         TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
 
-        var documentPath = "c:/Test.razor";
+        var documentPath = @"C:\Test.razor";
+        var documentUri = new Uri(documentPath);
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(new Uri(documentPath)) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(documentUri) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
-        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
+        var (context, workspace) = await CreateRazorCodeActionContextAsync(request, cursorPosition, documentPath, contents);
+        using var workspaceLifetime = workspace;
 
         var razorEditService = StrictMock.Of<IRazorEditService>();
         var provider = new HtmlCodeActionProvider(razorEditService);
@@ -64,21 +76,24 @@ public class HtmlCodeActionProviderTest
         var contents = "[|<$$h1>Goo @(DateTime.Now) Bar</h1>|]";
         TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var span);
 
-        var documentPath = "c:/Test.razor";
+        var documentPath = @"C:\Test.razor";
+        var documentUri = new Uri(documentPath);
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(new Uri(documentPath)) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(documentUri) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
-        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
+        var (context, workspace) = await CreateRazorCodeActionContextAsync(request, cursorPosition, documentPath, contents);
+        using var workspaceLifetime = workspace;
 
         var razorEditServiceMock = new StrictMock<IRazorEditService>();
         razorEditServiceMock
             .Setup(x => x.MapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
-            .Callback<IDocumentSnapshot, WorkspaceEdit, CancellationToken>((_, edit, _) =>
+            .Callback<IDocumentSnapshot, WorkspaceEdit, CancellationToken>((snapshot, edit, _) =>
             {
+                Assert.IsType<RemoteDocumentSnapshot>(snapshot);
                 var textDocumentEdit = edit.EnumerateTextDocumentEdits().First();
                 textDocumentEdit.TextDocument.DocumentUri = new(documentPath);
                 textDocumentEdit.Edits = [LspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")];
@@ -99,7 +114,7 @@ public class HtmlCodeActionProviderTest
                         new() {
                             TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
-                                DocumentUri = new(new Uri("c:/Test.razor.html")),
+                                DocumentUri = new(new Uri(@"C:\Test.razor.html")),
                             },
                             Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                         }
@@ -116,14 +131,14 @@ public class HtmlCodeActionProviderTest
         Assert.NotNull(action.Edit);
         var documentEdits = action.Edit.EnumerateTextDocumentEdits().ToArray();
         Assert.NotEmpty(documentEdits);
-        Assert.Equal(documentPath, documentEdits[0].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
+        Assert.Equal(documentUri.AbsolutePath, documentEdits[0].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
 
         var text = SourceText.From(contents);
         var changed = text.WithChanges(documentEdits[0].Edits.Select(e => text.GetTextChange((TextEdit)e)));
         Assert.Equal("Goo @(DateTime.Now) Bar", changed.ToString());
     }
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(
+    private static async Task<(RazorCodeActionContext Context, AdhocWorkspace Workspace)> CreateRazorCodeActionContextAsync(
         VSCodeActionParams request,
         int absoluteIndex,
         string filePath,
@@ -131,33 +146,58 @@ public class HtmlCodeActionProviderTest
         bool supportsFileCreation = true,
         bool supportsCodeActionResolve = true)
     {
-        var tagHelpers = TagHelperCollection.Empty;
-        var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
-        var projectEngine = RazorProjectEngine.Create(builder =>
-        {
-            builder.SetTagHelpers(tagHelpers);
+        var sourceText = SourceText.From(text);
 
-            builder.ConfigureParserOptions(builder =>
-            {
-                builder.UseRoslynTokenizer = true;
-            });
-        });
-        var codeDocument = projectEngine.Process(sourceDocument, RazorFileKind.Legacy, importSources: default, tagHelpers);
+        var workspace = new AdhocWorkspace();
+        var projectId = ProjectId.CreateNewId();
+        var documentId = DocumentId.CreateNewId(projectId);
+        var projectFilePath = @"C:\TestProject.csproj";
+        var projectBasePath = Path.GetDirectoryName(projectFilePath)!;
+        var targetPath = Path.GetFileName(filePath);
 
-        var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
-        documentSnapshotMock
-            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(codeDocument);
-        documentSnapshotMock
-            .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(codeDocument.Source.Text);
-        documentSnapshotMock
-            .Setup(x => x.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(tagHelpers);
+        var projectInfo = ProjectInfo
+            .Create(
+                projectId,
+                VersionStamp.Create(),
+                name: "TestProject",
+                assemblyName: "TestProject",
+                language: LanguageNames.CSharp,
+                filePath: projectFilePath,
+                parseOptions: CSharpParseOptions.Default.WithFeatures([new("use-roslyn-tokenizer", "true")]),
+                compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(static r => r.Reference))
+            .WithDefaultNamespace("ASP")
+            .WithAnalyzerReferences([new AnalyzerFileReference(typeof(RazorSourceGenerator).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)]);
 
-        return new RazorCodeActionContext(
+        var globalConfig = $$"""
+            is_global = true
+
+            build_property.RazorLangVersion = {{RazorLanguageVersion.Preview}}
+            build_property.RazorConfiguration = {{FallbackRazorConfiguration.Latest.ConfigurationName}}
+            build_property.RootNamespace = ASP
+
+            # This mirrors the Razor SDK and is required for the host output path used by GeneratorRunResult.
+            build_property.SuppressRazorSourceGenerator = true
+            build_property.MSBuildProjectDirectory = {{projectBasePath}}
+
+            [{{filePath.Replace('\\', '/')}}]
+            build_metadata.AdditionalFiles.TargetPath = {{Convert.ToBase64String(Encoding.UTF8.GetBytes(targetPath))}}
+            """;
+
+        var solution = workspace.CurrentSolution
+            .AddProject(projectInfo)
+            .AddAdditionalDocument(documentId, Path.GetFileName(filePath), sourceText, filePath: filePath)
+            .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), ".globalconfig", SourceText.From(globalConfig), filePath: Path.Combine(projectBasePath, ".globalconfig"));
+
+        workspace.TryApplyChanges(solution);
+        var document = workspace.CurrentSolution.GetAdditionalDocument(documentId)!;
+        var snapshotManager = new RemoteSnapshotManager(new RemoteFilePathService(), NoOpTelemetryReporter.Instance);
+        var snapshot = snapshotManager.GetSnapshot(document);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(CancellationToken.None).ConfigureAwait(false);
+
+        var context = new RazorCodeActionContext(
             request,
-            documentSnapshotMock.Object,
+            snapshot,
             codeDocument,
             DelegatedDocumentUri: null,
             StartAbsoluteIndex: absoluteIndex,
@@ -167,5 +207,6 @@ public class HtmlCodeActionProviderTest
             supportsFileCreation,
             supportsCodeActionResolve);
 
+        return (context, workspace);
     }
 }

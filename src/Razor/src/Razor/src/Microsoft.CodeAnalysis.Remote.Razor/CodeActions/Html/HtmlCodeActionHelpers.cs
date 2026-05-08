@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal static class HtmlCodeActionHelpers
 {
-    internal static async Task MapAndFixHtmlCodeActionEditAsync(IRazorEditService razorEditService, IDocumentSnapshot documentSnapshot, CodeAction codeAction, CancellationToken cancellationToken)
+    internal static async Task MapAndFixHtmlCodeActionEditAsync(IRazorEditService razorEditService, RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, CancellationToken cancellationToken)
     {
         Assumes.NotNull(codeAction.Edit);
 
