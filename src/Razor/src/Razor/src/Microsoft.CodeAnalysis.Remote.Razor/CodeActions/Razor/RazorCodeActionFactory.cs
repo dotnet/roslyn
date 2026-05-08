@@ -5,6 +5,7 @@ using System;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
@@ -28,7 +29,7 @@ internal static class RazorCodeActionFactory
     public static RazorVSInternalCodeAction CreateWrapAttributes(RazorCodeActionResolutionParams resolutionParams)
         => new RazorVSInternalCodeAction
         {
-            Title = SR.Wrap_attributes,
+            Title = WorkspacesSR.Wrap_attributes,
             Data = JsonSerializer.SerializeToElement(resolutionParams),
             TelemetryId = s_wrapAttributesTelemetryId,
             Name = LanguageServerConstants.CodeActions.WrapAttributes,
@@ -37,7 +38,7 @@ internal static class RazorCodeActionFactory
     public static RazorVSInternalCodeAction CreatePromoteUsingDirective(string importsFileName, RazorCodeActionResolutionParams resolutionParams)
         => new RazorVSInternalCodeAction
         {
-            Title = SR.FormatPromote_using_directive_to(importsFileName),
+            Title = WorkspacesSR.FormatPromote_using_directive_to(importsFileName),
             Data = JsonSerializer.SerializeToElement(resolutionParams),
             TelemetryId = s_promoteUsingDirectiveTelemetryId,
             Name = LanguageServerConstants.CodeActions.PromoteUsingDirective,
@@ -46,7 +47,7 @@ internal static class RazorCodeActionFactory
     public static RazorVSInternalCodeAction CreateRemoveUnnecessaryDirectives(RazorCodeActionResolutionParams resolutionParams)
         => new RazorVSInternalCodeAction
         {
-            Title = SR.Remove_unnecessary_directives,
+            Title = WorkspacesSR.Remove_unnecessary_directives,
             Data = JsonSerializer.SerializeToElement(resolutionParams),
             TelemetryId = s_removeUnnecessaryDirectivesTelemetryId,
             Name = LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
@@ -91,7 +92,7 @@ internal static class RazorCodeActionFactory
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
-            Title = SR.Create_Component_FromTag_Title,
+            Title = WorkspacesSR.Create_Component_FromTag_Title,
             Data = data,
             TelemetryId = s_createComponentFromTagTelemetryId,
             Name = LanguageServerConstants.CodeActions.CreateComponentFromTag,
@@ -104,7 +105,7 @@ internal static class RazorCodeActionFactory
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
-            Title = SR.FormatExtractTo_Css_Title(razorFileName),
+            Title = WorkspacesSR.FormatExtractTo_Css_Title(razorFileName),
             Data = data,
             TelemetryId = s_createExtractToCssTelemetryId,
             Name = LanguageServerConstants.CodeActions.ExtractToCss,
@@ -117,7 +118,7 @@ internal static class RazorCodeActionFactory
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
-            Title = SR.ExtractTo_CodeBehind_Title,
+            Title = WorkspacesSR.ExtractTo_CodeBehind_Title,
             Data = data,
             TelemetryId = s_createExtractToCodeBehindTelemetryId,
             Name = LanguageServerConstants.CodeActions.ExtractToCodeBehind,
@@ -130,7 +131,7 @@ internal static class RazorCodeActionFactory
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
-            Title = SR.ExtractTo_Component_Title,
+            Title = WorkspacesSR.ExtractTo_Component_Title,
             Data = data,
             TelemetryId = s_createExtractToComponentTelemetryId,
             Name = LanguageServerConstants.CodeActions.ExtractToNewComponent,
@@ -145,7 +146,7 @@ internal static class RazorCodeActionFactory
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
-            Title = SR.Simplify_Tag_To_SelfClosing_Title,
+            Title = WorkspacesSR.Simplify_Tag_To_SelfClosing_Title,
             Data = data,
             TelemetryId = s_simplifyComponentTelemetryId,
             Name = LanguageServerConstants.CodeActions.SimplifyTagToSelfClosing,
@@ -170,7 +171,7 @@ internal static class RazorCodeActionFactory
             Data = @params,
         };
 
-        var title = SR.FormatGenerate_Event_Handler_Title(methodName);
+        var title = WorkspacesSR.FormatGenerate_Event_Handler_Title(methodName);
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
@@ -199,7 +200,7 @@ internal static class RazorCodeActionFactory
             Data = @params,
         };
 
-        var title = SR.FormatGenerate_Async_Event_Handler_Title(methodName);
+        var title = WorkspacesSR.FormatGenerate_Async_Event_Handler_Title(methodName);
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
@@ -216,7 +217,7 @@ internal static class RazorCodeActionFactory
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
-            Title = SR.Simplify_Fully_Qualified_Component_Title,
+            Title = WorkspacesSR.Simplify_Fully_Qualified_Component_Title,
             Data = data,
             TelemetryId = s_simplifyFullyQualifiedComponentTelemetryId,
             Name = LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
@@ -229,7 +230,7 @@ internal static class RazorCodeActionFactory
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
-            Title = SR.Sort_And_Consolidate_Usings_Title,
+            Title = WorkspacesSR.Sort_And_Consolidate_Usings_Title,
             Data = data,
             TelemetryId = s_sortAndConsolidateUsingsTelemetryId,
             Name = LanguageServerConstants.CodeActions.SortAndConsolidateUsings,
