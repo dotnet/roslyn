@@ -38,7 +38,14 @@ namespace Microsoft.CodeAnalysis
 
             internal bool IsCompilationAvailable => _compilation is not null;
 
-            public Compilation Compilation => _compilation ?? throw new InvalidOperationException("Compilation is not available during the pre-compilation phase.");
+            public Compilation Compilation
+            {
+                get
+                {
+                    Debug.Assert(_compilation is not null, "Compilation should only be read after the pre-compilation phase has completed; if this fires a driver-internal caller is reading it too early.");
+                    return _compilation;
+                }
+            }
 
             /// <summary>
             /// The compilation as initially supplied to the driver (with any post-init trees).
@@ -48,7 +55,14 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             internal Compilation InitialCompilation => _initialCompilation;
 
-            internal SyntaxStore.Builder SyntaxStore => _syntaxStore ?? throw new InvalidOperationException("SyntaxStore is not available during the pre-compilation phase.");
+            internal SyntaxStore.Builder SyntaxStore
+            {
+                get
+                {
+                    Debug.Assert(_syntaxStore is not null, "SyntaxStore should only be read after the pre-compilation phase has completed; if this fires a driver-internal caller is reading it too early.");
+                    return _syntaxStore;
+                }
+            }
 
             public Builder(GeneratorDriverState driverState, Compilation initialCompilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, CancellationToken cancellationToken = default)
             {

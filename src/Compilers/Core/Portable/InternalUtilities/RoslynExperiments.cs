@@ -19,7 +19,7 @@ internal static class RoslynExperiments
     internal const string PreviewLanguageFeatureApi = "RSEXPERIMENTAL006";
 
     internal const string PreCompilationSourceOutput = "RSEXPERIMENTAL007";
-    internal const string PreCompilationSourceOutput_Url = "https://github.com/dotnet/roslyn/issues/81395";
+    internal const string PreCompilationSourceOutput_Url = "https://github.com/dotnet/roslyn/issues/83089";
 
     // Previously taken: RSEXPERIMENTAL003 - https://github.com/dotnet/roslyn/issues/73002 (SyntaxTokenParser)
     // Previously taken: RSEXPERIMENTAL005 - https://github.com/dotnet/roslyn/issues/77697
