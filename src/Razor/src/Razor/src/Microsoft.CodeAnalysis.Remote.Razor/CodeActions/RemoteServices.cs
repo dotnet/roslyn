@@ -49,11 +49,6 @@ internal sealed class OOPDefaultHtmlCodeActionProvider(IRazorEditService razorEd
 
 // Code Action Resolvers
 
-[Export(typeof(IRazorCodeActionResolver)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPExtractToCssCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions, IFileSystem fileSystem)
-    : ExtractToCssCodeActionResolver(languageServerFeatureOptions, fileSystem);
-
 [Export(typeof(IHtmlCodeActionResolver)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPHtmlCodeActionResolver(IRazorEditService razorEditService) : HtmlCodeActionResolver(razorEditService);

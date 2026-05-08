@@ -3,11 +3,14 @@
 
 using System;
 using System.Buffers;
+using System.Composition;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -16,9 +19,11 @@ using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class ExtractToCssCodeActionResolver(
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class ExtractToCssCodeActionResolver(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IFileSystem fileSystem) : IRazorCodeActionResolver
 {
