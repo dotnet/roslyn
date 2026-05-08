@@ -27,7 +27,6 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit", "@..."],
-            htmlItemLabels: ["style", "dir"],
             itemToResolve: "FormName",
             expectedResolvedItemDescription: "string Microsoft.AspNetCore.Components.Forms.EditForm.FormName");
     }
@@ -50,7 +49,6 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["FormName", "OnValidSubmit", "@...", "style"],
-            htmlItemLabels: ["style"],
             autoInsertAttributeQuotes: false);
     }
 
@@ -72,8 +70,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = " ",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["data-enhance", "data-enhance-nav", "data-permanent", "dir", "@..."],
-            htmlItemLabels: ["dir"]);
+            expectedItemLabels: ["data-enhance", "data-enhance-nav", "data-permanent", "dir", "@..."]);
     }
 
     [Fact]
@@ -95,8 +92,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
-            unexpectedItemLabels: ["data-enhance"],
-            htmlItemLabels: ["dir"]);
+            unexpectedItemLabels: ["data-enhance"]);
     }
 
     [Fact]
@@ -118,8 +114,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
-            unexpectedItemLabels: ["data-enhance"],
-            htmlItemLabels: ["dir"]);
+            unexpectedItemLabels: ["data-enhance"]);
     }
 
     [Fact]
@@ -141,8 +136,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
-            unexpectedItemLabels: ["data-enhance"],
-            htmlItemLabels: ["dir"]);
+            unexpectedItemLabels: ["data-enhance"]);
     }
 
     // Tests HTML attributes and DirectiveAttributeTransitionCompletionItemProvider
@@ -163,8 +157,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = " ",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["style", "dir", "@..."],
-            htmlItemLabels: ["style", "dir"]);
+            expectedItemLabels: ["style", "dir", "@..."]);
     }
 
     [Fact]
@@ -185,7 +178,6 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: [],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
@@ -203,7 +195,6 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: [],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
@@ -222,7 +213,6 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: [],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
@@ -241,7 +231,6 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: [],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
@@ -264,7 +253,6 @@ public partial class CohostDocumentCompletionEndpointTest
             },
             expectedItemLabels: ["style", "dir"],
             unexpectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: ["style", "dir"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
@@ -281,9 +269,8 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = "/",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["</div>"],
+            expectedItemLabels: ["/div"],
             unexpectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: ["</div>"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
@@ -300,9 +287,8 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = "/",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["</div>"],
-            unexpectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: ["</div>"],
+            expectedItemLabels: [],
+            unexpectedItemLabels: ["</div>", "snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
@@ -319,8 +305,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: [],
-            unexpectedItemLabels: ["EditForm"],
-            htmlItemLabels: []);
+            unexpectedItemLabels: ["EditForm"]);
     }
 
     [Fact]
@@ -338,7 +323,6 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: [],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 }

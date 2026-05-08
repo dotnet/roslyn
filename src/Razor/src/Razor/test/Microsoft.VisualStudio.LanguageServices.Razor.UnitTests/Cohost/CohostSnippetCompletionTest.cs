@@ -26,7 +26,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         TestCode input = """
                 This is a Razor document.
 
-                $$
+                <$$div></div>
 
                 The end.
                 """;

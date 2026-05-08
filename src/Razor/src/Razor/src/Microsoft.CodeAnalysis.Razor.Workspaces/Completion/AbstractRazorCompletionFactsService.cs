@@ -20,32 +20,7 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
 {
     private readonly ImmutableArray<IRazorCompletionItemProvider> _providers = providers;
 
-    public CompletionItemsResult GetCompletionItems(RazorCompletionContext context)
-    {
-        ArgHelper.ThrowIfNull(context);
-        ArgHelper.ThrowIfNull(context.TagHelperDocumentContext);
-
-        var needsHtmlDependentCompletionItems = false;
-        using var completions = new PooledArrayBuilder<RazorCompletionItem>();
-
-        foreach (var provider in _providers)
-        {
-            if (provider is IHtmlDependentCompletionItemProvider htmlDependent
-                && htmlDependent.NeedsHtmlCompletions(context))
-            {
-                needsHtmlDependentCompletionItems = true;
-            }
-            else
-            {
-                var items = provider.GetCompletionItems(context);
-                completions.AddRange(items);
-            }
-        }
-
-        return new CompletionItemsResult(completions.ToImmutableAndClear(), needsHtmlDependentCompletionItems);
-    }
-
-    public ImmutableArray<RazorCompletionItem> GetHtmlDependentCompletionItems(RazorHtmlDependentCompletionContext context)
+    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         ArgHelper.ThrowIfNull(context);
         ArgHelper.ThrowIfNull(context.TagHelperDocumentContext);
@@ -54,12 +29,8 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
 
         foreach (var provider in _providers)
         {
-            if (provider is IHtmlDependentCompletionItemProvider htmlDependent
-                && htmlDependent.NeedsHtmlCompletions(context))
-            {
-                var items = htmlDependent.GetHtmlDependentCompletionItems(context);
-                completions.AddRange(items);
-            }
+            var items = provider.GetCompletionItems(context);
+            completions.AddRange(items);
         }
 
         return completions.ToImmutableAndClear();

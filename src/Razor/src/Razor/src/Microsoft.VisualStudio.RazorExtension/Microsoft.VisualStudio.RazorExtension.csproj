@@ -77,6 +77,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="RazorCompletionImages.imagemanifest">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Microsoft.VisualStudio.RazorExtension.Custom.pkgdef">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -87,6 +91,7 @@
     <AdditionalFiles Include="$(RepoRoot)src\Razor\src\Razor\vs-threading.MainThreadAssertingMethods.txt" Link="AnalyzerConfig\vs-threading.MainThreadAssertingMethods.txt" />
 
     <Resource Include="SyntaxTree.bmp" />
+    <Resource Include="Resources\angular16.png" />
 
     <!-- Embedded grammars -->
 

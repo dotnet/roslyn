@@ -224,56 +224,21 @@ internal static class DelegatedCompletionHelper
 
         if (startOrEndTag is null)
         {
-            if (IsInScriptOrStyleOrHtmlComment(node))
-            {
-                // If we're in a style, script, or HTML comment block, we don't want to include HTML snippets.
-                return false;
-            }
-
-            return token.Kind is not (SyntaxKind.OpenAngle or SyntaxKind.CloseAngle);
-        }
-
-        if (startOrEndTag.Span.Start == absoluteIndex)
-        {
-            // We're at the start of the tag, we should include snippets. This is the case for things like $$<div></div> or <div>$$</div>, since the
-            // index is right associative to the token when using FindToken.
-            // However, if the user just typed "</" (e.g., <div></|</div>), suppress snippets because the previous
-            // token is part of an (incomplete) end tag that precedes this position.
-            if (absoluteIndex > 0 &&
-                root.FindToken(absoluteIndex - 1, includeWhitespace: false).Parent is RazorSyntaxNode previousTokenParent &&
-                RazorSyntaxFacts.IsAnyEndTag(previousTokenParent) &&
-                IsIncompleteTag(previousTokenParent))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        return !startOrEndTag.Span.IntersectsWith(absoluteIndex);
-
-        static bool IsInScriptOrStyleOrHtmlComment(AspNetCore.Razor.Language.Syntax.SyntaxNode? initialNode)
-        {
-            for (var node = initialNode; node != null; node = node.Parent)
-            {
-                if (node is BaseMarkupElementSyntax elementNode)
-                {
-                    if (RazorSyntaxFacts.IsScriptOrStyleBlock(elementNode))
-                    {
-                        return true;
-                    }
-
-                    // If we're in an element but it's not a script or style block, stop looking
-                    break;
-                }
-                else if (node is MarkupCommentBlockSyntax commentNode)
-                {
-                    return true;
-                }
-            }
-
+            // We're in text content (not inside any tag). Don't show HTML snippets here —
+            // they should only appear when the user is actively writing a tag name.
             return false;
         }
+
+        // Show snippets only when the cursor is within the tag name (e.g., <di$$v> or </di$$v>).
+        // Don't show them in attribute areas or other parts of the tag.
+        var nameSpan = startOrEndTag switch
+        {
+            BaseMarkupStartTagSyntax startTag => startTag.Name.Span,
+            BaseMarkupEndTagSyntax endTag => endTag.Name.Span,
+            _ => default
+        };
+
+        return nameSpan.Length > 0 && nameSpan.IntersectsWith(absoluteIndex);
 
         static bool IsIncompleteTag(RazorSyntaxNode tag)
         {

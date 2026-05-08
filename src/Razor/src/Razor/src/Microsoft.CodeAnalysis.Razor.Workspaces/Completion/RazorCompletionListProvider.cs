@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -29,53 +28,23 @@ internal class RazorCompletionListProvider(
     };
 
     // virtual for tests
-    public virtual (RazorVSInternalCompletionList? CompletionList, bool NeedsHtmlDependentPhase) GetCompletionList(
-        RazorCodeDocument codeDocument,
-        int absoluteIndex,
-        VSInternalCompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
-        RazorCompletionOptions completionOptions)
+    public virtual RazorVSInternalCompletionList? GetCompletionList(
+        RazorCompletionContext razorCompletionContext,
+        VSInternalClientCapabilities clientCapabilities)
     {
-        var razorCompletionContext = CreateCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions);
-
         var result = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
-        _logger.LogTrace($"Resolved {result.Items.Length} completion items.");
+        _logger.LogTrace($"Resolved {result.Length} completion items.");
 
-        if (result.Items.Length == 0)
-        {
-            return (null, result.NeedsHtmlDependentCompletionItems);
-        }
-
-        var completionList = CreateAndCacheCompletionList(codeDocument, result.Items, clientCapabilities);
-        return (completionList, result.NeedsHtmlDependentCompletionItems);
-    }
-
-    // virtual for tests
-    public virtual RazorVSInternalCompletionList? GetHtmlDependentCompletionList(
-        RazorCodeDocument codeDocument,
-        int absoluteIndex,
-        VSInternalCompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
-        RazorCompletionOptions completionOptions,
-        HashSet<string> htmlLabels)
-    {
-        var baseContext = CreateCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions);
-        var razorCompletionContext = new RazorHtmlDependentCompletionContext(baseContext, htmlLabels);
-
-        var razorCompletionItems = _completionFactsService.GetHtmlDependentCompletionItems(razorCompletionContext);
-
-        _logger.LogTrace($"Resolved {razorCompletionItems.Length} HTML-dependent completion items.");
-
-        if (razorCompletionItems.Length == 0)
+        if (result.Length == 0)
         {
             return null;
         }
 
-        return CreateAndCacheCompletionList(codeDocument, razorCompletionItems, clientCapabilities);
+        return CreateAndCacheCompletionList(razorCompletionContext.CodeDocument, result, clientCapabilities);
     }
 
-    private static RazorCompletionContext CreateCompletionContext(
+    internal static RazorCompletionContext CreateCompletionContext(
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
