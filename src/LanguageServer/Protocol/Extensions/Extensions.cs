@@ -65,6 +65,11 @@ internal static partial class Extensions
         return documentUri.ParsedUri;
     }
 
+    public static string GetDocumentFilePathFromUri(this DocumentUri uri)
+    {
+        return uri.ParsedUri?.IsFile == true ? uri.ParsedUri.LocalPath : uri.UriString;
+    }
+
     /// <summary>
     /// Get all regular and additional <see cref="TextDocument"/>s for the given <paramref name="documentUri"/>.
     /// This will not return source generated documents.

@@ -189,6 +189,11 @@ internal static partial class ProtocolConversions
         return uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
     }
 
+    public static bool IsSourceGeneratedScheme(string scheme)
+    {
+        return scheme == SourceGeneratedDocumentUri.Scheme;
+    }
+
     /// <summary>
     /// Converts an absolute local file path or an absolute URL string to <see cref="Uri"/>.
     /// </summary>

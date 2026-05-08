@@ -7,7 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -39,7 +39,7 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
         // but we don't want to notify the user for each file, so we try to find the project that contains the file
         // through other means.
 
-        var filePath = uri.GetDocumentFilePath();
+        var filePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
         var filePathSpan = filePath.AsSpan();
         foreach (var project in context.Solution.Projects)
         {
