@@ -32,7 +32,7 @@ public class HtmlCodeActionResolverTest
         var contents = "[|<$$h1>Goo @(DateTime.Now) Bar</h1>|]";
         TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out _, out var span);
 
-        var documentPath = @"C:\TestProject\Test.razor";
+        var documentPath = TestProjectData.SomeProjectComponentFile1.FilePath;
         var documentUri = new Uri(documentPath);
         var (context, sourceText, workspace) = CreateDocumentContext(documentUri, documentPath, contents);
         using var workspaceLifetime = workspace;
@@ -62,7 +62,7 @@ public class HtmlCodeActionResolverTest
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier
                         {
-                            DocumentUri = new(new Uri(@"C:\TestProject\Test.razor.html")),
+                            DocumentUri = new(new Uri(documentPath + ".html")),
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                     }
@@ -91,7 +91,7 @@ public class HtmlCodeActionResolverTest
         var workspace = new AdhocWorkspace();
         var builder = new RazorProjectBuilder
         {
-            ProjectFilePath = @"C:\TestProject\TestProject.csproj",
+            ProjectFilePath = TestProjectData.SomeProject.FilePath,
         };
         builder.AddReferences(AspNet80.ReferenceInfos.All.Select(static r => r.Reference));
         var documentId = builder.AddAdditionalDocument(filePath, sourceText);
