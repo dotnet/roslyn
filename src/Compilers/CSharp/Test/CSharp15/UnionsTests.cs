@@ -10173,7 +10173,7 @@ class Program
             Assert.Equal(Conversion.NoConversion, conversion.UserDefinedFromConversion);
             Assert.Equal(Conversion.NoConversion, conversion.UserDefinedToConversion);
             Assert.NotNull(conversion.BestUnionConversionAnalysis);
-            Assert.Empty(conversion.OriginalUserDefinedConversions);
+            AssertEx.SequenceEqual(["S1..ctor(System.Int32 x)"], conversion.OriginalUserDefinedOrUnionConversions.ToTestDisplayStrings());
             Assert.True(conversion.UnderlyingConversions.IsDefault);
             Assert.False(conversion.IsArrayIndex);
             Assert.False(conversion.IsExtensionMethod);
@@ -10848,15 +10848,19 @@ class Program
 
     static S2 Test2()
     {
-        return null;
+        return (S2)null;
     }   
 }
 ";
             var comp = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "C1C2").VerifyDiagnostics();
-
-            comp = CreateCompilation(src2, references: [comp.EmitToImageReference()], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "C1C2").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,16): error CS0037: Cannot convert null to 'S1' because it is a non-nullable value type
+                //         return null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("S1").WithLocation(12, 16),
+                // (17,16): error CS0037: Cannot convert null to 'S2' because it is a non-nullable value type
+                //         return (S2)null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "(S2)null").WithArguments("S2").WithLocation(17, 16)
+                );
         }
 
         [Fact]
@@ -10921,7 +10925,7 @@ class Program
             Assert.Equal(Conversion.NoConversion, conversion.UserDefinedFromConversion);
             Assert.Equal(Conversion.NoConversion, conversion.UserDefinedToConversion);
             Assert.NotNull(conversion.BestUnionConversionAnalysis);
-            Assert.Empty(conversion.OriginalUserDefinedConversions);
+            AssertEx.SequenceEqual(["S1..ctor(System.Int32 x)"], conversion.OriginalUserDefinedOrUnionConversions.ToTestDisplayStrings());
             Assert.True(conversion.UnderlyingConversions.IsDefault);
 
             CommonConversion commonConversion = conversion.ToCommonConversion();
@@ -11681,32 +11685,11 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1-System.ValueType {System.Int32 10} 5-System.IComparable {System.String 11}").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  1
-  IL_0000:  ldstr      ""1-""
-  IL_0005:  call       ""void System.Console.Write(string)""
-  IL_000a:  ldc.i4.s   10
-  IL_000c:  box        ""int""
-  IL_0011:  newobj     ""S1..ctor(System.ValueType)""
-  IL_0016:  ret
-}
-");
-
-            verifier.VerifyIL("Program.Test5", @"
-{
-  // Code size       21 (0x15)
-  .maxstack  1
-  IL_0000:  ldstr      ""5-""
-  IL_0005:  call       ""void System.Console.Write(string)""
-  IL_000a:  ldstr      ""11""
-  IL_000f:  newobj     ""S1..ctor(System.IComparable)""
-  IL_0014:  ret
-}
-");
+            comp.VerifyDiagnostics(
+                // (38,16): error CS0457: Ambiguous user defined conversions 'S1.S1(ValueType)' and 'S1.S1(IComparable)' when converting from 'int' to 'S1'
+                //         return 10;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "10").WithArguments("S1.S1(System.ValueType)", "S1.S1(System.IComparable)", "int", "S1").WithLocation(38, 16)
+                );
         }
 
         [Fact]
@@ -12110,15 +12093,67 @@ class Program
 
     static S2 Test2()
     {
-        return 10;
+        return (S2)10;
+    }   
+
+    static void Test3(int[] s)
+    {
+        foreach (S1 x in s)
+        {}
+    }   
+
+    static S1? Test4()
+    {
+        return (S1?)10;
     }   
 }
 ";
             var comp = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "InVal").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,16): error CS0457: Ambiguous user defined conversions 'S1.S1(in int)' and 'S1.S1(int)' when converting from 'int' to 'S1'
+                //         return 10;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "10").WithArguments("S1.S1(in int)", "S1.S1(int)", "int", "S1").WithLocation(12, 16),
+                // (17,16): error CS0457: Ambiguous user defined conversions 'S2.S2(int)' and 'S2.S2(in int)' when converting from 'int' to 'S2'
+                //         return (S2)10;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(S2)10").WithArguments("S2.S2(int)", "S2.S2(in int)", "int", "S2").WithLocation(17, 16),
+                // (22,9): error CS0457: Ambiguous user defined conversions 'S1.S1(in int)' and 'S1.S1(int)' when converting from 'int' to 'S1'
+                //         foreach (S1 x in s)
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "foreach").WithArguments("S1.S1(in int)", "S1.S1(int)", "int", "S1").WithLocation(22, 9),
+                // (28,16): error CS0457: Ambiguous user defined conversions 'S1.S1(in int)' and 'S1.S1(int)' when converting from 'int' to 'S1?'
+                //         return (S1?)10;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(S1?)10").WithArguments("S1.S1(in int)", "S1.S1(int)", "int", "S1?").WithLocation(28, 16)
+                );
 
-            comp = CreateCompilation(src2, references: [comp.EmitToImageReference()], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "InVal").VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[1];
+            var model = comp.GetSemanticModel(tree);
+
+            var cast = GetSyntax<CastExpressionSyntax>(tree, "(S2)10");
+
+            var typeInfo = model.GetTypeInfo(cast);
+            Assert.Equal("S2", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S2", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Conversion conversion = model.GetConversion(cast);
+            Assert.True(conversion.IsIdentity);
+
+            var symbolInfo = model.GetSymbolInfo(cast);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Null(symbolInfo.Symbol);
+            AssertEx.SequenceEqual(["S2..ctor(System.Int32 x)", "S2..ctor(in System.Int32 x)"], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+
+            cast = GetSyntax<CastExpressionSyntax>(tree, "(S1?)10");
+
+            typeInfo = model.GetTypeInfo(cast);
+            Assert.Equal("S1?", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S1?", typeInfo.ConvertedType.ToTestDisplayString());
+
+            conversion = model.GetConversion(cast);
+            Assert.True(conversion.IsIdentity);
+
+            symbolInfo = model.GetSymbolInfo(cast);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Null(symbolInfo.Symbol);
+            AssertEx.SequenceEqual(["S1..ctor(in System.Int32 x)", "S1..ctor(System.Int32 x)"], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -12337,7 +12372,7 @@ class Program
             Assert.Equal(Conversion.NoConversion, conversion.UserDefinedFromConversion);
             Assert.Equal(Conversion.NoConversion, conversion.UserDefinedToConversion);
             Assert.NotNull(conversion.BestUnionConversionAnalysis);
-            Assert.Empty(conversion.OriginalUserDefinedConversions);
+            AssertEx.SequenceEqual(["S1..ctor(System.Int32 x)"], conversion.OriginalUserDefinedOrUnionConversions.ToTestDisplayStrings());
             Assert.True(conversion.UnderlyingConversions.IsDefault);
             Assert.False(conversion.IsArrayIndex);
             Assert.False(conversion.IsExtensionMethod);
@@ -12672,7 +12707,7 @@ class Program
             Assert.Equal(Conversion.NoConversion, conversion.UserDefinedFromConversion);
             Assert.Equal(Conversion.NoConversion, conversion.UserDefinedToConversion);
             Assert.NotNull(conversion.BestUnionConversionAnalysis);
-            Assert.Empty(conversion.OriginalUserDefinedConversions);
+            AssertEx.SequenceEqual(["S1..ctor(System.Int32 x)"], conversion.OriginalUserDefinedOrUnionConversions.ToTestDisplayStrings());
             Assert.True(conversion.UnderlyingConversions.IsDefault);
 
             CommonConversion commonConversion = conversion.ToCommonConversion();
@@ -13448,6 +13483,59 @@ class Program
         }
 
         [Fact]
+        public void UnionConversion_56_OverloadResolution()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1
+{
+    public S1(ushort x)
+    {
+        System.Console.Write(""ushort"");
+    }
+    public S1(int x) => throw null;
+    public object Value => throw null;
+}
+
+[System.Runtime.CompilerServices.Union]
+public struct S2
+{
+    public S2(int x) => throw null;
+    public S2(ushort x)
+    {
+        System.Console.Write(""ushort"");
+    }
+    public object Value => throw null;
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        Test1(10);
+        Test2(10);
+    }
+
+    static S1 Test1(byte x)
+    {
+        return x;
+    }   
+
+    static S2 Test2(byte x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "ushortushort").VerifyDiagnostics();
+
+            comp = CreateCompilation(src2, references: [comp.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "ushortushort").VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UnionConversion_MemberProvider_01_Implicit()
         {
             var src = @"
@@ -13556,7 +13644,7 @@ class Program
             Assert.Equal(Conversion.NoConversion, conversion.UserDefinedFromConversion);
             Assert.Equal(Conversion.NoConversion, conversion.UserDefinedToConversion);
             Assert.NotNull(conversion.BestUnionConversionAnalysis);
-            Assert.Empty(conversion.OriginalUserDefinedConversions);
+            AssertEx.SequenceEqual(["S1 S1.IUnionMembers.Create(System.Int32 x)"], conversion.OriginalUserDefinedOrUnionConversions.ToTestDisplayStrings());
             Assert.True(conversion.UnderlyingConversions.IsDefault);
             Assert.False(conversion.IsArrayIndex);
             Assert.False(conversion.IsExtensionMethod);

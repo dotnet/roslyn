@@ -10572,6 +10572,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.IsUnion);
             Debug.Assert(conversionOpt is null || targetInstanceSlotOpt < 0);
 
+            if (!conversion.IsValid)
+            {
+                var resultType = TypeWithState.Create(targetTypeWithNullability.Type, NullableFlowState.NotNull);
+                TrackAnalyzedNullabilityThroughConversionGroup(resultType, conversionOpt, conversionOperand);
+                return resultType;
+            }
+
+            Debug.Assert(conversion.BestUnionConversionAnalysis is { });
             UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
 
             Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
