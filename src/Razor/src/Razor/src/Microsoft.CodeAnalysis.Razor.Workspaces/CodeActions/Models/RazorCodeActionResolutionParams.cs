@@ -3,18 +3,13 @@
 
 using System;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 
-internal sealed class RazorCodeActionResolutionParams
+internal sealed record RazorCodeActionResolutionParams(TextDocumentIdentifier TextDocument) : DocumentResolveData(TextDocument)
 {
-    // NOTE: Uppercase T here is required to match Roslyn's DocumentResolveData structure, so that the Roslyn
-    //       language server can correctly route requests to us in cohosting. In future when we normalize
-    //       on to Roslyn types, we should inherit from that class so we don't have to remember to do this.
-    [JsonPropertyName("TextDocument")]
-    public required VSTextDocumentIdentifier TextDocument { get; set; }
-
     [JsonPropertyName("action")]
     public required string Action { get; set; }
 
