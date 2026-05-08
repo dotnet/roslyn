@@ -23,6 +23,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
+    [WorkItem("https://github.com/dotnet/roslyn/issues/83089")]
     public class GeneratorDriverTests_PreCompilation : CSharpTestBase
     {
         #region Basic Functionality

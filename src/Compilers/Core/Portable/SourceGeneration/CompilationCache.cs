@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis
 
                 if (_previous._compilation is not null
                     && ReferenceEquals(_previous._inputCompilation, _inputCompilation)
-                    && _previous._postInitTrees.SequenceEqual(postInitTrees)
-                    && _previous._preCompKeys.SequenceEqual(preCompKeys))
+                    && ReferenceSequenceEqual(_previous._postInitTrees, postInitTrees)
+                    && _previous._preCompKeys.AsSpan().SequenceEqual(preCompKeys.AsSpan()))
                 {
                     // Cache hit -- reuse the previous run's compilation reference. This makes
                     // SharedInputNodes.Compilation report Cached for every generator, which is
@@ -146,6 +146,28 @@ namespace Microsoft.CodeAnalysis
                     ? _compilationWithPostInit
                     : _compilationWithPostInit.AddSyntaxTrees(preCompTreesToAdd);
                 return new CompilationCache(newCompilation, _inputCompilation, postInitTrees, preCompKeys);
+            }
+
+            // Reference-equality SequenceEqual for ImmutableArray<T> where T is a class.
+            // ReferenceEqualityComparer is IEqualityComparer<object?>, so it can't be passed to
+            // ImmutableArray<T>.SequenceEqual's IEqualityComparer<T> parameter directly; this
+            // walks the underlying buffers via spans for an allocation-free comparison.
+            private static bool ReferenceSequenceEqual<T>(ImmutableArray<T> a, ImmutableArray<T> b) where T : class
+            {
+                if (a.Length != b.Length)
+                {
+                    return false;
+                }
+                var aSpan = a.AsSpan();
+                var bSpan = b.AsSpan();
+                for (int i = 0; i < aSpan.Length; i++)
+                {
+                    if (!ReferenceEquals(aSpan[i], bSpan[i]))
+                    {
+                        return false;
+                    }
+                }
+                return true;
             }
         }
     }
