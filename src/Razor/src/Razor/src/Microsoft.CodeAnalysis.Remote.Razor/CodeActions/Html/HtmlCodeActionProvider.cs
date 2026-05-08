@@ -2,19 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-internal class HtmlCodeActionProvider(IRazorEditService razorEditService) : IHtmlCodeActionProvider
+[Export(typeof(IHtmlCodeActionProvider)), Shared]
+[method: ImportingConstructor]
+internal sealed class HtmlCodeActionProvider(IRazorEditService razorEditService) : IHtmlCodeActionProvider
 {
     private readonly IRazorEditService _razorEditService = razorEditService;
 
@@ -28,7 +30,7 @@ internal class HtmlCodeActionProvider(IRazorEditService razorEditService) : IHtm
         {
             if (codeAction.Edit is not null)
             {
-                await MapAndFixHtmlCodeActionEditAsync(_razorEditService, context.DocumentSnapshot, codeAction, cancellationToken).ConfigureAwait(false);
+                await HtmlCodeActionHelpers.MapAndFixHtmlCodeActionEditAsync(_razorEditService, context.DocumentSnapshot, codeAction, cancellationToken).ConfigureAwait(false);
 
                 results.Add(codeAction);
             }
@@ -39,23 +41,5 @@ internal class HtmlCodeActionProvider(IRazorEditService razorEditService) : IHtm
         }
 
         return results.ToImmutable();
-    }
-
-    public static async Task MapAndFixHtmlCodeActionEditAsync(IRazorEditService razorEditService, IDocumentSnapshot documentSnapshot, CodeAction codeAction, CancellationToken cancellationToken)
-    {
-        Assumes.NotNull(codeAction.Edit);
-
-        await razorEditService.MapWorkspaceEditAsync(documentSnapshot, codeAction.Edit, cancellationToken).ConfigureAwait(false);
-
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var htmlSourceText = codeDocument.GetHtmlSourceText(cancellationToken);
-
-        // NOTE: We iterate over just the TextDocumentEdit objects and modify them in place.
-        // We intentionally do NOT create a new WorkspaceEdit here to avoid losing any
-        // CreateFile, RenameFile, or DeleteFile operations that may be in DocumentChanges.
-        foreach (var edit in codeAction.Edit.EnumerateTextDocumentEdits())
-        {
-            edit.Edits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, edit.Edits);
-        }
     }
 }

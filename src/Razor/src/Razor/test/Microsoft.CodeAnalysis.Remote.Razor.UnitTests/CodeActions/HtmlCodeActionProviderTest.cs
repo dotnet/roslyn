@@ -18,14 +18,13 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Moq;
+using Roslyn.LanguageServer.Protocol;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
-public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
+public class HtmlCodeActionProviderTest
 {
     [Fact]
     public async Task ProvideAsync_WrapsResolvableCodeActions()
@@ -50,7 +49,7 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : CohostEn
         ImmutableArray<RazorVSInternalCodeAction> codeActions = [new RazorVSInternalCodeAction() { Name = "Test" }];
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
+        var providedCodeActions = await provider.ProvideAsync(context, codeActions, CancellationToken.None);
 
         // Assert
         var action = Assert.Single(providedCodeActions);
@@ -110,7 +109,7 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : CohostEn
         ];
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
+        var providedCodeActions = await provider.ProvideAsync(context, codeActions, CancellationToken.None);
 
         // Assert
         var action = Assert.Single(providedCodeActions);

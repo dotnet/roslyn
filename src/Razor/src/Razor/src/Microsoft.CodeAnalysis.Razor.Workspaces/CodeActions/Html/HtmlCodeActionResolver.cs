@@ -20,7 +20,7 @@ internal class HtmlCodeActionResolver(IRazorEditService razorEditService) : IHtm
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
-        await HtmlCodeActionProvider.MapAndFixHtmlCodeActionEditAsync(_razorEditService, documentContext.Snapshot, codeAction, cancellationToken).ConfigureAwait(false);
+        await HtmlCodeActionHelpers.MapAndFixHtmlCodeActionEditAsync(_razorEditService, documentContext.Snapshot, codeAction, cancellationToken).ConfigureAwait(false);
 
         return codeAction;
     }
