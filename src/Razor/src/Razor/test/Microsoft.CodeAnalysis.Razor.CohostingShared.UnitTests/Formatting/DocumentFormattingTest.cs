@@ -10,11 +10,7 @@ using Microsoft.CodeAnalysis.Razor.Settings;
 using Xunit;
 using Xunit.Abstractions;
 
-#if COHOSTING
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
-#else
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-#endif
 
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {

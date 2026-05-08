@@ -12,11 +12,10 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost.Formatting;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 /// <summary>
 /// Not tests of the formatting log, but tests that use formatting logs sent in

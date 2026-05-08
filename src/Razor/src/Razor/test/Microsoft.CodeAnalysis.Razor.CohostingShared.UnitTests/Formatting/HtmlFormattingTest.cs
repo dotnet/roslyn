@@ -8,12 +8,11 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 using AssertEx = Roslyn.Test.Utilities.AssertEx;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost.Formatting;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {

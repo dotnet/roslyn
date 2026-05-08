@@ -10,12 +10,11 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
