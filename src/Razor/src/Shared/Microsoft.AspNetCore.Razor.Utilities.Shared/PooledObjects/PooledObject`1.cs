@@ -4,7 +4,6 @@
 // Copied from https://github/dotnet/roslyn
 
 using System;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
