@@ -302,6 +302,56 @@ public partial class CohostDocumentCompletionEndpointTest
     }
 
     [Fact]
+    public async Task HtmlSnippetsCompletion_NotInScriptBlock()
+    {
+        // Snippets should not appear inside <script> blocks, even on explicit invocation,
+        // because the content is JavaScript, not HTML element markup.
+        // htmlItemLabels must be supplied because the local provider returns null for script
+        // content, causing delegation to the (mock) external HTML server.
+        await VerifyCompletionListAsync(
+            input: """
+                <script>
+                $$
+                </script>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            htmlItemLabels: ["js-completion"],
+            expectedItemLabels: ["js-completion"],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_NotInStyleBlock()
+    {
+        // Snippets should not appear inside <style> blocks, even on explicit invocation,
+        // because the content is CSS, not HTML element markup.
+        // htmlItemLabels must be supplied because the local provider returns null for style
+        // content, causing delegation to the (mock) external HTML server.
+        await VerifyCompletionListAsync(
+            input: """
+                <style>
+                $$
+                </style>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            htmlItemLabels: ["css-completion"],
+            expectedItemLabels: ["css-completion"],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
     public async Task HtmlSnippetsCompletion_NotInStartTag()
     {
         await VerifyCompletionListAsync(

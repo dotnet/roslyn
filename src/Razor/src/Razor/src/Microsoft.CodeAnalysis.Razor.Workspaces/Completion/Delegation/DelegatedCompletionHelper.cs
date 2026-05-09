@@ -252,6 +252,14 @@ internal static class DelegatedCompletionHelper
             return false;
         }
 
+        // Don't offer snippets inside <script> or <style> blocks — those contain
+        // JavaScript/CSS content, not HTML element markup.
+        if (owner.FirstAncestorOrSelf<BaseMarkupElementSyntax>() is { } el
+            && RazorSyntaxFacts.IsScriptOrStyleBlock(el))
+        {
+            return false;
+        }
+
         return true;
     }
 
