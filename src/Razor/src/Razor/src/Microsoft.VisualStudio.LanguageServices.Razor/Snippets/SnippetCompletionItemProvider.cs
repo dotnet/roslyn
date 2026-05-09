@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -14,6 +15,26 @@ namespace Microsoft.VisualStudio.Razor.Snippets;
 [Export(typeof(ISnippetCompletionItemProvider))]
 internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProvider
 {
+    /// <summary>
+    /// Maps snippet shortcuts to the root HTML element they insert, for snippets
+    /// where the shortcut name differs from the tag name. Snippets not in this map
+    /// use their shortcut as the tag name (which covers the majority of cases,
+    /// including <c>$shortcut$</c>-based snippets like "div", "br", "ul").
+    /// </summary>
+    private static readonly FrozenDictionary<string, string> s_snippetTagNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["charset"] = "meta",
+        ["metaviewport"] = "meta",
+        ["dd"] = "dl",
+    }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Snippets that are not meaningful in Razor files (e.g., ASP.NET Web Forms
+    /// constructs like <c>&lt;script runat="server"&gt;</c>).
+    /// </summary>
+    private static readonly FrozenSet<string> s_razorExcludedSnippets = FrozenSet.ToFrozenSet(
+        ["scriptr", "scriptr2"], StringComparer.OrdinalIgnoreCase);
+
     [ImportingConstructor]
     public SnippetCompletionItemProvider(SnippetCache snippetCache)
     {
@@ -25,19 +46,13 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
     public void AddSnippetCompletions(
         ref PooledArrayBuilder<VSInternalCompletionItem> builder,
         RazorLanguageKind projectedKind,
-        VSInternalCompletionInvokeKind invokeKind,
-        string? triggerCharacter)
+        string? triggerCharacter,
+        ICollection<string> validElementNames)
     {
         // Temporary fix: snippets are broken in CSharp. We're investigating
         // but this is very disruptive. This quick fix unblocks things.
         // TODO: Add an option to enable this.
         if (projectedKind != RazorLanguageKind.Html)
-        {
-            return;
-        }
-
-        // Don't add snippets for deletion of a character
-        if (invokeKind == VSInternalCompletionInvokeKind.Deletion)
         {
             return;
         }
@@ -54,8 +69,26 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
             return;
         }
 
-        builder.AddRange(snippets
-            .Select(s => new VSInternalCompletionItem()
+        foreach (var s in snippets)
+        {
+            if (s_razorExcludedSnippets.Contains(s.Shortcut))
+            {
+                continue;
+            }
+
+            // When element names are available, only include snippets whose root
+            // element is valid in the current context. The element list is already
+            // context-aware (e.g., only tr/thead/tbody inside <table>).
+            if (validElementNames.Count > 0)
+            {
+                var tagName = s_snippetTagNameMap.TryGetValue(s.Shortcut, out var mapped) ? mapped : s.Shortcut;
+                if (!validElementNames.Contains(tagName))
+                {
+                    continue;
+                }
+            }
+
+            builder.Add(new VSInternalCompletionItem()
             {
                 Label = s.Shortcut,
                 Detail = s.Description,
@@ -63,8 +96,12 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
                 InsertText = s.Shortcut,
                 Data = s.CompletionData,
                 Kind = CompletionItemKind.Snippet,
-                CommitCharacters = []
-            }));
+                CommitCharacters = [],
+                // Sort snippets after elements with the same label, matching C# behavior.
+                SortText = s.Shortcut + " ",
+                VsResolveTextEditOnCommit = true
+            });
+        }
     }
 
     public bool TryResolveInsertString(VSInternalCompletionItem completionItem, [NotNullWhen(true)] out string? insertString)

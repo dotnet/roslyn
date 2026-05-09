@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
@@ -41,8 +41,8 @@ public class LocalHtmlCompletionProviderTest
         // Assert
         Assert.NotNull(result);
         Assert.NotEmpty(result.Items);
-        Assert.Contains(result.Items, item => item.Label == "p");
-        Assert.Contains(result.Items, item => item.Label == "span");
+        Assert.Contains(result.Items, static item => item.Label == "p");
+        Assert.Contains(result.Items, static item => item.Label == "span");
     }
 
     [Fact]
@@ -52,9 +52,9 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<ul><$$</ul>");
 
         Assert.NotNull(result);
-        Assert.Contains(result.Items, item => item.Label == "li");
+        Assert.Contains(result.Items, static item => item.Label == "li");
         // <div> is not allowed directly inside <ul>
-        Assert.DoesNotContain(result.Items, item => item.Label == "div");
+        Assert.DoesNotContain(result.Items, static item => item.Label == "div");
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class LocalHtmlCompletionProviderTest
 
         Assert.NotNull(result);
         // "nextid" is a deprecated element marked nonbrowseable in the schema
-        Assert.DoesNotContain(result.Items, item => item.Label == "nextid");
+        Assert.DoesNotContain(result.Items, static item => item.Label == "nextid");
     }
 
     #endregion
@@ -110,11 +110,11 @@ public class LocalHtmlCompletionProviderTest
 
         Assert.NotNull(result);
         // Global attributes
-        Assert.Contains(result.Items, item => item.Label == "id");
-        Assert.Contains(result.Items, item => item.Label == "class");
-        Assert.Contains(result.Items, item => item.Label == "style");
+        Assert.Contains(result.Items, static item => item.Label == "id");
+        Assert.Contains(result.Items, static item => item.Label == "class");
+        Assert.Contains(result.Items, static item => item.Label == "style");
         // Event attributes (vs:omtype="event")
-        Assert.Contains(result.Items, item => item.Label == "onclick");
+        Assert.Contains(result.Items, static item => item.Label == "onclick");
     }
 
     [Fact]
@@ -123,9 +123,9 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<input $$>");
 
         Assert.NotNull(result);
-        Assert.Contains(result.Items, item => item.Label == "type");
-        Assert.Contains(result.Items, item => item.Label == "value");
-        Assert.Contains(result.Items, item => item.Label == "placeholder");
+        Assert.Contains(result.Items, static item => item.Label == "type");
+        Assert.Contains(result.Items, static item => item.Label == "value");
+        Assert.Contains(result.Items, static item => item.Label == "placeholder");
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("""<div dr$$opzone=""></div>""");
 
         Assert.NotNull(result);
-        var draggable = result.Items.FirstOrDefault(item => item.Label == "draggable");
+        var draggable = result.Items.FirstOrDefault(static item => item.Label == "draggable");
         Assert.NotNull(draggable);
         // Should be plain name, no ="$0"
         Assert.Equal(InsertTextFormat.Plaintext, draggable.InsertTextFormat);
@@ -150,7 +150,7 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<div $$>");
 
         Assert.NotNull(result);
-        var onclick = result.Items.FirstOrDefault(item => item.Label == "onclick");
+        var onclick = result.Items.FirstOrDefault(static item => item.Label == "onclick");
         Assert.NotNull(onclick);
         // Event attributes get a distinct icon (Event kind in LSP)
         Assert.Equal(CompletionItemKind.Event, onclick.Kind);
@@ -164,7 +164,7 @@ public class LocalHtmlCompletionProviderTest
 
         Assert.NotNull(result);
         // "datafld" is a deprecated attribute marked nonbrowseable
-        Assert.DoesNotContain(result.Items, item => item.Label == "datafld");
+        Assert.DoesNotContain(result.Items, static item => item.Label == "datafld");
     }
 
     [Fact]
@@ -178,12 +178,12 @@ public class LocalHtmlCompletionProviderTest
         Assert.NotNull(result);
 
         // Should include global attributes — not filtered by "adfs"
-        Assert.Contains(result.Items, item => item.Label == "id");
-        Assert.Contains(result.Items, item => item.Label == "class");
-        Assert.Contains(result.Items, item => item.Label == "style");
+        Assert.Contains(result.Items, static item => item.Label == "id");
+        Assert.Contains(result.Items, static item => item.Label == "class");
+        Assert.Contains(result.Items, static item => item.Label == "style");
 
         // TextEdit range should be zero-length at cursor (no replacement of "adfs")
-        var idItem = result.Items.First(item => item.Label == "id");
+        var idItem = result.Items.First(static item => item.Label == "id");
         Assert.NotNull(idItem.TextEdit);
         var textEdit = (TextEdit)idItem.TextEdit.Value;
         Assert.Equal(new LspRange
@@ -206,9 +206,9 @@ public class LocalHtmlCompletionProviderTest
 
         Assert.NotNull(result);
         Assert.NotEmpty(result.Items);
-        Assert.Contains(result.Items, item => item.Label == "text");
-        Assert.Contains(result.Items, item => item.Label == "checkbox");
-        Assert.Contains(result.Items, item => item.Label == "hidden");
+        Assert.Contains(result.Items, static item => item.Label == "text");
+        Assert.Contains(result.Items, static item => item.Label == "checkbox");
+        Assert.Contains(result.Items, static item => item.Label == "hidden");
     }
 
     [Fact]
@@ -285,8 +285,8 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<div dir=\"l$$\">");
 
         Assert.NotNull(result);
-        Assert.Contains(result.Items, item => item.Label == "ltr");
-        Assert.Contains(result.Items, item => item.Label == "rtl");
+        Assert.Contains(result.Items, static item => item.Label == "ltr");
+        Assert.Contains(result.Items, static item => item.Label == "rtl");
     }
 
     #endregion
@@ -302,7 +302,7 @@ public class LocalHtmlCompletionProviderTest
 
         Assert.NotNull(result);
         // <li> should appear as a completion (new sibling implicitly closes current <li>)
-        Assert.Contains(result.Items, item => item.Label == "li");
+        Assert.Contains(result.Items, static item => item.Label == "li");
     }
 
     [Fact]
@@ -312,7 +312,7 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<div><p><$$</p></div>");
 
         Assert.NotNull(result);
-        Assert.Contains(result.Items, item => item.Label == "p");
+        Assert.Contains(result.Items, static item => item.Label == "p");
     }
 
     #endregion
@@ -336,7 +336,7 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<div><$$</div>");
 
         Assert.NotNull(result);
-        Assert.Contains(result.Items, item => item.Label == "form");
+        Assert.Contains(result.Items, static item => item.Label == "form");
     }
 
     #endregion
@@ -352,9 +352,9 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<my-custom-element $$>");
 
         Assert.NotNull(result);
-        Assert.Contains(result.Items, item => item.Label == "id");
-        Assert.Contains(result.Items, item => item.Label == "class");
-        Assert.Contains(result.Items, item => item.Label == "style");
+        Assert.Contains(result.Items, static item => item.Label == "id");
+        Assert.Contains(result.Items, static item => item.Label == "class");
+        Assert.Contains(result.Items, static item => item.Label == "style");
     }
 
     [Fact]
@@ -387,8 +387,8 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<my-widget><$$</my-widget>");
 
         Assert.NotNull(result);
-        Assert.Contains(result.Items, item => item.Label == "div");
-        Assert.Contains(result.Items, item => item.Label == "span");
+        Assert.Contains(result.Items, static item => item.Label == "div");
+        Assert.Contains(result.Items, static item => item.Label == "span");
     }
 
     #endregion
@@ -402,10 +402,10 @@ public class LocalHtmlCompletionProviderTest
 
         Assert.NotNull(result);
         Assert.NotEmpty(result.Items);
-        Assert.Contains(result.Items, item => item.FilterText == "amp");
-        Assert.Contains(result.Items, item => item.FilterText == "lt");
-        Assert.Contains(result.Items, item => item.FilterText == "gt");
-        Assert.Contains(result.Items, item => item.FilterText == "nbsp");
+        Assert.Contains(result.Items, static item => item.FilterText == "amp");
+        Assert.Contains(result.Items, static item => item.FilterText == "lt");
+        Assert.Contains(result.Items, static item => item.FilterText == "gt");
+        Assert.Contains(result.Items, static item => item.FilterText == "nbsp");
     }
 
     [Fact]
@@ -415,7 +415,7 @@ public class LocalHtmlCompletionProviderTest
 
         Assert.NotNull(result);
         Assert.NotEmpty(result.Items);
-        Assert.Contains(result.Items, item => item.FilterText == "nbsp");
+        Assert.Contains(result.Items, static item => item.FilterText == "nbsp");
     }
 
     [Fact]
@@ -434,7 +434,7 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<div>&$$</div>");
 
         Assert.NotNull(result);
-        var ampItem = result.Items.Single(item => item.FilterText == "amp");
+        var ampItem = result.Items.Single(static item => item.FilterText == "amp");
         Assert.Null(ampItem.InsertText);
         Assert.Equal("&amp; (&)", ampItem.Label);
         Assert.Equal(CompletionItemKind.Constant, ampItem.Kind);
@@ -486,7 +486,7 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<div></$$");
 
         Assert.NotNull(result);
-        var item = Assert.Single(result.Items, item => item.Label == "/div>");
+        var item = Assert.Single(result.Items, static item => item.Label == "/div>");
         Assert.Null(item.VsCommitCharacters);
     }
 
@@ -496,11 +496,38 @@ public class LocalHtmlCompletionProviderTest
         var result = GetCompletionList("<div><p><span></$$");
 
         Assert.NotNull(result);
-        var closeItems = result.Items.Where(i => i.Label!.StartsWith("/")).ToArray();
+        var closeItems = result.Items.Where(static i => i.Label!.StartsWith("/")).ToArray();
         Assert.Equal(3, closeItems.Length);
         Assert.Equal("/span>", closeItems[0].Label);
         Assert.Equal("/p>", closeItems[1].Label);
         Assert.Equal("/div>", closeItems[2].Label);
+    }
+
+    [Fact]
+    public void CloseTagCompletion_InStartTag_DoesNotOfferSelfCloseTag()
+    {
+        // When typing "<table" inside a <div>, close-tag items should offer /div>
+        // (the unclosed ancestor), but NOT /table> (the element being typed).
+        var result = GetCompletionList("<div><tabl$$");
+
+        Assert.NotNull(result);
+        var closeItems = result.Items.Where(static i => i.Label!.StartsWith("/")).ToArray();
+        Assert.Single(closeItems);
+        Assert.Equal("/div>", closeItems[0].Label);
+        Assert.DoesNotContain(result.Items, static item => item.Label == "/tabl>");
+    }
+
+    [Fact]
+    public void CloseTagCompletion_InStartTag_AllChildrenContext_DoesNotOfferSelfCloseTag()
+    {
+        // In an unknown parent (all children allowed), close-tag items should
+        // still not include the element being typed.
+        var result = GetCompletionList("<my-widget><sp$$");
+
+        Assert.NotNull(result);
+        var closeItems = result.Items.Where(static i => i.Label!.StartsWith("/")).ToArray();
+        Assert.Single(closeItems);
+        Assert.Equal("/my-widget>", closeItems[0].Label);
     }
 
     #endregion

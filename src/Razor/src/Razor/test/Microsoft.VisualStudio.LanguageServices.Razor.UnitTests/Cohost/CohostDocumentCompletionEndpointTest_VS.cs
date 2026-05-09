@@ -163,8 +163,85 @@ public partial class CohostDocumentCompletionEndpointTest
     [Fact]
     public async Task HtmlSnippetsCompletion_NotInTextContent()
     {
-        // Snippets should not appear in plain text content — they're only relevant
-        // when the user is actively writing a tag name (after typing '<').
+        // Typing 'a' in plain text content does not trigger completion at all.
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                $$
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "a",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: null,
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_InEmptyDocument_OnExplicitInvocation()
+    {
+        // Empty document with explicit invocation — snippets should appear.
+        await VerifyCompletionListAsync(
+            input: """
+                $$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["snippet1", "snippet2"],
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_NotInWhitespaceOnlyDocument1()
+    {
+        // Typing 'a' in whitespace-only document does not trigger completion at all.
+        await VerifyCompletionListAsync(
+            input: """
+
+                $$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "a",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: null,
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_NotInWhitespaceOnlyDocument2()
+    {
+        // Typing 'a' in whitespace-only document does not trigger completion at all.
+        await VerifyCompletionListAsync(
+            input: """
+                $$
+
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "a",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: null,
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_InTextContent_OnExplicitInvocation()
+    {
+        // Explicit invocation (Ctrl+Space) in text content should show snippets.
         await VerifyCompletionListAsync(
             input: """
                 This is a Razor document.
@@ -179,32 +256,14 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: [],
-            unexpectedItemLabels: ["snippet1", "snippet2"],
+            expectedItemLabels: ["snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
     [Fact]
-    public async Task HtmlSnippetsCompletion_NotInEmptyDocument()
+    public async Task HtmlSnippetsCompletion_InWhitespaceDocument_OnExplicitInvocation()
     {
-        await VerifyCompletionListAsync(
-            input: """
-                $$
-                """,
-            completionContext: new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
-                TriggerCharacter = null,
-                TriggerKind = CompletionTriggerKind.Invoked
-            },
-            expectedItemLabels: [],
-            unexpectedItemLabels: ["snippet1", "snippet2"],
-            snippetLabels: ["snippet1", "snippet2"]);
-    }
-
-    [Fact]
-    public async Task HtmlSnippetsCompletion_NotInWhitespaceOnlyDocument1()
-    {
+        // Explicit invocation (Ctrl+Space) in whitespace-only document should show snippets.
         await VerifyCompletionListAsync(
             input: """
 
@@ -216,18 +275,19 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: [],
-            unexpectedItemLabels: ["snippet1", "snippet2"],
+            expectedItemLabels: ["snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
     [Fact]
-    public async Task HtmlSnippetsCompletion_NotInWhitespaceOnlyDocument2()
+    public async Task HtmlSnippetsCompletion_NotInAttributeValue()
     {
+        // Snippets should not appear in attribute values, even on explicit invocation.
+        // HTML delegation still happens (attribute value completions come from the HTML server),
+        // so we supply htmlItemLabels to avoid the _INVALID_ sentinel.
         await VerifyCompletionListAsync(
             input: """
-                $$
-
+                <div class="$$"></div>
                 """,
             completionContext: new VSInternalCompletionContext()
             {
@@ -235,7 +295,8 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: [],
+            htmlItemLabels: ["bold"],
+            expectedItemLabels: ["bold"],
             unexpectedItemLabels: ["snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
@@ -317,9 +378,9 @@ public partial class CohostDocumentCompletionEndpointTest
     }
 
     [Fact]
-    public async Task HtmlSnippetsCompletion_NotAfterCompleteEndTag()
+    public async Task HtmlSnippetsCompletion_InTextContentAfterEndTag_OnExplicitInvocation()
     {
-        // Cursor is in text content after a complete end tag — no snippets here.
+        // Cursor is in text content after a complete end tag — snippets appear on explicit invocation.
         await VerifyCompletionListAsync(
             input: """
                 <div></div>$$
@@ -329,8 +390,81 @@ public partial class CohostDocumentCompletionEndpointTest
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: [],
-            unexpectedItemLabels: ["snippet1", "snippet2"],
+            expectedItemLabels: ["snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_ContextFiltering_OnlyValidChildren()
+    {
+        // Inside <ul>, only snippets whose root element is a valid child should appear.
+        // "ul" produces a <ul> element (valid inside <ul>? No — but "li" is).
+        // We test with "li" (valid child of <ul>) and "div" (not valid).
+        var result = await VerifyCompletionListAsync(
+            input: """
+                <ul>
+                <$$
+                </ul>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["li"],
+            unexpectedItemLabels: ["div"],
+            snippetLabels: ["li", "div", "table"]);
+
+        Assert.NotNull(result);
+
+        // "li" snippet should be present (valid child of <ul>)
+        Assert.Contains(result.Items, static item => item.Label == "li" && item.Kind == CompletionItemKind.Snippet);
+        // "div" and "table" snippets should be filtered out (not valid children of <ul>)
+        Assert.DoesNotContain(result.Items, static item => item.Label == "div" && item.Kind == CompletionItemKind.Snippet);
+        Assert.DoesNotContain(result.Items, static item => item.Label == "table" && item.Kind == CompletionItemKind.Snippet);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_RazorExcludedSnippets_NotShown()
+    {
+        // "scriptr" and "scriptr2" are ASP.NET Web Forms snippets excluded in Razor files.
+        await VerifyCompletionListAsync(
+            input: """
+                <$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["div"],
+            unexpectedItemLabels: ["scriptr", "scriptr2"],
+            snippetLabels: ["div", "scriptr", "scriptr2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_SortText_SnippetsSortAfterElements()
+    {
+        // Snippets should have SortText = shortcut + " " so they sort after
+        // element completions with the same label.
+        var result = await VerifyCompletionListAsync(
+            input: """
+                <$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["div"],
+            snippetLabels: ["div"]);
+
+        Assert.NotNull(result);
+        var snippetItem = Assert.Single(result.Items, static item => item.Label == "div" && item.Kind == CompletionItemKind.Snippet);
+        // Trailing space causes snippet to sort after the element with the same name
+        Assert.Equal("div ", snippetItem.SortText);
     }
 }

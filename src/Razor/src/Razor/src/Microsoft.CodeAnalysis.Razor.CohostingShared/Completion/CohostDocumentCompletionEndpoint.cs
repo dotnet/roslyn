@@ -55,6 +55,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
 
+    private static readonly HashSetPool<string> s_elementNameSetPool =
+        HashSetPool<string>.Create(comparer: StringComparer.OrdinalIgnoreCase);
+
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
@@ -188,8 +191,8 @@ internal sealed class CohostDocumentCompletionEndpoint(
             combinedCompletionList = AddSnippets(
                 combinedCompletionList,
                 documentPositionInfo.LanguageKind,
-                completionContext.InvokeKind,
-                completionContext.TriggerCharacter);
+                completionContext.TriggerCharacter,
+                completionPositionInfo.IsStartTagSnippetContext);
         }
 
         if (combinedCompletionList is null)
@@ -240,15 +243,29 @@ internal sealed class CohostDocumentCompletionEndpoint(
     private RazorVSInternalCompletionList? AddSnippets(
         RazorVSInternalCompletionList? completionList,
         RazorLanguageKind languageKind,
-        VSInternalCompletionInvokeKind invokeKind,
-        string? triggerCharacter)
+        string? triggerCharacter,
+        bool isStartTagContext)
     {
+        // Build a set of valid element names from the existing completion list so
+        // snippets can be filtered to only those valid in the current context.
+        using var _ = s_elementNameSetPool.GetPooledObject(out var validElementNames);
+        if (completionList?.Items is { Length: > 0 } existingItems)
+        {
+            foreach (var item in existingItems)
+            {
+                if (item.Kind is CompletionItemKind.Element)
+                {
+                    validElementNames.Add(item.Label);
+                }
+            }
+        }
+
         using var builder = new PooledArrayBuilder<VSInternalCompletionItem>();
         _snippetCompletionItemProvider.AssumeNotNull().AddSnippetCompletions(
             ref builder.AsRef(),
             languageKind,
-            invokeKind,
-            triggerCharacter);
+            triggerCharacter,
+            validElementNames);
 
         // If there were no snippets, just return the original list
         if (builder.Count == 0)
@@ -260,7 +277,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
         // we'll still be able to pull it out again when the client sends us back an item. The SetResultId method associates
         // the resolution context with each item.
         var snippetCompletionList = new RazorVSInternalCompletionList { IsIncomplete = true, Items = builder.ToArray() };
-        var resolutionContext = new SnippetCompletionResolutionContext();
+        var resolutionContext = new SnippetCompletionResolutionContext(isStartTagContext);
         var resultId = _completionListCache.Add(snippetCompletionList, resolutionContext);
         snippetCompletionList.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
 

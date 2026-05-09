@@ -329,7 +329,11 @@ internal static partial class LocalHtmlCompletionProvider
                 // in the schema for description/metadata.
                 using var filteredItems = new PooledArrayBuilder<VSInternalCompletionItem>(allowedChildren.Length);
 
-                AddCloseTagItems(ref filteredItems.AsRef(), owner, elementRange, includeOpenBracket: false, commitChars);
+                // Add close-tag completions for unclosed ancestor elements. We pass the
+                // element node (owner.Parent) rather than the start tag (owner) so that
+                // AddCloseTagItems skips the element being typed and only offers close
+                // tags for elements above it.
+                AddCloseTagItems(ref filteredItems.AsRef(), owner.Parent, elementRange, includeOpenBracket: false, commitChars);
 
                 // If the parent is an implicitly-closable element without an end tag,
                 // offer the parent itself as a child (typing a new sibling implicitly closes this one).
@@ -373,7 +377,7 @@ internal static partial class LocalHtmlCompletionProvider
 
         using var items = new PooledArrayBuilder<VSInternalCompletionItem>(allElements.Length);
 
-        AddCloseTagItems(ref items.AsRef(), owner, elementRange, includeOpenBracket: false, commitChars);
+        AddCloseTagItems(ref items.AsRef(), owner.Parent, elementRange, includeOpenBracket: false, commitChars);
 
         foreach (var element in allElements)
         {

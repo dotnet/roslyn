@@ -203,52 +203,56 @@ internal static class DelegatedCompletionHelper
         return true;
     }
 
-    public static bool ShouldIncludeSnippets(RazorCodeDocument razorCodeDocument, int absoluteIndex)
+    public static bool ShouldIncludeSnippets(RazorCodeDocument razorCodeDocument, int absoluteIndex, out bool isStartTagContext)
     {
+        isStartTagContext = false;
+
         var root = razorCodeDocument.GetRequiredSyntaxRoot();
+        var token = root.FindToken(absoluteIndex, includeWhitespace: true);
 
-        var token = root.FindToken(absoluteIndex, includeWhitespace: false);
-        if (token.Kind == SyntaxKind.EndOfFile &&
-            token.GetPreviousToken().Parent is { } parent &&
-            parent.FirstAncestorOrSelf<RazorSyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n)) is { } eofTag &&
-            IsIncompleteTag(eofTag))
+        // At EOF after an incomplete start tag, the parser doesn't place EOF inside the tag.
+        token = token.Kind == SyntaxKind.EndOfFile
+            ? token.GetPreviousToken()
+            : token;
+
+        // Empty document — allow snippets on explicit invocation.
+        if (token.Kind == SyntaxKind.EndOfFile)
         {
-            // If we're at the end of the file, we check if the previous token is part of an incomplete start or end tag,
-            // because the parser treats whitespace at the end different. eg with "<$$[EOF]" or "<div $$" or "</$$[EOF]",
-            // the EndOfFile won't be seen as being in the tag, so without this special casing snippets would be shown.
+            return true;
+        }
+
+        // Show snippets when the cursor is within a start tag name (e.g., <di$$v>),
+        // or right after '<' where the name hasn't been typed yet.
+        var enclosingStartTag = token.Parent?.FirstAncestorOrSelf<BaseMarkupStartTagSyntax>();
+        if (enclosingStartTag is not null)
+        {
+            // If the position is inside a start tag but NOT in the tag name, it's in an
+            // attribute area (name, value, whitespace between attributes). No snippets there.
+            isStartTagContext = enclosingStartTag.Name.Span.IntersectsWith(absoluteIndex);
+
+            return isStartTagContext;
+        }
+
+        // In text content (element body), snippets are available on explicit invocation only
+        // (the caller must check the invoke kind before using this result).
+        // Only match text literals that are direct element body content,
+        // not those inside attribute blocks (names, prefixes, value delimiters).
+        var owner = token.Parent;
+        if (owner is not MarkupTextLiteralSyntax || owner.Parent is not (MarkupBlockSyntax or BaseMarkupElementSyntax))
+        {
             return false;
         }
 
-        var node = token.Parent;
-        var startOrEndTag = node?.FirstAncestorOrSelf<RazorSyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n));
-
-        if (startOrEndTag is null)
+        // Guard against FindToken resolving to a body-level token when the cursor
+        // is actually inside a start tag (e.g., between empty attribute value quotes).
+        // Check if the position falls within the start tag's span.
+        if (owner.Parent is MarkupElementSyntax element
+            && element.MarkupStartTag.Span.Contains(absoluteIndex))
         {
-            // We're in text content (not inside any tag). Don't show HTML snippets here —
-            // they should only appear when the user is actively writing a tag name.
             return false;
         }
 
-        // Show snippets only when the cursor is within the tag name (e.g., <di$$v> or </di$$v>).
-        // Don't show them in attribute areas or other parts of the tag.
-        var nameSpan = startOrEndTag switch
-        {
-            BaseMarkupStartTagSyntax startTag => startTag.Name.Span,
-            BaseMarkupEndTagSyntax endTag => endTag.Name.Span,
-            _ => default
-        };
-
-        return nameSpan.Length > 0 && nameSpan.IntersectsWith(absoluteIndex);
-
-        static bool IsIncompleteTag(RazorSyntaxNode tag)
-        {
-            return tag switch
-            {
-                BaseMarkupStartTagSyntax startTag => startTag.CloseAngle.IsMissing,
-                BaseMarkupEndTagSyntax endTag => endTag.CloseAngle.IsMissing,
-                _ => false
-            };
-        }
+        return true;
     }
 
     /// <summary>

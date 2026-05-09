@@ -80,13 +80,21 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return provisionalCompletionInfo with { ShouldIncludeDelegationSnippets = false };
         }
 
-        var shouldIncludeSnippets = positionInfo.LanguageKind == RazorLanguageKind.Html
-            && DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, index);
+        var shouldIncludeSnippets = false;
+        var isStartTagSnippetContext = false;
+        if (positionInfo.LanguageKind == RazorLanguageKind.Html
+            && DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, index, out isStartTagSnippetContext))
+        {
+            // In start-tag context, snippets are always available (triggered by typing '<').
+            // In text content, snippets are only available on explicit invocation (Ctrl+Space).
+            shouldIncludeSnippets = isStartTagSnippetContext
+                || completionContext.InvokeKind == VSInternalCompletionInvokeKind.Explicit;
+        }
 
         var shouldIncludeHtmlCompletions = positionInfo.LanguageKind == RazorLanguageKind.Html
             && !DelegatedCompletionHelper.IsInDirectiveAttributeParameterContext(codeDocument, index);
 
-        return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets, shouldIncludeHtmlCompletions);
+        return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets, shouldIncludeHtmlCompletions, isStartTagSnippetContext);
     }
 
     public ValueTask<CompletionResponse> GetCompletionAsync(

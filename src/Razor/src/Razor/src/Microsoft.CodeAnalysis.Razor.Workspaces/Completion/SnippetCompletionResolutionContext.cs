@@ -3,4 +3,6 @@
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal sealed record SnippetCompletionResolutionContext : ICompletionResolveContext;
+/// <param name="IsStartTagContext">When true, the snippet was triggered inside a start tag (after &lt;)
+/// and resolve should strip the leading &lt; from the snippet body to avoid duplication.</param>
+internal sealed record SnippetCompletionResolutionContext(bool IsStartTagContext = false) : ICompletionResolveContext;

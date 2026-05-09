@@ -119,6 +119,14 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
                 if (_snippetCompletionItemProvider is not null &&
                     _snippetCompletionItemProvider.TryResolveInsertString(completionItem, out var insertString))
                 {
+                    // In start-tag context, the '<' is already in the document and outside the
+                    // replacement span. Strip it to avoid duplication
+                    // (e.g., "<table>...</table>" → "table>...</table>").
+                    if (snippetContext.IsStartTagContext && insertString.Length > 0 && insertString[0] == '<')
+                    {
+                        insertString = insertString[1..];
+                    }
+
                     completionItem.InsertText = insertString;
                 }
 

@@ -28,7 +28,9 @@ internal sealed class SnippetCache
     public ImmutableArray<SnippetInfo> GetSnippets(SnippetLanguage language)
     {
         using var _ = _lock.EnterReadLock();
-        return _snippetCache[language];
+        return _snippetCache.TryGetValue(language, out var snippets)
+            ? snippets
+            : [];
     }
 
     internal string? TryResolveSnippetString(SnippetCompletionData completionData)
