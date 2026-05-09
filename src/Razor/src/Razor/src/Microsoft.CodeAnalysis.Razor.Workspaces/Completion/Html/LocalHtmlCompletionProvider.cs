@@ -104,7 +104,7 @@ internal static partial class LocalHtmlCompletionProvider
             PositionKind.Element => GetElementCompletionList(completionContext.Options, context, out resolveContext),
             PositionKind.Attribute => GetAttributeCompletionList(context, out resolveContext),
             PositionKind.AttributeValue => GetAttributeValueCompletionList(context),
-            PositionKind.CloseTag => GetCloseTagCompletionList(context),
+            PositionKind.CloseTag => GetCloseTagCompletionList(completionContext.Options, context),
             PositionKind.Entity => EntityCompletion.BuildCompletionList(context.ReplacementRange),
             _ => throw new InvalidOperationException($"Unexpected PositionKind: {context.Kind}"),
         };
@@ -329,7 +329,7 @@ internal static partial class LocalHtmlCompletionProvider
                 // in the schema for description/metadata.
                 using var filteredItems = new PooledArrayBuilder<VSInternalCompletionItem>(allowedChildren.Length);
 
-                AddCloseTagItems(ref filteredItems.AsRef(), owner, elementRange, includeOpenBracket: false);
+                AddCloseTagItems(ref filteredItems.AsRef(), owner, elementRange, includeOpenBracket: false, commitChars);
 
                 // If the parent is an implicitly-closable element without an end tag,
                 // offer the parent itself as a child (typing a new sibling implicitly closes this one).
@@ -373,7 +373,7 @@ internal static partial class LocalHtmlCompletionProvider
 
         using var items = new PooledArrayBuilder<VSInternalCompletionItem>(allElements.Length);
 
-        AddCloseTagItems(ref items.AsRef(), owner, elementRange, includeOpenBracket: false);
+        AddCloseTagItems(ref items.AsRef(), owner, elementRange, includeOpenBracket: false, commitChars);
 
         foreach (var element in allElements)
         {
@@ -396,10 +396,14 @@ internal static partial class LocalHtmlCompletionProvider
     /// <summary>
     /// Returns a completion list containing only close-tag items for <c>&lt;/</c> contexts.
     /// </summary>
-    private static RazorVSInternalCompletionList GetCloseTagCompletionList(PositionContext context)
+    private static RazorVSInternalCompletionList GetCloseTagCompletionList(RazorCompletionOptions completionOptions, PositionContext context)
     {
+        var commitChars = completionOptions.CommitElementsWithSpace
+            ? s_elementCommitCharacters
+            : s_elementCommitCharactersNoSpace;
+
         using var items = new PooledArrayBuilder<VSInternalCompletionItem>();
-        AddCloseTagItems(ref items.AsRef(), context.Owner, context.ReplacementRange, includeOpenBracket: true);
+        AddCloseTagItems(ref items.AsRef(), context.Owner, context.ReplacementRange, includeOpenBracket: true, commitChars);
 
         return new RazorVSInternalCompletionList
         {
@@ -418,7 +422,8 @@ internal static partial class LocalHtmlCompletionProvider
         ref PooledArrayBuilder<VSInternalCompletionItem> items,
         RazorSyntaxNode owner,
         LspRange range,
-        bool includeOpenBracket)
+        bool includeOpenBracket,
+        string[] commitCharacters)
     {
         HashSet<string>? seen = null;
         var sortIndex = 0;
@@ -464,6 +469,7 @@ internal static partial class LocalHtmlCompletionProvider
                 InsertTextFormat = InsertTextFormat.Plaintext,
                 SortText = $"!{sortIndex++:D2}",
                 TextEdit = new TextEdit { Range = range, NewText = newText },
+                CommitCharacters = commitCharacters,
             };
 
             items.Add(item);

@@ -34,12 +34,22 @@ internal static partial class CompletionListOptimizer
             return completionList;
         }
 
+        // If list-level commit characters are already set, don't overwrite them —
+        // an upstream provider or optimizer made a deliberate choice.
+        if (completionList.CommitCharacters is not null ||
+            completionList.ItemDefaults?.CommitCharacters is not null)
+        {
+            return completionList;
+        }
+
         if (!TryFindMostCommonCommitCharacterGroup(completionList, out var bestCommitCharacterGroup))
         {
             return completionList;
         }
 
         // Clear per-item commit characters for items that match the promoted set.
+        // For items that intentionally have no commit characters, set an explicit empty
+        // array so they don't inherit the promoted list-level defaults.
         foreach (var completionItem in completionList.Items)
         {
             if (completionItem is not VSInternalCompletionItem vsItem)
@@ -47,11 +57,17 @@ internal static partial class CompletionListOptimizer
                 continue;
             }
 
-            if (TryGetCommitCharacterSource(vsItem, out var strings, out var vsChars) &&
-                CommitCharactersEqual(bestCommitCharacterGroup.Strings, bestCommitCharacterGroup.VsChars, strings, vsChars))
+            if (TryGetCommitCharacterSource(vsItem, out var strings, out var vsChars))
             {
-                vsItem.CommitCharacters = null;
-                vsItem.VsCommitCharacters = null;
+                if (CommitCharactersEqual(bestCommitCharacterGroup.Strings, bestCommitCharacterGroup.VsChars, strings, vsChars))
+                {
+                    vsItem.CommitCharacters = null;
+                    vsItem.VsCommitCharacters = null;
+                }
+            }
+            else
+            {
+                vsItem.CommitCharacters = [];
             }
         }
 
