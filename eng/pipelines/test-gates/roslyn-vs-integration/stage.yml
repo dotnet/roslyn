@@ -24,7 +24,7 @@ parameters:
   default: '(default)'
 - name: testsCommitFromVisualStudioBuild
   type: boolean
-  default: true
+  default: false
 - name: testMachineCleanUpStrategy
   type: string
   default: delete
