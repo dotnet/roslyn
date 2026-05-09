@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion.Html;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 /// - vs:implicitclosure (implicit close tag behavior)
 /// - vs:disallowedancestor (ancestor filtering)
 /// </summary>
-public class LocalHtmlCompletionProviderTest(ITestOutputHelper testOutput)
+public class LocalHtmlCompletionProviderTest
 {
     private static readonly RazorCompletionOptions s_defaultOptions = new(
         SnippetsSupported: true,
