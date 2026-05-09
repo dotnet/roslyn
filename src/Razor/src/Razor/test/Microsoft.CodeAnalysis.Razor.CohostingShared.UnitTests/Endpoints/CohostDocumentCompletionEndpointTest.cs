@@ -767,6 +767,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             htmlItemLabels: ["html-should-not-delegate"]);
     }
 
+#if !VSCODE // "/" is only a registered trigger character in VS, not VS Code
     [Fact]
     public async Task CloseTagCompletion_SkipsHtmlDelegation()
     {
@@ -788,6 +789,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             unexpectedItemLabels: ["html-should-not-delegate"],
             htmlItemLabels: ["html-should-not-delegate"]);
     }
+#endif
 
     [Fact]
     public async Task EntityCompletion_SkipsHtmlDelegation()
