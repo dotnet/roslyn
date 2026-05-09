@@ -105,10 +105,9 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
     internal static RazorAnalyzerAssemblyResolver CreateResolver() => new RazorAnalyzerAssemblyResolver();
 
     /// <summary>
-    /// When running in Visual Studio the razor generator will be redirected to the razor language 
-    /// services directory. That will not contain all of the necessary DLLs. Anything that is a 
-    /// platform DLL, like the object pool, will be in the VS platform directory. Need to fall back
-    /// to the compiler context to find those.
+    /// When running in Visual Studio the razor generator will be redirected to the razor language
+    /// services directory. That will not always contain all of the necessary Razor DLLs, so the
+    /// resolver needs to fall back to the compiler context to find them.
     /// </summary>
     [Fact]
     public void FallbackToCompilerContext()
@@ -116,7 +115,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         var dir1 = TempRoot.CreateDirectory().Path;
         CreateRazorAssemblies(dir1);
         var dir2 = TempRoot.CreateDirectory().Path;
-        var fileName = $"{RazorAnalyzerAssemblyResolver.ObjectPoolAssemblyName}.dll";
+        var fileName = $"{RazorAnalyzerAssemblyResolver.RazorUtilsAssemblyName}.dll";
         File.Move(Path.Combine(dir1, fileName), Path.Combine(dir2, fileName));
 
         RunWithLoader((resolver, loader, currentLoadContext) =>
@@ -124,7 +123,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
             Assembly? expectedAssembly = null;
             loader.CompilerLoadContext.Resolving += (context, name) =>
             {
-                if (name.Name == RazorAnalyzerAssemblyResolver.ObjectPoolAssemblyName)
+                if (name.Name == RazorAnalyzerAssemblyResolver.RazorUtilsAssemblyName)
                 {
                     expectedAssembly = context.LoadFromAssemblyPath(Path.Combine(dir2, fileName));
                     return expectedAssembly;
@@ -135,7 +134,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 
             var actualAssembly = resolver.Resolve(
                 loader,
-                new AssemblyName(RazorAnalyzerAssemblyResolver.ObjectPoolAssemblyName),
+                new AssemblyName(RazorAnalyzerAssemblyResolver.RazorUtilsAssemblyName),
                 currentLoadContext,
                 dir1);
             Assert.NotNull(expectedAssembly);

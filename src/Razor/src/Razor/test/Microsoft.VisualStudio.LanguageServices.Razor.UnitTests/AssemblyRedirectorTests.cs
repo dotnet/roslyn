@@ -19,7 +19,6 @@ public class AssemblyRedirectorTests
         {
             "Microsoft.CodeAnalysis.Razor.Compiler.dll",
             "Microsoft.AspNetCore.Razor.Utilities.Shared.dll",
-            "Microsoft.Extensions.ObjectPool.dll",
             "System.Collections.Immutable.dll"
         };
 
