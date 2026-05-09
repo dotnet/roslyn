@@ -376,7 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!modifierErrors &&
-                typeKind == TypeKind.Delegate &&
                 (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
                 this.ContainingModule.UseUpdatedMemorySafetyRules)
             {
@@ -883,7 +882,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
-        internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
+        internal bool HasUnsafeModifier => HasFlag(DeclarationModifiers.Unsafe);
+
+        internal bool IntroducesUnsafeContext => HasUnsafeModifier && !ContainingModule.UseUpdatedMemorySafetyRules;
 
         /// <summary>
         /// If this type is file-local, the syntax tree in which the type is declared. Otherwise, null.

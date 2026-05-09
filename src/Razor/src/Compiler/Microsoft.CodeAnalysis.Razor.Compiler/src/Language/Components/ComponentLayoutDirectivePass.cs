@@ -36,7 +36,7 @@ internal sealed class ComponentLayoutDirectivePass : IntermediateNodePassBase, I
         var attributeNode = new CSharpCodeIntermediateNode();
         attributeNode.Children.AddRange([
             IntermediateNodeFactory.CSharpToken($"[global::{ComponentsApi.LayoutAttribute.FullTypeName}(typeof("),
-            IntermediateNodeFactory.CSharpToken(token.Content, documentNode.Options.DesignTime ? null : token.Source),
+            IntermediateNodeFactory.CSharpToken(token.Content, token.Source),
             IntermediateNodeFactory.CSharpToken("))]")
         ]);
 

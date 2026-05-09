@@ -883,7 +883,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 #endif
     }
 
-    // Tests HTML attributes and DirectiveAttributeParameterCompletionItemProvider
+    // Tests that directive attribute parameter positions only show bind modifiers, not HTML attributes
     [Fact]
     public async Task HtmlAndDirectiveAttributeParameterNamesCompletion()
     {
@@ -901,8 +901,92 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["style", "dir", "culture", "event", "format", "get", "set", "after"],
-            htmlItemLabels: ["style", "dir"]);
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"]);
+    }
+
+    // Tests that cursor at end of parameter name before equals still shows bind modifiers
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeParameterNamesBeforeEqualsCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind-Value:fo$$=""></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"],
+            unexpectedItemLabels: ["dir", "lang", "@bind-Value"],
+            htmlItemLabels: ["dir", "lang"]);
+    }
+
+    // Tests that cursor immediately after colon (no parameter text yet) shows bind modifiers
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeParameterNamesAfterColonCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind-Value:$$></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"],
+            unexpectedItemLabels: ["dir", "lang", "@bind-Value"],
+            htmlItemLabels: ["dir", "lang"]);
+    }
+
+    // Tests that committing a directive attribute parameter completion with an existing parameter
+    // does not duplicate the parameter portion (e.g., @bind-:after="" -> @bind-Value:after="", not @bind-Value:after:after="")
+    [Fact]
+    public async Task DirectiveAttributeParameterCompletion_WithExistingParameter_HasTextEditReplacingFullSpan()
+    {
+        var result = await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind-Value$$:after=""></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["@bind-value", "@bind-value:format"],
+            unexpectedItemLabels: ["dir", "lang"],
+            htmlItemLabels: ["dir", "lang"]);
+
+        Assert.NotNull(result);
+
+        var item = Assert.Single(result.Items, i => i.Label == "@bind-value:format");
+
+        // The list should have a TextEdit that replaces the full "bind-Value:after" span (not just "bind-")
+        // This prevents the editor's word-boundary heuristic from stopping at the colon and duplicating ":after"
+        Assert.True(result.ItemDefaults!.EditRange.HasValue, "Expected ItemDefaults.EditRange on the completion list to prevent duplication");
+        Assert.Equal("bind-value:format", item.TextEditText);
+        var textEditRange = Assert.IsType<LspRange>(result.ItemDefaults!.EditRange.Value.Value);
+
+        // The range should cover "bind-Value:after" (everything after '@' through end of parameter name)
+        Assert.Equal(textEditRange.Start.Line, textEditRange.End.Line);
+        var replacedLength = textEditRange.End.Character - textEditRange.Start.Character;
+        Assert.Equal("bind-Value:after".Length, replacedLength);
     }
 
     [Fact]

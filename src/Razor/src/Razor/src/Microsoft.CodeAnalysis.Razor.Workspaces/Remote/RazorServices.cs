@@ -49,6 +49,7 @@ internal static class RazorServices
             (typeof(IRemoteCompletionService), null),
             (typeof(IRemoteCodeActionsService), null),
             (typeof(IRemoteAddNestedFileService), null),
+            (typeof(IRemoteCallHierarchyService), null),
             (typeof(IRemoteFindAllReferencesService), null),
             (typeof(IRemoteMEFInitializationService), null),
             (typeof(IRemoteCodeLensService), null),

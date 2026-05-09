@@ -27,12 +27,6 @@ internal sealed class ComponentWhitespacePass : ComponentIntermediateNodePassBas
             return;
         }
 
-        // There's no benefit running the whitespace trimmer during design-time builds
-        if (documentNode.Options.DesignTime)
-        {
-            return;
-        }
-
         var razorLanguageVersion = codeDocument.ParserOptions.LanguageVersion;
         var useLegacyBehavior = razorLanguageVersion < RazorLanguageVersion.Version_5_0;
         if (useLegacyBehavior)

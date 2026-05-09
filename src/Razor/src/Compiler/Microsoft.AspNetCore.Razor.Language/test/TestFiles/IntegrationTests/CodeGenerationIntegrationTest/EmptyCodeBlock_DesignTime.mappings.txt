@@ -1,5 +1,0 @@
-﻿Source Location: (20:2,2 [0] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyCodeBlock.cshtml)
-||
-Generated Location: (1479:33,2 [0] )
-||
-

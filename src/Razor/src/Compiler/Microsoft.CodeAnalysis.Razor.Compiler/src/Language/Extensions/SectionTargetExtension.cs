@@ -9,9 +9,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Extensions;
 
 public sealed class SectionTargetExtension : ISectionTargetExtension
 {
-    // Compatibility for 1.X projects
-    private const string DefaultWriterName = "__razor_section_writer";
-
     public static readonly string DefaultSectionMethodName = "DefineSection";
 
     public string SectionMethodName { get; set; } = DefaultSectionMethodName;
@@ -24,19 +21,9 @@ public sealed class SectionTargetExtension : ISectionTargetExtension
             .Write(node.SectionName)
             .Write("\", ");
 
-        if (context.Options.DesignTime)
+        using (context.CodeWriter.BuildAsyncLambda())
         {
-            using (context.CodeWriter.BuildAsyncLambda(DefaultWriterName))
-            {
-                context.RenderChildren(node);
-            }
-        }
-        else
-        {
-            using (context.CodeWriter.BuildAsyncLambda())
-            {
-                context.RenderChildren(node);
-            }
+            context.RenderChildren(node);
         }
 
         context.CodeWriter.WriteEndMethodInvocation(endLine: true);

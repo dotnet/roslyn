@@ -265,18 +265,18 @@ internal static class CodeWriterExtensions
         return writer.Write("new ").Write(typeName).Write("(");
     }
 
-    public static CodeWriter WriteStringLiteral(this CodeWriter writer, string literal)
-        => writer.WriteStringLiteral(literal.AsMemory());
+    public static CodeWriter WriteStringLiteral(this CodeWriter writer, string literal, bool utf8 = false)
+        => writer.WriteStringLiteral(literal.AsMemory(), utf8);
 
-    public static CodeWriter WriteStringLiteral(this CodeWriter writer, ReadOnlyMemory<char> literal)
+    public static CodeWriter WriteStringLiteral(this CodeWriter writer, ReadOnlyMemory<char> literal, bool utf8 = false)
     {
         if (literal.Length >= 256 && literal.Length <= 1500 && literal.Span.IndexOf('\0') == -1)
         {
-            WriteVerbatimStringLiteral(writer, literal);
+            WriteVerbatimStringLiteral(writer, literal, utf8);
         }
         else
         {
-            WriteCStyleStringLiteral(writer, literal);
+            WriteCStyleStringLiteral(writer, literal, utf8);
         }
 
         return writer;
@@ -540,7 +540,7 @@ internal static class CodeWriterExtensions
 
         writer.WriteLine(" set; }");
 
-        if (defaultValue && context?.Options is { SuppressNullabilityEnforcement: false, DesignTime: false })
+        if (defaultValue && context?.Options is { SuppressNullabilityEnforcement: false })
         {
             writer.WriteLine(" = default!;");
         }
@@ -565,7 +565,7 @@ internal static class CodeWriterExtensions
 
         static void WriteToken(CodeWriter writer, string content, SourceSpan? span, CodeRenderingContext context)
         {
-            if (span is not null && context?.Options.DesignTime == false)
+            if (span is not null)
             {
                 using (context.BuildEnhancedLinePragma(span))
                 {
@@ -663,7 +663,7 @@ internal static class CodeWriterExtensions
         }
 
         writer.Write("namespace ");
-        if (context.Options.DesignTime || span is null)
+        if (span is null)
         {
             writer.WriteLine(name);
         }
@@ -797,20 +797,9 @@ internal static class CodeWriterExtensions
         {
             var writer = context.CodeWriter;
 
-            if (context.Options.DesignTime)
+            using (context.BuildEnhancedLinePragma(source))
             {
-                using (context.BuildLinePragma(source))
-                {
-                    context.AddSourceMappingFor(source);
-                    writer.Write(content);
-                }
-            }
-            else
-            {
-                using (context.BuildEnhancedLinePragma(source))
-                {
-                    writer.Write(content);
-                }
+                writer.Write(content);
             }
         }
     }
@@ -900,7 +889,7 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
+    private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal, bool utf8 = false)
     {
         writer.Write("@\"");
 
@@ -926,10 +915,15 @@ internal static class CodeWriterExtensions
 
         writer.Write("\"");
 
+        if (utf8)
+        {
+            writer.Write("u8");
+        }
+
         writer.CurrentIndent = oldIndent;
     }
 
-    private static void WriteCStyleStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
+    private static void WriteCStyleStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal, bool utf8 = false)
     {
         // From CSharpCodeGenerator.QuoteSnippetStringCStyle in CodeDOM
         writer.Write("\"");
@@ -983,6 +977,11 @@ internal static class CodeWriterExtensions
         writer.Write(literal);
 
         writer.Write("\"");
+
+        if (utf8)
+        {
+            writer.Write("u8");
+        }
     }
 
     public struct CSharpCodeWritingScope : IDisposable

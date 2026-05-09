@@ -38,12 +38,6 @@ public sealed partial class RazorCodeGenerationOptions
             NewLine = DefaultNewLine;
         }
 
-        public bool DesignTime
-        {
-            get => _flags.IsFlagSet(Flags.DesignTime);
-            set => _flags.UpdateFlag(Flags.DesignTime, value);
-        }
-
         public bool IndentWithTabs
         {
             get => _flags.IsFlagSet(Flags.IndentWithTabs);
@@ -161,6 +155,15 @@ public sealed partial class RazorCodeGenerationOptions
         {
             get => _flags.IsFlagSet(Flags.RemapLinePragmaPathsOnWindows);
             set => _flags.UpdateFlag(Flags.RemapLinePragmaPathsOnWindows, value);
+        }
+
+        /// <summary>
+        /// Gets or sets a value that determines if HTML literals should be written as C# UTF-8 string literals.
+        /// </summary>
+        public bool WriteHtmlUtf8StringLiterals
+        {
+            get => _flags.IsFlagSet(Flags.WriteHtmlUtf8StringLiterals);
+            set => _flags.UpdateFlag(Flags.WriteHtmlUtf8StringLiterals, value);
         }
 
         public RazorCodeGenerationOptions ToOptions()

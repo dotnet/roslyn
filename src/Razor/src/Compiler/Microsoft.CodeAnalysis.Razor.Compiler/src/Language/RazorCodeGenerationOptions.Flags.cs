@@ -10,7 +10,6 @@ public sealed partial class RazorCodeGenerationOptions
     [Flags]
     private enum Flags
     {
-        DesignTime = 1 << 0,
         IndentWithTabs = 1 << 1,
         SuppressChecksum = 1 << 2,
         SuppressMetadataAttributes = 1 << 3,
@@ -22,8 +21,8 @@ public sealed partial class RazorCodeGenerationOptions
         UseEnhancedLinePragma = 1 << 9,
         SuppressAddComponentParameter = 1 << 10,
         RemapLinePragmaPathsOnWindows = 1 << 11,
+        WriteHtmlUtf8StringLiterals = 1 << 12,
 
         DefaultFlags = UseEnhancedLinePragma,
-        DefaultDesignTimeFlags = DesignTime | SuppressMetadataAttributes | UseEnhancedLinePragma | RemapLinePragmaPathsOnWindows
     }
 }

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -83,39 +82,32 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             throw new InvalidOperationException(message);
         }
 
-        if (context.Options.DesignTime)
+        // Call into the tag helper scope manager to start a new tag helper scope.
+        // Also capture the value as the current execution context.
+        context.CodeWriter
+            .WriteStartAssignment(ExecutionContextVariableName)
+            .WriteStartInstanceMethodInvocation(
+                ScopeManagerVariableName,
+                ScopeManagerBeginMethodName);
+
+        // Assign a unique ID for this instance of the source HTML tag. This must be unique
+        // per call site, e.g. if the tag is on the view twice, there should be two IDs.
+        var uniqueId = GetDeterministicId(context);
+
+        context.CodeWriter.WriteStringLiteral(node.TagName)
+            .WriteParameterSeparator()
+            .Write($"{TagModeTypeName}.{node.TagMode}")
+            .WriteParameterSeparator()
+            .WriteStringLiteral(uniqueId)
+            .WriteParameterSeparator();
+
+        using (context.CodeWriter.BuildAsyncLambda())
         {
-            context.RenderChildren(node);
+            // We remove and redirect writers so TagHelper authors can retrieve content.
+            context.RenderChildren(node, IntermediateNodeWriter.Instance);
         }
-        else
-        {
-            // Call into the tag helper scope manager to start a new tag helper scope.
-            // Also capture the value as the current execution context.
-            context.CodeWriter
-                .WriteStartAssignment(ExecutionContextVariableName)
-                .WriteStartInstanceMethodInvocation(
-                    ScopeManagerVariableName,
-                    ScopeManagerBeginMethodName);
 
-            // Assign a unique ID for this instance of the source HTML tag. This must be unique
-            // per call site, e.g. if the tag is on the view twice, there should be two IDs.
-            var uniqueId = GetDeterministicId(context);
-            
-            context.CodeWriter.WriteStringLiteral(node.TagName)
-                .WriteParameterSeparator()
-                .Write($"{TagModeTypeName}.{node.TagMode}")
-                .WriteParameterSeparator()
-                .WriteStringLiteral(uniqueId)
-                .WriteParameterSeparator();
-
-            using (context.CodeWriter.BuildAsyncLambda())
-            {
-                // We remove and redirect writers so TagHelper authors can retrieve content.
-                context.RenderChildren(node, RuntimeNodeWriter.Instance);
-            }
-
-            context.CodeWriter.WriteEndMethodInvocation();
-        }
+        context.CodeWriter.WriteEndMethodInvocation();
     }
 
     public void WriteTagHelperCreate(CodeRenderingContext context, DefaultTagHelperCreateIntermediateNode node)
@@ -131,13 +123,10 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             .Write(CreateTagHelperMethodName)
             .WriteLine($"<global::{node.TypeName}>();");
 
-        if (!context.Options.DesignTime)
-        {
-            context.CodeWriter.WriteInstanceMethodInvocation(
-                ExecutionContextVariableName,
-                ExecutionContextAddMethodName,
-                node.FieldName);
-        }
+        context.CodeWriter.WriteInstanceMethodInvocation(
+            ExecutionContextVariableName,
+            ExecutionContextAddMethodName,
+            node.FieldName);
     }
 
     public void WriteTagHelperExecute(CodeRenderingContext context, DefaultTagHelperExecuteIntermediateNode node)
@@ -159,31 +148,28 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             .Write(ExecutionContextVariableName)
             .WriteEndMethodInvocation();
 
-        if (!context.Options.DesignTime)
+        var tagHelperOutputAccessor = $"{ExecutionContextVariableName}.{ExecutionContextOutputPropertyName}";
+
+        context.CodeWriter
+            .WriteLine($"if (!{tagHelperOutputAccessor}.{TagHelperOutputIsContentModifiedPropertyName})");
+
+        using (context.CodeWriter.BuildScope())
         {
-            var tagHelperOutputAccessor = $"{ExecutionContextVariableName}.{ExecutionContextOutputPropertyName}";
-
             context.CodeWriter
-                .WriteLine($"if (!{tagHelperOutputAccessor}.{TagHelperOutputIsContentModifiedPropertyName})");
-
-            using (context.CodeWriter.BuildScope())
-            {
-                context.CodeWriter
-                    .Write("await ")
-                    .WriteInstanceMethodInvocation(
-                        ExecutionContextVariableName,
-                        ExecutionContextSetOutputContentAsyncMethodName);
-            }
-
-            context.CodeWriter
-                .WriteStartMethodInvocation(WriteTagHelperOutputMethod)
-                .Write(tagHelperOutputAccessor)
-                .WriteEndMethodInvocation()
-                .WriteStartAssignment(ExecutionContextVariableName)
+                .Write("await ")
                 .WriteInstanceMethodInvocation(
-                    ScopeManagerVariableName,
-                    ScopeManagerEndMethodName);
+                    ExecutionContextVariableName,
+                    ExecutionContextSetOutputContentAsyncMethodName);
         }
+
+        context.CodeWriter
+            .WriteStartMethodInvocation(WriteTagHelperOutputMethod)
+            .Write(tagHelperOutputAccessor)
+            .WriteEndMethodInvocation()
+            .WriteStartAssignment(ExecutionContextVariableName)
+            .WriteInstanceMethodInvocation(
+                ScopeManagerVariableName,
+                ScopeManagerEndMethodName);
     }
 
     public void WriteTagHelperHtmlAttribute(CodeRenderingContext context, DefaultTagHelperHtmlAttributeIntermediateNode node)
@@ -194,78 +180,71 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             throw new InvalidOperationException(message);
         }
 
-        if (context.Options.DesignTime)
+        var attributeValueStyleParameter = $"{HtmlAttributeValueStyleTypeName}.{node.AttributeStructure}";
+        var isConditionalAttributeValue = node.Children.Any(
+            child => child is CSharpExpressionAttributeValueIntermediateNode || child is CSharpCodeAttributeValueIntermediateNode);
+
+        // All simple text and minimized attributes will be pre-allocated.
+        if (isConditionalAttributeValue)
         {
-            context.RenderChildren(node);
+            // Dynamic attribute value should be run through the conditional attribute removal system. It's
+            // unbound and contains C#.
+
+            // TagHelper attribute rendering is buffered by default. We do not want to write to the current
+            // writer.
+            var valuePieceCount = node.Children.Count(
+                child =>
+                    child is HtmlAttributeValueIntermediateNode ||
+                    child is CSharpExpressionAttributeValueIntermediateNode ||
+                    child is CSharpCodeAttributeValueIntermediateNode ||
+                    child is ExtensionIntermediateNode);
+
+            context.CodeWriter
+                .WriteStartMethodInvocation(BeginAddHtmlAttributeValuesMethodName)
+                .Write(ExecutionContextVariableName)
+                .WriteParameterSeparator()
+                .WriteStringLiteral(node.AttributeName)
+                .WriteParameterSeparator()
+                .WriteIntegerLiteral(valuePieceCount)
+                .WriteParameterSeparator()
+                .Write(attributeValueStyleParameter)
+                .WriteEndMethodInvocation();
+
+            context.RenderChildren(node, TagHelperHtmlAttributeRuntimeNodeWriter.Instance);
+
+            context.CodeWriter
+                .WriteMethodInvocation(
+                    EndAddHtmlAttributeValuesMethodName,
+                    ExecutionContextVariableName);
         }
         else
         {
-            var attributeValueStyleParameter = $"{HtmlAttributeValueStyleTypeName}.{node.AttributeStructure}";
-            var isConditionalAttributeValue = node.Children.Any(
-                child => child is CSharpExpressionAttributeValueIntermediateNode || child is CSharpCodeAttributeValueIntermediateNode);
+            // This is a data-* attribute which includes C#. Do not perform the conditional attribute removal or
+            // other special cases used when IsDynamicAttributeValue(). But the attribute must still be buffered to
+            // determine its final value.
 
-            // All simple text and minimized attributes will be pre-allocated.
-            if (isConditionalAttributeValue)
-            {
-                // Dynamic attribute value should be run through the conditional attribute removal system. It's
-                // unbound and contains C#.
+            // Attribute value is not plain text, must be buffered to determine its final value.
+            context.CodeWriter.WriteMethodInvocation(BeginWriteTagHelperAttributeMethodName);
 
-                // TagHelper attribute rendering is buffered by default. We do not want to write to the current
-                // writer.
-                var valuePieceCount = node.Children.Count(
-                    child =>
-                        child is HtmlAttributeValueIntermediateNode ||
-                        child is CSharpExpressionAttributeValueIntermediateNode ||
-                        child is CSharpCodeAttributeValueIntermediateNode ||
-                        child is ExtensionIntermediateNode);
+            // We're building a writing scope around the provided chunks which captures everything written from the
+            // page. Therefore, we do not want to write to any other buffer since we're using the pages buffer to
+            // ensure we capture all content that's written, directly or indirectly.
+            context.RenderChildren(node, IntermediateNodeWriter.Instance);
 
-                context.CodeWriter
-                    .WriteStartMethodInvocation(BeginAddHtmlAttributeValuesMethodName)
-                    .Write(ExecutionContextVariableName)
-                    .WriteParameterSeparator()
-                    .WriteStringLiteral(node.AttributeName)
-                    .WriteParameterSeparator()
-                    .WriteIntegerLiteral(valuePieceCount)
-                    .WriteParameterSeparator()
-                    .Write(attributeValueStyleParameter)
-                    .WriteEndMethodInvocation();
-
-                context.RenderChildren(node, TagHelperHtmlAttributeRuntimeNodeWriter.Instance);
-
-                context.CodeWriter
-                    .WriteMethodInvocation(
-                        EndAddHtmlAttributeValuesMethodName,
-                        ExecutionContextVariableName);
-            }
-            else
-            {
-                // This is a data-* attribute which includes C#. Do not perform the conditional attribute removal or
-                // other special cases used when IsDynamicAttributeValue(). But the attribute must still be buffered to
-                // determine its final value.
-
-                // Attribute value is not plain text, must be buffered to determine its final value.
-                context.CodeWriter.WriteMethodInvocation(BeginWriteTagHelperAttributeMethodName);
-
-                // We're building a writing scope around the provided chunks which captures everything written from the
-                // page. Therefore, we do not want to write to any other buffer since we're using the pages buffer to
-                // ensure we capture all content that's written, directly or indirectly.
-                context.RenderChildren(node, RuntimeNodeWriter.Instance);
-
-                context.CodeWriter
-                    .WriteStartAssignment(StringValueBufferVariableName)
-                    .WriteMethodInvocation(EndWriteTagHelperAttributeMethodName)
-                    .WriteStartInstanceMethodInvocation(
-                        ExecutionContextVariableName,
-                        ExecutionContextAddHtmlAttributeMethodName)
-                    .WriteStringLiteral(node.AttributeName)
-                    .WriteParameterSeparator()
-                    .WriteStartMethodInvocation(MarkAsHtmlEncodedMethodName)
-                    .Write(StringValueBufferVariableName)
-                    .WriteEndMethodInvocation(endLine: false)
-                    .WriteParameterSeparator()
-                    .Write(attributeValueStyleParameter)
-                    .WriteEndMethodInvocation();
-            }
+            context.CodeWriter
+                .WriteStartAssignment(StringValueBufferVariableName)
+                .WriteMethodInvocation(EndWriteTagHelperAttributeMethodName)
+                .WriteStartInstanceMethodInvocation(
+                    ExecutionContextVariableName,
+                    ExecutionContextAddHtmlAttributeMethodName)
+                .WriteStringLiteral(node.AttributeName)
+                .WriteParameterSeparator()
+                .WriteStartMethodInvocation(MarkAsHtmlEncodedMethodName)
+                .Write(StringValueBufferVariableName)
+                .WriteEndMethodInvocation(endLine: false)
+                .WriteParameterSeparator()
+                .Write(attributeValueStyleParameter)
+                .WriteEndMethodInvocation();
         }
     }
 
@@ -278,31 +257,28 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             throw new InvalidOperationException(message);
         }
 
-        if (!context.Options.DesignTime)
+        // Ensure that the property we're trying to set has initialized its dictionary bound properties.
+        if (node.IsIndexerNameMatch &&
+            object.ReferenceEquals(FindFirstUseOfIndexer(tagHelperNode, node), node))
         {
-            // Ensure that the property we're trying to set has initialized its dictionary bound properties.
-            if (node.IsIndexerNameMatch &&
-                object.ReferenceEquals(FindFirstUseOfIndexer(tagHelperNode, node), node))
+            // Throw a reasonable Exception at runtime if the dictionary property is null.
+            context.CodeWriter
+                .WriteLine($"if ({node.FieldName}.{node.PropertyName} == null)");
+            using (context.CodeWriter.BuildScope())
             {
-                // Throw a reasonable Exception at runtime if the dictionary property is null.
+                // System is in Host.NamespaceImports for all MVC scenarios. No need to generate FullName
+                // of InvalidOperationException type.
                 context.CodeWriter
-                    .WriteLine($"if ({node.FieldName}.{node.PropertyName} == null)");
-                using (context.CodeWriter.BuildScope())
-                {
-                    // System is in Host.NamespaceImports for all MVC scenarios. No need to generate FullName
-                    // of InvalidOperationException type.
-                    context.CodeWriter
-                        .Write("throw ")
-                        .WriteStartNewObject(nameof(InvalidOperationException))
-                        .WriteStartMethodInvocation(FormatInvalidIndexerAssignmentMethodName)
-                        .WriteStringLiteral(node.AttributeName)
-                        .WriteParameterSeparator()
-                        .WriteStringLiteral(node.TagHelper.TypeName)
-                        .WriteParameterSeparator()
-                        .WriteStringLiteral(node.PropertyName)
-                        .WriteEndMethodInvocation(endLine: false)   // End of method call
-                        .WriteEndMethodInvocation();   // End of new expression / throw statement
-                }
+                    .Write("throw ")
+                    .WriteStartNewObject(nameof(InvalidOperationException))
+                    .WriteStartMethodInvocation(FormatInvalidIndexerAssignmentMethodName)
+                    .WriteStringLiteral(node.AttributeName)
+                    .WriteParameterSeparator()
+                    .WriteStringLiteral(node.TagHelper.TypeName)
+                    .WriteParameterSeparator()
+                    .WriteStringLiteral(node.PropertyName)
+                    .WriteEndMethodInvocation(endLine: false)   // End of method call
+                    .WriteEndMethodInvocation();   // End of new expression / throw statement
             }
         }
 
@@ -328,127 +304,55 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         // If we get there, this is the first time seeing this property so we need to evaluate the expression.
         if (node.BoundAttribute.ExpectsStringValue(node.AttributeName))
         {
-            if (context.Options.DesignTime)
-            {
-                context.RenderChildren(node);
+            context.CodeWriter.WriteMethodInvocation(BeginWriteTagHelperAttributeMethodName);
 
-                WritePropertyAccessorStartAssignment(context.CodeWriter, node);
-                if (node.Children.Count == 1 && node.Children.First() is HtmlContentIntermediateNode htmlNode)
-                {
-                    var content = GetContent(htmlNode);
-                    context.CodeWriter.WriteStringLiteral(content);
-                }
-                else
-                {
-                    context.CodeWriter.Write("string.Empty");
-                }
-                context.CodeWriter.WriteLine(";");
-            }
-            else
-            {
-                context.CodeWriter.WriteMethodInvocation(BeginWriteTagHelperAttributeMethodName);
+            context.RenderChildren(node, LiteralRuntimeNodeWriter.Instance);
 
-                context.RenderChildren(node, LiteralRuntimeNodeWriter.Instance);
+            context.CodeWriter
+                .WriteStartAssignment(StringValueBufferVariableName)
+                .WriteMethodInvocation(EndWriteTagHelperAttributeMethodName);
 
-                context.CodeWriter
-                    .WriteStartAssignment(StringValueBufferVariableName)
-                    .WriteMethodInvocation(EndWriteTagHelperAttributeMethodName);
-
-                WritePropertyAccessorStartAssignment(context.CodeWriter, node)
-                    .WriteLine($"{StringValueBufferVariableName};");
-            }
+            WritePropertyAccessorStartAssignment(context.CodeWriter, node)
+                .WriteLine($"{StringValueBufferVariableName};");
         }
         else
         {
-            if (context.Options.DesignTime)
+            WritePropertyAccessorStartAssignment(context.CodeWriter, node);
+
+            if (node.BoundAttribute.IsEnum &&
+                node.Children is [CSharpIntermediateToken token])
             {
-                var firstMappedChild = node.Children.FirstOrDefault(child => child.Source != null) as IntermediateNode;
-                var valueStart = firstMappedChild?.Source;
+                context.CodeWriter
+                    .Write($"global::{node.BoundAttribute.TypeName}.");
+            }
 
-                using (context.BuildLinePragma(node.Source))
-                {
-                    var accessorLength = GetPropertyAccessorLength(node);
-                    var assignmentPrefixLength = accessorLength + " = ".Length;
-                    if (node.BoundAttribute.IsEnum &&
-                        node.Children is [CSharpIntermediateToken token])
-                    {
-                        assignmentPrefixLength += $"global::{node.BoundAttribute.TypeName}.".Length;
-
-                        if (valueStart != null)
-                        {
-                            context.CodeWriter.WritePadding(assignmentPrefixLength, node.Source, context);
-                        }
-
-                        WritePropertyAccessorStartAssignment(context.CodeWriter, node)
-                            .Write($"global::{node.BoundAttribute.TypeName}.");
-                    }
-                    else
-                    {
-                        if (valueStart != null)
-                        {
-                            context.CodeWriter.WritePadding(assignmentPrefixLength, node.Source, context);
-                        }
-
-                        WritePropertyAccessorStartAssignment(context.CodeWriter, node);
-                    }
-
-                    if (node.Children.Count == 0 &&
-                        node.AttributeStructure == AttributeStructure.Minimized &&
-                        node.BoundAttribute.ExpectsBooleanValue(node.AttributeName))
-                    {
-                        // If this is a minimized boolean attribute, set the value to true.
-                        context.CodeWriter.Write("true");
-                    }
-                    else
-                    {
-                        RenderTagHelperAttributeInline(context, node, node.Source);
-                    }
-
-                    context.CodeWriter.WriteLine(";");
-                }
+            if (node.Children.Count == 0 &&
+                node.AttributeStructure == AttributeStructure.Minimized &&
+                node.BoundAttribute.ExpectsBooleanValue(node.AttributeName))
+            {
+                // If this is a minimized boolean attribute, set the value to true.
+                context.CodeWriter.Write("true");
             }
             else
             {
-                WritePropertyAccessorStartAssignment(context.CodeWriter, node);
-
-                if (node.BoundAttribute.IsEnum &&
-                    node.Children is [CSharpIntermediateToken token])
-                {
-                    context.CodeWriter
-                        .Write($"global::{node.BoundAttribute.TypeName}.");
-                }
-
-                if (node.Children.Count == 0 &&
-                    node.AttributeStructure == AttributeStructure.Minimized &&
-                    node.BoundAttribute.ExpectsBooleanValue(node.AttributeName))
-                {
-                    // If this is a minimized boolean attribute, set the value to true.
-                    context.CodeWriter.Write("true");
-                }
-                else
-                {
-                    RenderTagHelperAttributeInline(context, node, node.Source);
-                }
-
-                context.CodeWriter.WriteLine(";");
+                RenderTagHelperAttributeInline(context, node, node.Source);
             }
+
+            context.CodeWriter.WriteLine(";");
         }
 
-        if (!context.Options.DesignTime)
-        {
-            // We need to inform the context of the attribute value.
-            context.CodeWriter
-                .WriteStartInstanceMethodInvocation(
-                    ExecutionContextVariableName,
-                    ExecutionContextAddTagHelperAttributeMethodName)
-                .WriteStringLiteral(node.AttributeName)
-                .WriteParameterSeparator();
+        // We need to inform the context of the attribute value.
+        context.CodeWriter
+            .WriteStartInstanceMethodInvocation(
+                ExecutionContextVariableName,
+                ExecutionContextAddTagHelperAttributeMethodName)
+            .WriteStringLiteral(node.AttributeName)
+            .WriteParameterSeparator();
 
-            WritePropertyAccessor(context.CodeWriter, node)
-                .WriteParameterSeparator()
-                .Write($"global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.{node.AttributeStructure}")
-                .WriteEndMethodInvocation();
-        }
+        WritePropertyAccessor(context.CodeWriter, node)
+            .WriteParameterSeparator()
+            .Write($"global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.{node.AttributeStructure}")
+            .WriteEndMethodInvocation();
     }
 
     public void WriteTagHelperRuntime(CodeRenderingContext context, DefaultTagHelperRuntimeIntermediateNode node)
@@ -459,43 +363,40 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         context.CodeWriter
             .WriteLine($"private {TagHelperRunnerTypeName} {RunnerVariableName} = new {TagHelperRunnerTypeName}();");
 
-        if (!context.Options.DesignTime)
+        context.CodeWriter.WriteField(s_fieldUnusedModifiers, s_privateModifiers, "string", StringValueBufferVariableName);
+
+        var backedScopeManageVariableName = "__backed" + ScopeManagerVariableName;
+        context.CodeWriter
+            .Write("private ")
+            .WriteVariableDeclaration(
+                ScopeManagerTypeName,
+                backedScopeManageVariableName,
+                value: null);
+
+        context.CodeWriter
+            .WriteLine($"private {ScopeManagerTypeName} {ScopeManagerVariableName}");
+
+        using (context.CodeWriter.BuildScope())
         {
-            context.CodeWriter.WriteField(s_fieldUnusedModifiers, s_privateModifiers, "string", StringValueBufferVariableName);
-
-            var backedScopeManageVariableName = "__backed" + ScopeManagerVariableName;
-            context.CodeWriter
-                .Write("private ")
-                .WriteVariableDeclaration(
-                    ScopeManagerTypeName,
-                    backedScopeManageVariableName,
-                    value: null);
-
-            context.CodeWriter
-                .WriteLine($"private {ScopeManagerTypeName} {ScopeManagerVariableName}");
-
+            context.CodeWriter.WriteLine("get");
             using (context.CodeWriter.BuildScope())
             {
-                context.CodeWriter.WriteLine("get");
+                context.CodeWriter
+                    .WriteLine($"if ({backedScopeManageVariableName} == null)");
+
                 using (context.CodeWriter.BuildScope())
                 {
                     context.CodeWriter
-                        .WriteLine($"if ({backedScopeManageVariableName} == null)");
-
-                    using (context.CodeWriter.BuildScope())
-                    {
-                        context.CodeWriter
-                            .WriteStartAssignment(backedScopeManageVariableName)
-                            .WriteStartNewObject(ScopeManagerTypeName)
-                            .Write(StartTagHelperWritingScopeMethodName)
-                            .WriteParameterSeparator()
-                            .Write(EndTagHelperWritingScopeMethodName)
-                            .WriteEndMethodInvocation();
-                    }
-
-                    context.CodeWriter
-                        .WriteLine($"return {backedScopeManageVariableName};");
+                        .WriteStartAssignment(backedScopeManageVariableName)
+                        .WriteStartNewObject(ScopeManagerTypeName)
+                        .Write(StartTagHelperWritingScopeMethodName)
+                        .WriteParameterSeparator()
+                        .Write(EndTagHelperWritingScopeMethodName)
+                        .WriteEndMethodInvocation();
                 }
+
+                context.CodeWriter
+                    .WriteLine($"return {backedScopeManageVariableName};");
             }
         }
     }
@@ -527,21 +428,9 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         }
         else if (node is IntermediateToken token)
         {
-            if (context.Options.DesignTime)
+            using (context.BuildEnhancedLinePragma(token.Source))
             {
-                if (node.Source != null)
-                {
-                    context.AddSourceMappingFor(node);
-                }
-
                 context.CodeWriter.Write(token.Content);
-            }
-            else
-            {
-                using (context.BuildEnhancedLinePragma(token.Source))
-                {
-                    context.CodeWriter.Write(token.Content);
-                }
             }
         }
         else if (node is CSharpCodeIntermediateNode)
@@ -596,20 +485,6 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         throw new InvalidOperationException();
     }
 
-    private string GetContent(HtmlContentIntermediateNode node)
-    {
-        var builder = new StringBuilder();
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            if (node.Children[i] is HtmlIntermediateToken token)
-            {
-                builder.Append(token.Content);
-            }
-        }
-
-        return builder.ToString();
-    }
-
     // Internal for testing
     internal static string GetDeterministicId(CodeRenderingContext context)
     {
@@ -621,24 +496,6 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             uniqueId = checksum + context.CodeWriter.Location.AbsoluteIndex;
         }
         return uniqueId;
-    }
-
-    private static int GetPropertyAccessorLength(DefaultTagHelperPropertyIntermediateNode node)
-    {
-        var propertyAccessorLength =
-            node.FieldName.Length
-            + ".".Length
-            + node.PropertyName.Length;
-
-        if (node.IsIndexerNameMatch)
-        {
-            propertyAccessorLength +=
-                "[\"".Length
-                + (node.AttributeName.Length - node.BoundAttribute.IndexerNamePrefix.Length)
-                + "\"]".Length;
-        }
-
-        return propertyAccessorLength;
     }
 
     private static CodeWriter WritePropertyAccessor(CodeWriter writer, DefaultTagHelperPropertyIntermediateNode node)
