@@ -25,9 +25,8 @@ internal static class CodeActionExtensions
         {
             // Only code action edit, we must convert this to a resolvable command
 
-            var resolutionParams = new RazorCodeActionResolutionParams
+            var resolutionParams = new RazorCodeActionResolutionParams(textDocument)
             {
-                TextDocument = textDocument,
                 Action = LanguageServerConstants.CodeActions.EditBasedCodeActionCommand,
                 Language = RazorLanguageKind.Razor,
                 DelegatedDocumentUri = delegatedDocumentUri,
@@ -62,9 +61,8 @@ internal static class CodeActionExtensions
     {
         if (!TryHandleNestedCodeAction(razorCodeAction, context, action, language))
         {
-            var resolutionParams = new RazorCodeActionResolutionParams()
+            var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
             {
-                TextDocument = context.Request.TextDocument,
                 Action = action,
                 Language = language,
                 DelegatedDocumentUri = context.DelegatedDocumentUri,
@@ -110,9 +108,8 @@ internal static class CodeActionExtensions
         foreach (var nestedAction in nestedCodeActions.EnumerateArray())
         {
             var nestedCodeAction = nestedAction.Deserialize<RazorVSInternalCodeAction>(JsonHelpers.JsonSerializerOptions).AssumeNotNull();
-            var resolutionParams = new RazorCodeActionResolutionParams()
+            var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
             {
-                TextDocument = context.Request.TextDocument,
                 Action = action,
                 Language = language,
                 DelegatedDocumentUri = context.DelegatedDocumentUri,
@@ -150,9 +147,8 @@ internal static class CodeActionExtensions
         RazorLanguageKind language,
         bool isOnAllowList)
     {
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            TextDocument = context.Request.TextDocument,
             Action = action,
             Language = language,
             DelegatedDocumentUri = context.DelegatedDocumentUri,
