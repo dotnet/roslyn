@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
@@ -76,4 +77,11 @@ public abstract class CodeActionWithOptions : CodeAction
 
     protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         => [];
+
+    /// <summary>
+    /// True when this action can produce a result without an interactive dialog,
+    /// e.g. because a workspace options service supplied a non-interactive default.
+    /// LSP servers without a UI use this to decide whether to surface the action.
+    /// </summary>
+    internal virtual bool IsApplicableInLspWithoutUI(SolutionServices services) => false;
 }

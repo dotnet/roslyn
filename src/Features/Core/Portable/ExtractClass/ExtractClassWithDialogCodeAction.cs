@@ -52,6 +52,8 @@ internal sealed class ExtractClassWithDialogCodeAction(
     protected sealed override CodeActionPriority ComputePriority()
         => _priority;
 
+    internal override bool IsApplicableInLspWithoutUI(Host.SolutionServices services) => true;
+
     public override object? GetOptions(CancellationToken cancellationToken)
     {
         var extractClassService = _service ?? _document.Project.Solution.Services.GetRequiredService<IExtractClassOptionsService>();

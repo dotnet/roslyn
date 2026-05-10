@@ -35,6 +35,9 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
 
     public override string Title => FeaturesResources.Move_static_members_to_another_type;
 
+    internal override bool IsApplicableInLspWithoutUI(Host.SolutionServices services)
+        => services.GetService<IMoveStaticMembersOptionsService>() is not null;
+
     public override object? GetOptions(CancellationToken cancellationToken)
     {
         return _service.GetMoveMembersToTypeOptions(_document, _selectedType, _selectedMembers);

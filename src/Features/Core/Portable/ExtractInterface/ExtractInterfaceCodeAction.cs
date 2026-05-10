@@ -64,4 +64,6 @@ internal sealed class ExtractInterfaceCodeAction(
     }
 
     public override string Title => FeaturesResources.Extract_interface;
+
+    internal override bool IsApplicableInLspWithoutUI(Host.SolutionServices services) => true;
 }
