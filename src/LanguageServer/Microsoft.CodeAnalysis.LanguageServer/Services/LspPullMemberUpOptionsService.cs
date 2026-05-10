@@ -23,21 +23,45 @@ internal sealed class LspPullMemberUpOptionsService() : IPullMemberUpOptionsServ
     {
         // The refactoring provider only offers this action after validating that there is at least one
         // selected member, a containing type, and at least one valid destination, so each of these
-        // branches represents a programmer error rather than a user-visible state. Fail loudly so that
-        // unexpected call sites produce actionable failures instead of latent null propagation.
-        Contract.ThrowIfTrue(selectedNodeSymbols.IsDefaultOrEmpty, "Expected at least one selected member.");
+        // branches represents a programmer error rather than a user-visible state. Throw a contextual
+        // exception so unexpected LSP failures remain diagnosable.
+        if (selectedNodeSymbols.IsDefaultOrEmpty)
+            throw CreateInvalidPullMemberUpStateException("Expected at least one selected member.", document, selectedNodeSymbols);
 
         var containingType = selectedNodeSymbols[0].ContainingType;
-        Contract.ThrowIfNull(containingType, "Selected member has no containing type.");
+        if (containingType is null)
+        {
+            var selectedSymbol = selectedNodeSymbols[0].ToDisplayString();
+            throw CreateInvalidPullMemberUpStateException($"Selected member '{selectedSymbol}' has no containing type.", document, selectedNodeSymbols);
+        }
 
         // Prefer the immediate base type, falling back to the first interface implemented by the containing type.
         var destination = containingType.BaseType is { SpecialType: not SpecialType.System_Object } baseType
             ? baseType
             : containingType.Interfaces.FirstOrDefault();
 
-        Contract.ThrowIfNull(destination, "Containing type has no base type or interface to pull members up to.");
+        if (destination is null)
+        {
+            throw CreateInvalidPullMemberUpStateException(
+                $"Containing type '{containingType.ToDisplayString()}' has no base type or interface to pull members up to.",
+                document,
+                selectedNodeSymbols);
+        }
 
         var members = selectedNodeSymbols.SelectAsArray(static s => (s, makeAbstract: false));
         return PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination, members);
     }
+
+    private static InvalidOperationException CreateInvalidPullMemberUpStateException(
+        string message, Document document, ImmutableArray<ISymbol> selectedNodeSymbols)
+    {
+        var documentName = document.Name;
+        var selectedSymbols = FormatSelectedSymbols(selectedNodeSymbols);
+        return new InvalidOperationException($"{message} Document='{documentName}', SelectedSymbols=[{selectedSymbols}]");
+    }
+
+    private static string FormatSelectedSymbols(ImmutableArray<ISymbol> selectedNodeSymbols)
+        => selectedNodeSymbols.IsDefaultOrEmpty
+            ? "<none>"
+            : string.Join(", ", selectedNodeSymbols.Select(static symbol => symbol.ToDisplayString()));
 }
