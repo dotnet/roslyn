@@ -67,6 +67,33 @@ public sealed class HeadlessDialogCodeActionsTests(ITestOutputHelper testOutputH
         Assert.Contains(results, r => r.Title.Contains("Generate constructor"));
     }
 
+    [Theory, CombinatorialData]
+    public async Task DialogActionsHiddenWhenPickMembersServiceMissing(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class C
+            {
+                public int X;
+                public int {|caret:|}Y;
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(
+            markup,
+            mutatingLspWorkspace,
+            new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions },
+            // Intentionally omit HeadlessTestPickMembersService so that no IPickMembersService is registered.
+            composition: base.Composition.AddParts(typeof(HeadlessTestLegacyGlobalOptionsWorkspaceService)));
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+
+        var results = await RunGetCodeActionsAsync(testLspServer, caretLocation);
+
+        // The dialog-driven actions (CodeActionWithOptions) should be filtered out when no IPickMembersService
+        // is available. Non-dialog variants like "Generate Equals(...)" or auto-generated constructors stay.
+        Assert.DoesNotContain(results, r => r.Title == "Generate constructor from members...");
+        Assert.DoesNotContain(results, r => r.Title == "Generate Equals(...)...");
+    }
+
     private static async Task<VSInternalCodeAction[]> RunGetCodeActionsAsync(TestLspServer testLspServer, LSP.Location caret)
     {
         var codeActionParams = new CodeActionParams
