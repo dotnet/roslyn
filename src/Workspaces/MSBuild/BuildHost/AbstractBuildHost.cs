@@ -3,23 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal sealed class BuildHost : IBuildHost
+internal abstract class AbstractBuildHost :
+#if NETFRAMEWORK
+    MarshalByRefObject, // We need this object to pass across the AppDomain boundary when on .NET Framework
+#endif
+    IBuildHost
 {
-    private readonly BuildHostLogger _logger;
     private readonly RpcServer _server;
     private readonly object _gate = new();
     private ProjectBuildManager? _buildManager;
@@ -27,30 +28,35 @@ internal sealed class BuildHost : IBuildHost
     /// <summary>
     /// The global properties to use for all builds; should not be changed once the <see cref="_buildManager"/> is initialized.
     /// </summary>
-    private ImmutableDictionary<string, string>? _globalMSBuildProperties;
+    private Dictionary<string, string>? _globalMSBuildProperties;
 
     /// <summary>
     /// Should not be changed once the <see cref="_buildManager"/> is initialized.
     /// </summary>
-    private ImmutableArray<string> _knownCommandLineParserLanguages;
+    private string[] _knownCommandLineParserLanguages = [];
 
     /// <summary>
     /// The binary log path to use for all builds; should not be changed once the <see cref="_buildManager"/> is initialized.
     /// </summary>
     private string? _binaryLogPath;
 
-    public BuildHost(BuildHostLogger logger, RpcServer server)
+    public AbstractBuildHost(BuildHostLogger logger, RpcServer server)
     {
-        _logger = logger;
+        Logger = logger;
         _server = server;
     }
+
+    protected BuildHostLogger Logger { get; init; }
+
+    protected abstract MSBuildLocation? FindMSBuild(string projectOrSolutionFilePath, bool includeUnloadableInstances);
+    protected abstract bool IsMSBuildLoaded();
 
     private bool TryEnsureMSBuildLoaded(string projectOrSolutionFilePath)
     {
         lock (_gate)
         {
             // If we've already created our MSBuild types, then there's nothing further to do.
-            if (MSBuildLocator.IsRegistered)
+            if (IsMSBuildLoaded())
             {
                 return true;
             }
@@ -62,68 +68,9 @@ internal sealed class BuildHost : IBuildHost
             }
 
             MSBuildLocator.RegisterMSBuildPath(instance.Path);
-            _logger.LogInformation($"Registered MSBuild {instance.Version} instance at {instance.Path}");
+            Logger.LogInformation($"Registered MSBuild {instance.Version} instance at {instance.Path}");
             return true;
         }
-    }
-
-    private MSBuildLocation? FindMSBuild(string projectOrSolutionFilePath, bool includeUnloadableInstances)
-    {
-        if (!PlatformInformation.IsRunningOnMono)
-        {
-            VisualStudioInstance? instance;
-
-#if NETFRAMEWORK
-            // In this case, we're just going to pick the highest VS install on the machine, in case the projects are using some newer
-            // MSBuild features. Since we don't have something like a global.json we can't really know what the minimum version is.
-
-            // TODO: we should also check that the managed tools are actually installed
-            instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(vs => vs.Version).FirstOrDefault();
-#else
-            // Locate the right SDK for this particular project; MSBuildLocator ensures in this case the first one is the preferred one.
-            // The includeUnloadableInstance parameter additionally locates SDKs from all installations regardless of whether they are
-            // loadable by the BuildHost process.
-            var options = new VisualStudioInstanceQueryOptions
-            {
-                DiscoveryTypes = DiscoveryType.DotNetSdk,
-                WorkingDirectory = Path.GetDirectoryName(projectOrSolutionFilePath),
-                AllowAllDotnetLocations = includeUnloadableInstances,
-                AllowAllRuntimeVersions = includeUnloadableInstances,
-            };
-
-            instance = MSBuildLocator.QueryVisualStudioInstances(options).FirstOrDefault();
-#endif
-
-            if (instance != null)
-            {
-                return new(instance.MSBuildPath, instance.Version.ToString());
-            }
-
-            _logger.LogCritical("No compatible MSBuild instance could be found.");
-        }
-        else
-        {
-
-#if NETFRAMEWORK
-            // We're running on Mono, but not all Mono installations have a usable MSBuild installation, so let's see if we have one that we can use.
-            var monoMSBuildDirectory = MonoMSBuildDiscovery.GetMonoMSBuildDirectory();
-            if (monoMSBuildDirectory != null)
-            {
-                var monoMSBuildVersion = MonoMSBuildDiscovery.GetMonoMSBuildVersion();
-                if (monoMSBuildVersion != null)
-                {
-                    return new(monoMSBuildDirectory, monoMSBuildVersion);
-                }
-            }
-
-            _logger.LogCritical("No Mono MSBuild installation could be found; see https://www.mono-project.com/ for installation instructions.");
-#else
-            _logger.LogCritical("Trying to run the .NET Core BuildHost on Mono is unsupported.");
-#endif
-
-        }
-
-        return null;
     }
 
     [MemberNotNull(nameof(_buildManager))]
@@ -143,7 +90,7 @@ internal sealed class BuildHost : IBuildHost
             if (_binaryLogPath != null)
             {
                 logger = new BinaryLogger { Parameters = _binaryLogPath };
-                _logger.LogInformation($"Logging builds to {_binaryLogPath}");
+                Logger.LogInformation($"Logging builds to {_binaryLogPath}");
             }
 
             _buildManager = new ProjectBuildManager(_knownCommandLineParserLanguages, _globalMSBuildProperties, logger);
@@ -166,7 +113,7 @@ internal sealed class BuildHost : IBuildHost
         Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuild)} should have been called first to check.");
     }
 
-    public void ConfigureGlobalState(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> globalProperties, string? binlogPath)
+    public void ConfigureGlobalState(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, string? binlogPath)
     {
         lock (_gate)
         {
@@ -205,7 +152,7 @@ internal sealed class BuildHost : IBuildHost
     {
         CreateBuildManager();
 
-        _logger.LogInformation($"Loading {projectFilePath}");
+        Logger.LogInformation($"Loading {projectFilePath}");
 
         var (project, log) = await _buildManager.LoadProjectAsync(projectFilePath, cancellationToken).ConfigureAwait(false);
         return AddProjectFileTarget(project, languageName, log);
@@ -219,7 +166,7 @@ internal sealed class BuildHost : IBuildHost
     {
         CreateBuildManager();
 
-        _logger.LogInformation($"Loading an in-memory project with the path {projectFilePath}");
+        Logger.LogInformation($"Loading an in-memory project with the path {projectFilePath}");
 
         // We expect MSBuild to consume this stream with a utf-8 encoding.
         // This is because we expect the stream we create to not include a BOM nor an an encoding declaration a la `<?xml encoding="..."?>`.

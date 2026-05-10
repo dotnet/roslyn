@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.CodeAnalysis;
@@ -18,8 +19,8 @@ internal static class SolutionExtensions
 {
     public static ImmutableArray<DocumentId> GetDocumentIdsWithUri(this Solution solution, Uri uri)
     {
-        Debug.Assert(RazorUri.IsGeneratedDocumentUri(uri) == false, "This won't work with source generated Uris");
-        return solution.GetDocumentIdsWithFilePath(uri.GetDocumentFilePath());
+        Debug.Assert(ProtocolConversions.IsSourceGeneratedScheme(uri.Scheme) == false, "This won't work with source generated Uris");
+        return solution.GetDocumentIdsWithFilePath(uri.GetDocumentFilePathFromUri());
     }
 
     public static bool TryGetRazorDocument(this Solution solution, Uri razorDocumentUri, [NotNullWhen(true)] out TextDocument? razorDocument)
@@ -81,12 +82,12 @@ internal static class SolutionExtensions
     public static bool TryGetSourceGeneratedDocumentIdentity(this Solution solution, Uri generatedDocumentUri, out RazorGeneratedDocumentIdentity identity)
     {
         identity = default;
-        if (!RazorUri.IsGeneratedDocumentUri(generatedDocumentUri))
+        if (!ProtocolConversions.IsSourceGeneratedScheme(generatedDocumentUri.Scheme))
         {
             return false;
         }
 
-        identity = RazorUri.GetIdentityOfGeneratedDocument(solution, generatedDocumentUri);
+        identity = solution.GetIdentityOfGeneratedDocument(generatedDocumentUri);
 
         if (!identity.IsRazorSourceGeneratedDocument())
         {

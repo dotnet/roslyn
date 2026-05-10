@@ -377,7 +377,7 @@ class {|Identifier:A{{v}}|}
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
-            Assert.True(results.All(r => r.TextDocument!.DocumentUri.GetRequiredParsedUri().LocalPath == csharpFilePath));
+            Assert.True(results.All(r => r.TextDocument!.DocumentUri == ProtocolConversions.CreateAbsoluteDocumentUri(csharpFilePath)));
         }
 
         //        [Fact]

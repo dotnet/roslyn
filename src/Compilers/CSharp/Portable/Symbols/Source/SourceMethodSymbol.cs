@@ -94,11 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
         /// <summary>
-        /// Whether the method is in an unsafe context.
-        /// For property/event accessors, this includes the containing property's unsafe modifier.
-        /// Do not confuse with <see cref="CallerUnsafeMode"/>.
+        /// Whether the method has an 'unsafe' modifier.
+        /// For property/event accessors, this includes the containing member's unsafe modifier.
         /// </summary>
-        internal abstract bool IsUnsafe { get; }
+        internal abstract bool HasUnsafeModifier { get; }
+
+        internal bool IntroducesUnsafeContext => HasUnsafeModifier && !ContainingModule.UseUpdatedMemorySafetyRules;
 
         /// <summary>
         /// Whether the method can require callers to be in an unsafe context
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return CallerUnsafeMode.None;
                     }
 
-                    return IsUnsafe || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                    return HasUnsafeModifier || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }

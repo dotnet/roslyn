@@ -10,11 +10,7 @@ using Microsoft.CodeAnalysis.Razor.Settings;
 using Xunit;
 using Xunit.Abstractions;
 
-#if COHOSTING
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
-#else
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-#endif
 
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
@@ -10597,6 +10593,69 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task MultilineExplicitExpressionInAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            <MyComponent Show="@_bool1"
+                         String="@("foo " +
+                                   "bar " +
+                                   "baz")" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task MultilineExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            <MyComponent Show="@_bool1"
+                String="@("foo " +
+                        "bar " +
+                        "baz")" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                            "bar " +
+                            "baz")" />
+                """,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task MultilineExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            <MyComponent Show="@_bool1"
+                    String="@("foo " +
+                        "bar " +
+                        "baz")" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                            "bar " +
+                            "baz")" />
+                """,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
     }
 
     [Fact]

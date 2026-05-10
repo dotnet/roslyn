@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -18,7 +18,7 @@ internal abstract class AbstractFilePathService : IFilePathService
     }
 
     public bool IsVirtualCSharpFile(Uri uri)
-        => RazorUri.IsGeneratedDocumentUri(uri);
+        => ProtocolConversions.IsSourceGeneratedScheme(uri.Scheme);
 
     public bool IsVirtualHtmlFile(Uri uri)
         => CheckIfFileUriAndExtensionMatch(uri, LanguageServerConstants.HtmlVirtualDocumentSuffix);

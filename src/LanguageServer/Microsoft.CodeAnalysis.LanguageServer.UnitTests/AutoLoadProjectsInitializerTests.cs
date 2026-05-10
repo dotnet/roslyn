@@ -49,7 +49,7 @@ public sealed class AutoLoadProjectsInitializerTests : IDisposable
         var (isLoadingDisabled, solutionPath) = AutoLoadProjectsInitializer.TryGetVSCodeSolutionSettings([firstFolder, secondFolder], NullLogger.Instance);
 
         Assert.False(isLoadingDisabled);
-        Assert.Equal(Path.Combine(ProtocolConversions.GetDocumentFilePathFromUri(secondFolder.DocumentUri.GetRequiredParsedUri()), "eng", "App.slnx"), solutionPath);
+        Assert.Equal(Path.Combine(secondFolder.DocumentUri.GetDocumentFilePathFromUri(), "eng", "App.slnx"), solutionPath);
     }
 
     private string WriteSettingsFile(string settingsJson)
@@ -75,7 +75,7 @@ public sealed class AutoLoadProjectsInitializerTests : IDisposable
 
     private static void CreateSolutionFile(WorkspaceFolder folder, string relativePath)
     {
-        var folderPath = ProtocolConversions.GetDocumentFilePathFromUri(folder.DocumentUri.GetRequiredParsedUri());
+        var folderPath = folder.DocumentUri.GetDocumentFilePathFromUri();
         var solutionPath = Path.Combine(folderPath, relativePath);
         Directory.CreateDirectory(Path.GetDirectoryName(solutionPath)!);
         File.WriteAllText(solutionPath, string.Empty);

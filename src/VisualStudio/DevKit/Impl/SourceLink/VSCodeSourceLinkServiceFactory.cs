@@ -14,10 +14,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services.SourceLink;
 [ExportWorkspaceServiceFactory(typeof(ISourceLinkService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSCodeSourceLinkServiceFactory(
-    IServiceBrokerProvider serviceBrokerProvider,
-    [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger) : IWorkspaceServiceFactory
+internal sealed class VSCodeSourceLinkServiceFactory([Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new VSCodeSourceLinkService(serviceBrokerProvider.ServiceBroker, logger);
+        => new VSCodeSourceLinkService(workspaceServices.GetRequiredService<IServiceBrokerProvider>(), logger);
 }

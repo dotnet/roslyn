@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.FindAllReferences;
@@ -102,7 +103,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 continue;
             }
 
-            var (mappedUri, mappedRange) = await DocumentMappingService.MapToHostDocumentUriAndRangeAsync(context.Snapshot, location.DocumentUri.GetRequiredParsedUri(), location.Range.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
+            var (mappedUri, mappedRange) = await DocumentMappingService.MapToHostDocumentUriAndRangeAsync(context.Snapshot, UriExtensions.GetRequiredParsedUri(location.DocumentUri), location.Range.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
 
             if (_filePathService.IsVirtualCSharpFile(mappedUri))
             {
@@ -116,12 +117,12 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 referenceItem.Origin = VSInternalItemOrigin.Exact;
 
                 // If we're going to change the Uri, then also override the file paths
-                if (mappedUri != location.DocumentUri.GetRequiredParsedUri())
+                if (mappedUri != UriExtensions.GetRequiredParsedUri(location.DocumentUri))
                 {
                     referenceItem.DisplayPath = mappedUri.AbsolutePath;
                     referenceItem.DocumentName = mappedUri.AbsolutePath;
 
-                    var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(DocumentMappingService, context.GetSolutionQueryOperations(), mappedRange.Start.Line, mappedUri.GetDocumentFilePath(), cancellationToken).ConfigureAwait(false);
+                    var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(DocumentMappingService, context.GetSolutionQueryOperations(), mappedRange.Start.Line, mappedUri.GetDocumentFilePathFromUri(), cancellationToken).ConfigureAwait(false);
                     referenceItem.Text = fixedResultText ?? referenceItem.Text;
                 }
             }

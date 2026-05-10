@@ -495,6 +495,45 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         Assert.Equal<RazorDiagnostic>([initialError, expectedRewritingError], outputTree.Diagnostics);
     }
 
+    [Theory]
+    [InlineData("Hello</input>")]
+    [InlineData("Hello</input")]
+    [InlineData("text content</form>")]
+    [InlineData("foo</p>")]
+    public void Execute_OrphanEndTagAfterText_DoesNotThrow(string content)
+    {
+        var formTagHelper = CreateTagHelperDescriptor(
+            tagName: "form",
+            typeName: "TestFormTagHelper",
+            assemblyName: "TestAssembly");
+        var inputTagHelper = CreateTagHelperDescriptor(
+            tagName: "input",
+            typeName: "TestInputTagHelper",
+            assemblyName: "TestAssembly");
+        var pTagHelper = TagHelperDescriptorBuilder.CreateTagHelper("pTagHelper", "TestAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("p")
+                .RequireAttributeDescriptor(attribute => attribute.Name("class")))
+            .Build();
+
+        var projectEngine = RazorProjectEngine.Create(builder =>
+        {
+            builder.SetTagHelpers(formTagHelper, inputTagHelper, pTagHelper);
+        });
+
+        var source = TestRazorSourceDocument.Create("@addTagHelper *, TestAssembly\r\n" + content, filePath: null);
+        var codeDocument = projectEngine.CreateCodeDocument(source);
+        var originalTree = RazorSyntaxTree.Parse(source);
+        codeDocument = codeDocument.WithSyntaxTree(originalTree);
+
+        codeDocument = projectEngine.ExecutePhase<DefaultRazorTagHelperContextDiscoveryPhase>(codeDocument);
+        codeDocument = projectEngine.ExecutePhase<DefaultRazorIntermediateNodeLoweringPhase>(codeDocument);
+        codeDocument = projectEngine.ExecutePhase<DefaultTagHelperResolutionPhase>(codeDocument);
+
+        Assert.NotNull(codeDocument.GetDocumentNode());
+    }
+
     private static string AssemblyA => "TestAssembly";
 
     private static string AssemblyB => "AnotherAssembly";

@@ -184,9 +184,9 @@ internal static partial class ProtocolConversions
         }
     }
 
-    public static string GetDocumentFilePathFromUri(Uri uri)
+    public static bool IsSourceGeneratedScheme(string scheme)
     {
-        return uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
+        return scheme == SourceGeneratedDocumentUri.Scheme;
     }
 
     /// <summary>
@@ -326,6 +326,10 @@ internal static partial class ProtocolConversions
     {
         var linePositionSpan = RangeToLinePositionSpan(range);
 
+        linePositionSpan = new LinePositionSpan(
+            ClampPositionToLineEnd(linePositionSpan.Start, text),
+            ClampPositionToLineEnd(linePositionSpan.End, text));
+
         // Handle the specific case where the end position is exactly one line beyond the document bounds
         // and the end character is 0 (start of the non-existent next line).
         // This can happen when deleting the last line, where LSP clients are allowed (by the spec) to
@@ -363,6 +367,18 @@ internal static partial class ProtocolConversions
 
         static string PositionToString(LSP.Position position)
             => $"{{ Line={position.Line}, Character={position.Character} }}";
+
+        static LinePosition ClampPositionToLineEnd(LinePosition position, SourceText text)
+        {
+            if (position.Line < 0 || position.Line >= text.Lines.Count)
+                return position;
+
+            var line = text.Lines[position.Line];
+            var lineLength = line.End - line.Start;
+            return position.Character > lineLength
+                ? new LinePosition(position.Line, lineLength)
+                : position;
+        }
     }
 
     public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText oldText)

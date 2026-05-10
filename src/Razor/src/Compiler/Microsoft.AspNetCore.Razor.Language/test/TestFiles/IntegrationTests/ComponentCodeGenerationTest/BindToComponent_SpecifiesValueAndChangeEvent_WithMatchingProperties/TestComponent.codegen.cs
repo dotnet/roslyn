@@ -36,7 +36,7 @@ ParentValue
 #nullable disable
             ));
             __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.OnChanged), (global::System.Action<global::System.Int32>)(__value => ParentValue = __value));
-             _ = nameof(global::Test.MyComponent.
+             var (_, _) = (nameof(global::Test.MyComponent.
 #nullable restore
 #line (1,46)-(1,51) "x:\dir\subdir\Test\TestComponent.cshtml"
 Value
@@ -44,7 +44,7 @@ Value
 #line default
 #line hidden
 #nullable disable
-            );
+            ), 0);
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
