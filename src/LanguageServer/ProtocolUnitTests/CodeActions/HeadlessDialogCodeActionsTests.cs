@@ -77,7 +77,7 @@ public sealed class HeadlessDialogCodeActionsTests(ITestOutputHelper testOutputH
         };
         var result = await testLspServer.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(
             LSP.Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
-        return [.. result!.Cast<VSInternalCodeAction>()];
+        return [.. result!.OfType<VSInternalCodeAction>()];
     }
 
     [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Test), Shared, PartNotDiscoverable]
