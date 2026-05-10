@@ -62,7 +62,7 @@ internal static class Program
             var outputDir = Path.GetDirectoryName(outputFile)!;
             Directory.CreateDirectory(outputDir);
 
-            var utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+            var utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
             File.WriteAllText(outputFile, code, utf8);
 
             var elementInfoFile = Path.Combine(outputDir!, "HtmlElementInfo.g.cs");
