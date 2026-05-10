@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PullMemberUp;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Services;
 
@@ -20,20 +21,21 @@ internal sealed class LspPullMemberUpOptionsService() : IPullMemberUpOptionsServ
 {
     public PullMembersUpOptions GetPullMemberUpOptions(Document document, ImmutableArray<ISymbol> selectedNodeSymbols)
     {
-        if (selectedNodeSymbols.IsDefaultOrEmpty)
-            return null!;
+        // The refactoring provider only offers this action after validating that there is at least one
+        // selected member, a containing type, and at least one valid destination, so each of these
+        // branches represents a programmer error rather than a user-visible state. Fail loudly so that
+        // unexpected call sites produce actionable failures instead of latent null propagation.
+        Contract.ThrowIfTrue(selectedNodeSymbols.IsDefaultOrEmpty, "Expected at least one selected member.");
 
         var containingType = selectedNodeSymbols[0].ContainingType;
-        if (containingType is null)
-            return null!;
+        Contract.ThrowIfNull(containingType, "Selected member has no containing type.");
 
         // Prefer the immediate base type, falling back to the first interface implemented by the containing type.
         var destination = containingType.BaseType is { SpecialType: not SpecialType.System_Object } baseType
             ? baseType
             : containingType.Interfaces.FirstOrDefault();
 
-        if (destination is null)
-            return null!;
+        Contract.ThrowIfNull(destination, "Containing type has no base type or interface to pull members up to.");
 
         var members = selectedNodeSymbols.SelectAsArray(static s => (s, makeAbstract: false));
         return PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination, members);
