@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Newtonsoft.Json.Linq;
+using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Microsoft.CodeAnalysis.Text;
@@ -90,6 +91,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""scriptClassName"": ""Script"",
       ""mainTypeName"": null,
       ""cryptoPublicKey"": """",
+      ""cryptoKeyContainer"": null,
+      ""cryptoKeyFile"": null,
       ""delaySign"": null,
       ""publicSign"": false,
       ""checkOverflow"": false,
@@ -236,6 +239,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""scriptClassName"": ""Script"",
       ""mainTypeName"": null,
       ""cryptoPublicKey"": """",
+      ""cryptoKeyContainer"": null,
+      ""cryptoKeyFile"": null,
       ""delaySign"": null,
       ""publicSign"": false,
       ""checkOverflow"": false,
@@ -409,17 +414,31 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var compilation = CreateCompilation(new SyntaxTree[] { }, options: options);
             var obj = GetCompilationValue(compilation);
             Assert.Equal(publicKeyStr, obj.Value<string>("publicKey"));
+            var optionsObj = (JObject)obj["options"]!;
+            Assert.Equal("key.snk", optionsObj.Value<string>("cryptoKeyFile"));
+        }
+
+        [Fact]
+        public void CSharpCryptoKeyOptions()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication, deterministic: true)
+                .WithCryptoKeyContainer("MyContainer")
+                .WithCryptoKeyFile(Path.Combine("path", "to", "MyKeyFile.snk"));
+            var obj = GetCompilationOptionsValue(options);
+            Assert.Equal("MyContainer", obj.Value<string>("cryptoKeyContainer"));
+            Assert.Equal("MyKeyFile.snk", obj.Value<string>("cryptoKeyFile"));
         }
 
         [Fact]
         public void CSharpNetModuleCryptoKeyOptions()
         {
+            var keyFile = Path.Combine("path", "to", "MyKeyFile.snk");
             var options = new CSharpCompilationOptions(OutputKind.NetModule, deterministic: true)
                 .WithCryptoKeyContainer("MyContainer")
-                .WithCryptoKeyFile("MyKeyFile.snk");
+                .WithCryptoKeyFile(keyFile);
             var obj = GetCompilationOptionsValue(options);
             Assert.Equal("MyContainer", obj.Value<string>("cryptoKeyContainer"));
-            Assert.Equal("MyKeyFile.snk", obj.Value<string>("cryptoKeyFile"));
+            Assert.Equal(keyFile, obj.Value<string>("cryptoKeyFile"));
         }
 
         [Fact]
@@ -444,6 +463,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""scriptClassName"": ""Script"",
       ""mainTypeName"": null,
       ""cryptoPublicKey"": """",
+      ""cryptoKeyContainer"": null,
+      ""cryptoKeyFile"": null,
       ""delaySign"": null,
       ""publicSign"": false,
       ""checkOverflow"": false,
@@ -518,6 +539,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "scriptClassName": "Script",
       "mainTypeName": null,
       "cryptoPublicKey": "",
+      "cryptoKeyContainer": null,
+      "cryptoKeyFile": null,
       "delaySign": null,
       "publicSign": false,
       "checkOverflow": false,
