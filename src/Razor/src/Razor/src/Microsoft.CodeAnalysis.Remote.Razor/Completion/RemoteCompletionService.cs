@@ -213,18 +213,23 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             // inline without a separate round-trip.
             if (localHtmlCompletionList is { Items: { Length: > 0 } items })
             {
-                var htmlLabels = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var item in items)
-                {
-                    // Only include element names — these are used by TagHelperCompletionProvider
-                    // to deduplicate tag helpers that share a name with an HTML element.
-                    if (item.Kind == CompletionItemKind.Element)
-                    {
-                        htmlLabels.Add(item.Label);
-                    }
-                }
+                // Only include element names — these are used by TagHelperCompletionProvider
+                // to deduplicate tag helpers that share a name with an HTML element.
+                var elementCount = items.Count(static item => item.Kind == CompletionItemKind.Element);
 
-                razorCompletionContext = razorCompletionContext with { HtmlLabels = htmlLabels };
+                if (elementCount > 0)
+                {
+                    var htmlLabels = new HashSet<string>(elementCount, StringComparer.OrdinalIgnoreCase);
+                    foreach (var item in items)
+                    {
+                        if (item.Kind == CompletionItemKind.Element)
+                        {
+                            htmlLabels.Add(item.Label);
+                        }
+                    }
+
+                    razorCompletionContext = razorCompletionContext with { HtmlLabels = htmlLabels };
+                }
             }
 
             razorCompletionList = _razorCompletionListProvider.GetCompletionList(

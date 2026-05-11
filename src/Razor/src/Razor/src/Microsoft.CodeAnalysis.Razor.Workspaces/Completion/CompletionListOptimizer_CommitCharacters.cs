@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -97,7 +98,7 @@ internal static partial class CompletionListOptimizer
         RazorVSInternalCompletionList completionList,
         out CommitCharacterGroup bestCommitCharacterGroup)
     {
-        var groups = new List<CommitCharacterGroup>(capacity: 4);
+        using var _pooled = ListPool<CommitCharacterGroup>.GetPooledObject(out var groups);
 
         foreach (var completionItem in completionList.Items)
         {
