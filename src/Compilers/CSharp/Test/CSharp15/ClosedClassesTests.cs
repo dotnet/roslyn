@@ -2161,15 +2161,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-<<<<<<< HEAD
-        // PROTOTYPE(cc): unexpected warnings in all below scenarios
         var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
-||||||| 799ab50f723
-        // PROTOTYPE(cc): unexpected warnings in all below scenarios
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
-=======
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
->>>>>>> upstream/features/closed-class
         comp.VerifyEmitDiagnostics(
             // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
             //         return c switch
