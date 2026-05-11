@@ -151,6 +151,19 @@ internal static class RoslynWorkspaceStructureLogger
 
                 projectElement.Add(new XElement("workspaceAnalyzerConfigDocuments", await CreateElementsForDocumentCollectionAsync(project.AnalyzerConfigDocuments, "analyzerConfigDocument", cancellationToken)));
 
+                // Dump source generated documents
+                var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken);
+                projectElement.Add(new XElement("workspaceSourceGeneratedDocuments", CreateElementsForSourceGeneratedDocuments(sourceGeneratedDocuments)));
+
+                // Dump generator diagnostics
+                var generatorDiagnosticsElement = new XElement("generatorDiagnostics");
+                projectElement.Add(generatorDiagnosticsElement);
+
+                foreach (var diagnostic in await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken))
+                {
+                    generatorDiagnosticsElement.Add(CreateElementForDiagnostic(diagnostic));
+                }
+
                 // Dump references from the compilation; this should match the workspace but can help rule out
                 // cross-language reference bugs or other issues like that
                 var compilation = await project.GetCompilationAsync(cancellationToken);
@@ -173,12 +186,7 @@ internal static class RoslynWorkspaceStructureLogger
 
                     foreach (var diagnostic in compilation.GetDiagnostics(cancellationToken))
                     {
-                        diagnosticsElement.Add(
-                            new XElement("diagnostic",
-                                new XAttribute("id", diagnostic.Id),
-                                new XAttribute("severity", diagnostic.Severity.ToString()),
-                                new XAttribute("path", SanitizePath(diagnostic.Location.GetLineSpan().Path ?? "(none)")),
-                                diagnostic.GetMessage()));
+                        diagnosticsElement.Add(CreateElementForDiagnostic(diagnostic));
                     }
                 }
 
@@ -348,6 +356,34 @@ internal static class RoslynWorkspaceStructureLogger
             new XAttribute("objectId", compilationId.Value),
             new XAttribute("assemblyIdentity", compilation.Assembly.Identity.ToString()),
             typesElement);
+    }
+
+    private static XElement CreateElementForDiagnostic(Diagnostic diagnostic)
+        => new("diagnostic",
+            new XAttribute("id", diagnostic.Id),
+            new XAttribute("severity", diagnostic.Severity.ToString()),
+            new XAttribute("path", SanitizePath(diagnostic.Location.GetLineSpan().Path ?? "(none)")),
+            diagnostic.GetMessage());
+
+    private static IEnumerable<XElement> CreateElementsForSourceGeneratedDocuments(IEnumerable<SourceGeneratedDocument> documents)
+    {
+        var elements = new List<XElement>();
+
+        foreach (var document in documents)
+        {
+            var identity = document.Identity;
+            var element = new XElement("sourceGeneratedDocument",
+                new XAttribute("hintName", document.HintName),
+                new XAttribute("path", SanitizePath(document.FilePath ?? "(none)")),
+                new XAttribute("generatorType", identity.Generator.TypeName),
+                new XAttribute("generatorAssembly", identity.Generator.AssemblyName),
+                new XAttribute("generatorAssemblyVersion", identity.Generator.AssemblyVersion.ToString()),
+                new XAttribute("generatorAssemblyPath", SanitizePath(identity.Generator.AssemblyPath ?? "(none)")));
+
+            elements.Add(element);
+        }
+
+        return elements;
     }
 
     public static async Task<IEnumerable<XElement>> CreateElementsForDocumentCollectionAsync(IEnumerable<TextDocument> documents, string elementName, CancellationToken cancellationToken)
