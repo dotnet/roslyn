@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\RazorOnAutoInsertProviderTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateConversionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateDeconstructMethodTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ImplementAbstractClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateMethodTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateConstructorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateFieldTests.cs" />
