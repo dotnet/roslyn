@@ -240,7 +240,7 @@ public sealed class ImplementInterfaceCodeFixTests_Razor(ITestOutputHelper logge
             (await newSourceGeneratedDocument!.GetTextAsync(CancellationToken.None)).ToString());
     }
 
-    private async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Project project, Document requestDocument, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Project project, Document requestDocument, CancellationToken cancellationToken)
     {
         var requestTree = await requestDocument.GetSyntaxTreeAsync(cancellationToken);
         var compilation = await project.GetCompilationAsync(cancellationToken);
@@ -267,7 +267,9 @@ public sealed class ImplementInterfaceCodeFixTests_Razor(ITestOutputHelper logge
         return FlattenActions([.. codeActions]);
     }
 
+#pragma warning disable RS1042 // Do not implement
     private sealed class TestSourceGenerator(string hintName, string generatedCode) : ISourceGenerator
+#pragma warning restore RS1042 // Do not implement
     {
         public void Initialize(GeneratorInitializationContext context)
         {
