@@ -471,9 +471,9 @@ internal static class SchemaParser
         foreach (XmlNode enumNode in typeNode.SelectNodes(".//xsd:enumeration[@value]", nsMgr)!)
         {
             var value = enumNode.Attributes!["value"]!.Value;
-            if (!string.IsNullOrEmpty(value))
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                values.Add(value);
+                values.Add(value.Trim());
             }
         }
         return values;

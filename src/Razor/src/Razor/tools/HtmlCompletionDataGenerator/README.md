@@ -46,6 +46,6 @@ Run this tool when the HTML Editor schema is updated (typically 2-3 times per ye
 
 ## What's Included vs Excluded
 
-**Included:** HTML elements, element-specific attributes, global attributes (core/events/microdata/ARIA), enumeration values (≤100 items), element descriptions.
+**Included:** HTML elements, element-specific attributes, global attributes (core/events/microdata/ARIA), enumeration values, element descriptions.
 
-**Excluded:** SVG (complex, 841KB — falls back to the external HTML completion provider), jQuery Mobile (`data-*` attributes — deprecated framework), language codes (546 values — too large for inline completion), CSS completions, JavaScript completions, file path completions.
+**Excluded:** SVG (complex, 841KB — falls back to the external HTML completion provider), jQuery Mobile (`data-*` attributes — deprecated framework), CSS completions, JavaScript completions, file path completions.
