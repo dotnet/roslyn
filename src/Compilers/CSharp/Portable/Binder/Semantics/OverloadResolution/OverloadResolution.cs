@@ -1358,12 +1358,12 @@ outerDefault:
                         if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                         {
                             if (!binder.HasCollectionExpressionApplicableConstructor(
-                                    withElement: null, syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
+                                    withElement: null, syntax, type, isParamsModifierValidation: false, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, type, addMethods: out _, BindingDiagnosticBag.Discarded))
+                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, type, isParamsModifierValidation: false, addMethods: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
                             }

@@ -1638,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             if (!binder.HasCollectionExpressionApplicableConstructor(
-                                    withElement: null, syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
+                                    withElement: null, syntax, Type, isParamsModifierValidation: true, out MethodSymbol? constructor, isExpanded: out _, diagnostics))
                             {
                                 return;
                             }
@@ -1648,7 +1648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
+                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, isParamsModifierValidation: true, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
                             {
                                 return;
                             }
@@ -1706,7 +1706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics);
+                            binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, isParamsModifierValidation: true, diagnostics);
 
                             if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
                             {
