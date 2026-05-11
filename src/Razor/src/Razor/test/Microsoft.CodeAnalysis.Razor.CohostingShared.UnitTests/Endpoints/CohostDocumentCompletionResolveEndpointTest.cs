@@ -57,7 +57,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
             RemoteServiceInvoker,
             requestInvoker,
             ClientCapabilitiesService,
-            new ThrowingSnippetCompletionItemResolveProvider(),
+            new ThrowingSnippetResolveProvider(),
             LoggerFactory);
 
         var context = new DelegatedCompletionResolutionContext(

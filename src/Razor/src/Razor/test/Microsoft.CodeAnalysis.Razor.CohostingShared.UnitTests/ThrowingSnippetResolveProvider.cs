@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-internal sealed class ThrowingSnippetCompletionItemResolveProvider : ISnippetCompletionItemProvider
+internal sealed class ThrowingSnippetResolveProvider : ISnippetCompletionItemProvider
 {
     public void AddSnippetCompletions(ref PooledArrayBuilder<VSInternalCompletionItem> builder, RazorLanguageKind projectedKind, string? triggerCharacter, ICollection<string> validElementNames)
     {

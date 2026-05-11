@@ -101,7 +101,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
     }
 
     [Fact]
-    public async Task SnippetResolve_InStartTag_StripsLeadingOpenBracket()
+    public async Task SnippetResolve_InStartTag_StripsLeadingOpenAngleBracket()
     {
         // When a snippet is resolved in start-tag context (after '<'), the leading '<'
         // from the snippet body should be stripped to avoid duplication.

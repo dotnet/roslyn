@@ -79,6 +79,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Mapping\RazorEditServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ProjectAvailabilityTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetCompletionItemResolveProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetResolveProvider.cs" />
   </ItemGroup>
 </Project>

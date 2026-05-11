@@ -1843,7 +1843,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             RemoteServiceInvoker,
             ClientSettingsManager,
             ClientCapabilitiesService,
-            new ThrowingSnippetCompletionItemResolveProvider(),
+            new ThrowingSnippetResolveProvider(),
             requestInvoker,
             completionListCache,
             NoOpTelemetryReporter.Instance,
@@ -1879,7 +1879,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             RemoteServiceInvoker,
             new TestHtmlRequestInvoker(),
             ClientCapabilitiesService,
-            new ThrowingSnippetCompletionItemResolveProvider(),
+            new ThrowingSnippetResolveProvider(),
             LoggerFactory);
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(item);
