@@ -15,15 +15,9 @@ internal abstract class AbstractRazorCohostRequestHandler<TRequestType, TRespons
 
     bool ISolutionRequiredHandler.RequiresLSPSolution => RequiresLSPSolution;
 
-    Task<TResponseType> IRequestHandler<TRequestType, TResponseType, RequestContext>.HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken)
-    {
-        var razorRequestContext = new RazorCohostRequestContext(context);
-        return HandleRequestAsync(request, razorRequestContext, cancellationToken);
-    }
-
     protected abstract bool MutatesSolutionState { get; }
 
     protected abstract bool RequiresLSPSolution { get; }
 
-    protected abstract Task<TResponseType> HandleRequestAsync(TRequestType request, RazorCohostRequestContext context, CancellationToken cancellationToken);
+    public abstract Task<TResponseType> HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken);
 }

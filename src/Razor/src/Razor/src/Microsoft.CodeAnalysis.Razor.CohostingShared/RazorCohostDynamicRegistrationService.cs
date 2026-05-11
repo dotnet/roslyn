@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -36,7 +36,7 @@ internal class RazorCohostDynamicRegistrationService(
 
     public int Order => WellKnownStartupOrder.DynamicRegistration;
 
-    public async Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public async Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         // We assume most registration providers will just return one, so whilst this isn't completely accurate, it's a
         // reasonable starting point

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -38,7 +39,7 @@ internal sealed class CohostInlineCompletionEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.CodeAction?.DynamicRegistration == true)
         {
@@ -58,10 +59,10 @@ internal sealed class CohostInlineCompletionEndpoint(
     protected override Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
         => Assumed.Unreachable<Task<VSInternalInlineCompletionList?>>("This method has to exist because its base is abstract, but it should never be called.");
 
-    protected override Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RazorCohostRequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
         => HandleRequestAsync(context, razorDocument, request.Position.ToLinePosition(), request.Options, cancellationToken);
 
-    private async Task<VSInternalInlineCompletionList?> HandleRequestAsync(RazorCohostRequestContext? context, TextDocument razorDocument, LinePosition linePosition, FormattingOptions formattingOptions, CancellationToken cancellationToken)
+    private async Task<VSInternalInlineCompletionList?> HandleRequestAsync(RequestContext? context, TextDocument razorDocument, LinePosition linePosition, FormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         var requestInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteInlineCompletionService, InlineCompletionRequestInfo?>(
             razorDocument.Project.Solution,

@@ -6,7 +6,7 @@ using System.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
@@ -38,7 +38,7 @@ internal sealed class VSCodeRemoteServicesInitializer(
 
     public int Order => WellKnownStartupOrder.RemoteServices;
 
-    public async Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public async Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         // Normal remote service invoker logic requires a solution, but we don't have one here. Fortunately we don't need one, and since
         // we know this is VS Code specific, its all just smoke and mirrors anyway. We can avoid the smoke :)

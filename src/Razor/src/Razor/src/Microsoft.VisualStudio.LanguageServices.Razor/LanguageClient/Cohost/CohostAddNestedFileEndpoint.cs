@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol.NestedFiles;
@@ -45,7 +46,7 @@ internal sealed class CohostAddNestedFileEndpoint(
 
     protected override async Task<VoidResult> HandleRequestAsync(
         AddNestedFileParams request,
-        RazorCohostRequestContext context,
+        RequestContext context,
         TextDocument razorDocument,
         CancellationToken cancellationToken)
     {

@@ -4,7 +4,7 @@
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -19,7 +19,7 @@ internal class CohostInitializeReporter(ITelemetryReporter telemetryReporter) : 
 
     public int Order => WellKnownStartupOrder.Default;
 
-    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         // Make sure we don't report telemetry multiple times in the same VS session (as solutions are closed and opened).
         if (!s_reportedFeatureFlagState)

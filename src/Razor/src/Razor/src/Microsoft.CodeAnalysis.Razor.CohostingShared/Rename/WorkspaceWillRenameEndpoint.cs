@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 
@@ -24,7 +25,7 @@ internal sealed class WorkspaceWillRenameEndpoint(
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<WorkspaceWillRenameEndpoint>();
 
-    protected override Task<WorkspaceEdit?> HandleRequestAsync(RenameFilesParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override Task<WorkspaceEdit?> HandleRequestAsync(RenameFilesParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var solution = context.Solution;
         if (solution is null)

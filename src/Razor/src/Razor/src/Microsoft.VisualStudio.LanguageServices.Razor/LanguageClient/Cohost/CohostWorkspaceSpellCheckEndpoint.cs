@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -22,6 +23,6 @@ internal sealed class CohostWorkspaceSpellCheckEndpoint : AbstractRazorCohostReq
 
     // Razor files generally don't do anything at the workspace level
 
-    protected override Task<VSInternalWorkspaceSpellCheckableReport[]> HandleRequestAsync(VSInternalWorkspaceSpellCheckableParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    public override Task<VSInternalWorkspaceSpellCheckableReport[]> HandleRequestAsync(VSInternalWorkspaceSpellCheckableParams request, RequestContext context, CancellationToken cancellationToken)
         => SpecializedTasks.EmptyArray<VSInternalWorkspaceSpellCheckableReport>();
 }

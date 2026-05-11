@@ -4,10 +4,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 internal interface ICohostConfigurationChangedService
 {
-    Task OnConfigurationChangedAsync(RazorCohostRequestContext requestContext, CancellationToken cancellationToken);
+    Task OnConfigurationChangedAsync(RequestContext requestContext, CancellationToken cancellationToken);
 }

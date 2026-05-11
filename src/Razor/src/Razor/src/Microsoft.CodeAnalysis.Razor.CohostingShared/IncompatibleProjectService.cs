@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 
@@ -21,7 +22,7 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
 
     private ImmutableHashSet<ProjectId> _incompatibleProjectIds = [];
 
-    public void HandleMissingDocument(RazorTextDocumentIdentifier? textDocumentIdentifier, RazorCohostRequestContext context)
+    public void HandleMissingDocument(RazorTextDocumentIdentifier? textDocumentIdentifier, RequestContext context)
     {
         if (context.Solution is null)
         {

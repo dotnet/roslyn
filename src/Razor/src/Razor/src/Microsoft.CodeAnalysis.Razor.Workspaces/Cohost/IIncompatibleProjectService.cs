@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.Razor.Cohost;
 
 internal interface IIncompatibleProjectService
 {
-    void HandleMissingDocument(RazorTextDocumentIdentifier? textDocumentIdentifier, RazorCohostRequestContext context);
+    void HandleMissingDocument(RazorTextDocumentIdentifier? textDocumentIdentifier, RequestContext context);
 }

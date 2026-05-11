@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
@@ -36,7 +37,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(SemanticTokensRangeParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RazorCohostRequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var result = await HandleRequestAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
 

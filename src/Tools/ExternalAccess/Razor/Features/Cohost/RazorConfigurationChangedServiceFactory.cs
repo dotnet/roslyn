@@ -39,8 +39,7 @@ internal sealed class RazorConfigurationChangedServiceFactory(
             }
 
             using var languageScope = context.Logger.CreateLanguageContext(Constants.RazorLanguageName);
-            var requestContext = new RazorCohostRequestContext(context);
-            return cohostConfigurationChangedService.Value.OnConfigurationChangedAsync(requestContext, cancellationToken);
+            return cohostConfigurationChangedService.Value.OnConfigurationChangedAsync(context, cancellationToken);
         }
     }
 }

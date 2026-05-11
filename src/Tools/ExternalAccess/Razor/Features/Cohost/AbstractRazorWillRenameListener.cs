@@ -12,10 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 internal abstract class AbstractRazorWillRenameListener : ILspWillRenameListener
 {
     Task<WorkspaceEdit?> ILspWillRenameListener.HandleWillRenameAsync(RenameFilesParams request, RequestContext context, CancellationToken cancellationToken)
-    {
-        var razorRequestContext = new RazorCohostRequestContext(context);
-        return HandleRequestAsync(request, razorRequestContext, cancellationToken);
-    }
+        => HandleRequestAsync(request, context, cancellationToken);
 
-    protected abstract Task<WorkspaceEdit?> HandleRequestAsync(RenameFilesParams request, RazorCohostRequestContext razorRequestContext, CancellationToken cancellationToken);
+    protected abstract Task<WorkspaceEdit?> HandleRequestAsync(RenameFilesParams request, RequestContext context, CancellationToken cancellationToken);
 }

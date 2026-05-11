@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
@@ -36,7 +38,7 @@ internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory
 
     protected override bool RequiresLSPSolution => false;
 
-    protected override async Task<VoidResult> HandleRequestAsync(ApplyRenameEditParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    public override async Task<VoidResult> HandleRequestAsync(ApplyRenameEditParams request, RequestContext context, CancellationToken cancellationToken)
     {
         // We're being called from VS, which means CPS has already renamed the razor file on disk. It might also have
         // renamed the .razor.css etc. files, which we will also have suggested to rename, but unfortunately whether it

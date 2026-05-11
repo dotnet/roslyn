@@ -5,10 +5,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 internal interface ICohostStartupService
 {
-    Task StartupAsync(string serializedClientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken);
+    Task StartupAsync(string serializedClientCapabilities, RequestContext requestContext, CancellationToken cancellationToken);
 }

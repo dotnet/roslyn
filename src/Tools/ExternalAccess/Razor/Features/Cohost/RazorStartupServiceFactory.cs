@@ -86,11 +86,9 @@ internal sealed class RazorStartupServiceFactory(
 
             using var languageScope = context.Logger.CreateLanguageContext(Constants.RazorLanguageName);
 
-            var requestContext = new RazorCohostRequestContext(context);
-
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
             var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
-            await cohostStartupService.Value.StartupAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
+            await cohostStartupService.Value.StartupAsync(serializedClientCapabilities, context, cancellationToken).ConfigureAwait(false);
         }
     }
 }

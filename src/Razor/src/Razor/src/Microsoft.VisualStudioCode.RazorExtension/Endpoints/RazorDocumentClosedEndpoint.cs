@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Endpoints;
@@ -28,7 +29,7 @@ internal class RazorDocumentClosedEndpoint(IHtmlDocumentSynchronizer htmlDocumen
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentIdentifier request)
         => request.ToRazorTextDocumentIdentifier();
 
-    protected override Task<VoidResult> HandleRequestAsync(TextDocumentIdentifier textDocument, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public override Task<VoidResult> HandleRequestAsync(TextDocumentIdentifier textDocument, RequestContext requestContext, CancellationToken cancellationToken)
     {
         // ParsedUri can be null when the URI string from the client isn't parseable by System.Uri.
         // This is safe to skip because HtmlDocumentSynchronizer only tracks documents that were

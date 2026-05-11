@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
@@ -28,17 +29,17 @@ internal sealed class CohostConfigurationChangedService(
 
     public int Order => WellKnownStartupOrder.Default;
 
-    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         return RefreshOptionsAsync(requestContext, cancellationToken);
     }
 
-    public Task OnConfigurationChangedAsync(RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public Task OnConfigurationChangedAsync(RequestContext requestContext, CancellationToken cancellationToken)
     {
         return RefreshOptionsAsync(requestContext, cancellationToken);
     }
 
-    private async Task RefreshOptionsAsync(RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    private async Task RefreshOptionsAsync(RequestContext requestContext, CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Refreshing options from client.");
 
