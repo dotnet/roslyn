@@ -102,6 +102,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
                 SemanticTokens = new() { DynamicRegistration = true },
                 SignatureHelp = new() { DynamicRegistration = true },
                 Synchronization = new() { DynamicRegistration = true },
+                TypeHierarchy = new() { DynamicRegistration = true },
                 TypeDefinition = new() { DynamicRegistration = true }
             },
         };
