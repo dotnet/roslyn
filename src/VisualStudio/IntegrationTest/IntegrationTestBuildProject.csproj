@@ -15,6 +15,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Extension\Roslyn.Compilers.Extension.csproj" />
     <ProjectReference Include="..\..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj" />
+    <ProjectReference Include="..\..\Razor\src\Razor\test\Microsoft.VisualStudio.Razor.IntegrationTests\Microsoft.VisualStudio.Razor.IntegrationTests.csproj">
+      <AdditionalProperties>BuildDependencyVsix=true</AdditionalProperties>
+    </ProjectReference>
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\arm64\Microsoft.CodeAnalysis.Compilers.Setup.arm64.csproj" />
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\x64\Microsoft.CodeAnalysis.Compilers.Setup.x64.csproj" />
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\x86\Microsoft.CodeAnalysis.Compilers.Setup.x86.csproj" />

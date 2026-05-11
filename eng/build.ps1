@@ -621,6 +621,8 @@ function Deploy-VsixViaTool() {
       "Roslyn.VisualStudio.Setup.vsix",
       "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
       "Roslyn.VisualStudio.Setup.Dependencies.vsix",
+      "Microsoft.VisualStudio.RazorExtension.Dependencies.vsix",
+      "Microsoft.VisualStudio.RazorExtension.vsix",
       "ExpressionEvaluatorPackage.vsix",
       "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
       "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
