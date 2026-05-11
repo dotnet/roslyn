@@ -59,6 +59,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)IRazorCohostStartupService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensRangeEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeHierarchy\CohostPrepareTypeHierarchyEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeHierarchy\CohostTypeHierarchySubtypesEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeHierarchy\CohostTypeHierarchySupertypesEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDynamicRegistrationProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorCohostClientCapabilitiesService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorCohostDynamicRegistrationService.cs" />
