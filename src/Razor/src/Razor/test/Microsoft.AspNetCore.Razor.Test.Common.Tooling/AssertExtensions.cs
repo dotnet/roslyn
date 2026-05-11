@@ -8,8 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
 using Xunit;
@@ -37,9 +36,8 @@ internal static class AssertExtensions
         {
             if (change.TryGetFirst(out var textDocumentEdit))
             {
-                var uri = textDocumentEdit.TextDocument.DocumentUri.GetRequiredParsedUri();
-                var documentId = solution.GetDocumentIdsWithFilePath(RazorUri.GetDocumentFilePathFromUri(uri)).Single();
-                var document = solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId);
+                var uri = textDocumentEdit.TextDocument.DocumentUri;
+                var document = (await solution.GetTextDocumentsAsync(uri, cancellationToken)).Single();
                 Assert.NotNull(document);
                 var text = await document.GetTextAsync(cancellationToken);
 
@@ -51,29 +49,28 @@ internal static class AssertExtensions
             }
             else if (change.TryGetSecond(out var createFile))
             {
-                var uri = createFile.DocumentUri.GetRequiredParsedUri();
+                var uri = createFile.DocumentUri;
                 var documentId = DocumentId.CreateNewId(solution.ProjectIds.Single());
-                var filePath = createFile.DocumentUri.GetRequiredParsedUri().GetDocumentFilePath();
+                var filePath = createFile.DocumentUri.GetDocumentFilePathFromUri();
                 var documentInfo = DocumentInfo.Create(documentId, Path.GetFileName(filePath), filePath: filePath);
                 solution = solution.AddDocument(documentInfo);
             }
             else if (change.TryGetThird(out var renameFile))
             {
-                var (oldUri, newUri) = (renameFile.OldDocumentUri.GetRequiredParsedUri(), renameFile.NewDocumentUri.GetRequiredParsedUri());
-                var documentId = solution.GetDocumentIdsWithFilePath(RazorUri.GetDocumentFilePathFromUri(oldUri)).Single();
-                var document = solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId);
+                var (oldUri, newUri) = (renameFile.OldDocumentUri, renameFile.NewDocumentUri);
+                var newFilePath = newUri.GetDocumentFilePathFromUri();
+                var document = (await solution.GetTextDocumentsAsync(oldUri, cancellationToken)).Single();
                 Assert.NotNull(document);
                 if (document is Document)
                 {
-                    solution = solution.WithDocumentFilePath(document.Id, newUri.GetDocumentFilePath());
+                    solution = solution.WithDocumentFilePath(document.Id, newFilePath);
                 }
                 else
                 {
-                    var filePath = newUri.GetDocumentFilePath();
                     var text = await document.GetTextAsync(cancellationToken);
                     solution = document.Project
                         .RemoveAdditionalDocument(document.Id)
-                        .AddAdditionalDocument(Path.GetFileName(filePath), text, filePath: filePath).Project.Solution;
+                        .AddAdditionalDocument(Path.GetFileName(newFilePath), text, filePath: newFilePath).Project.Solution;
                 }
             }
             else
@@ -84,7 +81,7 @@ internal static class AssertExtensions
 
         foreach (var (uri, contents) in expectedChanges)
         {
-            var document = solution.GetTextDocuments(uri).First();
+            var document = (await solution.GetTextDocumentsAsync(new DocumentUri(uri), cancellationToken)).Single();
             var text = await document.GetTextAsync(cancellationToken);
             AssertEx.EqualOrDiff(contents, text.ToString());
         }

@@ -74,10 +74,7 @@ public partial class AbstractLanguageServerClientTests
 
             static string CreateNewPipeName()
             {
-                // The pipe name constructed by some systems is very long (due to temp path).
-                // Shorten the unique id for the pipe.
-                var newGuid = Guid.NewGuid().ToString();
-                return newGuid.Split('-')[0];
+                return NamedPipeTestUtilities.CreateShortPipeName();
             }
 
             static string GetFullPipePath(string pipeName)

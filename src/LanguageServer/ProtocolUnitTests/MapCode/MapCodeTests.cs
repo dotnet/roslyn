@@ -114,7 +114,7 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.NotNull(results.Changes);
             Assert.Null(results.DocumentChanges);
 
-            Assert.True(results.Changes!.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri.GetRequiredParsedUri()), out edits));
+            Assert.True(results.Changes!.TryGetValue(documentUri.GetDocumentFilePathFromUri(), out edits));
         }
 
         Assert.NotNull(edits);

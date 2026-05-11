@@ -80,9 +80,8 @@ internal class WrapAttributesCodeActionProvider : IRazorCodeActionProvider
             NewLinePositions = newLinePositions.ToArray()
         };
 
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.WrapAttributes,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = context.DelegatedDocumentUri,
