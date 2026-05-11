@@ -697,6 +697,88 @@ class C { }
             Assert.NotNull(model);
         }
 
+        [Fact]
+        public void PreCompilation_Cached_Standard_Diagnostic_Tree_Is_In_Output_Compilation()
+        {
+            // A standard source output can report diagnostics against pre-compilation trees it
+            // observes through CompilationProvider. If the standard output is cached on a later
+            // run, the cached diagnostic must still point at a tree in that run's output compilation.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var descriptor = new DiagnosticDescriptor(
+                "PCSG001",
+                "Test diagnostic",
+                "Test diagnostic",
+                "Generators",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            int standardCallCount = 0;
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) => c.AddSource("precomp", "class PreCompType {}"));
+                ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
+                {
+                    standardCallCount++;
+                    var type = c.GetTypeByMetadataName("PreCompType");
+                    var location = Assert.Single(type!.Locations);
+                    ctx.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(descriptor, location));
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation1, out var diagnostics1);
+            outputCompilation1.VerifyDiagnostics();
+            var diagnostic1 = Assert.Single(diagnostics1);
+            var diagnosticTree1 = diagnostic1.Location.SourceTree;
+            Assert.NotNull(diagnosticTree1);
+            Assert.Contains(diagnosticTree1, outputCompilation1.SyntaxTrees);
+            Assert.Equal(1, standardCallCount);
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation2, out var diagnostics2);
+            outputCompilation2.VerifyDiagnostics();
+            var diagnostic2 = Assert.Single(diagnostics2);
+            var diagnosticTree2 = diagnostic2.Location.SourceTree;
+            Assert.NotNull(diagnosticTree2);
+            Assert.Contains(diagnosticTree2, outputCompilation2.SyntaxTrees);
+            Assert.Equal(1, standardCallCount);
+        }
+
+        [Fact]
+        public void PreCompilation_Cached_SyntaxTree_Reference_Is_Stable_Across_Runs()
+        {
+            // The underlying invariant behind PreCompilation_Cached_Standard_Diagnostic_Tree_Is_In_Output_Compilation:
+            // when the upstream pre-compilation callback is cached on a re-run, the parsed
+            // SyntaxTree must be reference-equal to the previous run's tree, otherwise
+            // anything that captured a reference (Locations, semantic-model lookups, etc.)
+            // becomes inconsistent with the run's output compilation.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) => c.AddSource("precomp", "class PreCompType {}"))));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var preCompTree1 = Assert.Single(driver.GetRunResult().Results[0].GeneratedSources, s => s.HintName == "precomp.cs").SyntaxTree;
+
+            driver = driver.RunGenerators(compilation);
+            var preCompTree2 = Assert.Single(driver.GetRunResult().Results[0].GeneratedSources, s => s.HintName == "precomp.cs").SyntaxTree;
+
+            Assert.Same(preCompTree1, preCompTree2);
+        }
+
         #endregion
 
         #region Step Tracking

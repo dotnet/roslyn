@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis
                     var preCompilationContext = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.PreCompilation, generatorRunStateBuilders[i], preCompReserved, cancellationToken, driverStateBuilder);
                     var (sources, _, _, _) = preCompilationContext.ToImmutableAndFree();
 
-                    var parsedSources = ParseAdditionalSources(state.Generators[i], sources, cancellationToken);
+                    var parsedSources = ReuseOrParsePreCompilationSources(state.Generators[i], sources, generatorState.PreCompilationTrees, cancellationToken);
                     stateBuilder[i] = generatorState.WithPreCompilationTrees(parsedSources);
                 }
                 catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
@@ -484,6 +484,44 @@ namespace Microsoft.CodeAnalysis
             {
                 var tree = ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken);
                 trees.Add(new GeneratedSyntaxTree(source.HintName, source.Text, tree));
+            }
+            return trees.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Like <see cref="ParseAdditionalSources"/>, but reuses a previously-parsed
+        /// <see cref="GeneratedSyntaxTree"/> when the corresponding new <see cref="GeneratedSourceText"/>
+        /// has the same <see cref="SourceText"/> reference and hint name at the same position --
+        /// indicating the upstream pre-compilation callback was cached.
+        /// </summary>
+        /// <remarks>
+        /// This serves two purposes: it skips wasted re-parsing of unchanged generator output,
+        /// and it keeps the trees seen by the standard phase reference-stable across runs. The
+        /// latter matters because the compilation cache reuses the previous run's
+        /// <see cref="Compilation"/> (and the syntax trees it contains) on a hit; if we
+        /// re-parsed pre-compilation sources, a cached standard-phase output's diagnostic could
+        /// still hold a <see cref="Location"/> pointing at a tree that's no longer present in
+        /// the run's output compilation.
+        /// </remarks>
+        private ImmutableArray<GeneratedSyntaxTree> ReuseOrParsePreCompilationSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> sources, ImmutableArray<GeneratedSyntaxTree> previousTrees, CancellationToken cancellationToken)
+        {
+            var trees = ArrayBuilder<GeneratedSyntaxTree>.GetInstance(sources.Length);
+            var prefix = GetFilePathPrefixForGenerator(this._state.BaseDirectory, generator);
+            for (int j = 0; j < sources.Length; j++)
+            {
+                var source = sources[j];
+                if (!previousTrees.IsDefaultOrEmpty
+                    && j < previousTrees.Length
+                    && ReferenceEquals(source.Text, previousTrees[j].Text)
+                    && string.Equals(source.HintName, previousTrees[j].HintName, StringComparison.OrdinalIgnoreCase))
+                {
+                    trees.Add(previousTrees[j]);
+                }
+                else
+                {
+                    var tree = ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken);
+                    trees.Add(new GeneratedSyntaxTree(source.HintName, source.Text, tree));
+                }
             }
             return trees.ToImmutableAndFree();
         }
