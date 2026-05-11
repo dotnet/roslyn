@@ -3828,7 +3828,7 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
             {
                 static void Main(string[] args)
                 {
-                    System.Func<int, string, int, long> [||]f = (_, _, a) => 1;
+                    System.Func<int, string, int, long> [||]f = (_, a, _) => 1;
                 }
             }
             """,
@@ -3837,7 +3837,75 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
             {
                 static void Main(string[] args)
                 {
-                    static long f(int _, string _, int a) => 1;
+                    static long f(int _1, string a, int _2) => 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestWithDiscardParameters2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    System.Func<int, string, int> [||]f = (_, a) => _;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    static int f(int _, string a) => _;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestWithConflictingLambdaParameterNames()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    System.Func<int, string, int, long> [||]f = (a, _, a) => 1;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    static long f(int a1, string _, int a2) => 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestWithConflictingDelegateParameterNames()
+        => TestInRegularAndScriptAsync(
+            """
+            delegate int D(int a, int a);
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    D [||]f = delegate { return 1; };
+                }
+            }
+            """,
+            """
+            delegate int D(int a, int a);
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    static int f(int a1, int a2) { return 1; }
                 }
             }
             """);
