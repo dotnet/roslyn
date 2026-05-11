@@ -83,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UnionSourceConversion = 1 << 12,
         UnionConstructor = 1 << 13,
         UnionFinal = 1 << 14,
+        UnionErroneous = 1 << 15,
 
-        UnionAllFlags = UnionConstructor | UnionSourceConversion | UnionFinal,
+        UnionAllFlags = UnionConstructor | UnionSourceConversion | UnionFinal | UnionErroneous,
     }
 }

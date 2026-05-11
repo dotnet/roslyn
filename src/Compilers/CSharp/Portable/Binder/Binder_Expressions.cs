@@ -2874,9 +2874,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
             {
-                Debug.Assert(conversion.IsUserDefined);
+                Debug.Assert(conversion.IsUserDefined || conversion.IsUnion);
 
-                ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedConversions;
+                ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedOrUnionConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
                     diagnostics.Add(ErrorCode.ERR_AmbigUDConv, syntax.Location, originalUserDefinedConversions[0], originalUserDefinedConversions[1], operand.Display, targetType);

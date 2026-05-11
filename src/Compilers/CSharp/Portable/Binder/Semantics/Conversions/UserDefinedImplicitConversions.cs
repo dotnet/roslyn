@@ -1012,8 +1012,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol sx = MostSpecificSourceTypeForImplicitUserDefinedConversion(u, source, ref useSiteInfo);
             if ((object)sx == null || MostSpecificConversionOperator(sx, namedTarget, u) is not int best)
             {
-                // Ambiguous. The first applicable is good enough then.
-                best = 0;
+                // Ambiguous.
+                return Conversion.CreateUnionConversion(UserDefinedConversionResult.Ambiguous(u));
             }
 
             return Conversion.CreateUnionConversion(UserDefinedConversionResult.Valid(u, best));

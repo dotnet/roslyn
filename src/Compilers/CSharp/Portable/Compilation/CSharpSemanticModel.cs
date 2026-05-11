@@ -3545,14 +3545,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols = OneOrMany.Create<Symbol>(ReducedExtensionMethodSymbol.Create(symbol));
                             resultKind = conversion.ResultKind;
                         }
-                        else if (conversion.ConversionKind.IsUserDefinedConversion())
+                        else if (conversion.ConversionKind.IsUserDefinedConversion() || conversion.ConversionKind.IsUnionConversion())
                         {
-                            GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, conversion.Conversion.OriginalUserDefinedConversions, out symbols, out resultKind);
-                        }
-                        else if (conversion.ConversionKind.IsUnionConversion())
-                        {
-                            Debug.Assert(conversion.SymbolOpt is { });
-                            GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, originalCandidates: [], out symbols, out resultKind);
+                            GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, conversion.Conversion.OriginalUserDefinedOrUnionConversions, out symbols, out resultKind);
                         }
                         else
                         {
@@ -3560,8 +3555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 conversion.Operand is BoundConversion { Conversion.IsUnion: true } unionConversion &&
                                 unionConversion.ConversionGroupOpt == conversion.ConversionGroupOpt)
                             {
-                                Debug.Assert(unionConversion.SymbolOpt is { });
-                                GetSymbolsAndResultKind(unionConversion, unionConversion.SymbolOpt, originalCandidates: [], out symbols, out resultKind);
+                                GetSymbolsAndResultKind(unionConversion, unionConversion.SymbolOpt, unionConversion.Conversion.OriginalUserDefinedOrUnionConversions, out symbols, out resultKind);
                             }
 
                             goto default;

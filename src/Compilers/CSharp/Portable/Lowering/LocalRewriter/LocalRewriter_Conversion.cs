@@ -953,6 +953,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsUnion)
             {
+                Debug.Assert(conversion.IsValid);
+                Debug.Assert(conversion.BestUnionConversionAnalysis is { });
+
                 UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
                 conversion.AssertUnderlyingConversionsCheckedRecursive();
                 Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);

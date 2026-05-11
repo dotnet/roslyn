@@ -113,14 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (conversion.IsUnion && !filterConversion(conversion.BestUnionConversionAnalysis.SourceConversion, result))
+                if (conversion.IsUnion && conversion.IsValid && !filterConversion(conversion.BestUnionConversionAnalysis!.SourceConversion, result))
                 {
                     return false;
                 }
 
                 if ((result as BoundConversion)?.ConversionGroupOpt?.Conversion.IsUnion == true &&
                     !conversion.IsUnion &&
-                    conversion != ((BoundConversion)result).ConversionGroupOpt!.Conversion.BestUnionConversionAnalysis!.SourceConversion)
+                    ((BoundConversion)result).ConversionGroupOpt!.Conversion.BestUnionConversionAnalysis is { } analysis &&
+                    conversion != analysis.SourceConversion)
                 {
                     return false;
                 }
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Union conversions are likely to be represented as multiple
                     // BoundConversion instances so a ConversionGroup is necessary.
-                    return CreateUnionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics);
+                    return CreateUnionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
                 }
 
                 ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
@@ -2525,7 +2526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,
                     conversionGroup,
-                    InConversionGroupFlags.UserDefinedOperator | InConversionGroupFlags.UserDefinedErroneous,
+                    InConversionGroupFlags.UserDefinedErroneous,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination,
                     hasErrors: true)
@@ -2694,12 +2695,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isCast,
             ConversionGroup conversionGroup,
             TypeSymbol destination,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool hasErrors)
         {
             Debug.Assert(conversionGroup != null);
             Debug.Assert(conversionGroup.Conversion == conversion);
             Debug.Assert(conversion.IsUnion);
-            Debug.Assert(conversion.IsValid);
+
+            conversion.MarkUnderlyingConversionsChecked();
+
+            if (!conversion.IsValid)
+            {
+                if (!hasErrors)
+                    GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
+
+                return new BoundConversion(
+                    syntax,
+                    BindToNaturalType(source, diagnostics),
+                    conversion,
+                    CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast,
+                    conversionGroup,
+                    InConversionGroupFlags.UnionErroneous,
+                    constantValueOpt: ConstantValue.NotAvailable,
+                    type: destination,
+                    hasErrors: true)
+                { WasCompilerGenerated = source.WasCompilerGenerated };
+            }
+
             Debug.Assert(conversion.BestUnionConversionAnalysis is object); // All valid union conversions have this populated
 
             UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
@@ -2711,8 +2734,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(analysis.TargetConversion is { IsIdentity: true } or { IsNullable: true, IsImplicit: true });
             Debug.Assert(source.Type?.IsDynamic() != true);
-
-            conversion.MarkUnderlyingConversionsChecked();
 
             // Original expression --> conversion's "from" type
             BoundExpression convertedOperand = CreateConversion(

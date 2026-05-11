@@ -445,10 +445,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UserDefinedFromConversion.AssertUnderlyingConversionsCheckedRecursive();
                 UserDefinedToConversion.AssertUnderlyingConversionsCheckedRecursive();
             }
-            else if (IsUnion)
+            else if (IsUnion && BestUnionConversionAnalysis is { } analysis)
             {
-                Debug.Assert(BestUnionConversionAnalysis is { });
-                var analysis = BestUnionConversionAnalysis;
                 analysis.SourceConversion.AssertUnderlyingConversionsCheckedRecursive();
                 analysis.TargetConversion.AssertUnderlyingConversionsCheckedRecursive();
             }
@@ -491,10 +489,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     UserDefinedFromConversion.MarkUnderlyingConversionsCheckedRecursive();
                     UserDefinedToConversion.MarkUnderlyingConversionsCheckedRecursive();
                 }
-                else if (IsUnion)
+                else if (IsUnion && BestUnionConversionAnalysis is { } analysis)
                 {
-                    Debug.Assert(BestUnionConversionAnalysis is { });
-                    var analysis = BestUnionConversionAnalysis;
                     analysis.SourceConversion.MarkUnderlyingConversionsCheckedRecursive();
                     analysis.TargetConversion.MarkUnderlyingConversionsCheckedRecursive();
                 }
@@ -881,7 +877,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if the conversion is an implicit union conversion.
         /// </summary>
-        [MemberNotNullWhen(true, nameof(BestUnionConversionAnalysis))]
         public bool IsUnion
         {
             [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
@@ -1142,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The user-defined operators that were considered when attempting this conversion
         /// (i.e. the arguments to overload resolution).
         /// </summary>
-        internal ImmutableArray<MethodSymbol> OriginalUserDefinedConversions
+        internal ImmutableArray<MethodSymbol> OriginalUserDefinedOrUnionConversions
         {
             get
             {
@@ -1152,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the IDE wants information about the *inferred* method, not the original unconstructed
                 // generic method.
 
-                if (!IsUnion && _uncommonData is MethodUncommonData { _conversionResult: { Kind: not UserDefinedConversionResultKind.NoApplicableOperators } conversionResult })
+                if (_uncommonData is MethodUncommonData { _conversionResult: { Kind: not UserDefinedConversionResultKind.NoApplicableOperators } conversionResult })
                 {
                     var builder = ArrayBuilder<MethodSymbol>.GetInstance();
                     foreach (var analysis in conversionResult.Results)
