@@ -1,0 +1,20 @@
+parameters:
+- name: packageCachePath
+  type: string
+  default: '$(Build.SourcesDirectory)/.packages'
+
+steps:
+  - task: PowerShell@2
+    displayName: Set NuGet Package Cache Path
+    inputs:
+      targetType: 'inline'
+      script: Write-Host "##vso[task.setvariable variable=NUGET_PACKAGES]${{ parameters.packageCachePath }}"
+
+  - task: Cache@2
+    displayName: Cache NuGet Packages
+    inputs:
+      key: '"nuget" | "$(Agent.OS)" | **/packages.lock.json'
+      restoreKeys: |
+        "nuget" | "$(Agent.OS)"
+        "nuget"
+      path: ${{ parameters.packageCachePath }}

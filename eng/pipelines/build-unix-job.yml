@@ -26,7 +26,9 @@ jobs:
   steps:
     - template: checkout-unix-task.yml
 
-    - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
+    - template: cache-nuget-packages.yml
+
+    - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }} /p:RestoreLockedMode=true
       displayName: Restore
 
     - template: cache-roslyn-outputs.yml
