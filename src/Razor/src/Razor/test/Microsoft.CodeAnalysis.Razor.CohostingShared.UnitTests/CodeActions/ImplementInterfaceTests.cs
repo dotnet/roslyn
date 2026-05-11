@@ -1,6 +1,8 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -382,6 +384,12 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
     [Fact]
     public async Task ImplementInterface_IDisposableDisposePattern()
     {
+        // Dispose-pattern scaffolding includes localized Roslyn resource strings.
+        if (!string.Equals(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "en", StringComparison.Ordinal))
+        {
+            return;
+        }
+
         await VerifyCodeActionAsync(
             input: """
                 @implements IDi[||]sposable
