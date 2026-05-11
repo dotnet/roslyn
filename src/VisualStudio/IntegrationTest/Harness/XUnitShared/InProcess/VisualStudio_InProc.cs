@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -51,10 +51,18 @@ namespace Xunit.InProcess
             AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
             {
                 var assemblyName = new AssemblyName(e.Name);
-                var loadedAssembly = GetLoadedAssembly(assemblyName);
+
+                var loadedAssembly = IsRoslynProductAssemblyName(assemblyName.Name)
+                    ? GetRoslynProductAssembly(assemblyName, directory)
+                    : GetLoadedAssembly(assemblyName);
                 if (loadedAssembly != null)
                 {
                     return loadedAssembly;
+                }
+
+                if (IsRoslynProductAssemblyName(assemblyName.Name))
+                {
+                    return null;
                 }
 
                 var path = Path.Combine(directory, assemblyName.Name + ".dll");
@@ -67,6 +75,29 @@ namespace Xunit.InProcess
             };
         }
 
+        private static Assembly? GetRoslynProductAssembly(AssemblyName requestedAssemblyName, string codeBaseDirectory)
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (string.Equals(assembly.GetName().Name, requestedAssemblyName.Name, StringComparison.Ordinal)
+                    && !IsAssemblyFromDirectory(assembly, codeBaseDirectory))
+                {
+                    return assembly;
+                }
+            }
+
+            foreach (var directory in GetVisualStudioRoslynProductAssemblyDirectories(codeBaseDirectory))
+            {
+                var path = Path.Combine(directory, requestedAssemblyName.Name + ".dll");
+                if (File.Exists(path))
+                {
+                    return Assembly.LoadFrom(path);
+                }
+            }
+
+            return null;
+        }
+
         private static Assembly? GetLoadedAssembly(AssemblyName requestedAssemblyName)
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -77,30 +108,63 @@ namespace Xunit.InProcess
                 }
             }
 
-            if (!IsRoslynProductAssemblyName(requestedAssemblyName.Name))
-            {
-                return null;
-            }
+            return null;
+        }
 
+        private static IEnumerable<string> GetVisualStudioRoslynProductAssemblyDirectories(string codeBaseDirectory)
+        {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if (string.Equals(assembly.GetName().Name, requestedAssemblyName.Name, StringComparison.Ordinal))
+                if (!IsRoslynProductAssemblyName(assembly.GetName().Name)
+                    || IsAssemblyFromDirectory(assembly, codeBaseDirectory))
                 {
-                    return assembly;
+                    continue;
+                }
+
+                var directory = Path.GetDirectoryName(assembly.Location);
+                if (directory != null)
+                {
+                    yield return directory;
                 }
             }
 
-            return null;
+            var baseDirectory = AppContext.BaseDirectory;
+            if (baseDirectory != null)
+            {
+                yield return Path.Combine(
+                    baseDirectory,
+                    "CommonExtensions",
+                    "Microsoft",
+                    "VBCSharp",
+                    "LanguageServices");
+            }
+        }
+
+        private static bool IsAssemblyFromDirectory(Assembly assembly, string directory)
+        {
+            var assemblyLocation = assembly.Location;
+            if (assemblyLocation.Length == 0)
+            {
+                return false;
+            }
+
+            var fullAssemblyLocation = Path.GetFullPath(assemblyLocation);
+            var fullDirectory = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            return fullAssemblyLocation.StartsWith(fullDirectory, StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsRoslynProductAssemblyName(string? assemblyName)
         {
-            return assemblyName != null
-                && (assemblyName == "Microsoft.CodeAnalysis"
-                    || assemblyName == "Microsoft.VisualStudio.LanguageServices"
-                    || assemblyName.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal)
-                    || (assemblyName.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal)
-                        && assemblyName.IndexOf(".Test", StringComparison.Ordinal) < 0));
+            if (assemblyName == null
+                || assemblyName.IndexOf(".Test", StringComparison.Ordinal) >= 0)
+            {
+                return false;
+            }
+
+            return assemblyName == "Microsoft.CodeAnalysis"
+                || assemblyName == "Microsoft.VisualStudio.LanguageServices"
+                || assemblyName.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal)
+                || assemblyName.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal);
         }
 
         public void ActivateMainWindow()
