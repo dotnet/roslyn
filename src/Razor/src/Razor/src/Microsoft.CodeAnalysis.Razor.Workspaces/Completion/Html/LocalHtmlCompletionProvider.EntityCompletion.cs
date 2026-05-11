@@ -1,6 +1,7 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
@@ -17,7 +18,7 @@ internal static partial class LocalHtmlCompletionProvider
         /// with no intervening whitespace or semicolons) and computes the replacement range
         /// from '&amp;' through the end of the entity reference (including trailing ';' if present).
         /// </summary>
-        public static bool TryGetReplacementRange(SourceText sourceText, int position, out LspRange range)
+        public static bool TryGetReplacementRange(SourceText sourceText, int position, [NotNullWhen(true)] out LspRange? range)
         {
             range = default;
 
