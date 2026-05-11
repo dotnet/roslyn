@@ -1747,7 +1747,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (member is NamedTypeSymbol type)
             {
-                RoslynDebug.AssertOrFailFast(forDiagnostics);
                 RoslynDebug.AssertOrFailFast(Volatile.Read(ref _lazyTypeMembers)?.Values.Any(types => types.Contains(t => t == (object)type)) == true);
                 return;
             }
