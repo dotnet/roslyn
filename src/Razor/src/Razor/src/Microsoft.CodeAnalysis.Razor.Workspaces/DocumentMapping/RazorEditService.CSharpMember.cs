@@ -29,6 +29,9 @@ internal partial class RazorEditService
                 BaseMethodDeclarationSyntax method => new(method, GetComparisonSpan(method), sourceText),
                 TypeDeclarationSyntax typeDeclaration => new(typeDeclaration, GetComparisonSpan(typeDeclaration), sourceText),
                 PropertyDeclarationSyntax property => new(property, GetComparisonSpan(property), sourceText),
+                IndexerDeclarationSyntax indexer => new(indexer, GetComparisonSpan(indexer), sourceText),
+                EventDeclarationSyntax @event => new(@event, GetComparisonSpan(@event), sourceText),
+                EventFieldDeclarationSyntax eventField => new(eventField, GetComparisonSpan(eventField), sourceText),
                 FieldDeclarationSyntax field => new(field, GetComparisonSpan(field), sourceText),
                 _ => null,
             };
@@ -82,6 +85,19 @@ internal partial class RazorEditService
             return property.Identifier.Span;
         }
 
+        private static TextSpan GetComparisonSpan(IndexerDeclarationSyntax indexer)
+        {
+            // Indexers can be overloaded, so include the parameter list to distinguish overloads while still
+            // ignoring accessor or body edits.
+            return TextSpan.FromBounds(indexer.ThisKeyword.SpanStart, indexer.ParameterList.Span.End);
+        }
+
+        private static TextSpan GetComparisonSpan(EventDeclarationSyntax @event)
+        {
+            // Events can't be overloaded, so the name is enough to identify them.
+            return @event.Identifier.Span;
+        }
+
         private static TextSpan GetComparisonSpan(TypeDeclarationSyntax typeDeclaration)
         {
             // Consider the type parameter list so types that differ only by generic arity remain distinct.
@@ -99,6 +115,17 @@ internal partial class RazorEditService
             if (variables.Count == 0)
             {
                 return field.Declaration.Span;
+            }
+
+            return TextSpan.FromBounds(variables[0].Identifier.SpanStart, variables[^1].Identifier.Span.End);
+        }
+
+        private static TextSpan GetComparisonSpan(EventFieldDeclarationSyntax eventField)
+        {
+            var variables = eventField.Declaration.Variables;
+            if (variables.Count == 0)
+            {
+                return eventField.Declaration.Span;
             }
 
             return TextSpan.FromBounds(variables[0].Identifier.SpanStart, variables[^1].Identifier.Span.End);
