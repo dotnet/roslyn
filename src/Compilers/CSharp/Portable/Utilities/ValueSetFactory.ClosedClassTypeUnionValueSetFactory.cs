@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder)
             {
-                // PROTOTYPE(cc): A closed class with no subtypes, should probably expand into an empty type set.
-                // However, if we produce an empty type set as a result, we fail the non-empty assertion at 'TypeUnionValueSet..ctor' via 'SamplePatternForTemp().tryHandleTypeUnionLimits()'.
                 if (possibleClosedClass is not NamedTypeSymbol namedType || !namedType.TryGetClosedSubtypes(out var subtypes) || subtypes.IsEmpty)
                 {
                     AddCaseInfo(builder, possibleClosedClass, originalClosedBase: null);
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static void AddCaseInfo(ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, TypeSymbol caseType, NamedTypeSymbol? originalClosedBase)
             {
-                // PROTOTYPE(cc): There may be a need to report diagnostics when "runtime-equivalent" yet distinct caseTypes flow in.
+                // https://github.com/dotnet/roslyn/issues/83617: There may be a need to report diagnostics when "runtime-equivalent" yet distinct caseTypes flow in.
                 // For example, when the caseTypes have nullability differences.
                 if (!builder.Any(static (existing, caseType) => existing.CaseType.Equals(caseType, TypeCompareKind.AllIgnoreOptions), caseType))
                 {
