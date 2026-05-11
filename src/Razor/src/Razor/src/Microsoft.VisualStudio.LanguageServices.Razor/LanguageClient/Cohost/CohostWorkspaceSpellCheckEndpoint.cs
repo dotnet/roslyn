@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -15,14 +16,14 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [CohostEndpoint(VSInternalMethods.WorkspaceSpellCheckableRangesName)]
 [ExportCohostStatelessLspService(typeof(CohostWorkspaceSpellCheckEndpoint))]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal sealed class CohostWorkspaceSpellCheckEndpoint : AbstractRazorCohostRequestHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>
+internal sealed class CohostWorkspaceSpellCheckEndpoint : ILspServiceRequestHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>
 {
-    protected override bool MutatesSolutionState => false;
+    bool IMethodHandler.MutatesSolutionState => false;
 
-    protected override bool RequiresLSPSolution => false;
+    bool ISolutionRequiredHandler.RequiresLSPSolution => false;
 
     // Razor files generally don't do anything at the workspace level
 
-    public override Task<VSInternalWorkspaceSpellCheckableReport[]> HandleRequestAsync(VSInternalWorkspaceSpellCheckableParams request, RequestContext context, CancellationToken cancellationToken)
+    public Task<VSInternalWorkspaceSpellCheckableReport[]> HandleRequestAsync(VSInternalWorkspaceSpellCheckableParams request, RequestContext context, CancellationToken cancellationToken)
         => SpecializedTasks.EmptyArray<VSInternalWorkspaceSpellCheckableReport>();
 }

@@ -7,9 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Threading;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Endpoints;
@@ -18,18 +18,18 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Endpoints;
 [ExportRazorStatelessLspService(typeof(RazorDocumentClosedEndpoint))]
 [RazorEndpoint("razor/documentClosed")]
 [method: ImportingConstructor]
-internal class RazorDocumentClosedEndpoint(IHtmlDocumentSynchronizer htmlDocumentSynchronizer) : AbstractRazorCohostDocumentRequestHandler<TextDocumentIdentifier, VoidResult>
+internal class RazorDocumentClosedEndpoint(IHtmlDocumentSynchronizer htmlDocumentSynchronizer) : ILspServiceRequestHandler<TextDocumentIdentifier, VoidResult>, ITextDocumentIdentifierHandler<TextDocumentIdentifier, TextDocumentIdentifier?>
 {
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
 
-    protected override bool MutatesSolutionState => false;
+    bool IMethodHandler.MutatesSolutionState => false;
 
-    protected override bool RequiresLSPSolution => true;
+    bool ISolutionRequiredHandler.RequiresLSPSolution => true;
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentIdentifier request)
+    TextDocumentIdentifier? ITextDocumentIdentifierHandler<TextDocumentIdentifier, TextDocumentIdentifier?>.GetTextDocumentIdentifier(TextDocumentIdentifier request)
         => request;
 
-    public override Task<VoidResult> HandleRequestAsync(TextDocumentIdentifier textDocument, RequestContext requestContext, CancellationToken cancellationToken)
+    public Task<VoidResult> HandleRequestAsync(TextDocumentIdentifier textDocument, RequestContext requestContext, CancellationToken cancellationToken)
     {
         // ParsedUri can be null when the URI string from the client isn't parseable by System.Uri.
         // This is safe to skip because HtmlDocumentSynchronizer only tracks documents that were

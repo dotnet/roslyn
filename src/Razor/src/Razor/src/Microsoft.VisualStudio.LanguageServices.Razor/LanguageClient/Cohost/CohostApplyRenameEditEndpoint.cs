@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -29,16 +30,16 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory)
-    : AbstractRazorCohostRequestHandler<ApplyRenameEditParams, VoidResult>
+    : ILspServiceRequestHandler<ApplyRenameEditParams, VoidResult>
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostApplyRenameEditEndpoint>();
     private readonly IFileSystem _fileSystem = new FileSystem();
 
-    protected override bool MutatesSolutionState => true;
+    bool IMethodHandler.MutatesSolutionState => true;
 
-    protected override bool RequiresLSPSolution => false;
+    bool ISolutionRequiredHandler.RequiresLSPSolution => false;
 
-    public override async Task<VoidResult> HandleRequestAsync(ApplyRenameEditParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<VoidResult> HandleRequestAsync(ApplyRenameEditParams request, RequestContext context, CancellationToken cancellationToken)
     {
         // We're being called from VS, which means CPS has already renamed the razor file on disk. It might also have
         // renamed the .razor.css etc. files, which we will also have suggested to rename, but unfortunately whether it
