@@ -5,7 +5,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -29,8 +28,8 @@ internal sealed class CohostResolveCodeLensEndpoint(
     protected override bool MutatesSolutionState => false;
     protected override bool RequiresLSPSolution => true;
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(LspCodeLens request)
-        => RazorCodeLensResolveData.Unwrap(request).TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(LspCodeLens request)
+        => RazorCodeLensResolveData.Unwrap(request).TextDocument;
 
     protected override async Task<LspCodeLens?> HandleRequestAsync(LspCodeLens request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -46,7 +45,7 @@ internal sealed class CohostResolveCodeLensEndpoint(
 
     internal readonly struct TestAccessor(CohostResolveCodeLensEndpoint instance)
     {
-        public RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(LspCodeLens request)
+        public TextDocumentIdentifier? GetRazorTextDocumentIdentifier(LspCodeLens request)
             => instance.GetRazorTextDocumentIdentifier(request);
 
         public Task<LspCodeLens?> HandleRequestAsync(LspCodeLens request, TextDocument razorDocument, CancellationToken cancellationToken)

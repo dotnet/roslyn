@@ -26,8 +26,8 @@ internal class RazorDocumentClosedEndpoint(IHtmlDocumentSynchronizer htmlDocumen
 
     protected override bool RequiresLSPSolution => true;
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentIdentifier request)
-        => request.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentIdentifier request)
+        => request;
 
     public override Task<VoidResult> HandleRequestAsync(TextDocumentIdentifier textDocument, RequestContext requestContext, CancellationToken cancellationToken)
     {

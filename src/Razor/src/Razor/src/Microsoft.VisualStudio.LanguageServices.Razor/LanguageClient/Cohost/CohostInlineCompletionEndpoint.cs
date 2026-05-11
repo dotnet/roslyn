@@ -53,8 +53,8 @@ internal sealed class CohostInlineCompletionEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+        => request.TextDocument;
 
     protected override Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
         => Assumed.Unreachable<Task<VSInternalInlineCompletionList?>>("This method has to exist because its base is abstract, but it should never be called.");

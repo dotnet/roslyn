@@ -41,8 +41,8 @@ internal sealed class CohostValidateBreakableRangeEndpoint(
         }];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalValidateBreakableRangeParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalValidateBreakableRangeParams request)
+        => request.TextDocument;
 
     protected override Task<LspRange?> HandleRequestAsync(VSInternalValidateBreakableRangeParams request, TextDocument razorDocument, CancellationToken cancellationToken)
         => HandleRequestAsync(razorDocument, request.Range.ToLinePositionSpan(), cancellationToken);

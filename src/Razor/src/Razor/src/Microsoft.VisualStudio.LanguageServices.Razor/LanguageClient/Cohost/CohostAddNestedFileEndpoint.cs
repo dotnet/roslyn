@@ -35,8 +35,8 @@ internal sealed class CohostAddNestedFileEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(AddNestedFileParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(AddNestedFileParams request)
+        => request.TextDocument;
 
     protected override Task<VoidResult> HandleRequestAsync(
         AddNestedFileParams request,

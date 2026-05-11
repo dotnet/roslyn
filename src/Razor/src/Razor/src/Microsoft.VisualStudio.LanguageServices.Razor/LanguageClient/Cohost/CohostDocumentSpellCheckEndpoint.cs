@@ -46,8 +46,8 @@ internal sealed class CohostDocumentSpellCheckEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams request)
+        => request.TextDocument;
 
     protected override Task<VSInternalSpellCheckableRangeReport[]?> HandleRequestAsync(VSInternalDocumentSpellCheckableParams request, TextDocument razorDocument, CancellationToken cancellationToken)
         => HandleRequestAsync(razorDocument, cancellationToken);

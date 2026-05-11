@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
@@ -61,10 +60,10 @@ internal sealed class CohostCodeActionsResolveEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(CodeAction request)
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(CodeAction request)
     {
         var resolveParams = CodeActionResolveService.GetRazorCodeActionResolutionParams(request);
-        return resolveParams.TextDocument.ToRazorTextDocumentIdentifier();
+        return resolveParams.TextDocument;
     }
 
     protected override async Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)

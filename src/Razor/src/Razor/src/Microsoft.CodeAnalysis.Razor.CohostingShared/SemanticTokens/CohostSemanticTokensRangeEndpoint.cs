@@ -34,8 +34,8 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     protected override bool MutatesSolutionState => false;
     protected override bool RequiresLSPSolution => true;
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(SemanticTokensRangeParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(SemanticTokensRangeParams request)
+        => request.TextDocument;
 
     protected override async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
     {

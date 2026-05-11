@@ -98,7 +98,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
 
             var tdi = resolveEndpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(codeLens);
             Assert.NotNull(tdi);
-            Assert.Equal(document.CreateUri(), tdi.Value.Uri);
+            Assert.Equal(document.CreateUri(), tdi!.DocumentUri.ParsedUri);
 
             var resolved = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(codeLens, document, DisposalToken);
 

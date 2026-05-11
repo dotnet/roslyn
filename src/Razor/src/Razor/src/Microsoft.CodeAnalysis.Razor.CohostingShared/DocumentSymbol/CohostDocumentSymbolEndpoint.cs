@@ -6,7 +6,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
@@ -47,8 +46,8 @@ internal sealed class CohostDocumentSymbolEndpoint(IIncompatibleProjectService i
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentSymbolParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentSymbolParams request)
+        => request.TextDocument;
 
     protected override Task<SumType<DocumentSymbol[], SymbolInformation[]>?> HandleRequestAsync(DocumentSymbolParams request, TextDocument razorDocument, CancellationToken cancellationToken)
         => HandleRequestAsync(razorDocument, _useHierarchicalSymbols, cancellationToken);

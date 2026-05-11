@@ -44,8 +44,8 @@ internal sealed class CohostWrapWithTagEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalWrapWithTagParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalWrapWithTagParams request)
+        => request.TextDocument;
 
     protected override async Task<VSInternalWrapWithTagResponse?> HandleRequestAsync(VSInternalWrapWithTagParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
