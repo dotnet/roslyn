@@ -3159,7 +3159,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             //     System.Span<int> e = stackalloc int[3] { 1, 2 };
             Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26));
 
-        var expectedDiagnostics = new[]
+        var expectedDiagnosticsWithoutOptIn = new[]
+        {
+            // (11,26): error CS0847: An array initializer of length '3' is expected
+            //     System.Span<int> e = stackalloc int[3] { 1, 2 };
+            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26),
+        };
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(expectedDiagnosticsWithoutOptIn);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(expectedDiagnosticsWithoutOptIn);
+
+        var expectedDiagnosticsWithOptIn = new[]
         {
             // (8,26): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
             //     System.Span<int> a = stackalloc int[5];
@@ -3169,21 +3184,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26),
         };
 
-        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics(expectedDiagnostics);
-
-        CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.RegularNext,
-            options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics(expectedDiagnostics);
-
         CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(expectedDiagnostics);
+            .VerifyDiagnostics(expectedDiagnosticsWithOptIn);
 
         CreateCompilationWithSpan(source,
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(expectedDiagnostics);
+            .VerifyDiagnostics(expectedDiagnosticsWithOptIn);
 
         CreateCompilationWithSpan(source,
             parseOptions: TestOptions.Regular14,
@@ -3344,6 +3351,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (3,26): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
             //     System.Span<int> a = stackalloc int[5];
             Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(3, 26));
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics();
     }
 
     [Fact]
