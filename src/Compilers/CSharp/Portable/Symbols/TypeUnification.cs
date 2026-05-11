@@ -30,11 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var candidateBaseType = candidateSubtype.BaseTypeNoUseSiteDiagnostics;
             Debug.Assert(TypeSymbol.Equals(candidateBaseType.OriginalDefinition, closedType.OriginalDefinition, TypeCompareKind.CLRSignatureCompareOptions));
 
-            // PROTOTYPE(cc): This call tends to attempt the unification by substituting types from 'closedType'
-            // (which can generally be referenced by the user) into type parameters of 'candidateBaseType'.
-            // However, for cases where the unification isn't possible this way, it might try to substitute a type
-            // from 'candidateBaseType' to a type parameter in 'closedType'. This results in a type which is invalid at the use site of 'closedType'.
-            // It's unclear whether we want to return such types here, or if we want to return a value reflecting the "unspeakable-ness" of the type instead.
             if (!CanUnify(candidateBaseType, closedType, out var substitution))
                 return null;
 

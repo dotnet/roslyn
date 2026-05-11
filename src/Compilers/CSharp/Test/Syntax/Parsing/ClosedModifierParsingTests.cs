@@ -507,7 +507,13 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             closed abstract class C { }
-            """);
+            """,
+            expectedBindingDiagnostics: [
+                // (1,23): error CS9604: 'C': a closed type cannot be marked abstract because it is always implicitly abstract.
+                // closed abstract class C { }
+                Diagnostic(ErrorCode.ERR_ClosedExplicitlyAbstract, "C").WithArguments("C").WithLocation(1, 23)
+            ]);
+
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -529,7 +535,13 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             abstract closed class C { }
-            """);
+            """,
+            expectedBindingDiagnostics: [
+                // (1,23): error CS9604: 'C': a closed type cannot be marked abstract because it is always implicitly abstract.
+                // abstract closed class C { }
+                Diagnostic(ErrorCode.ERR_ClosedExplicitlyAbstract, "C").WithArguments("C").WithLocation(1, 23)
+            ]);
+
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);

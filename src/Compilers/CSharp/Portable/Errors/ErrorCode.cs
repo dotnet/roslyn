@@ -2490,6 +2490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ClosedSealedStatic = 9601,
         ERR_ClosedBaseTypeBaseFromOtherAssembly = 9602,
         ERR_UnderspecifiedClosedSubtype = 9603,
+        ERR_ClosedExplicitlyAbstract = 9604,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
