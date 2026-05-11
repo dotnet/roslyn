@@ -203,8 +203,7 @@ internal class CodeActionsService(
             return null;
         }
 
-        var classDeclaration = projectedToken.Parent?.FirstAncestorOrSelf<ClassDeclarationSyntax>() ??
-            csharpRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+        var classDeclaration = baseType.Parent?.FirstAncestorOrSelf<ClassDeclarationSyntax>();
         if (classDeclaration is null)
         {
             return null;
