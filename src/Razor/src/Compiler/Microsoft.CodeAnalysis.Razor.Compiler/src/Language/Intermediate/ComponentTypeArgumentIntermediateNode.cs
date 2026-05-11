@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -66,7 +67,7 @@ public sealed class ComponentTypeArgumentIntermediateNode(
         return new CSharpIntermediateToken(sb.ToString(), mergedSpan);
     }
 
-    private static void AppendTokens(IntermediateNode node, System.Text.StringBuilder sb, ref SourceSpan? firstSpan, ref SourceSpan? lastSpan)
+    private static void AppendTokens(IntermediateNode node, StringBuilder sb, ref SourceSpan? firstSpan, ref SourceSpan? lastSpan)
     {
         foreach (var child in node.Children)
         {
