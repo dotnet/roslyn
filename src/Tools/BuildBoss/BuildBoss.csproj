@@ -18,6 +18,7 @@
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="$(MSBuildStructuredLoggerVersion)" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="16.11.6" />
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
   </ItemGroup>
   <ItemGroup>
