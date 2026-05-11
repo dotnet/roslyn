@@ -579,6 +579,7 @@ internal sealed partial class ConfigurationUpdater
                     var splicedFileExtensions = mostRecentHeaderText[(nameExtensionSplitIndex + 1)..].Split(',', ' ', '{', '}');
 
                     // Replacing characters in the header with the regex equivalent.
+                    fileName = fileName.Replace('\\', '/');
                     fileName = fileName.Replace(".", @"\.");
                     fileName = fileName.Replace("*", ".*");
                     fileName = fileName.Replace("/", @"\/");
