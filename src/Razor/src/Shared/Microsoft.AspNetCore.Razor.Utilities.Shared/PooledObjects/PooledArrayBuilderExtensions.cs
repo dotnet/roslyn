@@ -27,7 +27,7 @@ internal static class PooledArrayBuilderExtensions
     /// </code>
     ///
     /// <para>⚠ Do not move or rename this method without updating the corresponding
-    /// Razor.Diagnostics.Analyzers\PooledArrayBuilderAsRefAnalyzer.cs.</para>
+    /// Roslyn.Diagnostics.Analyzers\Core\PooledArrayBuilderAsRefAnalyzer.cs.</para>
     /// </remarks>
     /// <typeparam name="T">The type of element stored in the pooled array builder.</typeparam>
     /// <param name="builder">A read-only reference to a pooled array builder which is part of a <c>using</c> statement.</param>
