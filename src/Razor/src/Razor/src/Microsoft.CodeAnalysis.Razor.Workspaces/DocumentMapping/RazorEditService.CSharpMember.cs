@@ -79,23 +79,30 @@ internal partial class RazorEditService
 
         private static TextSpan GetComparisonSpan(PropertyDeclarationSyntax property)
         {
-            // Properties can't be overloaded, so the name alone is enough to tell whether a generated property
-            // already exists. Keeping the comparison this narrow avoids treating accessor, initializer, or
-            // modifier changes as additions.
-            return property.Identifier.Span;
+            // Properties can't be overloaded, but explicit interface implementations with the same property name
+            // must remain distinct. Include the qualifier when present while still ignoring accessor, initializer,
+            // or modifier changes.
+            return TextSpan.FromBounds(
+                property.ExplicitInterfaceSpecifier?.SpanStart ?? property.Identifier.SpanStart,
+                property.Identifier.Span.End);
         }
 
         private static TextSpan GetComparisonSpan(IndexerDeclarationSyntax indexer)
         {
-            // Indexers can be overloaded, so include the parameter list to distinguish overloads while still
-            // ignoring accessor or body edits.
-            return TextSpan.FromBounds(indexer.ThisKeyword.SpanStart, indexer.ParameterList.Span.End);
+            // Indexers can be overloaded, and explicit interface implementations with identical parameter lists
+            // must remain distinct. Include the qualifier when present while still ignoring accessor or body edits.
+            return TextSpan.FromBounds(
+                indexer.ExplicitInterfaceSpecifier?.SpanStart ?? indexer.ThisKeyword.SpanStart,
+                indexer.ParameterList.Span.End);
         }
 
         private static TextSpan GetComparisonSpan(EventDeclarationSyntax @event)
         {
-            // Events can't be overloaded, so the name is enough to identify them.
-            return @event.Identifier.Span;
+            // Events can't be overloaded, but explicit interface implementations with the same event name must
+            // remain distinct. Include the qualifier when present.
+            return TextSpan.FromBounds(
+                @event.ExplicitInterfaceSpecifier?.SpanStart ?? @event.Identifier.SpanStart,
+                @event.Identifier.Span.End);
         }
 
         private static TextSpan GetComparisonSpan(TypeDeclarationSyntax typeDeclaration)

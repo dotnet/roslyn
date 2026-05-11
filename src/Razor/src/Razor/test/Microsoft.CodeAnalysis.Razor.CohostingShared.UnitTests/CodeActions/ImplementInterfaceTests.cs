@@ -179,6 +179,207 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
     }
 
     [Fact]
+    public async Task ImplementInterface_Explicitly_ExistingCodeBlock()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @implements IMyInter[||]face
+
+                @code {
+                }
+                """,
+            expected: """
+                @implements IMyInterface
+
+                @code {
+                    void IMyInterface.Method1()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("IMyInterface.cs"), """
+                    public interface IMyInterface
+                    {
+                        void Method1();
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.ImplementInterface,
+            codeActionIndex: 1,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task ImplementInterface_Explicitly_WithInheritedPropertyEventAndIndexerNameCollisions()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System
+                @implements IDeri[||]ved
+
+                @code {
+                }
+                """,
+            expected: """
+                @using System
+                @implements IDerived
+
+                @code {
+                    int IDerived.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    int IBase.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    string IDerived.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    string IBase.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    event EventHandler IDerived.Event1
+                    {
+                        add
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        remove
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    event EventHandler IBase.Event1
+                    {
+                        add
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        remove
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("IMyInterface.cs"), """
+                    using System;
+
+                    public interface IBase
+                    {
+                        string Property1 { get; set; }
+                        event EventHandler Event1;
+                        int this[int index] { get; set; }
+                    }
+
+                    public interface IDerived : IBase
+                    {
+                        new string Property1 { get; set; }
+                        new event EventHandler Event1;
+                        new int this[int index] { get; set; }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.ImplementInterface,
+            codeActionIndex: 1,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task ImplementInterface_Explicitly_PartialBaseImplementations_AddsDerivedMembers()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System
+                @implements IDeri[||]ved
+
+                @code {
+                    int IBase.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    string IBase.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    event EventHandler IBase.Event1
+                    {
+                        add
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        remove
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """,
+            expected: """
+                @using System
+                @implements IDerived
+
+                @code {
+                    int IBase.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    string IBase.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+                    string IDerived.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    int IDerived.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    event EventHandler IBase.Event1
+                    {
+                        add
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        remove
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    event EventHandler IDerived.Event1
+                    {
+                        add
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        remove
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("IMyInterface.cs"), """
+                    using System;
+
+                    public interface IBase
+                    {
+                        string Property1 { get; set; }
+                        event EventHandler Event1;
+                        int this[int index] { get; set; }
+                    }
+
+                    public interface IDerived : IBase
+                    {
+                        new string Property1 { get; set; }
+                        new event EventHandler Event1;
+                        new int this[int index] { get; set; }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.ImplementInterface,
+            codeActionIndex: 1,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
     public async Task ImplementInterface_IDisposableDisposePattern()
     {
         await VerifyCodeActionAsync(
