@@ -198,9 +198,14 @@ internal class CodeActionsService(
         var projectedStart = csharpText.GetRequiredAbsoluteIndex(projectedRange.Start);
         var projectedToken = csharpRoot.FindToken(projectedStart);
         var baseType = projectedToken.Parent?.FirstAncestorOrSelf<BaseTypeSyntax>();
+        if (baseType is null)
+        {
+            return null;
+        }
+
         var classDeclaration = projectedToken.Parent?.FirstAncestorOrSelf<ClassDeclarationSyntax>() ??
             csharpRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-        if (baseType is null || classDeclaration is null)
+        if (classDeclaration is null)
         {
             return null;
         }
