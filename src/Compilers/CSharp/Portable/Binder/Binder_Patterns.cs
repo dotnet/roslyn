@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (hasValueProperty?.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
                 {
-                    return null; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
+                    return null;
                 }
 
                 return hasValueProperty;
@@ -224,11 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            NamedTypeSymbol unionDefinition = inputUnionType.OriginalDefinition;
-            ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefinition.UnionCaseTypes;
             MethodSymbol? bestMatch = null;
             Conversion bestMatchConversion = Conversion.NoConversion;
             NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
+            PooledHashSet<TypeSymbol>? typeSet = null;
 
             if (membersInterfaceForDefinition is not null)
             {
@@ -236,11 +235,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversions, inputUnionType, type,
                     possiblyConstructedOrSubstitutedType: membersInterfaceForDefinition.AsMember(inputUnionType),
                     declaringType: membersInterfaceForDefinition,
-                    unionDefinitionCaseTypes, ref bestMatch, ref bestMatchConversion);
+                    ref typeSet, ref bestMatch, ref bestMatchConversion);
             }
             else
             {
-                for (NamedTypeSymbol declaringType = unionDefinition;
+                for (NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
                      declaringType is not null;
                      declaringType = declaringType.BaseTypeNoUseSiteDiagnostics)
                 {
@@ -259,14 +258,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
                     }
 
-                    if (foundBetterMatch(conversions, inputUnionType, type, possiblyConstructedOrSubstitutedType, declaringType, unionDefinitionCaseTypes, ref bestMatch, ref bestMatchConversion) &&
+                    if (foundBetterMatch(conversions, inputUnionType, type, possiblyConstructedOrSubstitutedType, declaringType, ref typeSet, ref bestMatch, ref bestMatchConversion) &&
                         bestMatchConversion.IsIdentity)
                     {
-                        return bestMatch;
+                        break;
                     }
                 }
             }
 
+            typeSet?.Free();
             return bestMatch;
 
             static bool foundBetterMatch(
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol type,
                 NamedTypeSymbol possiblyConstructedOrSubstitutedType,
                 NamedTypeSymbol declaringType,
-                ImmutableArray<TypeSymbol> unionDefinitionCaseTypes,
+                ref PooledHashSet<TypeSymbol>? typeSet,
                 ref MethodSymbol? bestMatch,
                 ref Conversion bestMatchConversion
                 )
@@ -303,10 +303,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                             declaredMethod = candidate.OriginalDefinition.AsMember(declaringType);
                         }
 
+                        if (typeSet is null)
+                        {
+                            typeSet = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
+
+                            foreach (var caseType in inputUnionType.OriginalDefinition.UnionCaseTypes)
+                            {
+                                typeSet.Add(caseType);
+
+                                if (caseType.IsNullableType())
+                                {
+                                    typeSet.Add(caseType.GetNullableUnderlyingType());
+                                }
+
+                            }
+                        }
+
                         bool isMatch =
                              HasTryGetValueSignature(declaredMethod) &&
                              declaredMethod.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
-                             HasUnionTypeTryGetValueParameterType(declaredMethod, unionDefinitionCaseTypes);
+                             typeSet.Contains(declaredMethod.Parameters[0].Type);
 
                         Debug.Assert(isMatch == IsUnionTypeTryGetValueMethod(inputUnionType, candidate));
 
@@ -341,27 +357,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return foundBetterMatch;
             }
-        }
-
-        private static bool HasUnionTypeTryGetValueParameterType(MethodSymbol declaredMethod, ImmutableArray<TypeSymbol> unionDefinitionCaseTypes)
-        {
-            return unionDefinitionCaseTypes.Any(
-                static (caseType, parameterType) =>
-                {
-                    if (caseType.Equals(parameterType, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        return true;
-                    }
-
-                    if (caseType.IsNullableType() &&
-                        caseType.GetNullableUnderlyingType().Equals(parameterType, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        return true;
-                    }
-
-                    return false;
-                },
-                declaredMethod.Parameters[0].Type); // https://github.com/dotnet/roslyn/issues/82636: Optimize this check?
         }
 
         internal static bool HasTryGetValueSignature(MethodSymbol method)
@@ -419,7 +414,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isMatch(MethodSymbol method, NamedTypeSymbol unionDefinition)
             {
                 return HasTryGetValueSignature(method) && method.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
-                       HasUnionTypeTryGetValueParameterType(method, unionDefinition.UnionCaseTypes);
+                       unionDefinition.UnionCaseTypes.Any(
+                           static (caseType, parameterType) =>
+                           {
+                               if (caseType.Equals(parameterType, TypeCompareKind.AllIgnoreOptions))
+                               {
+                                   return true;
+                               }
+
+                               if (caseType.IsNullableType() &&
+                                   caseType.GetNullableUnderlyingType().Equals(parameterType, TypeCompareKind.AllIgnoreOptions))
+                               {
+                                   return true;
+                               }
+
+                               return false;
+                           },
+                           method.Parameters[0].Type);
             }
         }
 
@@ -1960,8 +1971,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DiscardDesignation:
                     {
                         hasUnionMatching = false;
-                        // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for a Union type
-                        // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for 'unionType' not changing
                         return new BoundDiscardPattern(node, inputType: inputType, narrowedType: inputType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
@@ -1976,7 +1985,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(node.Parent is { });
 
                         hasUnionMatching = false;
-                        // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for 'unionType' not changing
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax
                             boundOperandType, isVar: true, variableSymbol, variableAccess,

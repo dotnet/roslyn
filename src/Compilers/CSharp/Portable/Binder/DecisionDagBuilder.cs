@@ -1124,7 +1124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builder = ArrayBuilder<Tests>.GetInstance(2);
                         builder.Add(result);
 
-                        // https://github.com/dotnet/roslyn/issues/82636: Is there an advantage to use TryGetValue here? 
                         BoundDagTemp input = PrepareForUnionValuePropertyMatching(ref inputInfo, builder);
                         var evaluation = new BoundDagTypeEvaluation(bin.Syntax, bin.NarrowedType, input);
                         outputInfo = (TestInputOutputInfo)evaluation.MakeResultTemp();
@@ -2300,7 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (hasValueSense)
                     {
-                        return UnionTestKind.NonNullTest; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
+                        return UnionTestKind.NonNullTest;
                     }
                     else
                     {

@@ -10666,7 +10666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(factory is { IsStatic: true, ContainingType.IsInterface: true });
-                unionTypeWithState = GetConversionReturnTypeWithState(factory, isLiftedConversion: false, operandType.State); // PROTOTYPE: Add test coverage
+                unionTypeWithState = GetConversionReturnTypeWithState(factory, isLiftedConversion: false, operandType.State);
             }
 
             if (unionConstructionConversion is { })
@@ -11776,14 +11776,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/29961 Update conversion method based on operand type.
                 if (node.OperandConversion is BoundConversion { Conversion: ({ IsUserDefined: true } or { IsUnion: true }) and { Method.ParameterCount: 1 } operandConversion })
                 {
+                    // It doesn't look like it is possible to get here with a Union conversion.
+                    // This would be a conversion to one of the built-in numeric types. While it is possible to
+                    // have a user-defined conversion to a numeric type, a numeric type is not a union type.
+                    Debug.Assert(!operandConversion.IsUnion);
+
                     if (!operandConversion.Method.ReturnsVoid)
                     {
-                        targetTypeOfOperandConversion = operandConversion.Method.ReturnTypeWithAnnotations; // PROTOTYPE: Add test coverage for Unions.
+                        targetTypeOfOperandConversion = operandConversion.Method.ReturnTypeWithAnnotations;
                     }
                     else
                     {
-                        targetTypeOfOperandConversion = TypeWithAnnotations.Create(node.OperandConversion.Type, nullableAnnotation: NullableAnnotation.NotAnnotated); // https://github.com/dotnet/roslyn/issues/82636: Add coverage
-                        // https://github.com/dotnet/roslyn/issues/82636: Track something for the underlying value?
+                        targetTypeOfOperandConversion = TypeWithAnnotations.Create(node.OperandConversion.Type, nullableAnnotation: NullableAnnotation.NotAnnotated);
                     }
                 }
                 else if (incrementOperator is object)
