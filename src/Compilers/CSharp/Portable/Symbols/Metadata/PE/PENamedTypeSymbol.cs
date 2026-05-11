@@ -1238,36 +1238,109 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var subtypeDefinitionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
                     var metadataReader = ContainingPEModule.Module.MetadataReader;
                     var decoder = new MetadataDecoder(ContainingPEModule);
+                    var thisTypeIsGeneric = IsGenericType;
                     try
                     {
                         foreach (var candidateTypeDefHandle in metadataReader.TypeDefinitions)
                         {
                             var typeDef = metadataReader.GetTypeDefinition(candidateTypeDefHandle);
                             var baseTypeHandle = typeDef.BaseType;
-                            if (baseTypeHandle.Kind == HandleKind.TypeDefinition)
-                            {
-                                if (baseTypeHandle == this.Handle)
-                                    subtypeDefinitionsBuilder.Add((NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle));
-
+                            if (tryHandleTypeDefOrTypeRef(baseTypeHandle, candidateTypeDefHandle))
                                 continue;
+
+                            if (baseTypeHandle.Kind == HandleKind.TypeSpecification)
+                            {
+                                if (!thisTypeIsGeneric)
+                                    continue;
+
+                                // Dig through the TypeSpec and check the handle for the original definition.
+                                var sigReader = decoder.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)baseTypeHandle);
+                                var typeCode = sigReader.ReadSignatureTypeCode();
+                                if (typeCode != SignatureTypeCode.GenericTypeInstance)
+                                    continue;
+
+                                var elementType = sigReader.ReadSignatureTypeCode();
+                                if (elementType != SignatureTypeCode.TypeHandle)
+                                    throw new UnsupportedSignatureContent();
+
+                                var baseTypeDefinitionHandle = sigReader.ReadTypeHandle();
+                                if (tryHandleTypeDefOrTypeRef(baseTypeDefinitionHandle, candidateTypeDefHandle))
+                                    continue;
                             }
 
-                            // PROTOTYPE(cc): Perhaps we should write a helper to dig thru the signature,
-                            // filter for GenericTypeInstance, and get the TypeDef token representing the original definition, to compare against 'this.Handle'.
-                            // This would reduce how often we need to call 'GetTypeOfToken'.
-                            Debug.Assert(baseTypeHandle.Kind is HandleKind.TypeSpecification or HandleKind.TypeReference);
+                            // Easy-outs did not work. Need to just decode a symbol and compare.
                             var candidateSubtype = decoder.GetTypeOfToken(candidateTypeDefHandle);
                             if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
                                 subtypeDefinitionsBuilder.Add((NamedTypeSymbol)candidateSubtype);
                         }
                     }
-                    catch (BadImageFormatException)
+                    catch (Exception ex) when (ex is BadImageFormatException or UnsupportedSignatureContent)
                     {
                         // PROTOTYPE(cc): It seems like we don't know what the candidate subtypes are in this case,
                         // so, perhaps we should not allow exhausting the type via its subtypes.
                     }
 
                     return subtypeDefinitionsBuilder.ToImmutableAndFree();
+
+                    bool tryHandleTypeDefOrTypeRef(EntityHandle baseTypeHandle, TypeDefinitionHandle candidateTypeDefHandle)
+                    {
+                        if (baseTypeHandle.IsNil)
+                            return true;
+
+                        if (baseTypeHandle.Kind == HandleKind.TypeDefinition)
+                        {
+                            if (baseTypeHandle == this.Handle)
+                            {
+                                var candidateSubtype = (NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle);
+                                if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
+                                {
+                                    subtypeDefinitionsBuilder.Add(candidateSubtype);
+                                }
+                            }
+
+                            return true;
+                        }
+
+                        if (baseTypeHandle.Kind == HandleKind.TypeReference)
+                        {
+                            // A TypeRef usually refers to a type in a different module, but, strictly, it is possible for it to refer to the current module.
+                            // Dig through any containing types of the TypeRef, to see if it is ultimately a reference to the current module.
+                            // In that case, we can fall through to handling it in the slow path.
+                            // Reject cases where 'this' and the candidate type, have a different ContainingType nesting depth.
+                            var originalTypeRef = metadataReader.GetTypeReference((TypeReferenceHandle)baseTypeHandle);
+                            var typeRef = originalTypeRef;
+                            NamedTypeSymbol container = this;
+                            while (typeRef.ResolutionScope.Kind == HandleKind.TypeReference)
+                            {
+                                if (container.ContainingType is null)
+                                    return true;
+
+                                typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)typeRef.ResolutionScope);
+                                container = container.ContainingType;
+                            }
+
+                            if (container.ContainingType is not null)
+                                return true;
+
+                            if (typeRef.ResolutionScope.Kind == HandleKind.ModuleReference)
+                            {
+                                // Note: module names are case insensitive. See also MetadataDecoder.LookupTopLevelTypeDefSymbol.
+                                var referencedModuleName = decoder.Module.GetModuleRefNameOrThrow((ModuleReferenceHandle)typeRef.ResolutionScope);
+                                if (!decoder.Module.Name.Equals(referencedModuleName, StringComparison.OrdinalIgnoreCase))
+                                    return true;
+                            }
+                            else if (typeRef.ResolutionScope != EntityHandle.ModuleDefinition)
+                            {
+                                return true;
+                            }
+
+                            // We have a TypeRef to a type in the same module.
+                            // Check for a difference in the simple names of the respective types.
+                            return !this.MetadataName.Equals(metadataReader.GetString(originalTypeRef.Name), StringComparison.Ordinal);
+                        }
+
+                        return false;
+                    }
                 }
             }
         }

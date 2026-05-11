@@ -1901,7 +1901,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2<V> : C<V>;
             """;
 
-        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
     }
 
@@ -1938,7 +1938,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2<U> : C<ImmutableArray<U>> { }
             """;
 
-        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (7,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C<T>' is not covered.
             //         return item switch
@@ -1987,7 +1987,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class E2<V> : D2<ImmutableArray<V>> { }
             """;
 
-        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (7,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2<T>' is not covered.
             //         return item switch
@@ -2029,7 +2029,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class E2<V> : D2<ImmutableArray<V>> { }
             """;
 
-        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (7,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C<T>' is not covered.
             //         return item switch
@@ -2093,7 +2093,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (100,11): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
             //         c switch
@@ -2161,7 +2161,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
             //         return c switch
@@ -2171,7 +2171,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Empty(subtypes);
 
-        var comp1 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp2.VerifyEmitDiagnostics(
             // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
@@ -2476,10 +2476,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -2540,10 +2540,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp1 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp2);
 
@@ -2600,7 +2600,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
             //         return c switch
@@ -2610,7 +2610,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,13): error CS0122: 'D2' is inaccessible due to its protection level
@@ -2672,10 +2672,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -2750,10 +2750,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp1 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp2);
 
@@ -2815,10 +2815,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp1 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp2);
 
@@ -2880,10 +2880,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp1 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp2);
 
@@ -2946,10 +2946,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3007,10 +3007,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3067,10 +3067,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3128,7 +3128,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,14): error CS0452: The type 'U2' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
             // public class D2<U2> : C<U2> where U2 : struct;
@@ -3144,7 +3144,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["D1<T>", "D2<T>"], subtypes.ToTestDisplayStrings());
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (200,16): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U2' in the generic type or method 'D2<U2>'
@@ -3205,10 +3205,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3287,10 +3287,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3370,7 +3370,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U1' in the generic type or method 'D1<U1, U2>'
             // public class D2<V1> : D1<int, V1> where V1 : class;
@@ -3714,10 +3714,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3787,10 +3787,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3853,7 +3853,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X>' is not covered.
             //         => c switch
@@ -3863,7 +3863,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["D1<T>"], subtypes.ToTestDisplayStrings());
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X>' is not covered.
@@ -3926,14 +3926,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["Container<T>.D1", "D2<T>", "D3", "D4"], subtypes.ToTestDisplayStrings());
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
@@ -3947,6 +3947,80 @@ public sealed class ClosedClassesTests : CSharpTestBase
         classC = comp.GetMember<NamedTypeSymbol>("Container.C");
         Assert.True(classC.TryGetClosedSubtypes(out subtypes));
         Assert.Equal(["D2<T>", "D3", "D4", "Container<T>.D1"], subtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Exhaustiveness_GenericNestedType_01()
+    {
+        var source1 = """
+            public class Container
+            {
+                public closed class C<T>;
+                public class D1<T> : C<T>;
+            }
+
+            public class D2<U> : Container.C<U>;
+            public class D3 : Container.C<string>;
+            public class D4 : Container.C<int>;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(Container.C<string> c)
+                {
+                    return c switch
+                    {
+                        Container.D1<string> => 1,
+                        D2<string> => 2,
+                        D3 => 3,
+                    };
+                }
+
+                int M2(Container.C<int> c)
+                {
+                    return c switch
+                    {
+                        Container.D1<int> => 1,
+                        D2<int> => 2,
+                        D4 => 3,
+                    };
+                }
+
+                int M3<X>(Container.C<X> c)
+                {
+                    return c switch
+                    {
+                        Container.D1<X> => 1,
+                        D2<X> => 2,
+                        D3 => 3,
+                        D4 => 3,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["Container.D1<T>", "D2<T>", "D3", "D4"], subtypes.ToTestDisplayStrings());
+
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["Container.D1<T>", "D2<T>", "D3", "D4"], subtypes.ToTestDisplayStrings());
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["D2<T>", "D3", "D4", "Container.D1<T>"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -3998,10 +4072,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4070,10 +4144,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4158,10 +4232,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4248,10 +4322,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4371,10 +4445,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         verify(comp);
 
