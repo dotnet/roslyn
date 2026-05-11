@@ -568,7 +568,7 @@ public class LocalHtmlCompletionProviderTest
     {
         var testCode = new TestCode(markup);
         var context = CreateContext(testCode.Text, testCode.Position);
-        var completionList = LocalHtmlCompletionProvider.GetHtmlCompletionList(context, out _);
+        LocalHtmlCompletionProvider.TryGetHtmlCompletionList(context, out var completionList, out _);
 
         Assert.NotNull(completionList);
         var item = Assert.Single(completionList.Items, i => i.Label == itemLabel);
@@ -597,7 +597,9 @@ public class LocalHtmlCompletionProviderTest
     {
         var testCode = new TestCode(markup);
         var context = CreateContext(testCode.Text, testCode.Position);
-        return LocalHtmlCompletionProvider.GetHtmlCompletionList(context, out _);
+        return LocalHtmlCompletionProvider.TryGetHtmlCompletionList(context, out var completionList, out _)
+            ? completionList
+            : null;
     }
 
     private static RazorCompletionContext CreateContext(string text, int absoluteIndex)

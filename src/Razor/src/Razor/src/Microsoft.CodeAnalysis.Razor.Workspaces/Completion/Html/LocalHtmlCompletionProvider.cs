@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -14,7 +15,7 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
 
 /// <summary>
-/// Produces HTML element, attribute, and attribute-value completions directly from the
+/// Produces HTML element, attribute, attribute-value, and entity completions directly from the
 /// compiled <see cref="HtmlCompletionData"/> schema, eliminating the LSP round-trip to the
 /// external HTML language server for standard HTML completions.
 /// </summary>
@@ -84,21 +85,21 @@ internal static partial class LocalHtmlCompletionProvider
     /// position requires an external completion provider (e.g., script/style content, attribute
     /// values like CSS classes or file paths, or positions not recognized as an HTML completion context).
     /// </summary>
-    public static RazorVSInternalCompletionList? GetHtmlCompletionList(
+    public static bool TryGetHtmlCompletionList(
         RazorCompletionContext completionContext,
-        out LocalHtmlCompletionResolveContext? resolveContext)
+        [NotNullWhen(true)] out RazorVSInternalCompletionList? completionList,
+        [NotNullWhen(true)] out LocalHtmlCompletionResolveContext? resolveContext)
     {
+        completionList = null;
         resolveContext = null;
 
         var sourceText = completionContext.CodeDocument.Source.Text;
-        var positionContext = GetPositionContext(completionContext, sourceText);
-
-        if (positionContext is not { } context)
+        if (!TryGetPositionContext(completionContext, sourceText, out var context))
         {
-            return null;
+            return false;
         }
 
-        return context.Kind switch
+        completionList = context.Kind switch
         {
             PositionKind.None => s_emptyCompletionList,
             PositionKind.Element => GetElementCompletionList(completionContext.Options, context, out resolveContext),
@@ -108,66 +109,57 @@ internal static partial class LocalHtmlCompletionProvider
             PositionKind.Entity => EntityCompletion.BuildCompletionList(context.ReplacementRange),
             _ => throw new InvalidOperationException($"Unexpected PositionKind: {context.Kind}"),
         };
+
+        if (completionList is null)
+        {
+            resolveContext = null;
+            return false;
+        }
+
+        resolveContext ??= LocalHtmlCompletionResolveContext.Empty;
+        return true;
     }
 
     /// <summary>
     /// Determines what kind of HTML completion applies at the current position.
-    /// Returns null when the owner node cannot be determined (unparseable document)
+    /// Returns false when the owner node cannot be determined (unparseable document)
     /// or when the position is inside script/style content that requires an external provider.
-    /// Returns <see cref="PositionKind.None"/> when the position is in HTML content but not
+    /// Returns true with <see cref="PositionKind.None"/> when the position is in HTML content but not
     /// in a recognized completion context (plain text between tags, etc.).
     /// </summary>
-    internal static PositionContext? GetPositionContext(RazorCompletionContext completionContext, SourceText sourceText)
+    internal static bool TryGetPositionContext(RazorCompletionContext completionContext, SourceText sourceText, out PositionContext context)
     {
         var absoluteIndex = completionContext.AbsoluteIndex;
 
         var owner = completionContext.Owner;
         if (owner is null)
         {
-            return null;
+            context = default;
+            return false;
         }
 
         owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(owner);
-        if (owner is null)
+        if (owner is null || IsInScriptOrStyleBlock(owner))
         {
-            return null;
+            context = default;
+            return false;
         }
 
-        if (IsInScriptOrStyleBlock(owner))
+        if (TryGetElementNamePositionContext(owner, absoluteIndex, sourceText, out context)
+            || TryGetCloseTagPositionContext(owner, absoluteIndex, sourceText, out context)
+            || TryGetAttributeNamePositionContext(owner, absoluteIndex, sourceText, out context)
+            || TryGetAttributeValuePositionContext(owner, absoluteIndex, sourceText, out context)
+            || TryGetEntityPositionContext(owner, absoluteIndex, sourceText, out context))
         {
-            return null;
-        }
-
-        if (TryGetElementNamePositionContext(owner, absoluteIndex, sourceText, out var elementContext))
-        {
-            return elementContext;
-        }
-
-        if (TryGetCloseTagPositionContext(owner, absoluteIndex, sourceText, out var closeTagContext))
-        {
-            return closeTagContext;
-        }
-
-        if (TryGetAttributeNamePositionContext(owner, absoluteIndex, sourceText, out var attributeContext))
-        {
-            return attributeContext;
-        }
-
-        if (TryGetAttributeValuePositionContext(owner, absoluteIndex, sourceText, out var attributeValueContext))
-        {
-            return attributeValueContext;
-        }
-
-        if (TryGetEntityPositionContext(completionContext, owner, absoluteIndex, sourceText, out var entityContext))
-        {
-            return entityContext;
+            return true;
         }
 
         // Position is in HTML content but not in a recognized completion context (e.g., plain text
         // between tags, Razor directive attributes). No HTML completions apply — return None
         // so the caller returns the empty completion list (not null, which means "not our domain").
         // The ReplacementRange is unused for None but we provide a valid value to avoid default!.
-        return new(PositionKind.None, sourceText.GetRange(absoluteIndex, absoluteIndex), owner);
+        context = new(PositionKind.None, sourceText.GetRange(absoluteIndex, absoluteIndex), owner);
+        return true;
     }
 
     /// <summary>
@@ -272,11 +264,10 @@ internal static partial class LocalHtmlCompletionProvider
     /// Entity completion: cursor follows '&amp;' in text content (e.g., &amp;amp;$$, &amp;nb$$).
     /// </summary>
     private static bool TryGetEntityPositionContext(
-        RazorCompletionContext completionContext, RazorSyntaxNode owner, int absoluteIndex, SourceText sourceText, out PositionContext context)
+        RazorSyntaxNode owner, int absoluteIndex, SourceText sourceText, out PositionContext context)
     {
-        if (EntityCompletion.IsInContext(completionContext))
+        if (EntityCompletion.TryGetReplacementRange(sourceText, absoluteIndex, out var entityRange))
         {
-            var entityRange = EntityCompletion.GetReplacementRange(sourceText, absoluteIndex);
             context = new(PositionKind.Entity, entityRange, owner);
             return true;
         }
@@ -287,9 +278,9 @@ internal static partial class LocalHtmlCompletionProvider
 
     private static RazorVSInternalCompletionList? GetElementCompletionList(
         RazorCompletionOptions completionOptions, PositionContext context,
-        out LocalHtmlCompletionResolveContext? resolveContext)
+        out LocalHtmlCompletionResolveContext resolveContext)
     {
-        resolveContext = null;
+        resolveContext = LocalHtmlCompletionResolveContext.Empty;
 
         var commitWithSpace = completionOptions.CommitElementsWithSpace;
         var commitChars = commitWithSpace
@@ -542,7 +533,7 @@ internal static partial class LocalHtmlCompletionProvider
     }
 
     private static RazorVSInternalCompletionList? GetAttributeCompletionList(PositionContext context,
-        out LocalHtmlCompletionResolveContext? resolveContext)
+        out LocalHtmlCompletionResolveContext resolveContext)
     {
         var tagName = context.TagName!;
         var typedPrefix = context.TypedAttributePrefix;

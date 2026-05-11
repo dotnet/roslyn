@@ -47,9 +47,6 @@ internal static partial class CompletionListOptimizer
             return completionList;
         }
 
-        // Clear per-item commit characters for items that match the promoted set.
-        // For items that intentionally have no commit characters, set an explicit empty
-        // array so they don't inherit the promoted list-level defaults.
         foreach (var completionItem in completionList.Items)
         {
             if (completionItem is not VSInternalCompletionItem vsItem)
@@ -59,6 +56,7 @@ internal static partial class CompletionListOptimizer
 
             if (TryGetCommitCharacterSource(vsItem, out var strings, out var vsChars))
             {
+                // Clear per-item commit characters for items that match the promoted set.
                 if (CommitCharactersEqual(bestCommitCharacterGroup.Strings, bestCommitCharacterGroup.VsChars, strings, vsChars))
                 {
                     vsItem.CommitCharacters = null;
@@ -67,6 +65,8 @@ internal static partial class CompletionListOptimizer
             }
             else
             {
+                // For items that intentionally have no commit characters, set an explicit empty
+                // array so they don't inherit the promoted list-level defaults.
                 vsItem.CommitCharacters = [];
             }
         }
@@ -97,7 +97,7 @@ internal static partial class CompletionListOptimizer
         RazorVSInternalCompletionList completionList,
         out CommitCharacterGroup bestCommitCharacterGroup)
     {
-        using var _pooled = ListPool<CommitCharacterGroup>.GetPooledObject(out var groups);
+        using var _ = ListPool<CommitCharacterGroup>.GetPooledObject(out var groups);
 
         foreach (var completionItem in completionList.Items)
         {
@@ -138,9 +138,10 @@ internal static partial class CompletionListOptimizer
         bestCommitCharacterGroup = groups[0];
         for (var i = 1; i < groups.Count; i++)
         {
-            if (groups[i].Count > bestCommitCharacterGroup.Count)
+            var group = groups[i];
+            if (group.Count > bestCommitCharacterGroup.Count)
             {
-                bestCommitCharacterGroup = groups[i];
+                bestCommitCharacterGroup = group;
             }
         }
 
@@ -157,19 +158,20 @@ internal static partial class CompletionListOptimizer
         out string[]? strings,
         out VSInternalCommitCharacter[]? vsChars)
     {
+        strings = null;
+        vsChars = null;
+
         // Prefer VsCommitCharacters if set (it has richer semantics).
         if (item.VsCommitCharacters is { } vsCommitChars)
         {
             switch (vsCommitChars.Value)
             {
                 case VSInternalCommitCharacter[] vsInternalChars:
-                    strings = null;
                     vsChars = vsInternalChars;
                     return true;
 
                 case string[] stringChars:
                     strings = stringChars;
-                    vsChars = null;
                     return true;
             }
         }
@@ -178,12 +180,9 @@ internal static partial class CompletionListOptimizer
         if (item.CommitCharacters is { } commitChars)
         {
             strings = commitChars;
-            vsChars = null;
             return true;
         }
 
-        strings = null;
-        vsChars = null;
         return false;
     }
 

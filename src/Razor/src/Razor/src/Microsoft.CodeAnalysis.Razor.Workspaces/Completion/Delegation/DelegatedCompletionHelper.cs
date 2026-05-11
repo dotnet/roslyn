@@ -243,15 +243,6 @@ internal static class DelegatedCompletionHelper
             return false;
         }
 
-        // Guard against FindToken resolving to a body-level token when the cursor
-        // is actually inside a start tag (e.g., between empty attribute value quotes).
-        // Check if the position falls within the start tag's span.
-        if (owner.Parent is MarkupElementSyntax element
-            && element.MarkupStartTag.Span.Contains(absoluteIndex))
-        {
-            return false;
-        }
-
         // Don't offer snippets inside <script> or <style> blocks — those contain
         // JavaScript/CSS content, not HTML element markup.
         if (owner.FirstAncestorOrSelf<BaseMarkupElementSyntax>() is { } el

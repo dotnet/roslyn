@@ -14,12 +14,12 @@ internal static partial class LocalHtmlCompletionProvider
     {
         /// <summary>
         /// Determines whether the cursor is in an entity reference context (i.e., preceded by '&amp;'
-        /// with no intervening whitespace or semicolons).
+        /// with no intervening whitespace or semicolons) and computes the replacement range
+        /// from '&amp;' through the end of the entity reference (including trailing ';' if present).
         /// </summary>
-        public static bool IsInContext(RazorCompletionContext completionContext)
+        public static bool TryGetReplacementRange(SourceText sourceText, int position, out LspRange range)
         {
-            var sourceText = completionContext.CodeDocument.Source.Text;
-            var position = completionContext.AbsoluteIndex;
+            range = default;
 
             if (position <= 0 || position > sourceText.Length)
             {
@@ -27,12 +27,14 @@ internal static partial class LocalHtmlCompletionProvider
             }
 
             // Scan backwards from the cursor for '&'. If we hit whitespace, ';', or '<'/'>' first, it's not an entity.
+            var start = -1;
             for (var i = position - 1; i >= 0; i--)
             {
                 var ch = sourceText[i];
                 if (ch == '&')
                 {
-                    return true;
+                    start = i;
+                    break;
                 }
 
                 if (char.IsWhiteSpace(ch) || ch == ';' || ch == '<' || ch == '>' || ch == '"' || ch == '\'')
@@ -41,20 +43,9 @@ internal static partial class LocalHtmlCompletionProvider
                 }
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// Computes the replacement range for entity completion: from '&amp;' through the
-        /// end of the entity reference (including trailing ';' if present).
-        /// </summary>
-        public static LspRange GetReplacementRange(SourceText sourceText, int position)
-        {
-            // Find the '&' that starts this entity reference
-            var start = position - 1;
-            while (start >= 0 && sourceText[start] != '&')
+            if (start < 0)
             {
-                start--;
+                return false;
             }
 
             // Find the end: scan forward from cursor for ';' (include it) or stop at word boundary
@@ -76,7 +67,8 @@ internal static partial class LocalHtmlCompletionProvider
                 end++;
             }
 
-            return sourceText.GetRange(start, end);
+            range = sourceText.GetRange(start, end);
+            return true;
         }
 
         /// <summary>

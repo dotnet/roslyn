@@ -45,6 +45,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
     ILoggerFactory loggerFactory)
     : AbstractCohostDocumentEndpoint<RazorVSInternalCompletionParams, RazorVSInternalCompletionList?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
+    private static readonly HashSetPool<string> s_elementNameSetPool =
+        HashSetPool<string>.Create(comparer: StringComparer.OrdinalIgnoreCase);
+
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
@@ -54,9 +57,6 @@ internal sealed class CohostDocumentCompletionEndpoint(
     private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
-
-    private static readonly HashSetPool<string> s_elementNameSetPool =
-        HashSetPool<string>.Create(comparer: StringComparer.OrdinalIgnoreCase);
 
     protected override bool MutatesSolutionState => false;
 
@@ -170,8 +170,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             {
                 // Local provider couldn't handle this context (e.g., script/style blocks, css class intellisense, src attributes).
                 // Fall back to the external HTML completion provider.
-                var htmlTask = GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken);
-                htmlCompletionList = await htmlTask.ConfigureAwait(false);
+                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken).ConfigureAwait(false);
 
                 if (htmlCompletionList is null)
                 {
@@ -192,7 +191,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
                 combinedCompletionList,
                 documentPositionInfo.LanguageKind,
                 completionContext.TriggerCharacter,
-                completionPositionInfo.IsStartTagSnippetContext);
+                completionPositionInfo.IsStartTagContext);
         }
 
         if (combinedCompletionList is null)

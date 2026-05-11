@@ -20,7 +20,7 @@ internal record RazorCompletionContext(
     /// When non-null, contains the set of HTML element tag names that the local HTML completion
     /// provider determined are valid in this context. Providers that need to correlate with HTML
     /// completions (e.g., tag helper element completions) use this for filtering/deduplication.
-    /// Null when local HTML completions are unavailable (e.g., WebTools fallback or non-HTML context).
+    /// Null when local HTML completions were not produced for this context (e.g., non-HTML position or no element completions).
     /// </summary>
     public HashSet<string>? HtmlLabels { get; init; }
 }

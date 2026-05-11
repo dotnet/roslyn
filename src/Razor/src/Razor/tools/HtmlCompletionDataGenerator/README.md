@@ -25,7 +25,7 @@ All sourced from `src/Languages/html/Editor/Schemas/SchemaFiles/` in the VS HTML
 |------|---------|
 | `html.xsd` | 132 HTML elements, attribute definitions, complex types |
 | `CommonHTMLTypes.xsd` | Shared attribute groups (core, events, microdata), simple types with enumerations |
-| `I18Languages.xsd` | Language codes (skipped — exceeds 100 values) |
+| `I18Languages.xsd` | Language codes used by `lang`/`hreflang` attributes |
 | `aria.xsd` | 35 ARIA attributes (supplemental, applied to all elements) |
 | `1033/html.loc` | Element descriptions and documentation URLs |
 

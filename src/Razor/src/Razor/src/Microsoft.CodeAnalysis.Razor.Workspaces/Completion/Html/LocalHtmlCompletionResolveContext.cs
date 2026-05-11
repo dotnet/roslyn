@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
 
@@ -16,9 +17,9 @@ internal sealed class LocalHtmlCompletionResolveContext(
     ImmutableArray<HtmlAttributeInfo> elementAttributes,
     ImmutableArray<HtmlAttributeInfo> globalAttributes) : ICompletionResolveContext
 {
-    public static readonly LocalHtmlCompletionResolveContext Empty = new([], []);
+    internal static readonly LocalHtmlCompletionResolveContext Empty = new([], []);
 
-    public bool TryGetResolveData(string label, CompletionItemKind kind, out string description, out string documentationUrl)
+    public bool TryGetResolveData(string label, CompletionItemKind kind, [NotNullWhen(true)] out string? description, [NotNullWhen(true)] out string? documentationUrl)
     {
         if (kind == CompletionItemKind.Element)
         {
@@ -38,13 +39,13 @@ internal sealed class LocalHtmlCompletionResolveContext(
             }
         }
 
-        description = string.Empty;
-        documentationUrl = string.Empty;
+        description = null;
+        documentationUrl = null;
         return false;
     }
 
     private static bool TryFindAttribute(ImmutableArray<HtmlAttributeInfo> attributes, string name,
-        out string description, out string documentationUrl)
+        [NotNullWhen(true)] out string? description, [NotNullWhen(true)] out string? documentationUrl)
     {
         foreach (var attr in attributes)
         {
@@ -56,8 +57,8 @@ internal sealed class LocalHtmlCompletionResolveContext(
             }
         }
 
-        description = string.Empty;
-        documentationUrl = string.Empty;
+        description = null;
+        documentationUrl = null;
         return false;
     }
 }

@@ -462,18 +462,7 @@ internal static class SchemaParser
         }
 
         var nsMgr = CreateNsMgr(typeNode.OwnerDocument!);
-        var values = CollectEnumerationValues(typeNode, nsMgr);
-
-        // Skip excessively large value lists (e.g., 546 language codes) — they bloat the
-        // generated file and aren't practical for completion UX. The provider can offer
-        // these via a different mechanism (e.g., fuzzy filtering) if needed.
-        if (values.Count > 100)
-        {
-            Console.WriteLine($"  Note: Skipping {values.Count} enumeration values for simpleType '{typeName}' (exceeds threshold)");
-            return new List<string>();
-        }
-
-        return values;
+        return CollectEnumerationValues(typeNode, nsMgr);
     }
 
     private static List<string> CollectEnumerationValues(XmlNode typeNode, XmlNamespaceManager nsMgr)

@@ -26,6 +26,15 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
         ["charset"] = "meta",
         ["metaviewport"] = "meta",
         ["dd"] = "dl",
+        ["html4f"] = "html",
+        ["html4s"] = "html",
+        ["html4t"] = "html",
+        ["html5"] = "html",
+        ["xhtml10f"] = "html",
+        ["xhtml10s"] = "html",
+        ["xhtml10t"] = "html",
+        ["xhtml11"] = "html",
+        ["xhtml5"] = "html",
     }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -98,7 +107,7 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
                 Kind = CompletionItemKind.Snippet,
                 CommitCharacters = [],
                 // Sort snippets after elements with the same label, matching C# behavior.
-                SortText = s.Shortcut + " ",
+                SortText = s.SortText,
                 VsResolveTextEditOnCommit = true
             });
         }

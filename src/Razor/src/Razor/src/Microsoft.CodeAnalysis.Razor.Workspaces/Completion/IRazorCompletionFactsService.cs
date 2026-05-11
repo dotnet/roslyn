@@ -8,9 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 internal interface IRazorCompletionFactsService
 {
     /// <summary>
-    /// Returns completion items from all providers. Providers that need HTML labels
-    /// (e.g., for tag helper element filtering) read them from
-    /// <see cref="RazorCompletionContext.HtmlLabels"/>.
+    /// Returns completion items from all providers.
     /// </summary>
     ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext razorCompletionContext);
 }

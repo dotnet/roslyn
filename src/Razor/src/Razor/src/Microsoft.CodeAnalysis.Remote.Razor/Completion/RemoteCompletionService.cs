@@ -82,20 +82,20 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         }
 
         var shouldIncludeSnippets = false;
-        var isStartTagSnippetContext = false;
+        var isStartTagContext = false;
         if (positionInfo.LanguageKind == RazorLanguageKind.Html
-            && DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, index, out isStartTagSnippetContext))
+            && DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, index, out isStartTagContext))
         {
             // In start-tag context, snippets are always available (triggered by typing '<').
             // In text content, snippets are only available on explicit invocation (Ctrl+Space).
-            shouldIncludeSnippets = isStartTagSnippetContext
+            shouldIncludeSnippets = isStartTagContext
                 || completionContext.InvokeKind == VSInternalCompletionInvokeKind.Explicit;
         }
 
         var shouldIncludeHtmlCompletions = positionInfo.LanguageKind == RazorLanguageKind.Html
             && !DelegatedCompletionHelper.IsInDirectiveAttributeParameterContext(codeDocument, index);
 
-        return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets, shouldIncludeHtmlCompletions, isStartTagSnippetContext);
+        return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets, shouldIncludeHtmlCompletions, isStartTagContext);
     }
 
     public ValueTask<CompletionResponse> GetCompletionAsync(
@@ -152,36 +152,29 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         // Compute local HTML completions from the shared context
         RazorVSInternalCompletionList? localHtmlCompletionList = null;
-        if (isHtmlTrigger)
+        if (isHtmlTrigger
+            && LocalHtmlCompletionProvider.TryGetHtmlCompletionList(razorCompletionContext, out localHtmlCompletionList, out var htmlResolveContext))
         {
-            localHtmlCompletionList = LocalHtmlCompletionProvider.GetHtmlCompletionList(razorCompletionContext, out var htmlResolveContext);
+            // Store resolve context so that completionItem/resolve can populate Detail
+            // and Documentation in O(1) without walking the HTML schema.
+            var resultId = _completionListCache.Add(localHtmlCompletionList, htmlResolveContext);
+            localHtmlCompletionList.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
 
-            if (localHtmlCompletionList is not null)
-            {
-                // Store resolve context so that completionItem/resolve can populate Detail
-                // and Documentation in O(1) without walking the HTML schema.
-                var resultId = _completionListCache.Add(localHtmlCompletionList, htmlResolveContext ?? LocalHtmlCompletionResolveContext.Empty);
-                localHtmlCompletionList.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
-
-                // Optimize the HTML list before it crosses the StreamJsonRpc boundary to devenv.
-                // All HTML items share the same TextEdit range, so PromoteEditRangeToListDefaults
-                // replaces per-item TextEdit (a SumType<TextEdit, InsertReplaceEdit> that triggers
-                // expensive exception-based JSON type probing on deserialization) with a single
-                // ItemDefaults.EditRange + per-item TextEditText (a plain string).
-                var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion;
-                localHtmlCompletionList = CompletionListOptimizer.Optimize(localHtmlCompletionList, completionCapability);
-            }
+            // Optimize the HTML list before it crosses the StreamJsonRpc boundary to devenv.
+            // All HTML items share the same TextEdit range, so PromoteEditRangeToListDefaults
+            // replaces per-item TextEdit (a SumType<TextEdit, InsertReplaceEdit> that triggers
+            // expensive exception-based JSON type probing on deserialization) with a single
+            // ItemDefaults.EditRange + per-item TextEditText (a plain string).
+            var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion;
+            localHtmlCompletionList = CompletionListOptimizer.Optimize(localHtmlCompletionList, completionCapability);
         }
 
         if (!isCSharpTrigger && !isRazorTrigger)
         {
             // No Razor/C# completions needed. Return local HTML if we have it.
-            if (localHtmlCompletionList is not null)
-            {
-                return CompletionResults.Create(null, localHtmlCompletionList);
-            }
-
-            return CompletionResults.CallHtml;
+            return localHtmlCompletionList is null
+                ? CompletionResults.CallHtml
+                : CompletionResults.Create(null, localHtmlCompletionList);
         }
 
         RazorVSInternalCompletionList? csharpCompletionList = null;
@@ -340,22 +333,19 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return new(request);
         }
 
-        if (originalRequestContext is DelegatedCompletionResolutionContext resolutionContext)
+        return originalRequestContext switch
         {
-            return ResolveCSharpCompletionItemAsync(context, request, containingCompletionList, resolutionContext, cancellationToken);
-        }
-        else if (originalRequestContext is RazorCompletionResolveContext razorResolutionContext)
-        {
-            return ResolveRazorCompletionItemAsync(context, request, razorResolutionContext, cancellationToken);
-        }
-        else if (originalRequestContext is LocalHtmlCompletionResolveContext localHtmlResolveContext)
-        {
-            return new(ResolveLocalHtmlCompletionItem(request, localHtmlResolveContext));
-        }
+            DelegatedCompletionResolutionContext resolutionContext => ResolveCSharpCompletionItemAsync(context, request, containingCompletionList, resolutionContext, cancellationToken),
+            RazorCompletionResolveContext razorResolutionContext => ResolveRazorCompletionItemAsync(context, request, razorResolutionContext, cancellationToken),
+            LocalHtmlCompletionResolveContext localHtmlResolveContext => new(ResolveLocalHtmlCompletionItem(request, localHtmlResolveContext)),
+            _ => LogAndReturnUnresolvedAsync(request),
+        };
 
-        // We don't know how to resolve this completion item, so just return it as-is.
-        Logger.LogWarning("Did not recognize completion item, so unable to resolve.");
-        return new(request);
+        ValueTask<VSInternalCompletionItem> LogAndReturnUnresolvedAsync(VSInternalCompletionItem item)
+        {
+            Logger.LogWarning("Did not recognize completion item, so unable to resolve.");
+            return new(item);
+        }
     }
 
     private async ValueTask<VSInternalCompletionItem> ResolveRazorCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, RazorCompletionResolveContext razorResolutionContext, CancellationToken cancellationToken)
