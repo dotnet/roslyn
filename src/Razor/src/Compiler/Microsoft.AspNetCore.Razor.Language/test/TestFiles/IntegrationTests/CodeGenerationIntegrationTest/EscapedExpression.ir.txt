@@ -1,0 +1,49 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_EscapedExpression - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::InputTagHelper - __InputTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (33:1,0 [2] EscapedExpression.cshtml)
+                    LazyIntermediateToken - (33:1,0 [2] EscapedExpression.cshtml) - Html - \n
+                TagHelper - (35:2,0 [35] EscapedExpression.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - InputTagHelper
+                    DefaultTagHelperProperty - (47:2,12 [19] EscapedExpression.cshtml) - tag - object InputTagHelper.TagProp - HtmlAttributeValueStyle.SingleQuotes
+                        CSharpExpression - (48:2,13 [18] EscapedExpression.cshtml)
+                            IntermediateToken - (48:2,13 [18] EscapedExpression.cshtml) - CSharp - new string("1, 2")
+                    DefaultTagHelperExecute - 
+                HtmlContent - (70:2,35 [2] EscapedExpression.cshtml)
+                    LazyIntermediateToken - (70:2,35 [2] EscapedExpression.cshtml) - Html - \n
+                TagHelper - (72:3,0 [34] EscapedExpression.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - InputTagHelper
+                    DefaultTagHelperProperty - (84:3,12 [18] EscapedExpression.cshtml) - tag - object InputTagHelper.TagProp - HtmlAttributeValueStyle.SingleQuotes
+                        IntermediateToken - (84:3,12 [18] EscapedExpression.cshtml) - CSharp - new string("1, 2")
+                    DefaultTagHelperExecute - 
+                HtmlContent - (106:3,34 [2] EscapedExpression.cshtml)
+                    LazyIntermediateToken - (106:3,34 [2] EscapedExpression.cshtml) - Html - \n
+                TagHelper - (108:4,0 [40] EscapedExpression.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - InputTagHelper
+                    DefaultTagHelperProperty - (120:4,12 [24] EscapedExpression.cshtml) - tag - object InputTagHelper.TagProp - HtmlAttributeValueStyle.SingleQuotes
+                        IntermediateToken - (120:4,12 [24] EscapedExpression.cshtml) - CSharp - "0" + new @String("1 2")
+                    DefaultTagHelperExecute - 
+                HtmlContent - (148:4,40 [2] EscapedExpression.cshtml)
+                    LazyIntermediateToken - (148:4,40 [2] EscapedExpression.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

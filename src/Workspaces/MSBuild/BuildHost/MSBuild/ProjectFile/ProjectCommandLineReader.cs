@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -15,9 +15,9 @@ internal abstract class ProjectCommandLineProvider
 {
     public abstract string Language { get; }
     public abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
-    public abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
+    public abstract string[] ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
 
-    public static ProjectCommandLineProvider? TryCreate(string languageName, ImmutableArray<string> knownCommandLineParserLanguages)
+    public static ProjectCommandLineProvider? TryCreate(string languageName, string[] knownCommandLineParserLanguages)
     {
         if (!knownCommandLineParserLanguages.Contains(languageName))
         {

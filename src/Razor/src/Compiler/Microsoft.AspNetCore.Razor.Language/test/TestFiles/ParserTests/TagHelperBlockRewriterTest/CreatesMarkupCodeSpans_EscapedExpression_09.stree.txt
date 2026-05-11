@@ -1,0 +1,39 @@
+﻿RazorDocument - [0..40)::40 - [<person tag='"0" + new string("1 2")' />]
+    MarkupBlock - [0..40)::40
+        MarkupTagHelperElement - [0..40)::40 - person[SelfClosing] - PersonTagHelper
+            MarkupTagHelperStartTag - [0..40)::40 - [<person tag='"0" + new string("1 2")' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[person];
+                MarkupTagHelperAttribute - [7..37)::30 - tag - SingleQuotes - Bound - [ tag='"0" + new string("1 2")']
+                    MarkupTextLiteral - [7..8)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [8..11)::3 - [tag] - Gen<Markup>
+                        Text;[tag];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [13..36)::23
+                        CSharpExpressionLiteral - [13..36)::23 - ["0" + new string("1 2")] - Gen<None>
+                            DoubleQuote;["];
+                            Text;[0];
+                            DoubleQuote;["];
+                            Whitespace;[ ];
+                            Text;[+];
+                            Whitespace;[ ];
+                            Text;[new];
+                            Whitespace;[ ];
+                            Text;[string(];
+                            DoubleQuote;["];
+                            Text;[1];
+                            Whitespace;[ ];
+                            Text;[2];
+                            DoubleQuote;["];
+                            Text;[)];
+                    MarkupTextLiteral - [36..37)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [37..38)::1
+                    MarkupTextLiteral - [37..38)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

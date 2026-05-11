@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Composition;
-using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Definitions;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -16,7 +13,6 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export, Shared]
 internal sealed class ProjectInitializationHandler : IDisposable
 {
     internal const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
@@ -30,11 +26,9 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
     private IDisposable? _subscription;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ProjectInitializationHandler(IServiceBrokerProvider serviceBrokerProvider, ILoggerFactory loggerFactory)
+    public ProjectInitializationHandler(IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
     {
-        _serviceBroker = serviceBrokerProvider.ServiceBroker;
+        _serviceBroker = serviceBroker;
         _serviceBroker.AvailabilityChanged += AvailabilityChanged;
         _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
 
@@ -117,4 +111,3 @@ internal sealed class ProjectInitializationHandler : IDisposable
         }
     }
 }
-#pragma warning restore RS0030 // Do not used banned APIs

@@ -324,7 +324,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
         AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/83187")]
     public async Task TestFindReferencesAsync_UsingAlias(bool mutatingLspWorkspace)
     {
         var markup =
@@ -379,7 +379,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
         Assert.Equal(2, results.Length);
-        Assert.True(results.Any(r => r.Location.DocumentUri.GetRequiredParsedUri().LocalPath.EndsWith("generated_file.cs")));
+        Assert.True(results.Any(r => r.Location.DocumentUri.UriString.Contains("/generated_file.cs")));
 
         var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
         Assert.True(service.DidMapSpans);
@@ -417,7 +417,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
         Assert.Equal(2, results.Length);
-        Assert.True(results.Any(r => r.Location.DocumentUri.GetRequiredParsedUri().LocalPath.EndsWith("generated_file.cs")));
+        Assert.True(results.Any(r => r.Location.DocumentUri.UriString.Contains("/generated_file.cs")));
 
         var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
         Assert.True(service.DidMapSpans);

@@ -333,6 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MethodInfo = MethodInfo.Create(colElement.AddMethod),
                     Parameters = colElement.AddMethod.Parameters,
+                    ReceiverIsSubjectToCloning = ThreeState.False,
                     Receiver = colElement.ImplicitReceiverOpt,
                     ArgsOpt = colElement.Arguments,
                     ArgsToParamsOpt = colElement.ArgsToParamsOpt,
@@ -4417,6 +4418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.ValuePlaceholder:
                 case BoundKind.CollectionBuilderElementsPlaceholder:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return GetPlaceholderScope((BoundValuePlaceholderBase)expr);
 
                 case BoundKind.Local:
@@ -4736,9 +4738,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _localScopeDepth;
 
                 case BoundKind.ImplicitReceiver:
-                case BoundKind.ObjectOrCollectionValuePlaceholder:
-                    // binder uses this as a placeholder when binding members inside an object initializer
-                    // just say it does not escape anywhere, so that we do not get false errors.
                     return _localScopeDepth;
 
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
@@ -4825,19 +4824,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(expr.CollectionCreation);
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    // Restrict the collection to local scope if not empty.  Note: this is inaccurate.  What we should
-                    // be doing here is examining the arguments passed to the collection constructor (from the
-                    // `with(...)` element), intersected well as any arguments passed to `Add` methods to determine the
-                    // final safety context.  However, the latter is highly challenging as we do not know that
-                    // information until the lowering phase.  We'll need to pull out that logic to do things properly
-                    // here.
-                    //
-                    // Tracked with: https://github.com/dotnet/roslyn/issues/81520
-                    return _localScopeDepth;
+                    var receiverScope = expr.CollectionCreation is { } collectionCreation
+                        ? GetValEscape(collectionCreation)
+                        : _localScopeDepth;
+                    var scope = receiverScope;
+                    foreach (var element in expr.Elements)
+                    {
+                        if (TryGetCollectionExpressionElementValEscape(element, out var elementSafeContext))
+                        {
+                            scope = scope.Intersect(elementSafeContext);
+                        }
+                    }
+                    return scope;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
             }
+        }
+
+        private bool TryGetCollectionExpressionElementValEscape(BoundNode element, out SafeContext safeContext)
+        {
+            if (element is BoundCollectionElementInitializer colElement)
+            {
+                safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(colElement));
+                return true;
+            }
+
+            if (element is BoundCollectionExpressionSpreadElement spreadElement)
+            {
+                if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
+                {
+                    safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer));
+                }
+                else
+                {
+                    Debug.Assert(spreadElement.HasErrors
+                        || spreadElement.IteratorBody is null
+                        or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer });
+                    safeContext = GetValEscape(spreadElement.Expression);
+                }
+
+                return true;
+            }
+
+            if (element is BoundExpression elementExpression)
+            {
+                safeContext = GetValEscape(elementExpression);
+                return true;
+            }
+
+            Debug.Assert(element.HasErrors);
+            safeContext = default;
+            return false;
         }
 
         private SafeContext GetTupleValEscape(ImmutableArray<BoundExpression> elements)
@@ -5072,6 +5110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.ValuePlaceholder:
                 case BoundKind.CollectionBuilderElementsPlaceholder:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     if (!GetPlaceholderScope((BoundValuePlaceholderBase)expr).IsConvertibleTo(escapeTo))
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);

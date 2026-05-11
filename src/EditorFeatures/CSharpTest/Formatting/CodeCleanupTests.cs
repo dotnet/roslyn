@@ -602,6 +602,79 @@ public sealed partial class CodeCleanupTests
         return AssertCodeCleanupResult(expected, code, OutsidePreferPreservationOption);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82549")]
+    public Task ApplyCollectionExpressionPreferences_IDE0300_Array()
+        => AssertCodeCleanupResult("""
+            internal class C
+            {
+                private readonly int[] _items = [1, 2, 3];
+            }
+            """, """
+            internal class C
+            {
+                private int[] _items = { 1, 2, 3 };
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82549")]
+    public Task ApplyCollectionExpressionPreferences_IDE0301_Empty()
+        => AssertCodeCleanupResult("""
+            internal class C
+            {
+                private readonly int[] _items = [];
+            }
+            """, """
+            using System;
+
+            internal class C
+            {
+                private int[] _items = Array.Empty<int>();
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82549")]
+    public Task ApplyCollectionExpressionPreferences_IDE0305_Fluent()
+        => AssertCodeCleanupResult("""
+            using System.Collections.Generic;
+
+            internal class C
+            {
+                private List<int> M()
+                {
+                    return [1, 2, 3];
+                }
+            }
+            """, """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            internal class C
+            {
+                private List<int> M()
+                {
+                    return new int[] { 1, 2, 3 }.ToList();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82549")]
+    public Task ApplyCollectionExpressionPreferences_IDE0306_New()
+        => AssertCodeCleanupResult("""
+            using System.Collections.Generic;
+
+            internal class C
+            {
+                private readonly List<int> _list = [];
+            }
+            """, """
+            using System.Collections.Generic;
+
+            internal class C
+            {
+                private List<int> _list = new List<int>();
+            }
+            """);
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70187")]
     [CombinatorialData]
     public Task FixAllWarningsAndErrorsWithCustomFixIdsExplicitlyEnabled(

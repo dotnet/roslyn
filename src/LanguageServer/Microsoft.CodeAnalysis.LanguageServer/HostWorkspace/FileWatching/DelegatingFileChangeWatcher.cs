@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -38,7 +39,10 @@ internal sealed class DelegatingFileChangeWatcher(
                 return new LspFileChangeWatcher(instance, asynchronousOperationListenerProvider);
 
             loggerFactory.CreateLogger<DelegatingFileChangeWatcher>().LogWarning("We are unable to use LSP file watching; falling back to our in-process watcher.");
-            return new DefaultFileChangeWatcher();
+
+            // On non-Windows platforms, the number of inotify handles is limited, so we'll want to be more aggressive with reducing it.
+            // TODO: we could read the inotify limit and set this dynamically, since some newer kernels have a higher default.
+            return new DefaultFileChangeWatcher(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 10_000 : 50);
         });
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)

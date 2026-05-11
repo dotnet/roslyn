@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -16,7 +15,7 @@ internal sealed class VisualBasicCommandLineArgumentReader : CommandLineArgument
     {
     }
 
-    public static ImmutableArray<string> Read(MSB.Execution.ProjectInstance project)
+    public static string[] Read(MSB.Execution.ProjectInstance project)
     {
         return new VisualBasicCommandLineArgumentReader(project).Read();
     }

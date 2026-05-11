@@ -1,0 +1,70 @@
+﻿RazorDocument - [0..95)::95 - [   <ul>LF    @foreach(var p in Products) {LF        <li>Product: @p.Name</li>LF    }LF    </ul>]
+    MarkupBlock - [0..95)::95
+        MarkupTextLiteral - [0..3)::3 - [   ] - Gen<Markup>
+            Whitespace;[   ];
+        MarkupElement - [3..95)::92
+            MarkupStartTag - [3..7)::4 - [<ul>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[ul];
+                CloseAngle;[>];
+            MarkupTextLiteral - [7..9)::2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            CSharpCodeBlock - [9..86)::77
+                CSharpStatementLiteral - [9..13)::4 - [    ] - Gen<Stmt>
+                    Whitespace;[    ];
+                CSharpTransition - [13..14)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementLiteral - [14..44)::30 - [foreach(var p in Products) {LF] - Gen<Stmt>
+                    Keyword;[foreach];
+                    LeftParenthesis;[(];
+                    Keyword;[var];
+                    Whitespace;[ ];
+                    Identifier;[p];
+                    Whitespace;[ ];
+                    Keyword;[in];
+                    Whitespace;[ ];
+                    Identifier;[Products];
+                    RightParenthesis;[)];
+                    Whitespace;[ ];
+                    LeftBrace;[{];
+                    NewLine;[LF];
+                MarkupBlock - [44..79)::35
+                    MarkupTextLiteral - [44..52)::8 - [        ] - Gen<Markup>
+                        Whitespace;[        ];
+                    MarkupElement - [52..77)::25
+                        MarkupStartTag - [52..56)::4 - [<li>] - Gen<Markup>
+                            OpenAngle;[<];
+                            Text;[li];
+                            CloseAngle;[>];
+                        MarkupTextLiteral - [56..65)::9 - [Product: ] - Gen<Markup>
+                            Text;[Product:];
+                            Whitespace;[ ];
+                        CSharpCodeBlock - [65..72)::7
+                            CSharpImplicitExpression - [65..72)::7
+                                CSharpTransition - [65..66)::1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [66..72)::6
+                                    CSharpCodeBlock - [66..72)::6
+                                        CSharpExpressionLiteral - [66..72)::6 - [p.Name] - Gen<Expr>
+                                            Identifier;[p];
+                                            Dot;[.];
+                                            Identifier;[Name];
+                        MarkupEndTag - [72..77)::5 - [</li>] - Gen<Markup>
+                            OpenAngle;[<];
+                            ForwardSlash;[/];
+                            Text;[li];
+                            CloseAngle;[>];
+                    MarkupTextLiteral - [77..79)::2 - [LF] - Gen<Markup>
+                        NewLine;[LF];
+                CSharpStatementLiteral - [79..86)::7 - [    }LF] - Gen<Stmt>
+                    Whitespace;[    ];
+                    RightBrace;[}];
+                    NewLine;[LF];
+            MarkupTextLiteral - [86..90)::4 - [    ] - Gen<Markup>
+                Whitespace;[    ];
+            MarkupEndTag - [90..95)::5 - [</ul>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[ul];
+                CloseAngle;[>];
+    EndOfFile;[];

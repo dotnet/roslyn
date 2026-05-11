@@ -8,6 +8,9 @@ using System.IO;
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class BuildHostLogger(TextWriter output)
+#if NETFRAMEWORK
+    : MarshalByRefObject
+#endif
 {
     private const string InformationLevel = "info";
     private const string WarningLevel = "warn";
