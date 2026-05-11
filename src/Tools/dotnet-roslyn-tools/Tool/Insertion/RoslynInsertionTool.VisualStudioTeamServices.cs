@@ -593,8 +593,12 @@ internal static partial class RoslynInsertionTool
                 })
             .ToList();
 
-        // AzDO does not have a UI for comparing two commits. Instead generate the REST API call to retrieve commits between two SHAs.
-        return (commits, $"{tobuild.Repository.Url.OriginalString.Replace("_git", "_apis/git/repositories")}/commits?searchCriteria.itemVersion.version={fromSHA}&searchCriteria.itemVersion.versionType=commit&searchCriteria.compareVersion.version={toSHA}&searchCriteria.compareVersion.versionType=commit");
+        return (commits, ConstructAzDOCompareUrl(tobuild.Repository.Url.OriginalString, fromSHA, toSHA));
+    }
+
+    internal static string ConstructAzDOCompareUrl(string repoUrlString, string fromSHA, string toSHA)
+    {
+        return $"{repoUrlString}/branchCompare?baseVersion=GC{fromSHA}&targetVersion=GC{toSHA}";
     }
 
     private static async Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsFromGitHubAsync(string repoId, string fromSHA, string toSHA)

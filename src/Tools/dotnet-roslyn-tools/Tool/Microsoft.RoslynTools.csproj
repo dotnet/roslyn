@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -39,5 +39,9 @@
     <PackageReference Include="NuGet.Protocol" Version="6.12.5" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.25072.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.RoslynTools.UnitTests" />
   </ItemGroup>
 </Project>
