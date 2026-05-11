@@ -970,7 +970,7 @@ struct S2 : S2.IUnionMembers
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
-            // PROTOTYPE: We want to include members from base interfaces, but this is lower in priority, compared to other aspects of the feature.
+            // https://github.com/dotnet/roslyn/issues/82636: We want to include members from base interfaces, but this is lower in priority, compared to other aspects of the feature.
             VerifyCaseTypes(comp, "S2", ["System.Int32"]);
         }
 
@@ -8813,7 +8813,7 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
 
-            // PROTOTYPE: Should we report errors for patterns of wrong type against Value property? Yes, but this is low in priority and can be done post merge.
+            // https://github.com/dotnet/roslyn/issues/82636: Should we report errors for patterns of wrong type against Value property? Yes, but this is low in priority and can be done post merge.
             comp.VerifyDiagnostics();
         }
 
@@ -13448,6 +13448,197 @@ class Program
         }
 
         [Fact]
+        public void UnionConversion_52()
+        {
+            var src = @"
+class C1;
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(C1 x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static S1 Test1()
+    {
+        return new();
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var expr = GetSyntax<ExpressionSyntax>(tree, "new()");
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal("S1..ctor()", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Equal("S1", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S1", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Conversion conversion = model.GetConversion(expr);
+            Assert.True(conversion.Exists);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsImplicit);
+            Assert.False(conversion.IsExplicit);
+            Assert.Equal(ConversionKind.ObjectCreation, conversion.Kind);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
+  IL_0008:  ldloc.0
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_53()
+        {
+            var src = @"
+class C1;
+class C2;
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(C1 x) => throw null;
+    public S1(C2 x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static S1 Test1()
+    {
+        return (S1)new();
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var cast = GetSyntax<CastExpressionSyntax>(tree, "(S1)new()");
+
+            var typeInfo = model.GetTypeInfo(cast);
+            Assert.Equal("S1", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("S1", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Conversion conversion = model.GetConversion(cast);
+            Assert.True(conversion.IsIdentity);
+
+            var symbolInfo = model.GetSymbolInfo(cast);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
+  IL_0008:  ldloc.0
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_54()
+        {
+            var src = @"
+class C1;
+class C2;
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(C1 x) => throw null;
+    public S1(C2 x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static S1 Test1()
+    {
+        return new();
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (21,16): error CS1729: 'S1' does not contain a constructor that takes 0 arguments
+                //         return new();
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("S1", "0").WithLocation(21, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_55()
+        {
+            var src = @"
+class C1;
+class C2;
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(C1 x) => throw null;
+    public S1(C2 x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static S1 Test1()
+    {
+        return (S1)new();
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (21,20): error CS1729: 'S1' does not contain a constructor that takes 0 arguments
+                //         return (S1)new();
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("S1", "0").WithLocation(21, 20)
+                );
+        }
+
+        [Fact]
         public void UnionConversion_MemberProvider_01_Implicit()
         {
             var src = @"
@@ -13864,7 +14055,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE: Fix verifier?
+            // https://github.com/dotnet/roslyn/issues/82636: Fix verifier?
             var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "1-int {10} 5-string {11}" : null, verify: Verification.Skipped).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -13961,6 +14152,50 @@ class Program
                 // (6,16): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         return 10;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "10").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_MemberProvider_05_NullableAnalysis()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    S1(int x)
+    {
+        System.Console.Write(""int {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+
+    object IUnionMembers.Value => _value;
+    
+    public interface IUnionMembers  
+    {
+        public static S1? Create(int x) => new S1(x);
+
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    static S1 Test1()
+    {
+        return 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (30,16): warning CS8603: Possible null reference return.
+                //         return 10;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "10").WithLocation(30, 16)
                 );
         }
 
@@ -17936,6 +18171,53 @@ class Program
         }
 
         [Fact]
+        public void NullableAnalysis_63_State_From_DefaultStructConstructor()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(int x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object? Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(int x) => throw null!;
+    public S2(bool x) => throw null!;
+    public object? Value => throw null!;
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1 s = new S1();
+        _ = s switch { int => 1, bool => 3 };
+    } 
+
+    static void Test3()
+    {
+#line 300
+        S2 s = new S2();
+        _ = s switch { int => 1, bool => 3 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (101,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(101, 15)
+                );
+        }
+
+        [Fact]
         public void NullableAnalysis_MemberProvider_01_State_From_Default()
         {
             var src = @"
@@ -19673,7 +19955,7 @@ class Program
     static void Test2(S1 s)
     {
         _ = s.Value;
-        if (s is  { Value: not int })
+        if (s is not { Value: int })
         {
 #line 1000
             _ = s switch { { Value: {} } => 1 };
@@ -19934,7 +20216,7 @@ class Program
     static void Test2(S1 s)
     {
         _ = s.Value;
-        if (s is  { Value: not 1 })
+        if (s is not { Value: 1 })
         {
 #line 1000
             _ = s switch { { Value: {} } => 1 };
@@ -29694,6 +29976,71 @@ struct S1
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TryGetValue(string) TryGetValue(int) True; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) False; TryGetValue(string) True; TryGetValue(string) False").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_80()
+        {
+            var src = @"
+class C1;
+class C2;
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public object Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""get_HasValue "");
+            return _value is not null;
+        }
+    }
+
+    static void Main()
+    {
+        System.Console.WriteLine(Test1(default));
+        System.Console.WriteLine(Test1(new C1()));
+        System.Console.WriteLine(Test1(new C2()));
+    }
+
+    static int Test1(S1 u)
+    {
+        return u switch { not C1 => 2, object => 1 };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 is C1 ? [2] : [3]
+[2]: leaf <arm> `object => 1`
+[3]: leaf <arm> `not C1 => 2`
+",
+forLowering: true);
+
+            CompileAndVerify(comp, expectedOutput: @"
+get_Value 2
+get_Value 1
+get_Value 2
+").VerifyDiagnostics(
+                // (38,40): hidden CS9335: The pattern is redundant.
+                //         return u switch { not C1 => 2, object => 1 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "object").WithLocation(38, 40)
+                );
         }
 
         [Fact]
@@ -40228,6 +40575,51 @@ union U3(
         }
 
         [Fact]
+        public void UnionDeclaration_34_SequencePoints()
+        {
+            var unionSrc = @"
+union S1(int, bool)
+{
+}
+";
+
+            var comp = CreateCompilation(unionSrc + UnionAttributeSource + IUnionSource, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("S1..ctor(int)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S1.<Value>k__BackingField""
+  // sequence point: int
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+
+            verifier.VerifyMethodBody("S1..ctor(bool)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  box        ""bool""
+  IL_0007:  stfld      ""object S1.<Value>k__BackingField""
+  // sequence point: bool
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
         public void ValueProperty_01()
         {
             var src = @"
@@ -42413,6 +42805,150 @@ class Program
 ";
             var comp = CreateCompilation([src2], references: [CreateVisualBasicCompilation(src1).EmitToImageReference()], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "FalseTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void HasValueProperty_22_Bad()
+        {
+            // [System.Runtime.CompilerServices.Union]
+            // class S1
+            // {
+            //     private readonly object _value;
+            //     public S1(int x) { _value = x; }
+            //     public S1(string x) { _value = x; }
+            //     public object Value => _value;
+            //
+            //     [CompilerFeatureRequired("SomeFeatureIsRequired")]
+            //     public bool HasValue => throw null;
+            // }
+            var ilSource = @"
+.class public auto ansi beforefieldinit S1
+    extends [mscorlib]System.Object
+{
+    .custom instance void System.Runtime.CompilerServices.UnionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private initonly object _value
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 x
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ldarg.0
+        IL_0009: ldarg.1
+        IL_000a: box [mscorlib]System.Int32
+        IL_000f: stfld object S1::_value
+        IL_0014: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string x
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ldarg.0
+        IL_0009: ldarg.1
+        IL_000a: stfld object S1::_value
+        IL_000f: ret
+    }
+
+    .method public hidebysig specialname 
+        instance object get_Value () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: ldfld object S1::_value
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname 
+        instance bool get_HasValue () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance object Value()
+    {
+        .get instance object S1::get_Value()
+    }
+    .property instance bool HasValue()
+    {
+        .custom instance void System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 15 53 6f 6d 65 46 65 61 74 75 72 65 49 73
+            52 65 71 75 69 72 65 64 00 00
+        )
+        .get instance bool S1::get_HasValue()
+    }
+}
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.UnionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string featureName
+        ) cil managed 
+    {
+        IL_000f: ret
+    }
+}
+";
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not null;
+    }   
+}
+";
+            var comp = CreateCompilationWithIL(src, ilSource, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
         }
 
         [Theory]
@@ -44914,7 +45450,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void TryGetValueMethod_45_WrongRefKind([CombinatorialValues("", "in", "ref", "ref readonly")] string refModifier)
+        public void TryGetValueMethod_50_WrongRefKind([CombinatorialValues("", "in", "ref", "ref readonly")] string refModifier)
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -44946,7 +45482,7 @@ class Program
         }
 
         [Fact]
-        public void TryGetValueMethod_46_WrongParameterCount()
+        public void TryGetValueMethod_51_WrongParameterCount()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -44979,7 +45515,7 @@ class Program
         }
 
         [Fact]
-        public void TryGetValueMethod_47_Overloaded()
+        public void TryGetValueMethod_52_Overloaded()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -45009,6 +45545,149 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_53_Bad()
+        {
+            // [System.Runtime.CompilerServices.Union]
+            // class S1
+            // {
+            //     private readonly object _value;
+            //     public S1(int x) { _value = x; }
+            //     public S1(string x) { _value = x; }
+            //     public object Value => _value;
+            //
+            //     [CompilerFeatureRequired("SomeFeatureIsRequired")]
+            //     public bool TryGetValue(out int x) => throw null;
+            // }
+            var ilSource = @"
+.class public auto ansi beforefieldinit S1
+    extends [mscorlib]System.Object
+{
+    .custom instance void System.Runtime.CompilerServices.UnionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private initonly object _value
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 x
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ldarg.0
+        IL_0009: ldarg.1
+        IL_000a: box [mscorlib]System.Int32
+        IL_000f: stfld object S1::_value
+        IL_0014: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string x
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ldarg.0
+        IL_0009: ldarg.1
+        IL_000a: stfld object S1::_value
+        IL_000f: ret
+    }
+
+    .method public hidebysig specialname 
+        instance object get_Value () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: ldfld object S1::_value
+        IL_0006: ret
+    }
+
+    .method public hidebysig 
+        instance bool TryGetValue (
+            [out] int32& x
+        ) cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 15 53 6f 6d 65 46 65 61 74 75 72 65 49 73
+            52 65 71 75 69 72 65 64 00 00
+        )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance object Value()
+    {
+        .get instance object S1::get_Value()
+    }
+}
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.UnionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string featureName
+        ) cil managed 
+    {
+        IL_000f: ret
+    }
+}
+";
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilationWithIL(src, ilSource, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
         }
 
@@ -45757,6 +46436,3 @@ class Program
         }
     }
 }
-
-// https://github.com/dotnet/roslyn/issues/82636: Test conversions from 'new()' and other target-typed constructs
-// https://github.com/dotnet/roslyn/issues/82636: Ensure we test nullable state resulting from a struct union type nullary (no-argument) constructor invocation.

@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // TODO (tomat): Consider changing this to an empty name. This name shouldn't ever leak to the user in error messages.
         internal const string ImplicitTypeName = "<invalid-global-code>";
 
+        internal static readonly ObjectPool<PooledHashSet<TypeSymbol>> AllIgnoreOptionsSetPool = PooledHashSet<TypeSymbol>.CreatePool(SymbolEqualityComparer.AllIgnoreOptions);
+
         // InterfaceInfo for a common case of a type not implementing anything directly or indirectly.
         private static readonly InterfaceInfo s_noInterfaces = new InterfaceInfo();
 
