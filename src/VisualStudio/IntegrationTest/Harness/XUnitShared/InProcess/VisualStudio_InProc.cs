@@ -50,7 +50,14 @@ namespace Xunit.InProcess
         {
             AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
             {
-                var path = Path.Combine(directory, new AssemblyName(e.Name).Name + ".dll");
+                var assemblyName = new AssemblyName(e.Name);
+                var loadedAssembly = GetLoadedAssembly(assemblyName);
+                if (loadedAssembly != null)
+                {
+                    return loadedAssembly;
+                }
+
+                var path = Path.Combine(directory, assemblyName.Name + ".dll");
                 if (File.Exists(path))
                 {
                     return Assembly.LoadFrom(path);
@@ -58,6 +65,42 @@ namespace Xunit.InProcess
 
                 return null;
             };
+        }
+
+        private static Assembly? GetLoadedAssembly(AssemblyName requestedAssemblyName)
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (string.Equals(assembly.FullName, requestedAssemblyName.FullName, StringComparison.Ordinal))
+                {
+                    return assembly;
+                }
+            }
+
+            if (!IsRoslynProductAssemblyName(requestedAssemblyName.Name))
+            {
+                return null;
+            }
+
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (string.Equals(assembly.GetName().Name, requestedAssemblyName.Name, StringComparison.Ordinal))
+                {
+                    return assembly;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsRoslynProductAssemblyName(string? assemblyName)
+        {
+            return assemblyName != null
+                && (assemblyName == "Microsoft.CodeAnalysis"
+                    || assemblyName == "Microsoft.VisualStudio.LanguageServices"
+                    || assemblyName.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal)
+                    || (assemblyName.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal)
+                        && assemblyName.IndexOf(".Test", StringComparison.Ordinal) < 0));
         }
 
         public void ActivateMainWindow()
