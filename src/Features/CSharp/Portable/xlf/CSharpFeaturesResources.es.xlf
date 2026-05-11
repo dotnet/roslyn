@@ -67,6 +67,11 @@
         <target state="translated">Aplicar líneas en blanco entre las preferencias de llaves consecutivas (experimental)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_collection_expression_preferences">
+        <source>Apply collection expression preferences</source>
+        <target state="new">Apply collection expression preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
         <source>Apply conditional delegate call preferences</source>
         <target state="translated">Aplicar preferencias de llamada de delegado condicional</target>

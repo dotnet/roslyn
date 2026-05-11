@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     ImmutableArray.Create(""),
                     isABaseDirectory,
                     ImmutableArray.Create(KeyValuePair.Create<string, string>("key", null)));
-                AssertEx.Fail("Didn't throw");
+                Assert.Fail("Didn't throw");
             }
             catch (ArgumentException argException)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     [""],
                     "not_a_root directory",
                     [KeyValuePair.Create("key", "value")]);
-                AssertEx.Fail("Didn't throw");
+                Assert.Fail("Didn't throw");
             }
             catch (ArgumentException argException)
             {

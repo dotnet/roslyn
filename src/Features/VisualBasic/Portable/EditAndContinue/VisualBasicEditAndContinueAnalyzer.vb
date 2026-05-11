@@ -2340,8 +2340,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areSimilar:=Nothing,
                 cancellationToken)
 
+            ' Using statements with variable declarations do not introduce compiler generated temporary.
             ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, forwardMap, oldActiveStatement, oldEncompassingAncestor, oldModel, newActiveStatement, newEncompassingAncestor, newModel,
-                nodeSelector:=Function(node) node.IsKind(SyntaxKind.UsingBlock),
+                nodeSelector:=Function(node) node.IsKind(SyntaxKind.UsingBlock) AndAlso DirectCast(node, UsingBlockSyntax).UsingStatement.Expression IsNot Nothing,
                 getTypedNodes:=Function(n) OneOrMany.Create(Of SyntaxNode)(n.UsingStatement.Expression),
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
                 areSimilar:=Nothing,

@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(NetVS);netstandard2.0</TargetFrameworks>
+    <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the Razor design-time infrastructure.</Description>
+    <EnableApiCheck>false</EnableApiCheck>
+    <IsShippingPackage>false</IsShippingPackage>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <IsPackable Condition="'$(OS)' != 'Windows_NT'">false</IsPackable>
+
+    <!--
+      Razor.ServiceHub won't always match the other packages Roslyn ships. This is ignorable.
+
+      PrivateAssets keeps it from being viral.
+    -->
+    <NoWarn>$(NoWarn);NU1608</NoWarn>
+
+    <!-- Don't warn about restoring ServiceHub assets for .NET Framework when we're compiling against netstandard2.0 -->
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+
+    <!-- Only enable R2R for official builds. This keeps crossgen2 in the restore graph for CI
+         while avoiding AdditionalProperties clashes between CoreComponents and RazorExtension. -->
+    <PublishReadyToRun Condition="'$(OfficialBuildId)' != ''">true</PublishReadyToRun>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(RepositoryRoot)BannedSymbols.MEFv1.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Include="$(SharedSourceRoot)Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\TelemetryReporter.cs" Link="Telemetry\TelemetryReporter.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\AggregatingTelemetryLog.cs" Link="Telemetry\AggregatingTelemetryLog.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\AggregatingTelemetryLogManager.cs" Link="Telemetry\AggregatingTelemetryLogManager.cs" />
+
+    <Compile Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Pinning packages to avoid misaligned reference CI failures.
+      CI builds here: https://github.com/dotnet/razor-tooling/issues/4327
+      Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
+    -->
+    <ProjectReference Include="..\..\..\..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <PackageReference Include="Nerdbank.Streams" />
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Cohosting" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup Label="String Resources">
+    <EmbeddedResource Update="Resources\SR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>$(ProjectName).Resources</Namespace>
+    </EmbeddedResource>
+
+    <Using Include="$(ProjectName).Resources" />
+  </ItemGroup>
+
+  <!-- Special target only consumed at VSIX creation time -->
+  
+  <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">
+    <ItemGroup>
+      <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
+
+      <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.*" />
+
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Razor.*" />
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.*" Exclude="@(_ExcludedFiles)" />
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.AspNetCore.*" />
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.Extensions.ObjectPool.dll" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" Condition="'$(PublishReadyToRun)' == 'true' and !Exists('$(PublishDir)Microsoft.AspNetCore.Razor.Utilities.Shared.dll')" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\**\Microsoft.AspNetCore.Razor.Utilities.Shared.resources.dll" Condition="'$(PublishReadyToRun)' == 'true' and !Exists('$(PublishDir)Microsoft.AspNetCore.Razor.Utilities.Shared.dll')" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\Microsoft.CodeAnalysis.Razor.Compiler.dll" Condition="'$(PublishReadyToRun)' == 'true' and !Exists('$(PublishDir)Microsoft.CodeAnalysis.Razor.Compiler.dll')" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\Microsoft.CodeAnalysis.Razor.Workspaces.dll" Condition="'$(PublishReadyToRun)' == 'true' and !Exists('$(PublishDir)Microsoft.CodeAnalysis.Razor.Workspaces.dll')" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\**\Microsoft.CodeAnalysis.Razor.Workspaces.resources.dll" Condition="'$(PublishReadyToRun)' == 'true' and !Exists('$(PublishDir)Microsoft.CodeAnalysis.Razor.Workspaces.dll')" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" Condition="'$(PublishReadyToRun)' != 'true' and !Exists('$(PublishDir)Microsoft.AspNetCore.Razor.Utilities.Shared.dll')" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\**\Microsoft.AspNetCore.Razor.Utilities.Shared.resources.dll" Condition="'$(PublishReadyToRun)' != 'true' and !Exists('$(PublishDir)Microsoft.AspNetCore.Razor.Utilities.Shared.dll')" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.dll" Condition="'$(PublishReadyToRun)' != 'true' and !Exists('$(PublishDir)Microsoft.CodeAnalysis.Razor.Compiler.dll')" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Workspaces.dll" Condition="'$(PublishReadyToRun)' != 'true' and !Exists('$(PublishDir)Microsoft.CodeAnalysis.Razor.Workspaces.dll')" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.Razor.Workspaces.resources.dll" Condition="'$(PublishReadyToRun)' != 'true' and !Exists('$(PublishDir)Microsoft.CodeAnalysis.Razor.Workspaces.dll')" />
+
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.xml'" />
+
+      <!-- Set TargetPath -->
+      <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="PublishProjectOutputGroup" Returns="@(_PublishedFiles)" />
+
+  <Target Name="PublishVsixItems" DependsOnTargets="Publish;PublishedProjectOutputGroup" Returns="@(_PublishedFiles)" />
+
+  <!-- Remote.Razor needs direct Roslyn compile-time references when Remote.ServiceHub is a project reference. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <ProjectReference Include="..\..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Features\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Extensions\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
+  </ItemGroup>
+
+  <!-- Remote.Razor publish needs Roslyn references copy-local for R2R closure. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0' and '$(PublishReadyToRun)' == 'true' and '$(RuntimeIdentifier)' != ''">
+    <ProjectReference Update="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Features\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Tools\ExternalAccess\Extensions\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Update="..\..\..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

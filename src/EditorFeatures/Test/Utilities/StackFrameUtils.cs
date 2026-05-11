@@ -39,7 +39,7 @@ internal static class StackFrameUtils
             return;
         }
 
-        AssertEx.NotNull(actual);
+        Assert.NotNull(actual);
 
         Assert.Equal(expected.Kind, actual.Kind);
         Assert.True(expected.ChildCount == actual.ChildCount, PrintChildDifference(expected, actual));

@@ -1010,6 +1010,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Yetersiz veya geçersiz onaltılık basamaklar</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
+      <trans-unit id="Intercepted_by_0">
+        <source>Intercepted by '{0}'.</source>
+        <target state="translated">'{0}' tarafından engellendi.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Sabit ekle</target>
@@ -2593,6 +2598,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
         <target state="translated">Koşullu ifadeyi deyimlerle değiştirin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
+        <source>Represents the character '{0}' as a UTF-16 code unit.</source>
+        <target state="new">Represents the character '{0}' as a UTF-16 code unit.</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

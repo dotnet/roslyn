@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
+    <IsShipping>false</IsShipping>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <EnableDefaultItems>false</EnableDefaultItems>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>$(NetVS)</TargetFramework>
+    <PackageId>testSdkRSG</PackageId>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+
+    <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
+    <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
+
+    <!-- Not yet annotated -->
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="$(GlobalExclude);TestFiles\**\*" />
+    <!-- Show test files in solution explorer -->
+    <None Include="TestFiles\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Basic.Reference.Assemblies.AspNet80" />
+    <PackageReference Include="Microsoft.Build.Framework" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" />
+    <PackageReference Include="Moq" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App.Ref" GeneratePathProperty="true" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" ExcludeAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="$(PkgMicrosoft_AspNetCore_App_Ref)\ref\net10.0\*.dll" Private="false" />
+  </ItemGroup>
+
+  <Choose>
+    <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'win-x64'">
+      <ItemGroup>
+        <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\*.dll"
+              Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\Microsoft.Extensions.ObjectPool.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
+              CopyToOutputDirectory="PreserveNewest"
+              TargetPath="%(Filename)%(Extension)"
+              Visible="false" />
+      </ItemGroup>
+    </When>
+    <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'win-arm64'">
+      <ItemGroup>
+        <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\*.dll"
+              Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\Microsoft.Extensions.ObjectPool.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
+              CopyToOutputDirectory="PreserveNewest"
+              TargetPath="%(Filename)%(Extension)"
+              Visible="false" />
+      </ItemGroup>
+    </When>
+    <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'linux-x64'">
+      <ItemGroup>
+        <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\*.dll"
+              Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\Microsoft.Extensions.ObjectPool.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
+              CopyToOutputDirectory="PreserveNewest"
+              TargetPath="%(Filename)%(Extension)"
+              Visible="false" />
+      </ItemGroup>
+    </When>
+    <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'osx-x64'">
+      <ItemGroup>
+        <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\*.dll"
+              Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\Microsoft.Extensions.ObjectPool.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
+              CopyToOutputDirectory="PreserveNewest"
+              TargetPath="%(Filename)%(Extension)"
+              Visible="false" />
+      </ItemGroup>
+    </When>
+    <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'osx-arm64'">
+      <ItemGroup>
+        <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\*.dll"
+              Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\Microsoft.Extensions.ObjectPool.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
+              CopyToOutputDirectory="PreserveNewest"
+              TargetPath="%(Filename)%(Extension)"
+              Visible="false" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+</Project>

@@ -1010,6 +1010,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">十六进制数字不足或无效</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
+      <trans-unit id="Intercepted_by_0">
+        <source>Intercepted by '{0}'.</source>
+        <target state="translated">已被“{0}”拦截。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">引入常量</target>
@@ -2593,6 +2598,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
         <target state="translated">将条件表达式替换为语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
+        <source>Represents the character '{0}' as a UTF-16 code unit.</source>
+        <target state="new">Represents the character '{0}' as a UTF-16 code unit.</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

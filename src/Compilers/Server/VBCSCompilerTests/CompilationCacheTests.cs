@@ -450,6 +450,261 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
+        public void TryRestoreCachedResult_TouchesLastUsedFile()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "Tracked.dll";
+            var hashKey = "tracked_hash";
+            var outputDir = Temp.CreateDirectory().Path;
+
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            Directory.CreateDirectory(entryDir);
+            File.WriteAllBytes(Path.Combine(entryDir, "assembly"), [1, 2, 3]);
+
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(outputDir, dllName),
+            };
+
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, _logger);
+            Assert.True(result);
+
+            // The last-used file should exist after a cache hit
+            var lastUsedPath = Path.Combine(entryDir, "last-used");
+            Assert.True(File.Exists(lastUsedPath));
+        }
+
+        [Fact]
+        public void TryStoreResult_TouchesLastUsedFile()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "Stored.dll";
+            var hashKey = CompilationCache.ComputeHashKey("stored key");
+
+            var outputDir = Temp.CreateDirectory().Path;
+            var assemblyPath = Path.Combine(outputDir, dllName);
+            File.WriteAllBytes(assemblyPath, [10, 20]);
+
+            var outputFiles = new CompilationOutputFiles { AssemblyPath = assemblyPath };
+            cache.TryStoreResult(dllName, hashKey, outputFiles, "stored key", _logger);
+
+            // The last-used file should exist after a store
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            var lastUsedPath = Path.Combine(entryDir, "last-used");
+            Assert.True(File.Exists(lastUsedPath));
+        }
+
+        [Fact]
+        public void TryStoreResult_WritesCreatedFile()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "Created.dll";
+            var hashKey = CompilationCache.ComputeHashKey("created key");
+
+            var outputDir = Temp.CreateDirectory().Path;
+            var assemblyPath = Path.Combine(outputDir, dllName);
+            File.WriteAllBytes(assemblyPath, [10, 20]);
+
+            var outputFiles = new CompilationOutputFiles { AssemblyPath = assemblyPath };
+            cache.TryStoreResult(dllName, hashKey, outputFiles, "created key", _logger);
+
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            var createdPath = Path.Combine(entryDir, "created");
+            Assert.True(File.Exists(createdPath));
+            var text = File.ReadAllText(createdPath).Trim();
+            Assert.True(DateTimeOffset.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out var parsed));
+            Assert.True(parsed <= DateTimeOffset.UtcNow);
+            Assert.True(parsed > DateTimeOffset.UtcNow.AddMinutes(-1));
+        }
+
+        [Fact]
+        public void GetCacheStats_CountsAllEntries()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var now = DateTimeOffset.UtcNow;
+
+            // Create several entries
+            var entry1 = Path.Combine(cacheDir, "A.dll", "hash1");
+            Directory.CreateDirectory(entry1);
+            File.WriteAllBytes(Path.Combine(entry1, "assembly"), [1]);
+            File.WriteAllText(Path.Combine(entry1, "created"), now.AddHours(-1).ToString("O"));
+            File.WriteAllText(Path.Combine(entry1, "last-used"), now.AddSeconds(1).ToString("O"));
+
+            var entry2 = Path.Combine(cacheDir, "B.dll", "hash2");
+            Directory.CreateDirectory(entry2);
+            File.WriteAllBytes(Path.Combine(entry2, "assembly"), [2]);
+            File.WriteAllText(Path.Combine(entry2, "created"), now.AddSeconds(1).ToString("O"));
+            File.WriteAllText(Path.Combine(entry2, "last-used"), now.AddSeconds(1).ToString("O"));
+
+            var entry3 = Path.Combine(cacheDir, "C.dll", "hash3");
+            Directory.CreateDirectory(entry3);
+            File.WriteAllBytes(Path.Combine(entry3, "assembly"), [3]);
+            File.WriteAllText(Path.Combine(entry3, "created"), now.AddHours(-2).ToString("O"));
+            File.WriteAllText(Path.Combine(entry3, "last-used"), now.AddHours(-1).ToString("O"));
+
+            // Since = now => entry1 is a hit (created before, used after), entry2 is a store (created after), entry3 is untouched
+            var stats = CompilationCache.GetCacheStats(cacheDir, now, _logger);
+            Assert.Equal(1, stats.Hits);
+            Assert.Equal(1, stats.Stores);
+            Assert.Equal(1, stats.Untouched);
+            Assert.Contains(stats.HitDetails, d => d.DllName == "A.dll");
+            Assert.Contains(stats.StoreDetails, d => d.DllName == "B.dll");
+        }
+
+        [Fact]
+        public void GetCacheStats_VerboseSummaryIncludesGroupedDlls()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var now = DateTimeOffset.UtcNow;
+
+            var entry = Path.Combine(cacheDir, "MyLib.dll", "hash_abc");
+            Directory.CreateDirectory(entry);
+            File.WriteAllBytes(Path.Combine(entry, "assembly"), [1]);
+            File.WriteAllText(Path.Combine(entry, "created"), now.AddHours(-2).ToString("O"));
+            File.WriteAllText(Path.Combine(entry, "last-used"), now.ToString("O"));
+
+            var stats = CompilationCache.GetCacheStats(cacheDir, now, _logger);
+            var summary = stats.FormatSummary(cacheDir, verbosity: 1);
+
+            Assert.Contains("Hits (reused):  1", summary);
+            Assert.Contains("Hit details:", summary);
+            Assert.Contains("MyLib.dll (1)", summary);
+            // Verbosity 1 does not show individual hash keys
+            Assert.DoesNotContain("hash_abc", summary);
+        }
+
+        [Fact]
+        public void GetCacheStats_Verbosity2ShowsIndividualEntries()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var now = DateTimeOffset.UtcNow;
+
+            var entry = Path.Combine(cacheDir, "MyLib.dll", "hash_abc");
+            Directory.CreateDirectory(entry);
+            File.WriteAllBytes(Path.Combine(entry, "assembly"), [1]);
+            File.WriteAllText(Path.Combine(entry, "created"), now.AddHours(-2).ToString("O"));
+            File.WriteAllText(Path.Combine(entry, "last-used"), now.ToString("O"));
+
+            var stats = CompilationCache.GetCacheStats(cacheDir, now, _logger);
+            var summary = stats.FormatSummary(cacheDir, verbosity: 2);
+
+            Assert.Contains("MyLib.dll (1)", summary);
+            Assert.Contains("hash_abc", summary);
+            Assert.Contains("created:", summary);
+            Assert.Contains("last used:", summary);
+        }
+
+        [Fact]
+        public void PurgeEntries_DeletesOldEntries()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+
+            var oldEntry = Path.Combine(cacheDir, "Old.dll", "hash_old");
+            Directory.CreateDirectory(oldEntry);
+            File.WriteAllBytes(Path.Combine(oldEntry, "assembly"), [1, 2, 3]);
+            File.WriteAllText(Path.Combine(oldEntry, "last-used"), DateTimeOffset.UtcNow.AddHours(-2).ToString("O"));
+
+            var newEntry = Path.Combine(cacheDir, "New.dll", "hash_new");
+            Directory.CreateDirectory(newEntry);
+            File.WriteAllBytes(Path.Combine(newEntry, "assembly"), [4, 5, 6]);
+            File.WriteAllText(Path.Combine(newEntry, "last-used"), DateTimeOffset.UtcNow.ToString("O"));
+
+            var result = CompilationCache.PurgeEntries(cacheDir, DateTimeOffset.UtcNow.AddHours(-1), _logger);
+
+            Assert.Contains("Deleted: 1", result);
+            Assert.Contains("Kept: 1", result);
+            Assert.False(Directory.Exists(oldEntry));
+            Assert.True(Directory.Exists(newEntry));
+        }
+
+        [Fact]
+        public void PurgeEntries_KeepsAllRecentEntries()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+
+            var entry1 = Path.Combine(cacheDir, "A.dll", "hash1");
+            var entry2 = Path.Combine(cacheDir, "B.dll", "hash2");
+            Directory.CreateDirectory(entry1);
+            File.WriteAllBytes(Path.Combine(entry1, "assembly"), [1]);
+            File.WriteAllText(Path.Combine(entry1, "last-used"), DateTimeOffset.UtcNow.ToString("O"));
+            Directory.CreateDirectory(entry2);
+            File.WriteAllBytes(Path.Combine(entry2, "assembly"), [2]);
+            File.WriteAllText(Path.Combine(entry2, "last-used"), DateTimeOffset.UtcNow.ToString("O"));
+
+            var result = CompilationCache.PurgeEntries(cacheDir, DateTimeOffset.UtcNow.AddHours(-1), _logger);
+
+            Assert.Contains("Deleted: 0", result);
+            Assert.Contains("Kept: 2", result);
+            Assert.True(Directory.Exists(entry1));
+            Assert.True(Directory.Exists(entry2));
+        }
+
+        [Fact]
+        public void PurgeEntries_RemovesEmptyDllDirectories()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+
+            var dllDir = Path.Combine(cacheDir, "Orphan.dll");
+            var entryDir = Path.Combine(dllDir, "hash_orphan");
+            Directory.CreateDirectory(entryDir);
+            File.WriteAllBytes(Path.Combine(entryDir, "assembly"), [1]);
+            File.WriteAllText(Path.Combine(entryDir, "last-used"), DateTimeOffset.UtcNow.AddHours(-2).ToString("O"));
+
+            var result = CompilationCache.PurgeEntries(cacheDir, DateTimeOffset.UtcNow.AddHours(-1), _logger);
+
+            Assert.Contains("Deleted: 1", result);
+            Assert.False(Directory.Exists(dllDir), "Empty DLL directory should be removed");
+        }
+
+        [Fact]
+        public void PurgeEntries_SkipsStagingDirectories()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+
+            var dllDir = Path.Combine(cacheDir, "Lib.dll");
+            var stagingDir = Path.Combine(dllDir, "somehash.abc123.tmp");
+            Directory.CreateDirectory(stagingDir);
+
+            var usedDir = Path.Combine(dllDir, "hash_used");
+            Directory.CreateDirectory(usedDir);
+            File.WriteAllBytes(Path.Combine(usedDir, "assembly"), [1]);
+            File.WriteAllText(Path.Combine(usedDir, "last-used"), DateTimeOffset.UtcNow.ToString("O"));
+
+            var result = CompilationCache.PurgeEntries(cacheDir, DateTimeOffset.UtcNow.AddHours(-1), _logger);
+
+            Assert.Contains("Deleted: 0", result);
+            Assert.True(Directory.Exists(stagingDir), "Staging directories should not be deleted");
+        }
+
+        [Fact]
+        public void PurgeEntries_HandlesMixedOldAndNewEntries()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+
+            var dllDir = Path.Combine(cacheDir, "Lib.dll");
+            var oldEntry = Path.Combine(dllDir, "hash_old");
+            Directory.CreateDirectory(oldEntry);
+            File.WriteAllBytes(Path.Combine(oldEntry, "assembly"), [1]);
+            File.WriteAllText(Path.Combine(oldEntry, "last-used"), DateTimeOffset.UtcNow.AddHours(-2).ToString("O"));
+
+            var newEntry = Path.Combine(dllDir, "hash_current");
+            Directory.CreateDirectory(newEntry);
+            File.WriteAllBytes(Path.Combine(newEntry, "assembly"), [2]);
+            File.WriteAllText(Path.Combine(newEntry, "last-used"), DateTimeOffset.UtcNow.ToString("O"));
+
+            var result = CompilationCache.PurgeEntries(cacheDir, DateTimeOffset.UtcNow.AddHours(-1), _logger);
+
+            Assert.Contains("Deleted: 1", result);
+            Assert.Contains("Kept: 1", result);
+            Assert.True(Directory.Exists(newEntry));
+            Assert.False(Directory.Exists(oldEntry));
+            Assert.True(Directory.Exists(dllDir));
+        }
+
+        [Fact]
         public void GetDeterministicKey_DiffersWithSourceLink()
         {
             var compilation = CSharpCompilation.Create(

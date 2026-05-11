@@ -67,6 +67,11 @@
         <target state="translated">Použít prázdné řádky mezi po sobě jdoucími předvolbami složených závorek (experimentální)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_collection_expression_preferences">
+        <source>Apply collection expression preferences</source>
+        <target state="new">Apply collection expression preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
         <source>Apply conditional delegate call preferences</source>
         <target state="translated">Použít předvolby podmíněného volání delegáta</target>

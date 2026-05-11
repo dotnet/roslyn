@@ -67,6 +67,11 @@
         <target state="translated">연속 중괄호 사이에 빈 줄 적용 기본 설정(실험적)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_collection_expression_preferences">
+        <source>Apply collection expression preferences</source>
+        <target state="new">Apply collection expression preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
         <source>Apply conditional delegate call preferences</source>
         <target state="translated">조건부 대리자 호출 적용 기본 설정</target>

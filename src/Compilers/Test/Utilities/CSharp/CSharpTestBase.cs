@@ -2119,7 +2119,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
             try
             {
                 CompileAndVerify(comp, expectedOutput: "", verify: verify); //need expected output to force execution
-                Assert.False(true, string.Format("Expected exception {0}({1})", typeof(T).Name, expectedMessage));
+                Assert.Fail(string.Format("Expected exception {0}({1})", typeof(T).Name, expectedMessage));
             }
             catch (TargetInvocationException x)
             {

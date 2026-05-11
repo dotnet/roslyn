@@ -221,7 +221,7 @@ public sealed class RawStringOnAutoInsertTests(ITestOutputHelper testOutputHelpe
 
         var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces: true, tabSize: 4);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         var actualText = ApplyTextEdits([result.TextEdit], documentText);
 
         var expectedCaret = expected.IndexOf("$0");

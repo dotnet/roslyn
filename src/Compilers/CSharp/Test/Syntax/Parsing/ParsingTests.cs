@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var tk = _treeEnumerator.Current.Kind();
                 DumpAndCleanup();
-                Assert.False(true, "Found unexpected node or token of kind: " + tk);
+                Assert.Fail("Found unexpected node or token of kind: " + tk);
             }
         }
 

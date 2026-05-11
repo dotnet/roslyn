@@ -19,7 +19,7 @@
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\x64\Microsoft.CodeAnalysis.Compilers.Setup.x64.csproj" />
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\x86\Microsoft.CodeAnalysis.Compilers.Setup.x86.csproj" />
     <ProjectReference Include="..\..\Tools\PrepareTests\PrepareTests.csproj" />
-    <ProjectReference Include="..\..\Tools\Source\RunTests\RunTests.csproj" />
+    <ProjectReference Include="..\..\Tools\RunTests\RunTests.csproj" />
     <ProjectReference Include="..\..\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj" />
     <ProjectReference Include="..\..\Workspaces\MSBuild\Test\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj" />
     <ProjectReference Include="..\Setup.Dependencies\Roslyn.VisualStudio.Setup.Dependencies.csproj" />

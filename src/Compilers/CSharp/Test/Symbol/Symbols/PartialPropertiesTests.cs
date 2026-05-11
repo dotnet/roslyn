@@ -2099,11 +2099,17 @@ public partial class C
                     public partial int P2 { get => 1; set { } }
                 }
                 """;
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (9,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public partial int* P1 { get => null; set { } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 20));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]

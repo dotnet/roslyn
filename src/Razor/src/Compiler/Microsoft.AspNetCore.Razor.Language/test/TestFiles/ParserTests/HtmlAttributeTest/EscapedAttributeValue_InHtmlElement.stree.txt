@@ -1,0 +1,34 @@
+﻿RazorDocument - [0..29)::29 - [<p class="@@test">Content</p>]
+    MarkupBlock - [0..29)::29
+        MarkupElement - [0..29)::29
+            MarkupStartTag - [0..18)::18 - [<p class="@@test">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupAttributeBlock - [2..17)::15 - [ class="@@test"]
+                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [3..8)::5 - [class] - Gen<Markup>
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTextLiteral - [9..10)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [10..16)::6
+                        MarkupBlock - [10..12)::2
+                            MarkupTextLiteral - [10..11)::1 - [@] - Gen<LitAttr:@(10:0,10)>
+                                Transition;[@];
+                            MarkupEphemeralTextLiteral - [11..12)::1 - [@] - Gen<None>
+                                Transition;[@];
+                        MarkupLiteralAttributeValue - [12..16)::4 - [test]
+                            MarkupTextLiteral - [12..16)::4 - [test] - Gen<Markup>
+                                Text;[test];
+                    MarkupTextLiteral - [16..17)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [18..25)::7 - [Content] - Gen<Markup>
+                Text;[Content];
+            MarkupEndTag - [25..29)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+    EndOfFile;[];

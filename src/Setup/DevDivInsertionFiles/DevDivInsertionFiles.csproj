@@ -92,6 +92,8 @@
     -->
     <ItemGroup>
       <_AssemblyVersionVariable  Include="Roslyn" Version="$(AssemblyVersion)"/>
+      <_AssemblyVersionVariable Include="RazorRuntimeAssembly" Version="$(RazorAssemblyVersion)"/>
+      <_AssemblyVersionVariable Include="RazorToolingAssembly" Version="$(RazorAssemblyVersion)"/>
     </ItemGroup>
 
     <!--
