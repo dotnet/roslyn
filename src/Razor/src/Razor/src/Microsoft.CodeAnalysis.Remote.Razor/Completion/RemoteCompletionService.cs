@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
@@ -215,19 +216,18 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             {
                 // Only include element names — these are used by TagHelperCompletionProvider
                 // to deduplicate tag helpers that share a name with an HTML element.
-                var elementCount = items.Count(static item => item.Kind == CompletionItemKind.Element);
-
-                if (elementCount > 0)
+                using var _pooled = ListPool<string>.GetPooledObject(out var elementLabels);
+                foreach (var item in items)
                 {
-                    var htmlLabels = new HashSet<string>(elementCount, StringComparer.OrdinalIgnoreCase);
-                    foreach (var item in items)
+                    if (item.Kind == CompletionItemKind.Element)
                     {
-                        if (item.Kind == CompletionItemKind.Element)
-                        {
-                            htmlLabels.Add(item.Label);
-                        }
+                        elementLabels.Add(item.Label);
                     }
+                }
 
+                if (elementLabels.Count > 0)
+                {
+                    var htmlLabels = new HashSet<string>(elementLabels, StringComparer.OrdinalIgnoreCase);
                     razorCompletionContext = razorCompletionContext with { HtmlLabels = htmlLabels };
                 }
             }
