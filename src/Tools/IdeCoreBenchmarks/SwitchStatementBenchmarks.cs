@@ -14,7 +14,7 @@ using Microsoft.VSDiagnostics;
 namespace IdeCoreBenchmarks;
 
 [MemoryDiagnoser]
-[SimpleJob(RunStrategy.Throughput, invocationCount: 1)]
+// [SimpleJob(RunStrategy.Throughput, invocationCount: 1)]
 [CPUUsageDiagnoser]
 public class SwitchStatementBenchmarks
 {

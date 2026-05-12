@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis
         private sealed class StringRope : Rope
         {
             private readonly string _value;
+            private int _hashCode;
             public StringRope(string value) => _value = value;
             public override string ToString() => _value;
 
@@ -108,6 +109,28 @@ namespace Microsoft.CodeAnalysis
 
             public override int Length => _value.Length;
             protected override IEnumerable<char> GetChars() => _value;
+
+            public override bool Equals(object? obj)
+            {
+                if (obj is StringRope sr)
+                    return _value == sr._value;
+
+                return base.Equals(obj);
+            }
+
+            public override int GetHashCode()
+            {
+                if (_hashCode == 0)
+                {
+                    int result = Length;
+                    foreach (char c in _value)
+                        result = Hash.Combine((int)c, result);
+
+                    _hashCode = result;
+                }
+
+                return _hashCode;
+            }
         }
 
         /// <summary>
