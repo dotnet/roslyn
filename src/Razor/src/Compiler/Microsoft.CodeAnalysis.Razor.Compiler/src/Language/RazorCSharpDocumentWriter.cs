@@ -16,7 +16,11 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 internal static class RazorCSharpDocumentWriter
 {
-    public static RazorCSharpDocument Write(DocumentIntermediateNode documentNode, RazorCodeDocument codeDocument, CancellationToken cancellationToken = default)
+    public static RazorCSharpDocument Write(
+        DocumentIntermediateNode documentNode,
+        RazorCodeDocument codeDocument,
+        bool reportDiagnostics = true,
+        CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(codeDocument);
 
@@ -26,7 +30,8 @@ internal static class RazorCSharpDocumentWriter
             codeTarget.CreateNodeWriter(),
             codeDocument.Source,
             documentNode,
-            documentNode.Options ?? codeDocument.CodeGenerationOptions);
+            documentNode.Options ?? codeDocument.CodeGenerationOptions,
+            reportDiagnostics);
 
         context.SetVisitor(new Visitor(context, codeTarget, cancellationToken));
 
