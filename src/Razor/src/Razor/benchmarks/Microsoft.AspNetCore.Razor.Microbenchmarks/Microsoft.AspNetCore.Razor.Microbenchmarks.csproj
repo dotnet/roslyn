@@ -36,7 +36,6 @@
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="Moq" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
-    <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" />
     <PackageReference Include="Basic.Reference.Assemblies.AspNet80" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.DiaSymReader" />

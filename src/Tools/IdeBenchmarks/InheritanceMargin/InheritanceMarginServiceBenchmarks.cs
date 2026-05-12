@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
+
 namespace IdeBenchmarks.InheritanceMargin
 {
     [MemoryDiagnoser]

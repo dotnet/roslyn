@@ -242,9 +242,8 @@
     <!--
       Testing.
     -->
-    <PackageVersion Include="BenchmarkDotNet" Version="0.15.0" />
-    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.7.37220.1" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.13.0" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0" />
     <PackageVersion Include="BasicUndo" Version="0.9.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />

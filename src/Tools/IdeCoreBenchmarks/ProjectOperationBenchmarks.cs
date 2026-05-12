@@ -9,6 +9,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+
 namespace IdeCoreBenchmarks
 {
     public static class ProjectOperationBenchmarks

@@ -10,6 +10,7 @@ using System.Threading;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
+
 namespace IdeBenchmarks
 {
     [GcServer(true)]

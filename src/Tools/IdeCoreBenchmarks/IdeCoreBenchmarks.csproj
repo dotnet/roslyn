@@ -24,7 +24,6 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
-    <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" />
     <PackageReference Include="Microsoft.VisualStudio.Cache" />
   </ItemGroup>
 

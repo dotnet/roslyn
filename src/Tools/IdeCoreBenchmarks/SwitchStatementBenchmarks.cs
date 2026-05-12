@@ -9,13 +9,11 @@ using BenchmarkDotNet.Engines;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VSDiagnostics;
 
 namespace IdeCoreBenchmarks;
 
 [MemoryDiagnoser]
-// [SimpleJob(RunStrategy.Throughput, invocationCount: 1)]
-[CPUUsageDiagnoser]
+[SimpleJob(RunStrategy.Throughput, invocationCount: 1)]
 public class SwitchStatementBenchmarks
 {
     [Params(100, 1000, 5000, 10000)]

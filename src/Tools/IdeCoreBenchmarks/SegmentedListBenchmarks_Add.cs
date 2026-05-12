@@ -4,6 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.Collections;
+
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]

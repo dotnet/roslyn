@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]

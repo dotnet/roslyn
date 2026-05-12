@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+
 namespace IdeBenchmarks
 {
     public class RegexClassifierBenchmarks

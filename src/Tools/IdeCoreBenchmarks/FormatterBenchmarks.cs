@@ -12,6 +12,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
+
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]

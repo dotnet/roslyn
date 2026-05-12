@@ -14,6 +14,7 @@ using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using Microsoft.CodeAnalysis.MSBuild;
+
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]

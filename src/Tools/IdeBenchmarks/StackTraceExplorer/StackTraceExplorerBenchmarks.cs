@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+
 namespace IdeBenchmarks.StackTraceExplorer
 {
     [MemoryDiagnoser]

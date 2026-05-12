@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Storage;
+
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
