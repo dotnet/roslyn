@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Endpoints;
 
 [Shared]
 [ExportRazorStatelessLspService(typeof(RazorDocumentClosedEndpoint))]
-[RazorEndpoint("razor/documentClosed")]
+[Method("razor/documentClosed")]
 [method: ImportingConstructor]
 internal class RazorDocumentClosedEndpoint(IHtmlDocumentSynchronizer htmlDocumentSynchronizer) : ILspServiceRequestHandler<TextDocumentIdentifier, VoidResult>, ITextDocumentIdentifierHandler<TextDocumentIdentifier, TextDocumentIdentifier?>
 {

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -25,7 +24,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 // NOTE: This has to use RazorMethod, not CohostEndpoint, because it has to use the "default" language,
 // since it has no document associated with it to get any other language.
-[RazorMethod(RazorLSPConstants.ApplyRenameEditName)]
+[Method(RazorLSPConstants.ApplyRenameEditName)]
 [ExportRazorStatelessLspService(typeof(CohostApplyRenameEditEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
