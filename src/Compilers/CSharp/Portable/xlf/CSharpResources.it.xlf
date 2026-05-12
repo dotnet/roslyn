@@ -957,6 +957,11 @@
         <target state="translated">'{0}': l'evento extern non può avere inizializzatori</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternMemberRequiresUnsafeOrSafe">
+        <source>Extern member must be marked 'unsafe' or annotated with 'SafeAttribute' when using updated memory safety rules.</source>
+        <target state="new">Extern member must be marked 'unsafe' or annotated with 'SafeAttribute' when using updated memory safety rules.</target>
+        <note>'unsafe' and 'SafeAttribute' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">La funzionalità '{0}' è attualmente disponibile in anteprima e *non è supportata*. Per usare funzionalità in anteprima, scegliere la versione del linguaggio 'preview'.</target>

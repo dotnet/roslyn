@@ -977,7 +977,14 @@ done:
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
                 var modifiers = (syntaxReferenceOpt?.GetSyntax() as MemberDeclarationSyntax)?.Modifiers ?? default;
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(_location), modifyCompilation: true);
+                var unsafeOrExternLocation = modifiers.GetUnsafeOrExternLocation(_location);
+
+                if (ContainingModule.UseUpdatedMemorySafetyRules && AssociatedSymbol is null && IsExtern && !HasUnsafeModifier && !HasSafeAttribute)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, unsafeOrExternLocation);
+                }
+
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, unsafeOrExternLocation, modifyCompilation: true);
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

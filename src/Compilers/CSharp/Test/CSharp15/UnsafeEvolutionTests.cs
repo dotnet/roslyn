@@ -9824,9 +9824,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             public class C
             {
                 public void M1() { }
-                public extern void M2();
-                [DllImport("test")] public static extern void M3();
-                [MethodImpl(MethodImplOptions.InternalCall)] public extern void M4();
+                unsafe public extern void M2();
+                [DllImport("test")] unsafe public static extern void M3();
+                [MethodImpl(MethodImplOptions.InternalCall)] unsafe public extern void M4();
             }
             """;
 
@@ -9862,27 +9862,29 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedDiagnostics: commonDiagnostics);
 
         CreateCompilation([libSource, callerSource],
-            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(commonDiagnostics);
 
         CreateCompilation([libSource],
             parseOptions: TestOptions.RegularNext,
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource],
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.RegularNext)
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.Regular14)
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
     }
 
@@ -9951,7 +9953,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [getLibSource("extern")],
+            [getLibSource("unsafe extern")],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -10053,9 +10055,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 #pragma warning disable CS0626 // extern without attributes
                 public class B
                 {
-                    public extern virtual void M1();
-                    public extern virtual void M2();
-                    public extern virtual void M3();
+                    unsafe public extern virtual void M1();
+                    unsafe public extern virtual void M2();
+                    unsafe public extern virtual void M3();
                     public virtual void M4() { }
                     public virtual void M5() { }
                     public virtual void M6() { }
@@ -10071,10 +10073,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 class C : B
                 {
-                    public extern override void M1();
-                    public extern new virtual void M2();
-                    public extern override void M4();
-                    public extern new virtual void M5();
+                    unsafe public extern override void M1();
+                    unsafe public extern new virtual void M2();
+                    unsafe public extern override void M4();
+                    unsafe public extern new virtual void M5();
                 }
 
                 class D1 : C
@@ -10100,12 +10102,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 class D3 : C
                 {
-                    public extern override void M1();
-                    public extern override void M2();
-                    public extern override void M3();
-                    public extern override void M4();
-                    public extern override void M5();
-                    public extern override void M6();
+                    unsafe public extern override void M1();
+                    unsafe public extern override void M2();
+                    unsafe public extern override void M3();
+                    unsafe public extern override void M4();
+                    unsafe public extern override void M5();
+                    unsafe public extern override void M6();
                 }
 
                 class D4 : C;
@@ -10181,9 +10183,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (6,43): error CS9362: 'C.M5()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // C c = d1; c.M1(); c.M2(); c.M3(); c.M4(); c.M5(); c.M6();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M5()").WithArguments("C.M5()").WithLocation(6, 43),
-                // (12,33): error CS9364: Unsafe member 'C.M4()' cannot override safe member 'B.M4()'
-                //     public extern override void M4();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("C.M4()", "B.M4()").WithLocation(12, 33),
+                // (12,40): error CS9364: Unsafe member 'C.M4()' cannot override safe member 'B.M4()'
+                //     unsafe public extern override void M4();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("C.M4()", "B.M4()").WithLocation(12, 40),
                 // (24,31): error CS9362: 'C.M1()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 //     public void BaseCalls() { base.M1(); base.M2(); base.M3(); base.M4(); base.M5(); base.M6(); }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "base.M1()").WithArguments("C.M1()").WithLocation(24, 31),
@@ -10205,12 +10207,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (34,33): error CS9364: Unsafe member 'D2.M6()' cannot override safe member 'B.M6()'
                 //     public unsafe override void M6() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(34, 33),
-                // (42,33): error CS9364: Unsafe member 'D3.M4()' cannot override safe member 'B.M4()'
-                //     public extern override void M4();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D3.M4()", "B.M4()").WithLocation(42, 33),
-                // (44,33): error CS9364: Unsafe member 'D3.M6()' cannot override safe member 'B.M6()'
-                //     public extern override void M6();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D3.M6()", "B.M6()").WithLocation(44, 33),
+                // (42,40): error CS9364: Unsafe member 'D3.M4()' cannot override safe member 'B.M4()'
+                //     unsafe public extern override void M4();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D3.M4()", "B.M4()").WithLocation(42, 40),
+                // (44,40): error CS9364: Unsafe member 'D3.M6()' cannot override safe member 'B.M6()'
+                //     unsafe public extern override void M6();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D3.M6()", "B.M6()").WithLocation(44, 40),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
@@ -10274,12 +10276,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (6,43): error CS9362: 'C.M5()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // C c = d1; c.M1(); c.M2(); c.M3(); c.M4(); c.M5(); c.M6();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M5()").WithArguments("C.M5()").WithLocation(6, 43),
-                // (10,33): error CS9364: Unsafe member 'C.M1()' cannot override safe member 'B.M1()'
-                //     public extern override void M1();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C.M1()", "B.M1()").WithLocation(10, 33),
-                // (12,33): error CS9364: Unsafe member 'C.M4()' cannot override safe member 'B.M4()'
-                //     public extern override void M4();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("C.M4()", "B.M4()").WithLocation(12, 33),
+                // (10,40): error CS9364: Unsafe member 'C.M1()' cannot override safe member 'B.M1()'
+                //     unsafe public extern override void M1();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C.M1()", "B.M1()").WithLocation(10, 40),
+                // (12,40): error CS9364: Unsafe member 'C.M4()' cannot override safe member 'B.M4()'
+                //     unsafe public extern override void M4();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("C.M4()", "B.M4()").WithLocation(12, 40),
                 // (24,31): error CS9362: 'C.M1()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 //     public void BaseCalls() { base.M1(); base.M2(); base.M3(); base.M4(); base.M5(); base.M6(); }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "base.M1()").WithArguments("C.M1()").WithLocation(24, 31),
@@ -10304,18 +10306,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (34,33): error CS9364: Unsafe member 'D2.M6()' cannot override safe member 'B.M6()'
                 //     public unsafe override void M6() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(34, 33),
-                // (39,33): error CS9364: Unsafe member 'D3.M1()' cannot override safe member 'B.M1()'
-                //     public extern override void M1();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("D3.M1()", "B.M1()").WithLocation(39, 33),
-                // (41,33): error CS9364: Unsafe member 'D3.M3()' cannot override safe member 'B.M3()'
-                //     public extern override void M3();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M3").WithArguments("D3.M3()", "B.M3()").WithLocation(41, 33),
-                // (42,33): error CS9364: Unsafe member 'D3.M4()' cannot override safe member 'B.M4()'
-                //     public extern override void M4();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D3.M4()", "B.M4()").WithLocation(42, 33),
-                // (44,33): error CS9364: Unsafe member 'D3.M6()' cannot override safe member 'B.M6()'
-                //     public extern override void M6();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D3.M6()", "B.M6()").WithLocation(44, 33),
+                // (39,40): error CS9364: Unsafe member 'D3.M1()' cannot override safe member 'B.M1()'
+                //     unsafe public extern override void M1();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("D3.M1()", "B.M1()").WithLocation(39, 40),
+                // (41,40): error CS9364: Unsafe member 'D3.M3()' cannot override safe member 'B.M3()'
+                //     unsafe public extern override void M3();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M3").WithArguments("D3.M3()", "B.M3()").WithLocation(41, 40),
+                // (42,40): error CS9364: Unsafe member 'D3.M4()' cannot override safe member 'B.M4()'
+                //     unsafe public extern override void M4();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D3.M4()", "B.M4()").WithLocation(42, 40),
+                // (44,40): error CS9364: Unsafe member 'D3.M6()' cannot override safe member 'B.M6()'
+                //     unsafe public extern override void M6();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D3.M6()", "B.M6()").WithLocation(44, 40),
             ]);
     }
 
@@ -10327,7 +10329,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 #pragma warning disable CS0626 // extern without attributes
                 public interface I
                 {
-                    extern void M1();
+                    unsafe extern void M1();
                     void M2();
                 }
                 """,
@@ -10363,14 +10365,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 public class C5 : I
                 {
-                    public extern void M1();
-                    public extern void M2();
+                    unsafe public extern void M1();
+                    unsafe public extern void M2();
                 }
 
                 public class C6 : I
                 {
-                    extern void I.M1();
-                    extern void I.M2();
+                    unsafe extern void I.M1();
+                    unsafe extern void I.M2();
                 }
                 """,
             targetFramework: TargetFramework.Net100,
@@ -10388,12 +10390,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (27,19): error CS9366: Unsafe member 'C4.I.M2()' cannot implement safe member 'I.M2()'
                 //     unsafe void I.M2() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(27, 19),
-                // (33,24): error CS9365: Unsafe member 'C5.M2()' cannot implicitly implement safe member 'I.M2()'
-                //     public extern void M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 24),
-                // (39,19): error CS9366: Unsafe member 'C6.I.M2()' cannot implement safe member 'I.M2()'
-                //     extern void I.M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 19),
+                // (33,31): error CS9365: Unsafe member 'C5.M2()' cannot implicitly implement safe member 'I.M2()'
+                //     unsafe public extern void M2();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 31),
+                // (39,26): error CS9366: Unsafe member 'C6.I.M2()' cannot implement safe member 'I.M2()'
+                //     unsafe extern void I.M2();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 26),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
@@ -10409,18 +10411,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (27,19): error CS9366: Unsafe member 'C4.I.M2()' cannot implement safe member 'I.M2()'
                 //     unsafe void I.M2() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(27, 19),
-                // (32,24): error CS9365: Unsafe member 'C5.M1()' cannot implicitly implement safe member 'I.M1()'
-                //     public extern void M1();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I.M1()").WithLocation(32, 24),
-                // (33,24): error CS9365: Unsafe member 'C5.M2()' cannot implicitly implement safe member 'I.M2()'
-                //     public extern void M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 24),
-                // (38,19): error CS9366: Unsafe member 'C6.I.M1()' cannot implement safe member 'I.M1()'
-                //     extern void I.M1();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C6.I.M1()", "I.M1()").WithLocation(38, 19),
-                // (39,19): error CS9366: Unsafe member 'C6.I.M2()' cannot implement safe member 'I.M2()'
-                //     extern void I.M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 19),
+                // (32,31): error CS9365: Unsafe member 'C5.M1()' cannot implicitly implement safe member 'I.M1()'
+                //     unsafe public extern void M1();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I.M1()").WithLocation(32, 31),
+                // (33,31): error CS9365: Unsafe member 'C5.M2()' cannot implicitly implement safe member 'I.M2()'
+                //     unsafe public extern void M2();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 31),
+                // (38,26): error CS9366: Unsafe member 'C6.I.M1()' cannot implement safe member 'I.M1()'
+                //     unsafe extern void I.M1();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C6.I.M1()", "I.M1()").WithLocation(38, 26),
+                // (39,26): error CS9366: Unsafe member 'C6.I.M2()' cannot implement safe member 'I.M2()'
+                //     unsafe extern void I.M2();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 26),
             ]);
     }
 
@@ -11009,6 +11011,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [Safe] public void M1() { }
                 [Safe] public extern void M2();
                 [Safe] unsafe public extern void M3();
+                public extern void M4();
                 [Safe] public int P1 { get; set; }
                 [Safe] public extern int P2 { get; set; }
                 [Safe] unsafe public extern int P3 { get; set; }
@@ -11018,6 +11021,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [Safe] public C() { }
                 [Safe] public extern C(int x);
                 [Safe] unsafe public extern C(string s);
+                public extern C(double d);
             }
             """;
 
@@ -11028,24 +11032,30 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (8,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
             //     [Safe] unsafe public extern void M3();
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(8, 6),
-            // (9,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            // (9,12): error CS9381: Extern member must be marked 'unsafe' or annotated with 'SafeAttribute' when using updated memory safety rules.
+            //     public extern void M4();
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(9, 12),
+            // (10,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
             //     [Safe] public int P1 { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(9, 6),
-            // (11,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] unsafe public extern int P3 { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(11, 6),
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(10, 6),
             // (12,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] public event System.Action E1;
+            //     [Safe] unsafe public extern int P3 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(12, 6),
-            // (14,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] unsafe public static extern event System.Action E3;
-            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(14, 6),
+            // (13,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public event System.Action E1;
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(13, 6),
             // (15,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] public C() { }
+            //     [Safe] unsafe public static extern event System.Action E3;
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(15, 6),
-            // (17,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            // (16,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public C() { }
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(16, 6),
+            // (18,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
             //     [Safe] unsafe public extern C(string s);
-            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(17, 6));
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(18, 6),
+            // (19,12): error CS9381: Extern member must be marked 'unsafe' or annotated with 'SafeAttribute' when using updated memory safety rules.
+            //     public extern C(double d);
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(19, 12));
 
         CreateCompilation([source, SafeAttributeDefinition], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (6,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
@@ -11057,33 +11067,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (8,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
             //     [Safe] unsafe public extern void M3();
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(8, 6),
-            // (9,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] public int P1 { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(9, 6),
             // (10,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] public extern int P2 { get; set; }
+            //     [Safe] public int P1 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(10, 6),
             // (11,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] unsafe public extern int P3 { get; set; }
+            //     [Safe] public extern int P2 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(11, 6),
             // (12,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] public event System.Action E1;
+            //     [Safe] unsafe public extern int P3 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(12, 6),
             // (13,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] public static extern event System.Action E2;
+            //     [Safe] public event System.Action E1;
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(13, 6),
             // (14,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] unsafe public static extern event System.Action E3;
+            //     [Safe] public static extern event System.Action E2;
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(14, 6),
             // (15,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] public C() { }
+            //     [Safe] unsafe public static extern event System.Action E3;
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(15, 6),
             // (16,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
-            //     [Safe] public extern C(int x);
+            //     [Safe] public C() { }
             Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(16, 6),
             // (17,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public extern C(int x);
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(17, 6),
+            // (18,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
             //     [Safe] unsafe public extern C(string s);
-            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(17, 6));
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(18, 6));
     }
 
     [Fact]
@@ -11194,7 +11204,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             #pragma warning disable CS0824 // extern constructor
             public class C
             {
-                public extern C();
+                unsafe public extern C();
             }
             """;
 
@@ -11262,7 +11272,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [getLibSource("extern")],
+            [getLibSource("unsafe extern")],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -11360,7 +11370,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                public extern void operator +=(C c);
+                unsafe public extern void operator +=(C c);
             }
             """;
 
@@ -11431,7 +11441,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [getLibSource("extern"), CompilerFeatureRequiredAttribute],
+            [getLibSource("unsafe extern"), CompilerFeatureRequiredAttribute],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -11758,7 +11768,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                public extern void M();
+                unsafe public extern void M();
             }
             """;
 

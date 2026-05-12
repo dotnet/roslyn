@@ -957,6 +957,11 @@
         <target state="translated">„{0}”: zdarzenie extern nie może mieć inicjatora</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternMemberRequiresUnsafeOrSafe">
+        <source>Extern member must be marked 'unsafe' or annotated with 'SafeAttribute' when using updated memory safety rules.</source>
+        <target state="new">Extern member must be marked 'unsafe' or annotated with 'SafeAttribute' when using updated memory safety rules.</target>
+        <note>'unsafe' and 'SafeAttribute' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">Funkcja „{0}” jest obecnie w wersji zapoznawczej i jest *nieobsługiwana*. Aby używać funkcji w wersji zapoznawczej, skorzystaj z wersji języka w wersji zapoznawczej.</target>
