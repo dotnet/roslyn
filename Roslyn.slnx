@@ -497,7 +497,7 @@
     <Project Path="src/Razor/Tooling/Microsoft.VisualStudio.LanguageServices.Razor/Microsoft.VisualStudio.LanguageServices.Razor.csproj" />
     <Project Path="src/Razor/src/Razor/src/Microsoft.VisualStudio.RazorExtension.Dependencies/Microsoft.VisualStudio.RazorExtension.Dependencies.csproj" />
     <Project Path="src/Razor/src/Razor/src/Microsoft.VisualStudio.RazorExtension/Microsoft.VisualStudio.RazorExtension.csproj" />
-    <Project Path="src/Razor/src/Razor/src/Microsoft.VisualStudioCode.RazorExtension/Microsoft.VisualStudioCode.RazorExtension.csproj" />
+    <Project Path="src/Razor/Tooling/Microsoft.VisualStudioCode.RazorExtension/Microsoft.VisualStudioCode.RazorExtension.csproj" />
     <Project Path="src/Razor/src/Razor/src/RazorDeployment/RazorDeployment.csproj" />
   </Folder>
 </Solution>
