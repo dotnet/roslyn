@@ -47,7 +47,7 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 - **Positions**: Use `GetRequiredAbsoluteIndex` for converting positions to absolute indexes.
 - **LSP conversions**: `sourceText.GetTextChange(textEdit)` converts LSP `TextEdit` to
   Roslyn `TextChange`. Reverse: `sourceText.GetTextEdit(change)`. Both live in
-  `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Extensions\LspExtensions_SourceText.cs`.
+  `src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Extensions\LspExtensions_SourceText.cs`.
 - **RazorCodeDocument**: Immutable -- every `With*` method creates a new instance passing ALL
   fields through the constructor. When adding a new field, thread it through every existing
   `With*` method. Prefer computing derived data via extension methods (e.g.,
@@ -75,10 +75,10 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 
 When adding a new `IRemote*Service` and `Remote*Service`:
 
-1. Interface: `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Remote\`
+1. Interface: `src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Remote\`
 2. Implementation: `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Remote.Razor\`
 3. Register in
-   `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Remote\RazorServices.cs`
+   `src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Remote\RazorServices.cs`
    (add to `MessagePackServices` or `JsonServices`).
 4. **Add an entry to `eng\targets\RazorServices.props`** (at the Roslyn repo root, not under
    `src\Razor`):

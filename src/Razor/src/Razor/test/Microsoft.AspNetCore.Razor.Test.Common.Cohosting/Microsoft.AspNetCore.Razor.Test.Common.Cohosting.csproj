@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)src\Razor\Shared\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
     <ProjectReference Include="$(RepoRoot)src\Razor\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
     <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
     <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\test\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
   </ItemGroup>

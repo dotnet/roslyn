@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
     <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
   </ItemGroup>
 
@@ -62,7 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+    <Compile Include="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
   </ItemGroup>
 
   <ItemGroup>

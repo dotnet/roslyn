@@ -489,7 +489,7 @@
   <Folder Name="/Razor/Tooling/">
     <File Path="src/Razor/src/Razor/src/Directory.Build.props" />
     <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.CohostingShared/Microsoft.CodeAnalysis.Razor.CohostingShared.shproj" />
-    <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces/Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
+    <Project Path="src/Razor/Tooling/Microsoft.CodeAnalysis.Razor.Workspaces/Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
     <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor.CoreComponents/arm64/Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.arm64.csproj" />
     <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor.CoreComponents/x64/Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.x64.csproj" />
     <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/Microsoft.CodeAnalysis.Remote.Razor.csproj" />

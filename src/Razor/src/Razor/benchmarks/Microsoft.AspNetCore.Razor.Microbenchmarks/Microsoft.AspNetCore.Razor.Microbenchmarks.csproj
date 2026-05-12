@@ -22,7 +22,7 @@
     <None Remove=".gitignore" />
     <None Remove="BenchmarkDotNet.Artifacts\**" />
 
-    <Compile Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+    <Compile Include="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
 
     <Compile Remove="Resources\**\*.*" />
     <None Remove="Resources\**\*.*" />

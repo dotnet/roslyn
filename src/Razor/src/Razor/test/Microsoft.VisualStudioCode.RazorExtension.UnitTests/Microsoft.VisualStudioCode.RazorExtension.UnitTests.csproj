@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+    <Compile Include="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Include="$(RepoRoot)src\Razor\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
@@ -49,7 +49,7 @@
     <Compile Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\AggregatingTelemetryLog.cs" Link="Telemetry\AggregatingTelemetryLog.cs" />
     <Compile Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\AggregatingTelemetryLogManager.cs" Link="Telemetry\AggregatingTelemetryLogManager.cs" />
 
-    <Compile Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+    <Compile Include="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -143,7 +143,7 @@
 
   <!-- Remote.Razor publish needs Roslyn references copy-local for R2R closure. -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0' and '$(PublishReadyToRun)' == 'true' and '$(RuntimeIdentifier)' != ''">
-    <ProjectReference Update="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
+    <ProjectReference Update="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Update="$(RepoRoot)src\Razor\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj">

@@ -15,7 +15,7 @@
   <ItemGroup>
     <Compile Remove="Resources\**\*.*" />
     <None Remove="Resources\**\*.*" />
-    <Compile Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+    <Compile Include="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
 
     <EmbeddedResource Include="Resources\**\*.*" />
     <EmbeddedResource Include="$(SharedFilesRoot)\Tooling\**\*.*" Link="Resources\%(RecursiveDir)%(Filename)%(Extension)" />
@@ -24,7 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)src\Razor\Shared\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
     <ProjectReference Include="$(RepoRoot)src\Razor\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetFxVS)'">

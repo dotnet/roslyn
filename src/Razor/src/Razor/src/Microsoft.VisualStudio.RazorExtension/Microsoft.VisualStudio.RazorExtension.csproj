@@ -168,7 +168,7 @@
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
 
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
       <AdditionalProperties>TargetFramework=$(NetFxVS)</AdditionalProperties>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
