@@ -8115,6 +8115,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</value>
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
   </data>
+  <data name="ERR_SafeAttributeUnsupportedTarget" xml:space="preserve">
+    <value>'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.</value>
+    <comment>'SafeAttribute', 'extern', and 'unsafe' should not be localized.</comment>
+  </data>
   <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
     <value>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</value>
   </data>

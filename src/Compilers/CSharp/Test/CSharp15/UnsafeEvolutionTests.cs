@@ -40,6 +40,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         DiagnosticDescription[]? expectedDiagnosticsForLegacyCaller = null,
         DiagnosticDescription[]? expectedDiagnosticsWithOldLangVersion = null,
         DiagnosticDescription[]? expectedLibDiagnostics = null,
+        DiagnosticDescription[]? expectedLegacyLibDiagnostics = null,
         bool expectedAttributeIsSynthesized = true)
     {
         optionsDll ??= TestOptions.UnsafeReleaseDll;
@@ -99,41 +100,52 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 .VerifyDiagnostics(expectedDiagnosticsForLegacyCaller ?? []);
         }
 
-        var libLegacy = CompileAndVerify([lib, .. additionalSources],
-            targetFramework: targetFramework,
-            parseOptions: parseOptions,
-            options: optionsDll,
-            verify: verify,
-            symbolValidator: module =>
-            {
-                VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: false, includesAttributeUse: false);
-                // Under legacy rules, `unsafe` keyword does not make members requires-unsafe.
-                VerifyRequiresUnsafeAttribute(
-                    module,
-                    expectedUnsafeSymbols: [],
-                    expectedSafeSymbols:
-                    [
-                        .. skipSymbolsInSource is [..] ? expectedUnsafeSymbols.Except(skipSymbolsInSource).ToArray() : expectedUnsafeSymbols,
-                        .. skipSymbolsInSource is [..] ? expectedSafeSymbols.Except(skipSymbolsInSource).ToArray() : expectedSafeSymbols,
-                    ],
-                    includesAttributeDefinition: !expectedAttributeIsSynthesized,
-                    isSynthesized: !expectedAttributeIsSynthesized ? false : null);
-            })
-            .VerifyDiagnostics()
-            .GetImageReference();
+        if (expectedLegacyLibDiagnostics is { })
+        {
+            CreateCompilation([lib, .. additionalSources],
+                targetFramework: targetFramework,
+                parseOptions: parseOptions,
+                options: optionsDll)
+                .VerifyDiagnostics(expectedLegacyLibDiagnostics);
+        }
+        else
+        {
+            var libLegacy = CompileAndVerify([lib, .. additionalSources],
+                targetFramework: targetFramework,
+                parseOptions: parseOptions,
+                options: optionsDll,
+                verify: verify,
+                symbolValidator: module =>
+                {
+                    VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: false, includesAttributeUse: false);
+                    // Under legacy rules, `unsafe` keyword does not make members requires-unsafe.
+                    VerifyRequiresUnsafeAttribute(
+                        module,
+                        expectedUnsafeSymbols: [],
+                        expectedSafeSymbols:
+                        [
+                            .. skipSymbolsInSource is [..] ? expectedUnsafeSymbols.Except(skipSymbolsInSource).ToArray() : expectedUnsafeSymbols,
+                            .. skipSymbolsInSource is [..] ? expectedSafeSymbols.Except(skipSymbolsInSource).ToArray() : expectedSafeSymbols,
+                        ],
+                        includesAttributeDefinition: !expectedAttributeIsSynthesized,
+                        isSynthesized: !expectedAttributeIsSynthesized ? false : null);
+                })
+                .VerifyDiagnostics()
+                .GetImageReference();
 
-        CreateCompilation(caller, [libLegacy],
-            targetFramework: targetFramework,
-            parseOptions: parseOptions,
-            options: optionsExe.WithUpdatedMemorySafetyRules())
-            .VerifyEmitDiagnostics(expectedDiagnosticsWhenReferencingLegacyLib ?? []);
+            CreateCompilation(caller, [libLegacy],
+                targetFramework: targetFramework,
+                parseOptions: parseOptions,
+                options: optionsExe.WithUpdatedMemorySafetyRules())
+                .VerifyEmitDiagnostics(expectedDiagnosticsWhenReferencingLegacyLib ?? []);
 
-        // Legacy-rules library referenced by legacy-rules caller.
-        CreateCompilation(caller, [libLegacy],
-            targetFramework: targetFramework,
-            parseOptions: parseOptions,
-            options: optionsExe)
-            .VerifyEmitDiagnostics(expectedDiagnosticsForLegacyCaller ?? []);
+            // Legacy-rules library referenced by legacy-rules caller.
+            CreateCompilation(caller, [libLegacy],
+                targetFramework: targetFramework,
+                parseOptions: parseOptions,
+                options: optionsExe)
+                .VerifyEmitDiagnostics(expectedDiagnosticsForLegacyCaller ?? []);
+        }
 
         void symbolValidator(ModuleSymbol module)
         {
@@ -9889,7 +9901,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [Safe] public extern void M2();
                 [Safe, DllImport("test")] public static extern void M3();
                 [Safe, MethodImpl(MethodImplOptions.InternalCall)] public extern void M4();
-                [Safe] unsafe public extern void M5();
             }
             """;
 
@@ -9899,8 +9910,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             c.M2();
             C.M3();
             c.M4();
-            c.M5();
-            unsafe { c.M5(); }
             """;
 
         CompileAndVerifyUnsafe(
@@ -9908,14 +9917,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             callerSource,
             additionalSources: [SafeAttributeDefinition],
             verify: Verification.Skipped,
-            expectedUnsafeSymbols: ["C.M5"],
+            expectedUnsafeSymbols: [],
             expectedSafeSymbols: ["C", "C.M1", "C.M2", "C.M3", "C.M4"],
-            expectedDiagnostics:
+            expectedLegacyLibDiagnostics:
             [
-                // (6,1): error CS9362: 'C.M5()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // c.M5();
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M5()").WithArguments("C.M5()").WithLocation(6, 1),
-            ]);
+                // (9,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+                //     [Safe] public extern void M2();
+                Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(9, 6),
+                // (10,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+                //     [Safe, DllImport("test")] public static extern void M3();
+                Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(10, 6),
+                // (11,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+                //     [Safe, MethodImpl(MethodImplOptions.InternalCall)] public extern void M4();
+                Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(11, 6),
+            ],
+            expectedDiagnostics: []);
     }
 
     [Fact]
@@ -10552,7 +10568,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [Safe] public extern int P2 { set; }
                 [Safe] public static extern int P3 { [DllImport("test")] set; }
                 [Safe] public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
-                [Safe] unsafe public extern int P5 { set; }
             }
             """;
 
@@ -10562,8 +10577,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             c.P2 = 0;
             C.P3 = 0;
             c.P4 = 0;
-            c.P5 = 0;
-            unsafe { c.P5 = 0; }
             """;
 
         CompileAndVerifyUnsafe(
@@ -10571,14 +10584,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             callerSource,
             additionalSources: [SafeAttributeDefinition],
             verify: Verification.Skipped,
-            expectedUnsafeSymbols: ["C.P5", "C.set_P5"],
+            expectedUnsafeSymbols: [],
             expectedSafeSymbols: ["C", "C.P1", "C.set_P1", "C.P2", "C.set_P2", "C.P3", "C.set_P3", "C.P4", "C.set_P4"],
-            expectedDiagnostics:
+            expectedLegacyLibDiagnostics:
             [
-                // (6,1): error CS9362: 'C.P5.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // c.P5 = 0;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P5").WithArguments("C.P5.set").WithLocation(6, 1),
-            ]);
+                // (9,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+                //     [Safe] public extern int P2 { set; }
+                Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(9, 6),
+                // (10,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+                //     [Safe] public static extern int P3 { [DllImport("test")] set; }
+                Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(10, 6),
+                // (11,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+                //     [Safe] public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
+                Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(11, 6),
+            ],
+            expectedDiagnostics: []);
     }
 
     [Fact]
@@ -10954,15 +10974,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [Safe]
                 [method: System.Runtime.InteropServices.DllImport("test")]
                 public static extern event System.Action E1;
-                [Safe]
-                unsafe public static extern event System.Action E2;
             }
             """;
 
         var callerSource = """
             C.E1 += null;
-            C.E2 += null;
-            unsafe { C.E2 += null; }
             """;
 
         CompileAndVerifyUnsafe(
@@ -10970,14 +10986,104 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             callerSource,
             additionalSources: [SafeAttributeDefinition],
             verify: Verification.Skipped,
-            expectedUnsafeSymbols: ["C.E2", "C.add_E2", "C.remove_E2"],
+            expectedUnsafeSymbols: [],
             expectedSafeSymbols: ["C", "C.E1", "C.add_E1", "C.remove_E1"],
-            expectedDiagnostics:
+            expectedLegacyLibDiagnostics:
             [
-                // (2,6): error CS9362: 'C.E2.add' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // C.E2 += null;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("C.E2.add").WithLocation(2, 6),
-            ]);
+                // (6,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+                //     [Safe]
+                Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(6, 6),
+            ],
+            expectedDiagnostics: []);
+    }
+
+    [Fact]
+    public void Extern_SafeAttribute_InvalidUse()
+    {
+        var source = """
+            #pragma warning disable CS0067, CS0626, CS0824 // unused event, extern without attributes, extern constructor
+            using System.Diagnostics.CodeAnalysis;
+
+            public class C
+            {
+                [Safe] public void M1() { }
+                [Safe] public extern void M2();
+                [Safe] unsafe public extern void M3();
+                [Safe] public int P1 { get; set; }
+                [Safe] public extern int P2 { get; set; }
+                [Safe] unsafe public extern int P3 { get; set; }
+                [Safe] public event System.Action E1;
+                [Safe] public static extern event System.Action E2;
+                [Safe] unsafe public static extern event System.Action E3;
+                [Safe] public C() { }
+                [Safe] public extern C(int x);
+                [Safe] unsafe public extern C(string s);
+            }
+            """;
+
+        CreateCompilation([source, SafeAttributeDefinition], options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (6,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public void M1() { }
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(6, 6),
+            // (8,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] unsafe public extern void M3();
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(8, 6),
+            // (9,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public int P1 { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(9, 6),
+            // (11,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] unsafe public extern int P3 { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(11, 6),
+            // (12,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public event System.Action E1;
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(12, 6),
+            // (14,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] unsafe public static extern event System.Action E3;
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(14, 6),
+            // (15,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public C() { }
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(15, 6),
+            // (17,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] unsafe public extern C(string s);
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(17, 6));
+
+        CreateCompilation([source, SafeAttributeDefinition], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (6,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public void M1() { }
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(6, 6),
+            // (7,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public extern void M2();
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(7, 6),
+            // (8,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] unsafe public extern void M3();
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(8, 6),
+            // (9,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public int P1 { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(9, 6),
+            // (10,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public extern int P2 { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(10, 6),
+            // (11,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] unsafe public extern int P3 { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(11, 6),
+            // (12,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public event System.Action E1;
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(12, 6),
+            // (13,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public static extern event System.Action E2;
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(13, 6),
+            // (14,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] unsafe public static extern event System.Action E3;
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(14, 6),
+            // (15,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public C() { }
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(15, 6),
+            // (16,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] public extern C(int x);
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(16, 6),
+            // (17,6): error CS9380: 'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.
+            //     [Safe] unsafe public extern C(string s);
+            Diagnostic(ErrorCode.ERR_SafeAttributeUnsupportedTarget, "Safe").WithLocation(17, 6));
     }
 
     [Fact]

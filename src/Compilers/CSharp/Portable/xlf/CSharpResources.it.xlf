@@ -2447,6 +2447,11 @@
         <target state="translated">Il runtime di destinazione non supporta convenzioni di chiamata predefinite estendibili o dell'ambiente di runtime.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SafeAttributeUnsupportedTarget">
+        <source>'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.</source>
+        <target state="new">'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.</target>
+        <note>'SafeAttribute', 'extern', and 'unsafe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
         <target state="translated">Il modificatore 'scoped' non può seguire un modificatore 'in', 'out', 'ref' o 'readonly'.</target>

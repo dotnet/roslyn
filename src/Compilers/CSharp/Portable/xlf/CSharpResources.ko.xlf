@@ -2447,6 +2447,11 @@
         <target state="translated">대상 런타임에서 확장 가능 또는 런타임 환경 기본 호출 규칙을 지원하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SafeAttributeUnsupportedTarget">
+        <source>'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.</source>
+        <target state="new">'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.</target>
+        <note>'SafeAttribute', 'extern', and 'unsafe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
         <target state="translated">'scoped' 한정자는 'in', 'out', 'ref' 또는 'readonly' 한정자 뒤에 올 수 없습니다.</target>

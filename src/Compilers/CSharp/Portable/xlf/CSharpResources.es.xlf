@@ -2447,6 +2447,11 @@
         <target state="translated">El entorno de ejecución de destino no admite convenciones de llamada predeterminadas de entorno en tiempo de ejecución o extensible.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SafeAttributeUnsupportedTarget">
+        <source>'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.</source>
+        <target state="new">'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.</target>
+        <note>'SafeAttribute', 'extern', and 'unsafe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
         <target state="translated">El modificador “scoped” no puede aparecer después de un modificador “in”, “out”, “ref” o “readonly”.</target>

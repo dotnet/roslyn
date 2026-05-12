@@ -2447,6 +2447,11 @@
         <target state="translated">ターゲット ランタイムは、拡張可能またはランタイム環境の既定の呼び出し規則をサポートしていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SafeAttributeUnsupportedTarget">
+        <source>'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.</source>
+        <target state="new">'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.</target>
+        <note>'SafeAttribute', 'extern', and 'unsafe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
         <target state="translated">'scoped' 修飾子は、'in'、'out'、'ref'、または 'readonly' 修飾子の後に指定することはできません。</target>

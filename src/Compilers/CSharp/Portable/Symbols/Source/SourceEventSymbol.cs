@@ -375,7 +375,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SafeAttribute))
             {
-                arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSafeAttribute = true;
+                if (CheckSafeAttributeUsage(arguments.AttributeSyntaxOpt!.Location, diagnostics))
+                {
+                    arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSafeAttribute = true;
+                }
             }
         }
 
@@ -430,6 +433,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool HasSafeAttribute
             => GetDecodedWellKnownAttributeData()?.HasSafeAttribute == true;
+
+        private bool CheckSafeAttributeUsage(Location location, BindingDiagnosticBag diagnostics)
+        {
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier)
+            {
+                return true;
+            }
+
+            diagnostics.Add(ErrorCode.ERR_SafeAttributeUnsupportedTarget, location);
+            return false;
+        }
 
         public sealed override bool IsAbstract
         {

@@ -639,7 +639,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SafeAttribute))
             {
-                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSafeAttribute = true;
+                if (CheckSafeAttributeUsage(arguments.AttributeSyntaxOpt.Location, diagnostics))
+                {
+                    arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSafeAttribute = true;
+                }
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))
             {
@@ -702,6 +705,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
 
         protected virtual bool HasSafeAttribute => GetDecodedWellKnownAttributeData()?.HasSafeAttribute == true;
+
+        private bool CheckSafeAttributeUsage(Location location, BindingDiagnosticBag diagnostics)
+        {
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier)
+            {
+                return true;
+            }
+
+            diagnostics.Add(ErrorCode.ERR_SafeAttributeUnsupportedTarget, location);
+            return false;
+        }
 
         private bool VerifyObsoleteAttributeAppliedToMethod(
             ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
