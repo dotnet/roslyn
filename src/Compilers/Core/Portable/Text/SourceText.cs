@@ -744,27 +744,10 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             });
 #else
-            if (length <= tempBuffer.Length)
-            {
-                this.CopyTo(position, tempBuffer, 0, length);
-                result = new string(tempBuffer, 0, length);
-            }
-            else
-            {
-                var builder = PooledStringBuilder.GetInstance();
-                builder.Builder.EnsureCapacity(length);
+            var copyBuffer = length <= tempBuffer.Length ? tempBuffer : new char[length];
 
-                while (position < this.Length && length > 0)
-                {
-                    int copyLength = Math.Min(tempBuffer.Length, length);
-                    this.CopyTo(position, tempBuffer, 0, copyLength);
-                    builder.Builder.Append(tempBuffer, 0, copyLength);
-                    length -= copyLength;
-                    position += copyLength;
-                }
-
-                result = builder.ToStringAndFree();
-            }
+            this.CopyTo(position, copyBuffer, 0, length);
+            result = new string(copyBuffer, 0, length);
 #endif
 
             s_charArrayPool.Free(tempBuffer);
