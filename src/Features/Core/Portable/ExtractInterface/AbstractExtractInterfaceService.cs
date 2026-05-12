@@ -274,6 +274,9 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             generatedNameTypeParameterSuffix);
     }
 
+    internal static bool IsOptionsServiceAvailable(Document document)
+        => document.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>() is not null;
+
     private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         // Since code action performs formatting and simplification on a single document, 
