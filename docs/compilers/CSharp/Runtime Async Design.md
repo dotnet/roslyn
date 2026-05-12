@@ -783,4 +783,3 @@ The dynamic strategy for implementation is:
 3. Emit the `IsCompleted` dynamic operation using the normal await pattern rules.
 4. When `IsCompleted` is false, emit a conversion from the awaiter temp to `INotifyCompletion` and pass that converted value to `AsyncHelpers.AwaitAwaiter<INotifyCompletion>`.
 5. Emit the dynamic `GetResult` call only when the await expression result is needed, preserving the existing result conversion behavior.
-6. Add tests for dynamic property awaits with `void` and non-`void` `GetResult`, completed and incomplete awaiters, and failure cases where the awaiter cannot be converted to `INotifyCompletion`.

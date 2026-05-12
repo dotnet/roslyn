@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 {
+    // LocalRewriter may have already created a dynamic call site container for the same method ordinal. Use a distinct
+    // local function ordinal that cannot collide with source local functions, which use non-negative ordinals.
     private const int RuntimeAsyncDynamicCallSiteContainerOrdinal = -2;
 
     public static BoundStatement Rewrite(
