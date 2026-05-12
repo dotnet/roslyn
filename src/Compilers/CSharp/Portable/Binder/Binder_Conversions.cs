@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Now that we've settled on the actual collection builder method to call, do a final round of
                     // checks on it in case there are reasons it will have a problem.
                     var collectionBuilderMethod = underlyingMethod;
-                    @this._binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, isParamsModifierValidation: false, @this._diagnostics);
+                    @this._binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, @this._diagnostics);
 
                     // Take our successful call to the projection method and rewrite it to call the original collection
                     // builder method it was projected from. Because we don't know how the actual elements will be
@@ -1615,7 +1615,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void CheckCollectionBuilderMethod(
             SyntaxNode syntax,
             MethodSymbol collectionBuilderMethod,
-            bool isParamsModifierValidation,
             BindingDiagnosticBag diagnostics)
         {
             ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
@@ -1630,11 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
-            if (!isParamsModifierValidation)
-            {
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, collectionBuilderMethod, syntax);
-            }
-
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, collectionBuilderMethod, syntax);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
 
             Debug.Assert(!collectionBuilderMethod.IsExtensionBlockMember());
@@ -1644,10 +1639,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundUnconvertedWithElement? withElement,
             SyntaxNode syntax,
             TypeSymbol targetType,
-            bool isParamsModifierValidation,
             out MethodSymbol? constructor,
             out bool isExpanded,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool isParamsModifierValidation = false)
         {
             var hasWithElement = withElement is not null;
 
@@ -1768,11 +1763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = memberResolutionResult.Member;
 
                 binder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
-                if (!isParamsModifierValidation)
-                {
-                    binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
-                }
-
+                binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
                 ImmutableSegmentedDictionary<string, Symbol> requiredMembers = GetMembersRequiringInitialization(method);
@@ -1825,12 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool HasCollectionExpressionApplicableAddMethod(
-            SyntaxNode syntax,
-            TypeSymbol targetType,
-            bool isParamsModifierValidation,
-            out ImmutableArray<MethodSymbol> addMethods,
-            BindingDiagnosticBag diagnostics)
+        internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, out ImmutableArray<MethodSymbol> addMethods, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!targetType.IsDynamic());
 
@@ -1864,7 +1850,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 addMethodBinder,
                 syntax,
                 elementPlaceholder,
-                isParamsModifierValidation,
                 diagnostics,
                 implicitReceiver,
                 out addMethods);
@@ -1874,7 +1859,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder addMethodBinder,
                 SyntaxNode elementInitializer,
                 BoundValuePlaceholder arg,
-                bool isParamsModifierValidation,
                 BindingDiagnosticBag diagnostics,
                 BoundObjectOrCollectionValuePlaceholder implicitReceiver,
                 out ImmutableArray<MethodSymbol> addMethods)
@@ -1884,7 +1868,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementInitializer,
                     implicitReceiver,
                     arg: arg,
-                    isParamsModifierValidation,
                     diagnostics,
                     out addMethods);
             }
@@ -1895,7 +1878,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode node,
                 BoundExpression receiver,
                 BoundValuePlaceholder arg,
-                bool isParamsModifierValidation,
                 BindingDiagnosticBag diagnostics,
                 out ImmutableArray<MethodSymbol> addMethods)
             {
@@ -1924,7 +1906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Arguments.AddRange(arg);
 
                 bool result = bindInvocationExpression(
-                    addMethodBinder, node, node, (BoundMethodGroup)boundExpression, analyzedArguments, isParamsModifierValidation, diagnostics, out addMethods);
+                    addMethodBinder, node, node, (BoundMethodGroup)boundExpression, analyzedArguments, diagnostics, out addMethods);
 
                 analyzedArguments.Free();
                 return result;
@@ -1937,13 +1919,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode expression,
                 BoundMethodGroup boundExpression,
                 AnalyzedArguments analyzedArguments,
-                bool isParamsModifierValidation,
                 BindingDiagnosticBag diagnostics,
                 out ImmutableArray<MethodSymbol> addMethods)
             {
                 return bindMethodGroupInvocation(
                     addMethodBinder, node, expression, boundExpression, analyzedArguments,
-                    isParamsModifierValidation, diagnostics, out addMethods);
+                    diagnostics, out addMethods);
             }
 
             // This is what BindMethodGroupInvocation is doing in terms of reporting diagnostics and detecting a failure
@@ -1953,7 +1934,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode expression,
                 BoundMethodGroup methodGroup,
                 AnalyzedArguments analyzedArguments,
-                bool isParamsModifierValidation,
                 BindingDiagnosticBag diagnostics,
                 out ImmutableArray<MethodSymbol> addMethods)
             {
@@ -2033,11 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 else if (addMethods.Length == 1)
                                 {
                                     addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, addMethods[0], syntax, hasBaseReceiver: false);
-                                    if (!isParamsModifierValidation)
-                                    {
-                                        addMethodBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, addMethods[0], syntax);
-                                    }
-
+                                    addMethodBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, addMethods[0], syntax);
                                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, addMethods[0], syntax, isDelegateConversion: false);
                                     Debug.Assert(!IsDisallowedExtensionInOlderLangVer(addMethods[0]));
                                 }
@@ -2398,13 +2374,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                 {
                     if (!HasCollectionExpressionApplicableConstructor(
-                            node.WithElement, node.WithElement?.Syntax ?? node.Syntax, targetType, isParamsModifierValidation: false, constructor: out _, isExpanded: out _, diagnostics))
+                            node.WithElement, node.WithElement?.Syntax ?? node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
                     {
                         reportedErrors = true;
                     }
 
                     if (elements.Length > 0 &&
-                        !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, isParamsModifierValidation: false, addMethods: out _, diagnostics))
+                        !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, addMethods: out _, diagnostics))
                     {
                         reportedErrors = true;
                     }

@@ -191,13 +191,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
                 if (!_binder.HasCollectionExpressionApplicableConstructor(
-                        node.WithElement, node.WithElement?.Syntax ?? syntax, targetType, isParamsModifierValidation: false, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
+                        node.WithElement, node.WithElement?.Syntax ?? syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
 
                 if (elements.Length > 0 &&
-                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, isParamsModifierValidation: false, addMethods: out _, BindingDiagnosticBag.Discarded))
+                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }

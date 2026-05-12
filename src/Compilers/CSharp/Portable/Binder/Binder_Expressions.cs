@@ -6599,7 +6599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var d = BindingDiagnosticBag.GetInstance();
 
                 // This assert provides some validation that, if the real invocation binding succeeds, then the HasCollectionExpressionApplicableAddMethod helper succeeds as well.
-                Debug.Assert(collectionInitializerAddMethodBinder.HasCollectionExpressionApplicableAddMethod(elementInitializer, implicitReceiver.Type, isParamsModifierValidation: false, addMethods: out _, d));
+                Debug.Assert(collectionInitializerAddMethodBinder.HasCollectionExpressionApplicableAddMethod(elementInitializer, implicitReceiver.Type, addMethods: out _, d));
 
                 d.Free();
             }

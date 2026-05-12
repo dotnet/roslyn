@@ -1627,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         {
                             var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+                            var binder = GetDefaultParameterValueBinder(syntax).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.UnsafeRegion, ContainingSymbol); // this binder is good for our purpose
 
                             binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
@@ -1638,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             if (!binder.HasCollectionExpressionApplicableConstructor(
-                                    withElement: null, syntax, Type, isParamsModifierValidation: true, out MethodSymbol? constructor, isExpanded: out _, diagnostics))
+                                    withElement: null, syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
                             {
                                 return;
                             }
@@ -1648,7 +1648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, isParamsModifierValidation: true, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
+                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
                             {
                                 return;
                             }
@@ -1686,7 +1686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         {
                             var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+                            var binder = GetDefaultParameterValueBinder(syntax).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.UnsafeRegion, ContainingSymbol); // this binder is good for our purpose
 
                             binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
@@ -1706,7 +1706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, isParamsModifierValidation: true, diagnostics);
+                            binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics);
 
                             if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
                             {
