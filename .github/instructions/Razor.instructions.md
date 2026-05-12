@@ -7,7 +7,7 @@ applyTo: "src/Razor/**/*.{cs,vb}"
 These instructions complement the repository-wide `copilot-instructions.md` and apply to
 all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 `dotnet/razor`, and most files keep their original sub-tree layout
-(`src/Razor/src/Razor/...`, `src/Razor/src/Compiler/...`, `src/Razor/src/Shared/...`,
+(`src/Razor/src/Razor/...`, `src/Razor/src/Compiler/...`, `src/Razor/Shared/...`,
 `src/Razor/src/Analyzers/...`).
 
 ## Critical Rules

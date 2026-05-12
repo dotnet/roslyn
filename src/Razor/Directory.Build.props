@@ -47,7 +47,7 @@
     <!-- VS does not require Windows PDBs to be published anymore. -->
     <PublishWindowsPdb>false</PublishWindowsPdb>
 
-    <SharedSourceRoot>$(MSBuildThisFileDirectory)src\Shared\</SharedSourceRoot>
+    <SharedSourceRoot>$(MSBuildThisFileDirectory)Shared\</SharedSourceRoot>
     <SharedFilesRoot>$(SharedSourceRoot)files\</SharedFilesRoot>
 
     <!-- Embed source files that are not tracked by the source control manager in the PDB. -->
