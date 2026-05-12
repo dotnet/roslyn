@@ -51,8 +51,9 @@ namespace Xunit.InProcess
             AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
             {
                 var assemblyName = new AssemblyName(e.Name);
+                var isRoslynProductAssembly = IsRoslynProductAssemblyName(assemblyName.Name);
 
-                var loadedAssembly = IsRoslynProductAssemblyName(assemblyName.Name)
+                var loadedAssembly = isRoslynProductAssembly
                     ? GetRoslynProductAssembly(assemblyName, directory)
                     : GetLoadedAssembly(assemblyName);
                 if (loadedAssembly != null)
@@ -60,7 +61,7 @@ namespace Xunit.InProcess
                     return loadedAssembly;
                 }
 
-                if (IsRoslynProductAssemblyName(assemblyName.Name))
+                if (isRoslynProductAssembly)
                 {
                     return null;
                 }
@@ -156,7 +157,8 @@ namespace Xunit.InProcess
         private static bool IsRoslynProductAssemblyName(string? assemblyName)
         {
             if (assemblyName == null
-                || assemblyName.IndexOf(".Test", StringComparison.Ordinal) >= 0)
+                || assemblyName.IndexOf(".Test", StringComparison.Ordinal) >= 0
+                || assemblyName.EndsWith("Tests", StringComparison.Ordinal))
             {
                 return false;
             }
