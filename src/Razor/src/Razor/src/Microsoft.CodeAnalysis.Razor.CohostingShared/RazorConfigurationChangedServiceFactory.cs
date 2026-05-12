@@ -1,22 +1,21 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
+#pragma warning disable RS0030 // Do not use banned APIs
 [ExportCSharpVisualBasicLspServiceFactory(typeof(RazorConfigurationChangedService)), Shared]
 [method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorConfigurationChangedServiceFactory(
     [Import(AllowDefault = true)] Lazy<ICohostConfigurationChangedService>? cohostConfigurationChangedService) : ILspServiceFactory
+#pragma warning restore RS0030 // Do not use banned APIs
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
@@ -38,7 +37,7 @@ internal sealed class RazorConfigurationChangedServiceFactory(
                 return Task.CompletedTask;
             }
 
-            using var languageScope = context.Logger.CreateLanguageContext(Constants.RazorLanguageName);
+            using var languageScope = context.Logger.CreateLanguageContext(LanguageInfoProvider.RazorLanguageName);
             return cohostConfigurationChangedService.Value.OnConfigurationChangedAsync(context, cancellationToken);
         }
     }

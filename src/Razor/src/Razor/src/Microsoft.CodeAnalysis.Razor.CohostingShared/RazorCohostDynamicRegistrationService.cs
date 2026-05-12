@@ -26,7 +26,7 @@ internal class RazorCohostDynamicRegistrationService(
 #if VSCODE
         Language = "aspnetcorerazor",
 #else
-        Language = CodeAnalysis.ExternalAccess.Razor.Cohost.Constants.RazorLanguageName,
+        Language = LanguageInfoProvider.RazorLanguageName,
 #endif
         Pattern = "**/*.{razor,cshtml}"
     }];

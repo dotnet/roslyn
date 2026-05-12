@@ -14,7 +14,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CohostEndpointAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CohostDocSyncEndpointRegistration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CohostInitializeReporter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CohostStartupService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExportRazorLspServiceFactoryAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExportRazorStatelessLspServiceAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Completion\CohostCompletionListCache.cs" />
@@ -40,10 +39,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)OnAutoInsert\CohostOnAutoInsertEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OnAutoInsert\CohostOnAutoInsertTriggerCharacterProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorAnalyzerAssemblyRedirector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorConfigurationChangedServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentExcerptService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentSpanMappingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratorLocator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\CohostPrepareRenameEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorStartupServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\CohostRenameEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\WorkspaceWillRenameEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionRanges\CohostSelectionRangeEndpoint.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)HtmlDocumentServices\IHtmlDocumentPublisher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HtmlDocumentServices\IHtmlDocumentSynchronizer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HtmlDocumentServices\HtmlRequestInvokerExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ICohostConfigurationChangedService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlayHints\CohostInlayHintEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlayHints\CohostInlayHintResolveEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorCohostStartupService.cs" />
