@@ -97,8 +97,8 @@ internal static class CodeActionHelpers
         // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
         // The CodeActionWithOptions subclass can opt-in via IsOptionServiceAvailable when a workspace options
         // service is available that supplies sensible defaults without an interactive dialog.
-        => (suggestedAction.CodeAction is CodeActionWithOptions cawo
-            && !cawo.IsOptionServiceAvailable())
+        => (suggestedAction.CodeAction is CodeActionWithOptions codeAction
+            && !codeAction.IsOptionServiceAvailable())
         // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
         // https://github.com/dotnet/roslyn/issues/48698
         || suggestedAction.CodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
