@@ -637,6 +637,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.SafeAttribute))
+            {
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSafeAttribute = true;
+            }
             else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))
             {
                 DecodeInterceptsLocationAttribute(arguments);
@@ -696,6 +700,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => attributeData?.HasDoesNotReturnAttribute == true ? FlowAnalysisAnnotations.DoesNotReturn : FlowAnalysisAnnotations.None;
 
         internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
+
+        protected virtual bool HasSafeAttribute => GetDecodedWellKnownAttributeData()?.HasSafeAttribute == true;
 
         private bool VerifyObsoleteAttributeAppliedToMethod(
             ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,

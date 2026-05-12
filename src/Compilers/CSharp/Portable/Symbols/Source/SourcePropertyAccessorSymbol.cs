@@ -878,6 +878,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : base.IsExtern;
 
+        protected sealed override bool HasSafeAttribute => base.HasSafeAttribute || _property.HasSafeAttribute;
+
         internal void PartialAccessorChecks(SourcePropertyAccessorSymbol implementationAccessor, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(IsPartialDefinition);

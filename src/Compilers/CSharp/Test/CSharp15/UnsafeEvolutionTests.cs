@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9875,6 +9875,50 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Extern_Method_SafeAttribute()
+    {
+        var libSource = """
+            #pragma warning disable CS0626 // extern without attributes
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
+
+            public class C
+            {
+                public void M1() { }
+                [Safe] public extern void M2();
+                [Safe, DllImport("test")] public static extern void M3();
+                [Safe, MethodImpl(MethodImplOptions.InternalCall)] public extern void M4();
+                [Safe] unsafe public extern void M5();
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c.M1();
+            c.M2();
+            C.M3();
+            c.M4();
+            c.M5();
+            unsafe { c.M5(); }
+            """;
+
+        CompileAndVerifyUnsafe(
+            libSource,
+            callerSource,
+            additionalSources: [SafeAttributeDefinition],
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.M5"],
+            expectedSafeSymbols: ["C", "C.M1", "C.M2", "C.M3", "C.M4"],
+            expectedDiagnostics:
+            [
+                // (6,1): error CS9362: 'C.M5()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.M5();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M5()").WithArguments("C.M5()").WithLocation(6, 1),
+            ]);
+    }
+
+    [Fact]
     public void Extern_Method_WithPointers()
     {
         static string getLibSource(string modifiers) => $$"""
@@ -10494,6 +10538,50 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Extern_Property_SafeAttribute()
+    {
+        var libSource = """
+            #pragma warning disable CS0626 // extern without attributes
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
+
+            public class C
+            {
+                public int P1 { set { } }
+                [Safe] public extern int P2 { set; }
+                [Safe] public static extern int P3 { [DllImport("test")] set; }
+                [Safe] public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
+                [Safe] unsafe public extern int P5 { set; }
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c.P1 = 0;
+            c.P2 = 0;
+            C.P3 = 0;
+            c.P4 = 0;
+            c.P5 = 0;
+            unsafe { c.P5 = 0; }
+            """;
+
+        CompileAndVerifyUnsafe(
+            libSource,
+            callerSource,
+            additionalSources: [SafeAttributeDefinition],
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.P5", "C.set_P5"],
+            expectedSafeSymbols: ["C", "C.P1", "C.set_P1", "C.P2", "C.set_P2", "C.P3", "C.set_P3", "C.P4", "C.set_P4"],
+            expectedDiagnostics:
+            [
+                // (6,1): error CS9362: 'C.P5.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.P5 = 0;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P5").WithArguments("C.P5.set").WithLocation(6, 1),
+            ]);
+    }
+
+    [Fact]
     public void Extern_Property_WithPointers()
     {
         static string getLibSource(string modifiers) => $$"""
@@ -10852,6 +10940,44 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Extern_Event_SafeAttribute()
+    {
+        var libSource = """
+            #pragma warning disable CS0067, CS0626 // unused event, extern without attributes
+            using System.Diagnostics.CodeAnalysis;
+
+            public class C
+            {
+                [Safe]
+                [method: System.Runtime.InteropServices.DllImport("test")]
+                public static extern event System.Action E1;
+                [Safe]
+                unsafe public static extern event System.Action E2;
+            }
+            """;
+
+        var callerSource = """
+            C.E1 += null;
+            C.E2 += null;
+            unsafe { C.E2 += null; }
+            """;
+
+        CompileAndVerifyUnsafe(
+            libSource,
+            callerSource,
+            additionalSources: [SafeAttributeDefinition],
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.E2", "C.add_E2", "C.remove_E2"],
+            expectedSafeSymbols: ["C", "C.E1", "C.add_E1", "C.remove_E1"],
+            expectedDiagnostics:
+            [
+                // (2,6): error CS9362: 'C.E2.add' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C.E2 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("C.E2.add").WithLocation(2, 6),
+            ]);
     }
 
     [Fact]

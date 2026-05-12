@@ -373,6 +373,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt!.Location);
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.SafeAttribute))
+            {
+                arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSafeAttribute = true;
+            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData>? attributes)
@@ -424,6 +428,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool HasSkipLocalsInitAttribute
             => GetDecodedWellKnownAttributeData()?.HasSkipLocalsInitAttribute == true;
 
+        internal bool HasSafeAttribute
+            => GetDecodedWellKnownAttributeData()?.HasSafeAttribute == true;
+
         public sealed override bool IsAbstract
         {
             get { return (_modifiers & DeclarationModifiers.Abstract) != 0; }
@@ -472,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return HasUnsafeModifier || IsExtern
+                    return HasUnsafeModifier || (IsExtern && !HasSafeAttribute)
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }

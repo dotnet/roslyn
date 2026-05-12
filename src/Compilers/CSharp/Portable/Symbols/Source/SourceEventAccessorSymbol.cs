@@ -91,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _event; }
         }
 
+        protected sealed override bool HasSafeAttribute => base.HasSafeAttribute || _event.HasSafeAttribute;
+
         public sealed override Symbol AssociatedSymbol
         {
             get { return _event; }

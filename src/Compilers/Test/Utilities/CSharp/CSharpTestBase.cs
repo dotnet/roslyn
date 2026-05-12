@@ -720,6 +720,14 @@ namespace System.Runtime.CompilerServices
             }
             """;
 
+        protected static readonly string SafeAttributeDefinition = """
+            namespace System.Diagnostics.CodeAnalysis
+            {
+                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+                public sealed class SafeAttribute : Attribute { }
+            }
+            """;
+
         protected static readonly string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
