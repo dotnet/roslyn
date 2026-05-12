@@ -75,6 +75,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _referenceManager As ReferenceManager
 
         ''' <summary>
+        ''' Pre-computed strong name keys, set by the command line compiler after reading
+        ''' key material during CreateCompilation. Passed to SourceAssemblySymbol at
+        ''' construction time to avoid lazy disk reads.
+        ''' </summary>
+        Private ReadOnly _strongNameKeys As StrongNameKeys
+
+        ''' <summary>
         ''' The options passed to the constructor of the Compilation
         ''' </summary>
         Private ReadOnly _options As VisualBasicCompilationOptions
@@ -415,6 +422,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return c
         End Function
 
+        ''' <summary>
+        ''' Creates a new compilation with pre-read strong name keys. Used by the command line
+        ''' compiler to read key material during CreateCompilation where file I/O is expected.
+        ''' </summary>
+        Friend Shared Function Create(
+            assemblyName As String,
+            syntaxTrees As IEnumerable(Of SyntaxTree),
+            references As IEnumerable(Of MetadataReference),
+            options As VisualBasicCompilationOptions,
+            strongNameKeys As StrongNameKeys
+        ) As VisualBasicCompilation
+            If options Is Nothing Then
+                options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
+            End If
+
+            Dim validatedReferences = ValidateReferences(Of VisualBasicCompilationReference)(references)
+
+            Dim c As VisualBasicCompilation = Nothing
+            Dim embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VisualBasicCompilation)(Function() c))
+            Dim declMap = ImmutableDictionary.Create(Of SyntaxTree, DeclarationTableEntry)()
+            Dim declTable = AddEmbeddedTrees(DeclarationTable.Empty, embeddedTrees)
+
+            c = New VisualBasicCompilation(
+                assemblyName,
+                options,
+                validatedReferences,
+                ImmutableArray(Of SyntaxTree).Empty,
+                ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
+                declMap,
+                embeddedTrees,
+                declTable,
+                previousSubmission:=Nothing,
+                submissionReturnType:=Nothing,
+                hostObjectType:=Nothing,
+                isSubmission:=False,
+                referenceManager:=Nothing,
+                reuseReferenceManager:=False,
+                eventQueue:=Nothing,
+                semanticModelProvider:=Nothing,
+                strongNameKeys:=strongNameKeys)
+
+            If syntaxTrees IsNot Nothing Then
+                c = c.AddSyntaxTrees(syntaxTrees)
+            End If
+
+            Debug.Assert(c._lazyAssemblySymbol Is Nothing)
+
+            Return c
+        End Function
+
         Private Sub New(
             assemblyName As String,
             options As VisualBasicCompilationOptions,
@@ -431,7 +488,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             referenceManager As ReferenceManager,
             reuseReferenceManager As Boolean,
             semanticModelProvider As SemanticModelProvider,
-            Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing
+            Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing,
+            Optional strongNameKeys As StrongNameKeys = Nothing
         )
             MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), isSubmission, semanticModelProvider, eventQueue)
 
@@ -443,6 +501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(embeddedTrees.All(Function(treeAndDeclaration) declarationTable.Contains(treeAndDeclaration.DeclarationEntry)))
 
             _options = options
+            _strongNameKeys = strongNameKeys
             _syntaxTrees = syntaxTrees
             _syntaxTreeOrdinalMap = syntaxTreeOrdinalMap
             _rootNamespaces = rootNamespaces
@@ -521,7 +580,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _referenceManager,
                 reuseReferenceManager:=True,
                 Me.SemanticModelProvider,
-                eventQueue:=Nothing) ' no event queue when cloning
+                eventQueue:=Nothing,
+                strongNameKeys:=_strongNameKeys) ' no event queue when cloning
         End Function
 
         Private Function UpdateSyntaxTrees(
@@ -546,7 +606,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=Not referenceDirectivesChanged,
-                Me.SemanticModelProvider)
+                Me.SemanticModelProvider,
+                strongNameKeys:=_strongNameKeys)
         End Function
 
         ''' <summary>
@@ -572,7 +633,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=String.Equals(assemblyName, Me.AssemblyName, StringComparison.Ordinal),
-                Me.SemanticModelProvider)
+                Me.SemanticModelProvider,
+                strongNameKeys:=_strongNameKeys)
         End Function
 
         Public Shadows Function WithReferences(ParamArray newReferences As MetadataReference()) As VisualBasicCompilation
@@ -614,7 +676,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 referenceManager:=Nothing,
                 reuseReferenceManager:=False,
-                Me.SemanticModelProvider)
+                Me.SemanticModelProvider,
+                strongNameKeys:=_strongNameKeys)
             Return c
         End Function
 
@@ -668,7 +731,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=_options.CanReuseCompilationReferenceManager(newOptions),
-                Me.SemanticModelProvider)
+                Me.SemanticModelProvider,
+                strongNameKeys:=_strongNameKeys)
             Return c
         End Function
 
@@ -703,7 +767,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 info IsNot Nothing,
                 _referenceManager,
                 reuseReferenceManager,
-                Me.SemanticModelProvider)
+                Me.SemanticModelProvider,
+                strongNameKeys:=_strongNameKeys)
         End Function
 
         ''' <summary>
@@ -729,7 +794,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=True,
-                semanticModelProvider)
+                semanticModelProvider,
+                strongNameKeys:=_strongNameKeys)
         End Function
 
         ''' <summary>
@@ -752,7 +818,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _referenceManager,
                 reuseReferenceManager:=True,
                 Me.SemanticModelProvider,
-                eventQueue:=eventQueue)
+                eventQueue:=eventQueue,
+                strongNameKeys:=_strongNameKeys)
         End Function
 
         Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
@@ -1282,7 +1349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shadows Function GetBoundReferenceManager() As ReferenceManager
             If _lazyAssemblySymbol Is Nothing Then
-                _referenceManager.CreateSourceAssemblyForCompilation(Me)
+                _referenceManager.CreateSourceAssemblyForCompilation(Me, _strongNameKeys)
                 Debug.Assert(_lazyAssemblySymbol IsNot Nothing)
             End If
 
@@ -2365,7 +2432,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property StrongNameKeys As StrongNameKeys
             Get
-                Return SourceAssembly.StrongNameKeys
+                Return If(_strongNameKeys, SourceAssembly.StrongNameKeys)
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasCounterSignature As Boolean
+            Get
+                Return Not String.IsNullOrEmpty(SourceAssembly.SignatureKey)
             End Get
         End Property
 

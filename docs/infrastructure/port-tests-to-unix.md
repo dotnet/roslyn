@@ -1,4 +1,4 @@
-## Goal
+# # Goal
 
 Remove unnecessary .NET Framework / Windows restrictions from test methods so they run on .NET Core (net9.0) and non-Windows platforms.
 

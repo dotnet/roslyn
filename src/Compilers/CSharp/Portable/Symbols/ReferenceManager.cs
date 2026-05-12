@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return corLibrary.IsMissing ? null : corLibrary;
             }
 
-            public void CreateSourceAssemblyForCompilation(CSharpCompilation compilation)
+            public void CreateSourceAssemblyForCompilation(CSharpCompilation compilation, StrongNameKeys? strongNameKeys)
             {
                 // We are reading the Reference Manager state outside of a lock by accessing 
                 // IsBound and HasCircularReference properties.
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // The given compilation is the first compilation that shares this manager and its symbols are requested.
                 // Perform full reference resolution and binding.
-                if (!IsBound && CreateAndSetSourceAssemblyFullBind(compilation))
+                if (!IsBound && CreateAndSetSourceAssemblyFullBind(compilation, strongNameKeys))
                 {
                     // we have successfully bound the references for the compilation
                 }
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Another compilation that shares the manager with the given compilation
                     // already bound its references and produced tables that we can use to construct 
                     // source assembly symbol faster. Unless we encountered a circular reference.
-                    CreateAndSetSourceAssemblyReuseData(compilation);
+                    CreateAndSetSourceAssemblyReuseData(compilation, strongNameKeys);
                 }
                 else
                 {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // NOTE: The CreateSourceAssemblyFullBind is going to replace compilation's reference manager with newManager.
 
                     var newManager = new ReferenceManager(this.SimpleAssemblyName, this.IdentityComparer, this.ObservedMetadata);
-                    var successful = newManager.CreateAndSetSourceAssemblyFullBind(compilation);
+                    var successful = newManager.CreateAndSetSourceAssemblyFullBind(compilation, strongNameKeys);
 
                     // The new manager isn't shared with any other compilation so there is no other 
                     // thread but the current one could have initialized it.
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MissingAssemblySymbol(identity);
             }
 
-            private void CreateAndSetSourceAssemblyReuseData(CSharpCompilation compilation)
+            private void CreateAndSetSourceAssemblyReuseData(CSharpCompilation compilation, StrongNameKeys? strongNameKeys)
             {
                 AssertBound();
 
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!HasCircularReference);
 
                 string moduleName = compilation.MakeSourceModuleName();
-                var assemblySymbol = new SourceAssemblySymbol(compilation, this.SimpleAssemblyName, moduleName, this.ReferencedModules);
+                var assemblySymbol = new SourceAssemblySymbol(compilation, this.SimpleAssemblyName, moduleName, this.ReferencedModules, strongNameKeys);
 
                 InitializeAssemblyReuseData(assemblySymbol, this.ReferencedAssemblies, this.UnifiedAssemblies);
 
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Returns false if another compilation sharing this manager finished binding earlier and we should reuse its results.
-            private bool CreateAndSetSourceAssemblyFullBind(CSharpCompilation compilation)
+            private bool CreateAndSetSourceAssemblyFullBind(CSharpCompilation compilation, StrongNameKeys? strongNameKeys)
             {
                 var resolutionDiagnostics = DiagnosticBag.GetInstance();
                 var assemblyReferencesBySimpleName = PooledDictionary<string, List<ReferencedAssemblyIdentity>>.GetInstance();
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(allAssemblyData[i].IsLinked == bound.AssemblySymbol.IsLinked);
                     }
 
-                    var assemblySymbol = new SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), netModules: modules);
+                    var assemblySymbol = new SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), netModules: modules, strongNameKeys);
 
                     AssemblySymbol? corLibrary;
 

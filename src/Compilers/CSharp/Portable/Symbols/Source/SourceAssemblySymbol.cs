@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             string assemblySimpleName,
             string moduleName,
-            ImmutableArray<PEModule> netModules)
+            ImmutableArray<PEModule> netModules,
+            StrongNameKeys strongNameKeys = null)
         {
             Debug.Assert(compilation != null);
             Debug.Assert(assemblySimpleName != null);
@@ -143,10 +144,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _modules = moduleBuilder.ToImmutableAndFree();
 
-            if (!compilation.Options.CryptoPublicKey.IsEmpty)
+            if (strongNameKeys is not null)
+            {
+                _lazyStrongNameKeys = strongNameKeys;
+            }
+            else if (!compilation.Options.CryptoPublicKey.IsEmpty)
             {
                 // Private key is not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
-                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey: null, hasCounterSignature: false, MessageProvider.Instance);
+                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey: null, MessageProvider.Instance);
             }
         }
 
@@ -479,7 +484,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private StrongNameKeys ComputeStrongNameKeys()
         {
-            // when both attributes and command-line options specified, cmd line wins.
+            // When pre-read keys were provided via the constructor, _lazyStrongNameKeys
+            // is already set and this method won't be called. This path handles the
+            // non-command-line case (IDE, tests) where keys are computed lazily.
             string keyFile = _compilation.Options.CryptoKeyFile;
 
             // Public sign requires a keyfile
@@ -524,8 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var hasCounterSignature = !string.IsNullOrEmpty(this.SignatureKey);
-            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance);
+            return StrongNameProvider.CreateKeys(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
         }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name

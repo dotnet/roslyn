@@ -161,6 +161,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory)
             Dim syntaxTreeOptions = New CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalAnalyzerConfigOptions)
+            Dim strongNameProvider = Arguments.GetStrongNameProvider(loggingFileSystem)
+
+            ' Pre-read strong name key material here (where file I/O is expected)
+            ' so the compilation doesn't need to read from disk later.
+            Dim strongNameKeys = StrongNameProvider.CreateKeys(
+                strongNameProvider,
+                Arguments.CompilationOptions.CryptoKeyFile,
+                Arguments.CompilationOptions.CryptoKeyContainer,
+                VisualBasic.MessageProvider.Instance)
 
             Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
@@ -170,9 +179,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithXmlReferenceResolver(xmlFileResolver).
-                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
+                     WithStrongNameProvider(strongNameProvider).
                      WithSourceReferenceResolver(sourceFileResolver).
-                     WithSyntaxTreeOptionsProvider(syntaxTreeOptions))
+                     WithSyntaxTreeOptionsProvider(syntaxTreeOptions),
+                 strongNameKeys)
         End Function
 
         Protected Overrides Function GetOutputFileName(compilation As Compilation, cancellationToken As CancellationToken) As String

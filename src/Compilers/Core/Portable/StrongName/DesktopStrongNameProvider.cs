@@ -62,25 +62,29 @@ namespace Microsoft.CodeAnalysis
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
         }
 
-        internal override StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider)
-        {
-            var keyPair = default(ImmutableArray<byte>);
-            var publicKey = default(ImmutableArray<byte>);
-            string? container = null;
+        internal override StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, CommonMessageProvider messageProvider)
+            => CreateKeys(keyFilePath, keyContainerName, FileSystem, _keyFileSearchPaths, messageProvider);
 
+        internal static StrongNameKeys CreateKeys(
+            string? keyFilePath,
+            string? keyContainerName,
+            StrongNameFileSystem fileSystem,
+            ImmutableArray<string> keyFileSearchPaths,
+            CommonMessageProvider messageProvider)
+        {
             if (!string.IsNullOrEmpty(keyFilePath))
             {
                 try
                 {
-                    string? resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath, FileSystem, _keyFileSearchPaths);
+                    string? resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath, fileSystem, keyFileSearchPaths);
                     if (resolvedKeyFile == null)
                     {
                         return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, CodeAnalysisResources.FileNotFound));
                     }
 
                     Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                    var fileContent = ImmutableArray.Create(FileSystem.ReadAllBytes(resolvedKeyFile));
-                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath, hasCounterSignature);
+                    var fileContent = ImmutableArray.Create(fileSystem.ReadAllBytes(resolvedKeyFile));
+                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
                 }
                 catch (Exception ex)
                 {
@@ -91,8 +95,8 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    ReadKeysFromContainer(keyContainerName, out publicKey);
-                    container = keyContainerName;
+                    var publicKey = GetPublicKey(keyContainerName);
+                    return new StrongNameKeys(default, publicKey, privateKey: null, keyContainerName, keyFilePath);
                 }
                 catch (ClrStrongNameMissingException)
                 {
@@ -105,7 +109,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new StrongNameKeys(keyPair, publicKey, privateKey: null, container, keyFilePath, hasCounterSignature);
+            return new StrongNameKeys(default, default, privateKey: null, null, keyFilePath);
         }
 
         /// <summary>
@@ -142,23 +146,6 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        internal virtual void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
-        {
-            try
-            {
-                publicKey = GetPublicKey(keyContainer);
-            }
-            catch (ClrStrongNameMissingException)
-            {
-                // pipe it through so it's catchable directly by type
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new IOException(ex.Message);
-            }
-        }
-
         internal override void SignFile(StrongNameKeys keys, string filePath)
         {
             Debug.Assert(string.IsNullOrEmpty(keys.KeyFilePath) != string.IsNullOrEmpty(keys.KeyContainer));
@@ -184,7 +171,7 @@ namespace Microsoft.CodeAnalysis
         // public key to establish the assembly name and another to do
         // the actual signing
 
-        internal virtual IClrStrongName GetStrongNameInterface()
+        private static IClrStrongName GetStrongNameInterface()
         {
             try
             {
@@ -205,7 +192,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableArray<byte> GetPublicKey(string keyContainer)
+        internal static ImmutableArray<byte> GetPublicKey(string keyContainer)
         {
             IClrStrongName strongName = GetStrongNameInterface();
 

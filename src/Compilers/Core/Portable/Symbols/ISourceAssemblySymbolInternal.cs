@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.Symbols
         AssemblyFlags AssemblyFlags { get; }
 
         /// <summary>
-        /// The contents of the AssemblySignatureKeyAttribute
+        /// The public key portion of the <see cref="System.Reflection.AssemblySignatureKeyAttribute"/>.
+        /// This is used in strong name key migration. When non-null, the assembly uses 
+        /// the key migration mechanism and requires counter-signature verification during signing.
         /// </summary>
         string? SignatureKey { get; }
 

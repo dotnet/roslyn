@@ -229,7 +229,8 @@ public class Test
                 ImmutableArray.Create(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\")),
                 new VirtualizedStrongNameFileSystem(_signingTempDirectory.Path))
             {
-                GetStrongNameInterfaceFunc = () => throw new DllNotFoundException("aaa.dll not found.")
+                CreateKeysFunc = (keyFilePath, _, messageProvider)
+                    => new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, "aaa.dll not found."))
             };
             var options = TestOptions.ReleaseDll.WithStrongNameProvider(provider);
 

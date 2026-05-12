@@ -35,6 +35,22 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a <see cref="StrongNameKeys"/> for the provided information.
         /// </summary>
-        internal abstract StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider);
+        internal abstract StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, CommonMessageProvider messageProvider);
+
+        internal static StrongNameKeys CreateKeys(StrongNameProvider? provider, string? keyFilePath, string? keyContainerName, CommonMessageProvider messageProvider)
+        {
+            if (string.IsNullOrEmpty(keyFilePath) && string.IsNullOrEmpty(keyContainerName))
+            {
+                return StrongNameKeys.None;
+            }
+
+            if (provider is null)
+            {
+                var diagnostic = StrongNameKeys.GetError(keyFilePath, keyContainerName, new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), messageProvider);
+                return new StrongNameKeys(diagnostic);
+            }
+
+            return provider.CreateKeys(keyFilePath, keyContainerName, messageProvider);
+        }
     }
 }

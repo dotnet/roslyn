@@ -205,10 +205,11 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions = null,
             Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
-            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default,
+            StrongNameKeys? strongNameKeys = null)
         {
             return DeterministicKey.GetDeterministicKey(
-                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkStream, resources, options);
+                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkStream, resources, options, strongNameKeys);
         }
 
         internal string GetDeterministicKey(
@@ -233,7 +234,8 @@ namespace Microsoft.CodeAnalysis
                 emitOptions,
                 sourceLinkStream,
                 resources,
-                options);
+                options,
+                StrongNameKeys);
         }
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
@@ -2199,7 +2201,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool SignUsingBuilder =>
             string.IsNullOrEmpty(StrongNameKeys.KeyContainer) &&
-            !StrongNameKeys.HasCounterSignature &&
+            !HasCounterSignature &&
             !HasFeature(CodeAnalysis.Feature.UseLegacyStrongNameProvider);
 
         /// <summary>
@@ -2476,6 +2478,15 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract bool IsDelaySigned { get; }
         internal abstract StrongNameKeys StrongNameKeys { get; }
+
+        /// <summary>
+        /// Whether the assembly has a <see cref="System.Reflection.AssemblySignatureKeyAttribute"/>.
+        /// This attribute is used for strong name key migration: it holds the new public key and a
+        /// counter-signature proving the old key authorized the new one. When present, signing must
+        /// use the legacy CLR COM APIs (<see cref="SignUsingBuilder"/> returns false) so the
+        /// counter-signature can be properly verified.
+        /// </summary>
+        internal abstract bool HasCounterSignature { get; }
 
         internal abstract CommonPEModuleBuilder? CreateModuleBuilder(
             EmitOptions emitOptions,

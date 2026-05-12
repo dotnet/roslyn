@@ -118,6 +118,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ReferenceManager _referenceManager;
 
+        /// <summary>
+        /// Pre-computed strong name keys, set by the command line compiler after reading
+        /// key material during CreateCompilation. Passed to SourceAssemblySymbol at
+        /// construction time to avoid lazy disk reads.
+        /// </summary>
+        private readonly StrongNameKeys? _strongNameKeys;
+
         private readonly SyntaxAndDeclarationManager _syntaxAndDeclarations;
 
         /// <summary>
@@ -531,6 +538,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             return compilation;
         }
 
+        /// <summary>
+        /// Creates a new compilation with pre-read strong name keys. Used by the command line
+        /// compiler to read key material during CreateCompilation where file I/O is expected.
+        /// </summary>
+        internal static CSharpCompilation Create(
+            string? assemblyName,
+            IEnumerable<SyntaxTree>? syntaxTrees,
+            IEnumerable<MetadataReference>? references,
+            CSharpCompilationOptions options,
+            StrongNameKeys? strongNameKeys)
+        {
+            RoslynDebug.Assert(options != null);
+
+            var validatedReferences = ValidateReferences<CSharpCompilationReference>(references);
+
+            var compilation = new CSharpCompilation(
+                assemblyName,
+                options,
+                validatedReferences,
+                previousSubmission: null,
+                submissionReturnType: null,
+                hostObjectType: null,
+                isSubmission: false,
+                referenceManager: null,
+                reuseReferenceManager: false,
+                syntaxAndDeclarations: new SyntaxAndDeclarationManager(
+                    ImmutableArray<SyntaxTree>.Empty,
+                    options.ScriptClassName,
+                    options.SourceReferenceResolver,
+                    CSharp.MessageProvider.Instance,
+                    isSubmission: false,
+                    state: null),
+                semanticModelProvider: null,
+                strongNameKeys: strongNameKeys);
+
+            if (syntaxTrees != null)
+            {
+                compilation = compilation.AddSyntaxTrees(syntaxTrees);
+            }
+
+            Debug.Assert(compilation._lazyAssemblySymbol is null);
+            return compilation;
+        }
+
         private CSharpCompilation(
             string? assemblyName,
             CSharpCompilationOptions options,
@@ -543,8 +594,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reuseReferenceManager,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             SemanticModelProvider? semanticModelProvider,
-            AsyncQueue<CompilationEvent>? eventQueue = null)
-            : this(assemblyName, options, references, previousSubmission, submissionReturnType, hostObjectType, isSubmission, referenceManager, reuseReferenceManager, syntaxAndDeclarations, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), semanticModelProvider, eventQueue)
+            AsyncQueue<CompilationEvent>? eventQueue = null,
+            StrongNameKeys? strongNameKeys = null)
+            : this(assemblyName, options, references, previousSubmission, submissionReturnType, hostObjectType, isSubmission, referenceManager, reuseReferenceManager, syntaxAndDeclarations, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), semanticModelProvider, eventQueue, strongNameKeys)
         {
         }
 
@@ -561,10 +613,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             IReadOnlyDictionary<string, string> features,
             SemanticModelProvider? semanticModelProvider,
-            AsyncQueue<CompilationEvent>? eventQueue = null)
+            AsyncQueue<CompilationEvent>? eventQueue = null,
+            StrongNameKeys? strongNameKeys = null)
             : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
             _options = options;
+            _strongNameKeys = strongNameKeys;
 
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
 
@@ -668,7 +722,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 referenceManager,
                 reuseReferenceManager,
                 syntaxAndDeclarations,
-                this.SemanticModelProvider);
+                this.SemanticModelProvider,
+                strongNameKeys: _strongNameKeys);
         }
 
         /// <summary>
@@ -691,7 +746,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _referenceManager,
                 reuseReferenceManager: assemblyName == this.AssemblyName,
                 _syntaxAndDeclarations,
-                this.SemanticModelProvider);
+                this.SemanticModelProvider,
+                strongNameKeys: _strongNameKeys);
         }
 
         /// <summary>
@@ -721,7 +777,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 referenceManager: null,
                 reuseReferenceManager: false,
                 _syntaxAndDeclarations,
-                this.SemanticModelProvider);
+                this.SemanticModelProvider,
+                strongNameKeys: _strongNameKeys);
         }
 
         /// <summary>
@@ -761,7 +818,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _syntaxAndDeclarations.MessageProvider,
                         _syntaxAndDeclarations.IsSubmission,
                         state: null),
-                this.SemanticModelProvider);
+                this.SemanticModelProvider,
+                strongNameKeys: _strongNameKeys);
         }
 
         /// <summary>
@@ -793,7 +851,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _referenceManager,
                 reuseReferenceManager,
                 _syntaxAndDeclarations,
-                this.SemanticModelProvider);
+                this.SemanticModelProvider,
+                strongNameKeys: _strongNameKeys);
         }
 
         /// <summary>
@@ -817,7 +876,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _referenceManager,
                 reuseReferenceManager: true,
                 _syntaxAndDeclarations,
-                semanticModelProvider);
+                semanticModelProvider,
+                strongNameKeys: _strongNameKeys);
         }
 
         /// <summary>
@@ -837,7 +897,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reuseReferenceManager: true,
                 _syntaxAndDeclarations,
                 this.SemanticModelProvider,
-                eventQueue);
+                eventQueue,
+                strongNameKeys: _strongNameKeys);
         }
 
         #endregion
@@ -1226,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_lazyAssemblySymbol is null)
             {
-                _referenceManager.CreateSourceAssemblyForCompilation(this);
+                _referenceManager.CreateSourceAssemblyForCompilation(this, _strongNameKeys);
                 Debug.Assert(_lazyAssemblySymbol is object);
             }
 
@@ -3567,8 +3628,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override StrongNameKeys StrongNameKeys
         {
-            get { return SourceAssembly.StrongNameKeys; }
+            get { return _strongNameKeys ?? SourceAssembly.StrongNameKeys; }
         }
+
+        internal override bool HasCounterSignature
+            => !string.IsNullOrEmpty(SourceAssembly.SignatureKey);
 
         internal override CommonPEModuleBuilder? CreateModuleBuilder(
             EmitOptions emitOptions,

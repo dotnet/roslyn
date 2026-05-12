@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis
             Stream? sourceLinkStream,
             ImmutableArray<ResourceDescription> resources,
             DeterministicKeyOptions options,
+            StrongNameKeys? strongNameKeys,
             CancellationToken cancellationToken)
         {
             Debug.Assert(!syntaxTrees.IsDefault);
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
 
             writer.WriteKey("compilation");
-            WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, options, cancellationToken);
+            WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, options, strongNameKeys, cancellationToken);
             writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
             writer.WriteKey("analyzers");
@@ -242,12 +243,19 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<byte> publicKey,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             DeterministicKeyOptions options,
+            StrongNameKeys? strongNameKeys,
             CancellationToken cancellationToken)
         {
             writer.WriteObjectStart();
             writeToolsVersions();
 
             WriteByteArrayValue(writer, "publicKey", publicKey.AsSpan());
+
+            if (strongNameKeys is { } keys && !keys.PublicKey.IsDefault)
+            {
+                WriteByteArrayValue(writer, "strongNamePublicKey", keys.PublicKey.AsSpan());
+            }
+
             writer.WriteKey("options");
             WriteCompilationOptions(writer, compilationOptions);
 
@@ -408,6 +416,7 @@ namespace Microsoft.CodeAnalysis
                     compilation.Assembly.Identity.PublicKey,
                     pathMap,
                     deterministicKeyOptions,
+                    strongNameKeys: null,
                     cancellationToken);
             }
             else
@@ -523,7 +532,7 @@ namespace Microsoft.CodeAnalysis
             writer.Write("scriptClassName", options.ScriptClassName);
             writer.Write("mainTypeName", options.MainTypeName);
             WriteByteArrayValue(writer, "cryptoPublicKey", options.CryptoPublicKey.AsSpan());
-            writer.Write("cryptoKeyFile", options.CryptoKeyFile);
+
             writer.Write("delaySign", options.DelaySign);
             writer.Write("publicSign", options.PublicSign);
             writer.Write("checkOverflow", options.CheckOverflow);

@@ -156,6 +156,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
             var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalConfigOptions);
+            var strongNameProvider = Arguments.GetStrongNameProvider(loggingFileSystem);
+
+            // Pre-read strong name key material here (where file I/O is expected)
+            // so the compilation doesn't need to read from disk later.
+            var strongNameKeys = StrongNameProvider.CreateKeys(
+                strongNameProvider,
+                Arguments.CompilationOptions.CryptoKeyFile,
+                Arguments.CompilationOptions.CryptoKeyContainer,
+                CSharp.MessageProvider.Instance);
 
             return CSharpCompilation.Create(
                 Arguments.CompilationName,
@@ -165,9 +174,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .WithMetadataReferenceResolver(referenceDirectiveResolver)
                     .WithAssemblyIdentityComparer(assemblyIdentityComparer)
                     .WithXmlReferenceResolver(xmlFileResolver)
-                    .WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem))
+                    .WithStrongNameProvider(strongNameProvider)
                     .WithSourceReferenceResolver(sourceFileResolver)
-                    .WithSyntaxTreeOptionsProvider(optionsProvider));
+                    .WithSyntaxTreeOptionsProvider(optionsProvider),
+                strongNameKeys);
         }
 
         private SyntaxTree? ParseFile(
