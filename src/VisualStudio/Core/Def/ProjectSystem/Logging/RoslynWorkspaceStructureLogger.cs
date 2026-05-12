@@ -121,15 +121,7 @@ internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider servicePro
 
     protected override async Task<IEnumerable<XElement>> CreateAdditionalProjectElementsAsync(Project project, CancellationToken cancellationToken)
     {
-        var dteReferencesElement = await CreateDteReferencesElementAsync(serviceProvider, threadingContext, project);
-        return (dteReferencesElement != null)
-            ? [dteReferencesElement]
-            : [];
-    }
-
-    private static async Task<XElement?> CreateDteReferencesElementAsync(IServiceProvider serviceProvider, IThreadingContext threadingContext, Project project)
-    {
-        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(SDTE));
 
@@ -152,9 +144,11 @@ internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider servicePro
         }
 
         if (langProjProject == null)
-            return null;
+            return [];
 
+        var elements = new List<XElement>();
         var dteReferences = new XElement("dteReferences");
+        elements.Add(dteReferences);
 
         foreach (var reference in langProjProject.References.Cast<VSLangProj.Reference>())
         {
@@ -170,6 +164,18 @@ internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider servicePro
             }
         }
 
-        return dteReferences;
+        if (langProjProject is VSLangProj140.VSProject3 langProjProject3)
+        {
+            var dteAnalyzerReferences = new XElement("dteAnalyzerReferences");
+            elements.Add(dteAnalyzerReferences);
+
+            foreach (var analyzerPath in langProjProject3.AnalyzerReferences.Cast<string>())
+            {
+                dteAnalyzerReferences.Add(new XElement("analyzerReference",
+                    new XAttribute("path", SanitizePath(analyzerPath))));
+            }
+        }
+
+        return elements;
     }
 }

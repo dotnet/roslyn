@@ -68,6 +68,14 @@ internal class WorkspaceStructureLogger
             // Add workspace references (metadata + project)
             projectElement.Add(BuildWorkspaceReferencesElement(project));
 
+            var workspaceAnalyzerReferencesElement = new XElement("workspaceAnalyzerReferences");
+            projectElement.Add(workspaceAnalyzerReferencesElement);
+
+            foreach (var analyzerReference in project.AnalyzerReferences)
+            {
+                workspaceAnalyzerReferencesElement.Add(CreateElementForAnalyzerReference(analyzerReference));
+            }
+
             // Add documents
             projectElement.Add(new XElement("workspaceDocuments", await CreateElementsForDocumentCollectionAsync(project.Documents, "document", cancellationToken).ConfigureAwait(false)));
             projectElement.Add(new XElement("workspaceAdditionalDocuments", await CreateElementsForDocumentCollectionAsync(project.AdditionalDocuments, "additionalDocuments", cancellationToken).ConfigureAwait(false)));
@@ -251,6 +259,11 @@ internal class WorkspaceStructureLogger
             return new XElement("metadataReference", new XAttribute("display", SanitizePath(reference.Display)));
         }
     }
+
+    private static XElement CreateElementForAnalyzerReference(Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference reference)
+        => new("analyzerReference",
+            new XAttribute("path", SanitizePath(reference.FullPath)),
+            new XAttribute("display", SanitizePath(reference.Display)));
 
     private XElement CreateElementForCompilation(Compilation compilation)
     {
