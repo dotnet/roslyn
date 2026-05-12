@@ -165,7 +165,7 @@ internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider servicePro
             else
             {
                 dteReferences.Add(new XElement("metadataReference",
-                    reference.Path != null ? new XAttribute("path", SanitizePath(reference.Path)) : null,
+                    new XAttribute("path", SanitizePath(reference.Path)),
                     new XAttribute("name", reference.Name)));
             }
         }

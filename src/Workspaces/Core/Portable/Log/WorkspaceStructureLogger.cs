@@ -109,8 +109,8 @@ internal class WorkspaceStructureLogger
         projectElement.SetAttributeValue("name", project.Name);
         projectElement.SetAttributeValue("assemblyName", project.AssemblyName);
         projectElement.SetAttributeValue("language", project.Language);
-        projectElement.SetAttributeValue("path", SanitizePath(project.FilePath ?? "(none)"));
-        projectElement.SetAttributeValue("outputPath", SanitizePath(project.OutputFilePath ?? "(none)"));
+        projectElement.SetAttributeValue("path", SanitizePath(project.FilePath));
+        projectElement.SetAttributeValue("outputPath", SanitizePath(project.OutputFilePath));
 
         var hasSuccessfullyLoaded = await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
         projectElement.SetAttributeValue("hasSuccessfullyLoaded", hasSuccessfullyLoaded);
@@ -182,7 +182,7 @@ internal class WorkspaceStructureLogger
         => new("diagnostic",
             new XAttribute("id", diagnostic.Id),
             new XAttribute("severity", diagnostic.Severity.ToString()),
-            new XAttribute("path", SanitizePath(diagnostic.Location.GetLineSpan().Path ?? "(none)")),
+            new XAttribute("path", SanitizePath(diagnostic.Location.GetLineSpan().Path)),
             diagnostic.GetMessage());
 
     private static IEnumerable<XElement> CreateElementsForSourceGeneratedDocuments(IEnumerable<SourceGeneratedDocument> documents)
@@ -194,11 +194,11 @@ internal class WorkspaceStructureLogger
             var identity = document.Identity;
             var element = new XElement("sourceGeneratedDocument",
                 new XAttribute("hintName", document.HintName),
-                new XAttribute("path", SanitizePath(document.FilePath ?? "(none)")),
+                new XAttribute("path", SanitizePath(document.FilePath)),
                 new XAttribute("generatorType", identity.Generator.TypeName),
                 new XAttribute("generatorAssembly", identity.Generator.AssemblyName),
                 new XAttribute("generatorAssemblyVersion", identity.Generator.AssemblyVersion.ToString()),
-                new XAttribute("generatorAssemblyPath", SanitizePath(identity.Generator.AssemblyPath ?? "(none)")));
+                new XAttribute("generatorAssemblyPath", SanitizePath(identity.Generator.AssemblyPath)));
 
             elements.Add(element);
         }
@@ -206,8 +206,13 @@ internal class WorkspaceStructureLogger
         return elements;
     }
 
-    protected static string SanitizePath(string s)
-        => ReplacePathComponent(s, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "%USERPROFILE%");
+    protected static string SanitizePath(string? s)
+    {
+        if (s is null)
+            return "(none)";
+
+        return ReplacePathComponent(s, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "%USERPROFILE%");
+    }
 
     /// <summary>
     /// Equivalent to string.Replace, but uses OrdinalIgnoreCase for matching.
@@ -237,13 +242,13 @@ internal class WorkspaceStructureLogger
         else if (reference is PortableExecutableReference portableExecutableReference)
         {
             return new XElement("peReference",
-                new XAttribute("file", SanitizePath(portableExecutableReference.FilePath ?? "(none)")),
-                new XAttribute("display", SanitizePath(portableExecutableReference.Display ?? "(none)")),
+                new XAttribute("file", SanitizePath(portableExecutableReference.FilePath)),
+                new XAttribute("display", SanitizePath(portableExecutableReference.Display)),
                 aliasesAttribute);
         }
         else
         {
-            return new XElement("metadataReference", new XAttribute("display", SanitizePath(reference.Display ?? "(none)")));
+            return new XElement("metadataReference", new XAttribute("display", SanitizePath(reference.Display)));
         }
     }
 
@@ -280,7 +285,7 @@ internal class WorkspaceStructureLogger
 
         foreach (var document in documents)
         {
-            var documentElement = new XElement(elementName, new XAttribute("path", SanitizePath(document.FilePath ?? "(none)")));
+            var documentElement = new XElement(elementName, new XAttribute("path", SanitizePath(document.FilePath)));
 
             var clientName = document.DocumentServiceProvider.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName;
             if (clientName != null)
