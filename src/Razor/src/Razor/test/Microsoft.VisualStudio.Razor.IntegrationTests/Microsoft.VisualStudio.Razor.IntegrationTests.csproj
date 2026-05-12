@@ -29,7 +29,7 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
     </ProjectReference>
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\RazorDeployment\RazorDeployment.csproj" Private="False" Condition="'$(BuildDependencyVsix)' == 'true'">
+    <ProjectReference Include="$(RepoRoot)src\Razor\Tooling\RazorDeployment\RazorDeployment.csproj" Private="False" Condition="'$(BuildDependencyVsix)' == 'true'">
       <PrivateAssets>All</PrivateAssets>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
