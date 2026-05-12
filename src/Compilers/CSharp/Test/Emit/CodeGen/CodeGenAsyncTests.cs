@@ -3020,20 +3020,7 @@ class Driver
             CompileAndVerify(source, "0");
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (44,31): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             C2 cc = new C2(x: await c.Method(1));
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await c.Method(1)").WithArguments("TestCase.Run()").WithLocation(44, 31),
-                // (50,25): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             cc = new C2(await c.Method(2), await f());
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await c.Method(2)").WithArguments("TestCase.Run()").WithLocation(50, 25),
-                // (50,44): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             cc = new C2(await c.Method(2), await f());
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await f()").WithArguments("TestCase.Run()").WithLocation(50, 44),
-                // (55,35): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             var x = new C2(2).Bar(await c.Method(1));
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await c.Method(1)").WithArguments("TestCase.Run()").WithLocation(55, 35)
-            );
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 
         [Fact]
@@ -3198,20 +3185,7 @@ class Driver
             CompileAndVerify(source, "0");
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (39,13): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             await (await dy * 5);
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await (await dy * 5)").WithArguments("TestCase.Run()").WithLocation(39, 13),
-                // (39,20): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             await (await dy * 5);
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await dy").WithArguments("TestCase.Run()").WithLocation(39, 20),
-                // (44,13): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             await (d + await dd);
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await (d + await dd)").WithArguments("TestCase.Run()").WithLocation(44, 13),
-                // (44,24): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             await (d + await dd);
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await dd").WithArguments("TestCase.Run()").WithLocation(44, 24)
-            );
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 
         [Fact]
@@ -3346,11 +3320,7 @@ class Driver
             CompileAndVerify(source, "0");
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (34,13): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             await t2;
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await t2").WithArguments("TestCase.Run()").WithLocation(34, 13)
-            );
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4988,11 +4958,7 @@ class Driver
             CompileAndVerify(source, expectedOutput: expected);
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (19,17): error CS9328: Method 'MyTask.Run<T>()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         var x = await myTask;
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await myTask").WithArguments("MyTask.Run<T>()").WithLocation(19, 17)
-            );
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails);
         }
 
         [WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")]
