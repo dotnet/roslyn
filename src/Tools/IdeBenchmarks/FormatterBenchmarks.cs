@@ -10,12 +10,9 @@ using System.Threading;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VSDiagnostics;
-
 namespace IdeBenchmarks
 {
     [GcServer(true)]
-    [CPUUsageDiagnoser]
     public class FormatterBenchmarks
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();

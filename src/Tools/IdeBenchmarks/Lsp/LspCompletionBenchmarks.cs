@@ -8,7 +8,6 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VSDiagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -16,7 +15,6 @@ using LSP = Roslyn.LanguageServer.Protocol;
 namespace IdeBenchmarks.Lsp
 {
     [MemoryDiagnoser]
-    [CPUUsageDiagnoser]
     public class LspCompletionBenchmarks : AbstractLanguageServerProtocolTests
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();

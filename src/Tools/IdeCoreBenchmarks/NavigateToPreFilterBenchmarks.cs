@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.VSDiagnostics;
 using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks;
@@ -21,7 +20,6 @@ namespace IdeCoreBenchmarks;
 /// The full-scan baseline shows the cost we avoid by rejecting early.
 /// </summary>
 [MemoryDiagnoser]
-[CPUUsageDiagnoser]
 public class NavigateToPreFilterBenchmarks
 {
     private NavigateToSearchIndex _realistic = null!;

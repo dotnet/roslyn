@@ -7,11 +7,9 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VSDiagnostics;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.TextDifferencing;
 
-[CPUUsageDiagnoser]
 public class SourceTextDifferBenchmark
 {
     private SourceText? _largeFileOriginal;

@@ -10,11 +10,9 @@ using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.VSDiagnostics;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
-[CPUUsageDiagnoser]
 public class SyntaxTreeGenerationBenchmark
 {
     public SyntaxTreeGenerationBenchmark()

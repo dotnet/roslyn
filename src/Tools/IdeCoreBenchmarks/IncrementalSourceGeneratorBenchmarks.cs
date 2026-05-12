@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VSDiagnostics;
 using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks
@@ -28,7 +27,6 @@ namespace IdeCoreBenchmarks
     // [GcServer(true)]
     [MemoryDiagnoser]
     [SimpleJob(launchCount: 1, warmupCount: 0, iterationCount: 0, invocationCount: 1, id: "QuickJob")]
-    [CPUUsageDiagnoser]
     public class IncrementalSourceGeneratorBenchmarks
     {
         string _solutionPath;

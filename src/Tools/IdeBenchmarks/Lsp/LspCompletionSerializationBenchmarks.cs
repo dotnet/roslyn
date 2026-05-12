@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VSDiagnostics;
 using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,7 +20,6 @@ using LSP = Roslyn.LanguageServer.Protocol;
 namespace IdeBenchmarks.Lsp
 {
     [MemoryDiagnoser]
-    [CPUUsageDiagnoser]
     public class LspCompletionSerializationBenchmarks : AbstractLanguageServerProtocolTests
     {
         protected override TestComposition Composition => FeaturesLspComposition;

@@ -23,12 +23,9 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 
-using Microsoft.VSDiagnostics;
-
 namespace IdeBenchmarks.InheritanceMargin
 {
     [MemoryDiagnoser]
-    [CPUUsageDiagnoser]
     public class InheritanceMarginGlyphBenchmarks
     {
         private const int MemberCount = 500;

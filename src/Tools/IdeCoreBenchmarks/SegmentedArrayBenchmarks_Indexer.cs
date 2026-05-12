@@ -5,12 +5,9 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.VSDiagnostics;
-
 namespace IdeCoreBenchmarks
 {
     [DisassemblyDiagnoser]
-    [CPUUsageDiagnoser]
     public class SegmentedArrayBenchmarks_Indexer
     {
         private int[] _values = null!;

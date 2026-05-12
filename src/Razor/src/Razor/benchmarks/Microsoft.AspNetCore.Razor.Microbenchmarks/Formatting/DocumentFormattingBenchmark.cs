@@ -26,12 +26,10 @@ using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
-using Microsoft.VSDiagnostics;
 using AspNet80 = Basic.Reference.Assemblies.AspNet80;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Formatting;
 
-[CPUUsageDiagnoser]
 public class DocumentFormattingBenchmark
 {
     private const int FormatOperationCount = 100;

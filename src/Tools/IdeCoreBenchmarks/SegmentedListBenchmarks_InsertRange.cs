@@ -5,12 +5,9 @@
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.VSDiagnostics;
-
 namespace IdeCoreBenchmarks
 {
     [DisassemblyDiagnoser]
-    [CPUUsageDiagnoser]
     public class SegmentedListBenchmarks_InsertRange
     {
         private List<int> _values = null!;

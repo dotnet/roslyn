@@ -4,12 +4,9 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.VSDiagnostics;
-
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
-    [CPUUsageDiagnoser]
     public class SegmentedDictionaryBenchmarks_Add
     {
         [Params(1_000, 10_000, 100_000, 1_000_000)]

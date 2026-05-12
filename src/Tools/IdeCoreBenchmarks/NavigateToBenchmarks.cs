@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Storage;
-using Microsoft.VSDiagnostics;
 using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks
@@ -29,7 +28,6 @@ namespace IdeCoreBenchmarks
     // [GcServer(true)]
     [MemoryDiagnoser]
     [SimpleJob(launchCount: 1, warmupCount: 0, iterationCount: 0, invocationCount: 1, id: "QuickJob")]
-    [CPUUsageDiagnoser]
     public class NavigateToBenchmarks
     {
         string _solutionPath;

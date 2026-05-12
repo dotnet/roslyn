@@ -12,12 +12,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VSDiagnostics;
-
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
-    [CPUUsageDiagnoser]
     public class SyntacticChangeRangeBenchmark
     {
         private int _index;

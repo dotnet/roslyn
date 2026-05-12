@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VSDiagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -22,7 +21,6 @@ namespace IdeBenchmarks.Lsp
 {
     [MemoryDiagnoser]
     [GcServer(true)]
-    [CPUUsageDiagnoser]
     public class LspSourceGeneratorBenchmarks : AbstractLanguageServerProtocolTests
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();

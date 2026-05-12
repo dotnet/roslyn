@@ -7,11 +7,9 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.VSDiagnostics;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
 
-[CPUUsageDiagnoser]
 public class CompletionListSerializationBenchmark
 {
     private readonly byte[] _completionListBuffer;

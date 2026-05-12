@@ -13,12 +13,9 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VSDiagnostics;
-
 namespace IdeBenchmarks.InheritanceMargin
 {
     [MemoryDiagnoser]
-    [CPUUsageDiagnoser]
     public class InheritanceMarginServiceBenchmarks
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new();

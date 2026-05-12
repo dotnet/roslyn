@@ -20,12 +20,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VSDiagnostics;
-
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
-    [CPUUsageDiagnoser]
     public class ClassificationBenchmarks
     {
         string _solutionPath;

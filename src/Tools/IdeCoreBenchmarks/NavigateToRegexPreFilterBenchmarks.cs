@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.VSDiagnostics;
 using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks;
@@ -19,7 +18,6 @@ namespace IdeCoreBenchmarks;
 /// pre-filter evaluation against a document's bigram index, and full regex matching.
 /// </summary>
 [MemoryDiagnoser]
-[CPUUsageDiagnoser]
 public class NavigateToRegexPreFilterBenchmarks
 {
     private NavigateToSearchIndex _index = null!;

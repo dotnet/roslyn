@@ -5,11 +5,9 @@ using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
-using Microsoft.VSDiagnostics;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Generator;
 
-[CPUUsageDiagnoser]
 public abstract class AbstractBenchmark
 {
     private ProjectSetup.RazorProject? _project;

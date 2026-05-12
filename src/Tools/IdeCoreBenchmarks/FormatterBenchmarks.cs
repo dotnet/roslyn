@@ -12,12 +12,9 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.VSDiagnostics;
-
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
-    [CPUUsageDiagnoser]
     public class FormatterBenchmarks
     {
         private readonly int _iterationCount = 5;
