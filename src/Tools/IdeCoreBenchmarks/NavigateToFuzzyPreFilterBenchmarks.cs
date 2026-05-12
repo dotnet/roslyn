@@ -8,6 +8,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.VSDiagnostics;
 using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks;
@@ -19,6 +20,7 @@ namespace IdeCoreBenchmarks;
 /// bigram check rejects.
 /// </summary>
 [MemoryDiagnoser]
+[CPUUsageDiagnoser]
 public class NavigateToFuzzyPreFilterBenchmarks
 {
     private NavigateToSearchIndex _sameLengthIndex = null!;

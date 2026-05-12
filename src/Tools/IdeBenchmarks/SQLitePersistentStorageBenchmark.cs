@@ -15,9 +15,11 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VSDiagnostics;
 
 namespace IdeBenchmarks
 {
+    [CPUUsageDiagnoser]
     public class SQLitePersistentStorageBenchmarks
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();

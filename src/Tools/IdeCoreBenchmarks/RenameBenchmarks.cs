@@ -10,10 +10,12 @@ using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.VSDiagnostics;
 
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
+    [CPUUsageDiagnoser]
     public class RenameBenchmarks
     {
 

@@ -19,10 +19,12 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.VSDiagnostics;
 
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
+    [CPUUsageDiagnoser]
     public class FindReferencesBenchmarks
     {
         MSBuildWorkspace _workspace;

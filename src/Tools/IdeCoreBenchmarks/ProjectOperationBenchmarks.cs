@@ -9,6 +9,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VSDiagnostics;
 
 namespace IdeCoreBenchmarks
 {
@@ -17,6 +18,7 @@ namespace IdeCoreBenchmarks
         private static readonly SourceText s_newText = SourceText.From("text");
 
         [MemoryDiagnoser]
+        [CPUUsageDiagnoser]
         public class IterateDocuments
         {
             private Workspace _workspace;

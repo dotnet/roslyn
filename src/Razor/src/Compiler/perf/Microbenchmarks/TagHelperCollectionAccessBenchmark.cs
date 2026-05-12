@@ -4,9 +4,11 @@
 using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.VSDiagnostics;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
+[CPUUsageDiagnoser]
 public class TagHelperCollectionAccessBenchmark
 {
     private ImmutableArray<TagHelperDescriptor> _tagHelpers;

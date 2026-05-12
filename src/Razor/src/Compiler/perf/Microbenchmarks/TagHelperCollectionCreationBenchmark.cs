@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.VSDiagnostics;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
+[CPUUsageDiagnoser]
 public class TagHelperCollectionCreationBenchmark
 {
     private ImmutableArray<TagHelperDescriptor> _tagHelpers;

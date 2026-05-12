@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.VSDiagnostics;
 using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks;
@@ -20,6 +21,7 @@ namespace IdeCoreBenchmarks;
 /// The full-scan baseline shows the cost we avoid by rejecting early.
 /// </summary>
 [MemoryDiagnoser]
+[CPUUsageDiagnoser]
 public class NavigateToPreFilterBenchmarks
 {
     private NavigateToSearchIndex _realistic = null!;

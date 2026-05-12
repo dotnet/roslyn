@@ -14,11 +14,13 @@ using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.VSDiagnostics;
 
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
     [RyuJitX64Job]
+    [CPUUsageDiagnoser]
     public class CSharpIdeAnalyzerBenchmarks
     {
         private readonly string _solutionPath;

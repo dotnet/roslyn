@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.VSDiagnostics;
 using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks;
@@ -18,6 +19,7 @@ namespace IdeCoreBenchmarks;
 /// pre-filter evaluation against a document's bigram index, and full regex matching.
 /// </summary>
 [MemoryDiagnoser]
+[CPUUsageDiagnoser]
 public class NavigateToRegexPreFilterBenchmarks
 {
     private NavigateToSearchIndex _index = null!;

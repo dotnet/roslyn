@@ -6,10 +6,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Microsoft.VSDiagnostics;
 
 namespace IdeBenchmarks.StackTraceExplorer
 {
     [MemoryDiagnoser]
+    [CPUUsageDiagnoser]
     public class StackTraceExplorerBenchmarks
     {
         [Benchmark]

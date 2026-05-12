@@ -14,10 +14,12 @@ using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.VSDiagnostics;
 
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
+    [CPUUsageDiagnoser]
     public class IncrementalAnalyzerBenchmarks
     {
         private readonly string _solutionPath;
