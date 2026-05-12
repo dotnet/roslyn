@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,12 +20,19 @@ public sealed class LspWorkspaceRegistrationServiceTests : AbstractLanguageServe
     [Theory, CombinatorialData]
     public async Task TestDisposedWorkspaceDeregistered(bool mutatingLspWorkspace)
     {
-        TestWorkspaceRegistrationService registrationService;
+        LspWorkspaceRegistrationEventListener listener;
         await using (var testLspServer = await CreateTestLspServerAsync("", mutatingLspWorkspace))
         {
-            registrationService = (TestWorkspaceRegistrationService)testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
+            listener = (LspWorkspaceRegistrationEventListener)testLspServer.TestWorkspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+
+            // Verify both the singleton listener and the per-server LspWorkspaceRegistrationService see the workspace.
+            Assert.Contains(testLspServer.TestWorkspace, listener.GetRegisteredWorkspaces());
+
+            var perServerRegistrationService = testLspServer.GetRequiredLspService<LspWorkspaceRegistrationService>();
+            Assert.Contains(testLspServer.TestWorkspace, perServerRegistrationService.GetAllRegistrations());
         }
 
-        Assert.Empty(registrationService.GetAllRegistrations());
+        // After the workspace is disposed, the listener's StopListening should have fired.
+        Assert.Empty(listener.GetRegisteredWorkspaces());
     }
 }

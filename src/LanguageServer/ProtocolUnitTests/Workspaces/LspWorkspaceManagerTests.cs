@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -263,8 +264,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
         // Manually register the workspace since the workspace listener does not listen for this workspace kind.
-        var workspaceRegistrationService = testLspServer.TestWorkspace.GetService<LspWorkspaceRegistrationService>();
-        workspaceRegistrationService.Register(testWorkspaceTwo);
+        var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)testLspServer.TestWorkspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+        lspWorkspaceRegistrationListener.StartListening(testWorkspaceTwo);
 
         // Verify both workspaces registered.
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
@@ -289,9 +290,6 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             """;
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml, mutatingLspWorkspace, workspaceKind: WorkspaceKind.MiscellaneousFiles);
-        var exportProvider = testLspServer.TestWorkspace.ExportProvider;
-
-        var workspaceRegistrationService = exportProvider.GetExport<LspWorkspaceRegistrationService>();
 
         // Verify the workspace is registered.
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));

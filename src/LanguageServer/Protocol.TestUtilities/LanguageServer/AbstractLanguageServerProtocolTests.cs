@@ -55,8 +55,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     }
 
     protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
-        .AddParts(typeof(TestDocumentTrackingService))
-        .AddParts(typeof(TestWorkspaceRegistrationService));
+        .AddParts(typeof(TestDocumentTrackingService));
 
     private sealed class TestSpanMapperProvider : IDocumentServiceProvider
     {
