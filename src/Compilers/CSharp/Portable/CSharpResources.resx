@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -8116,11 +8116,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_SafeAttributeUnsupportedTarget" xml:space="preserve">
-    <value>'SafeAttribute' may only be applied to extern members that are not marked 'unsafe' when using updated memory safety rules.</value>
+    <value>'SafeAttribute' may only be applied to extern members that are not marked 'unsafe'.</value>
     <comment>'SafeAttribute', 'extern', and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_ExternMemberRequiresUnsafeOrSafe" xml:space="preserve">
-    <value>Extern member must be marked 'unsafe' or annotated with 'SafeAttribute' when using updated memory safety rules.</value>
+    <value>Extern member must be marked 'unsafe' or annotated with 'SafeAttribute'.</value>
     <comment>'unsafe' and 'SafeAttribute' should not be localized.</comment>
   </data>
   <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
