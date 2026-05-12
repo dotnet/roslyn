@@ -15,6 +15,7 @@ public sealed class ClassDeclarationIntermediateNode : MemberDeclarationIntermed
     public ImmutableArray<TypeParameter> TypeParameters { get; set => field = value.NullToEmpty(); } = [];
 
     public bool IsPrimaryClass { get; init; }
+
     public bool NullableContext { get; set; }
 
     public override IntermediateNodeCollection Children { get => field ??= []; }
