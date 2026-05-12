@@ -76,7 +76,7 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 When adding a new `IRemote*Service` and `Remote*Service`:
 
 1. Interface: `src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Remote\`
-2. Implementation: `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Remote.Razor\`
+2. Implementation: `src\Razor\Tooling\Microsoft.CodeAnalysis.Remote.Razor\`
 3. Register in
    `src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.Workspaces\Remote\RazorServices.cs`
    (add to `MessagePackServices` or `JsonServices`).
