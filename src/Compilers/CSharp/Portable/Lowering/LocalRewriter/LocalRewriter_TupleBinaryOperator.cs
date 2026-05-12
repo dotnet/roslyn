@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return makeNullableHasValue(o);
                     case BoundConversion { Conversion: { IsNullable: true, UnderlyingConversions: var underlying } conversion, Operand: var o }
                             when expr.Type.IsNullableType() && o.Type is { } && o.Type.IsNullableType() &&
-                                 !(underlying[0].IsUserDefined || underlying[0].IsUnion): // It looks like this condition is always sutsfied because neuther user-defined, nor union conversion can be underlying for a Nullable conversion, but let's keep it just in case.
+                                 !(underlying[0].IsUserDefined || underlying[0].IsUnion): // It looks like this condition is always sutsfied because neither user-defined, nor union conversion can be underlying for a Nullable conversion, but let's keep it just in case.
                         // Note that a user-defined conversion from K to Nullable<R> which may translate
                         // a non-null K to a null value gives rise to a lifted conversion from Nullable<K> to Nullable<R> with the same property.
                         // We therefore do not attempt to optimize nullable conversions with an underlying user-defined conversion.
