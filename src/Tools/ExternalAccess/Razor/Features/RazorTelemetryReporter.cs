@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 
-internal abstract class RazorTelemetryReporter : AbstractRazorLspService
+internal abstract class RazorTelemetryReporter : ILspService
 {
     private ILanguageServerTelemetryReporterWrapper? _wrapper;
 

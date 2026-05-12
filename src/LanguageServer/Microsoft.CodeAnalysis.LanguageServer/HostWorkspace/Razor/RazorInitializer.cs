@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.VisualStudioCode.RazorExtension.Services;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
@@ -19,7 +20,7 @@ internal sealed class RazorInitializer(Lazy<LanguageServerWorkspaceFactory> work
 {
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        var razorInitializerService = context.GetService<AbstractRazorInitializer>();
+        var razorInitializerService = context.GetService<RazorExtensionInitializer>();
         if (razorInitializerService is null)
         {
             // No initializer service registered, nothing to do.
