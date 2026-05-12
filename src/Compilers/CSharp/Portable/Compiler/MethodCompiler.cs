@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AsyncStateMachine asyncStateMachine = null;
                             if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
                             {
-                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, methodOrdinal, diagnosticsThisMethod);
                             }
                             else
                             {
@@ -1602,7 +1602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AsyncStateMachine asyncStateMachine = null;
                 if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
                 {
-                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics);
+                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, methodOrdinal, diagnostics);
                 }
                 else
                 {
