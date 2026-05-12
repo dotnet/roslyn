@@ -173,7 +173,7 @@
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
 
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Razor\Tooling\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj">
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
     <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj">
