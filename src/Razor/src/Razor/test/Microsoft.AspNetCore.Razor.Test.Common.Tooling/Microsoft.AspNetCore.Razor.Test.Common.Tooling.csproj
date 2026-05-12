@@ -65,7 +65,7 @@
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetFxVS)'">
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" />
     <ProjectReference Include="$(RepoRoot)src\Razor\Tooling\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Razor\Tooling\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
