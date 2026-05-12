@@ -9722,7 +9722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.Succeeded)
             {
                 bool hasAnyApplicableMember = result.HasAnyApplicableMember;
-                // PROTOTYPE diagnostic quality, consider returning something better and reporting useful diagnostic about overload resolution issues
+                // https://github.com/dotnet/roslyn/issues/78829 diagnostic quality, consider returning something better and reporting useful diagnostic about overload resolution issues
                 result.Free();
                 extensionIndexerAccess = null;
                 return hasAnyApplicableMember;

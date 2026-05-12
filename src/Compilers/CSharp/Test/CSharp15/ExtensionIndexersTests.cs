@@ -560,7 +560,7 @@ static class E2
 }
 """;
 
-        // PROTOTYPE diagnostic quality, report something better (ambiguity between X and Y)
+        // https://github.com/dotnet/roslyn/issues/78829 diagnostic quality, report something better (ambiguity between X and Y)
         var comp = CreateCompilation(src).VerifyEmitDiagnostics(
             // (2,1): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
             // o[0] = 1;
@@ -573,7 +573,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var indexing = GetSyntax<ElementAccessExpressionSyntax>(tree, "o[0]");
         Assert.Null(model.GetSymbolInfo(indexing).Symbol);
-        // PROTOTYPE public API, consider returning the candidate extension members (like we do for method calls)
+        // https://github.com/dotnet/roslyn/issues/78829 public API, consider returning the candidate extension members (like we do for method calls)
         Assert.Empty(model.GetMemberGroup(indexing));
     }
 
@@ -611,7 +611,7 @@ static class E2
 }
 """;
 
-        // PROTOTYPE diagnostic quality, report something better (ambiguity between X and Y)
+        // https://github.com/dotnet/roslyn/issues/78829 diagnostic quality, report something better (ambiguity between X and Y)
         CreateCompilation(src).VerifyEmitDiagnostics(
             // (2,1): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
             // o[0, 1] = 2;
@@ -1039,7 +1039,7 @@ public static class E
 }
 """;
 
-        // PROTOTYPE diagnostic quality, report that the constraint is not satisfied
+        // https://github.com/dotnet/roslyn/issues/78829 diagnostic quality, report that the constraint is not satisfied
         CreateCompilation(src).VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
             // _ = o[42];
@@ -1493,7 +1493,7 @@ static class E1
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[b: 42]");
         AssertEx.Equal("E1.extension(C).this[int]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
-        // PROTOTYPE public API, should probably return both candidates (see InstanceMethodInvocation_ArgumentName)
+        // https://github.com/dotnet/roslyn/issues/78829 public API, should probably return both candidates (see InstanceMethodInvocation_ArgumentName)
         AssertEx.SequenceEqual([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
@@ -1535,7 +1535,7 @@ namespace N
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[b: 42]");
         AssertEx.Equal("N.E2.extension(C).this[int]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
-        // PROTOTYPE public API, should probably return both candidates (see InstanceMethodInvocation_ArgumentName_02)
+        // https://github.com/dotnet/roslyn/issues/78829 public API, should probably return both candidates (see InstanceMethodInvocation_ArgumentName_02)
         AssertEx.SequenceEqual([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
@@ -1573,7 +1573,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[42]");
         AssertEx.Equal("E2.extension(C).this[int]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
-        // PROTOTYPE public API, should probably return both candidates (see InstanceMethodInvocation_AmbiguityWithExtensionOnBaseType_PreferMoreSpecific)
+        // https://github.com/dotnet/roslyn/issues/78829 public API, should probably return both candidates (see InstanceMethodInvocation_AmbiguityWithExtensionOnBaseType_PreferMoreSpecific)
         AssertEx.SequenceEqual([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
@@ -1658,7 +1658,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // PROTOTYPE diagnostic quality, could report something better, like: CS0411: The type arguments for method 'E.extension<T>(I<T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+        // https://github.com/dotnet/roslyn/issues/78829 diagnostic quality, could report something better, like: CS0411: The type arguments for method 'E.extension<T>(I<T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = new C()[0];
@@ -1812,7 +1812,7 @@ class A
 }
 """;
         var comp = CreateCompilation(src);
-        // PROTOTYPE diagnostic quality, consider reporting something like CS0122: 'E1.extension<A.B>(I<A.B>).P' is inaccessible due to its protection level
+        // https://github.com/dotnet/roslyn/issues/78829 diagnostic quality, consider reporting something like CS0122: 'E1.extension<A.B>(I<A.B>).P' is inaccessible due to its protection level
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS0021: Cannot apply indexing with [] to an expression of type 'A.C'
             // _ = new A.C()[0];
@@ -1858,7 +1858,7 @@ static class E
     }
 }
 """;
-        // PROTOTYPE diagnostic quality, consider a better message for unexpected ref like CS1615: Argument 2 may not be passed with the 'ref' keyword
+        // https://github.com/dotnet/roslyn/issues/78829 diagnostic quality, consider a better message for unexpected ref like CS1615: Argument 2 may not be passed with the 'ref' keyword
         CreateCompilation(src).VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
             // _ = 0[ref i];
@@ -1971,10 +1971,10 @@ _ = 42[43];
             // (1,5): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
             // _ = 42[43];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "42[43]").WithArguments("int").WithLocation(1, 5));
-        // PROTOTYPE verify candidates from GetMemberGroup
+        // https://github.com/dotnet/roslyn/issues/78829 verify candidates from GetMemberGroup
     }
 
-    [Fact(Skip = "PROTOTYPE existing crash")]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/83610 existing crash")]
     public void Indexing_51()
     {
         //public class C
@@ -9179,7 +9179,7 @@ public static class E2
 }
 """;
 
-        // PROTOTYPE diagnostic quality, consider improving the second diagnostic to mention System.Index
+        // https://github.com/dotnet/roslyn/issues/78829 diagnostic quality, consider improving the second diagnostic to mention System.Index
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS8985: List patterns may not be used for a value of type 'S'. No suitable 'Length' or 'Count' property was found.
@@ -15983,7 +15983,7 @@ static class E
     }
 }
 """;
-        // PROTOTYPE diagnostic quality, consider a dedicated error when extension indexer is found given dynamic argument
+        // https://github.com/dotnet/roslyn/issues/78829 diagnostic quality, consider a dedicated error when extension indexer is found given dynamic argument
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
@@ -16030,7 +16030,7 @@ class C
     public int M(object o1, object o2) => 0;
 }
 """;
-        // PROTOTYPE diagnostic quality, consider a dedicated error when extension indexer is found given dynamic argument
+        // https://github.com/dotnet/roslyn/issues/78829 diagnostic quality, consider a dedicated error when extension indexer is found given dynamic argument
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS7036: There is no argument given that corresponds to the required parameter 'o2' of 'C.this[object, object]'
@@ -18775,7 +18775,7 @@ public static class E
 
         var bParameter = comp.GlobalNamespace.GetTypeMember("E").GetMethod("set_Item").Parameters[2];
         Assert.Equal("b", bParameter.Name);
-        Assert.True(bParameter.IsParams); // PROTOTYPE params, should we disallow that or not emit it?
+        Assert.True(bParameter.IsParams);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81953")]
