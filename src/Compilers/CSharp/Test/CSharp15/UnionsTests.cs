@@ -46930,7 +46930,7 @@ class C
         }
 
         [Fact]
-        public void NullableT_NullableStructToClass()// This is a clone of a test from NullableReferenceTypesTests
+        public void NullableT_NullableStructToClass() // This is a clone of a test from NullableReferenceTypesTests
         {
             var source =
 @"struct S
@@ -46983,6 +46983,74 @@ class Program
                 // (31,17): warning CS8602: Dereference of a possibly null reference.
                 //             _ = c3.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c3").WithLocation(31, 17));
+        }
+
+        [Fact]
+        public void TestOrder02() // This is a clone of a test from CodeGenTupleEqualityTests
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        var result = (new B(1), new Nullable<B>(new A(2))) == (new A(3), new B(4));
+        Console.WriteLine();
+        Console.WriteLine(result);
+    }
+}
+
+struct A
+{
+    public readonly int N;
+    public A(int n)
+    {
+        this.N = n;
+        Console.Write($""new A({ n }); "");
+    }
+}
+
+[System.Runtime.CompilerServices.Union]
+#line 22
+struct B
+{
+    public readonly int N;
+    public B(int n)
+    {
+        this.N = n;
+        Console.Write($""new B({n}); "");
+    }
+    public B(A a)
+    {
+        Console.Write($""A({a.N})->"");
+        N = a.N;
+        Console.Write($""new B({N}); "");
+    }
+    public static bool operator ==(B b1, B b2)
+    {
+        Console.Write($""B({b1.N})==B({b2.N}); "");
+        return b1.N == b2.N;
+    }
+    public static bool operator !=(B b1, B b2)
+    {
+        Console.Write($""B({b1.N})!=B({b2.N}); "");
+        return b1.N != b2.N;
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                    // (22,8): warning CS0660: 'B' defines operator == or operator != but does not override Object.Equals(object o)
+                    // struct B
+                    Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "B").WithArguments("B").WithLocation(22, 8),
+                    // (22,8): warning CS0661: 'B' defines operator == or operator != but does not override Object.GetHashCode()
+                    // struct B
+                    Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "B").WithArguments("B").WithLocation(22, 8)
+                );
+            CompileAndVerify(comp, expectedOutput: @"new B(1); new A(2); A(2)->new B(2); new A(3); new B(4); A(3)->new B(3); B(1)==B(3); 
+False
+");
         }
     }
 }

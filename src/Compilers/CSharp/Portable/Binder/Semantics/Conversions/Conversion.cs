@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _kind = kind;
             _uncommonData = uncommonData;
+
+            Debug.Assert(!(this is { IsNullable: true, UnderlyingConversions: var underlying } && (underlying[0].IsUserDefined || underlying[0].IsUnion)));
         }
 
         internal Conversion(UserDefinedConversionResult conversionResult, bool isImplicit)
@@ -169,6 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isArrayIndex: false,
                     conversionResult: conversionResult,
                     conversionMethod: null);
+
+            Debug.Assert(!(this is { IsNullable: true, UnderlyingConversions: var underlying } && (underlying[0].IsUserDefined || underlying[0].IsUnion)));
         }
 
         // For the method group, lambda and anonymous method conversions
@@ -180,6 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isArrayIndex: false,
                 conversionResult: default,
                 conversionMethod: conversionMethod);
+
+            Debug.Assert(!(this is { IsNullable: true, UnderlyingConversions: var underlying } && (underlying[0].IsUserDefined || underlying[0].IsUnion)));
         }
 
         internal Conversion(ConversionKind kind, ImmutableArray<Conversion> nestedConversions)
@@ -187,6 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._kind = kind;
             _uncommonData = new NestedUncommonData(
                 nestedConversions: nestedConversions);
+
+            Debug.Assert(!(this is { IsNullable: true, UnderlyingConversions: var underlying } && (underlying[0].IsUserDefined || underlying[0].IsUnion)));
         }
 
         internal Conversion(ConversionKind kind, DeconstructMethodInfo deconstructMethodInfo, ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> deconstructConversionInfo)
@@ -195,6 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this._kind = kind;
             _uncommonData = new DeconstructionUncommonData(deconstructMethodInfo, deconstructConversionInfo);
+
+            Debug.Assert(!(this is { IsNullable: true, UnderlyingConversions: var underlying } && (underlying[0].IsUserDefined || underlying[0].IsUnion)));
         }
 
         internal Conversion SetConversionMethod(MethodSymbol conversionMethod)
