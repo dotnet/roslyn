@@ -65,6 +65,6 @@ internal sealed class ExtractInterfaceCodeAction(
 
     public override string Title => FeaturesResources.Extract_interface;
 
-    internal override bool IsOptionServiceAvailable(Host.SolutionServices services)
-        => services.GetService<IExtractInterfaceOptionsService>() is not null;
+    internal override bool IsOptionServiceAvailable()
+        => _typeAnalysisResult.DocumentToExtractFrom.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>() is not null;
 }

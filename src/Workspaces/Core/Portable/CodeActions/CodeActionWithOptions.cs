@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
@@ -79,8 +78,8 @@ public abstract class CodeActionWithOptions : CodeAction
         => [];
 
     /// <summary>
-    /// True when an options service capable of supplying this action's options is registered in
-    /// <paramref name="services"/>. Hosts may use this to decide whether to surface the action.
+    /// True when an options service capable of supplying this action's options is available.
+    /// Hosts may use this to decide whether to surface the action.
     /// </summary>
-    internal virtual bool IsOptionServiceAvailable(SolutionServices services) => false;
+    internal virtual bool IsOptionServiceAvailable() => false;
 }

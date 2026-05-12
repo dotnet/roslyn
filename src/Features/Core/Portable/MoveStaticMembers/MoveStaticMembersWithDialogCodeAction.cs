@@ -35,8 +35,8 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
 
     public override string Title => FeaturesResources.Move_static_members_to_another_type;
 
-    internal override bool IsOptionServiceAvailable(Host.SolutionServices services)
-        => services.GetService<IMoveStaticMembersOptionsService>() is not null;
+    internal override bool IsOptionServiceAvailable()
+        => _service is not null;
 
     public override object? GetOptions(CancellationToken cancellationToken)
     {

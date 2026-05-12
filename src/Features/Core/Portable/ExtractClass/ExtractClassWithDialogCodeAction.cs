@@ -52,8 +52,8 @@ internal sealed class ExtractClassWithDialogCodeAction(
     protected sealed override CodeActionPriority ComputePriority()
         => _priority;
 
-    internal override bool IsOptionServiceAvailable(Host.SolutionServices services)
-        => _service is not null || services.GetService<IExtractClassOptionsService>() is not null;
+    internal override bool IsOptionServiceAvailable()
+        => _service is not null || _document.Project.Solution.Services.GetService<IExtractClassOptionsService>() is not null;
 
     public override object? GetOptions(CancellationToken cancellationToken)
     {
