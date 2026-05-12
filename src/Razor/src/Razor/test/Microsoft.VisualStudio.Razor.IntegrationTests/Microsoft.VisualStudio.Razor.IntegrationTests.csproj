@@ -15,21 +15,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\src\Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json" />
+    <EmbeddedResource Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Microsoft.AspNetCore.Razor.Test.Common.Tooling/Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\test\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj">
       <PrivateAssets>All</PrivateAssets>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj">
       <PrivateAssets>All</PrivateAssets>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\RazorDeployment\RazorDeployment.csproj" Private="False" Condition="'$(BuildDependencyVsix)' == 'true'">
+    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\RazorDeployment\RazorDeployment.csproj" Private="False" Condition="'$(BuildDependencyVsix)' == 'true'">
       <PrivateAssets>All</PrivateAssets>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
@@ -38,8 +38,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Editor" />
-    <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
-    <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" SkipGetTargetFrameworkProperties="true" />
+    <ProjectReference Include="$(RepoRoot)src\VisualStudio\IntegrationTest\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\VisualStudio\IntegrationTest\Harness\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" SkipGetTargetFrameworkProperties="true" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" />
     <PackageReference Include="NuGet.VisualStudio" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" />
@@ -56,5 +56,5 @@
   </ItemGroup>
 
 
-  <Import Project="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnitShared\build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.targets" />
+  <Import Project="$(RepoRoot)src\VisualStudio\IntegrationTest\Harness\XUnitShared\build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.targets" />
 </Project>

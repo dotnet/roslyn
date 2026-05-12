@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,10 +68,10 @@
     <ProjectReference Update="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Update="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj">
+    <ProjectReference Update="$(RepoRoot)src\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">
       <Private>true</Private>
     </ProjectReference>
   </ItemGroup>

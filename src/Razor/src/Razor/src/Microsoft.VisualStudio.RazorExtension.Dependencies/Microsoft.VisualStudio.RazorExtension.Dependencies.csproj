@@ -62,11 +62,11 @@
 
   <!-- Reference the Roslyn dependencies so that Preview builds work -->
   <ItemGroup Condition="'$(IncludeRoslynDeps)' == 'true'">
-    <ProjectReference Include="..\..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\..\..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
-    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
-    <ProjectReference Include="..\..\..\..\..\VisualStudio\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" />
-    <ProjectReference Include="..\..\..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\VisualStudio\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" />
   </ItemGroup>

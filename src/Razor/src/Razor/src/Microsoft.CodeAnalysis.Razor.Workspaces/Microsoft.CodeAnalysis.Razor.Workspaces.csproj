@@ -12,13 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
-    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
-    <ProjectReference Include="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Razor\src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,40 +58,40 @@
 
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0' and '$(PublishReadyToRun)' == 'true' and '$(RuntimeIdentifier)' != ''">
-    <ProjectReference Update="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj">
+    <ProjectReference Update="$(RepoRoot)src\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Update="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
+    <ProjectReference Update="$(RepoRoot)src\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Update="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
+    <ProjectReference Update="$(RepoRoot)src\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Update="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
+    <ProjectReference Update="$(RepoRoot)src\Razor\src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Update="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj">
+    <ProjectReference Include="$(RepoRoot)src\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
       <Private>true</Private>
     </ProjectReference>
   </ItemGroup>

@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\tools\Microsoft.CodeAnalysis.Razor.Tooling.Internal\Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Razor\src\Compiler\tools\Microsoft.CodeAnalysis.Razor.Tooling.Internal\Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj" />
   </ItemGroup>
 
   <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
