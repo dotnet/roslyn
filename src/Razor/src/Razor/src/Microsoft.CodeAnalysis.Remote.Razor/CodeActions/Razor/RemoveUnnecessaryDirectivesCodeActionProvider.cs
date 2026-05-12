@@ -54,9 +54,8 @@ internal sealed class RemoveUnnecessaryDirectivesCodeActionProvider : IRazorCode
             UnusedDirectiveSpans = Array.ConvertAll(unusedDirectiveSpans, static s => s.ToRazorTextSpan())
         };
 
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = context.DelegatedDocumentUri,

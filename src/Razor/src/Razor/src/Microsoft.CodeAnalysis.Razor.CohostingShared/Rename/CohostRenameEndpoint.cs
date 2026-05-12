@@ -42,7 +42,10 @@ internal sealed class CohostRenameEndpoint(
                 Method = Methods.TextDocumentRenameName,
                 RegisterOptions = new RenameRegistrationOptions()
                 {
-                    PrepareProvider = false
+#if VSCODE
+                    // VS Code only until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1914930 is fixed
+                    PrepareProvider = true
+#endif
                 }
             }];
         }

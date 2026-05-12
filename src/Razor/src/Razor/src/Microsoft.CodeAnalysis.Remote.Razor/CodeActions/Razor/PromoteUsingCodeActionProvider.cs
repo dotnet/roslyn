@@ -56,9 +56,8 @@ internal sealed class PromoteUsingCodeActionProvider : IRazorCodeActionProvider
             RemoveEnd = line.EndIncludingLineBreak
         };
 
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.PromoteUsingDirective,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = context.DelegatedDocumentUri,

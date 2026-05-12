@@ -90,9 +90,8 @@ internal sealed class ExtractToCssCodeActionProvider(ILoggerFactory loggerFactor
             RemoveEnd = markupElement.Span.End
         };
 
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.ExtractToCss,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = context.DelegatedDocumentUri,

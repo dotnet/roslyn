@@ -77,9 +77,8 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
             AdditionalEdit = additionalEdit
         };
 
-        return new RazorCodeActionResolutionParams
+        return new RazorCodeActionResolutionParams(textDocument)
         {
-            TextDocument = textDocument,
             Action = LanguageServerConstants.CodeActions.AddUsing,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = delegatedDocumentUri,

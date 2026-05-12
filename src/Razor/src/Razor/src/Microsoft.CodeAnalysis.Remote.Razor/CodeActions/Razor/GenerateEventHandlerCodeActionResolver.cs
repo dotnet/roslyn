@@ -46,7 +46,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
         }
 
         var code = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var razorFilePath = documentContext.Uri.GetDocumentFilePath();
+        var razorFilePath = documentContext.Uri.GetDocumentFilePathFromUri();
         var razorClassName = Path.GetFileNameWithoutExtension(razorFilePath);
         var codeBehindPath = $"{razorFilePath}.cs";
 

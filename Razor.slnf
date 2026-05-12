@@ -12,8 +12,6 @@
       "src\\Features\\ExternalAccess\\AspNetCore\\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj",
       "src\\Features\\ExternalAccess\\Copilot\\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj",
       "src\\LanguageServer\\Protocol\\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj",
-      "src\\Razor\\src\\Analyzers\\Razor.Diagnostics.Analyzers.UnitTests\\Razor.Diagnostics.Analyzers.UnitTests.csproj",
-      "src\\Razor\\src\\Analyzers\\Razor.Diagnostics.Analyzers\\Razor.Diagnostics.Analyzers.csproj",
       "src\\Razor\\src\\Compiler\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\\test\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.UnitTests.csproj",
       "src\\Razor\\src\\Compiler\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\\test\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.UnitTests.csproj",
       "src\\Razor\\src\\Compiler\\Microsoft.AspNetCore.Mvc.Razor.Extensions\\test\\Microsoft.AspNetCore.Mvc.Razor.Extensions.UnitTests.csproj",

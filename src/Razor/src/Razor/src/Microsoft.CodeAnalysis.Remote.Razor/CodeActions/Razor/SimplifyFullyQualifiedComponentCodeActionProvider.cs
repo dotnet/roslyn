@@ -79,9 +79,8 @@ internal sealed class SimplifyFullyQualifiedComponentCodeActionProvider : IRazor
             EndTagSpanEnd = markupElementSyntax.TagHelperEndTag?.Name.Span.End ?? -1,
         };
 
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = context.DelegatedDocumentUri,

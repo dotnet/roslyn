@@ -75,9 +75,8 @@ internal sealed class SimplifyTagToSelfClosingCodeActionProvider : IRazorCodeAct
             EndTagCloseAngleIndex = endTag.CloseAngle.EndPosition,
         };
 
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.SimplifyTagToSelfClosing,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = context.DelegatedDocumentUri,

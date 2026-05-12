@@ -76,7 +76,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         if (validateHtmlFormattedMatchesWebTools)
         {
 #if NETFRAMEWORK
-            var htmlFormattingService = new HtmlFormattingService();
+            using var htmlFormattingService = new HtmlFormattingService();
             // Lets make sure everything is working as we expect in our tests
             var htmlEditsResult = await htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, tabSize);
             var htmlChangesResult = htmlEditsResult.Select(source.GetTextChange);

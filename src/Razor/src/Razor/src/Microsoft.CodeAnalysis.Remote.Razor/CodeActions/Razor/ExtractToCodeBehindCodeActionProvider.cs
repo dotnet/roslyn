@@ -114,9 +114,8 @@ internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory logge
             Namespace = @namespace
         };
 
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.ExtractToCodeBehind,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = context.DelegatedDocumentUri,

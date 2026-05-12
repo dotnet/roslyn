@@ -78,6 +78,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
             SupportsVisualStudioExtensions = true,
             TextDocument = new VSInternalTextDocumentClientCapabilities()
             {
+                CallHierarchy = new() { DynamicRegistration = true },
                 CodeAction = new() { DynamicRegistration = true },
                 CodeLens = new() { DynamicRegistration = true },
                 Completion = new() { DynamicRegistration = true },

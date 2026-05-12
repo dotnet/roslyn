@@ -38,6 +38,8 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
     private readonly IRenameService _renameService = args.ExportProvider.GetExportedValue<IRenameService>();
     private readonly IRazorEditService _razorEditService = args.ExportProvider.GetExportedValue<IRazorEditService>();
 
+    protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
+
     public ValueTask<RemoteResponse<WorkspaceEdit?>> GetRenameEditAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
@@ -93,6 +95,73 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         await _razorEditService.MapWorkspaceEditAsync(context.Snapshot, csharpEdit, cancellationToken).ConfigureAwait(false);
 
         return Results(csharpEdit.Concat(razorEdit.Edit));
+    }
+
+    public ValueTask<RemoteResponse<LspRange?>> GetPrepareRenameRangeAsync(
+        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableDocumentId documentId,
+        Position position,
+        CancellationToken cancellationToken)
+        => RunServiceAsync(
+            solutionInfo,
+            documentId,
+            context => GetPrepareRenameRangeAsync(context, position, cancellationToken),
+            cancellationToken);
+
+    private async ValueTask<RemoteResponse<LspRange?>> GetPrepareRenameRangeAsync(
+        RemoteDocumentContext context,
+        Position position,
+        CancellationToken cancellationToken)
+    {
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
+
+        if (!sourceText.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
+        {
+            return RemoteResponse<LspRange?>.NoFurtherHandling;
+        }
+
+        var originalHostDocumentIndex = hostDocumentIndex;
+        hostDocumentIndex = codeDocument.AdjustPositionForComponentEndTag(hostDocumentIndex);
+
+        var positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex, preferCSharpOverHtml: true);
+
+        // We have various logic in rename to check for tag helpers and component tags etc. but ultimately none of that is necessary here.
+        // If the range isn't C#, we don't support rename, so we can just ask Roslyn. The extra gubbins in the actual rename path is because
+        // if we let Roslyn rename a component class name, for example, it won't know that it needs to actually rename the .razor file or
+        // nothing will actually happen.
+        if (positionInfo.LanguageKind is not CodeAnalysis.Razor.Protocol.RazorLanguageKind.CSharp)
+        {
+            return RemoteResponse<LspRange?>.CallHtml;
+        }
+
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+        var csharpRange = await ExternalHandlers.Rename.GetRenameRangeAsync(generatedDocument, positionInfo.Position.ToLinePosition(), cancellationToken).ConfigureAwait(false);
+
+        if (csharpRange is null)
+        {
+            return RemoteResponse<LspRange?>.NoFurtherHandling;
+        }
+
+        if (!DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), csharpRange, out var mappedRange))
+        {
+            return RemoteResponse<LspRange?>.NoFurtherHandling;
+        }
+
+        // Component end tags are looked up via their matching start tag so Roslyn can find the symbol.
+        // If the request started on an end tag, shift the mapped range back so prepare-rename highlights that end tag text.
+        if (originalHostDocumentIndex != hostDocumentIndex)
+        {
+            var offset = originalHostDocumentIndex - hostDocumentIndex;
+            if (sourceText.TryGetAbsoluteIndex(mappedRange.Start, out var start) &&
+                sourceText.TryGetAbsoluteIndex(mappedRange.End, out var end))
+            {
+                mappedRange = sourceText.GetRange(start + offset, end + offset);
+            }
+        }
+
+        return RemoteResponse<LspRange?>.Results(mappedRange);
     }
 
     public ValueTask<WorkspaceEdit?> GetFileRenameEditAsync(
