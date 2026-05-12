@@ -8,7 +8,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
@@ -57,7 +57,7 @@ internal class RazorCohostDynamicRegistrationService(
             }
         }
 
-        var razorCohostClientLanguageServerManager = requestContext.GetRequiredService<IRazorClientLanguageServerManager>();
+        var razorCohostClientLanguageServerManager = requestContext.GetRequiredService<IClientLanguageServerManager>();
 
         var allRegistrations = registrations.ToArray();
         _logger.LogInformation($"Requesting {allRegistrations.Length} Razor cohost registrations.");

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
+using IClientLanguageServerManager = Microsoft.CodeAnalysis.LanguageServer.IClientLanguageServerManager;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -51,7 +51,7 @@ internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory
 
         FixUpWorkspaceEdit(request, _fileSystem);
 
-        var razorCohostClientLanguageServerManager = context.GetRequiredService<IRazorClientLanguageServerManager>();
+        var razorCohostClientLanguageServerManager = context.GetRequiredService<IClientLanguageServerManager>();
         var response = await razorCohostClientLanguageServerManager.SendRequestAsync<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
                Methods.WorkspaceApplyEditName,
                new ApplyWorkspaceEditParams() { Edit = request.Edit },
