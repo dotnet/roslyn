@@ -25,7 +25,7 @@ The general strategy for an individual test is:
 ## Troubleshooting
 
 - When adding a new test it's absolutely vital that you run it multiple times (5-10+) before even sending the PR since the most frequent issue in our Integration tests is flakyness. If you see any "random" failures while testing check `artifacts\log\Debug\Screenshots` for relevant logs and diagnostics.
-- Ensure you have deployed `Microsoft.VisualStudio.RazorExtension.Dependencies` if you're using a Preview version of VS, or have not deployed it if you're running VS IntPreview or main. If you've any doubt I recommend just checking the hive folder under `Extensions\Microsoft\Razor Extension Dependencies`.
+- If you're seeing packaging issues, check whether `Microsoft.VisualStudio.RazorExtension.Dependencies` was deployed to the hive folder under `Extensions\Microsoft\Razor Extension Dependencies`.
 - If you're suddenly seeing strange packaging issues it's likely your "Hive" is corrupted somehow. I recommend deleting all the folders containing `RoslynDev` from `AppData\Local\Microsoft\VisualStudio`
 - If the test did not produce enough logs/diagnostics to know why it failed it's time to [add/capture some more](https://github.com/dotnet/razor/blob/main/src/Razor/test/Microsoft.VisualStudio.Razor.IntegrationTests/VisualStudioLogging.cs).
 - When in doubt, ask for help!
@@ -40,7 +40,7 @@ The real trick usually lies in identifying the specific VS APIs and Services to 
 
 ## Limitations
 
-Generally development in Razor targets the VS main branch but we can't build against VS main for public repos due to policy. We must therefore be able to run the Integration tests against both VS preview and VS main at any given time, which can lead to to package versioning issues. We try to work around them with the `Microsoft.VisualStudio.RazorExtension.Dependencies` package, by forcibly deploying specific dependencies to the VS experimental hive that we will use for testing. That can be finicky and can break when there is a new VS preview released or one of our dependencies makes a breaking change in a DLL we are not redirecting.
+Generally development in Razor targets the VS main branch but we can't build against VS main for public repos due to policy. The `Microsoft.VisualStudio.RazorExtension.Dependencies` package helps local development and integration tests by deploying extra dependencies into the VS experimental hive. That can still be finicky when a new VS preview changes which assemblies are already present in the target instance.
 
 ## Running
 
