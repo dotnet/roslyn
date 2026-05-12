@@ -1904,7 +1904,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case ConversionKind.Union:
                     {
-                        // https://github.com/dotnet/roslyn/issues/82636: Confirm
+                        // The enclosing method is called only for a user defined conversion, or for a built-in conversion that is backed by
+                        // a runtime helper treated as a user-defined conversion operator, or for a To/From conversions underlying a user-defined
+                        // conversion. A union conversion is not a standard conversion and, therefore, cannot be used in any of those cases.
                         throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
                     }
                 case ConversionKind.IntPtr:

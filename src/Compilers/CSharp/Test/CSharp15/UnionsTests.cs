@@ -13727,6 +13727,35 @@ class Program
         }
 
         [Fact]
+        public void UnionConversion_57_WriteConsideredUse()
+        {
+            var source = """
+                S s;
+                s = (S)100;
+
+                union S(int);
+                """;
+            CreateCompilation([source, UnionAttributeSource, IUnionSource]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_58_DefaultValue()
+        {
+            var source = """
+                union S(int)
+                {
+                    static void M1(S v = 1)
+                    {}
+                }
+                """;
+            CreateCompilation([source, UnionAttributeSource, IUnionSource]).VerifyDiagnostics(
+                // (3,22): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'S'
+                //     static void M1(S v = 1)
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "v").WithArguments("int", "S").WithLocation(3, 22)
+                );
+        }
+
+        [Fact]
         public void UnionConversion_MemberProvider_01_Implicit()
         {
             var src = @"
@@ -40708,6 +40737,108 @@ union S1(int, bool)
         }
 
         [Fact]
+        public void UnionDeclaration_35_LanguageVersion()
+        {
+            var src = @"
+union S1(int);
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
+                // union S1(int);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(2, 1),
+                // (2,7): error CS8112: Local function 'S1(int)' must declare a body because it is not marked 'static extern'.
+                // union S1(int);
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "S1").WithArguments("S1(int)").WithLocation(2, 7),
+                // (2,7): warning CS8321: The local function 'S1' is declared but never used
+                // union S1(int);
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "S1").WithArguments("S1").WithLocation(2, 7),
+                // (2,13): error CS1001: Identifier expected
+                // union S1(int);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 13)
+                );
+
+            comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void UnionDeclaration_36_LanguageVersion()
+        {
+            var comp = CreateCompilation([UnionAttributeSource, IUnionSource], parseOptions: TestOptions.Regular14).
+                AddSyntaxTrees(createUnionDeclaration(TestOptions.Regular14).SyntaxTree);
+
+            comp.VerifyDiagnostics(
+                // (1,1): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // unionS1(int);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "union").WithArguments("unions").WithLocation(1, 1)
+                );
+
+            comp = CreateCompilation([UnionAttributeSource, IUnionSource], parseOptions: TestOptions.RegularNext).
+                AddSyntaxTrees(createUnionDeclaration(TestOptions.RegularNext).SyntaxTree);
+
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([UnionAttributeSource, IUnionSource], parseOptions: TestOptions.RegularPreview).
+                AddSyntaxTrees(createUnionDeclaration(TestOptions.RegularPreview).SyntaxTree);
+
+            comp.VerifyDiagnostics();
+
+            static CompilationUnitSyntax createUnionDeclaration(CSharpParseOptions parseOptions)
+            {
+                // union S1(int);
+                var node = SyntaxFactory.CompilationUnit().AddMembers(
+                    SyntaxFactory.StructDeclaration(
+                        attributeLists: default,
+                        modifiers: default,
+                        keyword: SyntaxFactory.Token(SyntaxKind.UnionKeyword),
+                        identifier: SyntaxFactory.Identifier("S1"),
+                        typeParameterList: null,
+                        parameterList: SyntaxFactory.ParameterList(
+                            SyntaxFactory.SeparatedList<ParameterSyntax>().Add(
+                                SyntaxFactory.Parameter(attributeLists: default, modifiers: default, type: SyntaxFactory.ParseTypeName("int"), identifier: default, @default: null))),
+                        baseList: null,
+                        constraintClauses: default,
+                        openBraceToken: default,
+                        members: default,
+                        closeBraceToken: default,
+                        semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+
+                node._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(node, parseOptions);
+                return node;
+            }
+        }
+
+        [Fact]
+        public void UnionDeclaration_37_CheckMemberForAttributes()
+        {
+            var src = @"
+class C1
+{
+    [System.Obsolete]
+    public union S1(int);
+}
+
+class C2
+{
+    static void M1(C1.S1 x)
+    {}
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (10,20): warning CS0612: 'C1.S1' is obsolete
+                //     static void M1(C1.S1 x)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C1.S1").WithArguments("C1.S1").WithLocation(10, 20)
+                );
+
+            Assert.True(((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C1")).AnyMemberHasAttributes);
+        }
+
+        [Fact]
         public void ValueProperty_01()
         {
             var src = @"
@@ -46521,6 +46652,405 @@ class Program
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
                 );
+        }
+
+        [Fact]
+        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_01()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.Union]
+struct S
+{
+    public S(C? c)
+    {
+    }
+}
+
+struct C
+{
+    void M1(C? c1)
+    {
+        int x;
+        S s = (S?)c1?.M2(x = 0) ?? c1.Value.M3(x = 0);
+#line 15
+        x.ToString(); // 1
+    }
+
+    C M2(object obj) { return this; }
+    S M3(object obj) { return (S)this; }
+}
+";
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
+                // (15,9): error CS0165: Use of unassigned local variable 'x'
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(15, 9));
+        }
+
+        [Fact]
+        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_02()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.Union]
+class B
+{
+    public B(C c)
+    {
+    }
+}
+
+class C
+{
+    void M1(C c1)
+    {
+        int x;
+        B b = (B)c1?.M1(x = 0) ?? c1!.M2(x = 0);
+#line 11
+        x.ToString(); // 1
+    }
+
+    C M1(object obj) { return this; }
+    B M2(object obj) { return new B(null); }
+}
+";
+            // If the LHS of a `??` is cast using a user-defined conversion whose parameter
+            // is not a non-nullable value type, we can't propagate out the "state when not null"
+            // because we can't know whether the conditional access itself was non-null.
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
+                // (11,9): error CS0165: Use of unassigned local variable 'x'
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(11, 9));
+        }
+
+        [Fact]
+        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_03()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.Union]
+struct B
+{
+    public B(C c)
+    {}
+}
+
+struct C
+{
+    void M1(C? c1)
+    {
+        int x;
+        B b = (B?)c1?.M1(x = 0) ?? c1!.Value.M2(x = 0);
+        x.ToString();
+    }
+
+    C M1(object obj) { return this; }
+    B M2(object obj) { return new B(); }
+}
+";
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
+                // (14,15): error CS0030: Cannot convert type 'C?' to 'B?'
+                //         B b = (B?)c1?.M1(x = 0) ?? c1!.Value.M2(x = 0);
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(B?)c1?.M1(x = 0)").WithArguments("C?", "B?").WithLocation(14, 15),
+                // (15,9): error CS0165: Use of unassigned local variable 'x'
+                //         x.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_04()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.Union]
+struct B
+{
+    public B(C c)
+    {}
+}
+
+struct C
+{
+    void M1(C? c1)
+    {
+        int x;
+        B? b = (B?)c1?.M1(x = 0) ?? c1!.Value.M2(x = 0);
+        x.ToString();
+    }
+
+    C M1(object obj) { return this; }
+    B? M2(object obj) { return new B(); }
+}
+";
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
+                // (14,16): error CS0030: Cannot convert type 'C?' to 'B?'
+                //         B? b = (B?)c1?.M1(x = 0) ?? c1!.Value.M2(x = 0);
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(B?)c1?.M1(x = 0)").WithArguments("C?", "B?").WithLocation(14, 16),
+                // (15,9): error CS0165: Use of unassigned local variable 'x'
+                //         x.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_05()
+        {
+            var source = @"
+[System.Runtime.CompilerServices.Union]
+struct B
+{
+    public B(C c)
+    {}
+}
+
+class C
+{
+    static void M1(C c1)
+    {
+        int x;
+        B b = (B?)c1?.M1(x = 0) ?? c1.M2(x = 0);
+#line 13
+        x.ToString(); // 1
+    }
+
+    C M1(object obj) { return this; }
+    B M2(object obj) { return default; }
+}
+";
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
+                // (13,9): error CS0165: Use of unassigned local variable 'x'
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(13, 9));
+        }
+
+        [Fact]
+        public void NullCoalescingOperator_09()
+        {
+            var source =
+@"C? c = new C();
+D d = c ?? new D();
+
+d.ToString();
+
+class C {}
+
+[System.Runtime.CompilerServices.Union]
+class D : D.IUnionMembers
+{
+    public interface IUnionMembers  
+    {
+        public static D? Create(C c) => default;
+    }
+}
+";
+
+            var comp = CreateCompilation([source, UnionAttributeSource], options: WithNullableEnable(TestOptions.ReleaseExe));
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // D d = c ?? new D();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c ?? new D()").WithLocation(2, 7),
+                // (4,1): warning CS8602: Dereference of a possibly null reference.
+                // d.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d").WithLocation(4, 1)
+            );
+        }
+
+        [Fact]
+        public void ImplicitConversions_07() // This is a clone of a test from NullableReferenceTypesTests
+        {
+            var source =
+@"
+[System.Runtime.CompilerServices.Union]
+class A<T>
+{
+    public A(B<T> b) => throw null!;
+}
+class B<T>
+{
+}
+class C
+{
+    static B<T> F<T>(T t) => throw null!;
+    static void G(A<object?> a) => throw null!;
+    static void Main(object? x)
+    {
+        var y = F(x);
+        G(y);
+        if (x == null) return;
+        var z = F(x);
+#line 18
+        G(z); // warning
+
+        var z2 = F(x);
+        G(z2!);
+    }
+}";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (18,11): warning CS8620: Argument of type 'B<object>' cannot be used for parameter 'b' of type 'B<object?>' in 'A<object?>.A(B<object?> b)' due to differences in the nullability of reference types.
+                //         G(z); // warning
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("B<object>", "B<object?>", "b", "A<object?>.A(B<object?> b)").WithLocation(18, 11)
+                );
+        }
+
+        [Fact]
+        public void ImplicitConversion_Params() // This is a clone of a test from NullableReferenceTypesTests
+        {
+            var source =
+@"
+[System.Runtime.CompilerServices.Union]
+class A<T>
+{
+    public A(B<T> b) => throw null!;
+}
+
+class B<T>
+{
+}
+
+class C
+{
+    static B<T> F<T>(T t) => throw null!;
+    static void G(params A<object>[] a) => throw null!;
+
+    static void Main(object? x)
+    {
+        var y = F(x);
+#line 16
+        G(y); // 1
+
+        if (x == null) return;
+        var z = F(x);
+        G(z);
+    }
+}";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (16,11): warning CS8620: Argument of type 'B<object?>' cannot be used for parameter 'b' of type 'B<object>' in 'A<object>.A(B<object> b)' due to differences in the nullability of reference types.
+                //         G(y); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("B<object?>", "B<object>", "b", "A<object>.A(B<object> b)").WithLocation(16, 11)
+                );
+        }
+
+        [Fact]
+        public void NullableT_NullableStructToClass() // This is a clone of a test from NullableReferenceTypesTests
+        {
+            var source =
+@"struct S
+{
+}
+
+[System.Runtime.CompilerServices.Union]
+class C
+{
+    public C(S? s)
+    {}
+}
+
+class Program
+{
+    // S -> C
+    static void F1(S s)
+    {
+        var c1 = (C)s;
+        _ = c1.ToString();
+        C c2 = s;
+        _ = c2.ToString();
+    }
+    // S? -> C?
+    static void F2(S? ns)
+    {
+        if (ns.HasValue)
+        {
+            var c1 = (C?)ns;
+#line 24
+            _ = c1.ToString(); // 1
+            C? c2 = ns;
+            _ = c2.ToString();
+        }
+        else
+        {
+            var c3 = (C?)ns;
+#line 31
+            _ = c3.ToString(); // 2
+            C? c4 = ns;
+            _ = c4.ToString();
+        }
+    }
+}";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (24,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = c1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(24, 17),
+                // (31,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = c3.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c3").WithLocation(31, 17));
+        }
+
+        [Fact]
+        public void TestOrder02() // This is a clone of a test from CodeGenTupleEqualityTests
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        var result = (new B(1), new Nullable<B>(new A(2))) == (new A(3), new B(4));
+        Console.WriteLine();
+        Console.WriteLine(result);
+    }
+}
+
+struct A
+{
+    public readonly int N;
+    public A(int n)
+    {
+        this.N = n;
+        Console.Write($""new A({ n }); "");
+    }
+}
+
+[System.Runtime.CompilerServices.Union]
+#line 22
+struct B
+{
+    public readonly int N;
+    public B(int n)
+    {
+        this.N = n;
+        Console.Write($""new B({n}); "");
+    }
+    public B(A a)
+    {
+        Console.Write($""A({a.N})->"");
+        N = a.N;
+        Console.Write($""new B({N}); "");
+    }
+    public static bool operator ==(B b1, B b2)
+    {
+        Console.Write($""B({b1.N})==B({b2.N}); "");
+        return b1.N == b2.N;
+    }
+    public static bool operator !=(B b1, B b2)
+    {
+        Console.Write($""B({b1.N})!=B({b2.N}); "");
+        return b1.N != b2.N;
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                    // (22,8): warning CS0660: 'B' defines operator == or operator != but does not override Object.Equals(object o)
+                    // struct B
+                    Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "B").WithArguments("B").WithLocation(22, 8),
+                    // (22,8): warning CS0661: 'B' defines operator == or operator != but does not override Object.GetHashCode()
+                    // struct B
+                    Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "B").WithArguments("B").WithLocation(22, 8)
+                );
+            CompileAndVerify(comp, expectedOutput: @"new B(1); new A(2); A(2)->new B(2); new A(3); new B(4); A(3)->new B(3); B(1)==B(3); 
+False
+");
         }
     }
 }

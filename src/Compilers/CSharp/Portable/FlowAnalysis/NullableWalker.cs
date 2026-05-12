@@ -6237,7 +6237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (TypeSymbol ResultType, NullableFlowState LeftState) getResultStateWithRightType(TypeSymbol leftType, TypeSymbol rightType)
             {
                 var conversion = GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true, isChecked: node.Checked);
-                if (conversion.IsUserDefined) // https://github.com/dotnet/roslyn/issues/82636: Confirm no special handling necessary or add it.
+                if (conversion.IsUserDefined || conversion.IsUnion)
                 {
                     var conversionResult = VisitConversion(
                         conversionOpt: null,
@@ -8194,7 +8194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
-                        if (conversion is { IsValid: true, Kind: ConversionKind.ImplicitUserDefined }) // https://github.com/dotnet/roslyn/issues/82636: Do we need to add special handling for Union conversions?
+                        if (conversion is { IsValid: true, Kind: ConversionKind.ImplicitUserDefined }) // Looking at unit-tests ImplicitConversions_07 and ImplicitConversion_Params, the behavior looks good without special handling for Union conversions here.
                         {
                             var argumentResultType = resultType.Type;
                             conversion = GenerateConversion(_conversions, argumentNoConversion, argumentResultType, parameterType.Type, fromExplicitCast: false, extensionMethodThisArgument: false, isChecked: conversionOpt?.Checked ?? false);
@@ -9994,7 +9994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Don't skip the node when it's a user-defined conversion, as identity conversions
                     // on top of user-defined conversions means that we're coming in from VisitUserDefinedConversion
                     // and that any warnings caught by this recursive call of VisitConversion won't be redundant.
-                    if (useLegacyWarnings && conversionOperand is BoundConversion operandConversion && !operandConversion.ConversionKind.IsUserDefinedConversion()) // https://github.com/dotnet/roslyn/issues/82636: Follow up
+                    if (useLegacyWarnings && conversionOperand is BoundConversion operandConversion && !operandConversion.ConversionKind.IsUserDefinedConversion()) // Based on behavior of NullableT_NullableStructToClass unit-test we don't need to specially handle Union conversions here
                     {
                         var explicitType = operandConversion.ConversionGroupOpt?.ExplicitType;
                         if (explicitType?.Equals(targetTypeWithNullability, TypeCompareKind.ConsiderEverything) == true)
@@ -10705,7 +10705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Update constructor symbol in the tree: see https://github.com/dotnet/roslyn/issues/29605.
 
-            return TypeWithState.Create(targetType, NullableFlowState.NotNull);
+            return operandType;
         }
 
         private void SnapshotWalkerThroughConversionGroup(BoundExpression conversionExpression, BoundExpression convertedNode)

@@ -154,6 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _kind = kind;
             _uncommonData = uncommonData;
+
+            Validate();
+        }
+
+        [Conditional("DEBUG")]
+        private void Validate()
+        {
+            Debug.Assert(!(this is { IsNullable: true, UnderlyingConversions: var underlying } && (underlying[0].IsUserDefined || underlying[0].IsUnion)));
         }
 
         internal Conversion(UserDefinedConversionResult conversionResult, bool isImplicit)
@@ -169,6 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isArrayIndex: false,
                     conversionResult: conversionResult,
                     conversionMethod: null);
+
+            Validate();
         }
 
         // For the method group, lambda and anonymous method conversions
@@ -180,6 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isArrayIndex: false,
                 conversionResult: default,
                 conversionMethod: conversionMethod);
+
+            Validate();
         }
 
         internal Conversion(ConversionKind kind, ImmutableArray<Conversion> nestedConversions)
@@ -187,6 +199,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._kind = kind;
             _uncommonData = new NestedUncommonData(
                 nestedConversions: nestedConversions);
+
+            Validate();
         }
 
         internal Conversion(ConversionKind kind, DeconstructMethodInfo deconstructMethodInfo, ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> deconstructConversionInfo)
@@ -195,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this._kind = kind;
             _uncommonData = new DeconstructionUncommonData(deconstructMethodInfo, deconstructConversionInfo);
+
+            Validate();
         }
 
         internal Conversion SetConversionMethod(MethodSymbol conversionMethod)
