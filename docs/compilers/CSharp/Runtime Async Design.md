@@ -636,8 +636,8 @@ a[_tmp1] = _tmp2 + _tmp3;
 #### Await any other type
 [await any other type]: #await-any-other-type
 
-For anything that isn't a `Task`, `Task<T>`, `ValueTask`, and `ValueTask<T>`, we instead use `System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiterFromRuntimeAsync` or
-`System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiterFromRuntimeAsync`. These are covered below.
+For anything that isn't a `Task`, `Task<T>`, `ValueTask`, and `ValueTask<T>`, we instead use `System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter` or
+`System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter`. These are covered below.
 
 ##### Implementor of ICriticalNotifyCompletion
 
@@ -669,7 +669,7 @@ _ = {
     var awaiter = c.GetAwaiter();
     if (!awaiter.IsCompleted)
     {
-        System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiterFromRuntimeAsync<C.Awaiter>(awaiter);
+        System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<C.Awaiter>(awaiter);
     }
     awaiter.GetResult()
 };
@@ -689,7 +689,7 @@ _ = {
     IL_0011: brtrue.s IL_0019
 
     IL_0013: ldloc.0
-    IL_0014: call void [System.Runtime]System.Runtime.CompilerServices.AsyncHelpers::UnsafeAwaitAwaiterFromRuntimeAsync<class C/Awaiter>(!!0)
+    IL_0014: call void [System.Runtime]System.Runtime.CompilerServices.AsyncHelpers::UnsafeAwaitAwaiter<class C/Awaiter>(!!0)
 
     IL_0019: ldloc.0
     IL_001a: callvirt instance void C/Awaiter::GetResult()
@@ -724,7 +724,7 @@ _ = {
     var awaiter = c.GetAwaiter();
     if (!awaiter.IsCompleted)
     {
-        System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiterFromRuntimeAsync<C.Awaiter>(awaiter);
+        System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<C.Awaiter>(awaiter);
     }
     awaiter.GetResult()
 };
@@ -744,10 +744,43 @@ _ = {
     IL_0011: brtrue.s IL_0019
 
     IL_0013: ldloc.0
-    IL_0014: call void [System.Runtime]System.Runtime.CompilerServices.AsyncHelpers::AwaitAwaiterFromRuntimeAsync<class C/Awaiter>(!!0)
+    IL_0014: call void [System.Runtime]System.Runtime.CompilerServices.AsyncHelpers::AwaitAwaiter<class C/Awaiter>(!!0)
 
     IL_0019: ldloc.0
     IL_001a: callvirt instance void C/Awaiter::GetResult()
     IL_001f: ret
-} 
+}
 ```
+
+##### Dynamic awaiters
+
+Dynamic awaits use the same runtime async suspension point as the `INotifyCompletion` case, but the compiler does not statically know the awaiter type. For dynamic properties, the property access and await pattern operations remain dynamic operations, while the value passed to the runtime helper is converted to `INotifyCompletion`.
+
+```cs
+dynamic c = GetDynamicReceiver();
+int i = await c.Property;
+```
+
+Translated C#:
+
+```cs
+dynamic c = GetDynamicReceiver();
+_ = {
+    dynamic awaiter = c.Property.GetAwaiter();
+    if (!awaiter.IsCompleted)
+    {
+        System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Runtime.CompilerServices.INotifyCompletion>(
+            (System.Runtime.CompilerServices.INotifyCompletion)awaiter);
+    }
+    int i = awaiter.GetResult();
+};
+```
+
+The dynamic strategy for implementation is:
+
+1. Preserve the existing dynamic call sites used to evaluate the awaited property and call `GetAwaiter`.
+2. Store the dynamic awaiter in a synthesized temp so `IsCompleted`, the `INotifyCompletion` conversion, and `GetResult` observe the same awaiter instance.
+3. Emit the `IsCompleted` dynamic operation using the normal await pattern rules.
+4. When `IsCompleted` is false, emit a conversion from the awaiter temp to `INotifyCompletion` and pass that converted value to `AsyncHelpers.AwaitAwaiter<INotifyCompletion>`.
+5. Emit the dynamic `GetResult` call only when the await expression result is needed, preserving the existing result conversion behavior.
+6. Add tests for dynamic property awaits with `void` and non-`void` `GetResult`, completed and incomplete awaiters, and failure cases where the awaiter cannot be converted to `INotifyCompletion`.
