@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.RazorExtension\language-configuration.json">
+    <None Include="$(RepoRoot)src\Razor\Tooling\Microsoft.VisualStudio.RazorExtension\language-configuration.json">
       <Link>language-configuration.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

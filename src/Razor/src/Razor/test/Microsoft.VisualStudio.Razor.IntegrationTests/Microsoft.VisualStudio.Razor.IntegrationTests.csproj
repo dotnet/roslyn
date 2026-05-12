@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json" />
+    <EmbeddedResource Include="$(RepoRoot)src\Razor\Tooling\Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,7 +24,7 @@
       <PrivateAssets>All</PrivateAssets>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
     </ProjectReference>
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj">
+    <ProjectReference Include="$(RepoRoot)src\Razor\Tooling\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj">
       <PrivateAssets>All</PrivateAssets>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
