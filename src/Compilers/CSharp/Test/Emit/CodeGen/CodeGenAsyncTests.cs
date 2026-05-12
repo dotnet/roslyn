@@ -2656,11 +2656,84 @@ class Test
             CompileAndVerify(source, "42");
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (9,16): error CS9328: Method 'Test.F1(dynamic)' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         return await d;
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await d").WithArguments("Test.F1(dynamic)").WithLocation(9, 16)
-            );
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property => new Awaiter();
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted => true;
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() => 42;
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_VoidResult()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property => new Awaiter();
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted => true;
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
         }
 
         [Fact]

@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 {
+    private const int RuntimeAsyncDynamicCallSiteContainerOrdinal = -2;
+
     public static BoundStatement Rewrite(
         BoundStatement node,
         MethodSymbol method,
@@ -93,7 +95,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
     {
         Debug.Assert(factory.CurrentFunction != null);
         _factory = factory;
-        _dynamicFactory = new LoweredDynamicOperationFactory(factory, methodOrdinal);
+        _dynamicFactory = new LoweredDynamicOperationFactory(factory, methodOrdinal, RuntimeAsyncDynamicCallSiteContainerOrdinal);
         _placeholderMap = [];
         _variablesToHoist = variablesToHoist;
         _refInitializationHoister = new RefInitializationHoister<LocalSymbol, BoundLocal>(_factory, _factory.CurrentFunction, TypeMap.Empty);
@@ -127,7 +129,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
         if (awaitableInfo.IsDynamic)
         {
-            return RewriteDynamicAwaiterAwait(node);
+            return RewriteDynamicAwaiterAwait(node, resultDiscarded: false);
         }
 
         var runtimeAsyncAwaitCall = awaitableInfo.RuntimeAsyncAwaitCall;
@@ -215,7 +217,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             result: getResultCall);
     }
 
-    private BoundExpression RewriteDynamicAwaiterAwait(BoundAwaitExpression node)
+    private BoundExpression RewriteDynamicAwaiterAwait(BoundAwaitExpression node, bool resultDiscarded)
     {
         // await expr
         // becomes
@@ -251,7 +253,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         var ifNotCompleted = _factory.HiddenSequencePoint(
             _factory.If(_factory.Not(isCompletedCall), _factory.ExpressionStatement(awaitCall)));
 
-        var getResultCall = MakeDynamicMemberInvocation(tmp, WellKnownMemberNames.GetResult);
+        var getResultCall = MakeDynamicMemberInvocation(tmp, WellKnownMemberNames.GetResult, resultDiscarded);
 
         return _factory.SpillSequence(
             locals: [tmp.LocalSymbol],
@@ -259,7 +261,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             result: getResultCall);
     }
 
-    private BoundExpression MakeDynamicMemberInvocation(BoundExpression receiver, string methodName)
+    private BoundExpression MakeDynamicMemberInvocation(BoundExpression receiver, string methodName, bool resultDiscarded = false)
     {
         return _dynamicFactory.MakeDynamicMemberInvocation(
             methodName,
@@ -269,7 +271,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             argumentNames: ImmutableArray<string?>.Empty,
             refKinds: ImmutableArray<RefKind>.Empty,
             hasImplicitReceiver: false,
-            resultDiscarded: false).ToExpression();
+            resultDiscarded).ToExpression();
     }
 
     public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
@@ -380,6 +382,11 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
     public override BoundNode? VisitExpressionStatement(BoundExpressionStatement node)
     {
+        if (node.Expression is BoundAwaitExpression { AwaitableInfo.IsDynamic: true } awaitExpression)
+        {
+            return node.Update(RewriteDynamicAwaiterAwait(awaitExpression, resultDiscarded: true));
+        }
+
         var expr = VisitExpression(node.Expression);
         if (expr is null)
         {
