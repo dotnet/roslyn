@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp;
 internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 {
     // LocalRewriter may have already created a dynamic call site container for the same method ordinal. Use a distinct
-    // local function ordinal that cannot collide with source local functions, which use non-negative ordinals.
+    // local function ordinal for runtime async dynamic await lowering. -1 means "no local function" in dynamic call
+    // site container names, and source local functions use non-negative ordinals, so -2 avoids both sets.
     private const int RuntimeAsyncDynamicCallSiteContainerOrdinal = -2;
 
     public static BoundStatement Rewrite(
@@ -42,6 +43,8 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         }
         catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
         {
+            // Dynamic await lowering can introduce helper member references after binding has completed. Report missing
+            // predefined members here, matching other lowering passes that synthesize required member calls.
             diagnostics.Add(ex.Diagnostic);
             return new BoundBadStatement(node.Syntax, ImmutableArray.Create<BoundNode>(node), hasErrors: true);
         }
@@ -246,7 +249,8 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             resultType: _factory.SpecialType(SpecialType.System_Boolean)).ToExpression();
 
         var notifyCompletionType = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion);
-        var awaitMethod = ((MethodSymbol)_factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter)).Construct(notifyCompletionType);
+        var awaitAwaiterDefinition = (MethodSymbol)_factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
+        var awaitMethod = awaitAwaiterDefinition.Construct(notifyCompletionType);
         var awaitCall = _factory.Call(
             receiver: null,
             awaitMethod,
