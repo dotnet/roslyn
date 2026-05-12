@@ -415,4 +415,40 @@
   <data name="DoNotUseInterpolatedStringsWithDebugAssertCodeFix" xml:space="preserve">
     <value>Use 'RoslynDebug.Assert'.</value>
   </data>
+  <data name="PooledArrayBuilderAsRefDescription" xml:space="preserve">
+    <value>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</value>
+    <comment>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
+  </data>
+  <data name="PooledArrayBuilderAsRefMessage" xml:space="preserve">
+    <value>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</value>
+    <comment>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
+  </data>
+  <data name="PooledArrayBuilderAsRefTitle" xml:space="preserve">
+    <value>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</value>
+    <comment>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
+  </data>
+  <data name="IRemoteJsonServiceParameterDescription" xml:space="preserve">
+    <value>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</value>
+    <comment>{Locked="IRemoteJsonService"}{Locked="RazorPinnedSolutionInfoWrapper"}{Locked="DocumentId"}{Locked="JSON"}</comment>
+  </data>
+  <data name="IRemoteJsonServiceParameterMessage" xml:space="preserve">
+    <value>Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</value>
+    <comment>{Locked="JSON"}</comment>
+  </data>
+  <data name="IRemoteJsonServiceParameterTitle" xml:space="preserve">
+    <value>Invalid parameter type in IRemoteJsonService method</value>
+    <comment>{Locked="IRemoteJsonService"}</comment>
+  </data>
+  <data name="ImmutableArrayBoxingTitle" xml:space="preserve">
+    <value>ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</value>
+    <comment>{Locked="ImmutableArray&lt;T&gt;"}{Locked="IReadOnlyList&lt;T&gt;"}</comment>
+  </data>
+  <data name="ImmutableArrayBoxingDescription" xml:space="preserve">
+    <value>Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</value>
+    <comment>{Locked="EnumerableExtensions"}{Locked="ReadOnlyListExtensions"}{Locked="ImmutableArray&lt;T&gt;"}</comment>
+  </data>
+  <data name="ImmutableArrayBoxingMessage" xml:space="preserve">
+    <value>Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</value>
+    <comment>{Locked="ImmutableArray&lt;T&gt;"}</comment>
+  </data>
 </root>
