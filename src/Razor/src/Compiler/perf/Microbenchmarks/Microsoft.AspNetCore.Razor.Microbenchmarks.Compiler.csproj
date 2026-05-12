@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)src\Razor\Shared\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Razor\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.Security.Cryptography.Xml" />

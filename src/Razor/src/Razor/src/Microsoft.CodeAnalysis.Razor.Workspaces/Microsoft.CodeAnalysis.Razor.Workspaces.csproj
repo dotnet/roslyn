@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Razor\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -67,7 +67,7 @@
     <ProjectReference Update="$(RepoRoot)src\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Update="$(RepoRoot)src\Razor\src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
+    <ProjectReference Update="$(RepoRoot)src\Razor\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Update="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj">

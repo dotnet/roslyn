@@ -36,7 +36,7 @@
 
   <!-- Reference the local source generator when building in regular configurations -->
   <ItemGroup Condition="'$(Configuration)' != 'Release_Nuget'">
-    <ProjectReference Include="$(RepoRoot)src\Razor\src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="$(RepoRoot)src\Razor\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
   </ItemGroup>
 
   <!-- Grab the nuget package and reference its generator when building in Release_Nuget  -->
