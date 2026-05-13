@@ -69,7 +69,7 @@ namespace Xunit.InProcess
                 var path = Path.Combine(directory, assemblyName.Name + ".dll");
                 if (File.Exists(path))
                 {
-                    return Assembly.LoadFrom(path);
+                    return LoadAssemblyFromPath(path);
                 }
 
                 return null;
@@ -111,6 +111,9 @@ namespace Xunit.InProcess
 
             return null;
         }
+
+        private static Assembly LoadAssemblyFromPath(string path)
+            => Assembly.LoadFile(Path.GetFullPath(path));
 
         private static IEnumerable<string> GetVisualStudioRoslynProductAssemblyDirectories(string codeBaseDirectory)
         {

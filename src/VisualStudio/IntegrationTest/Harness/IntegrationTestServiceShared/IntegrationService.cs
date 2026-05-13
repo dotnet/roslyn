@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.IntegrationTestService
         {
             AddCodeBaseDirectory(Path.GetDirectoryName(assemblyFilePath));
 
-            var assembly = Assembly.LoadFrom(assemblyFilePath);
+            var assembly = LoadAssemblyFromPath(assemblyFilePath);
             var type = assembly.GetType(typeFullName);
             var methodInfo = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
             var result = methodInfo.Invoke(null, null);
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.IntegrationTestService
                 var path = Path.Combine(directory, assemblyName.Name + ".dll");
                 if (File.Exists(path))
                 {
-                    return Assembly.LoadFrom(path);
+                    return LoadAssemblyFromPath(path);
                 }
 
                 return null;
@@ -157,6 +157,9 @@ namespace Microsoft.VisualStudio.IntegrationTestService
 
             return null;
         }
+
+        private static Assembly LoadAssemblyFromPath(string path)
+            => Assembly.LoadFile(Path.GetFullPath(path));
 
         private static Assembly? GetLoadedAssembly(AssemblyName requestedAssemblyName)
         {
