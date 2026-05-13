@@ -18,31 +18,18 @@ Source Location: (64:2,8 [7] x:\dir\subdir\Test\UseTestComponent.cshtml)
 Generated Location: (1401:45,25 [7] )
 |context|
 
-Source Location: (104:5,7 [176] x:\dir\subdir\Test\UseTestComponent.cshtml)
-|
-    (string, int) item1 = ("A string", 42);
-    static (string, int) item2 = ("Another string", 42);
-    List<(string, int)> items2 = new List<(string, int)>() { item2 };
-|
-Generated Location: (1688:58,0 [176] )
-|
-    (string, int) item1 = ("A string", 42);
-    static (string, int) item2 = ("Another string", 42);
-    List<(string, int)> items2 = new List<(string, int)>() { item2 };
-|
-
 Source Location: (14:1,1 [13] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |TestComponent|
-Generated Location: (2455:76,45 [13] )
+Generated Location: (2143:65,45 [13] )
 |TestComponent|
 
 Source Location: (28:1,15 [5] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |Item1|
-Generated Location: (2678:80,0 [5] )
+Generated Location: (2366:69,0 [5] )
 |Item1|
 
 Source Location: (40:1,27 [6] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |Items2|
-Generated Location: (2941:89,0 [6] )
+Generated Location: (2629:78,0 [6] )
 |Items2|
 

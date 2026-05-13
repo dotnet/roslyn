@@ -28,16 +28,3 @@ Source Location: (70:0,70 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (2175:57,0 [5] )
 |Value|
 
-Source Location: (105:1,7 [147] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    public CustomValue ParentValue { get; set; } = new CustomValue();
-
-    public void UpdateValue(CustomValue value) => ParentValue = value;
-|
-Generated Location: (2422:68,0 [147] )
-|
-    public CustomValue ParentValue { get; set; } = new CustomValue();
-
-    public void UpdateValue(CustomValue value) => ParentValue = value;
-|
-

@@ -28,16 +28,3 @@ Source Location: (70:0,70 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (2175:57,0 [5] )
 |Value|
 
-Source Location: (105:1,7 [179] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    public CustomValue ParentValue { get; set; } = new CustomValue();
-
-        public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }
-|
-Generated Location: (2422:68,0 [179] )
-|
-    public CustomValue ParentValue { get; set; } = new CustomValue();
-
-        public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }
-|
-

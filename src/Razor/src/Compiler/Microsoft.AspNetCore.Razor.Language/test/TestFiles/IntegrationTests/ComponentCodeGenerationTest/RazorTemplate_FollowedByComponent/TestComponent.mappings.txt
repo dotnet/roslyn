@@ -37,18 +37,3 @@ Source Location: (116:4,2 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (2051:63,25 [15] )
 |"hello, world!"|
 
-Source Location: (159:7,7 [76] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    class Person
-    {
-        public string Name { get; set; }
-    }
-|
-Generated Location: (2341:76,0 [76] )
-|
-    class Person
-    {
-        public string Name { get; set; }
-    }
-|
-

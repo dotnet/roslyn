@@ -24,14 +24,3 @@ Source Location: (127:7,2 [56] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1458:50,0 [56] )
 |System.Console.WriteLine(1);System.Console.WriteLine(2);|
 
-Source Location: (224:10,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    [Parameter]
-    public int IncrementAmount { get; set; }
-|
-Generated Location: (1774:61,0 [65] )
-|
-    [Parameter]
-    public int IncrementAmount { get; set; }
-|
-
