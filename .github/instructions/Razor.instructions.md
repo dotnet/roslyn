@@ -6,9 +6,9 @@ applyTo: "src/Razor/**/*.{cs,vb}"
 
 These instructions complement the repository-wide `copilot-instructions.md` and apply to
 all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
-`dotnet/razor`, and most files keep their original sub-tree layout
-(`src/Razor/src/Razor/...`, `src/Razor/src/Compiler/...`, `src/Razor/Shared/...`,
-`src/Razor/src/Analyzers/...`).
+`dotnet/razor`, but the active project layout now uses top-level buckets like
+`src/Razor/Compiler/...`, `src/Razor/Tooling/...`, `src/Razor/Shared/...`, and
+`src/Razor/Tests/...`.
 
 ## Critical Rules
 
@@ -23,12 +23,12 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
   before writing new utility methods. Don't duplicate.
 - **Avoid blind `dotnet test` over the whole Razor tree**: Razor includes Playwright-based
   VS Code integration tests under
-  `src\Razor\src\Razor\test\Microsoft.VisualStudioCode.Razor.IntegrationTests`. They require
+  `src\Razor\Tests\Tooling\Microsoft.VisualStudioCode.Razor.IntegrationTests`. They require
   VS Code and waste significant time. Target a specific test project with
   `dotnet test path\to\Project.csproj` instead.
 - **Shared projects need `.projitems` entries**: Files under
   `src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.CohostingShared\` and
-  `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\`
+  `src\Razor\Tests\Tooling\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\`
   are compiled through their `.projitems` files. Adding a new `.cs` file in either shared
   tree is not enough by itself. You must also add a matching `<Compile Include="...">`
   entry to `Microsoft.CodeAnalysis.Razor.CohostingShared.projitems` or
@@ -66,7 +66,7 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 - Test end-user scenarios, not implementation details.
 - Verify/helper methods go at the bottom of test files. New test methods go above them.
 - New tooling tests go in
-  `src\Razor\src\Razor\test\Microsoft.VisualStudioCode.RazorExtension.UnitTests`
+  `src\Razor\Tests\Tooling\Microsoft.VisualStudioCode.RazorExtension.UnitTests`
   (Cohosting architecture).
 - Integration tests using `AdditionalSyntaxTrees` for tag helper discovery must set
   `UseTwoPhaseCompilation => true` (see `ComponentDiscoveryIntegrationTest`).
@@ -85,13 +85,13 @@ When adding a new `IRemote*Service` and `Remote*Service`:
    `Include="Microsoft.VisualStudio.Razor.{ShortName}"` with
    `ClassName="{FullTypeName}+Factory"`. The `ShortName` is your interface name with
    `IRemote` and `Service` stripped (e.g., `IRemoteFrobulatorService` becomes `Frobulator`).
-5. Validate: `dotnet test src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Remote.Razor.UnitTests --filter "FullyQualifiedName~RazorServicesTest"`
+5. Validate: `dotnet test src\Razor\Tests\Tooling\Microsoft.CodeAnalysis.Remote.Razor.UnitTests\Microsoft.CodeAnalysis.Remote.Razor.UnitTests.csproj --filter "FullyQualifiedName~RazorServicesTest"`
 
 ## VS Code Validation
 
 Run Playwright E2E tests (the one place where `dotnet test` over a whole project tree is fine):
 
 ```powershell
-cd src\Razor\src\Razor\test\Microsoft.VisualStudioCode.Razor.IntegrationTests
+cd src\Razor\Tests\Tooling\Microsoft.VisualStudioCode.Razor.IntegrationTests
 dotnet test
 ```

@@ -169,8 +169,8 @@ function Add-FormattingLogTest {
 
 $resolvedZipPath = (Resolve-Path -LiteralPath $ZipPath).Path
 $repoRoot = Get-RepositoryRoot
-$testFilePath = Join-Path $repoRoot 'src\Razor\src\Razor\test\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests\Cohost\Formatting\FormattingLogTest.cs'
-$assetRoot = Join-Path $repoRoot 'src\Razor\src\Razor\test\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests\TestFiles\FormattingLog'
+$testFilePath = Join-Path $repoRoot 'src\Razor\Tests\Tooling\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests\Cohost\Formatting\FormattingLogTest.cs'
+$assetRoot = Join-Path $repoRoot 'src\Razor\Tests\Tooling\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests\TestFiles\FormattingLog'
 
 if (-not $TestName)
 {
