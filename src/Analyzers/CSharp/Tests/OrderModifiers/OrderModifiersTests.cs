@@ -488,6 +488,19 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
             }
             """);
 
+    [Fact]
+    public Task TestClosedClass()
+        => TestInRegularAndScriptAsync("""
+            [|closed public|] class C
+            {
+            }
+            """,
+            """
+            public closed class C
+            {
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7553")]
     public Task TestEmptySelection()
         => TestInRegularAndScriptAsync(

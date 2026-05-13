@@ -19,6 +19,7 @@ internal sealed class ClassKeywordRecommender() : AbstractSyntacticSingleKeyword
             SyntaxKind.InternalKeyword,
             SyntaxKind.PrivateKeyword,
             SyntaxKind.AbstractKeyword,
+            SyntaxKind.ClosedKeyword,
             SyntaxKind.SealedKeyword,
             SyntaxKind.StaticKeyword,
             SyntaxKind.UnsafeKeyword,

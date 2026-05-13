@@ -26,6 +26,7 @@ internal sealed class CSharpClassSnippetProvider()
         SyntaxKind.InternalKeyword,
         SyntaxKind.PrivateKeyword,
         SyntaxKind.AbstractKeyword,
+        SyntaxKind.ClosedKeyword,
         SyntaxKind.SealedKeyword,
         SyntaxKind.StaticKeyword,
         SyntaxKind.UnsafeKeyword,
