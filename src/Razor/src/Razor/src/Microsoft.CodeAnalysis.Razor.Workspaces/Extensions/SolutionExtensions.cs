@@ -87,7 +87,9 @@ internal static class SolutionExtensions
             return false;
         }
 
-        identity = solution.GetIdentityOfGeneratedDocument(generatedDocumentUri);
+#pragma warning disable CS0618 // Type or member is obsolete
+        identity = solution.GetIdentityOfGeneratedDocument(new DocumentUri(generatedDocumentUri));
+#pragma warning restore CS0618 // Type or member is obsolete
 
         if (!identity.IsRazorSourceGeneratedDocument())
         {

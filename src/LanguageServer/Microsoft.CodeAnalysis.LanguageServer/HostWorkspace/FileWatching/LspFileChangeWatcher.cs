@@ -105,7 +105,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         {
             foreach (var changedFile in e.Changes)
             {
-                var filePath = changedFile.Uri.GetRequiredParsedUri().LocalPath;
+                var filePath = changedFile.Uri.GetRequiredParsedUri().FsPath;
 
                 // Unfortunately the LSP protocol doesn't give us any hint of which of the file watches we might have sent to the client
                 // was the one that registered for this change, so we have to check paths to see if this one we should respond to.

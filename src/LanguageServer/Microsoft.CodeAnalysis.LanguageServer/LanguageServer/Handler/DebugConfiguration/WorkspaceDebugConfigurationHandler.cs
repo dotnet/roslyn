@@ -41,7 +41,7 @@ internal sealed class WorkspaceDebugConfigurationHandler : ILspServiceRequestHan
 
     private static bool IsProjectInWorkspace(DocumentUri workspacePath, Project project)
     {
-        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.GetRequiredParsedUri().LocalPath);
+        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.GetRequiredParsedUri().FsPath);
     }
 
     private ProjectDebugConfiguration GetProjectDebugConfiguration(Project project)

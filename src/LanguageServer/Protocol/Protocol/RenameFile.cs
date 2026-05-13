@@ -37,14 +37,6 @@ internal sealed class RenameFile : IAnnotatedChange
         set;
     }
 
-    [Obsolete("Use OldDocumentUri instead. This property will be removed in a future version.")]
-    [JsonIgnore]
-    public Uri OldUri
-    {
-        get => OldDocumentUri.GetRequiredParsedUri();
-        set => OldDocumentUri = new DocumentUri(value);
-    }
-
     /// <summary>
     /// Gets or sets the new location.
     /// </summary>
@@ -55,14 +47,6 @@ internal sealed class RenameFile : IAnnotatedChange
     {
         get;
         set;
-    }
-
-    [Obsolete("Use NewDocumentUri instead. This property will be removed in a future version.")]
-    [JsonIgnore]
-    public Uri NewUri
-    {
-        get => NewDocumentUri.GetRequiredParsedUri();
-        set => NewDocumentUri = new DocumentUri(value);
     }
 
     /// <summary>

@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
@@ -27,14 +28,27 @@ internal struct XamlRequestContext
     [Obsolete("Use ClientCapabilities instead.")]
     public readonly IClientCapabilityProvider ClientCapabilityProvider => new ClientCapabilityProvider(_context.GetRequiredClientCapabilities());
 
+    [Obsolete("Use overload that takes a DocumentUri instead of Uri. This method will be removed in a future version.")]
     public object ToCachedResolveData(object data, Uri uri)
+    {
+        return ToCachedResolveData(data, new DocumentUri(uri));
+    }
+
+    public object ToCachedResolveData(object data, DocumentUri uri)
     {
         var resolveDataCache = _context.GetRequiredLspService<ResolveDataCache>();
 
         return ResolveDataConversions.ToCachedResolveData(data, uri, resolveDataCache);
     }
 
+    [Obsolete("Use FromCachedResolveDataDocumentUri instead. This method will be removed in a future version.")]
     public (object? data, Uri? uri) FromCachedResolveData(object? lspData)
+    {
+        var (data, documentUri) = FromCachedResolveDataDocumentUri(lspData);
+        return (data, documentUri?.ParsedUri);
+    }
+
+    public (object? data, DocumentUri? uri) FromCachedResolveDataDocumentUri(object? lspData)
     {
         var resolveDataCache = _context.GetRequiredLspService<ResolveDataCache>();
 

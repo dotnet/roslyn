@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
@@ -12,11 +13,11 @@ internal static class SolutionExtensions
     public static int GetWorkspaceVersion(this Solution solution)
         => solution.SolutionStateContentVersion;
 
-    public static RazorGeneratedDocumentIdentity GetIdentityOfGeneratedDocument(this Solution solution, Uri generatedDocumentUri)
+    public static RazorGeneratedDocumentIdentity GetIdentityOfGeneratedDocument(this Solution solution, DocumentUri generatedDocumentUri)
     {
-        Contract.ThrowIfFalse(ProtocolConversions.IsSourceGeneratedScheme(generatedDocumentUri.Scheme), "This method should only be called with a source generated Uri");
+        Contract.ThrowIfFalse(generatedDocumentUri.IsSourceGeneratedUri(), "This method should only be called with a source generated Uri");
 
-        if (SourceGeneratedDocumentUri.DeserializeIdentity(solution, generatedDocumentUri) is not { } identity)
+        if (SourceGeneratedDocumentUri.DeserializeIdentity(solution, generatedDocumentUri.ParsedDocumentUri!.Value) is not { } identity)
         {
             throw new InvalidOperationException($"Could not deserialize Uri into a source generated Uri: {generatedDocumentUri}");
         }

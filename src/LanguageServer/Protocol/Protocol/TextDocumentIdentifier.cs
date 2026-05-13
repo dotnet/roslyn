@@ -26,7 +26,7 @@ internal class TextDocumentIdentifier : IEquatable<TextDocumentIdentifier>
     [JsonIgnore]
     public Uri Uri
     {
-        get => DocumentUri.GetRequiredParsedUri();
+        get => DocumentUri.GetRequiredSystemUri();
         set => DocumentUri = new DocumentUri(value);
     }
 

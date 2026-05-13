@@ -48,13 +48,13 @@ internal static class SourceGeneratedDocumentUri
         return ProtocolConversions.CreateAbsoluteDocumentUri(uri);
     }
 
-    public static SourceGeneratedDocumentIdentity? DeserializeIdentity(Solution solution, Uri documentUri)
+    public static SourceGeneratedDocumentIdentity? DeserializeIdentity(Solution solution, ParsedUri documentUri)
     {
         // This is a generated document, so the "host" portion is just the GUID of the project ID; we'll parse that into an ID and then
         // look up the project in the Solution. This relies on the fact that technically the only part of the ID that matters for equality
         // is the GUID; looking up the project again means we can then recover the ProjectId with the debug name, so anybody looking at a crash
         // dump sees a "normal" ID. It also means if the project is gone we can trivially say there are no usable IDs anymore.
-        var projectIdGuidOnly = ProjectId.CreateFromSerialized(Guid.ParseExact(documentUri.Host, GuidFormat));
+        var projectIdGuidOnly = ProjectId.CreateFromSerialized(Guid.ParseExact(documentUri.Authority, GuidFormat));
         var projectId = solution.GetProject(projectIdGuidOnly)?.Id;
 
         if (projectId == null)

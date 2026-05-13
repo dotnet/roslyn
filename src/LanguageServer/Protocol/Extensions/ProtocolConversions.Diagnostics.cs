@@ -118,7 +118,7 @@ internal static partial class ProtocolConversions
         var diagnostic = new LSP.VSDiagnostic
         {
             Code = diagnosticData.Id,
-            CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
+            CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
             Message = diagnosticData.Message,
             Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
             Tags = ConvertTags(diagnosticData, potentialDuplicate),
