@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class SemanticTokensRefreshQueueFactory(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-    LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
     FeatureProviderRefresher providerRefresher) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+        var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
 
         return new SemanticTokensRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher);
     }

@@ -25,14 +25,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(OnInitializedService)), Shared]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 [method: ImportingConstructor]
-internal sealed class VisualDiagnosticsServiceFactory(
-    LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory
+internal sealed class VisualDiagnosticsServiceFactory() : ILspServiceFactory
 {
-    private readonly Lazy<OnInitializedService> _onInitializedService = new(() => new OnInitializedService(lspWorkspaceRegistrationService));
-
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return _onInitializedService.Value;
+        var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
+        return new OnInitializedService(lspWorkspaceRegistrationService);
     }
 
     private class OnInitializedService(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspService, IServiceBrokerInitializer, IDisposable

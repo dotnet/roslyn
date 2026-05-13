@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ProjectContext;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ProjectContextRefreshQueueFactory(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-    LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
     FeatureProviderRefresher providerRefresher) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+        var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
 
         return new ProjectContextRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher);
     }

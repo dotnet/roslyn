@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class InlayHintRefreshQueueFactory(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-    LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
     IGlobalOptionService globalOptionService,
     FeatureProviderRefresher providerRefresher) : ILspServiceFactory
 {
@@ -23,6 +22,7 @@ internal sealed class InlayHintRefreshQueueFactory(
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+        var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
 
         return new InlayHintRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, globalOptionService, lspWorkspaceManager, notificationManager, providerRefresher);
     }

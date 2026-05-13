@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -16,11 +17,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// Handles a request from the client to refresh source generators.
 /// No specific generators are refreshed; rather, all generators are refreshed in all registered workspaces.
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(WorkspaceRefreshSourceGeneratorsHandler)), Shared]
-[Method(MethodName)]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(WorkspaceRefreshSourceGeneratorsHandler)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class WorkspaceRefreshSourceGeneratorsHandler(LspWorkspaceRegistrationService workspaceRegistrationService) : ILspServiceNotificationHandler<RefreshSourceGeneratorsParams>
+internal sealed class WorkspaceRefreshSourceGeneratorsHandlerFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new WorkspaceRefreshSourceGeneratorsHandler(lspServices.GetRequiredService<LspWorkspaceRegistrationService>());
+}
+
+[Method(MethodName)]
+internal class WorkspaceRefreshSourceGeneratorsHandler(LspWorkspaceRegistrationService workspaceRegistrationService) : ILspServiceNotificationHandler<RefreshSourceGeneratorsParams>, ILspService
 {
     public const string MethodName = "workspace/_roslyn_refreshSourceGenerators";
 

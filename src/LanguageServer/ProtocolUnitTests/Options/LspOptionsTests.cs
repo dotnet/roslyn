@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.Options.UnitTests;
 public sealed class LspOptionsTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     protected override TestComposition Composition => LspTestCompositions.LanguageServerProtocol
-        .AddParts(typeof(TestDocumentTrackingService))
-        .AddParts(typeof(TestWorkspaceRegistrationService));
+        .AddParts(typeof(TestDocumentTrackingService));
 
     [Theory, CombinatorialData]
     public async Task TestCanRetrieveCSharpOptionsWithOnlyLspLayer(bool mutatingLspWorkspace)
