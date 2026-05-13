@@ -10,6 +10,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>false</IsPackable>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <DefaultItemExcludes>$(DefaultItemExcludes);testapps\**\*</DefaultItemExcludes>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 
