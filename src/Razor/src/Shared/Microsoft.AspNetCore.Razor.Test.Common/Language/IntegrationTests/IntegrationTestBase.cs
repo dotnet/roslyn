@@ -255,10 +255,20 @@ public abstract class IntegrationTestBase
             throw new InvalidOperationException($"Aborting compilation to assembly because RazorCompiler returned nonempty diagnostics: {diagnosticsLog}");
         }
 
-        var syntaxTrees = new[]
+        var primaryPath = code.CodeDocument.Source.FilePath ?? string.Empty;
+        var syntaxTrees = new List<CSharpSyntaxTree>
         {
-            (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(csharpDocument.Text, CSharpParseOptions, path: code.CodeDocument.Source.FilePath ?? string.Empty),
+            (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(csharpDocument.Text, CSharpParseOptions, path: primaryPath),
         };
+
+        // The decl phase emits a separate decl C# document when the document is splittable;
+        // both partial halves must make it into the compilation so observers see the full type.
+        if (code.CodeDocument.GetDeclCSharpDocument() is { } declDocument)
+        {
+            // The two halves must have distinct paths so C# can keep file-local types
+            // (e.g. __PrivateComponentRenderModeAttribute) unambiguous.
+            syntaxTrees.Add((CSharpSyntaxTree)CSharpSyntaxTree.ParseText(declDocument.Text, CSharpParseOptions, path: primaryPath + ".decl.g.cs"));
+        }
 
         var compilation = code.BaseCompilation.AddSyntaxTrees(syntaxTrees);
 

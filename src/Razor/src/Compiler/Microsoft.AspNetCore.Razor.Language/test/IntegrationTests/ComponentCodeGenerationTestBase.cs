@@ -516,7 +516,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Items1=items1 Items2=items2 Items3=items3>
@@ -594,7 +594,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=item1 Items2=items2>
@@ -737,7 +737,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -814,7 +814,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -2175,8 +2175,8 @@ namespace Test
 
         CompileToAssembly(generated);
 
-        Assert.DoesNotContain("AddAttribute", generated.Code);
-        Assert.Contains("AddComponentParameter", generated.Code);
+        Assert.DoesNotContain("AddAttribute", generated.AllCode);
+        Assert.Contains("AddComponentParameter", generated.AllCode);
     }
 
     [Fact]
@@ -9493,7 +9493,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        Assert.Contains("DynamicallyAccessedMembers", generated.Code);
+        Assert.Contains("DynamicallyAccessedMembers", generated.AllCode);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/11718")]
@@ -9535,7 +9535,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, expectedDiagnostics);
 
-        Assert.Contains("DynamicallyAccessedMembers", generated.Code);
+        Assert.Contains("DynamicallyAccessedMembers", generated.AllCode);
     }
 
     #endregion
