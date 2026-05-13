@@ -34,6 +34,30 @@ internal static partial class RazorCodeDocumentExtensions
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
         => document.GetRequiredCSharpDocument().Text;
 
+    /// <summary>
+    /// Returns the generated <see cref="RazorCSharpDocument"/> that corresponds to the given
+    /// generated-source hint name. For Razor components the generator can emit two halves:
+    /// an impl (under the original hint) and a decl (under <c>hintName + ".decl.g.cs"</c>).
+    /// Mapping callers receive a hint name from Roslyn and need to consult the matching half
+    /// so that source mappings line up with positions in that generated document.
+    /// </summary>
+    /// <remarks>
+    /// Falls back to the impl document if the hint name has the <c>.decl.g.cs</c> suffix but
+    /// the document was not split (e.g. .cshtml or suppressed primary method body) -- the
+    /// caller would normally never be asked about a non-existent decl half, but the fallback
+    /// keeps the behavior conservative.
+    /// </remarks>
+    public static RazorCSharpDocument GetCSharpDocumentForHintName(this RazorCodeDocument document, string hintName)
+    {
+        if (hintName.EndsWith(".decl.g.cs", System.StringComparison.Ordinal) &&
+            document.GetDeclCSharpDocument() is { } declDocument)
+        {
+            return declDocument;
+        }
+
+        return document.GetRequiredCSharpDocument();
+    }
+
     public static SourceText GetHtmlSourceText(this RazorCodeDocument document, CancellationToken cancellationToken)
         => GetCachedData(document).GetOrComputeHtmlDocument(cancellationToken).Text;
 

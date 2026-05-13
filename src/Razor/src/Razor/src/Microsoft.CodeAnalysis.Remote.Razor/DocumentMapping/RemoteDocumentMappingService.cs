@@ -5,6 +5,7 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -57,7 +58,7 @@ internal sealed class RemoteDocumentMappingService(
         }
 
         var razorDocumentUri = project.Solution.GetRazorDocumentUri(razorCodeDocument);
-        if (TryMapToRazorDocumentRange(razorCodeDocument.GetRequiredCSharpDocument(), generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
+        if (TryMapToRazorDocumentRange(razorCodeDocument.GetCSharpDocumentForHintName(identity.HintName), generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
         {
             return (razorDocumentUri, mappedRange);
         }

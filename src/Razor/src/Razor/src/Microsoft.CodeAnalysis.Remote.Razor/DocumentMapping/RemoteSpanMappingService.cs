@@ -56,7 +56,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         var documentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        var mappedSpans = await MapSpansAsync(documentSnapshot, codeDocument, [span], cancellationToken).ConfigureAwait(false);
+        var mappedSpans = await MapSpansAsync(documentSnapshot, codeDocument, generatedDocument.HintName, [span], cancellationToken).ConfigureAwait(false);
         if (mappedSpans is not [{ IsDefault: false } mappedSpan])
         {
             return null;
@@ -69,8 +69,9 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         var excerptSpan = DocumentExcerptHelper.ChooseExcerptSpan(razorDocumentText, razorDocumentSpan, mode);
 
         // Then we'll classify the spans based on the primary document, since that's the coordinate
-        // space that our output mappings use.
-        var mappingsSortedByOriginal = codeDocument.GetRequiredCSharpDocument().SourceMappingsSortedByOriginal;
+        // space that our output mappings use. The hint name selects between the impl and decl
+        // halves of the generated source -- the source mappings live on the matching half.
+        var mappingsSortedByOriginal = codeDocument.GetCSharpDocumentForHintName(generatedDocument.HintName).SourceMappingsSortedByOriginal;
         var classifiedSpans = await DocumentExcerptHelper.ClassifyPreviewAsync(
             excerptSpan,
             generatedDocument,
@@ -89,7 +90,13 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
 
     private async ValueTask<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Solution solution, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
-        var razorDocument = await TryGetRazorDocumentForGeneratedDocumentIdAsync(generatedDocumentId, solution, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await solution.GetSourceGeneratedDocumentAsync(generatedDocumentId, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            return [];
+        }
+
+        var razorDocument = await TryGetRazorDocumentForGeneratedDocumentAsync(generatedDocument, cancellationToken).ConfigureAwait(false);
         if (razorDocument is null)
         {
             return [];
@@ -98,17 +105,21 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         var documentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        return await MapSpansAsync(documentSnapshot, codeDocument, spans, cancellationToken).ConfigureAwait(false);
+        return await MapSpansAsync(documentSnapshot, codeDocument, generatedDocument.HintName, spans, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(RemoteDocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(RemoteDocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, string generatedDocumentHintName, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
         var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var csharpSyntaxNode = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         var source = codeDocument.Source.Text;
 
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        // Pick the half of the generated source that the requested span actually lives in.
+        // Roslyn calls us back with positions in either the impl (.razor.g.cs) or decl
+        // (.razor.g.cs.decl.g.cs) generated document, and the source mappings live on the
+        // matching half.
+        var csharpDocument = codeDocument.GetCSharpDocumentForHintName(generatedDocumentHintName);
         var filePath = codeDocument.Source.FilePath.AssumeNotNull();
 
         var classDeclSpan = csharpSyntaxNode.TryGetClassDeclaration(out var classDecl)
