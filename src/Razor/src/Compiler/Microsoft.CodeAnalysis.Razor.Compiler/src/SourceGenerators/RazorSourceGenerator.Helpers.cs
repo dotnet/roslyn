@@ -26,6 +26,23 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             return builder.ToString();
         }
 
+        /// <summary>
+        /// Returns the hint name for the decl half of a Razor component generated source given
+        /// the impl half's hint name. The decl file substitutes <c>.decl.g.cs</c> for the
+        /// trailing <c>.g.cs</c> -- e.g. <c>Component1_razor.g.cs</c> →
+        /// <c>Component1_razor.decl.g.cs</c> -- so both halves keep the <c>.g.cs</c> suffix
+        /// (which the editor and MSBuild use to identify generated files) without stacking it.
+        /// </summary>
+        internal static string GetDeclIdentifierFromHintName(string implHintName)
+        {
+            const string ImplSuffix = ".g.cs";
+            const string DeclSuffix = ".decl.g.cs";
+
+            return implHintName.EndsWith(ImplSuffix, StringComparison.Ordinal)
+                ? implHintName.Substring(0, implHintName.Length - ImplSuffix.Length) + DeclSuffix
+                : implHintName + DeclSuffix;
+        }
+
         internal static void BuildIdentifierFromPath(StringBuilder builder, ReadOnlySpan<char> filePath)
         {
             for (var i = 0; i < filePath.Length; i++)

@@ -334,29 +334,55 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (
                         hintName: GetIdentifierFromPath(filePath),
                         codeDocument: document.CodeDocument,
-                        csharpDocument: document.CodeDocument.GetRequiredCSharpDocument());
+                        csharpDocument: document.CodeDocument.GetRequiredCSharpDocument(),
+                        declCSharpDocument: document.CodeDocument.GetDeclCSharpDocument());
                 })
                 .WithLambdaComparer(static (a, b) =>
                 {
+                    // If either side has diagnostics on either document, force uncached output.
                     if (a.csharpDocument.Diagnostics.Length > 0 || b.csharpDocument.Diagnostics.Length > 0)
                     {
-                        // if there are any diagnostics, treat the documents as unequal and force RegisterSourceOutput to be called uncached.
+                        return false;
+                    }
+                    if ((a.declCSharpDocument?.Diagnostics.Length ?? 0) > 0 || (b.declCSharpDocument?.Diagnostics.Length ?? 0) > 0)
+                    {
                         return false;
                     }
 
-                    return a.csharpDocument.Text.ContentEquals(b.csharpDocument.Text);
+                    if (!a.csharpDocument.Text.ContentEquals(b.csharpDocument.Text))
+                    {
+                        return false;
+                    }
+
+                    return (a.declCSharpDocument, b.declCSharpDocument) switch
+                    {
+                        (null, null) => true,
+                        (not null, not null) => a.declCSharpDocument.Text.ContentEquals(b.declCSharpDocument.Text),
+                        _ => false,
+                    };
                 })
                 .WithTrackingName("CSharpDocuments");
 
             context.RegisterImplementationSourceOutput(csharpDocuments, static (context, pair) =>
             {
-                var (hintName, _, csharpDocument) = pair;
+                var (hintName, _, csharpDocument, declCSharpDocument) = pair;
 
                 RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
                 foreach (var razorDiagnostic in csharpDocument.Diagnostics)
                 {
                     var csharpDiagnostic = razorDiagnostic.AsDiagnostic();
                     context.ReportDiagnostic(csharpDiagnostic);
+                }
+
+                if (declCSharpDocument is not null)
+                {
+                    foreach (var razorDiagnostic in declCSharpDocument.Diagnostics)
+                    {
+                        var csharpDiagnostic = razorDiagnostic.AsDiagnostic();
+                        context.ReportDiagnostic(csharpDiagnostic);
+                    }
+
+                    context.AddSource(GetDeclIdentifierFromHintName(hintName), declCSharpDocument.Text);
                 }
 
                 context.AddSource(hintName, csharpDocument.Text);
@@ -376,7 +402,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 using var filePathToDocument = new PooledDictionaryBuilder<string, (string, RazorCodeDocument)>();
                 using var hintNameToFilePath = new PooledDictionaryBuilder<string, string>();
 
-                foreach (var (hintName, codeDocument, _) in documents)
+                foreach (var (hintName, codeDocument, _, _) in documents)
                 {
                     filePathToDocument.Add(codeDocument.Source.FilePath!, (hintName, codeDocument));
                     hintNameToFilePath.Add(hintName, codeDocument.Source.FilePath!);

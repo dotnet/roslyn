@@ -210,7 +210,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
         result.VerifyOutputsMatchBaseline();
     }
 
