@@ -450,7 +450,7 @@
     <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions/test/Microsoft.AspNetCore.Mvc.Razor.Extensions.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/Microsoft.AspNetCore.Razor.Language/">
-    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/test/Microsoft.AspNetCore.Razor.Language.UnitTests.csproj" />
+    <Project Path="src/Razor/Tests/Compiler/Microsoft.AspNetCore.Razor.Language.UnitTests/Microsoft.AspNetCore.Razor.Language.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/">
     <Project Path="src/Razor/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
