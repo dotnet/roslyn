@@ -14,7 +14,7 @@
       "src\\LanguageServer\\Protocol\\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj",
       "src\\Razor\\Tests\\Compiler\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.UnitTests\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.UnitTests.csproj",
       "src\\Razor\\src\\Compiler\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\\test\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.UnitTests.csproj",
-      "src\\Razor\\src\\Compiler\\Microsoft.AspNetCore.Mvc.Razor.Extensions\\test\\Microsoft.AspNetCore.Mvc.Razor.Extensions.UnitTests.csproj",
+      "src\\Razor\\Tests\\Compiler\\Microsoft.AspNetCore.Mvc.Razor.Extensions.UnitTests\\Microsoft.AspNetCore.Mvc.Razor.Extensions.UnitTests.csproj",
       "src\\Razor\\Tests\\Compiler\\Microsoft.AspNetCore.Razor.Language.Legacy.UnitTests\\Microsoft.AspNetCore.Razor.Language.Legacy.UnitTests.csproj",
       "src\\Razor\\Tests\\Compiler\\Microsoft.AspNetCore.Razor.Language.UnitTests\\Microsoft.AspNetCore.Razor.Language.UnitTests.csproj",
       "src\\Razor\\src\\Compiler\\Microsoft.CodeAnalysis.Razor.Compiler\\src\\Microsoft.CodeAnalysis.Razor.Compiler.csproj",
