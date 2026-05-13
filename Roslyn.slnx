@@ -470,7 +470,7 @@
     <Project Path="src/Razor/Compiler/RazorSyntaxGenerator/RazorSyntaxGenerator.csproj" />
   </Folder>
   <Folder Name="/Razor/Shared/">
-    <Project Path="src/Razor/Shared/Microsoft.AspNetCore.Razor.Test.Common/Microsoft.AspNetCore.Razor.Test.Common.csproj" />
+    <Project Path="src/Razor/Tests/Common/Microsoft.AspNetCore.Razor.Test.Common/Microsoft.AspNetCore.Razor.Test.Common.csproj" />
     <Project Path="src/Razor/Tests/Shared/Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests/Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests.csproj" />
     <Project Path="src/Razor/Shared/Microsoft.AspNetCore.Razor.Utilities.Shared/Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
   </Folder>
