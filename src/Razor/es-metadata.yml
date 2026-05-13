@@ -1,0 +1,8 @@
+schemaVersion: 0.0.1
+isProduction: true
+accountableOwners:
+  service: 481d9cf1-9117-4ede-9f9b-6ce237d7f476
+routing:
+  defaultAreaPath:
+    org: devdiv
+    path: DevDiv\NET Developer Experience\Razor Tooling
