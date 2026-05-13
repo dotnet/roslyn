@@ -52,7 +52,7 @@
       "src\\Razor\\src\\Razor\\test\\Microsoft.VisualStudioCode.Razor.IntegrationTests\\Microsoft.VisualStudioCode.Razor.IntegrationTests.csproj",
       "src\\Razor\\src\\Razor\\test\\Microsoft.VisualStudioCode.RazorExtension.UnitTests\\Microsoft.VisualStudioCode.RazorExtension.UnitTests.csproj",
       "src\\Razor\\src\\Shared\\Microsoft.AspNetCore.Razor.Test.Common\\Microsoft.AspNetCore.Razor.Test.Common.csproj",
-      "src\\Razor\\src\\Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests\\Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests.csproj",
+      "src\\Razor\\Tests\\Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests\\Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests.csproj",
       "src\\Razor\\src\\Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj",
       "src\\Scripting\\Core\\Microsoft.CodeAnalysis.Scripting.csproj",
       "src\\Tools\\ExternalAccess\\Extensions\\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj",
