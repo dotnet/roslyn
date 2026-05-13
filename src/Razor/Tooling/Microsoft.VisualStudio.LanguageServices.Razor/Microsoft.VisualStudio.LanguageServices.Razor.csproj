@@ -183,6 +183,6 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.CohostingShared\Microsoft.CodeAnalysis.Razor.CohostingShared.projitems" Label="Shared" />
+  <Import Project="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.CohostingShared\Microsoft.CodeAnalysis.Razor.CohostingShared.projitems" Label="Shared" />
 
 </Project>

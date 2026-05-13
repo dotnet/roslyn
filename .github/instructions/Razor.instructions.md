@@ -27,7 +27,7 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
   VS Code and waste significant time. Target a specific test project with
   `dotnet test path\to\Project.csproj` instead.
 - **Shared projects need `.projitems` entries**: Files under
-  `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.CohostingShared\` and
+  `src\Razor\Tooling\Microsoft.CodeAnalysis.Razor.CohostingShared\` and
   `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\`
   are compiled through their `.projitems` files. Adding a new `.cs` file in either shared
   tree is not enough by itself. You must also add a matching `<Compile Include="...">`

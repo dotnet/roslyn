@@ -30,7 +30,7 @@
       "src\\Razor\\src\\Compiler\\tools\\Microsoft.CodeAnalysis.Razor.Tooling.Internal\\Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj",
       "src\\Razor\\src\\Compiler\\tools\\RazorSyntaxGenerator\\RazorSyntaxGenerator.csproj",
       "src\\Razor\\src\\Razor\\benchmarks\\Microsoft.AspNetCore.Razor.Microbenchmarks\\Microsoft.AspNetCore.Razor.Microbenchmarks.csproj",
-      "src\\Razor\\src\\Razor\\src\\Microsoft.CodeAnalysis.Razor.CohostingShared\\Microsoft.CodeAnalysis.Razor.CohostingShared.shproj",
+      "src\\Razor\\Tooling\\Microsoft.CodeAnalysis.Razor.CohostingShared\\Microsoft.CodeAnalysis.Razor.CohostingShared.shproj",
       "src\\Razor\\src\\Razor\\src\\Microsoft.CodeAnalysis.Razor.Workspaces\\Microsoft.CodeAnalysis.Razor.Workspaces.csproj",
       "src\\Razor\\Tooling\\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.arm64\\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.arm64.csproj",
       "src\\Razor\\Tooling\\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.x64\\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.x64.csproj",
