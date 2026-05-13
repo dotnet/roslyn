@@ -34,7 +34,7 @@ From Visual Studio:
 
 From command line:
 ```powershell
-cd src\Razor\test\Microsoft.VisualStudioCode.Razor.IntegrationTests
+ cd src\Razor\Tests\Tooling\Microsoft.VisualStudioCode.Razor.IntegrationTests
 dotnet test
 ```
 
