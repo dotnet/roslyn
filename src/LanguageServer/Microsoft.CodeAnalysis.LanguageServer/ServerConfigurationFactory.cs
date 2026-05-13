@@ -48,7 +48,6 @@ internal sealed record class ServerConfiguration(
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,
     string? DevKitDependencyPath,
-    string? RazorDesignTimePath,
     string? CSharpDesignTimePath,
     string? ServerPipeName,
     bool UseStdIo,
