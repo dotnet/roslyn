@@ -105,17 +105,20 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         context.Logger?.LogSourceText("FormattedCSharp", originalTextWithChanges);
 
+        var indent = context.GetIndentationLevelString(1);
         var mappedChanges = await _razorEditService.MapCSharpEditsAsync(
             normalizedChanges.SelectAsArray(static c => c.ToRazorTextChange()),
             context.CurrentSnapshot,
             context.IncludeCSharpLanguageFeatureEdits,
+            directlyMappedEditFilter: change => ShouldKeepDirectlyMappedEdit(context, indent, change),
             cancellationToken).ConfigureAwait(false);
 
-        var filteredChanges = FilterCSharpTextChanges(context, mappedChanges.SelectAsArray(static e => e.ToTextChange()));
-        if (filteredChanges.Length == 0)
+        if (mappedChanges.Length == 0)
         {
             return [];
         }
+
+        var filteredChanges = mappedChanges.SelectAsArray(static e => e.ToTextChange());
 
         // Find the lines that were affected by these edits.
         var originalText = codeDocument.Source.Text;
@@ -215,38 +218,30 @@ internal sealed class CSharpOnTypeFormattingPass(
         return newText;
     }
 
-    private static ImmutableArray<TextChange> FilterCSharpTextChanges(FormattingContext context, ImmutableArray<TextChange> changes)
+    private static bool ShouldKeepDirectlyMappedEdit(FormattingContext context, string indent, RazorTextChange change)
     {
-        var indent = context.GetIndentationLevelString(1);
-
-        using var filteredChanges = new PooledArrayBuilder<TextChange>();
-
-        foreach (var change in changes)
+        var span = change.Span.ToTextSpan();
+        if (!ShouldFormat(context, span, allowImplicitStatements: false))
         {
-            if (!ShouldFormat(context, change.Span, allowImplicitStatements: false))
-            {
-                continue;
-            }
-
-            // One extra bit of filtering we do here, is to guard against quirks in runtime code-gen, where source mappings
-            // end after whitespace, rather than design time where they end before. This results in the C# formatter wanting
-            // to insert an indent in what ends up being the middle of a line of Razor code. Since there is no reason to ever
-            // insert anything but a single space in the middle of a line, it's easy to filter them out.
-            if (change.Span.Length == 0 &&
-                change.NewText == indent)
-            {
-                var linePosition = context.SourceText.GetLinePosition(change.Span.Start);
-                var first = context.SourceText.Lines[linePosition.Line].GetFirstNonWhitespaceOffset();
-                if (linePosition.Character > first)
-                {
-                    continue;
-                }
-            }
-
-            filteredChanges.Add(change);
+            return false;
         }
 
-        return filteredChanges.ToImmutable();
+        // One extra bit of filtering we do here, is to guard against quirks in runtime code-gen, where source mappings
+        // end after whitespace, rather than design time where they end before. This results in the C# formatter wanting
+        // to insert an indent in what ends up being the middle of a line of Razor code. Since there is no reason to ever
+        // insert anything but a single space in the middle of a line, it's easy to filter them out.
+        if (span.Length == 0 &&
+            change.NewText == indent)
+        {
+            var linePosition = context.SourceText.GetLinePosition(span.Start);
+            var first = context.SourceText.Lines[linePosition.Line].GetFirstNonWhitespaceOffset();
+            if (linePosition.Character > first)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static int LineDelta(SourceText text, IEnumerable<TextChange> changes, out int firstLine, out int lastLine)
@@ -1153,12 +1148,24 @@ internal sealed class CSharpOnTypeFormattingPass(
         var lastIndex = 0;
         foreach (var mapping in codeDocument.GetRequiredCSharpDocument().SourceMappingsSortedByOriginal)
         {
-            builder.Append(documentText, lastIndex, mapping.OriginalSpan.AbsoluteIndex - lastIndex);
-            builder.Append("<#");
-            builder.Append(documentText, mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
-            builder.Append("#>");
+            var originalStart = mapping.OriginalSpan.AbsoluteIndex;
+            var originalEnd = originalStart + mapping.OriginalSpan.Length;
+            if (originalStart > lastIndex)
+            {
+                builder.Append(documentText, lastIndex, originalStart - lastIndex);
+            }
 
-            lastIndex = mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length;
+            // Source mappings can overlap in legacy documents (for example around @page),
+            // so keep the debug rendering best-effort instead of throwing while logging.
+            var mappedStart = Math.Max(originalStart, lastIndex);
+            if (originalEnd > mappedStart)
+            {
+                builder.Append("<#");
+                builder.Append(documentText, mappedStart, originalEnd - mappedStart);
+                builder.Append("#>");
+            }
+
+            lastIndex = Math.Max(lastIndex, originalEnd);
         }
 
         builder.Append(documentText, lastIndex, documentText.Length - lastIndex);

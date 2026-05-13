@@ -167,6 +167,72 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
+    public async Task TestDiscovery_DotPrefixedFolders()
+    {
+        // Demonstrate that directories starting with '.' are ignored
+        // tempDir/
+        //   .git/App1.cs
+        //   .vs/App2.cs
+        //   .config/App3.cs
+        //   App4.cs
+
+        var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
+
+        var appText = """
+            #!/usr/bin/env dotnet
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World");
+            """;
+
+        var gitDir = tempDir.CreateDirectory(".git");
+        var app1File = gitDir.CreateFile("App1.cs").WriteAllText(appText);
+
+        var vsDir = tempDir.CreateDirectory(".vs");
+        var app2File = vsDir.CreateFile("App2.cs").WriteAllText(appText);
+
+        var configDir = tempDir.CreateDirectory(".config");
+        var app3File = configDir.CreateFile("App3.cs").WriteAllText(appText);
+
+        var app4File = tempDir.CreateFile("App4.cs").WriteAllText(appText);
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertSequenceEqualAndStable([app4File.Path], () => discovery.FindEntryPoints(tempDir.Path));
+    }
+
+    [Fact]
+    public async Task TestDiscovery_NestedDotPrefixedFolders()
+    {
+        // Demonstrate that nested directories starting with '.' are also ignored
+        // tempDir/
+        //   subdir/
+        //     .hidden/App1.cs
+        //     App2.cs
+
+        var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
+
+        var appText = """
+            #!/usr/bin/env dotnet
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World");
+            """;
+
+        var subDir = tempDir.CreateDirectory("subdir");
+        var hiddenDir = subDir.CreateDirectory(".hidden");
+        var app1File = hiddenDir.CreateFile("App1.cs").WriteAllText(appText);
+
+        var app2File = subDir.CreateFile("App2.cs").WriteAllText(appText);
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertSequenceEqualAndStable([app2File.Path], () => discovery.FindEntryPoints(tempDir.Path));
+    }
+
+    [Fact]
     public async Task TestDiscovery_CsprojInCone()
     {
         // Demonstrate csproj-in-cone behavior

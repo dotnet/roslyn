@@ -100,6 +100,13 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
             var resourceOptions = _clientCapabilitiesService.ClientCapabilities.Workspace?.WorkspaceEdit?.ResourceOperations ?? [];
 
+            // HACK: VS doesn't advertise resource operations, but it does support some, so we polyfill for it so Roslyn will return the actions
+            // it needs to. Can be removed when https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_git/VSLanguageServerClient/pullrequest/734356 is merged.
+            if (_clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions)
+            {
+                resourceOptions = [ResourceOperationKind.Create, ResourceOperationKind.Rename];
+            }
+
             return await CodeActions.ResolveCodeActionAsync(generatedDocument, codeAction, resourceOptions, cancellationToken).ConfigureAwait(false);
         }
         finally

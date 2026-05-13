@@ -17,52 +17,6 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
     }
 
     [Fact]
-    public void GivesSpacesToCodeOnAtTagTemplateTransitionInDesignTimeMode()
-    {
-        ParseDocumentTest("@Foo(    @<p>Foo</p>    )", designTime: true);
-    }
-
-    [Fact]
-    public void GivesSpacesToCodeOnAtColonTemplateTransitionInDesignTimeMode()
-    {
-        ParseDocumentTest("""
-            @Foo(    
-            @:<p>Foo</p>    
-            )
-            """, designTime: true);
-    }
-
-    [Fact]
-    public void GivesSpacesToCodeOnTagTransitionInDesignTimeMode()
-    {
-        ParseDocumentTest("""
-            @{
-                <p>Foo</p>    
-            }
-            """, designTime: true);
-    }
-
-    [Fact]
-    public void GivesSpacesToCodeOnInvalidAtTagTransitionInDesignTimeMode()
-    {
-        ParseDocumentTest("""
-            @{
-                @<p>Foo</p>    
-            }
-            """, designTime: true);
-    }
-
-    [Fact]
-    public void GivesSpacesToCodeOnAtColonTransitionInDesignTimeMode()
-    {
-        ParseDocumentTest("""
-            @{
-                @:<p>Foo</p>    
-            }
-            """, designTime: true);
-    }
-
-    [Fact]
     public void ShouldSupportSingleLineMarkupContainingStatementBlock()
     {
         ParseDocumentTest("""

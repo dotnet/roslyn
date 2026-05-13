@@ -11,17 +11,15 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 public class CodeGenerationIntegrationTest : IntegrationTestBase
 {
-    private readonly bool designTime;
-
-    public CodeGenerationIntegrationTest(bool designTime = false)
+    public CodeGenerationIntegrationTest()
         : base(layer: TestProject.Layer.Compiler)
     {
-        this.designTime = designTime;
         var testTagHelpers = CSharpCompilation.Create(
             assemblyName: "Microsoft.AspNetCore.Razor.Language.Test",
             syntaxTrees:
@@ -33,10 +31,10 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         BaseCompilation = BaseCompilation.AddReferences(testTagHelpers.VerifyDiagnostics().EmitToImageReference());
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void SingleLineControlFlowStatements() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void CSharp8()
     {
         // C# 8 features are not available in .NET Framework without polyfills
@@ -48,251 +46,241 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         RunTest();
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void IncompleteDirectives() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void CSharp7() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void UnfinishedExpressionInCode() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Templates() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Markup_InCodeBlocks() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Markup_InCodeBlocksWithTagHelper() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void StringLiterals() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void SimpleUnspacedIf() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Sections() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void RazorComments() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void ParserError() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void OpenedIf() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void NullConditionalExpressions() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void NoLinePragmas() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void NestedCSharp() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void NestedCodeBlocks() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void MarkupInCodeBlock() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Instrumented() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void InlineBlocks() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Inherits() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Usings() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Usings_OutOfOrder() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void ImplicitExpressionAtEOF() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void ImplicitExpression() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void HtmlCommentWithQuote_Double() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void HtmlCommentWithQuote_Single() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void HiddenSpansInCode() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void FunctionsBlock() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void FunctionsBlockMinimal() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void ExpressionsInCode() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void ExplicitExpressionWithMarkup() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void ExplicitExpressionAtEOF() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void ExplicitExpression() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void EmptyImplicitExpressionInCode() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void EmptyImplicitExpression() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void EmptyExplicitExpression() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void EmptyCodeBlock() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void ConditionalAttributes() => RunTest();
 
-    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10586")]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10586")]
     public void ConditionalAttributes2()
     {
-        if (designTime)
-        {
-            // An error scenario: tag helper + C# dynamic content (a razor error is reported,
-            // so it is fine there is a missing mapping for the C# dynamic content).
-            ExpectedMissingSourceMappings = new()
-            {
-                { new(base.GetTestFileName() + ".cshtml", 328, 11, 8), "s" }
-            };
-        }
-
         RunTest();
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void CodeBlockWithTextElement() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void CodeBlockAtEOF() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void CodeBlock() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Blocks() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Await() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Tags() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void SimpleTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void TagHelpersWithBoundAttributes() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/12261")]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/12261")]
     public void TagHelpersWithBoundAttributesAndRazorComment() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void TagHelpersWithPrefix() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void NestedTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void SingleTagHelper() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void SingleTagHelperWithNewlineBeforeAttributes() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void TagHelpersWithWeirdlySpacedAttributes() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void IncompleteTagHelper() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void BasicTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void BasicTagHelpers_Prefixed() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void BasicTagHelpers_RemoveTagHelper() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void CssSelectorTagHelperAttributes() => RunTagHelpersTest(TestTagHelperDescriptors.CssSelectorTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void ComplexTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void EmptyAttributeTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void EscapedTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void DuplicateTargetTagHelper() => RunTagHelpersTest(TestTagHelperDescriptors.DuplicateTargetTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void AttributeTargetingTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.AttributeTargetingTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void PrefixedAttributeTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.PrefixedAttributeTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void DuplicateAttributeTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void DynamicAttributeTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DynamicAttributeTagHelpers_Descriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void TransitionsInTagHelperAttributes() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void MinimizedTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.MinimizedTagHelpers_Descriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void NestedScriptTagTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.DefaultPAndInputTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void SymbolBoundAttributes() => RunTagHelpersTest(TestTagHelperDescriptors.SymbolBoundTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void EnumTagHelpers() => RunTagHelpersTest(TestTagHelperDescriptors.EnumTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void TagHelpersInSection() => RunTagHelpersTest(TestTagHelperDescriptors.TagHelpersInSectionDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void TagHelpersWithTemplate() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void TagHelpersWithDataDashAttributes() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    [IntegrationTestFact]
+    [Fact]
     public void Implements() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void Implements_Multiple() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void AttributeDirective() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void SwitchExpression_RecursivePattern()
     {
         // System.Index is not available in .NET Framework without polyfills
@@ -302,58 +290,22 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         RunTest();
     }
 
-    [IntegrationTestFact]
-    public new void DesignTime() => RunTest();
+    [Fact]
+    public void DesignTime() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void RemoveTagHelperDirective() => RunTest();
 
-    [IntegrationTestFact]
+    [Fact]
     public void AddTagHelperDirective() => RunTest();
 
-    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10186")]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10186")]
     public void EscapedIdentifier() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10426")]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10426")]
     public void EscapedExpression() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    public override string GetTestFileName([CallerMemberName] string? testName = null)
-    {
-        return base.GetTestFileName(testName) + (designTime ? "_DesignTime" : "_Runtime");
-    }
-
     private void RunTest([CallerMemberName] string testName = "")
-    {
-        if (designTime)
-        {
-            DesignTimeTest(testName);
-        }
-        else
-        {
-            RunTimeTest(testName);
-        }
-    }
-
-    private void DesignTimeTest(string testName)
-    {
-        // Arrange
-        var projectEngine = CreateProjectEngine(RazorExtensions.Register);
-
-        var projectItem = CreateProjectItemFromFile(testName: testName);
-
-        // Act
-        var codeDocument = projectEngine.ProcessDesignTime(projectItem);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode(), testName);
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(codeDocument), testName);
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
-        AssertSourceMappingsMatchBaseline(codeDocument, testName);
-        AssertLinePragmas(codeDocument);
-        AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
-    }
-
-    private void RunTimeTest(string testName)
     {
         // Arrange
         var projectEngine = CreateProjectEngine(RazorExtensions.Register);
@@ -372,18 +324,6 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     private void RunTagHelpersTest(TagHelperCollection tagHelpers, [CallerMemberName] string testName = "")
     {
-        if (designTime)
-        {
-            RunDesignTimeTagHelpersTest(tagHelpers, testName);
-        }
-        else
-        {
-            RunRuntimeTagHelpersTest(tagHelpers, testName);
-        }
-    }
-
-    private void RunRuntimeTagHelpersTest(TagHelperCollection tagHelpers, string testName)
-    {
         // Arrange
         var projectEngine = CreateProjectEngine(RazorExtensions.Register);
 
@@ -398,27 +338,6 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode(), testName);
         AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
-        AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
-    }
-
-    private void RunDesignTimeTagHelpersTest(TagHelperCollection tagHelpers, string testName)
-    {
-        // Arrange
-        var projectEngine = CreateProjectEngine(RazorExtensions.Register);
-
-        var projectItem = CreateProjectItemFromFile(testName: testName);
-        var imports = GetImports(projectEngine, projectItem);
-
-        AddTagHelperStubs(tagHelpers);
-
-        // Act
-        var codeDocument = projectEngine.ProcessDesignTime(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, imports, tagHelpers);
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode(), testName);
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
-        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(codeDocument), testName);
-        AssertSourceMappingsMatchBaseline(codeDocument, testName);
         AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
     }
 
@@ -479,6 +398,6 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         AddCSharpSyntaxTree(string.Join("\n", tagHelperClasses));
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void Utf8StringLiterals() => RunTest();
 }

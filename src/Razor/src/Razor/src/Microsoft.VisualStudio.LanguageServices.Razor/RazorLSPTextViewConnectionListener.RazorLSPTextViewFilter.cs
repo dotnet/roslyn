@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;

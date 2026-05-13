@@ -78,6 +78,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
             SupportsVisualStudioExtensions = true,
             TextDocument = new VSInternalTextDocumentClientCapabilities()
             {
+                CallHierarchy = new() { DynamicRegistration = true },
                 CodeAction = new() { DynamicRegistration = true },
                 CodeLens = new() { DynamicRegistration = true },
                 Completion = new() { DynamicRegistration = true },
@@ -97,6 +98,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
                 RangeFormatting = new() { DynamicRegistration = true },
                 References = new() { DynamicRegistration = true },
                 Rename = new() { DynamicRegistration = true },
+                SelectionRange = new() { DynamicRegistration = true },
                 SemanticTokens = new() { DynamicRegistration = true },
                 SignatureHelp = new() { DynamicRegistration = true },
                 Synchronization = new() { DynamicRegistration = true },

@@ -83,7 +83,10 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         var shouldIncludeSnippets = positionInfo.LanguageKind == RazorLanguageKind.Html
             && DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, index);
 
-        return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets);
+        var shouldIncludeHtmlCompletions = positionInfo.LanguageKind == RazorLanguageKind.Html
+            && !DelegatedCompletionHelper.IsInDirectiveAttributeParameterContext(codeDocument, index);
+
+        return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets, shouldIncludeHtmlCompletions);
     }
 
     public ValueTask<CompletionResponse> GetCompletionAsync(

@@ -127,7 +127,7 @@ internal sealed class AutoLoadProjectsInitializer(
             return false;
         }
 
-        folderPath = ProtocolConversions.GetDocumentFilePathFromUri(folder.DocumentUri.ParsedUri);
+        folderPath = folder.DocumentUri.GetDocumentFilePathFromUri();
         if (!Directory.Exists(folderPath))
         {
             logger.LogWarning("Workspace folder path {FolderPath} does not exist, skipping.", folderPath);

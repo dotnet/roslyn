@@ -20,11 +20,6 @@ public sealed class AssemblyAttributeInjectionPass : IntermediateNodePassBase, I
         DocumentIntermediateNode documentNode,
         CancellationToken cancellationToken)
     {
-        if (documentNode.Options.DesignTime)
-        {
-            return;
-        }
-
         var @namespace = documentNode.FindPrimaryNamespace();
         if (@namespace == null)
         {

@@ -7,7 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.LanguageClient;
@@ -63,8 +63,8 @@ internal sealed partial class RenameProjectTreeHandler(
                     [
                         new FileRename()
                     {
-                        OldUri = new(RazorUri.CreateAbsoluteUri(oldFilePath)),
-                        NewUri = new(RazorUri.CreateAbsoluteUri(newFilePath)),
+                        OldUri = ProtocolConversions.CreateAbsoluteDocumentUri(oldFilePath),
+                        NewUri = ProtocolConversions.CreateAbsoluteDocumentUri(newFilePath),
                     }
                     ]
                 },

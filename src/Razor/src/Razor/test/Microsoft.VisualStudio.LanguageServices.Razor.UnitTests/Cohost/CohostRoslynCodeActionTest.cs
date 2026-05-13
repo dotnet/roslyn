@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Text;
@@ -201,6 +201,472 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
             codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
     }
 
+    [Fact]
+    public Task GenerateDeconstructMethod_NoCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private void M()
+                    {
+                        (int x, int y) = $$new Component();
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                @using System
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                The end.
+                @code {
+                    internal void Deconstruct(out int x, out int y)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod);
+
+    [Fact]
+    public Task GenerateProperty_NoCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        return new Component().$$NewProperty;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                The end.
+                @code {
+                    public object NewProperty { get; internal set; }
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            childActionIndex: 2);
+
+    [Fact]
+    public Task GenerateConstructor_NoCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private Component M(int value)
+                    {
+                        return new $$Component(value);
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                The end.
+                @code {
+                    private int value;
+
+                    public Component(int value)
+                    {
+                        this.value = value;
+                    }
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            childActionIndex: 0);
+
+    [Fact]
+    public Task GenerateConstructor_ExistingCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private Component M(int value)
+                    {
+                        return new $$Component(value);
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+                }
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                @code
+                {
+                    private string componentName = nameof(Component);
+                        private int value;
+
+                        public Component(int value)
+                        {
+                            this.value = value;
+                        }
+                }
+
+                The end.
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            childActionIndex: 0);
+
+    [Fact]
+    public Task GenerateType_NoCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        Component.$$MissingType value = null;
+                        return value;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                @code {
+                    internal class MissingType
+                    {
+                    }
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            childActionIndex: 0);
+
+    [Fact]
+    public async Task GenerateType_NoCodeBlock_CodeBlockBraceOnNextLine()
+    {
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });
+
+        await VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        Component.$$MissingType value = null;
+                        return value;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                @code
+                {
+                    internal class MissingType
+                    {
+                    }
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            childActionIndex: 0);
+    }
+
+    [Fact]
+    public Task GenerateType_ExistingCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        Component.$$MissingType value = null;
+                        return value;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+                }
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+
+                    internal class MissingType
+                    {
+                    }
+                }
+
+                The end.
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            childActionIndex: 0);
+
+    [Fact]
+    public Task GenerateType_ExistingCodeBlock_DifferentGenericArity()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        Component.$$MissingType<int> value = null;
+                        return value;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+
+                    internal class MissingType
+                    {
+                    }
+                }
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+
+                    internal class MissingType
+                    {
+                    }
+
+                    internal class MissingType<T>
+                    {
+                    }
+                }
+
+                The end.
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            childActionIndex: 0);
+
+    [Fact]
+    public Task GenerateProperty_ExistingCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        return new Component().$$NewProperty;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+                }
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                @code
+                {
+                    private string componentName = nameof(Component);
+
+                    public object NewProperty { get; internal set; }
+                }
+
+                The end.
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            childActionIndex: 2);
+
+    [Fact]
+    public Task GenerateField_NoCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        return new Component().$$newField;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                The end.
+                @code {
+                    internal object newField;
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            childActionIndex: 0);
+
+    [Fact]
+    public Task GenerateField_ExistingCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private object M()
+                    {
+                        return new Component().$$newField;
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+                }
+
+                The end.
+                """,
+             expectedRazorFile: """
+                 This is a Razor document.
+                 
+                 <Component></Component>
+                 
+                 @code
+                 {
+                     private string componentName = nameof(Component);
+                         internal object newField;
+                 }
+ 
+                 The end.
+                 """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            childActionIndex: 0);
+
     private protected override TestComposition ConfigureLocalComposition(TestComposition composition)
     {
         return composition
@@ -212,7 +678,8 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
         TestCode csharpFile,
         TestCode razorFile,
         TestCode expectedRazorFile,
-        string codeActionName)
+        string codeActionName,
+        int childActionIndex = 0)
     {
         var razorDocument = CreateProjectAndRazorDocument(razorFile.Text, documentFilePath: FilePath("Component.razor"), additionalFiles: [(FilePath("File.cs"), csharpFile.Text)]);
         var project = razorDocument.Project;
@@ -229,7 +696,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
 
         var request = new CodeActionParams
         {
-            TextDocument = new() { DocumentUri = csharpDocument.CreateDocumentUri() },
+            TextDocument = new() { DocumentUri = csharpDocument.GetURI() },
             Range = new LspRange
             {
                 Start = new Position(csharpPosition.Line, csharpPosition.Character),
@@ -257,6 +724,14 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                 value.Deserialize<string[]>() is [..] tags &&
                 tags.Any(t => t == codeActionName));
 
+        if (codeAction.Command is { CommandIdentifier: "roslyn.client.nestedCodeAction", Arguments: [var nestedArgument] })
+        {
+            var nestedActions = (nestedArgument is JsonElement nestedElement
+                ? nestedElement
+                : JsonSerializer.SerializeToElement(nestedArgument)).GetProperty("NestedCodeActions");
+            codeAction = JsonSerializer.Deserialize<CodeAction>(nestedActions[childActionIndex]).AssumeNotNull();
+        }
+
         var resolvedCodeAction = await ExternalHandlers.CodeActions.ResolveCodeActionAsync(csharpDocument, codeAction, [], DisposalToken);
 
         var workspaceEdit = resolvedCodeAction.Edit.AssumeNotNull();
@@ -268,7 +743,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
         var modifiedGeneratedSourceText = generatedSourceText
             .WithChanges(
                 workspaceEdit.EnumerateTextDocumentEdits()
-                    .Where(e => e.TextDocument.DocumentUri.GetRequiredParsedUri() == generatedDoc.CreateUri())
+                    .Where(e => e.TextDocument.DocumentUri == generatedDoc.GetURI())
                     .SelectMany(e => e.Edits)
                     .Select(e => generatedSourceText.GetTextChange((TextEdit)e)));
 

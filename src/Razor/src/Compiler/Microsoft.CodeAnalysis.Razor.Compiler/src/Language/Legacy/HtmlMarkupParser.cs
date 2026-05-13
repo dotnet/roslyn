@@ -343,53 +343,47 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             }
         }
 
-        if (!Context.DesignTimeMode)
+        // We want to accept the whitespace and newline at the end of the markup.
+        // E.g,
+        // @{
+        //     <div>Foo</div>|
+        // |}
+        // Except for text tags.
+        var shouldAcceptWhitespaceAndNewLine = true;
+
+        // Check if the previous span was a transition.
+        var previousSpan = builder.Count > 0 ? GetLastSpan(builder[builder.Count - 1]) : null;
+        if (previousSpan != null &&
+            ((previousSpan is MarkupStartTagSyntax startTag && startTag.IsMarkupTransition) ||
+            (previousSpan is MarkupEndTagSyntax endTag && endTag.IsMarkupTransition)))
         {
-            // We want to accept the whitespace and newline at the end of the markup.
-            // E.g,
-            // @{
-            //     <div>Foo</div>|
-            // |}
-            // Except in two cases,
-            // 1. Design time
-            // 2. Text tags
-            //
-            var shouldAcceptWhitespaceAndNewLine = true;
+            using var tokens = new PooledArrayBuilder<SyntaxToken>();
+            ReadWhile(
+                static f => (f.Kind == SyntaxKind.Whitespace) || (f.Kind == SyntaxKind.NewLine),
+                ref tokens.AsRef());
 
-            // Check if the previous span was a transition.
-            var previousSpan = builder.Count > 0 ? GetLastSpan(builder[builder.Count - 1]) : null;
-            if (previousSpan != null &&
-                ((previousSpan is MarkupStartTagSyntax startTag && startTag.IsMarkupTransition) ||
-                (previousSpan is MarkupEndTagSyntax endTag && endTag.IsMarkupTransition)))
+            // Make sure the current token is not markup, which can be html start tag or @:
+            if (!(At(SyntaxKind.OpenAngle) ||
+                (At(SyntaxKind.Transition) && Lookahead(count: 1).Content.StartsWith(":", StringComparison.Ordinal))))
             {
-                using var tokens = new PooledArrayBuilder<SyntaxToken>();
-                ReadWhile(
-                    static f => (f.Kind == SyntaxKind.Whitespace) || (f.Kind == SyntaxKind.NewLine),
-                    ref tokens.AsRef());
-
-                // Make sure the current token is not markup, which can be html start tag or @:
-                if (!(At(SyntaxKind.OpenAngle) ||
-                    (At(SyntaxKind.Transition) && Lookahead(count: 1).Content.StartsWith(":", StringComparison.Ordinal))))
-                {
-                    // Don't accept whitespace as markup if the end text tag is followed by csharp.
-                    shouldAcceptWhitespaceAndNewLine = false;
-                }
-
-                PutCurrentBack();
-                PutBack(in tokens);
-                EnsureCurrent();
+                // Don't accept whitespace as markup if the end text tag is followed by csharp.
+                shouldAcceptWhitespaceAndNewLine = false;
             }
-            if (shouldAcceptWhitespaceAndNewLine)
-            {
-                // Accept whitespace and a single newline if present
-                AcceptWhile(SyntaxKind.Whitespace);
-                TryAccept(SyntaxKind.NewLine);
 
-                if (isOuterTagWellFormed)
-                {
-                    // Completed tags have no accepted characters inside blocks.
-                    SetAcceptedCharacters(AcceptedCharactersInternal.None);
-                }
+            PutCurrentBack();
+            PutBack(in tokens);
+            EnsureCurrent();
+        }
+        if (shouldAcceptWhitespaceAndNewLine)
+        {
+            // Accept whitespace and a single newline if present
+            AcceptWhile(SyntaxKind.Whitespace);
+            TryAccept(SyntaxKind.NewLine);
+
+            if (isOuterTagWellFormed)
+            {
+                // Completed tags have no accepted characters inside blocks.
+                SetAcceptedCharacters(AcceptedCharactersInternal.None);
             }
         }
 
@@ -1631,9 +1625,9 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         var lastWhitespace = AcceptWhitespaceInLines();
         if (lastWhitespace != null)
         {
-            if (Context.DesignTimeMode || !Context.StartOfLine)
+            if (!Context.StartOfLine)
             {
-                // Markup owns whitespace in design time mode.
+                // Markup owns whitespace if not at start of line.
                 Accept(lastWhitespace);
                 lastWhitespace = null;
             }

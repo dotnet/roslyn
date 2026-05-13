@@ -161,9 +161,8 @@ internal static class RazorCodeActionFactory
             EventParameterType = eventParameterType,
             IsAsync = false
         };
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(textDocument)
         {
-            TextDocument = textDocument,
             Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = delegatedDocumentUri,
@@ -190,9 +189,8 @@ internal static class RazorCodeActionFactory
             EventParameterType = eventParameterType,
             IsAsync = true
         };
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(textDocument)
         {
-            TextDocument = textDocument,
             Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = delegatedDocumentUri,

@@ -41,7 +41,7 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
             codeTarget.CreateNodeWriter(),
             codeDocument.Source,
             documentNode,
-            codeDocument.CodeGenerationOptions);
+            documentNode.Options ?? codeDocument.CodeGenerationOptions);
 
         context.SetVisitor(new Visitor(context, codeTarget, cancellationToken));
 

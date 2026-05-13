@@ -72,6 +72,13 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
                         ContextSupport = false,
                         InsertTextMode = InsertTextMode.AsIs,
                     }
+                },
+                Workspace = new WorkspaceClientCapabilities
+                {
+                    WorkspaceEdit = new WorkspaceEditSetting
+                    {
+                        ResourceOperations = [ResourceOperationKind.Create, ResourceOperationKind.Rename, ResourceOperationKind.Delete]
+                    }
                 }
             }.ToVSInternalClientCapabilities(),
             TokenModifiers = [],

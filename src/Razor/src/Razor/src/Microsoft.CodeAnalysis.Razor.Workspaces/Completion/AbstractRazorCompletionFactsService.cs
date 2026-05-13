@@ -112,6 +112,15 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
             return markupAttribute.Name;
         }
 
+        // Same as above but for directive attributes with structured colon/parameter, e.g.
+        // <InputText @bind-Value:format|=""> or <InputText @bind-Value|="">
+        // When cursor is at the EqualsToken, walk back to ParameterName (or Name if no parameter).
+        if (originalNode is MarkupTagHelperDirectiveAttributeSyntax directiveAttribute
+            && directiveAttribute.EqualsToken.SpanStart == requestIndex)
+        {
+            return directiveAttribute.ParameterName ?? directiveAttribute.Name;
+        }
+
         return originalNode;
     }
 }

@@ -14,10 +14,12 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Suggestions;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -435,12 +437,19 @@ internal static class CodeActionHelpers
         for (var i = 0; i < codeActionPath.Length; i++)
         {
             var title = codeActionPath[i];
-            var matchingActions = currentActions.Where(action => action.Title == title);
+            var matchingActions = currentActions.Where(action => action.Title == title).ToArray();
+
+            // If the project changed between the original request and resolve, we may not have the action to resolve anymore.
+            if (matchingActions.Length == 0)
+                throw new LocalRpcException($"Code action '{string.Join("|", codeActionPath)}' is no longer available.")
+                {
+                    ErrorCode = LspErrorCodes.ContentModified
+                };
 
             // If we only have one matching action then just need to retrieve it from the list.
-            if (matchingActions.Count() == 1)
+            if (matchingActions.Length == 1)
             {
-                matchingAction = matchingActions.First();
+                matchingAction = matchingActions[0];
             }
             else
             {

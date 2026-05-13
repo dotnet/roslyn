@@ -27,7 +27,7 @@ public class TemplateTargetExtensionTest
             TemplateTypeName = "global::TestTemplate"
         };
 
-        var nodeWriter = RuntimeNodeWriter.Instance;
+        var nodeWriter = IntermediateNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime(nodeWriter: nodeWriter);
 

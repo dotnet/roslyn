@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
@@ -67,6 +68,21 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
 
         var inSnippetContext = InSnippetContext(owner, context.Options);
 
+        // Compute the replacement range for directive attribute items. This covers from after the '@'
+        // through the end of the parameter name (if present) or the attribute name. This is needed
+        // because InsertText includes the colon and parameter (e.g., "bind-Value:after") but the
+        // editor's word-boundary heuristic stops at ':' causing duplication.
+        LinePositionSpan? replacementRange = null;
+        if (isAttributeRequest && attributeNameLocation.Length > 0)
+        {
+            var sourceText = context.CodeDocument.Source.Text;
+            var spanStart = attributeNameLocation.Start + 1; // skip '@'
+            var spanEnd = parameterNameLocation.Length > 0
+                ? parameterNameLocation.End
+                : attributeNameLocation.End;
+            replacementRange = sourceText.GetLinePositionSpan(TextSpan.FromBounds(spanStart, spanEnd));
+        }
+
         var completionContext = new DirectiveAttributeCompletionContext()
         {
             SelectedAttributeName = attributeName,
@@ -75,7 +91,8 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
             UseSnippets = inSnippetContext,
             InAttributeName = isAttributeRequest,
             InParameterName = isParameterRequest,
-            Options = context.Options
+            Options = context.Options,
+            ReplacementRange = replacementRange,
         };
 
         return GetAttributeCompletions(containingTagName, completionContext, context.TagHelperDocumentContext);
@@ -282,8 +299,8 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
             Debug.Assert(kind is RazorCompletionItemKind.DirectiveAttribute or RazorCompletionItemKind.DirectiveAttributeParameter);
 
             var razorCompletionItem = kind == RazorCompletionItemKind.DirectiveAttribute
-                ? RazorCompletionItem.CreateDirectiveAttribute(displayText, insertText, descriptionInfo: new(descriptions), commitCharacters, isSnippet)
-                : RazorCompletionItem.CreateDirectiveAttributeParameter(displayText, insertText, descriptionInfo: new(descriptions), commitCharacters, isSnippet);
+                ? RazorCompletionItem.CreateDirectiveAttribute(displayText, insertText, descriptionInfo: new(descriptions), commitCharacters, isSnippet, completionContext.ReplacementRange)
+                : RazorCompletionItem.CreateDirectiveAttributeParameter(displayText, insertText, descriptionInfo: new(descriptions), commitCharacters, isSnippet, completionContext.ReplacementRange);
 
             completionItems.Add(razorCompletionItem);
         }

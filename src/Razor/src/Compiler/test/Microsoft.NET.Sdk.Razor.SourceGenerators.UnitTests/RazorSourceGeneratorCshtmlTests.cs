@@ -1,9 +1,15 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -166,5 +172,1289 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         Assert.Contains("""
             <img src="/test">
             """, html);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_AutoDetectedFromInherits()
+    {
+        // Arrange
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        result.VerifyOutputsMatchBaseline();
+        Assert.Contains("u8)", result.GeneratedSources[0].SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_WithoutOverload_UsesStringLiterals()
+    {
+        // Arrange
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyPageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyPageBase : RazorPage
+                    {
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        result.VerifyOutputsMatchBaseline();
+        Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_MixedFiles_OnlyUtf8ForInheritsWithOverload()
+    {
+        // Arrange - one file inherits a base with the overload, the other inherits one without
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Utf8Page.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>UTF-8 Page</h1>
+                    """,
+                ["Pages/RegularPage.cshtml"] = """
+                    @inherits MyRegularPageBase
+                    <h1>Regular Page</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """,
+                ["MyRegularPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyRegularPageBase : RazorPage
+                    {
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Equal(2, result.GeneratedSources.Length);
+
+        var utf8Source = result.GeneratedSources.Single(s => s.HintName.Contains("Utf8Page")).SourceText.ToString();
+        var regularSource = result.GeneratedSources.Single(s => s.HintName.Contains("RegularPage")).SourceText.ToString();
+
+        Assert.Contains("u8)", utf8Source);
+        Assert.DoesNotContain("u8)", regularSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_SwitchesWhenOverloadAddedOrRemoved()
+    {
+        // Arrange - start without the UTF-8 overload
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyPageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyPageBase : RazorPage
+                    {
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act 1 - verify string literals are used
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
+
+        // Act 2 - add the UTF-8 overload to the base class
+        var baseClassDoc = project.Documents.Single(d => d.Name == "MyPageBase.cs");
+        project = project.RemoveDocument(baseClassDoc.Id)
+            .AddDocument("MyPageBase.cs", SourceText.From("""
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                public abstract class MyPageBase : RazorPage
+                {
+                    public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                    {
+                        WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                    }
+                }
+                """, Encoding.UTF8)).Project;
+
+        compilation = await project.GetCompilationAsync();
+        driver = await GetDriverAsync(project);
+        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        // Assert - should now use UTF-8 literals
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        Assert.Contains("u8)", result.GeneratedSources[0].SourceText.ToString());
+
+        // Act 3 - remove the UTF-8 overload from the base class
+        baseClassDoc = project.Documents.Single(d => d.Name == "MyPageBase.cs");
+        project = project.RemoveDocument(baseClassDoc.Id)
+            .AddDocument("MyPageBase.cs", SourceText.From("""
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                public abstract class MyPageBase : RazorPage
+                {
+                }
+                """, Encoding.UTF8)).Project;
+
+        compilation = await project.GetCompilationAsync();
+        driver = await GetDriverAsync(project);
+        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        // Assert - should switch back to string literals
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_NoInheritsDirective_UsesStringLiterals()
+    {
+        // Arrange - no @inherits directive, default base class
+        var project = CreateTestProject(new()
+        {
+            ["Pages/Index.cshtml"] = """
+                @page
+                <h1>Hello World</h1>
+                """,
+        });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - default base classes don't support UTF-8 WriteLiteral
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_FullyQualifiedInherits()
+    {
+        // Arrange - @inherits with fully-qualified type name
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyApp.Infrastructure.MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - fully-qualified name resolves correctly
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        Assert.Contains("u8)", result.GeneratedSources[0].SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_ShortNameInherits_WithUsing()
+    {
+        // Arrange - @inherits with short name, namespace imported via _ViewImports
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using MyApp.Infrastructure
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - short name resolves via augmented compilation with the @using directives
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_PartiallyQualifiedInherits()
+    {
+        // Arrange - @inherits with partially-qualified name
+        // Note: Razor requires fully-qualified names in @inherits, so this produces a compile error.
+        // This test documents that we gracefully handle this case (no UTF-8 detection).
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits Infrastructure.MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        // Assert - partially-qualified name won't match the metadata name.
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.DoesNotContain("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_AliasedInherits_WithUsing()
+    {
+        // Arrange - @inherits with a type alias defined via @using alias in _ViewImports
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using Utf8Base = MyApp.Infrastructure.MyUtf8PageBase
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits Utf8Base
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - alias resolves via augmented compilation
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_AliasShadowsExistingType_GracefulFallback()
+    {
+        // Arrange - "MyPageBase" exists as a non-UTF-8 type in the global namespace.
+        // AliasedPage uses "@using MyPageBase = MyApp.Infrastructure.MyUtf8PageBase"
+        // which creates a C# compile error (CS0576: definition conflicting with alias).
+        // This test verifies we handle this gracefully — no crash, falls back to string literals.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/RegularPage.cshtml"] = """
+                    @inherits MyPageBase
+                    <h1>Regular Page</h1>
+                    """,
+                ["Pages/AliasedPage.cshtml"] = """
+                    @using MyPageBase = MyApp.Infrastructure.MyUtf8PageBase
+                    @inherits MyPageBase
+                    <h1>Aliased Page</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyPageBase : RazorPage
+                    {
+                    }
+                    """,
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - no generator crash. The alias conflicts with the global type (CS0576),
+        // so both files fall back to string literals. This is correct behavior since the
+        // user's code has a compile error.
+        Assert.Empty(result.Diagnostics);
+
+        var regularSource = result.GeneratedSources.Single(s => s.HintName.Contains("RegularPage")).SourceText.ToString();
+        var aliasedSource = result.GeneratedSources.Single(s => s.HintName.Contains("AliasedPage")).SourceText.ToString();
+
+        Assert.DoesNotContain("u8)", regularSource);
+        Assert.DoesNotContain("u8)", aliasedSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_AddingUsingMakesShortNameResolve()
+    {
+        // Arrange - @inherits uses a short name that doesn't resolve without a @using
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var (driver, additionalTexts, optionsProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project);
+
+        // Act 1 - short name doesn't resolve, falls back to string literals
+        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
+
+        // Act 2 - add a _ViewImports with @using that makes the short name resolve
+        var viewImports = new TestAdditionalText("Pages/_ViewImports.cshtml",
+            SourceText.From("@using MyApp.Infrastructure", Encoding.UTF8));
+        driver = driver.AddAdditionalTexts([viewImports]);
+        optionsProvider.AdditionalTextOptions[viewImports.Path] = new TestAnalyzerConfigOptions
+        {
+            ["build_metadata.AdditionalFiles.TargetPath"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(viewImports.Path))
+        };
+        driver = driver.WithUpdatedAnalyzerConfigOptions(optionsProvider);
+
+        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        // Assert - now the short name resolves and UTF-8 is used
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_InheritsFromViewImports()
+    {
+        // Arrange - @inherits is in _ViewImports.cshtml, not in the page itself
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - @inherits from _ViewImports should be detected and UTF-8 used
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_InheritsFromViewImports_ShortNameWithUsing()
+    {
+        // Arrange - @inherits with short name + @using both in _ViewImports.cshtml.
+        // The page itself has neither directive.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using MyApp.Infrastructure
+                    @inherits MyUtf8PageBase
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - short name resolved via @using in _ViewImports should enable UTF-8
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_CascadingViewImports_MostSpecificWins()
+    {
+        // Arrange - root _ViewImports has @inherits with UTF-8 support,
+        // but Pages/_ViewImports overrides with a base that does NOT support UTF-8.
+        // A page in Pages/Admin/ has its own @inherits that DOES support UTF-8.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["_ViewImports.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    """,
+                ["Pages/_ViewImports.cshtml"] = """
+                    @inherits MyRegularPageBase
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    <h1>Hello</h1>
+                    """,
+                ["Pages/Admin/Dashboard.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """,
+                ["MyRegularPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyRegularPageBase : RazorPage
+                    {
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+
+        // Pages/Index.cshtml inherits MyRegularPageBase (from Pages/_ViewImports) - no UTF-8
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.DoesNotContain("u8)", indexSource);
+
+        // Pages/Admin/Dashboard.cshtml has its own @inherits MyUtf8PageBase - UTF-8
+        var dashboardSource = result.GeneratedSources.Single(s => s.HintName.Contains("Dashboard")).SourceText.ToString();
+        Assert.Contains("u8)", dashboardSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_GenericBaseClass()
+    {
+        // Arrange - @inherits uses a generic base class that has the UTF-8 overload
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase<MyModel>
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyModel.cs"] = """
+                    public class MyModel
+                    {
+                        public string Name { get; set; } = "";
+                    }
+                    """,
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase<TModel> : RazorPage<TModel>
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - generic base class with UTF-8 overload should be detected
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_NonGenericBaseClass_ResolvedViaCSharpGlobalUsing()
+    {
+        // Arrange - @inherits uses a short name with no @using in Razor.
+        // The namespace is imported via a C# global using (e.g. from GlobalUsings.cs).
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["GlobalUsings.cs"] = """
+                    global using MyApp.Infrastructure;
+                    """,
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - should detect UTF-8 even though the using comes from C# not Razor
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_GenericBaseClass_InNamespace()
+    {
+        // Arrange - @inherits uses a generic base class in a namespace, resolved via @using
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using MyApp.Infrastructure
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase<MyModel>
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyModel.cs"] = """
+                    public class MyModel { }
+                    """,
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase<TModel> : RazorPage<TModel>
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_GenericBaseClass_NestedInGenericClass()
+    {
+        // Arrange - @inherits uses a generic class nested inside another generic class in a namespace
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using MyApp.Infrastructure
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits PageFactory<MyModel>.Utf8Page
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyModel.cs"] = """
+                    public class MyModel { }
+                    """,
+                ["PageFactory.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public class PageFactory<TModel>
+                        {
+                            public abstract class Utf8Page : RazorPage<TModel>
+                            {
+                                public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                                {
+                                    WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                                }
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_GenericBaseClass_MultipleTypeParameters()
+    {
+        // Arrange - @inherits uses a generic base class with multiple type parameters
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase<string, int>
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase<TModel, TKey> : RazorPage<TModel>
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_GenericBaseClass_FromMetadataReference()
+    {
+        // Arrange - the generic base class comes from a pre-compiled assembly (metadata reference),
+        // not from source in the same compilation.
+        var baseProject = CreateTestProject(new() { ["_dummy.cshtml"] = "" }, sources: new()
+        {
+            ["MyUtf8PageBase.cs"] = """
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace ExternalLib
+                {
+                    public abstract class MyUtf8PageBase<TModel> : RazorPage<TModel>
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                }
+                """
+        });
+
+        var baseCompilation = await baseProject.GetCompilationAsync();
+        using var peStream = new MemoryStream();
+        var emitResult = baseCompilation!.Emit(peStream);
+        Assert.True(emitResult.Success);
+        peStream.Position = 0;
+        var metadataRef = MetadataReference.CreateFromStream(peStream);
+
+        // Now create the actual test project that references the pre-compiled assembly
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using ExternalLib
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase<string>
+                    <h1>Hello World</h1>
+                    """,
+            });
+
+        project = project.AddMetadataReference(metadataRef);
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_GenericBaseClass_WithTModel_AndModelDirective()
+    {
+        // Arrange - the common MVC pattern: @inherits SomeBase<TModel> + @model SomeType.
+        // ModelDirective.Pass substitutes TModel with the @model type during code generation,
+        // but the support map probes the raw @inherits text. The probe must still bind
+        // SomeBase<TModel> by aliasing TModel to a known type.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase<TModel>
+                    @model MyModel
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyModel.cs"] = """
+                    public class MyModel
+                    {
+                        public string Name { get; set; } = "";
+                    }
+                    """,
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase<TModel> : RazorPage<TModel>
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - even though the raw @inherits text contains the unresolved `TModel`,
+        // the probe should still resolve the open generic and detect the UTF-8 overload.
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_LanguageVersionBelowCSharp11_UsesStringLiterals()
+    {
+        // Arrange - project pinned to C# 10 (no UTF-8 string literal support). Even when the
+        // base class exposes WriteLiteral(ReadOnlySpan<byte>), emitting "..."u8 would produce
+        // uncompilable code, so the generator must fall back to plain string literals.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """
+            },
+            cSharpParseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_PrivateOverloadOnReferencedAssembly_NotDetected()
+    {
+        // Arrange - the WriteLiteral(ReadOnlySpan<byte>) overload is `private` on the base.
+        // A generated subclass cannot call a private method on its base, so the page must
+        // fall back to plain string literals (otherwise the generated code won't compile).
+        var baseProject = CreateTestProject(new() { ["_dummy.cshtml"] = "" }, sources: new()
+        {
+            ["MyUtf8PageBase.cs"] = """
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace ExternalLib
+                {
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        private void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                }
+                """
+        });
+
+        var baseCompilation = await baseProject.GetCompilationAsync();
+        using var peStream = new MemoryStream();
+        var emitResult = baseCompilation!.Emit(peStream);
+        Assert.True(emitResult.Success);
+        peStream.Position = 0;
+        var metadataRef = MetadataReference.CreateFromStream(peStream);
+
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits ExternalLib.MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            });
+        project = project.AddMetadataReference(metadataRef);
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_InternalOverloadOnReferencedAssembly_NotDetected()
+    {
+        // Arrange - the WriteLiteral(ReadOnlySpan<byte>) overload is `internal` on a base
+        // type that lives in a *different* assembly with no InternalsVisibleTo. The generated
+        // subclass in our compilation cannot call it, so we must fall back to string literals.
+        var baseProject = CreateTestProject(new() { ["_dummy.cshtml"] = "" }, sources: new()
+        {
+            ["MyUtf8PageBase.cs"] = """
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace ExternalLib
+                {
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        internal void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                }
+                """
+        });
+
+        var baseCompilation = await baseProject.GetCompilationAsync();
+        using var peStream = new MemoryStream();
+        var emitResult = baseCompilation!.Emit(peStream);
+        Assert.True(emitResult.Success);
+        peStream.Position = 0;
+        var metadataRef = MetadataReference.CreateFromStream(peStream);
+
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits ExternalLib.MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            });
+        project = project.AddMetadataReference(metadataRef);
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_ProtectedOverload_Detected()
+    {
+        // Arrange - `protected` WriteLiteral overload should still be callable from the
+        // generated subclass (regardless of which assembly the base is in).
+        var baseProject = CreateTestProject(new() { ["_dummy.cshtml"] = "" }, sources: new()
+        {
+            ["MyUtf8PageBase.cs"] = """
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace ExternalLib
+                {
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        protected void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                }
+                """
+        });
+
+        var baseCompilation = await baseProject.GetCompilationAsync();
+        using var peStream = new MemoryStream();
+        var emitResult = baseCompilation!.Emit(peStream);
+        Assert.True(emitResult.Success);
+        peStream.Position = 0;
+        var metadataRef = MetadataReference.CreateFromStream(peStream);
+
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits ExternalLib.MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            });
+        project = project.AddMetadataReference(metadataRef);
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Contains("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_AliasFromImports_ResolvesInProbe()
+    {
+        // Arrange - the page's @inherits depends on a `using Foo = ...` alias defined in
+        // _ViewImports.cshtml. The probe compilation must see the import's usings before
+        // the page's so that the alias is in scope when binding the @inherits text.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using MyAlias = MyApp.Infrastructure.MyUtf8PageBase
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyAlias
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
     }
 }

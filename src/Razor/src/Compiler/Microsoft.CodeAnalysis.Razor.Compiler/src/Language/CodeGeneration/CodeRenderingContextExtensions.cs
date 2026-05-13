@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -12,8 +11,6 @@ internal static class CodeRenderingContextExtensions
     public static LinePragmaScope BuildLinePragma(
         this CodeRenderingContext context, SourceSpan? span, bool suppressLineDefaultAndHidden = false)
     {
-        Debug.Assert(context.Options.DesignTime, "Runtime generation should only use enhanced line pragmas");
-
         // Can't build a valid line pragma without a file path.
         return span is SourceSpan spanValue && !spanValue.FilePath.IsNullOrEmpty()
             ? LinePragmaScope.Standard(context, spanValue, suppressLineDefaultAndHidden)

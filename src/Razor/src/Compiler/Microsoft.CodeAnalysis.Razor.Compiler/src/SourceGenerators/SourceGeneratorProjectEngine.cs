@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -165,10 +166,16 @@ internal sealed class SourceGeneratorProjectEngine
         return false;
     }
 
-    public SourceGeneratorRazorCodeDocument ProcessRemaining(SourceGeneratorRazorCodeDocument sgDocument, CancellationToken cancellationToken)
+    public SourceGeneratorRazorCodeDocument ProcessRemaining(SourceGeneratorRazorCodeDocument sgDocument, DefaultUtf8WriteLiteralFeature.Utf8SupportMap utf8SupportMap, CancellationToken cancellationToken)
     {
         var codeDocument = sgDocument.CodeDocument;
         Debug.Assert(codeDocument.GetReferencedTagHelpers() is not null);
+
+        if (_projectEngine.Engine.TryGetFeature<IUtf8WriteLiteralFeature>(out var feature) &&
+            feature is DefaultUtf8WriteLiteralFeature defaultFeature)
+        {
+            defaultFeature.SupportMap = utf8SupportMap;
+        }
 
         codeDocument = ExecutePhases(Phases[(_rewritePhaseIndex + 1)..], codeDocument, cancellationToken);
 

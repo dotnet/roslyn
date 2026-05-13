@@ -57,6 +57,31 @@ There are currently two ways to get the feature onto the request:
 
 If both are supplied, the explicit feature flag wins over `ROSLYN_CACHE_PATH`.
 
+## Path mapping for cache reuse and debugging
+
+Useful cache reuse across worktrees generally requires the build to normalize machine-specific source paths.
+Use `PathMap` to map the local checkout root to a stable path that will be identical in every worktree that should share cache entries.
+
+The simplest setup is to put this in a `Directory.Build.props` file at the source root:
+
+```xml
+<Project>
+  <PropertyGroup>
+    <PathMap>$(MSBuildThisFileDirectory)=/_/</PathMap>
+  </PropertyGroup>
+</Project>
+```
+
+Then for VS Code's C# debugger, add this setting to the workspace settings file:
+
+```json
+{
+  "csharp.debug.sourceFileMap": {
+    "/_/": "${workspaceFolder}/"
+  }
+}
+```
+
 ## Cache key
 
 The cache key is based on Roslyn's deterministic compilation key. For a given compilation request, the server computes a deterministic key from inputs such as:

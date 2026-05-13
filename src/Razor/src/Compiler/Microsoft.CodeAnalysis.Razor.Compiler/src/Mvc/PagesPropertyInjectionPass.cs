@@ -36,7 +36,7 @@ public sealed class PagesPropertyInjectionPass : IntermediateNodePassBase, IRazo
             IntermediateNodeFactory.CSharpToken(nullableEnable(nullableEnabled, $"public {viewDataType} ViewData => ({viewDataType})PageContext?.ViewData")));
         @class.Children.Add(vddProperty);
 
-        if (codeDocument.CodeGenerationOptions.DesignTime || !razor9OrHigher)
+        if (!razor9OrHigher)
         {
             var modelProperty = new CSharpCodeIntermediateNode();
             modelProperty.Children.Add(

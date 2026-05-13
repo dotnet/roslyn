@@ -19,11 +19,6 @@ public sealed class InstrumentationPass : IntermediateNodePassBase, IRazorOptimi
         DocumentIntermediateNode documentNode,
         CancellationToken cancellationToken)
     {
-        if (documentNode.Options.DesignTime)
-        {
-            return;
-        }
-
         var walker = new Visitor();
         walker.VisitDocument(documentNode);
 
