@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -166,7 +166,7 @@ internal sealed class OOPCSharpCodeActionResolver(
         }
 
         var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-        return new RemoteDocumentContext(razorDocument.CreateUri(), razorDocumentSnapshot);
+        return new RemoteDocumentContext(razorDocument.CreateSystemUri(), razorDocumentSnapshot);
     }
 }
 

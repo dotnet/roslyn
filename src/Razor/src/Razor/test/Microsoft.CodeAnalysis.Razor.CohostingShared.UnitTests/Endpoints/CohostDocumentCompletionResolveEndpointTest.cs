@@ -4,7 +4,7 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
@@ -85,7 +85,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
 
         var resultId = completionListCache.Add(list, context);
         list.SetResultId(resultId, clientCapabilities);
-        RazorCompletionResolveData.Wrap(list, new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() }, clientCapabilities);
+        RazorCompletionResolveData.Wrap(list, new TextDocumentIdentifier { DocumentUri = document.GetURI() }, clientCapabilities);
 
         var request = list.Items[0];
         // Simulate the LSP client, which would receive all of the items and the list data, and send the item back to us with
@@ -94,7 +94,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(request);
         Assert.NotNull(tdi);
-        Assert.Equal(document.CreateUri(), tdi.Value.Uri);
+        Assert.Equal(document.GetURI(), new(tdi.Value.Uri));
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 

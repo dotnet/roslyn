@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Text;
@@ -696,7 +696,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
 
         var request = new CodeActionParams
         {
-            TextDocument = new() { DocumentUri = csharpDocument.CreateDocumentUri() },
+            TextDocument = new() { DocumentUri = csharpDocument.GetURI() },
             Range = new LspRange
             {
                 Start = new Position(csharpPosition.Line, csharpPosition.Character),
@@ -743,7 +743,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
         var modifiedGeneratedSourceText = generatedSourceText
             .WithChanges(
                 workspaceEdit.EnumerateTextDocumentEdits()
-                    .Where(e => e.TextDocument.DocumentUri.GetRequiredParsedUri() == generatedDoc.CreateUri())
+                    .Where(e => e.TextDocument.DocumentUri == generatedDoc.GetURI())
                     .SelectMany(e => e.Edits)
                     .Select(e => generatedSourceText.GetTextChange((TextEdit)e)));
 
