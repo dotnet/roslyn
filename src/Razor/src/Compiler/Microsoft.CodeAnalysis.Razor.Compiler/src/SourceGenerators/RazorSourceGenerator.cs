@@ -402,10 +402,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 using var filePathToDocument = new PooledDictionaryBuilder<string, (string, RazorCodeDocument)>();
                 using var hintNameToFilePath = new PooledDictionaryBuilder<string, string>();
 
-                foreach (var (hintName, codeDocument, _, _) in documents)
+                foreach (var (hintName, codeDocument, _, declCSharpDocument) in documents)
                 {
                     filePathToDocument.Add(codeDocument.Source.FilePath!, (hintName, codeDocument));
                     hintNameToFilePath.Add(hintName, codeDocument.Source.FilePath!);
+
+                    if (declCSharpDocument is not null)
+                    {
+                        hintNameToFilePath.Add(GetDeclIdentifierFromHintName(hintName), codeDocument.Source.FilePath!);
+                    }
                 }
 
                 context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, filePathToDocument.ToImmutable(), hintNameToFilePath.ToImmutable()));
