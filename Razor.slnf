@@ -44,7 +44,7 @@
       "src\\Razor\\src\\Razor\\test\\Microsoft.AspNetCore.Razor.Test.Common.Cohosting\\Microsoft.AspNetCore.Razor.Test.Common.Cohosting.csproj",
       "src\\Razor\\src\\Razor\\test\\Microsoft.AspNetCore.Razor.Test.Common.Tooling\\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj",
       "src\\Razor\\src\\Razor\\test\\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.shproj",
-      "src\\Razor\\src\\Razor\\test\\Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests\\Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests.csproj",
+      "src\\Razor\\Tests\\Tooling\\Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests\\Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests.csproj",
       "src\\Razor\\src\\Razor\\test\\Microsoft.CodeAnalysis.Remote.Razor.UnitTests\\Microsoft.CodeAnalysis.Remote.Razor.UnitTests.csproj",
       "src\\Razor\\src\\Razor\\test\\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests\\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests.csproj",
       "src\\Razor\\src\\Razor\\test\\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests\\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests.csproj",
