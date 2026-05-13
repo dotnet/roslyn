@@ -1,6 +1,9 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Text;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public sealed class ComponentTypeArgumentIntermediateNode(
@@ -34,8 +37,56 @@ public sealed class ComponentTypeArgumentIntermediateNode(
                     contentFactory: static token => token.Content,
                     source: t.Source)
                 : new CSharpIntermediateToken(t.Content, t.Source),
-            _ => Assumed.Unreachable<CSharpIntermediateToken>()
+            // Fallback: the value lowered to a more complex shape, e.g. literal text mixed
+            // with one or more Razor expressions ("leading @x", "@x trailing", multiple
+            // expressions, etc.). Concatenate the token content from all descendants into a
+            // single CSharp token so downstream code generation can emit the user-authored
+            // text as a type argument. The C# compiler will then produce a normal diagnostic
+            // if the result is not a valid type, instead of the Razor compiler crashing.
+            _ => MergeChildTokens(node),
         };
+
+    private static CSharpIntermediateToken MergeChildTokens(TagHelperPropertyIntermediateNode node)
+    {
+        using var _sb = StringBuilderPool.GetPooledObject(out var sb);
+        SourceSpan? firstSpan = null;
+        SourceSpan? lastSpan = null;
+
+        AppendTokens(node, sb, ref firstSpan, ref lastSpan);
+
+        SourceSpan? mergedSpan = null;
+        if (firstSpan is { } first && lastSpan is { } last && first.AbsoluteIndex <= last.AbsoluteIndex)
+        {
+            mergedSpan = DefaultTagHelperResolutionPhase.MergeSourceSpans(first, last);
+        }
+        else
+        {
+            mergedSpan = firstSpan ?? lastSpan ?? node.Source;
+        }
+
+        return new CSharpIntermediateToken(sb.ToString(), mergedSpan);
+    }
+
+    private static void AppendTokens(IntermediateNode node, StringBuilder sb, ref SourceSpan? firstSpan, ref SourceSpan? lastSpan)
+    {
+        foreach (var child in node.Children)
+        {
+            if (child is IntermediateToken token)
+            {
+                sb.Append(token.Content);
+                if (token.Source is { } s)
+                {
+                    firstSpan ??= s;
+                    lastSpan = s;
+                }
+            }
+            else
+            {
+                // Unwrap container nodes (CSharpExpressionIntermediateNode, HtmlContentIntermediateNode, etc.).
+                AppendTokens(child, sb, ref firstSpan, ref lastSpan);
+            }
+        }
+    }
 
     public override void Accept(IntermediateNodeVisitor visitor)
         => visitor.VisitComponentTypeArgument(this);

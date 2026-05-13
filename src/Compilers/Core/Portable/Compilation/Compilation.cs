@@ -208,7 +208,18 @@ namespace Microsoft.CodeAnalysis
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
             return DeterministicKey.GetDeterministicKey(
-                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkStream, resources, options);
+                compilationOptions,
+                syntaxTrees,
+                references,
+                publicKey,
+                additionalTexts,
+                analyzers,
+                generators,
+                pathMap,
+                emitOptions,
+                sourceLinkStream,
+                resources,
+                options);
         }
 
         internal string GetDeterministicKey(
@@ -225,7 +236,7 @@ namespace Microsoft.CodeAnalysis
                 Options,
                 CommonSyntaxTrees,
                 References.AsImmutable(),
-                Assembly.Identity.PublicKey,
+                StrongNameKeys.PublicKey.NullToEmpty(),
                 additionalTexts,
                 analyzers,
                 generators,

@@ -24,7 +24,6 @@ internal sealed class LanguageServerTestComposition
             SessionId: null,
             ExtensionAssemblyPaths: extensionPaths ?? [],
             DevKitDependencyPath: devKitDependencyPath,
-            RazorDesignTimePath: null,
             CSharpDesignTimePath: null,
             ExtensionLogDirectory: string.Empty,
             ServerPipeName: null,

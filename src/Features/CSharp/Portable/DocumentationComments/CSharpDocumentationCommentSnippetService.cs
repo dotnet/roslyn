@@ -296,9 +296,12 @@ internal sealed class CSharpDocumentationCommentSnippetService() : AbstractDocum
             return false;
         }
 
-        // If there are two text tokens it means there is an existing comment that we want to
-        // preserve.
-        existingCommentText = textTokens.Count == 1 ? "" : firstTextToken.ValueText;
+        // If there are exactly two text tokens it means there is an existing comment on a single
+        // line that we want to preserve. When there are more tokens the parser has merged multiple
+        // consecutive `///` lines into one DocumentationCommentTriviaSyntax; in that case the
+        // existing text belongs to earlier lines, not the line the user just typed, so we must not
+        // use it as the replacement-span length (doing so would overflow into the declaration).
+        existingCommentText = textTokens.Count == 2 ? firstTextToken.ValueText : "";
 
         return lastTextToken.Kind() == SyntaxKind.XmlTextLiteralNewLineToken
             && lastTextToken.TrailingTrivia.Count == 0
