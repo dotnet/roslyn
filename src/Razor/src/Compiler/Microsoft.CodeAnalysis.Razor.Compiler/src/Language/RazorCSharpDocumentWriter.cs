@@ -47,6 +47,48 @@ internal static class RazorCSharpDocumentWriter
             context.GetLinePragmas());
     }
 
+    /// <summary>
+    /// Shallow-clones a <see cref="DocumentIntermediateNode"/>: copies its container-level
+    /// metadata (kind, options, target, source) into a new node with empty children. Used by
+    /// the decl and impl phases to build synthetic spines that share leaf nodes with the
+    /// original tree by reference rather than mutating it in place.
+    /// </summary>
+    public static DocumentIntermediateNode CloneContainer(DocumentIntermediateNode node)
+        => new()
+        {
+            DocumentKind = node.DocumentKind,
+            Options = node.Options,
+            Target = node.Target,
+            Source = node.Source,
+            IsImported = node.IsImported,
+        };
+
+    /// <inheritdoc cref="CloneContainer(DocumentIntermediateNode)"/>
+    public static NamespaceDeclarationIntermediateNode CloneContainer(NamespaceDeclarationIntermediateNode node)
+        => new()
+        {
+            Name = node.Name,
+            IsPrimaryNamespace = node.IsPrimaryNamespace,
+            IsGenericTyped = node.IsGenericTyped,
+            Source = node.Source,
+            IsImported = node.IsImported,
+        };
+
+    /// <inheritdoc cref="CloneContainer(DocumentIntermediateNode)"/>
+    public static ClassDeclarationIntermediateNode CloneContainer(ClassDeclarationIntermediateNode node)
+        => new()
+        {
+            Name = node.Name,
+            BaseType = node.BaseType,
+            Modifiers = node.Modifiers,
+            Interfaces = node.Interfaces,
+            TypeParameters = node.TypeParameters,
+            IsPrimaryClass = node.IsPrimaryClass,
+            NullableContext = node.NullableContext,
+            Source = node.Source,
+            IsImported = node.IsImported,
+        };
+
     private sealed class Visitor(
         CodeRenderingContext context,
         CodeTarget codeTarget,
