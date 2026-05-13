@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -40,7 +41,7 @@ internal sealed class HtmlRequestInvoker(
             return default;
         }
 
-        if (!_documentManager.TryGetDocument(razorDocument.CreateUri(), out var snapshot))
+        if (!_documentManager.TryGetDocument(razorDocument.CreateSystemUri(), out var snapshot))
         {
             _logger.LogError($"Couldn't find document in LSPDocumentManager for {razorDocument.FilePath}");
             return default;

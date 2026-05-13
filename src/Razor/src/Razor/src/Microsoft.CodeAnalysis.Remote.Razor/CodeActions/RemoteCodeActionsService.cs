@@ -4,6 +4,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -48,7 +50,7 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
             {
                 // Since we're here, we may as well fill in the generated document Uri so the other caller won't have to calculate it
                 var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
-                csharpRequest.TextDocument.DocumentUri = generatedDocument.CreateDocumentUri();
+                csharpRequest.TextDocument.DocumentUri = generatedDocument.GetURI();
             }
         }
 
@@ -65,7 +67,7 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
     private async ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(RemoteDocumentContext context, VSCodeActionParams request, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
     {
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var generatedDocumentUri = generatedDocument.CreateUri();
+        var generatedDocumentUri = generatedDocument.CreateSystemUri();
 
         var supportsCodeActionResolve = _clientCapabilitiesService.ClientCapabilities.TextDocument?.CodeAction?.ResolveSupport is not null;
         return await _codeActionsService.GetCodeActionsAsync(request, context.Snapshot, delegatedCodeActions, generatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);

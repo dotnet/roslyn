@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -145,7 +145,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
         var request = new InlayHintParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
             Range = LspFactory.CreateRange(startLine, starChar, endLine, endChar)
         };
 
@@ -206,7 +206,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
         var request = new InlayHintParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
             Range = new()
             {
                 Start = new(0, 0),
@@ -241,7 +241,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
             // Make sure we can resolve the document correctly
             var tdi = resolveEndpoint.GetTestAccessor().GetTextDocumentIdentifier(serializedHint);
             Assert.NotNull(tdi);
-            Assert.Equal(document.CreateUri(), tdi.DocumentUri.GetRequiredParsedUri());
+            Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
             // Make sure we, or really Roslyn, can resolve the hint correctly
             var resolvedHint = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(serializedHint, document, DisposalToken);

@@ -3,7 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
@@ -253,7 +253,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.CreateDocumentUri()
+                DocumentUri = document.GetURI()
             },
             Range = sourceText.GetRange(span),
             Uris = uris
@@ -270,7 +270,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             Assert.NotNull(result);
             Assert.NotNull(result.DocumentChanges);
             Assert.Equal(expected, ((TextEdit)result.DocumentChanges.Value.First[0].Edits[0]).NewText);
-            Assert.Equal(document.CreateUri(), result.DocumentChanges.Value.First[0].TextDocument.DocumentUri.GetRequiredParsedUri());
+            Assert.Equal(document.GetURI(), result.DocumentChanges.Value.First[0].TextDocument.DocumentUri);
         }
     }
 }

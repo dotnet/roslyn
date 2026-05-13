@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -26,6 +25,6 @@ internal static class Extensions
         var filePath = codeDocument.Source.FilePath;
         var documentId = solution.GetDocumentIdsWithFilePath(filePath).First();
         var document = solution.GetAdditionalDocument(documentId).AssumeNotNull();
-        return document.CreateUri();
+        return document.CreateSystemUri();
     }
 }

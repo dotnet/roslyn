@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -41,7 +42,7 @@ internal sealed class HtmlRequestInvoker(
         var forwardedRequest = new HtmlForwardedRequest<TRequest>(
             new TextDocumentIdentifier
             {
-                DocumentUri = razorDocument.CreateDocumentUri()
+                DocumentUri = razorDocument.GetURI()
             },
             checksumString,
             request);

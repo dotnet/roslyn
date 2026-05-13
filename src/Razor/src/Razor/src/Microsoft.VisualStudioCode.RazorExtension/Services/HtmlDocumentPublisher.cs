@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
@@ -22,7 +23,7 @@ internal sealed class HtmlDocumentPublisher(
 
     public async Task<bool> TryPublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken)
     {
-        var request = new HtmlUpdateParameters(new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() }, checksum.ToString(), htmlText);
+        var request = new HtmlUpdateParameters(new TextDocumentIdentifier { DocumentUri = document.GetURI() }, checksum.ToString(), htmlText);
 
         var clientConnection = _razorClientServerManagerProvider.ClientLanguageServerManager.AssumeNotNull();
         await clientConnection.SendRequestAsync("razor/updateHtml", request, cancellationToken).ConfigureAwait(false);

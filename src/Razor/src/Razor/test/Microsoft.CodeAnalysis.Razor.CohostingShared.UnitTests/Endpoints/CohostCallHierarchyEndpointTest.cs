@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CallHierarchy;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -213,7 +213,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
         var request = new CallHierarchyPrepareParams
         {
             Position = sourceText.GetPosition(input.Position),
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
         };
 
         var preparedItems = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
@@ -231,12 +231,12 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
 
     private static void VerifyRazorItem(TextDocument document, SourceText sourceText, CallHierarchyItem item, TextSpan expectedSelectionSpan)
     {
-        Assert.Equal(document.CreateUri(), item.Uri.GetRequiredParsedUri());
+        Assert.Equal(document.GetURI(), item.Uri);
         Assert.Equal(sourceText.GetRange(expectedSelectionSpan), item.SelectionRange);
 
         var data = RazorCallHierarchyResolveData.Unwrap(item);
         Assert.NotNull(data);
-        Assert.Equal(document.CreateUri(), data.TextDocument.DocumentUri.GetRequiredParsedUri());
+        Assert.Equal(document.GetURI(), data.TextDocument.DocumentUri);
         Assert.NotNull(data.OriginalData);
     }
 
