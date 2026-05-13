@@ -2737,6 +2737,127 @@ class Test
         }
 
         [Fact]
+        public void Dynamic_RuntimeAsync_MissingGetAwaiter_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new object()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                        {
+                            Console.WriteLine("RuntimeBinderException");
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void Dynamic_RuntimeAsync_MissingGetResult_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter GetAwaiter() => new Awaiter();
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted => true;
+                    public void OnCompleted(Action continuation) => throw null;
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                        {
+                            Console.WriteLine("RuntimeBinderException");
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void Dynamic_RuntimeAsync_BadIsCompleted_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter GetAwaiter() => new Awaiter();
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public string IsCompleted => "";
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                        {
+                            Console.WriteLine("RuntimeBinderException");
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
+        }
+
+        [Fact]
         [WorkItem(638261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638261")]
         public void Await15()
         {
@@ -10133,6 +10254,60 @@ static class Test1
             comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
             CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+        }
+
+        [Fact]
+        public void MissingAwaitAwaiter_Dynamic()
+        {
+            var code = """
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    static async Task F(dynamic d)
+                    {
+                        await d;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, TestOptions.ReleaseDll);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
+            comp.VerifyEmitDiagnostics(
+                // (7,15): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter'
+                //             await d;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "AwaitAwaiter").WithLocation(7, 15)
+            );
+
+            // Runtime async not turned on, so we shouldn't care about the missing member
+            comp = CreateRuntimeAsyncCompilation(code, TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+        }
+
+        [Fact]
+        public void MissingINotifyCompletion_Dynamic()
+        {
+            var code = """
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    static async Task F(dynamic d)
+                    {
+                        await d;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, TestOptions.ReleaseDll);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion);
+            comp.VerifyEmitDiagnostics(
+                // (7,15): error CS0518: Predefined type 'System.Runtime.CompilerServices.INotifyCompletion' is not defined or imported
+                //             await d;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.INotifyCompletion").WithLocation(7, 15)
+            );
+
         }
 
         [Fact]
