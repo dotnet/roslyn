@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -46,7 +47,7 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
 
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
         return new InlineCompletionRequestInfo(
-            GeneratedDocumentUri: generatedDocument.CreateUri(),
+            GeneratedDocumentUri: generatedDocument.CreateSystemUri(),
             Position: mappedPosition);
     }
 

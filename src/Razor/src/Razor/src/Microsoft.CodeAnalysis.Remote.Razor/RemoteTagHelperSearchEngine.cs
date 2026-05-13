@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -75,7 +75,7 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     return new LspLocation
                     {
-                        DocumentUri = document.CreateDocumentUri(),
+                        DocumentUri = document.GetURI(),
                         Range = text.GetRange(location.SourceSpan)
                     };
                 }

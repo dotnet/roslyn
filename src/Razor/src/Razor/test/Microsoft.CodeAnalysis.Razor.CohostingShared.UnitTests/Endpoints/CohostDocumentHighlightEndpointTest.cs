@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -156,7 +156,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
 
         var request = new DocumentHighlightParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
             Position = position
         };
 

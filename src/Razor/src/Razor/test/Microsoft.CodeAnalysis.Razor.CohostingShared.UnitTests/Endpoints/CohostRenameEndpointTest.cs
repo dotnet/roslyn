@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Testing;
@@ -1481,7 +1481,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
         var renameParams = new RenameParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
             NewName = newName,
         };
 
@@ -1495,8 +1495,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         Assert.NotNull(result);
 
-        var documentUri = newFileUri ?? document.CreateUri();
-        var expectedChanges = (additionalExpectedFiles ?? []).Concat([(documentUri, expected)]);
+        var documentUri = newFileUri is null ? document.GetURI() : new(newFileUri);
+        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (new DocumentUri(e.fileUri), e.contents)).Concat([(documentUri, expected)]);
         await result.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 }

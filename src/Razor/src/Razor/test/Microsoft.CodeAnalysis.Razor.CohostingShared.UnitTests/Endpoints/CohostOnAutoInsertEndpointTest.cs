@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
@@ -591,7 +591,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.CreateDocumentUri()
+                DocumentUri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Character = triggerCharacter,

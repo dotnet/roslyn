@@ -46,7 +46,7 @@ internal partial class RazorEditService
 
     private async Task MapTextDocumentEditAsync(IDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit entry, CancellationToken cancellationToken)
     {
-        var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
+        var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredSystemUri();
 
         // For Html we just map the Uri, the range will be the same
         if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))

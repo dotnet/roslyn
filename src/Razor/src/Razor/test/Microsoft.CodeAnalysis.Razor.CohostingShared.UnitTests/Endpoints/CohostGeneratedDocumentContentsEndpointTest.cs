@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Xunit;
 using Xunit.Abstractions;
@@ -58,7 +58,7 @@ public class CohostGeneratedDocumentContentsEndpointTest(ITestOutputHelper testO
 
         var request = new DocumentContentsRequest
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.GetURI() },
             Kind = kind
         };
 

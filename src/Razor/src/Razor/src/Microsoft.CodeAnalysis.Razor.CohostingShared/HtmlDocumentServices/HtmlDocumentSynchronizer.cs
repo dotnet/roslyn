@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Threading;
@@ -85,7 +85,7 @@ internal sealed partial class HtmlDocumentSynchronizer(
 
         Task<SynchronizationResult> GetOrAddResultTask_CallUnderLockAsync()
         {
-            var documentUri = document.CreateUri();
+            var documentUri = document.CreateSystemUri();
             if (_synchronizationRequests.TryGetValue(documentUri, out var request))
             {
                 if (requestedVersion.Checksum.Equals(request.RequestedVersion.Checksum))

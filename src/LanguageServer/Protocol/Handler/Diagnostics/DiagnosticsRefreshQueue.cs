@@ -18,7 +18,6 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class Factory(
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         IDiagnosticsRefresher refresher,
         FeatureProviderRefresher providerRefresher) : ILspServiceFactory
     {
@@ -26,6 +25,7 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
         {
             var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
             var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+            var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
 
             return new DiagnosticsRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher, refresher);
         }

@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -122,7 +122,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
     {
-        var diagnosticsParams = CreateHtmlParams(razorDocument.CreateUri());
+        var diagnosticsParams = CreateHtmlParams(razorDocument.CreateSystemUri());
 
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequest, TResponse>(
             razorDocument,

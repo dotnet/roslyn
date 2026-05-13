@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-[ExportLspServiceFactory(typeof(LspWorkspaceManager), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspServiceFactory(typeof(LspWorkspaceRegistrationService), ProtocolConstants.TypeScriptLanguageContract), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VSTypeScriptLspWorkspaceManagerFactory()
-    : LspWorkspaceManagerFactory();
+internal sealed class VSTypeScriptLspWorkspaceRegistrationServiceFactory(LspWorkspaceRegistrationEventListener eventListener)
+    : LspWorkspaceRegistrationServiceFactory(eventListener);

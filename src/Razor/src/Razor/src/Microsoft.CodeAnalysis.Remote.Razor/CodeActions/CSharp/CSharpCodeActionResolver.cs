@@ -53,7 +53,7 @@ internal sealed class CSharpCodeActionResolver(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var generatedDocumentUri = textDocumentEdit.TextDocument.DocumentUri.GetRequiredParsedUri();
+            var generatedDocumentUri = textDocumentEdit.TextDocument.DocumentUri.GetRequiredSystemUri();
 
             // If Roslyn wants to edit a random .cs file, then who are we to interfere
             if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
@@ -107,6 +107,6 @@ internal sealed class CSharpCodeActionResolver(
         }
 
         var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-        return new RemoteDocumentContext(razorDocument.CreateUri(), razorDocumentSnapshot);
+        return new RemoteDocumentContext(razorDocument.CreateSystemUri(), razorDocumentSnapshot);
     }
 }

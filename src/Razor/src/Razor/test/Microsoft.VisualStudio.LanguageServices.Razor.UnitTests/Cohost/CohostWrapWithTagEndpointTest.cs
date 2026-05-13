@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
 using Roslyn.Test.Utilities;
@@ -193,7 +193,7 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
 
         var requestInvoker = new TestHtmlRequestInvoker([(LanguageServerConstants.RazorWrapWithTagEndpoint, htmlResponse)]);
 
-        var documentUri = document.CreateUri();
+        var documentUri = document.CreateSystemUri();
         var documentManager = new TestDocumentManager();
         if (htmlDocument is not null)
         {

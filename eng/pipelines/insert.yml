@@ -20,6 +20,7 @@ parameters:
 
   - name: devDivAzdoToken
     type: string
+    default: ''
   - name: dncEngAzureSubscription
     type: string
     default: 'DncEng Insertion: Roslyn and Razor'
@@ -180,11 +181,16 @@ steps:
       inlineScript: |
         # Acquire AzDO token explicitly from the WIF SP login context.
         # DefaultAzureCredential is unreliable on hosted agents (picks up agent MI).
-        $dncEngAzdoToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
-        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($dncEngAzdoToken)) {
-          Write-Error 'Failed to acquire dnceng AzDO access token via WIF service connection.'
+        # The WIF SP (Roslyn-Razor-Insertion-DncEng) is enrolled in both dnceng and devdiv,
+        # so a single token works for both orgs.
+        $azdoToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($azdoToken)) {
+          Write-Error 'Failed to acquire AzDO access token via WIF service connection.'
           exit 1
         }
+
+        # Use WIF token for DevDiv unless a legacy PAT is explicitly provided.
+        $devDivToken = if ([string]::IsNullOrWhiteSpace($Env:DevDivToken)) { $azdoToken } else { $Env:DevDivToken }
 
         $arguments = @(
           "create-insertion"
@@ -200,8 +206,8 @@ steps:
           "--run-speedometer-in-validation", "${{ parameters.queueSpeedometerValidation }}"
           "--retain-inserted-build", "${{ parameters.retainInsertedBuild }}"
           "--reviewer-guid", "6c25b447-1d90-4840-8fde-d8b22cb8733e"
-          "--devdiv-azdo-token", $Env:DevDivToken
-          "--dnceng-azdo-token", $dncEngAzdoToken
+          "--devdiv-azdo-token", $devDivToken
+          "--dnceng-azdo-token", $azdoToken
           "--ci"
         )
 

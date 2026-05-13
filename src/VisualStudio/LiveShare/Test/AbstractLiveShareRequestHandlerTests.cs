@@ -23,7 +23,6 @@ public abstract class AbstractLiveShareRequestHandlerTests(ITestOutputHelper tes
 {
     private static readonly TestComposition s_composition = LiveShareTestCompositions.Features
         .AddParts(typeof(MockDocumentNavigationService))
-        .AddParts(typeof(TestWorkspaceRegistrationService))
         .AddParts(typeof(TestWorkspaceConfigurationService));
 
     private sealed class MockHostProtocolConverter : IHostProtocolConverter

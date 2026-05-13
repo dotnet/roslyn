@@ -4,14 +4,18 @@
 using System;
 using System.Net;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class UriExtensions
 {
-    public static Uri GetRequiredParsedUri(this DocumentUri uri)
+    public static Uri GetRequiredSystemUri(this DocumentUri uri)
         => uri.ParsedUri.AssumeNotNull();
+
+    public static Uri CreateSystemUri(this TextDocument document)
+        => document.GetURI().GetRequiredSystemUri();
 
     public static string GetDocumentFilePathFromUri(this Uri uri)
     {
@@ -19,7 +23,7 @@ internal static class UriExtensions
     }
 
     public static string GetAbsoluteOrUNCPath(this DocumentUri uri)
-        => GetAbsoluteOrUNCPath(uri.GetRequiredParsedUri());
+        => GetAbsoluteOrUNCPath(uri.GetRequiredSystemUri());
 
     public static string GetAbsoluteOrUNCPath(this Uri uri)
     {
