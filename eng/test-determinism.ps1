@@ -31,6 +31,9 @@ $script:skipList = @(
   # Work around XLF issues https://github.com/dotnet/roslyn/issues/58840
   "Roslyn.VisualStudio.DiagnosticsWindow.dll.key",
 
+  # Work around the same XLF ResXFileRef determinism issue in Razor's VSIX package resources.
+  "Microsoft.VisualStudio.RazorExtension.dll.key",
+
   # Work around resx issues https://github.com/dotnet/roslyn/issues/77544
   "Text.Analyzers.dll.key",
 

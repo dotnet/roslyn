@@ -506,7 +506,7 @@ public class SegmentedCollectionsMarshalTests
             ImmutableSegmentedList<T> immutableList = ImmutableSegmentedList.Create(new T[17]);
             SegmentedList<T>? list = SegmentedCollectionsMarshal.AsSegmentedList(immutableList);
 
-            AssertEx.NotNull(list);
+            Assert.NotNull(list);
             Assert.Equal(17, list.Count);
 
             ref T expectedRef = ref Unsafe.AsRef(in immutableList.ItemRef(0));
@@ -637,7 +637,7 @@ public class SegmentedCollectionsMarshalTests
             ImmutableSegmentedHashSet<T> immutableHashSet = ImmutableSegmentedHashSet.CreateRange(values);
             SegmentedHashSet<T>? set = SegmentedCollectionsMarshal.AsSegmentedHashSet(immutableHashSet);
 
-            AssertEx.NotNull(set);
+            Assert.NotNull(set);
             Assert.Equal(17, set.Count);
 
             Assert.Same(set, SegmentedCollectionsMarshal.AsSegmentedHashSet(immutableHashSet));
@@ -768,7 +768,7 @@ public class SegmentedCollectionsMarshalTests
             ImmutableSegmentedDictionary<int, T> immutableDictionary = ImmutableSegmentedDictionary.CreateRange(Enumerable.Range(0, 17).Select(x => new KeyValuePair<int, T>(x, createValue())));
             SegmentedDictionary<int, T>? dictionary = SegmentedCollectionsMarshal.AsSegmentedDictionary(immutableDictionary);
 
-            AssertEx.NotNull(dictionary);
+            Assert.NotNull(dictionary);
             Assert.Equal(17, dictionary.Count);
 
             ref T expectedRef = ref Unsafe.AsRef(in SegmentedCollectionsMarshal.GetValueRefOrNullRef(immutableDictionary, 0));

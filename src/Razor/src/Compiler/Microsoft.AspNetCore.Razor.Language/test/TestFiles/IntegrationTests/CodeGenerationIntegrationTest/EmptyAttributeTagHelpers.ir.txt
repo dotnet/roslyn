@@ -1,0 +1,66 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_EmptyAttributeTagHelpers - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            PreallocatedTagHelperPropertyValue -  - __tagHelperAttribute_0 - type -  - HtmlAttributeValueStyle.DoubleQuotes
+            PreallocatedTagHelperHtmlAttributeValue -  - __tagHelperAttribute_1 - class -  - HtmlAttributeValueStyle.DoubleQuotes
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::TestNamespace.InputTagHelper - __TestNamespace_InputTagHelper
+            FieldDeclaration -  - private - global::TestNamespace.InputTagHelper2 - __TestNamespace_InputTagHelper2
+            FieldDeclaration -  - private - global::TestNamespace.PTagHelper - __TestNamespace_PTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (31:1,0 [13] EmptyAttributeTagHelpers.cshtml)
+                    LazyIntermediateToken - (31:1,0 [2] EmptyAttributeTagHelpers.cshtml) - Html - \n
+                    LazyIntermediateToken - (33:2,0 [4] EmptyAttributeTagHelpers.cshtml) - Html - <div
+                    LazyIntermediateToken - (37:2,4 [1] EmptyAttributeTagHelpers.cshtml) - Html - >
+                    LazyIntermediateToken - (38:2,5 [6] EmptyAttributeTagHelpers.cshtml) - Html - \n    
+                TagHelper - (44:3,4 [34] EmptyAttributeTagHelpers.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - TestNamespace.InputTagHelper
+                    DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
+                    PreallocatedTagHelperProperty - (56:3,16 [0] EmptyAttributeTagHelpers.cshtml) - __tagHelperAttribute_0 - type - Type
+                    PreallocatedTagHelperProperty - (56:3,16 [0] EmptyAttributeTagHelpers.cshtml) - __tagHelperAttribute_0 - type - Type
+                    DefaultTagHelperProperty - (66:3,26 [0] EmptyAttributeTagHelpers.cshtml) - checked - bool TestNamespace.InputTagHelper2.Checked - HtmlAttributeValueStyle.DoubleQuotes
+                        IntermediateToken - (66:3,26 [0] EmptyAttributeTagHelpers.cshtml) - CSharp - 
+                    PreallocatedTagHelperHtmlAttribute -  - __tagHelperAttribute_1
+                    DefaultTagHelperExecute - 
+                HtmlContent - (78:3,38 [6] EmptyAttributeTagHelpers.cshtml)
+                    LazyIntermediateToken - (78:3,38 [6] EmptyAttributeTagHelpers.cshtml) - Html - \n    
+                TagHelper - (84:4,4 [64] EmptyAttributeTagHelpers.cshtml) - p - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (94:4,14 [10] EmptyAttributeTagHelpers.cshtml)
+                            LazyIntermediateToken - (94:4,14 [10] EmptyAttributeTagHelpers.cshtml) - Html - \n        
+                        TagHelper - (104:5,8 [34] EmptyAttributeTagHelpers.cshtml) - input - TagMode.SelfClosing
+                            DefaultTagHelperBody - 
+                            DefaultTagHelperCreate -  - TestNamespace.InputTagHelper
+                            DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
+                            PreallocatedTagHelperProperty - (117:5,21 [0] EmptyAttributeTagHelpers.cshtml) - __tagHelperAttribute_0 - type - Type
+                            PreallocatedTagHelperProperty - (117:5,21 [0] EmptyAttributeTagHelpers.cshtml) - __tagHelperAttribute_0 - type - Type
+                            DefaultTagHelperProperty - (126:5,30 [0] EmptyAttributeTagHelpers.cshtml) - checked - bool TestNamespace.InputTagHelper2.Checked - HtmlAttributeValueStyle.DoubleQuotes
+                                IntermediateToken - (126:5,30 [0] EmptyAttributeTagHelpers.cshtml) - CSharp - 
+                            PreallocatedTagHelperHtmlAttribute -  - __tagHelperAttribute_1
+                            DefaultTagHelperExecute - 
+                        HtmlContent - (138:5,42 [6] EmptyAttributeTagHelpers.cshtml)
+                            LazyIntermediateToken - (138:5,42 [6] EmptyAttributeTagHelpers.cshtml) - Html - \n    
+                    DefaultTagHelperCreate -  - TestNamespace.PTagHelper
+                    DefaultTagHelperProperty - (92:4,12 [0] EmptyAttributeTagHelpers.cshtml) - age - int TestNamespace.PTagHelper.Age - HtmlAttributeValueStyle.SingleQuotes
+                        IntermediateToken - (92:4,12 [0] EmptyAttributeTagHelpers.cshtml) - CSharp - 
+                    DefaultTagHelperExecute - 
+                HtmlContent - (148:6,8 [8] EmptyAttributeTagHelpers.cshtml)
+                    LazyIntermediateToken - (148:6,8 [2] EmptyAttributeTagHelpers.cshtml) - Html - \n
+                    LazyIntermediateToken - (150:7,0 [6] EmptyAttributeTagHelpers.cshtml) - Html - </div>
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

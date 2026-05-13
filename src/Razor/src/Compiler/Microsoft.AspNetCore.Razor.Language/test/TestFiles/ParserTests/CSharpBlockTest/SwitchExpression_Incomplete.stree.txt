@@ -1,0 +1,50 @@
+﻿RazorDocument - [0..86)::86 - [@{LF    var val = 0 switchLF    {LF        0 => "value"LFLF    var val2 = "value2";LF}]
+    MarkupBlock - [0..86)::86
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..86)::86
+            CSharpStatement - [0..86)::86
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..86)::85
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..86)::84
+                        CSharpStatementLiteral - [2..86)::84 - [LF    var val = 0 switchLF    {LF        0 => "value"LFLF    var val2 = "value2";LF}] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[val];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[0];
+                            Whitespace;[ ];
+                            Keyword;[switch];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            LeftBrace;[{];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            NumericLiteral;[0];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            Whitespace;[ ];
+                            StringLiteral;["value"];
+                            NewLine;[LF];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[val2];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["value2"];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            RightBrace;[}];
+                    RazorMetaCode - [86..86)::0 - Gen<None>
+                        RightBrace;[<Missing>];
+    EndOfFile;[];

@@ -4404,7 +4404,10 @@ unsafe class Program
             };
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]

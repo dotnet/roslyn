@@ -42,7 +42,7 @@ internal sealed class InitializeManager : IInitializeManager
                 if (workspaceFolder.DocumentUri.ParsedUri is not { } parsedUri)
                     continue;
 
-                var workspaceFolderPath = ProtocolConversions.GetDocumentFilePathFromUri(parsedUri);
+                var workspaceFolderPath = workspaceFolder.DocumentUri.GetDocumentFilePathFromUri();
                 builder.Add(workspaceFolderPath);
             }
 

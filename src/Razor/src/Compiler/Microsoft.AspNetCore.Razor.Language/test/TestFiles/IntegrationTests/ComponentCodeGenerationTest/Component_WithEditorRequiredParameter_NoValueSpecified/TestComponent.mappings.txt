@@ -1,0 +1,5 @@
+﻿Source Location: (1:0,1 [37] x:\dir\subdir\Test\TestComponent.cshtml)
+|ComponentWithEditorRequiredParameters|
+Generated Location: (703:19,49 [37] )
+|ComponentWithEditorRequiredParameters|
+

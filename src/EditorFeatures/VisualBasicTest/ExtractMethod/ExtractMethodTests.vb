@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                     Assert.NotEqual(expected, subjectBuffer.CurrentSnapshot.GetText())
                 Else
                     If expected = "" Then
-                        Assert.True(False, subjectBuffer.CurrentSnapshot.GetText())
+                        Assert.Fail(subjectBuffer.CurrentSnapshot.GetText())
                     End If
 
                     AssertEx.EqualOrDiff(expected, subjectBuffer.CurrentSnapshot.GetText())

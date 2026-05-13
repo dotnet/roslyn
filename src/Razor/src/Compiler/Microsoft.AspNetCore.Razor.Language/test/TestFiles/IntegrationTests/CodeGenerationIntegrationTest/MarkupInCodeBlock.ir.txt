@@ -1,0 +1,34 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_MarkupInCodeBlock - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                CSharpCode - (2:0,2 [38] MarkupInCodeBlock.cshtml)
+                    LazyIntermediateToken - (2:0,2 [38] MarkupInCodeBlock.cshtml) - CSharp - \n    for(int i = 1; i <= 10; i++) {\n
+                HtmlContent - (40:2,0 [27] MarkupInCodeBlock.cshtml)
+                    LazyIntermediateToken - (40:2,0 [8] MarkupInCodeBlock.cshtml) - Html -         
+                    LazyIntermediateToken - (48:2,8 [2] MarkupInCodeBlock.cshtml) - Html - <p
+                    LazyIntermediateToken - (50:2,10 [1] MarkupInCodeBlock.cshtml) - Html - >
+                    LazyIntermediateToken - (51:2,11 [16] MarkupInCodeBlock.cshtml) - Html - Hello from C#, #
+                CSharpExpression - (69:2,29 [12] MarkupInCodeBlock.cshtml)
+                    LazyIntermediateToken - (69:2,29 [12] MarkupInCodeBlock.cshtml) - CSharp - i.ToString()
+                HtmlContent - (82:2,42 [6] MarkupInCodeBlock.cshtml)
+                    LazyIntermediateToken - (82:2,42 [4] MarkupInCodeBlock.cshtml) - Html - </p>
+                    LazyIntermediateToken - (86:2,46 [2] MarkupInCodeBlock.cshtml) - Html - \n
+                CSharpCode - (88:3,0 [7] MarkupInCodeBlock.cshtml)
+                    LazyIntermediateToken - (88:3,0 [7] MarkupInCodeBlock.cshtml) - CSharp -     }\n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

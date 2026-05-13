@@ -1,0 +1,61 @@
+﻿RazorDocument - [0..118)::118 - [@{LF    void Foo()LF    {LF        var time = DateTime.NowLF        <strong>Hello the time is @time</strong>LF    }LF}]
+    MarkupBlock - [0..118)::118
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..118)::118
+            CSharpStatement - [0..118)::118
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpStatementBody - [1..118)::117
+                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..117)::115
+                        CSharpStatementLiteral - [2..117)::115 - [LF    void Foo()LF    {LF        var time = DateTime.NowLF        <strong>Hello the time is @time</strong>LF    }LF] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[void];
+                            Whitespace;[ ];
+                            Identifier;[Foo];
+                            LeftParenthesis;[(];
+                            RightParenthesis;[)];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            LeftBrace;[{];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            Identifier;[var];
+                            Whitespace;[ ];
+                            Identifier;[time];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Identifier;[DateTime];
+                            Dot;[.];
+                            Identifier;[Now];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            LessThan;[<];
+                            Identifier;[strong];
+                            GreaterThan;[>];
+                            Identifier;[Hello];
+                            Whitespace;[ ];
+                            Identifier;[the];
+                            Whitespace;[ ];
+                            Identifier;[time];
+                            Whitespace;[ ];
+                            Keyword;[is];
+                            Whitespace;[ ];
+                            Identifier;[@time];
+                            LessThan;[<];
+                            Slash;[/];
+                            Identifier;[strong];
+                            GreaterThan;[>];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            RightBrace;[}];
+                            NewLine;[LF];
+                    RazorMetaCode - [117..118)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        RightBrace;[}];
+        MarkupTextLiteral - [118..118)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+    EndOfFile;[];

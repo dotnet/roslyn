@@ -1,0 +1,12 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml(77,13): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+//             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await __tagHelperRunner.RunAsync(__tagHelperExecutionContext)").WithLocation(77, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml(80,17): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+//                 await __tagHelperExecutionContext.SetOutputContentAsync();
+Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await __tagHelperExecutionContext.SetOutputContentAsync()").WithLocation(80, 17),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml(140,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task>'.
+//         await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await __tagHelperRunner.RunAsync(__tagHelperExecutionContext)").WithArguments("System.Threading.Tasks.Task").WithLocation(140, 9),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml(143,13): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task>'.
+//             await __tagHelperExecutionContext.SetOutputContentAsync();
+Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await __tagHelperExecutionContext.SetOutputContentAsync()").WithArguments("System.Threading.Tasks.Task").WithLocation(143, 13)

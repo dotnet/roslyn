@@ -3934,4 +3934,103 @@ public sealed partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProv
             }
             """,
             new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83143")]
+    public Task TestTopLevelStatements_SimpleInitialization()
+        => TestAsync(
+            """
+            using System;
+
+            EventHandler [||]handler = (sender, e) => Console.WriteLine("Hello World");
+            """,
+            """
+            using System;
+
+            static void handler(object sender, EventArgs e) => Console.WriteLine("Hello World");
+            """,
+            WithRegularOptions(new TestParameters(
+                compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication))));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83143")]
+    public Task TestTopLevelStatements_SimpleInitialization_Block()
+        => TestAsync(
+            """
+            using System;
+
+            Func<int, int> [||]fibonacci = v =>
+            {
+                if (v <= 1)
+                {
+                    return 1;
+                }
+
+                return fibonacci(v - 1, v - 2);
+            };
+            """,
+            """
+            using System;
+
+            static int fibonacci(int v)
+            {
+                if (v <= 1)
+                {
+                    return 1;
+                }
+
+                return fibonacci(v - 1, v - 2);
+            }
+            """,
+            WithRegularOptions(new TestParameters(
+                compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication))));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83143")]
+    public Task TestTopLevelStatements_SplitInitialization()
+        => TestAsync(
+            """
+            using System;
+
+            Func<int, int> [||]fibonacci = null;
+            fibonacci = v =>
+            {
+                if (v <= 1)
+                {
+                    return 1;
+                }
+
+                return fibonacci(v - 1, v - 2);
+            };
+            """,
+            """
+            using System;
+
+            static int fibonacci(int v)
+            {
+                if (v <= 1)
+                {
+                    return 1;
+                }
+
+                return fibonacci(v - 1, v - 2);
+            }
+            """,
+            WithRegularOptions(new TestParameters(
+                compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication))));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83143")]
+    public Task TestTopLevelStatements_WithReference()
+        => TestAsync(
+            """
+            using System;
+
+            Func<int, int> [||]square = x => x * x;
+            Console.WriteLine(square(5));
+            """,
+            """
+            using System;
+
+            static int square(int x) => x * x;
+            Console.WriteLine(square(5));
+            """,
+            WithRegularOptions(new TestParameters(
+                compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication))));
 }

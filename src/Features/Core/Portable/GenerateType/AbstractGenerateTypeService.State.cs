@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -305,18 +306,18 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 else
                 {
                     var symbol = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateInOpt, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                    if (symbol == null ||
-                        !symbol.IsKind(SymbolKind.NamedType) ||
-                        !symbol.Locations.Any(static loc => loc.IsInSource))
+                    if (symbol is not INamedTypeSymbol namedType)
                     {
                         TypeToGenerateInOpt = null;
                         return;
                     }
 
-                    var sourceTreeToBeGeneratedIn = symbol.Locations.First(loc => loc.IsInSource).SourceTree;
-                    var documentToBeGeneratedIn = document.Project.Solution.GetDocument(sourceTreeToBeGeneratedIn);
+                    var documentToBeGeneratedIn = namedType.Locations
+                        .Select(static loc => loc.SourceTree)
+                        .Select(document.Project.Solution.GetDocument)
+                        .FirstOrDefault(static generatedInDocument => generatedInDocument is not null && CanGenerateInDocument(generatedInDocument));
 
-                    if (documentToBeGeneratedIn == null)
+                    if (documentToBeGeneratedIn is null)
                     {
                         TypeToGenerateInOpt = null;
                         return;
@@ -330,18 +331,25 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                         IsPublicAccessibilityForTypeGeneration = true;
                     }
 
-                    TypeToGenerateInOpt = (INamedTypeSymbol)symbol;
+                    TypeToGenerateInOpt = namedType;
                 }
             }
 
             if (TypeToGenerateInOpt != null)
             {
-                if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateInOpt, cancellationToken))
+                var codeGenerationContext = new CodeGenerationContext(
+                    contextLocation: SimpleName.GetLocation(),
+                    allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
+
+                if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateInOpt, codeGenerationContext, cancellationToken))
                 {
                     TypeToGenerateInOpt = null;
                 }
             }
         }
+
+        private static bool CanGenerateInDocument(Document document)
+            => document is not SourceGeneratedDocument || document.IsRazorSourceGeneratedDocument();
 
         private bool DetermineNamespaceOrTypeToGenerateInWorker(
             TService service,

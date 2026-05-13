@@ -1,0 +1,31 @@
+﻿Source Location: (45:0,45 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|1|
+Generated Location: (837:22,0 [1] )
+|1|
+
+Source Location: (19:0,19 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|myComponent|
+Generated Location: (1005:30,0 [11] )
+|myComponent|
+
+Source Location: (61:2,7 [114] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private MyComponent<int> myComponent = null!;
+    public void Use() { System.GC.KeepAlive(myComponent); }
+|
+Generated Location: (1257:42,0 [114] )
+|
+    private MyComponent<int> myComponent = null!;
+    public void Use() { System.GC.KeepAlive(myComponent); }
+|
+
+Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (1829:59,45 [11] )
+|MyComponent|
+
+Source Location: (32:0,32 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyParameter|
+Generated Location: (2019:63,0 [11] )
+|MyParameter|
+

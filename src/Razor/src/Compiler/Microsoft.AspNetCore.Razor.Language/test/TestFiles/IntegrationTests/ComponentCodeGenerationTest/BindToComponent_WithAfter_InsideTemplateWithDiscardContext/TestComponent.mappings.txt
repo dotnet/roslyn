@@ -1,0 +1,41 @@
+﻿Source Location: (1:0,1 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|OuterComponent|
+Generated Location: (703:19,49 [14] )
+|OuterComponent|
+
+Source Location: (35:1,5 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (943:21,54 [11] )
+|MyComponent|
+
+Source Location: (53:1,23 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (1129:25,0 [5] )
+|Value|
+
+Source Location: (60:1,30 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentValue|
+Generated Location: (1393:33,0 [11] )
+|ParentValue|
+
+Source Location: (92:1,62 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|OnAfter|
+Generated Location: (2281:42,0 [7] )
+|OnAfter|
+
+Source Location: (79:1,49 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (2548:51,0 [5] )
+|Value|
+
+Source Location: (131:3,7 [81] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public int ParentValue { get; set; } = 42;
+    public void OnAfter() { }
+|
+Generated Location: (2877:65,0 [81] )
+|
+    public int ParentValue { get; set; } = 42;
+    public void OnAfter() { }
+|
+

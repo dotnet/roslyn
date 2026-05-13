@@ -38,7 +38,7 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
 
     /// <summary>
     /// Evaluates a compiled <see cref="PatternMatching.RegexQuery"/> against this document's indexed
-    /// bigrams to determine if a regex pattern could match any symbol in the document.
+    /// bigrams and sparse n-grams to determine if a regex pattern could match any symbol in the document.
     /// </summary>
     public bool RegexQueryCheckPasses(PatternMatching.RegexQuery query)
         => _navigateToSearchInfo.RegexQueryCheckPasses(query);
@@ -69,8 +69,8 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
         public bool HumpCheckPasses(string patternName)
             => index._navigateToSearchInfo.HumpCheckPasses(patternName);
 
-        public bool TrigramCheckPasses(string patternName)
-            => index._navigateToSearchInfo.TrigramCheckPasses(patternName);
+        public bool NgramCheckPasses(string patternName)
+            => index._navigateToSearchInfo.NgramCheckPasses(patternName);
 
         public bool LengthCheckPasses(string patternName)
             => index._navigateToSearchInfo.LengthCheckPasses(patternName);

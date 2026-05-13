@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
+    <IsShipping>false</IsShipping>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <TargetFrameworks>$(NetFxVS)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
+  </ItemGroup>
+
+</Project>

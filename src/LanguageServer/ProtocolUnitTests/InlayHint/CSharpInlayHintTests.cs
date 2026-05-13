@@ -121,10 +121,10 @@ public sealed class CSharpInlayHintTests : AbstractInlayHintTests
         };
 
         var actualInlayHints = await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
-        AssertEx.NotNull(actualInlayHints);
+        Assert.NotNull(actualInlayHints);
         var firstInlayHint = actualInlayHints.First();
         var data = JsonSerializer.Deserialize<InlayHintResolveData>(firstInlayHint.Data!.ToString()!, ProtocolConversions.LspJsonSerializerOptions);
-        AssertEx.NotNull(data);
+        Assert.NotNull(data);
         var firstResultId = data.ResultId;
 
         // Verify the inlay hint item is in the cache.
@@ -135,7 +135,7 @@ public sealed class CSharpInlayHintTests : AbstractInlayHintTests
         await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
         await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
         var lastInlayHints = await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
-        AssertEx.NotNull(lastInlayHints);
+        Assert.NotNull(lastInlayHints);
         Assert.True(lastInlayHints.Any());
 
         // Assert that the first result id is no longer in the cache.

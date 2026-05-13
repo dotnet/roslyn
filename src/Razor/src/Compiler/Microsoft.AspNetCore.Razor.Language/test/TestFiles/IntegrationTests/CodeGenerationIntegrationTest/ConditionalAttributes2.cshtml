@@ -1,0 +1,22 @@
+﻿@{
+    var ch = true;
+    var cls = "bar";
+    var s = "str";
+    <a @s href="x" />
+    <p @s class="@cls" />
+    <p @s class="x @cls" />
+    <p @s class="@cls x" />
+    <input type="checkbox" @s checked="@ch" />
+    <input type="checkbox" @s checked="x @ch" />
+    <p @s class="@if(cls != null) { @cls }" />
+    <a @s href="~/x" />
+    <script @s src="@Url.Content("~/Scripts/jquery-1.6.2.min.js")" type="text/javascript"></script>
+    <p @s class="@null" />
+    <p class="@null" @s />
+
+    <p @* comment *@ @s style="@null">x</p>
+
+    <p @(s + s) style="@null">x</p>
+    <p @{if (s.Length != 0) { @s }} style="@null">x</p>
+    <p @@s style="@null">x</p>
+}

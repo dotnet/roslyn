@@ -370,7 +370,8 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var expected = await CreateCompletionItemAsync("A", LSP.CompletionItemKind.Class, ["Class", "Internal"],
-            completionParams, document, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{', ';', '.'), sortText: "0000").ConfigureAwait(false);
+            completionParams, document, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{', ';', '.'), sortText: "0000",
+            matchPriority: MatchPriority.Preselect).ConfigureAwait(false);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
         AssertJsonEquals(expected, results.Items.First());
@@ -405,6 +406,65 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         var results = (LSP.VSInternalCompletionList)await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
         Assert.True(results.Items.Any());
         Assert.True(results.SuggestionMode);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestDotTriggerDoesNotSetSuggestionMode(bool mutatingLspWorkspace)
+    {
+        // Typing '.' triggers completion with empty filter text. IsAllPunctuation("") returns true
+        // vacuously, but empty text should not be treated as "all punctuation" — it should produce
+        // hard selection and a complete list, not suggestion mode with isIncomplete.
+        var markup =
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    Console.{|caret:|}
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+        var completionParams = CreateCompletionParams(
+            testLspServer.GetLocations("caret").Single(),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: ".",
+            triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+
+        var results = (LSP.VSInternalCompletionList)await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+        Assert.NotEmpty(results.Items);
+        Assert.False(results.SuggestionMode);
+        Assert.False(results.IsIncomplete);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestUnderscoreTriggerSetsSuggestionModeAndIncomplete(bool mutatingLspWorkspace)
+    {
+        // Typing '_' (punctuation) should set suggestion mode and mark the list as incomplete,
+        // so the server gets called back when the user types a non-punctuation character.
+        var markup =
+            """
+            class C
+            {
+                private int _value;
+                void M()
+                {
+                    _{|caret:|}
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+        var completionParams = CreateCompletionParams(
+            testLspServer.GetLocations("caret").Single(),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "_",
+            triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+        var results = (LSP.VSInternalCompletionList)await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+        Assert.NotEmpty(results.Items);
+        Assert.True(results.SuggestionMode);
+        Assert.True(results.IsIncomplete);
     }
 
     [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
@@ -1533,7 +1593,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
             triggerKind: LSP.CompletionTriggerKind.Invoked);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams);
-        AssertEx.NotNull(results);
+        Assert.NotNull(results);
         Assert.NotEmpty(results.Items);
         Assert.Equal(new() { Start = new(2, 0), End = new(2, 8) }, results.ItemDefaults.EditRange.Value.First);
     }
@@ -1596,6 +1656,74 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
         Assert.Null(results.ItemDefaults.InsertTextMode);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetCompletions_MatchPriority_SetForVSClient(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nu{|caret:|}
+                }
+            }
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+        var completionParams = CreateCompletionParams(
+            testLspServer.GetLocations("caret").Single(),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "u",
+            triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+        var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+
+        var nullItem = results.Items.SingleOrDefault(i => i.Label == "null");
+        var nuintItem = results.Items.SingleOrDefault(i => i.Label == "nuint");
+        Assert.NotNull(nullItem);
+        Assert.NotNull(nuintItem);
+
+        var vsNullItem = (LSP.VSInternalCompletionItem)nullItem;
+        var vsNuintItem = (LSP.VSInternalCompletionItem)nuintItem;
+
+        // null has default MatchPriority (0), nuint has MatchPriority.Default - 1 (-1)
+        Assert.True(vsNullItem.MatchPriority > vsNuintItem.MatchPriority,
+            $"Expected null's MatchPriority ({vsNullItem.MatchPriority}) to be greater than nuint's ({vsNuintItem.MatchPriority})");
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetCompletions_MatchPriority_DefaultIsZero(bool mutatingLspWorkspace)
+    {
+        // Verify that items with default MatchPriority have value 0.
+        var markup =
+            """
+            class C
+            {
+                void M()
+                {
+                    int{|caret:|}
+                }
+            }
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+        var completionParams = CreateCompletionParams(
+            testLspServer.GetLocations("caret").Single(),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "t",
+            triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+        var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+
+        // Find a standard keyword like "int" — it should have default (0) MatchPriority
+        var intItem = results.Items.SingleOrDefault(i => i.Label == "int");
+        Assert.NotNull(intItem);
+
+        var vsIntItem = (LSP.VSInternalCompletionItem)intItem;
+        Assert.Equal(0, vsIntItem.MatchPriority);
     }
 
     internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)

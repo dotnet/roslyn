@@ -45732,13 +45732,18 @@ partial class Program
                             }
                             """;
 
-            var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
 
             comp3.VerifyDiagnostics(
                 // (5,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Overloads.Test([2, 3]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "[2, 3]").WithLocation(5, 24)
                 );
+
+            comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics();
+            comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics();
         }
 
         [Fact]
@@ -45812,7 +45817,7 @@ partial class Program
                             }
                             """;
 
-            var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
 
             comp3.VerifyDiagnostics(
                 // (5,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -45822,6 +45827,11 @@ partial class Program
                 //         Overloads.Test([2, 3]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(5, 28)
                 );
+
+            comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics();
+            comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics();
         }
 
         [Fact]

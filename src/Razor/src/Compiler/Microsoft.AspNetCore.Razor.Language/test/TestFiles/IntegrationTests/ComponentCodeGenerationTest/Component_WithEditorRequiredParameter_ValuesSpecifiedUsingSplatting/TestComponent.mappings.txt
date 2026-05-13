@@ -1,0 +1,10 @@
+﻿Source Location: (1:0,1 [37] x:\dir\subdir\Test\TestComponent.cshtml)
+|ComponentWithEditorRequiredParameters|
+Generated Location: (703:19,49 [37] )
+|ComponentWithEditorRequiredParameters|
+
+Source Location: (54:0,54 [32] x:\dir\subdir\Test\TestComponent.cshtml)
+|new Dictionary<string, object>()|
+Generated Location: (1073:23,0 [32] )
+|new Dictionary<string, object>()|
+

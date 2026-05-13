@@ -377,7 +377,7 @@ class {|Identifier:A{{v}}|}
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
-            Assert.True(results.All(r => r.TextDocument!.DocumentUri.GetRequiredParsedUri().LocalPath == csharpFilePath));
+            Assert.True(results.All(r => r.TextDocument!.DocumentUri == ProtocolConversions.CreateAbsoluteDocumentUri(csharpFilePath)));
         }
 
         //        [Fact]
@@ -630,7 +630,7 @@ class {|Identifier:A{{v}}|}
                 spans = progress!.Value.GetFlattenedValues();
             }
 
-            AssertEx.NotNull(spans);
+            Assert.NotNull(spans);
             return spans;
         }
 
@@ -651,7 +651,7 @@ class {|Identifier:A{{v}}|}
                 spans = progress!.Value.GetFlattenedValues();
             }
 
-            AssertEx.NotNull(spans);
+            Assert.NotNull(spans);
             return spans;
         }
 

@@ -1,0 +1,15 @@
+﻿RazorDocument - [0..5)::5 - [@val!]
+    MarkupBlock - [0..5)::5
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..4)::4
+            CSharpImplicitExpression - [0..4)::4
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [1..4)::3
+                    CSharpCodeBlock - [1..4)::3
+                        CSharpExpressionLiteral - [1..4)::3 - [val] - Gen<Expr>
+                            Identifier;[val];
+        MarkupTextLiteral - [4..5)::1 - [!] - Gen<Markup>
+            Bang;[!];
+    EndOfFile;[];
