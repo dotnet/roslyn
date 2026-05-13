@@ -421,7 +421,7 @@
   <Project Path="src/Deployment/RoslynDeployment.csproj" />
   <Folder Name="/Razor/" />
   <Folder Name="/Razor/benchmarks/">
-    <Project Path="src/Razor/src/Compiler/perf/Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj" />
+    <Project Path="src/Razor/Compiler/Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler/Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj" />
     <Project Path="src/Razor/Compiler/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj" />
     <Project Path="src/Razor/src/Razor/benchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.csproj" />
   </Folder>

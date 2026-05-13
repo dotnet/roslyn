@@ -21,7 +21,7 @@
       "src\\Razor\\src\\Compiler\\Microsoft.CodeAnalysis.Razor\\test\\Microsoft.CodeAnalysis.Razor.UnitTests.csproj",
       "src\\Razor\\Compiler\\Microsoft.Net.Compilers.Razor.Toolset\\Microsoft.Net.Compilers.Razor.Toolset.csproj",
       "src\\Razor\\Compiler\\Microsoft.NET.Sdk.Razor.SourceGenerators.Transport\\Microsoft.NET.Sdk.Razor.SourceGenerators.Transport.csproj",
-      "src\\Razor\\src\\Compiler\\perf\\Microbenchmarks\\Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj",
+      "src\\Razor\\Compiler\\Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler\\Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj",
       "src\\Razor\\Compiler\\Microsoft.AspNetCore.Razor.Microbenchmarks.Generator\\Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj",
       "src\\Razor\\src\\Compiler\\test\\Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X\\Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X.Compiler.csproj",
       "src\\Razor\\src\\Compiler\\test\\Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X\\Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X.Compiler.csproj",
