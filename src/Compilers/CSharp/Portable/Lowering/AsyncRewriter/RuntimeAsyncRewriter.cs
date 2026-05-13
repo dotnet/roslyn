@@ -16,8 +16,9 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 {
     // LocalRewriter may have already created a dynamic call site container for the same method ordinal. Use a distinct
     // local function ordinal for runtime async dynamic await lowering. -1 means "no local function" in dynamic call
-    // site container names, and source local functions use non-negative ordinals, so -2 avoids both sets. Reusing an
-    // ordinal would generate duplicate dynamic call site container type names for the same method.
+    // site container names in GeneratedNames.MakeDynamicCallSiteContainerName, and source local functions use non-negative
+    // ordinals, so -2 avoids both sets. Reusing an ordinal would generate duplicate dynamic call site container type names
+    // for the same method.
     private const int RuntimeAsyncDynamicCallSiteContainerOrdinal = -2;
 
     public static BoundStatement Rewrite(

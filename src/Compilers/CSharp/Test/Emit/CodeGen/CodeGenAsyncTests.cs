@@ -10257,7 +10257,7 @@ static class Test1
         }
 
         [Fact]
-        public void MissingAwaitAwaiter_Dynamic()
+        public void MissingAwaitAwaiter_Dynamic_RuntimeAsync()
         {
             var code = """
                 using System.Threading.Tasks;
@@ -10286,7 +10286,7 @@ static class Test1
         }
 
         [Fact]
-        public void MissingINotifyCompletion_Dynamic()
+        public void MissingINotifyCompletion_Dynamic_RuntimeAsync()
         {
             var code = """
                 using System.Threading.Tasks;
