@@ -480,7 +480,7 @@
     <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests/Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.shproj" Id="4369f151-7b14-4973-ada4-ba6b8e26f847" />
     <Project Path="src/Razor/Tests/Tooling/Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests/Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests.csproj" />
     <Project Path="src/Razor/Tests/Tooling/Microsoft.CodeAnalysis.Remote.Razor.UnitTests/Microsoft.CodeAnalysis.Remote.Razor.UnitTests.csproj" />
-    <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests.csproj" />
+    <Project Path="src/Razor/Tests/Tooling/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.LanguageServices.Razor.UnitTests/Microsoft.VisualStudio.LanguageServices.Razor.UnitTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.Razor.IntegrationTests/Microsoft.VisualStudio.Razor.IntegrationTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudioCode.Razor.IntegrationTests/Microsoft.VisualStudioCode.Razor.IntegrationTests.csproj" />
