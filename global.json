@@ -9,7 +9,7 @@
     "vs": {
       "version": "17.8.0"
     },
-    "xcopy-msbuild": "17.8.1-2"
+    "xcopy-msbuild": "17.8.5"
   },
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "8.0.0-beta.26224.3",
