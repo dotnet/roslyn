@@ -58,14 +58,3 @@ Source Location: (563:6,36 [64] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (3805:91,0 [64] )
 |Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
 
-Source Location: (683:11,1 [73] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    [Parameter]
-    public RenderFragment ChildContent { get; set; }
-|
-Generated Location: (4489:112,0 [73] )
-|
-    [Parameter]
-    public RenderFragment ChildContent { get; set; }
-|
-

@@ -48,12 +48,3 @@ Source Location: (161:1,70 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (3003:84,0 [15] )
 |_componentValue|
 
-Source Location: (191:3,7 [46] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    string _componentValue = string.Empty;
-|
-Generated Location: (3773:96,0 [46] )
-|
-    string _componentValue = string.Empty;
-|
-

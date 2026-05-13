@@ -1,0 +1,19 @@
+﻿Source Location: (88:2,7 [144] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public string ParentValue { get; set; } = "hi";
+
+    Task ValueChanged(string value)
+    {
+        return Task.CompletedTask;
+    }
+|
+Generated Location: (558:18,0 [144] )
+|
+    public string ParentValue { get; set; } = "hi";
+
+    Task ValueChanged(string value)
+    {
+        return Task.CompletedTask;
+    }
+|
+

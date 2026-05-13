@@ -1,0 +1,11 @@
+﻿Source Location: (74:4,7 [59] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public bool TestBool { get; set; }
+|
+Generated Location: (557:18,0 [59] )
+|
+    [Parameter]
+    public bool TestBool { get; set; }
+|
+

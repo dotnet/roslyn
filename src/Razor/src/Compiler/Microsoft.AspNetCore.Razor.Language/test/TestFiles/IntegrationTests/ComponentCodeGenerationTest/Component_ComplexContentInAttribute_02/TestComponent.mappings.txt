@@ -13,20 +13,3 @@ Source Location: (30:0,30 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1154:31,0 [6] )
 |MyEnum|
 
-Source Location: (52:2,7 [67] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    public enum MyEnum
-    {
-        One,
-        Two
-    }
-|
-Generated Location: (1399:42,0 [67] )
-|
-    public enum MyEnum
-    {
-        One,
-        Two
-    }
-|
-

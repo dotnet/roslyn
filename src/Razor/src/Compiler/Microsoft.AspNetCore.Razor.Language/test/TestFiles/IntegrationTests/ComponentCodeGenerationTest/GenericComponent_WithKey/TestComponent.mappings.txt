@@ -23,12 +23,3 @@ Source Location: (38:0,38 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1467:48,0 [8] )
 |_someKey|
 
-Source Location: (61:2,7 [47] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    private object _someKey = new object();
-|
-Generated Location: (1715:60,0 [47] )
-|
-    private object _someKey = new object();
-|
-
