@@ -151,6 +151,57 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0064": {
+          "id": "RS0064",
+          "shortDescription": "Instance of PooledArrayBuilder<T>.AsRef() must be a 'using' variable",
+          "fullDescription": "Instance of PooledArrayBuilder<T>.AsRef() must be a 'using' variable.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "PooledArrayBuilderAsRefAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0065": {
+          "id": "RS0065",
+          "shortDescription": "Invalid parameter type in IRemoteJsonService method",
+          "fullDescription": "Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "IRemoteJsonServiceParameterAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0066": {
+          "id": "RS0066",
+          "shortDescription": "ImmutableArray<T> is being boxed to IReadOnlyList<T>",
+          "fullDescription": "Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray<T> causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray<T> extension methods instead.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "ImmutableArrayBoxingAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },

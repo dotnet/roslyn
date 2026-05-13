@@ -22,7 +22,7 @@
     <!-- Only enable R2R for official builds. This keeps crossgen2 in the restore graph for CI
          while avoiding AdditionalProperties clashes between CoreComponents and RazorExtension. -->
     <PublishReadyToRun Condition="'$(OfficialBuildId)' != ''">true</PublishReadyToRun>
-    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>

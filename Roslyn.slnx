@@ -420,10 +420,6 @@
   </Folder>
   <Project Path="src/Deployment/RoslynDeployment.csproj" />
   <Folder Name="/Razor/" />
-  <Folder Name="/Razor/Analyzers/">
-    <Project Path="src/Razor/src/Analyzers/Razor.Diagnostics.Analyzers.UnitTests/Razor.Diagnostics.Analyzers.UnitTests.csproj" />
-    <Project Path="src/Razor/src/Analyzers/Razor.Diagnostics.Analyzers/Razor.Diagnostics.Analyzers.csproj" />
-  </Folder>
   <Folder Name="/Razor/benchmarks/">
     <Project Path="src/Razor/src/Compiler/perf/Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj" />
     <Project Path="src/Razor/src/Compiler/perf/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj" />
