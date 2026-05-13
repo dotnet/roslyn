@@ -461,7 +461,7 @@
   </Folder>
   <Folder Name="/Razor/Compiler/sdk/">
     <Project Path="src/Razor/src/Compiler/Microsoft.Net.Compilers.Razor.Toolset/Microsoft.Net.Compilers.Razor.Toolset.csproj" />
-    <Project Path="src/Razor/src/Compiler/Microsoft.NET.Sdk.Razor.SourceGenerators.Transport/Microsoft.NET.Sdk.Razor.SourceGenerators.Transport.csproj" />
+    <Project Path="src/Razor/Compiler/Microsoft.NET.Sdk.Razor.SourceGenerators.Transport/Microsoft.NET.Sdk.Razor.SourceGenerators.Transport.csproj" />
     <Project Path="src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/tools/">
