@@ -5980,6 +5980,11 @@ namespace AnotherTest
         CompileToAssembly(generated, [
                 // (1,31): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31),
+                // PROTOTYPE: duplicate diagnostic. The partial class header is emitted in
+                // both the decl and impl halves, so per-syntactic-occurrence diagnostics
+                // fire twice. Should be deduped before merging to main (e.g. by reporting
+                // class-header diagnostics on one half only).
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31)
             ]);
     }
