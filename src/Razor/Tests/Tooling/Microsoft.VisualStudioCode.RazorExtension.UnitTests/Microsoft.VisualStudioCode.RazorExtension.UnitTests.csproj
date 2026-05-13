@@ -29,6 +29,6 @@
     <ProjectReference Include="$(RepoRoot)src\Razor\Tests\Common\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
   </ItemGroup>
 
-  <Import Project="$(RepoRoot)src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.projitems" Label="Shared" />
+  <Import Project="$(RepoRoot)src\Razor\Tests\Tooling\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.projitems" Label="Shared" />
 
 </Project>
