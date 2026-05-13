@@ -15,8 +15,8 @@ internal static partial class CompletionListOptimizer
     /// The most common set is promoted to the appropriate list-level property based on client capabilities:
     /// <list type="bullet">
     ///   <item>VS clients (<see cref="VSInternalCompletionSetting"/> with <c>CompletionList.CommitCharacters = true</c>):
-    ///     promoted to the VS-internal list-level commit characters as <see cref="VSInternalCommitCharacter"/>[],
-    ///     preserving <c>Insert = false</c> semantics.</item>
+    ///     promoted to the VS-internal list-level commit characters, preserving the original array type
+    ///     (string[] or <see cref="VSInternalCommitCharacter"/>[]).</item>
     ///   <item>Standard LSP clients (<c>ItemDefaults</c> contains <c>"commitCharacters"</c>):
     ///     promoted to <see cref="CompletionListItemDefaults.CommitCharacters"/> as string[],
     ///     including only characters where <c>Insert != false</c> (since standard LSP cannot express "commit without inserting").</item>
@@ -74,7 +74,9 @@ internal static partial class CompletionListOptimizer
         // Promote to the appropriate list-level property.
         if (canPromoteToVsList)
         {
-            completionList.CommitCharacters = ToVsInternalCommitCharacters(bestCommitCharacterGroup.Strings, bestCommitCharacterGroup.VsChars);
+            completionList.CommitCharacters = bestCommitCharacterGroup.VsChars is not null
+                ? bestCommitCharacterGroup.VsChars
+                : bestCommitCharacterGroup.Strings;
         }
         else
         {
@@ -196,26 +198,6 @@ internal static partial class CompletionListOptimizer
         string[]? bStrings, VSInternalCommitCharacter[]? bVsChars)
     {
         return ReferenceEquals(aStrings, bStrings) && ReferenceEquals(aVsChars, bVsChars);
-    }
-
-    /// <summary>
-    /// Converts a commit character source to <see cref="VSInternalCommitCharacter"/>[].
-    /// Only allocates when the source is string[] (needs conversion).
-    /// </summary>
-    private static VSInternalCommitCharacter[] ToVsInternalCommitCharacters(string[]? strings, VSInternalCommitCharacter[]? vsChars)
-    {
-        if (vsChars is not null)
-        {
-            return vsChars;
-        }
-
-        var result = new VSInternalCommitCharacter[strings!.Length];
-        for (var i = 0; i < strings.Length; i++)
-        {
-            result[i] = new VSInternalCommitCharacter { Character = strings[i], Insert = true };
-        }
-
-        return result;
     }
 
     /// <summary>
