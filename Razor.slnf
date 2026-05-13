@@ -27,7 +27,7 @@
       "src\\Razor\\src\\Compiler\\test\\Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X\\Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X.Compiler.csproj",
       "src\\Razor\\src\\Compiler\\test\\Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests\\Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests.csproj",
       "src\\Razor\\src\\Compiler\\tools\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal\\Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal.csproj",
-      "src\\Razor\\src\\Compiler\\tools\\Microsoft.CodeAnalysis.Razor.Tooling.Internal\\Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj",
+      "src\\Razor\\Compiler\\Microsoft.CodeAnalysis.Razor.Tooling.Internal\\Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj",
       "src\\Razor\\src\\Compiler\\tools\\RazorSyntaxGenerator\\RazorSyntaxGenerator.csproj",
       "src\\Razor\\src\\Razor\\benchmarks\\Microsoft.AspNetCore.Razor.Microbenchmarks\\Microsoft.AspNetCore.Razor.Microbenchmarks.csproj",
       "src\\Razor\\Tooling\\Microsoft.CodeAnalysis.Razor.CohostingShared\\Microsoft.CodeAnalysis.Razor.CohostingShared.shproj",

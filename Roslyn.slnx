@@ -466,7 +466,7 @@
   </Folder>
   <Folder Name="/Razor/Compiler/tools/">
     <Project Path="src/Razor/src/Compiler/tools/Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal/Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal.csproj" />
-    <Project Path="src/Razor/src/Compiler/tools/Microsoft.CodeAnalysis.Razor.Tooling.Internal/Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj" />
+    <Project Path="src/Razor/Compiler/Microsoft.CodeAnalysis.Razor.Tooling.Internal/Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj" />
     <Project Path="src/Razor/src/Compiler/tools/RazorSyntaxGenerator/RazorSyntaxGenerator.csproj" />
   </Folder>
   <Folder Name="/Razor/Shared/">
