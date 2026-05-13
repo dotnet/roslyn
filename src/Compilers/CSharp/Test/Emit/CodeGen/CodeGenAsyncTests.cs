@@ -2741,6 +2741,7 @@ class Test
         {
             var source = """
                 using System;
+                using Microsoft.CSharp.RuntimeBinder;
                 using System.Threading.Tasks;
 
                 class Test
@@ -2756,7 +2757,7 @@ class Test
                         {
                             F(new object()).Wait();
                         }
-                        catch (AggregateException ex) when (ex.InnerException is Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException)
                         {
                             Console.WriteLine("RuntimeBinderException");
                         }
@@ -2773,6 +2774,7 @@ class Test
         {
             var source = """
                 using System;
+                using Microsoft.CSharp.RuntimeBinder;
                 using System.Runtime.CompilerServices;
                 using System.Threading.Tasks;
 
@@ -2800,7 +2802,7 @@ class Test
                         {
                             F(new Awaitable()).Wait();
                         }
-                        catch (AggregateException ex) when (ex.InnerException is Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException)
                         {
                             Console.WriteLine("RuntimeBinderException");
                         }
@@ -2817,6 +2819,7 @@ class Test
         {
             var source = """
                 using System;
+                using Microsoft.CSharp.RuntimeBinder;
                 using System.Runtime.CompilerServices;
                 using System.Threading.Tasks;
 
@@ -2845,7 +2848,7 @@ class Test
                         {
                             F(new Awaitable()).Wait();
                         }
-                        catch (AggregateException ex) when (ex.InnerException is Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException)
                         {
                             Console.WriteLine("RuntimeBinderException");
                         }
