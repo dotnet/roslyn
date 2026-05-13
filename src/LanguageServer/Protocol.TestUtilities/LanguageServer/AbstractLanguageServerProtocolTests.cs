@@ -414,7 +414,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var listenerProvider = workspace.ExportProvider.GetExportedValues<MockWorkspaceEventListenerProvider>().SingleOrDefault();
         if (listenerProvider is not null)
         {
-            var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+            var lspWorkspaceRegistrationListener = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
             listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
         }
 

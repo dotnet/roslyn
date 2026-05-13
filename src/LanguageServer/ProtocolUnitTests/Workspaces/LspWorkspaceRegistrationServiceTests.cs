@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,7 +21,7 @@ public sealed class LspWorkspaceRegistrationServiceTests : AbstractLanguageServe
         LspWorkspaceRegistrationEventListener listener;
         await using (var testLspServer = await CreateTestLspServerAsync("", mutatingLspWorkspace))
         {
-            listener = (LspWorkspaceRegistrationEventListener)testLspServer.TestWorkspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+            listener = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
 
             // Verify both the singleton listener and the per-server LspWorkspaceRegistrationService see the workspace.
             Assert.Contains(testLspServer.TestWorkspace, listener.GetRegisteredWorkspaces());

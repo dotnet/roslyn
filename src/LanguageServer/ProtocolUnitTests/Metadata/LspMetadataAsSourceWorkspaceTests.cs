@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -98,7 +97,7 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
 
         // Manually register the workspace for followup requests - the workspace event listener that
         //  normally registers it on creation is not running in test code.
-        var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)testLspServer.TestWorkspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+        var lspWorkspaceRegistrationListener = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
         lspWorkspaceRegistrationListener.StartListening(workspaceForDocument);
 
         var locationOfStringKeyword = new LSP.Location

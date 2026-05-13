@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -264,7 +263,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
         // Manually register the workspace since the workspace listener does not listen for this workspace kind.
-        var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)testLspServer.TestWorkspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+        var lspWorkspaceRegistrationListener = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
         lspWorkspaceRegistrationListener.StartListening(testWorkspaceTwo);
 
         // Verify both workspaces registered.
