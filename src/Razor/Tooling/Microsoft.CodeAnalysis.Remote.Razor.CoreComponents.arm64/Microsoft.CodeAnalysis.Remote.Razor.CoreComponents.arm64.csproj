@@ -4,7 +4,7 @@
     <ComponentArchitecture>arm64</ComponentArchitecture>    
   </PropertyGroup>
 
-  <Import Project="$(RepoRoot)src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents\CoreComponents.props"/>
+  <Import Project="$(RepoRoot)src\Razor\Tooling\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.props"/>
 
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
