@@ -465,7 +465,7 @@
     <Project Path="src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/tools/">
-    <Project Path="src/Razor/src/Compiler/tools/Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal/Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal.csproj" />
+    <Project Path="src/Razor/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal/Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal.csproj" />
     <Project Path="src/Razor/Compiler/Microsoft.CodeAnalysis.Razor.Tooling.Internal/Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj" />
     <Project Path="src/Razor/Compiler/RazorSyntaxGenerator/RazorSyntaxGenerator.csproj" />
   </Folder>
