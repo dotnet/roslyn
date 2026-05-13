@@ -193,6 +193,17 @@ public class LocalHtmlCompletionProviderTest
         }, textEdit.Range);
     }
 
+    [Fact]
+    public void AttributeCompletion_DataPrefixExpanded_NoSchemaEntries_ReturnsNull()
+    {
+        // When the user types "data-" and expands the prefix group, but no data-* attributes
+        // exist in the schema (jQuery Mobile excluded), we return null to fall back to the
+        // external HTML server which can provide usage-derived completions.
+        var result = GetCompletionList("<div data-$$>");
+
+        Assert.Null(result);
+    }
+
     #endregion
 
     #region Attribute Value Completion
@@ -212,14 +223,12 @@ public class LocalHtmlCompletionProviderTest
     }
 
     [Fact]
-    public void AttributeValueCompletion_NoValues_ReturnsEmptyAuthoritative()
+    public void AttributeValueCompletion_IdAttribute_ReturnsNull()
     {
-        // <div id="|"> — id has no enumerated values, but we're authoritative (no external completion)
+        // <div id="|"> — id has hasExternalCompletion=true so it defers to external CSS ID provider
         var result = GetCompletionList("<div id=\"x$$\">");
 
-        Assert.NotNull(result);
-        Assert.Empty(result.Items);
-        Assert.False(result.IsIncomplete);
+        Assert.Null(result);
     }
 
     [Fact]
@@ -358,11 +367,21 @@ public class LocalHtmlCompletionProviderTest
     }
 
     [Fact]
-    public void AttributeValueCompletion_UnknownAttribute_ReturnsEmpty()
+    public void AttributeValueCompletion_DataAttribute_ReturnsNull()
     {
-        // Unknown attributes on known elements — no enumerated values exist in our
-        // schema or the external provider's. Return empty authoritative list.
+        // Unknown data-* attributes fall back to the external server which may have
+        // usage-derived values from document scanning.
         var result = GetCompletionList("<div data-custom=\"f$$\">");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void AttributeValueCompletion_UnknownAttribute_NonData_ReturnsEmpty()
+    {
+        // Non-data unknown attributes on known elements — no enumerated values exist in our
+        // schema or the external provider's. Return empty authoritative list.
+        var result = GetCompletionList("<div mycustomattr=\"f$$\">");
 
         Assert.NotNull(result);
         Assert.Empty(result.Items);
@@ -389,6 +408,36 @@ public class LocalHtmlCompletionProviderTest
         Assert.NotNull(result);
         Assert.Contains(result.Items, static item => item.Label == "div");
         Assert.Contains(result.Items, static item => item.Label == "span");
+    }
+
+    [Fact]
+    public void ElementCompletion_InsideSvg_ReturnsNull()
+    {
+        // Inside <svg>, we don't have the SVG schema locally. Fall back to the
+        // external HTML server which has the full SVG element set.
+        var result = GetCompletionList("<svg><$$</svg>");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void AttributeCompletion_SvgElement_InsideSvg_ReturnsNull()
+    {
+        // SVG elements like <circle> aren't in our schema. When inside <svg>,
+        // fall back to external server for SVG-specific attributes.
+        var result = GetCompletionList("<svg><circle $$></circle></svg>");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void AttributeValueCompletion_SvgElement_InsideSvg_ReturnsNull()
+    {
+        // SVG attribute values (e.g., fill="..." on <circle>) aren't in our schema.
+        // Fall back to external server.
+        var result = GetCompletionList("<svg><circle fill=\"$$\"></circle></svg>");
+
+        Assert.Null(result);
     }
 
     #endregion

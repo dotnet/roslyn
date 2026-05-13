@@ -209,7 +209,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             {
                 // Only include element names — these are used by TagHelperCompletionProvider
                 // to deduplicate tag helpers that share a name with an HTML element.
-                using var _pooled = ListPool<string>.GetPooledObject(out var elementLabels);
+                using var _ = ListPool<string>.GetPooledObject(out var elementLabels);
                 foreach (var item in items)
                 {
                     if (item.Kind == CompletionItemKind.Element)

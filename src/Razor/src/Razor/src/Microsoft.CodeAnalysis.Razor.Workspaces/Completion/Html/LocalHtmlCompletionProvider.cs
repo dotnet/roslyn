@@ -289,81 +289,30 @@ internal static partial class LocalHtmlCompletionProvider
 
         var elementRange = context.ReplacementRange;
         var owner = context.Owner;
-        var parentTagName = context.ParentTagName;
 
         // Collect ancestor tag names for disallowed-ancestor filtering.
         using var ancestorNames = new PooledArrayBuilder<string>();
         CollectAncestorTagNames(owner, ref ancestorNames.AsRef());
 
         // If we know the parent element, filter to its allowed children.
-        if (parentTagName is not null)
+        if (context.ParentTagName is string parentTagName)
         {
-            var parentInfo = HtmlCompletionData.GetElement(parentTagName);
-            if (parentInfo is not null)
+            if (HtmlCompletionData.GetElement(parentTagName) is HtmlElementInfo parentInfo)
             {
-                var allowedChildren = parentInfo.AllowedChildren;
+                return GetFilteredElementCompletionList(
+                    parentInfo, parentTagName, owner, elementRange, commitChars,
+                    ref ancestorNames.AsRef(), out resolveContext);
+            }
 
-                if (allowedChildren.IsEmpty)
-                {
-                    if (parentInfo.HasExternalCompletion)
-                    {
-                        // Element with embedded content (e.g., <script>, <style>) —
-                        // content completion is owned by an external provider.
-                        return null;
-                    }
-
-                    // Void or text-only element — no child elements possible.
-                    return s_emptyCompletionList;
-                }
-
-                // Build completions from the allowed children list, looking each up
-                // in the schema for description/metadata.
-                using var filteredItems = new PooledArrayBuilder<VSInternalCompletionItem>(allowedChildren.Length);
-
-                // Add close-tag completions for unclosed ancestor elements. We pass the
-                // element node (owner.Parent) rather than the start tag (owner) so that
-                // AddCloseTagItems skips the element being typed and only offers close
-                // tags for elements above it.
-                AddCloseTagItems(ref filteredItems.AsRef(), owner.Parent, elementRange, includeOpenBracket: false, commitChars);
-
-                // If the parent is an implicitly-closable element without an end tag,
-                // offer the parent itself as a child (typing a new sibling implicitly closes this one).
-                // Only add it if it's not already in the allowed children list (to avoid duplicates).
-                if (parentInfo.IsImplicitlyClosed && !HasEndTag(owner) &&
-                    !allowedChildren.Contains(parentTagName, StringComparer.OrdinalIgnoreCase))
-                {
-                    if (!HasDisallowedAncestor(parentInfo, ref ancestorNames.AsRef()))
-                    {
-                        filteredItems.Add(CreateElementItem(parentInfo, commitChars, elementRange));
-                    }
-                }
-
-                foreach (var childName in allowedChildren)
-                {
-                    var childInfo = HtmlCompletionData.GetElement(childName);
-
-                    if (childInfo is not null && HasDisallowedAncestor(childInfo, ref ancestorNames.AsRef()))
-                    {
-                        continue;
-                    }
-
-                    filteredItems.Add(childInfo is not null
-                        ? CreateElementItem(childInfo, commitChars, elementRange)
-                        : CreateElementItem(childName, commitChars, elementRange));
-                }
-
-                // Element resolve uses HtmlCompletionData.GetElement (O(1)), so no
-                // per-item storage is needed — Empty is sufficient.
-                resolveContext = LocalHtmlCompletionResolveContext.Empty;
-                return new RazorVSInternalCompletionList
-                {
-                    Items = filteredItems.ToArray(),
-                    IsIncomplete = false,
-                };
+            // No parent, unknown parent, or parent not in schema.
+            // Check if we should fall back to the external HTML server.
+            if (ShouldFallBackForElements(owner))
+            {
+                return null;
             }
         }
 
-        // No parent, unknown parent, or parent not in schema — return all elements.
+        // Otherwise return all elements.
         var allElements = HtmlCompletionData.AllElements;
 
         using var items = new PooledArrayBuilder<VSInternalCompletionItem>(allElements.Length);
@@ -384,6 +333,76 @@ internal static partial class LocalHtmlCompletionProvider
         return new RazorVSInternalCompletionList
         {
             Items = items.ToArray(),
+            IsIncomplete = false,
+        };
+    }
+
+    /// <summary>
+    /// Returns a completion list filtered to the allowed children of a known parent element.
+    /// Returns null for elements with external content completion (e.g., script, style, svg).
+    /// </summary>
+    private static RazorVSInternalCompletionList? GetFilteredElementCompletionList(
+        HtmlElementInfo parentInfo, string parentTagName, RazorSyntaxNode owner,
+        LspRange elementRange, string[] commitChars,
+        ref PooledArrayBuilder<string> ancestorNames,
+        out LocalHtmlCompletionResolveContext resolveContext)
+    {
+        resolveContext = LocalHtmlCompletionResolveContext.Empty;
+
+        var allowedChildren = parentInfo.AllowedChildren;
+
+        if (allowedChildren.IsEmpty)
+        {
+            if (parentInfo.HasExternalCompletion)
+            {
+                // Element with embedded content (e.g., <script>, <style>, <svg>) —
+                // content completion is owned by an external provider.
+                return null;
+            }
+
+            // Void or text-only element — no child elements possible.
+            return s_emptyCompletionList;
+        }
+
+        // Build completions from the allowed children list, looking each up
+        // in the schema for description/metadata.
+        using var filteredItems = new PooledArrayBuilder<VSInternalCompletionItem>(allowedChildren.Length);
+
+        // Add close-tag completions for unclosed ancestor elements. We pass the
+        // element node (owner.Parent) rather than the start tag (owner) so that
+        // AddCloseTagItems skips the element being typed and only offers close
+        // tags for elements above it.
+        AddCloseTagItems(ref filteredItems.AsRef(), owner.Parent, elementRange, includeOpenBracket: false, commitChars);
+
+        // If the parent is an implicitly-closable element without an end tag,
+        // offer the parent itself as a child (typing a new sibling implicitly closes this one).
+        // Only add it if it's not already in the allowed children list (to avoid duplicates).
+        if (parentInfo.IsImplicitlyClosed && !HasEndTag(owner) &&
+            !allowedChildren.Contains(parentTagName, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!HasDisallowedAncestor(parentInfo, ref ancestorNames))
+            {
+                filteredItems.Add(CreateElementItem(parentInfo, commitChars, elementRange));
+            }
+        }
+
+        foreach (var childName in allowedChildren)
+        {
+            var childInfo = HtmlCompletionData.GetElement(childName);
+
+            if (childInfo is not null && HasDisallowedAncestor(childInfo, ref ancestorNames))
+            {
+                continue;
+            }
+
+            filteredItems.Add(childInfo is not null
+                ? CreateElementItem(childInfo, commitChars, elementRange)
+                : CreateElementItem(childName, commitChars, elementRange));
+        }
+
+        return new RazorVSInternalCompletionList
+        {
+            Items = filteredItems.ToArray(),
             IsIncomplete = false,
         };
     }
@@ -542,15 +561,6 @@ internal static partial class LocalHtmlCompletionProvider
 
         var elementInfo = HtmlCompletionData.GetElement(tagName);
 
-        var globalAttributes = HtmlCompletionData.GlobalAttributes;
-        var elementAttributes = elementInfo?.Attributes ?? [];
-
-        // When the cursor is inside an existing full attribute (e.g., dropzone=""), the attribute
-        // already has a value portion in the buffer. We should only replace the name — don't add
-        // ="$0" since that would duplicate the existing ="" and produce broken markup like
-        // draggable=""="". This matches the behavior of the external HTML language server.
-        var existingAttributeHasValue = owner is MarkupAttributeBlockSyntax;
-
         // Determine which prefix group is expanded (user typed past the dash).
         string? expandedPrefix = null;
         foreach (var (prefix, _, _) in s_attributePrefixGroups)
@@ -562,6 +572,21 @@ internal static partial class LocalHtmlCompletionProvider
                 break;
             }
         }
+
+        if (ShouldFallBackForAttributes(elementInfo, expandedPrefix, owner))
+        {
+            resolveContext = LocalHtmlCompletionResolveContext.Empty;
+            return null;
+        }
+
+        var globalAttributes = HtmlCompletionData.GlobalAttributes;
+        var elementAttributes = elementInfo?.Attributes ?? [];
+
+        // When the cursor is inside an existing full attribute (e.g., dropzone=""), the attribute
+        // already has a value portion in the buffer. We should only replace the name — don't add
+        // ="$0" since that would duplicate the existing ="" and produce broken markup like
+        // draggable=""="". This matches the behavior of the external HTML language server.
+        var existingAttributeHasValue = owner is MarkupAttributeBlockSyntax;
 
         using var _ = ListPool<VSInternalCompletionItem>.GetPooledObject(out var items);
 
@@ -725,8 +750,9 @@ internal static partial class LocalHtmlCompletionProvider
 
         if (attr is null)
         {
-            // Unknown attribute — no enumerated values exist in our schema or the external provider's.
-            return s_emptyCompletionList;
+            return ShouldFallBackForAttributeValues(elementInfo, attributeName, context.Owner)
+                ? null
+                : s_emptyCompletionList;
         }
 
         // Attributes whose value completion is owned by an external provider (file paths, multivalue, CSS classes/style)

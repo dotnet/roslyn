@@ -212,7 +212,8 @@ internal static class SchemaParser
             DisallowedAncestors = vsDisallowedAncestor,
             IsImplicitlyClosed = vsImplicitClosure,
             HasExternalCompletion = string.Equals(name, "script", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(name, "style", StringComparison.OrdinalIgnoreCase),
+                || string.Equals(name, "style", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(name, "svg", StringComparison.OrdinalIgnoreCase),
         };
 
         // Get attributes from the element's type or inline complexType
@@ -421,7 +422,8 @@ internal static class SchemaParser
         var hasExternalCompletion = vsPreferredExtensions != null
             || isMultiValue
             || string.Equals(name, "class", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(name, "style", StringComparison.OrdinalIgnoreCase);
+            || string.Equals(name, "style", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(name, "id", StringComparison.OrdinalIgnoreCase);
 
         var attr = new AttributeData
         {
