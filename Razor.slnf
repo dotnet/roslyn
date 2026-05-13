@@ -18,7 +18,7 @@
       "src\\Razor\\src\\Compiler\\Microsoft.AspNetCore.Razor.Language\\legacyTest\\Microsoft.AspNetCore.Razor.Language.Legacy.UnitTests.csproj",
       "src\\Razor\\src\\Compiler\\Microsoft.AspNetCore.Razor.Language\\test\\Microsoft.AspNetCore.Razor.Language.UnitTests.csproj",
       "src\\Razor\\src\\Compiler\\Microsoft.CodeAnalysis.Razor.Compiler\\src\\Microsoft.CodeAnalysis.Razor.Compiler.csproj",
-      "src\\Razor\\src\\Compiler\\Microsoft.CodeAnalysis.Razor\\test\\Microsoft.CodeAnalysis.Razor.UnitTests.csproj",
+      "src\\Razor\\Tests\\Compiler\\Microsoft.CodeAnalysis.Razor.UnitTests\\Microsoft.CodeAnalysis.Razor.UnitTests.csproj",
       "src\\Razor\\Compiler\\Microsoft.Net.Compilers.Razor.Toolset\\Microsoft.Net.Compilers.Razor.Toolset.csproj",
       "src\\Razor\\Compiler\\Microsoft.NET.Sdk.Razor.SourceGenerators.Transport\\Microsoft.NET.Sdk.Razor.SourceGenerators.Transport.csproj",
       "src\\Razor\\Compiler\\Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler\\Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj",

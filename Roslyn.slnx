@@ -457,7 +457,7 @@
   </Folder>
   <Folder Name="/Razor/Compiler/Microsoft.CodeAnalysis.Razor/">
     <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/legacyTest/Microsoft.AspNetCore.Razor.Language.Legacy.UnitTests.csproj" />
-    <Project Path="src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor/test/Microsoft.CodeAnalysis.Razor.UnitTests.csproj" />
+    <Project Path="src/Razor/Tests/Compiler/Microsoft.CodeAnalysis.Razor.UnitTests/Microsoft.CodeAnalysis.Razor.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/sdk/">
     <Project Path="src/Razor/Compiler/Microsoft.Net.Compilers.Razor.Toolset/Microsoft.Net.Compilers.Razor.Toolset.csproj" />
