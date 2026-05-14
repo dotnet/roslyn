@@ -2485,7 +2485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PPShebangNotOnFirstLine = 9378,
 
         ERR_RequiresUnsafeAttributeInSource = 9379,
-        ERR_SafeAttributeUnsupportedTarget = 9380,
+        ERR_SafeModifierUnsupportedTarget = 9380,
         ERR_ExternMemberRequiresUnsafeOrSafe = 9381,
 
         // Note: you will need to do the following after adding errors:

@@ -2588,7 +2588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsafeConstructorConstraint
                 or ErrorCode.WRN_UnsafeMeaningless
                 or ErrorCode.ERR_RequiresUnsafeAttributeInSource
-                or ErrorCode.ERR_SafeAttributeUnsupportedTarget
+                or ErrorCode.ERR_SafeModifierUnsupportedTarget
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                     => false,
             };

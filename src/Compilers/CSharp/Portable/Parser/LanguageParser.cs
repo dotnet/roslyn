@@ -1348,6 +1348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return DeclarationModifiers.Required;
                         case SyntaxKind.FileKeyword:
                             return DeclarationModifiers.File;
+                        case SyntaxKind.SafeKeyword:
+                            return DeclarationModifiers.Safe;
                     }
 
                     goto default;
@@ -1468,6 +1470,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                         modTok = ConvertToKeyword(this.EatToken());
 
+                        break;
+
+                    case DeclarationModifiers.Safe:
+                        if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        {
+                            return;
+                        }
+
+                        modTok = ConvertToKeyword(this.EatToken());
                         break;
 
                     default:
@@ -2988,7 +2999,7 @@ parse_member_name:;
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None &&
-                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword) &&
+                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword or SyntaxKind.SafeKeyword) &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;

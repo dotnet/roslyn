@@ -637,13 +637,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(AttributeDescription.SafeAttribute))
-            {
-                if (CheckSafeAttributeUsage(arguments.AttributeSyntaxOpt.Location, diagnostics))
-                {
-                    arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSafeAttribute = true;
-                }
-            }
             else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))
             {
                 DecodeInterceptsLocationAttribute(arguments);
@@ -703,19 +696,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => attributeData?.HasDoesNotReturnAttribute == true ? FlowAnalysisAnnotations.DoesNotReturn : FlowAnalysisAnnotations.None;
 
         internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
-
-        protected virtual bool HasSafeAttribute => GetDecodedWellKnownAttributeData()?.HasSafeAttribute == true;
-
-        private bool CheckSafeAttributeUsage(Location location, BindingDiagnosticBag diagnostics)
-        {
-            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier)
-            {
-                return true;
-            }
-
-            diagnostics.Add(ErrorCode.ERR_SafeAttributeUnsupportedTarget, location);
-            return false;
-        }
 
         private bool VerifyObsoleteAttributeAppliedToMethod(
             ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,

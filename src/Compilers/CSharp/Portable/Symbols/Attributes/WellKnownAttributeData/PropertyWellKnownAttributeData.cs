@@ -110,22 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool _hasSafeAttribute;
-        public bool HasSafeAttribute
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasSafeAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasSafeAttribute = value;
-                SetDataStored();
-            }
-        }
-
         private ImmutableArray<string> _memberNotNullAttributeData = ImmutableArray<string>.Empty;
 
         public void AddNotNullMember(string memberName)

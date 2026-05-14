@@ -149,7 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.AccessibilityMask |
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
-                DeclarationModifiers.Unsafe;
+                DeclarationModifiers.Unsafe |
+                DeclarationModifiers.Safe;
 
             if (methodKind == MethodKind.Constructor)
             {

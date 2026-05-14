@@ -373,13 +373,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt!.Location);
             }
-            else if (attribute.IsTargetAttribute(AttributeDescription.SafeAttribute))
-            {
-                if (CheckSafeAttributeUsage(arguments.AttributeSyntaxOpt!.Location, diagnostics))
-                {
-                    arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSafeAttribute = true;
-                }
-            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData>? attributes)
@@ -431,19 +424,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool HasSkipLocalsInitAttribute
             => GetDecodedWellKnownAttributeData()?.HasSkipLocalsInitAttribute == true;
 
-        internal bool HasSafeAttribute
-            => GetDecodedWellKnownAttributeData()?.HasSafeAttribute == true;
-
-        private bool CheckSafeAttributeUsage(Location location, BindingDiagnosticBag diagnostics)
-        {
-            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier)
-            {
-                return true;
-            }
-
-            diagnostics.Add(ErrorCode.ERR_SafeAttributeUnsupportedTarget, location);
-            return false;
-        }
+        internal bool HasSafeModifier
+            => (_modifiers & DeclarationModifiers.Safe) != 0;
 
         public sealed override bool IsAbstract
         {
@@ -493,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return HasUnsafeModifier || (IsExtern && !HasSafeAttribute)
+                    return HasUnsafeModifier || (IsExtern && !HasSafeModifier)
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }
@@ -553,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
             if (!explicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
@@ -896,6 +878,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var modifiers = (CSharpSyntaxNode as MemberDeclarationSyntax)?.Modifiers ?? default;
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(location), modifyCompilation: true);
+            }
+
+            if (HasSafeModifier && (!ContainingModule.UseUpdatedMemorySafetyRules || !IsExtern || HasUnsafeModifier))
+            {
+                var modifiers = MemberSyntax?.Modifiers ?? default;
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(this.Locations[0]));
             }
 
             EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();

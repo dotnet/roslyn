@@ -1052,6 +1052,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(location), modifyCompilation: true);
             }
 
+            if (HasSafeModifier && (!ContainingModule.UseUpdatedMemorySafetyRules || !IsExtern || HasUnsafeModifier))
+            {
+                var modifiers = (CSharpSyntaxNode as MemberDeclarationSyntax)?.Modifiers ?? default;
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(this.Locations[0]));
+            }
+
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
@@ -1638,13 +1644,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(AttributeDescription.SafeAttribute))
-            {
-                if (CheckSafeAttributeUsage(arguments.AttributeSyntaxOpt.Location, diagnostics))
-                {
-                    arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasSafeAttribute = true;
-                }
-            }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
             {
                 MessageID.IDS_FeatureOverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
@@ -1730,18 +1729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
 
-        internal bool HasSafeAttribute => GetDecodedWellKnownAttributeData()?.HasSafeAttribute == true;
-
-        private bool CheckSafeAttributeUsage(Location location, BindingDiagnosticBag diagnostics)
-        {
-            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier)
-            {
-                return true;
-            }
-
-            diagnostics.Add(ErrorCode.ERR_SafeAttributeUnsupportedTarget, location);
-            return false;
-        }
+        internal bool HasSafeModifier => (_modifiers & DeclarationModifiers.Safe) != 0;
 
         private SourceAttributeData FindAttribute(AttributeDescription attributeDescription)
             => (SourceAttributeData)GetAttributes().First(a => a.IsTargetAttribute(attributeDescription));
