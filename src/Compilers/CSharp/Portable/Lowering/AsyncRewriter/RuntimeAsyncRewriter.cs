@@ -231,7 +231,13 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         // becomes
         // dynamic _tmp = expr.GetAwaiter();
         // if (!_tmp.IsCompleted)
-        //    AwaitAwaiter((INotifyCompletion)_tmp);
+        // {
+        //     ICriticalNotifyCompletion critTemp = _tmp as ICriticalNotifyCompletion;
+        //     if (critTemp != null)
+        //         UnsafeAwaitAwaiter<ICriticalNotifyCompletion>(critTemp);
+        //     else
+        //         AwaitAwaiter<INotifyCompletion>((INotifyCompletion)_tmp);
+        // }
         // _tmp.GetResult()
 
         var expr = VisitExpression(node.Expression);
@@ -251,16 +257,37 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             isChecked: false,
             resultType: _factory.SpecialType(SpecialType.System_Boolean)).ToExpression();
 
+        // ICriticalNotifyCompletion path (preferred)
+        var criticalNotifyCompletionType = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion);
+        var critTemp = _factory.SynthesizedLocal(criticalNotifyCompletionType);
+        var critTempAssignment = _factory.AssignmentExpression(_factory.Local(critTemp), _factory.As(tmp, criticalNotifyCompletionType));
+
+        var unsafeAwaitAwaiterDefinition = (MethodSymbol)_factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter);
+        var unsafeAwaitMethod = unsafeAwaitAwaiterDefinition.Construct(criticalNotifyCompletionType);
+        var unsafeAwaitCall = _factory.Call(
+            receiver: null,
+            unsafeAwaitMethod,
+            _factory.Local(critTemp));
+
+        // INotifyCompletion path (fallback)
         var notifyCompletionType = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion);
         var awaitAwaiterDefinition = (MethodSymbol)_factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
         var awaitMethod = awaitAwaiterDefinition.Construct(notifyCompletionType);
-        var awaitCall = _factory.Call(
+        var safeAwaitCall = _factory.Call(
             receiver: null,
             awaitMethod,
             _factory.Convert(notifyCompletionType, tmp, Conversion.ExplicitReference));
 
+        var awaitBranch = _factory.Block(
+            [critTemp],
+            _factory.ExpressionStatement(critTempAssignment),
+            _factory.If(
+                condition: _factory.ObjectNotEqual(_factory.Local(critTemp), _factory.Null(criticalNotifyCompletionType)),
+                thenClause: _factory.ExpressionStatement(unsafeAwaitCall),
+                elseClauseOpt: _factory.ExpressionStatement(safeAwaitCall)));
+
         var ifNotCompleted = _factory.HiddenSequencePoint(
-            _factory.If(_factory.Not(isCompletedCall), _factory.ExpressionStatement(awaitCall)));
+            _factory.If(_factory.Not(isCompletedCall), awaitBranch));
 
         var getResultCall = MakeDynamicMemberInvocation(tmp, WellKnownMemberNames.GetResult, resultDiscarded);
 

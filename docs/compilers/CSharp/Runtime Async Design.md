@@ -754,7 +754,7 @@ _ = {
 
 ##### Dynamic awaiters
 
-Dynamic awaits use the same runtime async suspension point as the `INotifyCompletion` case, but the compiler does not statically know the awaiter type. For dynamic properties, the property access and await pattern operations remain dynamic operations, while the value passed to the runtime helper is converted to `INotifyCompletion`.
+Dynamic awaits use the same runtime async suspension points as the statically-typed case, but the compiler does not statically know the awaiter type. For dynamic properties, the property access and await pattern operations remain dynamic operations, while the value passed to the runtime helper is first attempted as `ICriticalNotifyCompletion` (via an `as` cast) and falls back to a hard cast to `INotifyCompletion`. This matches the existing state machine behavior for dynamic awaits.
 
 ```cs
 dynamic c = GetDynamicReceiver();
@@ -769,8 +769,17 @@ _ = {
     dynamic awaiter = c.Property.GetAwaiter();
     if (!awaiter.IsCompleted)
     {
-        System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Runtime.CompilerServices.INotifyCompletion>(
-            (System.Runtime.CompilerServices.INotifyCompletion)awaiter);
+        System.Runtime.CompilerServices.ICriticalNotifyCompletion critTemp =
+            awaiter as System.Runtime.CompilerServices.ICriticalNotifyCompletion;
+        if (critTemp != null)
+        {
+            System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.ICriticalNotifyCompletion>(critTemp);
+        }
+        else
+        {
+            System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Runtime.CompilerServices.INotifyCompletion>(
+                (System.Runtime.CompilerServices.INotifyCompletion)awaiter);
+        }
     }
     int i = awaiter.GetResult();
 };
@@ -779,9 +788,8 @@ _ = {
 The dynamic strategy for implementation is:
 
 1. Preserve the existing dynamic call sites used to evaluate the awaited property and call `GetAwaiter`.
-2. Store the dynamic awaiter in a synthesized temp so `IsCompleted`, the `INotifyCompletion` conversion, and `GetResult` observe the same awaiter instance.
+2. Store the dynamic awaiter in a synthesized temp so `IsCompleted`, the notification interface conversions, and `GetResult` observe the same awaiter instance.
 3. Emit the `IsCompleted` dynamic operation using the normal await pattern rules.
-4. When `IsCompleted` is false, emit a conversion from the awaiter temp to `INotifyCompletion` and pass that converted value to `AsyncHelpers.AwaitAwaiter<INotifyCompletion>`.
+4. When `IsCompleted` is false, first try an `as` cast to `ICriticalNotifyCompletion`. If that succeeds, pass the result to `AsyncHelpers.UnsafeAwaitAwaiter<ICriticalNotifyCompletion>`. Otherwise, perform a hard cast to `INotifyCompletion` and pass that to `AsyncHelpers.AwaitAwaiter<INotifyCompletion>`. This mirrors the priority used by existing state machine lowering for dynamic awaits.
 5. Emit the dynamic `GetResult` call only when the await expression result is needed, preserving the existing result conversion behavior.
 
-Dynamic awaiters do not use `AsyncHelpers.UnsafeAwaitAwaiter` even if the runtime awaiter instance implements `ICriticalNotifyCompletion`. `ICriticalNotifyCompletion` derives from `INotifyCompletion`, so the `INotifyCompletion` conversion succeeds for both awaiter forms.

@@ -2953,6 +2953,203 @@ class Test
         }
 
         [Fact]
+        public void DynamicProperty_RuntimeAsync_NotCompleted_ICriticalNotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void UnsafeOnCompleted(Action continuation) { Console.WriteLine("UnsafeOnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                UnsafeOnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_VoidResult_NotCompleted_ICriticalNotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void UnsafeOnCompleted(Action continuation) { Console.WriteLine("UnsafeOnCompleted"); continuation(); }
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                UnsafeOnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_NotCompleted_ICriticalPreferredOverINotify()
+        {
+            // Verifies that when an awaiter implements both ICriticalNotifyCompletion and
+            // INotifyCompletion, UnsafeOnCompleted is called (via ICriticalNotifyCompletion),
+            // not OnCompleted.
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("ERROR: OnCompleted should not be called"); continuation(); }
+                    public void UnsafeOnCompleted(Action continuation) { Console.WriteLine("UnsafeOnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            // The output must NOT contain "ERROR: OnCompleted should not be called"
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                UnsafeOnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_NotCompleted_OnlyINotifyCompletion()
+        {
+            // Verifies that when an awaiter implements only INotifyCompletion (not ICriticalNotifyCompletion),
+            // OnCompleted is called as the fallback path.
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
         public void Dynamic_RuntimeAsync_MissingGetAwaiter_RuntimeFailure()
         {
             var source = """
@@ -2985,9 +3182,10 @@ class Test
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
             verifier.VerifyIL("Test.F", """
                 {
-                  // Code size      310 (0x136)
+                  // Code size      328 (0x148)
                   .maxstack  10
-                  .locals init (object V_0)
+                  .locals init (object V_0,
+                                System.Runtime.CompilerServices.ICriticalNotifyCompletion V_1)
                   IL_0000:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__0"
                   IL_0005:  brtrue.s   IL_0037
                   IL_0007:  ldc.i4.0
@@ -3048,34 +3246,42 @@ class Test
                   IL_00cd:  ldloc.0
                   IL_00ce:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
                   IL_00d3:  callvirt   "bool System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_00d8:  brtrue.s   IL_00e5
+                  IL_00d8:  brtrue.s   IL_00f7
                   IL_00da:  ldloc.0
-                  IL_00db:  castclass  "System.Runtime.CompilerServices.INotifyCompletion"
-                  IL_00e0:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Runtime.CompilerServices.INotifyCompletion>(System.Runtime.CompilerServices.INotifyCompletion)"
-                  IL_00e5:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_00ea:  brtrue.s   IL_0120
-                  IL_00ec:  ldc.i4     0x100
-                  IL_00f1:  ldstr      "GetResult"
-                  IL_00f6:  ldnull
-                  IL_00f7:  ldtoken    "Test"
-                  IL_00fc:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_0101:  ldc.i4.1
-                  IL_0102:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                  IL_0107:  dup
-                  IL_0108:  ldc.i4.0
-                  IL_0109:  ldc.i4.0
-                  IL_010a:  ldnull
-                  IL_010b:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                  IL_0110:  stelem.ref
-                  IL_0111:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                  IL_0116:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_011b:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_0120:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_0125:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>>.Target"
-                  IL_012a:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_012f:  ldloc.0
-                  IL_0130:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_0135:  ret
+                  IL_00db:  isinst     "System.Runtime.CompilerServices.ICriticalNotifyCompletion"
+                  IL_00e0:  stloc.1
+                  IL_00e1:  ldloc.1
+                  IL_00e2:  brfalse.s  IL_00ec
+                  IL_00e4:  ldloc.1
+                  IL_00e5:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.ICriticalNotifyCompletion>(System.Runtime.CompilerServices.ICriticalNotifyCompletion)"
+                  IL_00ea:  br.s       IL_00f7
+                  IL_00ec:  ldloc.0
+                  IL_00ed:  castclass  "System.Runtime.CompilerServices.INotifyCompletion"
+                  IL_00f2:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Runtime.CompilerServices.INotifyCompletion>(System.Runtime.CompilerServices.INotifyCompletion)"
+                  IL_00f7:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
+                  IL_00fc:  brtrue.s   IL_0132
+                  IL_00fe:  ldc.i4     0x100
+                  IL_0103:  ldstr      "GetResult"
+                  IL_0108:  ldnull
+                  IL_0109:  ldtoken    "Test"
+                  IL_010e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0113:  ldc.i4.1
+                  IL_0114:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_0119:  dup
+                  IL_011a:  ldc.i4.0
+                  IL_011b:  ldc.i4.0
+                  IL_011c:  ldnull
+                  IL_011d:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_0122:  stelem.ref
+                  IL_0123:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_0128:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_012d:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
+                  IL_0132:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
+                  IL_0137:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>>.Target"
+                  IL_013c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
+                  IL_0141:  ldloc.0
+                  IL_0142:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0147:  ret
                 }
                 """);
         }
