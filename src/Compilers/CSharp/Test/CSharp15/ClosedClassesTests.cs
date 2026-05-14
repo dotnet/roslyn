@@ -2976,7 +2976,6 @@ public sealed class ClosedClassesTests : CSharpTestBase
     public void Exhaustiveness_Constraints_02()
     {
         // Subtype definition constraints which do not "overlap" with constructed closed type using type parameters
-        // PROTOTYPE(cc): Should we detect when the subtype cannot unify with the closed type due to subtype constraints?
         var source1 = """
             public closed class C<T>;
             public class D1<U1> : C<U1>;
@@ -4103,7 +4102,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     {
         // Attempt to exhaust a type parameter constrained to closed type.
         // This scenario isn't supported by the exhaustiveness check.
-        // PROTOTYPE(cc): Confirm whether we want to allow exhausting such type parameters via subtypes.
+        // https://github.com/dotnet/roslyn/issues/83617: Confirm whether we want to allow exhausting such type parameters via subtypes.
         var source1 = """
             public closed class E;
             public sealed class F1 : E;
