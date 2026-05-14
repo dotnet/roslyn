@@ -8512,6 +8512,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
+            // (2,12): error CS9363: 'C.F' must be used in an unsafe context because it has pointers in its signature
+            // string s = c.F();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.F").WithArguments("C.F").WithLocation(2, 12),
             // (2,12): error CS9360: This operation may only be used in an unsafe context
             // string s = c.F();
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "c.F()").WithLocation(2, 12));
@@ -8525,8 +8528,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             verify: Verification.Skipped,
             symbolValidator: m => VerifyRequiresUnsafeAttribute(
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
-                expectedUnsafeSymbols: [],
-                expectedSafeSymbols: ["C", "C.F", (object)getFunctionPointerType, (object)getFunctionPointerMethod],
+                expectedUnsafeSymbols: ["C.F"],
+                expectedSafeSymbols: ["C", (object)getFunctionPointerType, (object)getFunctionPointerMethod],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
                 includesAttributeDefinition: false))
             .VerifyDiagnostics();
@@ -8761,6 +8764,102 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 //     int F1 = *default(int*);
                 Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(12, 14),
             ]);
+    }
+
+    [Theory, CombinatorialData]
+    public void CompatMode_Field(
+        [CombinatorialValues("int*", "int*[]", "delegate*<void>")] string type,
+        bool useCompilationReference)
+    {
+        var lib = CreateCompilation($$"""
+            public class C
+            {
+                public unsafe int F1;
+                public unsafe {{type}} F2;
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll,
+            assemblyName: "lib")
+            .VerifyDiagnostics();
+        var libRef = AsReference(lib, useCompilationReference);
+
+        var source = """
+            var c = new C();
+            _ = c.F1;
+            _ = c.F2;
+            c.F2 = default;
+            _ = new C { F2 = default };
+            unsafe
+            {
+                _ = c.F2;
+                c.F2 = default;
+                _ = new C { F2 = default };
+            }
+            """;
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,5): error CS9363: 'C.F2' must be used in an unsafe context because it has pointers in its signature
+            // _ = c.F2;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.F2").WithArguments("C.F2").WithLocation(3, 5),
+            // (4,1): error CS9363: 'C.F2' must be used in an unsafe context because it has pointers in its signature
+            // c.F2 = default;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.F2").WithArguments("C.F2").WithLocation(4, 1),
+            // (5,13): error CS9363: 'C.F2' must be used in an unsafe context because it has pointers in its signature
+            // _ = new C { F2 = default };
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "F2").WithArguments("C.F2").WithLocation(5, 13));
+
+        CompileAndVerify("""
+            var c = new C();
+            _ = c.F1;
+            unsafe
+            {
+                _ = c.F2;
+                c.F2 = default;
+                _ = new C { F2 = default };
+            }
+            """,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
+                expectedUnsafeSymbols: ["C.F2"],
+                expectedSafeSymbols: ["C", "C.F1"],
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = c.F2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = c.F2").WithLocation(3, 1),
+            // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = c.F2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.F2").WithLocation(3, 5),
+            // (4,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c.F2 = default;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.F2").WithLocation(4, 1),
+            // (4,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c.F2 = default;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.F2 = default").WithLocation(4, 1));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]

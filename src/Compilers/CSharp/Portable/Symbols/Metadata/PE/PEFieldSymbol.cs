@@ -760,10 +760,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool ComputeRequiresUnsafe(bool hasRequiresUnsafeAttribute)
         {
-            return ContainingModule.UseUpdatedMemorySafetyRules && hasRequiresUnsafeAttribute;
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? hasRequiresUnsafeAttribute
+                // This might be expensive, so we cache it in _packedFlags.
+                : !IsFixedSizeBuffer && Type.ContainsPointerOrFunctionPointer();
         }
 
         internal sealed override CallerUnsafeMode CallerUnsafeMode
-            => RequiresUnsafe ? CallerUnsafeMode.Explicit : CallerUnsafeMode.None;
+        {
+            get
+            {
+                if (!RequiresUnsafe)
+                {
+                    return CallerUnsafeMode.None;
+                }
+
+                return ContainingModule.UseUpdatedMemorySafetyRules
+                    ? CallerUnsafeMode.Explicit
+                    : CallerUnsafeMode.Implicit;
+            }
+        }
     }
 }

@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return CallerUnsafeMode.Explicit;
                 }
 
-                return CallerUnsafeMode.None;
+                return !IsFixedSizeBuffer && Type.ContainsPointerOrFunctionPointer()
+                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
             }
         }
 
