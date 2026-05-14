@@ -4494,4 +4494,81 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Assert.Equal(["D1<System.String>"], subtypes.ToTestDisplayStrings());
         }
     }
+
+    [Fact]
+    public void Partial_01()
+    {
+        // Multiple partial declarations specify 'closed'
+        var source = """
+            closed partial class C1;
+            closed partial class C1;
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+
+        var c1 = comp.GetMember<NamedTypeSymbol>("C1");
+        Assert.True(c1.IsClosed);
+    }
+
+    [Fact]
+    public void Partial_02()
+    {
+        // Not all partial declarations specify 'closed'
+        var source = """
+            partial class C1;
+            closed partial class C1;
+
+            closed partial class C2;
+            partial class C2;
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+
+        var c1 = comp.GetMember<NamedTypeSymbol>("C1");
+        Assert.True(c1.IsClosed);
+
+        var c2 = comp.GetMember<NamedTypeSymbol>("C2");
+        Assert.True(c2.IsClosed);
+    }
+
+    [Fact]
+    public void Partial_03()
+    {
+        // Incompatible modifiers are spread across partial declarations
+        var source = """
+            abstract partial class C1;
+            closed partial class C1;
+
+            closed partial class C2;
+            sealed partial class C2;
+
+            static partial class C3;
+            closed partial class C3;
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (1,24): error CS9604: 'C1': a closed type cannot be marked abstract because it is always implicitly abstract.
+            // abstract partial class C1;
+            Diagnostic(ErrorCode.ERR_ClosedExplicitlyAbstract, "C1").WithArguments("C1").WithLocation(1, 24),
+            // (4,22): error CS9601: 'C2': a closed type cannot be sealed or static
+            // closed partial class C2;
+            Diagnostic(ErrorCode.ERR_ClosedSealedStatic, "C2").WithArguments("C2").WithLocation(4, 22),
+            // (7,22): error CS9601: 'C3': a closed type cannot be sealed or static
+            // static partial class C3;
+            Diagnostic(ErrorCode.ERR_ClosedSealedStatic, "C3").WithArguments("C3").WithLocation(7, 22));
+
+        var c1 = comp.GetMember<NamedTypeSymbol>("C1");
+        Assert.True(c1.IsClosed);
+
+        var c2 = comp.GetMember<NamedTypeSymbol>("C2");
+        Assert.True(c2.IsClosed);
+        Assert.True(c2.IsSealed);
+
+        var c3 = comp.GetMember<NamedTypeSymbol>("C3");
+        Assert.True(c3.IsClosed);
+        Assert.True(c3.IsStatic);
+    }
 }
