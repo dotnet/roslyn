@@ -36,6 +36,7 @@ pr:
       - docs/*
       - eng/config/OptProf.json
       - eng/config/PublishData.json
+      - eng/pipelines/insert.yml
       - eng/setup-pr-validation.ps1
       - .vscode/*
       - .github/*
