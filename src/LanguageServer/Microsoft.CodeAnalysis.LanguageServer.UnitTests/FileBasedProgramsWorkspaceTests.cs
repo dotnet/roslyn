@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -833,10 +834,22 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(newAppCsText, (await document.GetTextAsync()).ToString());
 
+        // Set up a listener for file change events before writing to disk, so we can wait for
+        // the FileSystemWatcher to deliver the event (which triggers the project reload enqueue).
+        var fileChangeWatcher = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IFileChangeWatcher>();
+        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
+        var fileChangeTcs = new TaskCompletionSource();
+        fileChangeContext.FileChanged += (_, path) =>
+        {
+            if (path == appCsFile.Path)
+                fileChangeTcs.TrySetResult();
+        };
+
         // Flush the document change to disk to trigger a reload of the FBA project.
         appCsFile.WriteAllText(newAppCsText);
-        // Wait for the batching queue timeout.
-        await Task.Delay(100);
+
+        // Wait for the file change event to be delivered, ensuring the reload is enqueued.
+        await fileChangeTcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Now the document is a miscellaneous file

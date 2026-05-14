@@ -1,0 +1,3 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ImplicitExpressionAtEOF.cshtml(3,2): error CS1501: No overload for method 'Write' takes 0 arguments
+// Write(
+Diagnostic(ErrorCode.ERR_BadArgCount, "Write").WithArguments("Write", "0").WithLocation(3, 2)

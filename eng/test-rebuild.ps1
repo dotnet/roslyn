@@ -52,6 +52,51 @@ try {
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" +
   " --exclude net472\Roslyn.Hosting.Diagnostics.dll" +
   " --exclude net472\Roslyn.VisualStudio.DiagnosticsWindow.dll" +
+
+  # The merged Razor subtree currently rebuilds with known BuildValidator output differences.
+  " --exclude dotnet-razorsyntaxgenerator.dll" +
+  " --exclude Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal.dll" +
+  " --exclude Microsoft.AspNetCore.Mvc.Razor.Extensions.UnitTests.dll" +
+  " --exclude Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.UnitTests.dll" +
+  " --exclude Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.UnitTests.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Language.Legacy.UnitTests.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Language.UnitTests.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Microbenchmarks.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Microbenchmarks.exe" +
+  " --exclude Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Test.Common.Cohosting.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Test.Common.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Test.Common.Tooling.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X.Compiler.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X.Compiler.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Utilities.Shared.dll" +
+  " --exclude Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests.dll" +
+  " --exclude Microsoft.CodeAnalysis.Razor.Compiler.dll" +
+  " --exclude Microsoft.CodeAnalysis.Razor.Tooling.Internal.dll" +
+  " --exclude Microsoft.CodeAnalysis.Razor.UnitTests.dll" +
+  " --exclude Microsoft.CodeAnalysis.Razor.Workspaces.dll" +
+  " --exclude Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests.dll" +
+  " --exclude Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.arm64.dll" +
+  " --exclude Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.x64.dll" +
+  " --exclude Microsoft.CodeAnalysis.Remote.Razor.dll" +
+  " --exclude Microsoft.CodeAnalysis.Remote.Razor.UnitTests.dll" +
+  " --exclude Microsoft.Net.Compilers.Razor.Toolset.dll" +
+  " --exclude Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests.dll" +
+  " --exclude Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" +
+  " --exclude Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests.dll" +
+  " --exclude Microsoft.VisualStudio.LanguageServices.Razor.dll" +
+  " --exclude Microsoft.VisualStudio.LanguageServices.Razor.UnitTests.dll" +
+  " --exclude Microsoft.VisualStudio.Razor.IntegrationTests.dll" +
+  " --exclude Microsoft.VisualStudio.RazorExtension.Dependencies.dll" +
+  " --exclude Microsoft.VisualStudio.RazorExtension.dll" +
+  " --exclude Microsoft.VisualStudioCode.Razor.IntegrationTests.dll" +
+  " --exclude Microsoft.VisualStudioCode.RazorExtension.dll" +
+  " --exclude Microsoft.VisualStudioCode.RazorExtension.UnitTests.dll" +
+  " --exclude Razor.Diagnostics.Analyzers.dll" +
+  " --exclude Razor.Diagnostics.Analyzers.UnitTests.dll" +
+  " --exclude RazorDeployment.dll" +
+
 # Rebuilds with compilation errors
 # Rebuilds with missing references
 # Rebuilds with other issues

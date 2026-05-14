@@ -65,7 +65,8 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             var context = new CodeGenerationContext(
                 addImports: false,
                 sortMembers: false,
-                autoInsertionLocation: false);
+                autoInsertionLocation: false,
+                allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
 
             var info = await document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
