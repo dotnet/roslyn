@@ -191,7 +191,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             var newFileName = Path.GetFileNameWithoutExtension(newFilePath);
 
             // We also need to make sure OldUri is a document we know about
-            if (!solution.TryGetRazorDocument(file.OldUri.GetRequiredParsedUri(), out var oldDoc))
+            if (!solution.TryGetRazorDocument(file.OldUri.GetRequiredSystemUri(), out var oldDoc))
             {
                 continue;
             }

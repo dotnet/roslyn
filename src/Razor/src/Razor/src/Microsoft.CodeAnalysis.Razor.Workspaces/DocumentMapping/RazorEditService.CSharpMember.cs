@@ -28,6 +28,9 @@ internal partial class RazorEditService
             {
                 BaseMethodDeclarationSyntax method => new(method, GetComparisonSpan(method), sourceText),
                 TypeDeclarationSyntax typeDeclaration => new(typeDeclaration, GetComparisonSpan(typeDeclaration), sourceText),
+                IndexerDeclarationSyntax indexer => new(indexer, GetComparisonSpan(indexer), sourceText),
+                EventDeclarationSyntax @event => new(@event, GetComparisonSpan(@event), sourceText),
+                EventFieldDeclarationSyntax eventField => new(eventField, GetComparisonSpan(eventField), sourceText),
                 PropertyDeclarationSyntax property => new(property, GetComparisonSpan(property), sourceText),
                 IndexerDeclarationSyntax indexer => new(indexer, GetComparisonSpan(indexer), sourceText),
                 EventDeclarationSyntax @event => new(@event, GetComparisonSpan(@event), sourceText),
@@ -103,6 +106,18 @@ internal partial class RazorEditService
             return TextSpan.FromBounds(
                 @event.ExplicitInterfaceSpecifier?.SpanStart ?? @event.Identifier.SpanStart,
                 @event.Identifier.Span.End);
+        }
+
+        private static TextSpan GetComparisonSpan(EventFieldDeclarationSyntax eventField)
+        {
+            // Event fields follow the same identification rules as normal fields.
+            var variables = eventField.Declaration.Variables;
+            if (variables.Count == 0)
+            {
+                return eventField.Declaration.Span;
+            }
+
+            return TextSpan.FromBounds(variables[0].Identifier.SpanStart, variables[^1].Identifier.Span.End);
         }
 
         private static TextSpan GetComparisonSpan(TypeDeclarationSyntax typeDeclaration)

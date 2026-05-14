@@ -2602,7 +2602,7 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       </trans-unit>
       <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
         <source>Represents the character '{0}' as a UTF-16 code unit.</source>
-        <target state="new">Represents the character '{0}' as a UTF-16 code unit.</target>
+        <target state="translated">Stellt das Zeichen „{0}“ als UTF-16-Codeeinheit dar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

@@ -259,32 +259,32 @@
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterDescription">
         <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</source>
-        <target state="new">Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</target>
+        <target state="translated">从 IRemoteJsonService 继承的接口中的方法不应具有类型为 RazorPinnedSolutionInfoWrapper 或 DocumentId 的参数，因为它们无法实现 JSON 序列化。</target>
         <note>{Locked="IRemoteJsonService"}{Locked="RazorPinnedSolutionInfoWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterMessage">
         <source>Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</source>
-        <target state="new">Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</target>
+        <target state="translated">“{1}.{2}”中的参数“{0}”类型为“{3}”，而该类型在 JSON 服务中是不允许的</target>
         <note>{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterTitle">
         <source>Invalid parameter type in IRemoteJsonService method</source>
-        <target state="new">Invalid parameter type in IRemoteJsonService method</target>
+        <target state="translated">IRemoteJsonService 方法中的参数类型无效</target>
         <note>{Locked="IRemoteJsonService"}</note>
       </trans-unit>
       <trans-unit id="ImmutableArrayBoxingDescription">
         <source>Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</source>
-        <target state="new">Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</target>
+        <target state="translated">在 ImmutableArray&lt;T&gt; 调用 EnumerableExtensions 或 ReadOnlyListExtensions 方法会导致结构装箱，从而创建不必要的分配。请改用相应的 ImmutableArray&lt;T&gt; 扩展方法。</target>
         <note>{Locked="EnumerableExtensions"}{Locked="ReadOnlyListExtensions"}{Locked="ImmutableArray&lt;T&gt;"}</note>
       </trans-unit>
       <trans-unit id="ImmutableArrayBoxingMessage">
         <source>Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</source>
-        <target state="new">Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</target>
+        <target state="translated">对 ImmutableArray&lt;T&gt; 上的 ‘{0}’ 进行调用会导致装箱。请考虑改用 ImmutableArray&lt;T&gt; 扩展方法。</target>
         <note>{Locked="ImmutableArray&lt;T&gt;"}</note>
       </trans-unit>
       <trans-unit id="ImmutableArrayBoxingTitle">
         <source>ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</source>
-        <target state="new">ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</target>
+        <target state="translated">ImmutableArray&lt;T&gt; 正在装箱到 IReadOnlyList&lt;T&gt;</target>
         <note>{Locked="ImmutableArray&lt;T&gt;"}{Locked="IReadOnlyList&lt;T&gt;"}</note>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
@@ -339,17 +339,17 @@
       </trans-unit>
       <trans-unit id="PooledArrayBuilderAsRefDescription">
         <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</source>
-        <target state="new">Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</target>
+        <target state="translated">PooledArrayBuilder&lt;T&gt;.AsRef() 的实例必须是 'using' 变量。</target>
         <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="PooledArrayBuilderAsRefMessage">
         <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">PooledArrayBuilder&lt;T&gt;.AsRef() 的实例必须是 'using' 变量</target>
         <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="PooledArrayBuilderAsRefTitle">
         <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">PooledArrayBuilder&lt;T&gt;.AsRef() 的实例必须是 'using' 变量</target>
         <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
