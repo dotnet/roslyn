@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-
 namespace Roslyn.LanguageServer.Protocol;
 
 internal static partial class LspExtensions
@@ -32,12 +30,5 @@ internal static partial class LspExtensions
         {
             DocumentUri = documentUri
         };
-    }
-
-    public static RazorTextDocumentIdentifier? ToRazorTextDocumentIdentifier(this TextDocumentIdentifier textDocumentIdentifier)
-    {
-        return textDocumentIdentifier.DocumentUri.ParsedUri is Uri parsedUri
-            ? new RazorTextDocumentIdentifier(parsedUri, (textDocumentIdentifier as VSTextDocumentIdentifier)?.ProjectContext?.Id)
-            : null;
     }
 }

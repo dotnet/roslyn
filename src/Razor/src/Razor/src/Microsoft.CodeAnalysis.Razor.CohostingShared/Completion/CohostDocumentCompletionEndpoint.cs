@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
@@ -60,7 +60,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
         {
@@ -79,8 +79,8 @@ internal sealed class CohostDocumentCompletionEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(RazorVSInternalCompletionParams request)
-        => request.TextDocument?.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(RazorVSInternalCompletionParams request)
+        => request.TextDocument;
 
     protected override async Task<RazorVSInternalCompletionList?> HandleRequestAsync(RazorVSInternalCompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {

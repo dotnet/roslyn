@@ -1709,7 +1709,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(item);
         Assert.NotNull(tdi);
-        Assert.Equal(document.GetURI(), new(tdi.Value.Uri));
+        Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, DisposalToken);
 
