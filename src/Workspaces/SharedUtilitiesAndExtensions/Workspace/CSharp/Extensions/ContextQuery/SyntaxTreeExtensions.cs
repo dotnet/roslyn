@@ -612,7 +612,7 @@ internal static partial class SyntaxTreeExtensions
                 if (modifierTokens.Contains(SyntaxKind.ClosedKeyword))
                     return true;
 #endif
-             }
+            }
         }
 
         return false;
