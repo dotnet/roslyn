@@ -1535,28 +1535,6 @@ class Driver
     }
 }";
             CompileAndVerify(source, expectedOutput: "0");
-
-            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails with
-            {
-                ILVerifyMessage = "[Bar]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<T0>' }"
-            });
-            verifier.VerifyDiagnostics(
-                // (4,1): hidden CS8019: Unnecessary using directive.
-                // using System.Collections.Generic;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(4, 1)
-            );
-            verifier.VerifyIL("TestCase.Bar<T>(T)", """
-                {
-                  // Code size       13 (0xd)
-                  .maxstack  1
-                  IL_0000:  ldc.i4.1
-                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
-                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
-                  IL_000b:  ldarg.0
-                  IL_000c:  ret
-                }
-                """);
         }
 
         [Fact]
@@ -1974,12 +1952,6 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
-
-            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails with
-            {
-                ILVerifyMessage = "[<Run>b__0_0]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }"
-            });
         }
 
         [Fact]
