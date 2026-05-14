@@ -34,25 +34,29 @@ internal static class CompletionListMerger
         }
 
         EnsureMergeableCommitCharacters(razorCompletionList, delegatedCompletionList);
+        EnsureMergeableEditRange(razorCompletionList, delegatedCompletionList);
         EnsureMergeableData(razorCompletionList, delegatedCompletionList);
 
         var mergedIsIncomplete = razorCompletionList.IsIncomplete || delegatedCompletionList.IsIncomplete;
         VSInternalCompletionItem[] mergedItems = [.. razorCompletionList.Items, .. delegatedCompletionList.Items];
         var mergedData = MergeData(razorCompletionList.Data, delegatedCompletionList.Data);
-        var mergedCommitCharacters = razorCompletionList.CommitCharacters
-            ?? delegatedCompletionList.CommitCharacters;
         var mergedSuggestionMode = razorCompletionList.SuggestionMode || delegatedCompletionList.SuggestionMode;
 
         // We don't fully support merging continue characters currently. Razor doesn't currently use them so delegated completion lists always win.
         var mergedContinueWithCharacters = razorCompletionList.ContinueCharacters ?? delegatedCompletionList.ContinueCharacters;
 
         var mergedItemDefaultsData = MergeData(razorCompletionList.ItemDefaults?.Data, delegatedCompletionList.ItemDefaults?.Data);
-        // We don't fully support merging edit ranges currently. Razor doesn't currently use them so delegated completion lists always win.
-        var mergedItemDefaultsEditRange = razorCompletionList.ItemDefaults?.EditRange ?? delegatedCompletionList.ItemDefaults?.EditRange;
+
+        // After EnsureMergeableEditRange, one of three states holds:
+        // 1. At most one list had an EditRange (no conflict, pick the non-null one).
+        // 2. Both share the same range (safe to pick either).
+        // 3. Ranges differed and both were dematerialized to null.
+        var mergedEditRange = razorCompletionList.ItemDefaults?.EditRange ?? delegatedCompletionList.ItemDefaults?.EditRange;
 
         var mergedCompletionList = new RazorVSInternalCompletionList()
         {
-            CommitCharacters = mergedCommitCharacters,
+            // CommitCharacters intentionally null — EnsureMergeableCommitCharacters dematerialized
+            // both lists to per-item. The post-merge optimizer will re-promote the best group.
             Data = mergedData,
             IsIncomplete = mergedIsIncomplete,
             Items = mergedItems,
@@ -61,9 +65,7 @@ internal static class CompletionListMerger
             ItemDefaults = new CompletionListItemDefaults()
             {
                 Data = mergedItemDefaultsData,
-                EditRange = mergedItemDefaultsEditRange,
-                // VSCode won't use VSInternalCompletionList.CommitCharacters, make sure we don't lose item defaults
-                CommitCharacters = razorCompletionList.ItemDefaults?.CommitCharacters ?? delegatedCompletionList.ItemDefaults?.CommitCharacters
+                EditRange = mergedEditRange,
             }
         };
 
@@ -177,63 +179,86 @@ internal static class CompletionListMerger
 
     private static void EnsureMergeableCommitCharacters(RazorVSInternalCompletionList completionListA, RazorVSInternalCompletionList completionListB)
     {
-        var aInheritsCommitCharacters = completionListA.CommitCharacters is not null || completionListA.ItemDefaults?.CommitCharacters is not null;
-        var bInheritsCommitCharacters = completionListB.CommitCharacters is not null || completionListB.ItemDefaults?.CommitCharacters is not null;
-        if (aInheritsCommitCharacters && bInheritsCommitCharacters)
+        // Dematerialize list-level commit characters from both lists so that all items carry
+        // explicit per-item chars. The post-merge optimizer will re-promote the best group.
+        DematerializeCommitCharacters(completionListA);
+        DematerializeCommitCharacters(completionListB);
+
+        static void DematerializeCommitCharacters(RazorVSInternalCompletionList completionList)
         {
-            // Need to merge commit characters because both are trying to inherit
-
-            var inheritableCommitCharacterCompletionsA = GetCompletionsThatDoNotSpecifyCommitCharacters(completionListA);
-            var inheritableCommitCharacterCompletionsB = GetCompletionsThatDoNotSpecifyCommitCharacters(completionListB);
-            IReadOnlyList<VSInternalCompletionItem>? completionItemsToStopInheriting;
-            RazorVSInternalCompletionList? completionListToStopInheriting;
-
-            // Decide which completion list has more items that benefit from "inheriting" commit characters.
-            if (inheritableCommitCharacterCompletionsA.Length >= inheritableCommitCharacterCompletionsB.Length)
+            var listChars = completionList.CommitCharacters;
+            if (listChars is not null)
             {
-                completionListToStopInheriting = completionListB;
-                completionItemsToStopInheriting = inheritableCommitCharacterCompletionsB;
+                completionList.CommitCharacters = null;
             }
-            else
+            else if (completionList.ItemDefaults?.CommitCharacters is { } defaultChars)
             {
-                completionListToStopInheriting = completionListA;
-                completionItemsToStopInheriting = inheritableCommitCharacterCompletionsA;
+                listChars = defaultChars;
+                completionList.ItemDefaults.CommitCharacters = null;
             }
 
-            for (var i = 0; i < completionItemsToStopInheriting.Count; i++)
+            if (listChars is not null)
             {
-                if (completionListToStopInheriting.CommitCharacters is not null)
+                foreach (var item in completionList.Items)
                 {
-                    completionItemsToStopInheriting[i].VsCommitCharacters = completionListToStopInheriting.CommitCharacters;
-                }
-                else if (completionListToStopInheriting.ItemDefaults?.CommitCharacters is not null)
-                {
-                    completionItemsToStopInheriting[i].VsCommitCharacters = completionListToStopInheriting.ItemDefaults?.CommitCharacters;
+                    if (item is VSInternalCompletionItem vsItem &&
+                        vsItem.CommitCharacters is null &&
+                        vsItem.VsCommitCharacters is null)
+                    {
+                        vsItem.VsCommitCharacters = listChars;
+                    }
                 }
             }
-
-            completionListToStopInheriting.CommitCharacters = null;
-            completionListToStopInheriting.ItemDefaults?.CommitCharacters = null;
         }
     }
 
-    private static ImmutableArray<VSInternalCompletionItem> GetCompletionsThatDoNotSpecifyCommitCharacters(RazorVSInternalCompletionList completionList)
+    private static void EnsureMergeableEditRange(RazorVSInternalCompletionList completionListA, RazorVSInternalCompletionList completionListB)
     {
-        using var inheritableCompletions = new PooledArrayBuilder<VSInternalCompletionItem>();
-        for (var i = 0; i < completionList.Items.Length; i++)
-        {
-            if (completionList.Items[i] is not VSInternalCompletionItem completionItem ||
-                completionItem.CommitCharacters is not null ||
-                completionItem.VsCommitCharacters is not null)
-            {
-                // Completion item wasn't the right type or already specifies commit characters
-                continue;
-            }
+        var editRangeA = completionListA.ItemDefaults?.EditRange?.Value;
+        var editRangeB = completionListB.ItemDefaults?.EditRange?.Value;
 
-            inheritableCompletions.Add(completionItem);
+        if (editRangeA is null || editRangeB is null)
+        {
+            // At most one list uses EditRange — no conflict. The merged list can
+            // just take whichever is non-null (handled by the merged ItemDefaults).
+            return;
         }
 
-        return inheritableCompletions.ToImmutable();
+        // If both lists share the same EditRange, no dematerialization needed —
+        // the optimizer will re-promote the same range after merge.
+        if (editRangeA is LspRange rangeA &&
+            editRangeB is LspRange rangeB &&
+            rangeA.Equals(rangeB))
+        {
+            return;
+        }
+
+        // Ranges differ — dematerialize both to per-item TextEdits so the post-merge
+        // optimizer can evaluate the full combined list correctly.
+        DematerializeEditRange(completionListA);
+        DematerializeEditRange(completionListB);
+
+        static void DematerializeEditRange(RazorVSInternalCompletionList completionList)
+        {
+            if (completionList.ItemDefaults?.EditRange?.Value is not LspRange range)
+            {
+                // Either no EditRange, or it's an InsertReplaceRange (complex case we don't dematerialize).
+                return;
+            }
+
+            completionList.ItemDefaults.EditRange = null;
+
+            foreach (var item in completionList.Items)
+            {
+                if (item.TextEdit is null)
+                {
+                    // Reconstruct TextEdit from EditRange + TextEditText (or Label as fallback).
+                    var newText = item.TextEditText ?? item.Label;
+                    item.TextEditText = null;
+                    item.TextEdit = new TextEdit { Range = range, NewText = newText };
+                }
+            }
+        }
     }
 
     private record MergedCompletionListData(

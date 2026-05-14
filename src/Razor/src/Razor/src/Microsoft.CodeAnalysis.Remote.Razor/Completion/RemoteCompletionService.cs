@@ -153,18 +153,16 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         // Compute local HTML completions from the shared context
         RazorVSInternalCompletionList? localHtmlCompletionList = null;
         if (isHtmlTrigger
-            && LocalHtmlCompletionProvider.TryGetHtmlCompletionList(razorCompletionContext, out localHtmlCompletionList, out var htmlResolveContext))
+            && LocalHtmlCompletionProvider.TryGetHtmlCompletionList(razorCompletionContext, out localHtmlCompletionList, out var htmlResolveContext)
+            && localHtmlCompletionList.Items.Length > 0)
         {
             // Store resolve context so that completionItem/resolve can populate Detail
             // and Documentation in O(1) without walking the HTML schema.
             var resultId = _completionListCache.Add(localHtmlCompletionList, htmlResolveContext);
             localHtmlCompletionList.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
 
-            // Optimize the HTML list before it crosses the StreamJsonRpc boundary to devenv.
-            // All HTML items share the same TextEdit range, so PromoteEditRangeToListDefaults
-            // replaces per-item TextEdit (a SumType<TextEdit, InsertReplaceEdit> that triggers
-            // expensive exception-based JSON type probing on deserialization) with a single
-            // ItemDefaults.EditRange + per-item TextEditText (a plain string).
+            // Optimize here to reduce OOP→devenv JSON payload. The devenv-side optimizer
+            // is resilient to re-optimizing after merge (it dematerializes list-level chars).
             var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion;
             localHtmlCompletionList = CompletionListOptimizer.Optimize(localHtmlCompletionList, completionCapability);
         }
@@ -230,9 +228,14 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 _clientCapabilitiesService.ClientCapabilities);
         }
 
-        return CompletionResults.Create(
-            CompletionListMerger.Merge(razorCompletionList, csharpCompletionList),
-            localHtmlCompletionList);
+        var mergedList = CompletionListMerger.Merge(razorCompletionList, csharpCompletionList);
+        if (mergedList is not null)
+        {
+            var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion;
+            mergedList = CompletionListOptimizer.Optimize(mergedList, completionCapability);
+        }
+
+        return CompletionResults.Create(mergedList, localHtmlCompletionList);
     }
 
     private async ValueTask<RazorVSInternalCompletionList?> GetCSharpCompletionAsync(

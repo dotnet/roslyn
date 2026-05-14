@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -586,7 +586,7 @@ internal static partial class LocalHtmlCompletionProvider
         // already has a value portion in the buffer. We should only replace the name — don't add
         // ="$0" since that would duplicate the existing ="" and produce broken markup like
         // draggable=""="". This matches the behavior of the external HTML language server.
-        var existingAttributeHasValue = owner is MarkupAttributeBlockSyntax;
+        var existingAttributeHasValue = owner is MarkupAttributeBlockSyntax or MarkupTagHelperAttributeSyntax or MarkupTagHelperDirectiveAttributeSyntax;
 
         using var _ = ListPool<VSInternalCompletionItem>.GetPooledObject(out var items);
 

@@ -3,6 +3,7 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion.Html;
 using Xunit;
@@ -141,6 +142,31 @@ public class LocalHtmlCompletionProviderTest
         Assert.NotNull(draggable);
         // Should be plain name, no ="$0"
         Assert.Equal(InsertTextFormat.Plaintext, draggable.InsertTextFormat);
+    }
+
+    [Fact]
+    public void AttributeCompletion_ExistingTagHelperAttribute_NoEqualsInInsertText()
+    {
+        // When the cursor is inside an existing tag helper attribute that already has a value,
+        // we should only insert the name without ="$0" to avoid producing markup like
+        // autocorrect=""="true".
+        var tagHelper = TagHelperDescriptorBuilder.Create("InputTagHelper", "TestAssembly");
+        tagHelper.TagMatchingRule(rule => rule.TagName = "input");
+        tagHelper.BindAttribute(attr =>
+        {
+            attr.Name = "autocorrect";
+            attr.TypeName = typeof(string).FullName;
+        });
+
+        var result = GetCompletionList(
+            """<input auto$$correct="true" />""",
+            [tagHelper.Build()]);
+
+        Assert.NotNull(result);
+        var item = result.Items.FirstOrDefault(static item => item.Label == "autofocus");
+        Assert.NotNull(item);
+        // Should be plain name, no ="$0" since the attribute already has a value
+        Assert.Equal(InsertTextFormat.Plaintext, item.InsertTextFormat);
     }
 
     [Fact]
@@ -651,14 +677,28 @@ public class LocalHtmlCompletionProviderTest
             : null;
     }
 
-    private static RazorCompletionContext CreateContext(string text, int absoluteIndex)
+    private static RazorVSInternalCompletionList? GetCompletionList(string markup, TagHelperDescriptor[] tagHelpers)
+    {
+        var testCode = new TestCode(markup);
+        var context = CreateContext(testCode.Text, testCode.Position, tagHelpers);
+        return LocalHtmlCompletionProvider.TryGetHtmlCompletionList(context, out var completionList, out _)
+            ? completionList
+            : null;
+    }
+
+    private static RazorCompletionContext CreateContext(string text, int absoluteIndex, TagHelperDescriptor[]? tagHelpers = null)
     {
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: "C:/path/to/document.cshtml");
         var codeDocument = RazorCodeDocument.Create(sourceDocument);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
-        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(syntaxTree);
-        var tagHelperDocumentContext = TagHelperDocumentContext.GetOrCreate([]);
+
+        var tagHelperCollection = TagHelperCollection.Create(tagHelpers ?? []);
+        var tagHelperDocumentContext = TagHelperDocumentContext.GetOrCreate(tagHelperCollection);
         codeDocument = codeDocument.WithTagHelperContext(tagHelperDocumentContext);
+
+        var binder = tagHelperDocumentContext.GetBinder();
+        var rewrittenSyntaxTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, binder);
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(rewrittenSyntaxTree);
 
         return RazorCompletionListProvider.CreateCompletionContext(
             codeDocument,

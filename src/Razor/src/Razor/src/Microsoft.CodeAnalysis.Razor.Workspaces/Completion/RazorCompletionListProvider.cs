@@ -295,7 +295,7 @@ internal class RazorCompletionListProvider(
         {
             Label = razorCompletionItem.DisplayText,
             InsertText = razorCompletionItem.InsertText,
-            FilterText = razorCompletionItem.InsertText,
+            FilterText = razorCompletionItem.DisplayText,
             SortText = razorCompletionItem.SortText,
             InsertTextFormat = insertTextFormat,
             Kind = kind,
@@ -304,6 +304,10 @@ internal class RazorCompletionListProvider(
 
         if (razorCompletionItem.ReplacementRange is { } replacementRange)
         {
+            // The replacement range includes '@', and InsertText also includes '@'.
+            // For simple items (non-snippet, non-indexer), InsertText == DisplayText == Label,
+            // so we use it directly — zero allocations, and the optimizer can omit TextEditText
+            // when NewText equals Label.
             completionItem.TextEdit = new TextEdit()
             {
                 Range = replacementRange.ToRange(),

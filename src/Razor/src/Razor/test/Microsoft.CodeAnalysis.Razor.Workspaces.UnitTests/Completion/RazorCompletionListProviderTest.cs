@@ -181,7 +181,7 @@ public class RazorCompletionListProviderTest
         // Assert
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal(completionItem.InsertText, converted.InsertText);
-        Assert.Equal(completionItem.InsertText, converted.FilterText);
+        Assert.Equal(completionItem.DisplayText, converted.FilterText);
         Assert.Equal(completionItem.DisplayText, converted.SortText);
         Assert.Equal(completionItem.CommitCharacters.Select(c => c.Character), converted.CommitCharacters);
         Assert.Null(converted.Detail);

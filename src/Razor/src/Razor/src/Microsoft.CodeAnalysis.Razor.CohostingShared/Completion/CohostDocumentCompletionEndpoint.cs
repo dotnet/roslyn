@@ -199,6 +199,12 @@ internal sealed class CohostDocumentCompletionEndpoint(
             return null;
         }
 
+        // Optimize the final list before returning to the editor. After merging Razor, C#, HTML,
+        // and snippet items, some items may have per-item VsCommitCharacters or TextEdits that can
+        // be promoted to list-level defaults — reducing the JSON response payload to the editor.
+        var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion;
+        combinedCompletionList = CompletionListOptimizer.Optimize(combinedCompletionList, completionCapability);
+
         RazorCompletionResolveData.Wrap(combinedCompletionList, originalTextDocumentIdentifier, _clientCapabilitiesService.ClientCapabilities);
 
         return combinedCompletionList;
