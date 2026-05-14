@@ -3,7 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.Extensions.ObjectPool;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
