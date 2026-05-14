@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization;
 /// type probing by rejecting incompatible SumType arms based on the JSON token type.
 /// This includes StartObject rejection for primitive types and array element peeking.
 /// </summary>
+[Collection("SumConverterTypeFiltering")]
 public class SumConverterTypeFilteringTests
 {
     [Fact]
@@ -74,7 +75,7 @@ public class SumConverterTypeFilteringTests
     [Fact]
     public void Deserialize_NestedArrays_MatchesCorrectArm()
     {
-        // SumType<string[][], int[]> — nested array should match string[][] not int[]
+        // SumType<string[][], int[]>: nested array should match string[][] not int[]
         var json = """{"value": [["a", "b"], ["c"]]}""";
         var result = DeserializeWithNoExceptions<NestedStringOrIntArrayHolder>(json);
 
@@ -82,6 +83,21 @@ public class SumConverterTypeFilteringTests
         Assert.Equal(2, nested.Length);
         Assert.Equal(["a", "b"], nested[0]);
         Assert.Equal(["c"], nested[1]);
+    }
+
+    [Fact]
+    public void Deserialize_SumTypeElementArray_MatchesCorrectArm()
+    {
+        // When the array element type is itself a SumType (has a custom JsonConverter),
+        // peeking cannot determine compatibility, so the array arm must not be rejected.
+        var json = """{"value": ["hello"]}""";
+        var result = JsonSerializer.Deserialize<SumTypeOrBoolArrayHolder>(json);
+
+        Assert.NotNull(result);
+        Assert.True(result.Value.TryGetFirst(out var array));
+        Assert.Single(array);
+        Assert.True(array[0].TryGetFirst(out var str));
+        Assert.Equal("hello", str);
     }
 
     /// <summary>
@@ -108,7 +124,7 @@ public class SumConverterTypeFilteringTests
         }
     }
 
-    // Test holder types — SumType is deserialized by SumConverter via [JsonConverter] attribute
+    // Test holder types: SumType is deserialized by SumConverter via [JsonConverter] attribute
 
     private sealed class StringOrVSInternalCommitCharacterArrayHolder
     {
@@ -132,5 +148,11 @@ public class SumConverterTypeFilteringTests
     {
         [JsonPropertyName("value")]
         public SumType<string[][], int[]> Value { get; set; }
+    }
+
+    private sealed class SumTypeOrBoolArrayHolder
+    {
+        [JsonPropertyName("value")]
+        public SumType<SumType<string, int>[], bool> Value { get; set; }
     }
 }

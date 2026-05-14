@@ -342,11 +342,19 @@ internal sealed class SumConverter<T> : JsonConverter<T>
 
         var elementType = arrayType.GetElementType()!;
 
+        // If the element type has a custom JsonConverter (e.g., SumType elements),
+        // we can't reason about token compatibility since the converter may accept
+        // multiple token types. Let the normal try/catch handle it.
+        if (elementType.GetCustomAttribute<JsonConverterAttribute>() is not null)
+        {
+            return true;
+        }
+
         // Peek at first array element to disambiguate array types.
         var peekReader = reader;
         if (!peekReader.Read())
         {
-            // Can't read into the array — let the normal try/catch handle it.
+            // Can't read into the array, let the normal try/catch handle it.
             return true;
         }
 
