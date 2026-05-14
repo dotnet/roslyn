@@ -2683,7 +2683,7 @@ class Test
 }";
             CompileAndVerify(source, "42");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
         }
 
@@ -2705,6 +2705,7 @@ class Test
                     public bool IsCompleted => true;
                     public void OnCompleted(Action continuation) => throw null;
                     public int GetResult() => 42;
+                    public Awaiter GetAwaiter() => this;
                 }
 
                 class Test
@@ -2743,6 +2744,7 @@ class Test
                     public bool IsCompleted => true;
                     public void OnCompleted(Action continuation) => throw null;
                     public void GetResult() { }
+                    public Awaiter GetAwaiter() => this;
                 }
 
                 class Test
@@ -3198,7 +3200,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 
@@ -3363,7 +3365,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 
@@ -3498,7 +3500,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 
@@ -5136,7 +5138,7 @@ class Driver
             var expected = @"0";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails);
         }
 

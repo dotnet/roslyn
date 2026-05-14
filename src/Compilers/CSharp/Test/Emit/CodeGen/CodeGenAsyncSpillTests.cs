@@ -7210,7 +7210,7 @@ class Test
             CompileAndVerify(source, "0", references: new[] { CSharpRef });
 
             // Dynamic awaits with spilled arguments are now supported in runtime async.
-            var comp = CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 

@@ -482,7 +482,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected, references: new[] { CSharpRef });
 
-            var comp = CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails);
         }
 
