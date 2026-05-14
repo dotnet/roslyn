@@ -4903,10 +4903,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // Build the combined value set
-                    IConstantValueSet values = GetValueSetForElement(builder[0], factory);
+                    IConstantValueSet values = getValueSetForElement(builder[0], factory);
                     for (int i = 1; i < builder.Count; i++)
                     {
-                        values = (IConstantValueSet)values.Union(GetValueSetForElement(builder[i], factory));
+                        values = (IConstantValueSet)values.Union(getValueSetForElement(builder[i], factory));
                     }
 
                     var syntax = builder[0] switch
@@ -4919,7 +4919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = new ValueSet(input, values, syntax, factory);
                     return true;
 
-                    static IConstantValueSet GetValueSetForElement(Tests element, IConstantValueSetFactory factory)
+                    static IConstantValueSet getValueSetForElement(Tests element, IConstantValueSetFactory factory)
                     {
                         return element switch
                         {
