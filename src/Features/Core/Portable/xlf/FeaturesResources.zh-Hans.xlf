@@ -2602,7 +2602,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
         <source>Represents the character '{0}' as a UTF-16 code unit.</source>
-        <target state="new">Represents the character '{0}' as a UTF-16 code unit.</target>
+        <target state="translated">将字符“{0}”表示为 UTF-16 代码单元。</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

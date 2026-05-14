@@ -1499,7 +1499,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
-        <target state="new">Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</target>
+        <target state="translated">ソースで 'RequiresUnsafeAttribute' を使用しないでください。代わりに 'unsafe' 修飾子を使用してください。</target>
         <note>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2734,12 +2734,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
         <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="new">An unsafe context is required for constructor '{0}' marked as 'unsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <target state="translated">'{2}' の型パラメーター '{1}' の 'new()' 制約を満たすには、'unsafe' または 'extern' としてマークされたコンストラクター '{0}' に unsafe コンテキストが必要です</target>
         <note>'unsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</target>
+        <target state="translated">'{0}' は 'unsafe' または 'extern' としてマークされているため、unsafe コンテキストで使用する必要があります</target>
         <note>'unsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">

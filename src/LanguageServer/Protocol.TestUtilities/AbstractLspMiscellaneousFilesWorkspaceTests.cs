@@ -166,7 +166,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         Contract.ThrowIfNull(miscDocument);
         Assert.True(miscWorkspace.CurrentSolution.ContainsDocument(miscDocument.Id));
 
-        var documentPath = ProtocolConversions.GetDocumentFilePathFromUri(looseFileUri.GetRequiredParsedUri());
+        var documentPath = looseFileUri.GetDocumentFilePathFromUri();
 
         // Update the workspace to contain the loose file.
         await AddDocumentAsync(testLspServer, documentPath, source);
