@@ -900,7 +900,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
-<<<<<<< HEAD
         internal sealed override bool IsClosed => HasFlag(DeclarationModifiers.Closed);
 
         internal sealed override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions
@@ -961,14 +960,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
-||||||| 2639a67a515
-        internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
-=======
         internal bool HasUnsafeModifier => HasFlag(DeclarationModifiers.Unsafe);
 
         internal bool IntroducesUnsafeContext => HasUnsafeModifier && !ContainingModule.UseUpdatedMemorySafetyRules;
->>>>>>> AlekseyTs/Unions_57
 
         /// <summary>
         /// If this type is file-local, the syntax tree in which the type is declared. Otherwise, null.

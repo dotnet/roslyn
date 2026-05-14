@@ -9673,123 +9673,6 @@ class Program
         }
 
         [Fact]
-<<<<<<< HEAD
-        public void Exhaustiveness_13()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-struct S1
-{
-    private readonly object _value;
-#nullable enable
-    public S1(string x) { _value = x; }
-    public object? Value => _value;
-#nullable disable
-}
-
-class Program
-{
-    static int Test1(S1 u)
-    {
-#line 100
-        return u switch { string => 2, null => 3 };
-    } 
-
-    static int Test4(S1 u)
-    {
-#line 400
-        return u switch { string => 2 };
-    }   
-
-    static int Test5(S1 u)
-    {
-#nullable enable
-#line 500
-        return u switch { string => 2 };
-#nullable disable
-    }   
-
-    static int Test6(S1 u)
-    {
-#line 600
-        return u switch { null => 3, string => 2 };
-    } 
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
-            var verifier = CompileAndVerify(comp).VerifyDiagnostics(
-                // (100,40): hidden CS9335: The pattern is redundant.
-                //         return u switch { string => 2, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 40),
-                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return u switch { string => 2 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
-                // (600,38): hidden CS9335: The pattern is redundant.
-                //         return u switch { null => 3, string => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(600, 38)
-                );
-        }
-
-        [Fact]
-        public void Exhaustiveness_14()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-struct S1
-{
-    private readonly object _value;
-    public S1(int x) { _value = x; }
-#nullable enable
-    public object? Value => _value;
-#nullable disable
-}
-
-class Program
-{
-    static int Test1(S1 u)
-    {
-#line 100
-        return u switch { int => 1, null => 3 };
-    } 
-
-    static int Test4(S1 u)
-    {
-#line 400
-        return u switch { int => 1 };
-    }   
-
-    static int Test5(S1 u)
-    {
-#nullable enable
-#line 500
-        return u switch { int => 1 };
-#nullable disable
-    }   
-
-    static int Test6(S1 u)
-    {
-#line 600
-        return u switch { null => 3, int => 1 };
-    } 
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
-            var verifier = CompileAndVerify(comp).VerifyDiagnostics(
-                // (100,37): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => 1, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 37),
-                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return u switch { int => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
-                // (600,38): hidden CS9335: The pattern is redundant.
-                //         return u switch { null => 3, int => 1 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(600, 38)
-                );
-        }
-
-        [Fact]
-||||||| 2639a67a515
-=======
         public void Exhaustiveness_13()
         {
             var src = @"
@@ -10060,7 +9943,6 @@ class Program
         }
 
         [Fact]
->>>>>>> AlekseyTs/Unions_57
         public void EmptyUnion_01()
         {
             var src = @"

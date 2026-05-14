@@ -64,16 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConversionsBase conversions)
         {
             Debug.Assert(!typesInUnion.IsEmpty);
-<<<<<<< HEAD
             Debug.Assert(!typesInUnion.Any(t => t.CaseType.IsNullableType()));
-            Debug.Assert(typesInUnion.Select(t => t.CaseType).Distinct().Count() == typesInUnion.Length);
-||||||| 2639a67a515
-            Debug.Assert(!typesInUnion.Any(t => t.IsNullableType()));
-            Debug.Assert(typesInUnion.Distinct().Length == typesInUnion.Length);
-=======
-            Debug.Assert(!typesInUnion.Any(t => t.IsNullableType()));
 
->>>>>>> AlekseyTs/Unions_57
             _typesInUnion = typesInUnion;
             _root = root;
             _conversions = conversions;
@@ -98,15 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool AnyTypeFromUnionMightMatch(ImmutableArray<CaseInfo> typesInUnion, TypeSymbol type, ConversionsBase conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!typesInUnion.IsEmpty);
-<<<<<<< HEAD
-            Debug.Assert(!typesInUnion.Any(t => TypeSymbolExtensions.IsNullableType(t.CaseType)));
-            Debug.Assert(typesInUnion.Select(t => t.CaseType).Distinct().Count() == typesInUnion.Length);
-||||||| 2639a67a515
-            Debug.Assert(!typesInUnion.Any(TypeSymbolExtensions.IsNullableType));
-            Debug.Assert(typesInUnion.Distinct().Length == typesInUnion.Length);
-=======
-            Debug.Assert(!typesInUnion.Any(TypeSymbolExtensions.IsNullableType));
->>>>>>> AlekseyTs/Unions_57
+            Debug.Assert(!typesInUnion.Any(t => t.CaseType.IsNullableType()));
 
             foreach (var t in typesInUnion)
             {
