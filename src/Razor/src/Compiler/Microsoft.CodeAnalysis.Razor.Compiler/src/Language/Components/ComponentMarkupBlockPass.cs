@@ -40,12 +40,6 @@ internal sealed class ComponentMarkupBlockPass : ComponentIntermediateNodePassBa
             return;
         }
 
-        if (documentNode.Options.DesignTime)
-        {
-            // Nothing to do during design time.
-            return;
-        }
-
         var findVisitor = new FindHtmlTreeVisitor(_version);
         findVisitor.Visit(documentNode);
 

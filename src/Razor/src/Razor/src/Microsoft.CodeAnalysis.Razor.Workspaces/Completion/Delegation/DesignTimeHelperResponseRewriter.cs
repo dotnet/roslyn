@@ -20,7 +20,6 @@ internal class DesignTimeHelperResponseRewriter : IDelegatedCSharpCompletionResp
     private static readonly FrozenSet<string> s_designTimeHelpers = new[]
     {
         "__builder",
-        "__o",
         "__RazorDirectiveTokenHelpers__",
         "__tagHelperExecutionContext",
         "__tagHelperRunner",

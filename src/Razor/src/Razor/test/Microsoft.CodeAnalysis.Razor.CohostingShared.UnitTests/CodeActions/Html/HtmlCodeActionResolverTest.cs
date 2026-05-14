@@ -79,7 +79,7 @@ public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : CohostEn
         Assert.NotNull(action.Edit);
         var documentEdits = action.Edit.EnumerateTextDocumentEdits().ToArray();
         Assert.NotEmpty(documentEdits);
-        Assert.Equal(documentPath, documentEdits[0].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
+        Assert.Equal(documentPath, documentEdits[0].TextDocument.DocumentUri.GetRequiredSystemUri().AbsolutePath);
 
         var text = SourceText.From(contents);
         var changed = text.WithChanges(documentEdits[0].Edits.Select(e => text.GetTextChange((TextEdit)e)));

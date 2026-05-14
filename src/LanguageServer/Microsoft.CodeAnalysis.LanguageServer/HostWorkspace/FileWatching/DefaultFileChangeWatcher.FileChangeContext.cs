@@ -5,142 +5,165 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.ProjectSystem;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
 internal sealed partial class DefaultFileChangeWatcher
 {
-    /// <summary>
-    /// A file change context that tracks watched directories and files.
-    /// </summary>
-    /// <remarks>
-    /// Each context tracks which root watchers it has acquired, subscribing to their events
-    /// and unsubscribing when disposed. It also tracks individual files being watched outside
-    /// of directory watches.
-    /// </remarks>
-    internal sealed class FileChangeContext : IFileChangeContext, IEventRaiser
+    internal sealed class FileChangeContext : IFileChangeContext
     {
         private readonly DefaultFileChangeWatcher _owner;
+
+        /// <summary>
+        /// A monitor lock held for code touching <see cref="_explicitlyWatchedFiles"/>, and <see cref="_watchedDirectoriesWatches"/> during disposal. It is not expected to be held
+        /// when calling into <see cref="_owner"/>, but that shouldn't really be necessary given the simplicitly of this type.
+        /// </summary>
+        private readonly object _gate = new();
+
         private readonly ImmutableArray<WatchedDirectory> _watchedDirectories;
-        private readonly ImmutableArray<IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>> _fileSystemWatchersForWatchedDirectories;
-        private bool _disposed = false;
+
+        /// <summary>
+        /// The actual watches created for each watch in <see cref="_watchedDirectories"/>.
+        /// </summary>
+        private readonly List<IDisposable> _watchedDirectoriesWatches;
+
+        /// <summary>
+        /// A map from a file path to the number of times <see cref="EnqueueWatchingFile(string)"/> was called for that file path, and the IDisposable for the
+        /// return from <see cref="DefaultFileChangeWatcher.AcquireDirectoryWatch(WatchedDirectory, FileChangeContext)"/> when it was called for the first time.
+        /// </summary>
+        private readonly Dictionary<string, (int count, IDisposable directoryWatch)> _explicitlyWatchedFiles = new(s_pathStringComparer);
+
+        private bool _disposed;
 
         public FileChangeContext(DefaultFileChangeWatcher owner, ImmutableArray<WatchedDirectory> watchedDirectories)
         {
             _owner = owner;
+            _watchedDirectories = watchedDirectories;
 
-            var watchedRootPaths = new HashSet<string>(s_pathStringComparer);
-            var fileSystemWatchersForWatchedDirectoriesBuilder = ImmutableArray.CreateBuilder<IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>>();
-            var watchedDirectoryBuilder = ImmutableArray.CreateBuilder<WatchedDirectory>(watchedDirectories.Length);
-            foreach (var watchedDirectory in watchedDirectories)
-            {
-                if (!Directory.Exists(watchedDirectory.Path))
-                    continue;
-
-                watchedDirectoryBuilder.Add(watchedDirectory);
-
-                var rootPath = Path.GetPathRoot(watchedDirectory.Path)!;
-                if (!watchedRootPaths.Add(rootPath))
-                    continue;
-
-                var rootWatcher = _owner.GetOrCreateSharedWatcher(rootPath);
-                fileSystemWatchersForWatchedDirectoriesBuilder.Add(rootWatcher);
-            }
-
-            _watchedDirectories = watchedDirectoryBuilder.ToImmutable();
-            _fileSystemWatchersForWatchedDirectories = fileSystemWatchersForWatchedDirectoriesBuilder.ToImmutable();
-
-            // Attach watchers after fields are assigned to avoid race conditions where events
-            // fire before _watchedDirectories is initialized.
-            foreach (var rootWatcher in _fileSystemWatchersForWatchedDirectories)
-                AttachWatcher(this, rootWatcher);
+            // Acquire the directory watches for each directory; it's important this happens last in the constructor since events
+            // could get notified immediatly after the directory is watched.
+            _watchedDirectoriesWatches = new List<IDisposable>(_watchedDirectories.Length);
+            foreach (var watchedDirectory in _watchedDirectories)
+                _watchedDirectoriesWatches.Add(_owner.AcquireDirectoryWatch(watchedDirectory, this));
         }
 
         public event EventHandler<string>? FileChanged;
 
-        void IEventRaiser.RaiseEvent(object? sender, FileSystemEventArgs e)
-        {
-            if (_watchedDirectories.IsEmpty)
-                return;
-
-            if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, e.FullPath, s_pathStringComparison))
-            {
-                FileChanged?.Invoke(this, e.FullPath);
-
-                // On Windows we only get a renamed event instead of separate delete/create events, so also raise
-                // a change event for the old file path.
-                if (e is RenamedEventArgs re && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    FileChanged?.Invoke(this, re.OldFullPath);
-            }
-        }
-
         public IWatchedFile EnqueueWatchingFile(string filePath)
         {
-            // If this path is already covered by one of our directory watchers, nothing further to do
             if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, s_pathStringComparison))
                 return NoOpWatchedFile.Instance;
 
-            // If this path doesn't have a valid root, we can't watch it
-            var rootPath = Path.GetPathRoot(filePath);
-            if (string.IsNullOrEmpty(rootPath) || !Directory.Exists(rootPath))
+            var parentDirectory = Path.GetDirectoryName(filePath);
+            if (parentDirectory is null)
                 return NoOpWatchedFile.Instance;
 
-            var rootWatcher = _owner.GetOrCreateSharedWatcher(rootPath);
-            return new IndividualWatchedFile(this, filePath, rootWatcher);
+            lock (_gate)
+            {
+
+                if (_explicitlyWatchedFiles.TryGetValue(filePath, out var countAndWatcher))
+                {
+                    _explicitlyWatchedFiles[filePath] = countAndWatcher with { count = countAndWatcher.count + 1 };
+                }
+                else
+                {
+                    var extension = Path.GetExtension(filePath);
+                    var directoryWatchToken = _owner.AcquireDirectoryWatch(new WatchedDirectory(parentDirectory, extensionFilters: string.IsNullOrEmpty(extension) ? [] : [extension]), this);
+                    countAndWatcher = (count: 1, directoryWatchToken);
+                    _explicitlyWatchedFiles.Add(filePath, countAndWatcher);
+                }
+            }
+
+            return new ExplicitlyWatchedFile(this, filePath);
+
+        }
+
+        /// <summary>
+        /// Routes a filesystem event to this context when the changed path matches one of the context's watched
+        /// directories or explicitly watched files.
+        /// </summary>
+        internal void OnFileSystemEvent(FileSystemEventArgs e)
+        {
+            bool shouldRaiseForNewPath;
+            bool shouldRaiseForOldPath = false;
+
+            lock (_gate)
+            {
+                if (_disposed)
+                    return;
+
+                shouldRaiseForNewPath = ShouldRaiseForPath_NoLock(e.FullPath);
+
+                if (e is RenamedEventArgs renamedEventArgs && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    shouldRaiseForOldPath = ShouldRaiseForPath_NoLock(renamedEventArgs.OldFullPath);
+            }
+
+            if (shouldRaiseForNewPath)
+                FileChanged?.Invoke(this, e.FullPath);
+
+            if (shouldRaiseForOldPath)
+                FileChanged?.Invoke(this, ((RenamedEventArgs)e).OldFullPath);
+        }
+
+        /// <summary>
+        /// Returns <see langword="true"/> when this context is interested in notifications for <paramref name="filePath"/>.
+        /// </summary>
+        private bool ShouldRaiseForPath_NoLock(string filePath)
+            => _explicitlyWatchedFiles.ContainsKey(filePath) ||
+               WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, s_pathStringComparison);
+
+        /// <summary>
+        /// Removes one explicit file watch registration when a returned <see cref="IWatchedFile"/> is disposed.
+        /// </summary>
+        private void RemoveExplicitlyWatchedFile(string filePath)
+        {
+            lock (_gate)
+            {
+                // If it's already not in that dictionary, then the entire context might have already been disposed
+                if (!_explicitlyWatchedFiles.TryGetValue(filePath, out var countAndWatcher))
+                    return;
+
+                if (countAndWatcher.count == 1)
+                {
+                    countAndWatcher.directoryWatch.Dispose();
+                    _explicitlyWatchedFiles.Remove(filePath);
+                }
+                else
+                {
+                    _explicitlyWatchedFiles[filePath] = countAndWatcher with { count = countAndWatcher.count - 1 };
+                }
+            }
         }
 
         public void Dispose()
         {
-            if (Interlocked.Exchange(ref _disposed, true) == false)
+            if (Interlocked.Exchange(ref _disposed, true))
+                return;
+
+            List<IDisposable> watches;
+
+            lock (_gate)
             {
-                foreach (var rootWatcher in _fileSystemWatchersForWatchedDirectories)
-                    DetachAndDisposeWatcher(this, rootWatcher);
+                watches = [.. _watchedDirectoriesWatches, .. _explicitlyWatchedFiles.Values.Select(v => v.directoryWatch)];
+                _watchedDirectoriesWatches.Clear();
+                _explicitlyWatchedFiles.Clear();
             }
+
+            foreach (var watch in watches)
+                watch.Dispose();
         }
 
-        private sealed class IndividualWatchedFile : IWatchedFile, IEventRaiser
+        private sealed class ExplicitlyWatchedFile(FileChangeContext context, string filePath) : IWatchedFile
         {
-            private readonly FileChangeContext _context;
-            private readonly string _filePath;
-            private readonly IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>> _watcher;
-            private bool _disposed = false;
-
-            public IndividualWatchedFile(FileChangeContext context, string filePath, IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>> watcher)
-            {
-                _context = context;
-                _filePath = filePath;
-                _watcher = watcher;
-
-                AttachWatcher(this, _watcher);
-            }
-
-            void IEventRaiser.RaiseEvent(object? sender, FileSystemEventArgs e)
-            {
-                if (e.FullPath.Equals(_filePath, s_pathStringComparison))
-                {
-                    _context.FileChanged?.Invoke(this, e.FullPath);
-                }
-                else if (e is RenamedEventArgs re && RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-                    re.OldFullPath.Equals(_filePath, s_pathStringComparison))
-                {
-                    // On Windows we only get a renamed event instead of separate delete/create events, so check
-                    // whether the old file path matches.
-                    _context.FileChanged?.Invoke(this, re.OldFullPath);
-                }
-            }
+            private bool _disposed;
 
             public void Dispose()
             {
-                if (Interlocked.Exchange(ref _disposed, true) == false)
-                    DetachAndDisposeWatcher(this, _watcher);
-            }
-        }
+                if (Interlocked.Exchange(ref _disposed, true))
+                    return;
 
-        internal static class TestAccessor
-        {
-            public static ImmutableArray<IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>> GetRootFileWatchers(FileChangeContext context)
-                => context._fileSystemWatchersForWatchedDirectories;
+                context.RemoveExplicitlyWatchedFile(filePath);
+            }
         }
     }
 }

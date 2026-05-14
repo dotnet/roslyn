@@ -28,6 +28,10 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.RazorExtension;
 
+// The tool window registration is duplicated in PackageRegistration.pkgdef, but is needed here at runtime too.
+#pragma warning disable VSSDK003 // Tool windows should support async construction
+[ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
+#pragma warning restore VSSDK003 // Tool windows should support async construction
 [Guid(PackageGuidString)]
 internal sealed class RazorPackage : AsyncPackage
 {

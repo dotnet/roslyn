@@ -58,7 +58,6 @@
     "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
-    "Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.Razor.Features": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics": "vs-impl",
@@ -93,7 +92,6 @@
     "roslyn-language-server.win-arm64": "vs-impl",
     "roslyn-language-server.win-x64": "vs-impl",
     "Text.Analyzers": "arcade",
-    "Microsoft.VisualStudioCode.RazorExtension": "vs-impl",
     "Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal": "arcade",
     "Microsoft.AspNetCore.Razor.Test.Common": "arcade",
     "Microsoft.AspNetCore.Razor.Utilities.Shared": "arcade",
@@ -109,7 +107,6 @@
     "Microsoft.VisualStudio.LanguageServer.ContainedLanguage": "arcade",
     "Microsoft.VisualStudio.LanguageServices.Razor": "arcade",
     "Microsoft.VisualStudio.RazorExtension": "arcade",
-    "Razor.Diagnostics.Analyzers.Test": "arcade",
     "RazorDeployment": "arcade"
   },
   "branchInfo": {
@@ -118,7 +115,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": true,
-    "insertionTitlePrefix": "[InsidersVNext]"
+    "insertionCreateDraftPR": false,
+    "insertionTitlePrefix": "[Main 18.8]"
   }
 }

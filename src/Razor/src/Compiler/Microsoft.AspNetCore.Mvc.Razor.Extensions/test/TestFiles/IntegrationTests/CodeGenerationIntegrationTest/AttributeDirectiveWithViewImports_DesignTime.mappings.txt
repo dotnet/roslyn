@@ -1,5 +1,0 @@
-﻿Source Location: (11:0,11 [14] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/AttributeDirectiveWithViewImports.cshtml)
-|[Serializable]|
-Generated Location: (920:28,11 [14] )
-|[Serializable]|
-

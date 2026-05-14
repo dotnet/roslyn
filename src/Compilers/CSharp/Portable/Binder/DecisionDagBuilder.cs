@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(unionValue.Symbol is PropertySymbol);
             var property = (PropertySymbol)unionValue.Symbol;
-            valueEvaluation = new BoundDagPropertyEvaluation(unionValue.Syntax, property, isLengthOrCount: false, OriginalInput(input, property));
+            valueEvaluation = new BoundDagPropertyEvaluation(unionValue.Syntax, property, isLengthOrCount: false, input);
             var result = valueEvaluation.MakeResultTemp();
 
             Debug.Assert(IsUnionValue(result, out _));
@@ -665,19 +665,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             */
             if (evaluation is BoundDagDeconstructEvaluation
                 {
-                    DeconstructMethod:
-                    {
-                        Name: WellKnownMemberNames.TryGetValueMethodName,
-                        ReturnType.SpecialType: SpecialType.System_Boolean,
-                        DeclaredAccessibility: Accessibility.Public,
-                        RefKind: RefKind.None,
-                        Parameters: [{ RefKind: RefKind.Out, Type: var parameterType }],
-                    },
+                    DeconstructMethod: { Name: WellKnownMemberNames.TryGetValueMethodName } deconstructMethod,
                     Input: { } tryGetValueInput
                 } &&
+                Binder.HasTryGetValueSignature(deconstructMethod) &&
                 tryGetValueInput.Type is NamedTypeSymbol { IsUnionType: true } match)
             {
-                targetType = parameterType;
+                targetType = deconstructMethod.Parameters[0].Type;
                 unionInstance = tryGetValueInput;
                 return true;
             }
@@ -751,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_forLowering)
                 {
-                    BoundDagEvaluation hasValueEvaluation = new BoundDagPropertyEvaluation(unionValue.Syntax, hasValue, isLengthOrCount: false, OriginalInput(inputInfo.DagTemp, hasValue));
+                    BoundDagEvaluation hasValueEvaluation = new BoundDagPropertyEvaluation(unionValue.Syntax, hasValue, isLengthOrCount: false, inputInfo.DagTemp);
                     var temp = hasValueEvaluation.MakeResultTemp();
                     Debug.Assert(IsUnionHasValue(temp, out _));
 
@@ -790,11 +784,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return inputInfo;
                 }
 
-                if (Binder.GetUnionTypeTryGetValueMethod((NamedTypeSymbol)inputInfo.DagTemp.Type, type) is MethodSymbol tryGetValue)
+                if (Binder.GetUnionTypeTryGetValueMethod(_conversions, (NamedTypeSymbol)inputInfo.DagTemp.Type, type) is MethodSymbol tryGetValue)
                 {
                     if (_forLowering)
                     {
-                        var deconstructEvaluation = new BoundDagDeconstructEvaluation(syntax, tryGetValue, OriginalInput(inputInfo.DagTemp, tryGetValue));
+                        var deconstructEvaluation = new BoundDagDeconstructEvaluation(syntax, tryGetValue, inputInfo.DagTemp);
                         tests.Add(new Tests.One(deconstructEvaluation));
 
                         var boolResult = deconstructEvaluation.MakeReturnValueTemp();
@@ -810,10 +804,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Add type evaluation after return value test to separate result value from deconstruct evaluation
                         // This helps us unify the same value accessed through different Union APIs.
                         // See IsSameEntity/IsEqualEvaluation helpers.
-                        var typeEvaluation = new BoundDagTypeEvaluation(syntax, outParameterTemp.Type, outParameterTemp);
+                        var typeEvaluation = new BoundDagTypeEvaluation(syntax, outParameterTemp.Type.StrippedType(), outParameterTemp);
                         tests.Add(new Tests.One(typeEvaluation));
+                        BoundDagTemp typeEvaluationTemp = typeEvaluation.MakeResultTemp();
 
-                        return (TestInputOutputInfo)typeEvaluation.MakeResultTemp();
+                        if (!typeEvaluationTemp.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            tests.Add(new Tests.One(new BoundDagTypeTest(syntax, type, typeEvaluationTemp)));
+                            typeEvaluation = new BoundDagTypeEvaluation(syntax, type, typeEvaluationTemp);
+                            tests.Add(new Tests.One(typeEvaluation));
+                            typeEvaluationTemp = typeEvaluation.MakeResultTemp();
+                        }
+
+                        return (TestInputOutputInfo)typeEvaluationTemp;
                     }
                     else
                     {
@@ -1121,7 +1124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builder = ArrayBuilder<Tests>.GetInstance(2);
                         builder.Add(result);
 
-                        // https://github.com/dotnet/roslyn/issues/82636: Is there an advantage to use TryGetValue here? 
                         BoundDagTemp input = PrepareForUnionValuePropertyMatching(ref inputInfo, builder);
                         var evaluation = new BoundDagTypeEvaluation(bin.Syntax, bin.NarrowedType, input);
                         outputInfo = (TestInputOutputInfo)evaluation.MakeResultTemp();
@@ -2297,7 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (hasValueSense)
                     {
-                        return UnionTestKind.NonNullTest; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
+                        return UnionTestKind.NonNullTest;
                     }
                     else
                     {

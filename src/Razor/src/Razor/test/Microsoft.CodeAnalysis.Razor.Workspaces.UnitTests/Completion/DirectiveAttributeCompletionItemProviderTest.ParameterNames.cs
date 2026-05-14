@@ -32,6 +32,44 @@ public partial class DirectiveAttributeCompletionItemProviderTest
     }
 
     [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeParameterEndBeforeEquals_ReturnsCompletions()
+    {
+        // Arrange - cursor at end of parameter name, right before the equals sign
+        var context = CreateRazorCompletionContext("""<input @bind:fo$$="" />""");
+
+        // Act
+        var completions = _provider.GetCompletionItems(context);
+
+        // Assert
+        Assert.Equal(6, completions.Length);
+        AssertContains(completions, "culture");
+        AssertContains(completions, "event");
+        AssertContains(completions, "format");
+        AssertContains(completions, "get");
+        AssertContains(completions, "set");
+        AssertContains(completions, "after");
+    }
+
+    [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeParameterImmediatelyAfterColon_ReturnsCompletions()
+    {
+        // Arrange - cursor right after the colon with no parameter text yet
+        var context = CreateRazorCompletionContext("<input @bind:$$  />");
+
+        // Act
+        var completions = _provider.GetCompletionItems(context);
+
+        // Assert
+        Assert.Equal(6, completions.Length);
+        AssertContains(completions, "culture");
+        AssertContains(completions, "event");
+        AssertContains(completions, "format");
+        AssertContains(completions, "get");
+        AssertContains(completions, "set");
+        AssertContains(completions, "after");
+    }
+
+    [Fact]
     public void GetAttributeParameterCompletions_NoDescriptorsForTag_ReturnsEmptyCollection()
     {
         // Arrange
@@ -127,6 +165,33 @@ public partial class DirectiveAttributeCompletionItemProviderTest
             .SelectAsArray(c => c.DisplayText);
 
         AssertEx.SequenceEqual(parameterNamesFromAttributeCompletions, parameterNamesFromParameterCompletions);
+    }
+
+    [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeName_WithExistingParameter_SetsReplacementRange()
+    {
+        // Arrange - user has "@bind-|:after" and triggers completion.
+        // The ReplacementRange should cover "bind-:after" (everything after '@' through end of parameter).
+        var context = CreateRazorCompletionContext("""<input @bind-$$:after=""  />""");
+
+        // Act
+        var completions = _provider.GetCompletionItems(context);
+
+        // Assert - items that include a colon (attribute + parameter) should have ReplacementRange set
+        var itemWithParameter = completions.FirstOrDefault(c => c.InsertText.Contains(':'));
+        Assert.NotNull(itemWithParameter);
+
+        // The source is: <input @bind-:after=""  />
+        //                       ^     ^    ^
+        //                       |     |    `-- parameterLocation.End (index 19)
+        //                       |     `-- colon (index 13)
+        //                       `-- @ is at index 7, so replacement starts at index 8 (skipping '@')
+        // "bind-:after" starts at character 8 and ends at character 19, all on line 0
+        Assert.NotNull(itemWithParameter.ReplacementRange);
+        Assert.Equal(0, itemWithParameter.ReplacementRange.Value.Start.Line);
+        Assert.Equal(8, itemWithParameter.ReplacementRange.Value.Start.Character);
+        Assert.Equal(0, itemWithParameter.ReplacementRange.Value.End.Line);
+        Assert.Equal(19, itemWithParameter.ReplacementRange.Value.End.Character);
     }
 
     [Fact]

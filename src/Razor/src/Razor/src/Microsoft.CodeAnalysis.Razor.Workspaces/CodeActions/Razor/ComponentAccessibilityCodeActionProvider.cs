@@ -114,9 +114,8 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
             Path = newComponentPath,
         };
 
-        var resolutionParams = new RazorCodeActionResolutionParams
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.CreateComponentFromTag,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = context.DelegatedDocumentUri,

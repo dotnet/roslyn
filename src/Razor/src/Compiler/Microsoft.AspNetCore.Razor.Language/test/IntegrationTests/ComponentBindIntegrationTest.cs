@@ -95,4 +95,43 @@ namespace Test
             d => Assert.Equal("RZ2005", d.Id),
             d => Assert.Equal("RZ1011", d.Id));
     }
+
+    [Fact]
+    public void BindToComponent_IncompleteDirectiveAttribute_ReportsDiagnostics()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class InputText : ComponentBase
+                {
+                    [Parameter]
+                    public string Value { get; set; }
+
+                    [Parameter]
+                    public Action<string> ValueChanged { get; set; }
+                }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            @using Test
+            <InputText @bind-F
+            """);
+
+        Assert.Collection(
+            generated.RazorDiagnostics,
+            diagnostic =>
+            {
+                Assert.Equal("RZ1035", diagnostic.Id);
+                Assert.Equal("Missing close angle for tag helper 'InputText'.", diagnostic.GetMessage(CultureInfo.CurrentCulture));
+            },
+            diagnostic =>
+            {
+                Assert.Equal("RZ1034", diagnostic.Id);
+                Assert.Equal("Found a malformed 'InputText' tag helper. Tag helpers must have a start and end tag or be self closing.", diagnostic.GetMessage(CultureInfo.CurrentCulture));
+            });
+    }
 }

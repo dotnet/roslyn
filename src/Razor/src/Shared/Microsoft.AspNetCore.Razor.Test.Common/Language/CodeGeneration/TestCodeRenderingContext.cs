@@ -9,35 +9,23 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public static class TestCodeRenderingContext
 {
-    public static CodeRenderingContext CreateDesignTime(
-        string newLineString = null,
-        string suppressUniqueIds = "test",
-        RazorSourceDocument source = null,
-        IntermediateNodeWriter nodeWriter = null)
-    {
-        nodeWriter ??= RuntimeNodeWriter.Instance;
-        source ??= TestRazorSourceDocument.Create();
-        var documentNode = new DocumentIntermediateNode();
-
-        var options = ConfigureOptions(RazorCodeGenerationOptions.DesignTimeDefault, newLineString, suppressUniqueIds);
-
-        var context = new CodeRenderingContext(nodeWriter, source, documentNode, options);
-        context.SetVisitor(new RenderChildrenVisitor(context.CodeWriter));
-
-        return context;
-    }
-
     public static CodeRenderingContext CreateRuntime(
         string newLineString = null,
         string suppressUniqueIds = "test",
         RazorSourceDocument source = null,
-        IntermediateNodeWriter nodeWriter = null)
+        IntermediateNodeWriter nodeWriter = null,
+        bool writeHtmlUtf8StringLiterals = false)
     {
-        nodeWriter ??= RuntimeNodeWriter.Instance;
+        nodeWriter ??= IntermediateNodeWriter.Instance;
         source ??= TestRazorSourceDocument.Create();
         var documentNode = new DocumentIntermediateNode();
 
         var options = ConfigureOptions(RazorCodeGenerationOptions.Default, newLineString, suppressUniqueIds);
+
+        if (writeHtmlUtf8StringLiterals)
+        {
+            options = options.WithFlags(writeHtmlUtf8StringLiterals: true);
+        }
 
         var context = new CodeRenderingContext(nodeWriter, source, documentNode, options);
         context.SetVisitor(new RenderChildrenVisitor(context.CodeWriter));

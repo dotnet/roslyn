@@ -311,8 +311,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnsafeEvolution = MessageBase + 12859,
 
         IDS_FeatureUnions = MessageBase + 12860,
+<<<<<<< HEAD
 
         IDS_FeatureClosedClasses = MessageBase + 12865, // PROTOTYPE(cc): pack
+||||||| 2639a67a515
+=======
+        IDS_FeatureStaticMembersInInterfaces = MessageBase + 12861,
+>>>>>>> AlekseyTs/Unions_57
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -496,7 +501,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureCollectionExpressionArguments:
                 case MessageID.IDS_FeatureUnsafeEvolution: // https://github.com/dotnet/roslyn/issues/82546: keep this in preview until C# 16
                 case MessageID.IDS_FeatureUnions:
+<<<<<<< HEAD
                 case MessageID.IDS_FeatureClosedClasses: // semantic check
+||||||| 2639a67a515
+=======
+                case MessageID.IDS_FeatureStaticMembersInInterfaces:
+>>>>>>> AlekseyTs/Unions_57
                     return LanguageVersion.Preview;
 
                 // C# 14.0 features.

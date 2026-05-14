@@ -8307,6 +8307,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnionConstructorCallsDefaultConstructor" xml:space="preserve">
     <value>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</value>
   </data>
+<<<<<<< HEAD
   <data name="IDS_FeatureClosedClasses" xml:space="preserve">
     <value>closed classes</value>
   </data>
@@ -8325,4 +8326,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ClosedExplicitlyAbstract" xml:space="preserve">
     <value>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</value>
   </data>
+||||||| 2639a67a515
+=======
+  <data name="IDS_FeatureStaticMembersInInterfaces" xml:space="preserve">
+    <value>static members in interfaces</value>
+  </data>
+>>>>>>> AlekseyTs/Unions_57
 </root>

@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -15,6 +16,14 @@ internal sealed record DirectiveAttributeCompletionContext
     public bool InAttributeName { get; init; } = true;
     public bool InParameterName { get; init; }
     public RazorCompletionOptions Options { get; init; }
+
+    /// <summary>
+    /// The range in the source document (excluding the leading '@') that should be replaced
+    /// when a directive attribute completion is committed. Used for items that include a colon
+    /// and parameter name (e.g., "bind-Value:after") to prevent duplication when the editor's
+    /// word-boundary heuristic doesn't extend past the ':'.
+    /// </summary>
+    public LinePositionSpan? ReplacementRange { get; init; }
 
     public bool AlreadySatisfiesParameter(BoundAttributeParameterDescriptor parameter, BoundAttributeDescriptor attribute)
         => ExistingAttributes.Any(

@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
@@ -27,6 +26,7 @@ using Xunit;
 using Xunit.Abstractions;
 using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 using RoslynConditionalFact = Roslyn.Test.Utilities.ConditionalFactAttribute;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 #if !VSCODE
 using Microsoft.VisualStudio.ProjectSystem;
@@ -101,6 +101,57 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["char", "DateTime", "Exception"],
             itemToResolve: "DateTime",
             expectedResolvedItemDescription: "readonly struct System.DateTime");
+    }
+
+    [Fact]
+    public async Task ImplicitExpression_SuggestionModeIsCleared()
+    {
+        // In implicit expressions, the generated C# wraps the expression in __builder.AddContent(seq, expr).
+        // AddContent has a RenderFragment (delegate) overload that causes Roslyn to set SuggestionMode.
+        // We clear it because lambdas are not a practical completion scenario at the top level of implicit expressions.
+        var result = await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <div>@h$$</div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["HashSet<>"]);
+
+        Assert.NotNull(result);
+        Assert.False(result.SuggestionMode);
+    }
+
+    [Fact]
+    public async Task ImplicitExpression_InsideParens_SuggestionModeIsPreserved()
+    {
+        // Inside parentheses of a method that takes a delegate parameter, SuggestionMode should be
+        // preserved because the user may legitimately be starting a lambda expression.
+        var result = await VerifyCompletionListAsync(
+            input: """
+                @using System.Linq
+
+                <div>@items.Where($$)</div>
+
+                @code {
+                    List<string> items = new();
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["items"]);
+
+        Assert.NotNull(result);
+        Assert.True(result.SuggestionMode);
     }
 
     [Fact]
@@ -504,6 +555,97 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11512")]
+    public async Task ParentTagConstraint_AttributeCompletedWhenParentMatches()
+    {
+        // A tag helper with ParentTag constraint should have its attributes shown in completion
+        // when the element is inside the correct parent.
+        await VerifyCompletionListAsync(
+            input: """
+                @addTagHelper *, SomeProject
+                <container><header $$></header></container>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["priority"],
+            htmlItemLabels: ["style"],
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles: [("TestTagHelper.cs", """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                namespace SomeProject
+                {
+                    [HtmlTargetElement("container")]
+                    public class ContainerTagHelper : TagHelper
+                    {
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                        }
+                    }
+
+                    [HtmlTargetElement("header", ParentTag = "container")]
+                    public class HeaderTagHelper : TagHelper
+                    {
+                        public string Priority { get; set; }
+
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                        }
+                    }
+                }
+                """)]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11512")]
+    public async Task ParentTagConstraint_AttributeNotCompletedWhenParentDoesNotMatch()
+    {
+        // A tag helper with ParentTag constraint should NOT have its attributes shown
+        // when the element is inside the wrong parent.
+        await VerifyCompletionListAsync(
+            input: """
+                @addTagHelper *, SomeProject
+                <div><header $$></header></div>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            unexpectedItemLabels: ["priority"],
+            expectedItemLabels: ["style"],
+            htmlItemLabels: ["style"],
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles: [("TestTagHelper.cs", """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                namespace SomeProject
+                {
+                    [HtmlTargetElement("container")]
+                    public class ContainerTagHelper : TagHelper
+                    {
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                        }
+                    }
+
+                    [HtmlTargetElement("header", ParentTag = "container")]
+                    public class HeaderTagHelper : TagHelper
+                    {
+                        public string Priority { get; set; }
+
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                        }
+                    }
+                }
+                """)]);
+    }
+
+    [Fact]
     public async Task HtmlCompletionFailure_ReturnsIncompleteEmptyList()
     {
         // When the HTML language server fails to respond (e.g., not yet initialized on first document open),
@@ -545,7 +687,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.CreateDocumentUri()
+                DocumentUri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = new VSInternalCompletionContext()
@@ -741,7 +883,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 #endif
     }
 
-    // Tests HTML attributes and DirectiveAttributeParameterCompletionItemProvider
+    // Tests that directive attribute parameter positions only show bind modifiers, not HTML attributes
     [Fact]
     public async Task HtmlAndDirectiveAttributeParameterNamesCompletion()
     {
@@ -759,8 +901,92 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["style", "dir", "culture", "event", "format", "get", "set", "after"],
-            htmlItemLabels: ["style", "dir"]);
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"]);
+    }
+
+    // Tests that cursor at end of parameter name before equals still shows bind modifiers
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeParameterNamesBeforeEqualsCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind-Value:fo$$=""></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"],
+            unexpectedItemLabels: ["dir", "lang", "@bind-Value"],
+            htmlItemLabels: ["dir", "lang"]);
+    }
+
+    // Tests that cursor immediately after colon (no parameter text yet) shows bind modifiers
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeParameterNamesAfterColonCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind-Value:$$></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["culture", "event", "format", "get", "set", "after"],
+            unexpectedItemLabels: ["dir", "lang", "@bind-Value"],
+            htmlItemLabels: ["dir", "lang"]);
+    }
+
+    // Tests that committing a directive attribute parameter completion with an existing parameter
+    // does not duplicate the parameter portion (e.g., @bind-:after="" -> @bind-Value:after="", not @bind-Value:after:after="")
+    [Fact]
+    public async Task DirectiveAttributeParameterCompletion_WithExistingParameter_HasTextEditReplacingFullSpan()
+    {
+        var result = await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind-Value$$:after=""></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["@bind-value", "@bind-value:format"],
+            unexpectedItemLabels: ["dir", "lang"],
+            htmlItemLabels: ["dir", "lang"]);
+
+        Assert.NotNull(result);
+
+        var item = Assert.Single(result.Items, i => i.Label == "@bind-value:format");
+
+        // The list should have a TextEdit that replaces the full "bind-Value:after" span (not just "bind-")
+        // This prevents the editor's word-boundary heuristic from stopping at the colon and duplicating ":after"
+        Assert.True(result.ItemDefaults!.EditRange.HasValue, "Expected ItemDefaults.EditRange on the completion list to prevent duplication");
+        Assert.Equal("bind-value:format", item.TextEditText);
+        var textEditRange = Assert.IsType<LspRange>(result.ItemDefaults!.EditRange.Value.Value);
+
+        // The range should cover "bind-Value:after" (everything after '@' through end of parameter name)
+        Assert.Equal(textEditRange.Start.Line, textEditRange.End.Line);
+        var replacedLength = textEditRange.End.Character - textEditRange.Start.Character;
+        Assert.Equal("bind-Value:after".Length, replacedLength);
     }
 
     [Fact]
@@ -1345,7 +1571,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.CreateDocumentUri()
+                DocumentUri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = completionContext
@@ -1452,7 +1678,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.CreateDocumentUri()
+                DocumentUri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = completionContext
@@ -1483,7 +1709,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(item);
         Assert.NotNull(tdi);
-        Assert.Equal(document.CreateUri(), tdi.Value.Uri);
+        Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, DisposalToken);
 
