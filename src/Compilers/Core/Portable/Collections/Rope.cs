@@ -20,8 +20,73 @@ namespace Microsoft.CodeAnalysis
         public abstract string ToString(int maxLength);
         public abstract int Length { get; }
         public bool IsEmpty => Length == 0;
-        protected abstract IEnumerable<char> GetChars();
+        protected abstract Enumerator GetEnumerator();
         private Rope() { }
+
+        protected struct Enumerator
+        {
+            private string? _currentString;
+            private int _index;
+            private readonly Stack<Rope>? _stack;
+
+            internal Enumerator(string value)
+            {
+                _currentString = value;
+                _index = 0;
+                _stack = null;
+            }
+
+            internal Enumerator(Rope rope)
+            {
+                _currentString = null;
+                _index = 0;
+                _stack = new Stack<Rope>();
+                _stack.Push(rope);
+            }
+
+            public char Current { get; private set; }
+
+            public bool MoveNext()
+            {
+                if (_currentString != null && _index < _currentString.Length)
+                {
+                    Current = _currentString[_index];
+                    _index++;
+                    return true;
+                }
+
+                if (_stack == null)
+                    return false;
+
+                while (_stack.Count != 0)
+                {
+                    switch (_stack.Pop())
+                    {
+                        case StringRope s:
+                            var str = s.ToString();
+                            if (str.Length > 0)
+                            {
+                                _currentString = str;
+                                _index = 0;
+
+                                Current = str[_index];
+                                _index++;
+                                return true;
+                            }
+
+                            break;
+                        case ConcatRope c:
+                            _stack.Push(c._right);
+                            _stack.Push(c._left);
+                            break;
+                        case var v:
+                            throw ExceptionUtilities.UnexpectedValue(v.GetType().Name);
+                    }
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>
         /// A rope can wrap a simple string.
@@ -61,8 +126,8 @@ namespace Microsoft.CodeAnalysis
                 return false;
             if (Length == 0)
                 return true;
-            var chars0 = GetChars().GetEnumerator();
-            var chars1 = other.GetChars().GetEnumerator();
+            var chars0 = GetEnumerator();
+            var chars1 = other.GetEnumerator();
             while (chars0.MoveNext() && chars1.MoveNext())
             {
                 if (chars0.Current != chars1.Current)
@@ -75,8 +140,9 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             int result = Length;
-            foreach (char c in GetChars())
-                result = Hash.Combine((int)c, result);
+            var chars = GetEnumerator();
+            while (chars.MoveNext())
+                result = Hash.Combine((int)chars.Current, result);
 
             return result;
         }
@@ -107,7 +173,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override int Length => _value.Length;
-            protected override IEnumerable<char> GetChars() => _value;
+            protected override Enumerator GetEnumerator() => new Enumerator(_value);
 
             public override bool Equals(object? obj)
             {
@@ -125,7 +191,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private sealed class ConcatRope : Rope
         {
-            private readonly Rope _left, _right;
+            internal readonly Rope _left, _right;
             public override int Length { get; }
 
             public ConcatRope(Rope left, Rope right)
@@ -191,27 +257,7 @@ namespace Microsoft.CodeAnalysis
                 return psb.ToStringAndFree();
             }
 
-            protected override IEnumerable<char> GetChars()
-            {
-                var stack = new Stack<Rope>();
-                stack.Push(this);
-                while (stack.Count != 0)
-                {
-                    switch (stack.Pop())
-                    {
-                        case StringRope s:
-                            foreach (var c in s.ToString())
-                                yield return c;
-                            break;
-                        case ConcatRope c:
-                            stack.Push(c._right);
-                            stack.Push(c._left);
-                            break;
-                        case var v:
-                            throw ExceptionUtilities.UnexpectedValue(v.GetType().Name);
-                    }
-                }
-            }
+            protected override Enumerator GetEnumerator() => new Enumerator(this);
         }
     }
 }
