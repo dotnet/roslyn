@@ -144,7 +144,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.CreateDocumentUri()
+                DocumentUri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = new VSInternalCompletionContext()
