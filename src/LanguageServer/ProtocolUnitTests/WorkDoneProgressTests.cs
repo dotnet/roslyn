@@ -108,12 +108,18 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
         await using var server = await CreateTestServerAsync(mutatingLspWorkspace, clientCallbackTarget);
 
         var serverCancellationTokenSource = new CancellationTokenSource();
-        var requestTask = GetTestService(server).RunServerCancellationWorkDoneProgress(serverCancellationTokenSource.Token);
+
+        // Task to hold open the progress on the server until we've observed client cancellation.
+        var serverProgressCompletionSource = new TaskCompletionSource<bool>();
+        var requestTask = GetTestService(server).RunServerCancellationWorkDoneProgress(serverProgressCompletionSource, serverCancellationTokenSource.Token);
         await clientCallbackTarget.WaitForReportAsync();
 
+        // Cancel the progress using the fake server cancellation token.  This should cause the client to receive a progress end with a cancellation message.
         serverCancellationTokenSource.Cancel();
-
         await clientCallbackTarget.WaitForServerCancelledAsync();
+
+        // Complete the server progress task to allow the server to finish and dispose of the progress reporter.
+        serverProgressCompletionSource.SetResult(true);
         await requestTask;
 
         var progressReports = clientCallbackTarget.GetProgressReports();
@@ -176,10 +182,12 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
             return await WaitForCancellationAsync(progress.CancellationToken);
         }
 
-        public async Task<bool> RunServerCancellationWorkDoneProgress(CancellationToken serverCancellationToken)
+        public async Task<bool> RunServerCancellationWorkDoneProgress(TaskCompletionSource<bool> serverProgressCompletedSource, CancellationToken serverCancellationToken)
         {
             await using var progress = await CreateProgressAndReport(serverCancellationToken);
-            return await WaitForCancellationAsync(serverCancellationToken);
+            await WaitForCancellationAsync(serverCancellationToken);
+
+            return await serverProgressCompletedSource.Task;
         }
 
         private async Task<IWorkDoneProgressReporter> CreateProgressAndReport(CancellationToken cancellationToken)
@@ -248,14 +256,14 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
                 _progressReports.Add(progressReport);
                 switch (progressReport.Value)
                 {
-                    case WorkDoneProgressReport:
-                        _reportSource.TrySetResult(progressReport);
-                        break;
                     case WorkDoneProgressEnd { Message: EndMessage }:
                         _endSource.TrySetResult(progressReport);
                         break;
                     case WorkDoneProgressEnd { Message: CancelledMessage }:
                         _cancelledEndSource.TrySetResult(progressReport);
+                        break;
+                    case WorkDoneProgressReport:
+                        _reportSource.TrySetResult(progressReport);
                         break;
                 }
             }

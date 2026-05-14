@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.LanguageServer.Protocol;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -43,9 +44,9 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
 
     /// <summary>
     /// Initiates a new work done progress reporting session with the client.
-    /// This sends the initial `window/workDoneProgress/create` request, but callers are responsible for sending the
-    /// begin and end reports.
+    /// This sends the initial `window/workDoneProgress/create` request and begin report to the client.
     /// In the case of server side cancellation, an end report will be sent automatically with a "Cancelled" message.
+    /// On dispose of the <see cref="IWorkDoneProgressReporter"/>, an end report will be sent with the provided end message.
     /// </summary>
     /// <param name="serverCancellationToken">a cancellation token that signals when the server wants to cancel the operation</param>
     public async Task<IWorkDoneProgressReporter> CreateWorkDoneProgressAsync(
@@ -66,6 +67,14 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
         {
             var clientReporter = new WorkDoneProgressReporter(token, endMessage, this, serverCancellationToken);
             await clientReporter.SendCreateRequestAsync().ConfigureAwait(false);
+
+            // Tell the client to end the work done progress if the server cancels the request.
+            // Note - no need to observe client cancellation - the client does not expect an end report when it cancels.
+            serverCancellationToken.Register(() =>
+            {
+                clientReporter.TryReportEndAsync("Cancelled").ReportNonFatalErrorAsync();
+            });
+
             lock (_progressLock)
             {
                 _progressReporters[token] = clientReporter;
@@ -130,13 +139,6 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
             // Link the server cancellation token to the source handling client side cancellation.
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(serverCancellationToken);
             CancellationToken = _cancellationTokenSource.Token;
-
-            // Tell the client to end the work done progress if the server cancels the request.
-            // Note - no need to observe client cancellation - the client does not expect an end report when it cancels.
-            serverCancellationToken.Register(() =>
-            {
-                TryReportEndAsync("Cancelled").ReportNonFatalErrorAsync();
-            });
         }
 
         public async Task SendCreateRequestAsync()
@@ -196,10 +198,18 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
             if (Interlocked.CompareExchange(ref _ended, 1, 0) != 0)
                 return;
 
-            await ReportProgressAsync(new WorkDoneProgressEnd()
+            try
             {
-                Message = message
-            }, CancellationToken.None /* do not observe cancellation as this may be a report triggered by cancellation. */).ConfigureAwait(false);
+                await ReportProgressAsync(new WorkDoneProgressEnd()
+                {
+                    Message = message
+                }, CancellationToken.None /* do not observe cancellation as this may be a report triggered by cancellation. */).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
+            {
+                // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a notification.
+                // These are safely ignored as there is no client to recieve the notification.
+            }
         }
 
         private record struct ProgressReportType(
