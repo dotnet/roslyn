@@ -253,7 +253,6 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         var notifyCompletionType = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion);
         var awaitAwaiterDefinition = (MethodSymbol)_factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
         var awaitMethod = awaitAwaiterDefinition.Construct(notifyCompletionType);
-        // ICriticalNotifyCompletion derives from INotifyCompletion, so the reference conversion also accepts critical awaiters.
         var awaitCall = _factory.Call(
             receiver: null,
             awaitMethod,
