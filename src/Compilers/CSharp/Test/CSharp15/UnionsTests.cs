@@ -10003,7 +10003,7 @@ class Program
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/83666")]
-        public void Exhaustiveness_15()
+        public void Exhaustiveness_16()
         {
             var src = @"
 #nullable enable
