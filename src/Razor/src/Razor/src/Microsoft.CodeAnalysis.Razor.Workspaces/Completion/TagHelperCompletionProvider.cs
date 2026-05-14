@@ -52,10 +52,8 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             var containingElement = owner.Parent;
 
             // Use HTML labels from the context when available (allows filtering tag helpers
-            // based on what HTML elements are valid). For .razor files or when local HTML
-            // completions are unavailable, htmlLabels will be null and we pass an empty set.
-            var htmlLabels = context.HtmlLabels ?? [];
-            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, htmlLabels);
+            // based on what HTML elements are valid).
+            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, context.HtmlLabels);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(
@@ -217,7 +215,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         string containingTagName,
         ImmutableArray<KeyValuePair<string, string>> attributes,
         RazorCompletionContext context,
-        HashSet<string> htmlLabels)
+        HashSet<string>? htmlLabels)
     {
         var ancestors = containingElement.Ancestors();
         var (ancestorTagName, ancestorIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
