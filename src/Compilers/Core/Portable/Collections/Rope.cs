@@ -140,9 +140,8 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             int result = Length;
-            var chars = GetEnumerator();
-            while (chars.MoveNext())
-                result = Hash.Combine((int)chars.Current, result);
+            foreach (char c in this)
+                result = Hash.Combine((int)c, result);
 
             return result;
         }
