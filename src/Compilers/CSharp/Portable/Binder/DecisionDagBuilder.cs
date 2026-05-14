@@ -4157,13 +4157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(remainingTests.Length > 1);
                     this.RemainingTests = remainingTests;
                 }
-                public Tests Update(ArrayBuilder<Tests> remainingTests)
-                {
-                    var reuslts = Update((IEnumerable<Tests>)remainingTests);
-                    remainingTests.Free();
-                    return reuslts;
-                }
-                public abstract Tests Update(IEnumerable<Tests> remainingTests);
+                public abstract Tests Update(ArrayBuilder<Tests> remainingTests);
                 public sealed override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
@@ -4195,7 +4189,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     testsToFilter.Push(seq.RemainingTests[i]);
                                 }
-
                                 break;
 
                             case null:
@@ -4213,12 +4206,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                         }
                     }
-                    while (testsToFilter.Count > 0);
+                    while (testsToFilter.Count != 0);
 
                     whenTrue = trueTests.Pop();
                     whenFalse = falseTests.Pop();
 
-                    if (trueTests.Count != 0 || falseTests.Count != 0 || testsToAssemble.Count != 0)
+                    if (!trueTests.IsEmpty || !falseTests.IsEmpty || !testsToAssemble.IsEmpty)
                     {
                         throw ExceptionUtilities.Unreachable();
                     }
@@ -4231,16 +4224,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     static void assemble(SequenceTests toAssemble, ArrayBuilder<Tests> tests)
                     {
                         var length = toAssemble.RemainingTests.Length;
-                        var startIndex = tests.Count - length;
-                        var result = toAssemble.Update(getRange(tests, startIndex, length));
-                        tests.Count = startIndex;
-                        tests.Push(result);
-                    }
+                        var newSequence = ArrayBuilder<Tests>.GetInstance(length, null!);
+                        for (int i = length - 1; i >= 0; i--)
+                        {
+                            newSequence[i] = tests.Pop();
+                        }
 
-                    static IEnumerable<Tests> getRange(ArrayBuilder<Tests> tests, int start, int count)
-                    {
-                        for (int i = start; i < start + count; i++)
-                            yield return tests[i];
+                        tests.Push(toAssemble.Update(newSequence));
                     }
                 }
 
@@ -4696,7 +4686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!remainingTests.Any(t => t is AndSequence));
                 }
-                public override Tests Update(IEnumerable<Tests> remainingTests) => Create(remainingTests);
+                public override Tests Update(ArrayBuilder<Tests> remainingTests) => Create(remainingTests);
                 public static Tests Create(Tests t1, Tests t2)
                 {
                     if (t1 is True) return t2;
@@ -4709,61 +4699,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 public static Tests Create(ArrayBuilder<Tests> remainingTests)
                 {
-                    var result = Create((IEnumerable<Tests>)remainingTests);
-                    remainingTests.Free();
-                    return result;
-                }
-                public static Tests Create(IEnumerable<Tests> remainingTests)
-                {
-                    // First pass: count the exact number of flattened elements, short-circuiting on False.
-                    int count = 0;
-                    foreach (var test in remainingTests)
+                    for (int i = remainingTests.Count - 1; i >= 0; i--)
                     {
-                        switch (test)
+                        switch (remainingTests[i])
                         {
-                            case True:
+                            case True _:
+                                remainingTests.RemoveAt(i);
                                 break;
                             case False f:
+                                remainingTests.Free();
                                 return f;
                             case AndSequence seq:
-                                count += seq.RemainingTests.Length;
-                                break;
-                            default:
-                                count++;
-                                break;
-                        }
-                    }
-
-                    if (count == 0)
-                    {
-                        return True.Instance;
-                    }
-
-                    // Second pass: populate a builder with the exact capacity needed.
-                    var builder = ImmutableArray.CreateBuilder<Tests>(count);
-                    foreach (var test in remainingTests)
-                    {
-                        switch (test)
-                        {
-                            case True:
-                                break;
-                            case AndSequence seq:
-                                builder.AddRange(seq.RemainingTests);
-                                break;
-                            default:
-                                builder.Add(test);
+                                var testsToInsert = seq.RemainingTests;
+                                remainingTests.RemoveAt(i);
+                                for (int j = 0, n = testsToInsert.Length; j < n; j++)
+                                    remainingTests.Insert(i + j, testsToInsert[j]);
                                 break;
                         }
                     }
-
-                    Debug.Assert(builder.Count == count);
-
-                    if (count == 1)
+                    var result = remainingTests.Count switch
                     {
-                        return builder[0];
-                    }
-
-                    return new AndSequence(builder.MoveToImmutable());
+                        0 => True.Instance,
+                        1 => remainingTests[0],
+                        _ => new AndSequence(remainingTests.ToImmutable()),
+                    };
+                    remainingTests.Free();
+                    return result;
                 }
                 protected override BoundDagTest? ComputeSelectedTestEasyOut(bool forLowering, ref bool suitableForLowering)
                 {
@@ -4831,7 +4792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!remainingTests.Any(t => t is OrSequence));
                 }
-                public override Tests Update(IEnumerable<Tests> remainingTests) => Create(remainingTests);
+                public override Tests Update(ArrayBuilder<Tests> remainingTests) => Create(remainingTests);
                 public static Tests Create(Tests t1, Tests t2)
                 {
                     if (t1 is True) return t1;
@@ -4844,21 +4805,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 public static Tests Create(ArrayBuilder<Tests> remainingTests)
                 {
-                    var result = Create((IEnumerable<Tests>)remainingTests);
-                    remainingTests.Free();
-                    return result;
-                }
-                public static Tests Create(IEnumerable<Tests> remainingTests)
-                {
                     // First pass: count the exact number of flattened elements, short-circuiting on True.
                     int count = 0;
-                    foreach (var test in remainingTests)
+                    for (int i = 0; i < remainingTests.Count; i++)
                     {
-                        switch (test)
+                        switch (remainingTests[i])
                         {
                             case False:
                                 break;
                             case True t:
+                                remainingTests.Free();
                                 return t;
                             case OrSequence seq:
                                 count += seq.RemainingTests.Length;
@@ -4871,14 +4827,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (count == 0)
                     {
+                        remainingTests.Free();
                         return False.Instance;
                     }
 
                     // Second pass: populate a builder with the exact capacity needed.
                     var builder = ImmutableArray.CreateBuilder<Tests>(count);
-                    foreach (var test in remainingTests)
+                    for (int i = 0; i < remainingTests.Count; i++)
                     {
-                        switch (test)
+                        switch (remainingTests[i])
                         {
                             case False:
                                 break;
@@ -4886,11 +4843,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 builder.AddRange(seq.RemainingTests);
                                 break;
                             default:
-                                builder.Add(test);
+                                builder.Add(remainingTests[i]);
                                 break;
                         }
                     }
 
+                    remainingTests.Free();
                     Debug.Assert(builder.Count == count);
 
                     if (count == 1)
