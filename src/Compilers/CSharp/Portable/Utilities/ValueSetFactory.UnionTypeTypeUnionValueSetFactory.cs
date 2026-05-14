@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -23,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private ImmutableArray<TypeSymbol> AdjustedTypesInUnion()
             {
-                Debug.Assert(!_unionType.UnionCaseTypes.Any(t => t.IsNullableType()));
-                return _unionType.UnionCaseTypes;
+                return _unionType.UnionCaseTypes.SelectAsArray(TypeSymbolExtensions.StrippedType);
             }
 
             public TypeUnionValueSet AllValues(ConversionsBase conversions)

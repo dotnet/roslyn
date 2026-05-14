@@ -2874,9 +2874,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
             {
-                Debug.Assert(conversion.IsUserDefined);
+                Debug.Assert(conversion.IsUserDefined || conversion.IsUnion);
 
-                ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedConversions;
+                ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedOrUnionConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
                     diagnostics.Add(ErrorCode.ERR_AmbigUDConv, syntax.Location, originalUserDefinedConversions[0], originalUserDefinedConversions[1], operand.Display, targetType);
@@ -6808,6 +6808,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <remarks>
+        /// In terms of errors this function should be kept in sync with
+        /// <see cref="CreateUnionConversion"/> and <see cref="HasCollectionExpressionApplicableConstructor"/>
+        /// </remarks>
         protected BoundExpression BindClassCreationExpression(
             SyntaxNode node,
             string typeName,
@@ -6825,6 +6829,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // In terms of errors relevant for HasCollectionExpressionApplicableConstructor check
             // this function should be kept in sync with HasCollectionExpressionApplicableConstructor.
             //
+            // In terms of errors relevant for Unions conversions check
+            // this function should be kept in sync with CreateUnionConversion.
 
             BoundExpression result = null;
             bool hasErrors = type.IsErrorType();

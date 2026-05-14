@@ -3122,6 +3122,11 @@
         <target state="translated">modificateurs simples de paramètre lambda</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticMembersInInterfaces">
+        <source>static members in interfaces</source>
+        <target state="new">static members in interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
         <target state="translated">caractère d’échappement de chaîne</target>
