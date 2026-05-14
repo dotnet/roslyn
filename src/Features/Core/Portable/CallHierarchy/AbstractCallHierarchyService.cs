@@ -125,15 +125,25 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
                     overriddenItemId));
             }
 
-            var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-            foreach (var implementedInterfaceMember in implementedInterfaceMembers)
+            // An override may not directly implement an interface member, but its base method
+            // might.  Walk the override chain so we still surface the "Calls To Interface
+            // Implementation" category for such overrides.
+            using var __ = PooledHashSet<CallHierarchyItemId>.GetInstance(out var seenInterfaces);
+            for (var current = symbol; current != null; current = current.GetOverriddenMember())
             {
-                if (!CallHierarchyItemId.TryCreate(implementedInterfaceMember, project, cancellationToken, out var interfaceItemId))
-                    continue;
+                var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(current, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                foreach (var implementedInterfaceMember in implementedInterfaceMembers)
+                {
+                    if (!CallHierarchyItemId.TryCreate(implementedInterfaceMember, project, cancellationToken, out var interfaceItemId))
+                        continue;
 
-                descriptors.Add(new CallHierarchySearchDescriptor(
-                    CallHierarchyRelationshipKind.InterfaceImplementations,
-                    interfaceItemId));
+                    if (!seenInterfaces.Add(interfaceItemId))
+                        continue;
+
+                    descriptors.Add(new CallHierarchySearchDescriptor(
+                        CallHierarchyRelationshipKind.InterfaceImplementations,
+                        interfaceItemId));
+                }
             }
 
             if (symbol.IsImplementableMember())

@@ -33,6 +33,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)BuildProtocolUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BuildServerController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClientConnectionHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CompilationCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CompilationCacheUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompilerRequestHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompletionData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CSharpCompilerServer.cs" />

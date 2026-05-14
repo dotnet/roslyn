@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../SR.resx">
+    <body>
+      <trans-unit id="ArgumentCannotBeNullOrEmpty">
+        <source>Value cannot be null or an empty string.</source>
+        <target state="translated">值不能为 null 或空字符串。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
+        <source>{0} (and req'd attributes...)</source>
+        <target state="translated">{0} (和必需属性...)</target>
+        <note>The term "req'd" is an abbreviation for "required"</note>
+      </trans-unit>
+      <trans-unit id="Create_Component_FromTag_Title">
+        <source>Create component from tag</source>
+        <target state="translated">从标记创建组件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Blazor_directive_attributes">
+        <source>Blazor directive attributes</source>
+        <target state="translated">Blazor 指令特性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Diagnostics_after">
+        <source>Diagnostics after:</source>
+        <target state="translated">诊断后:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Diagnostics_before">
+        <source>Diagnostics before:</source>
+        <target state="translated">诊断前:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Directive">
+        <source>directive</source>
+        <target state="translated">指令</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DirectiveSnippetDescription">
+        <source>Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</source>
+        <target state="translated">插入指令代码片段
+按 [Tab] 在元素之间导航，按 [Enter] 以完成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_at_adds">
+        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
+        <target state="translated">于 {0} 编辑，添加非空格内容“{1}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_at_deletes">
+        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
+        <target state="translated">于 {0} 编辑，删除非空格内容“{1}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_CodeBehind_Title">
+        <source>Extract block to code behind</source>
+        <target state="translated">将块提取到代码隐藏中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_Component_Title">
+        <source>Extract element to new component</source>
+        <target state="translated">将元素提取到新组件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_Css_Title">
+        <source>Extract to {0}.css</source>
+        <target state="translated">提取到 {0}.css</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_operation_changed_diagnostics">
+        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
+        <target state="translated">正在放弃格式操作，因为它会引入或删除其他诊断之一。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_operation_changed_nonwhitespace">
+        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
+        <target state="translated">正在放弃格式操作，因为它会添加或删除非空格内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_Error">
+        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
+        <target state="translated">格式错误。为避免文件损坏，已停止后续操作，请报告此问题。详情请见：https://aka.ms/razor-formatting-issue</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Async_Event_Handler_Title">
+        <source>Generate Async Event Handler '{0}'</source>
+        <target state="translated">生成异步事件处理程序“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Handler_Title">
+        <source>Generate Event Handler '{0}'</source>
+        <target state="translated">生成事件处理程序 "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IncompatibleProject_NoAdditionalFiles">
+        <source>The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {0} appears to come from '{1}', which has no Razor documents that are AdditionalFiles, so the editing experience will be limited. Is it using the Razor SDK? No more messages will be logged for this project.</source>
+        <target state="translated">Razor 编辑器使用 Razor 源生成器，这要求 *.razor 和 *.cshtml 文件是项目中的 AdditionalFile。{0} 似乎来自“{1}”，其中不包含任何为 AdditionalFile 的 Razor 文档，因此编辑体验将受到限制。它使用的是 Razor SDK 吗?对于此项目，将不会记录更多消息。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IncompatibleProject_NotAnAdditionalFile">
+        <source>The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {0} appears to come from '{1}', which has Razor documents but this file is not an AdditionalFile, so the editing experience will be limited. No more messages will be logged for this project.</source>
+        <target state="translated">Razor 编辑器使用 Razor 源生成器，这要求 *.razor 和 *.cshtml 文件是项目中的 AdditionalFile。{0} 似乎来自“{1}”，其中包含 Razor 文档，但此文件不是 AdditionalFile，因此编辑体验将受到限制。对于此项目，将不会记录更多消息。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_Offset">
+        <source>Invalid offset.</source>
+        <target state="translated">偏移无效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeywordDescription">
+        <source>{0} Keyword</source>
+        <target state="translated">{0} 关键字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Language_Services_Missing_Service">
+        <source>Razor language services not configured properly, missing language service '{0}'.</source>
+        <target state="translated">Razor 语言服务未正确配置，缺少语言服务 "{0}"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_Available_In">
+        <source>Not available in</source>
+        <target state="translated">在以下位置不可用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PositionCharacter_Outside_Range">
+        <source>Character '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
+        <target state="translated">查询了“{2}”的 {1} 范围外的字符“{0}”。文档可能不是最新的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PositionLine_Outside_Range">
+        <source>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
+        <target state="translated">查询了 "{0}" 的 {1} 范围外的行 "{2}"。文档可能不是最新的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Promote_using_directive_to">
+        <source>Promote using directive to {0}</source>
+        <target state="translated">将 using 指令提升为 {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_directives">
+        <source>Remove unnecessary directives</source>
+        <target state="translated">删除不必要的指令</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Fully_Qualified_Component_Title">
+        <source>Simplify fully qualified component</source>
+        <target state="translated">简化完全限定的组件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
+        <source>Simplify tag to self-closing</source>
+        <target state="translated">将标记简化为自闭合形式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_And_Consolidate_Usings_Title">
+        <source>Sort and consolidate usings</source>
+        <target state="translated">排序并合并 using 指令</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TagHelper_Attribute_Glyph">
+        <source>Razor TagHelper Attribute Glyph</source>
+        <target state="translated">Razor TagHelper 特性字形</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TagHelper_Element_Glyph">
+        <source>Razor TagHelper Element Glyph</source>
+        <target state="translated">Razor TagHelper 元素字形</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="translated">“重新触发完成…”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_RazorMetaCode">
+        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
+        <target state="translated">已尝试访问除 "{' or '}" 之外的 RazorMetaCode。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_mapping_behavior">
+        <source>Unknown mapping behavior</source>
+        <target state="translated">未知映射行为</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_Razor_extension_0">
+        <source>Unsupported Razor extension: '{0}'.</source>
+        <target state="translated">不支持的 Razor 扩展：“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_argument_kind">
+        <source>Unsupported argument kind: '{0}'.</source>
+        <target state="translated">不支持的参数类型: "{0}"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_argument_type">
+        <source>Unsupported argument type: '{0}'.</source>
+        <target state="translated">不支持的参数类型: "{0}"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_razor_project_info_version_encountered">
+        <source>Unsupported razor project info version encounted.</source>
+        <target state="translated">razor 项目信息版本计数不受支持。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_attributes">
+        <source>Wrap attributes</source>
+        <target state="translated">对属性进行换行</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

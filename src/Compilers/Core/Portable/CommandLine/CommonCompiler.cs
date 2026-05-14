@@ -946,6 +946,14 @@ namespace Microsoft.CodeAnalysis
 
             var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
 
+            var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, cancellationToken, out var cacheState);
+            if (cachedExitCode.HasValue)
+            {
+                consoleOutput.WriteLine("Compilation result restored from cache.");
+                diagnostics.Free();
+                return cachedExitCode.Value;
+            }
+
             CompileAndEmit(
                 touchedFilesLogger,
                 ref compilation,
@@ -996,6 +1004,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             diagnostics.Free();
+
+            if (exitCode == Succeeded)
+            {
+                OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cacheState, cancellationToken);
+            }
 
             return exitCode;
         }
@@ -1735,6 +1748,39 @@ namespace Microsoft.CodeAnalysis
             {
                 return Arguments.PreferredUILang ?? CultureInfo.CurrentUICulture;
             }
+        }
+
+        /// <summary>
+        /// Attempts to satisfy this compilation from a cache, using already-computed compilation
+        /// inputs. Override in server compiler subclasses to provide caching. Return a non-null
+        /// value to short-circuit compilation with a cached exit code.
+        /// </summary>
+        /// <param name="cacheState">Opaque state to be passed to <see cref="OnCompilationSucceeded"/> on success.</param>
+        protected virtual int? CheckCache(
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<AdditionalText> additionalTexts,
+            CancellationToken cancellationToken,
+            out object? cacheState)
+        {
+            cacheState = null;
+            return null;
+        }
+
+        /// <summary>
+        /// Notifies the compiler that a compilation completed successfully. Override in server
+        /// compiler subclasses to store the result in a cache.
+        /// </summary>
+        /// <param name="cacheState">Opaque state returned from <see cref="CheckCache"/>.</param>
+        protected virtual void OnCompilationSucceeded(
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<AdditionalText> additionalTexts,
+            object? cacheState,
+            CancellationToken cancellationToken)
+        {
         }
 
         private void EmitDeterminismKey(

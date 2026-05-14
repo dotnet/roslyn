@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.TypeHierarchy;
 
 internal interface ITypeHierarchyService : ILanguageService
 {
-    ImmutableArray<INamedTypeSymbol> GetBaseTypesAndInterfaces(INamedTypeSymbol typeSymbol);
+    ImmutableArray<INamedTypeSymbol> GetBaseTypesAndInterfaces(INamedTypeSymbol typeSymbol, bool transitive);
 
     Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
         Solution solution,

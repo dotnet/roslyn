@@ -287,6 +287,11 @@
         <target state="translated">註解</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
+        <source>Completion behavior for items from unimported namespaces</source>
+        <target state="translated">來自未匯入命名空間項目的完成行為</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">包含的成員</target>
@@ -480,6 +485,11 @@
       <trans-unit id="Format_document">
         <source>Format document</source>
         <target state="translated">格式化文件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_new_document">
+        <source>Formatting new document...</source>
+        <target state="translated">正在格式化新文件...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">

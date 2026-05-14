@@ -44,7 +44,7 @@ public sealed class TypeHierarchyServiceTests
                 """);
 
         var (_, service, symbol) = await GetTypeSymbolWithServiceAsync(workspace);
-        var baseTypes = service.GetBaseTypesAndInterfaces(symbol);
+        var baseTypes = service.GetBaseTypesAndInterfaces(symbol, transitive: true);
         var baseTypeNames = baseTypes.Select(static t => t.Name).ToImmutableArray();
 
         Assert.Contains("Base", baseTypeNames);
@@ -107,7 +107,7 @@ public sealed class TypeHierarchyServiceTests
                 """);
 
         var (_, service, symbol) = await GetTypeSymbolWithServiceAsync(workspace);
-        var baseTypes = service.GetBaseTypesAndInterfaces(symbol);
+        var baseTypes = service.GetBaseTypesAndInterfaces(symbol, transitive: true);
         var baseTypeNames = baseTypes.Select(static t => t.Name).ToImmutableArray();
 
         Assert.Contains("IRoot", baseTypeNames);

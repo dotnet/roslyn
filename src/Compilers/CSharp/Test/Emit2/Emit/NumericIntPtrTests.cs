@@ -1412,7 +1412,10 @@ unsafe class Program
             };
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
         }
 
         [Fact]

@@ -129,6 +129,15 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
             CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(commitKey);
         }
 
+        // Decide if we should add import when this item is committed, based on the option we stored in item property bag.
+        // TAB and double-click are treated as "committed explicitly".
+        if ((ImportCompletionItem.GetCommitBehavior(completionItem), commitKey) is
+                (ImportCompletionCommitBehavior.NeverAddImport, _) or
+                (ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, not ('\t' or null)))
+        {
+            return CompletionChange.Create(new TextChange(completionItem.Span, insertText));
+        }
+
         if (await ShouldCompleteWithFullyQualifyTypeNameAsync().ConfigureAwait(false))
         {
             var completionText = $"{containingNamespace}.{insertText}";

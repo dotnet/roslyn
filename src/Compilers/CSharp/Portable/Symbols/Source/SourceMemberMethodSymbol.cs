@@ -684,14 +684,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsUnsafe
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
-            }
-        }
-
         public sealed override bool IsAsync
         {
             get
@@ -982,11 +974,10 @@ done:
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
 
-            if (NeedsSynthesizedRequiresUnsafeAttribute)
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                Debug.Assert(CallerUnsafeMode == CallerUnsafeMode.Explicit);
-                MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, compilation, _location);
-                Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor, diagnostics, _location);
+                var modifiers = (syntaxReferenceOpt?.GetSyntax() as MemberDeclarationSyntax)?.Modifiers ?? default;
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(_location), modifyCompilation: true);
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

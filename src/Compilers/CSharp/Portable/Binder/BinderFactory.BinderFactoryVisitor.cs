@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             resultBinder = new InMethodBinder(accessor, resultBinder);
 
                             resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(
-                                modifiers: default,
+                                modifiers: parent.Modifiers,
                                 isIteratorBody: accessor.IsIterator);
                         }
                     }
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override Binder VisitFieldDeclaration(FieldDeclarationSyntax parent)
             {
-                return VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
+                return VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers, isFieldDeclaration: true);
             }
 
             public override Binder VisitEventDeclaration(EventDeclarationSyntax parent)

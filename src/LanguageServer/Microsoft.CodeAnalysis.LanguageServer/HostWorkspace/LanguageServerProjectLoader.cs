@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 internal abstract class LanguageServerProjectLoader
 {
+    private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
+
     private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToReload;
 
     protected readonly LanguageServerWorkspaceFactory _workspaceFactory;
@@ -126,10 +128,7 @@ internal abstract class LanguageServerProjectLoader
             return properties;
         }
 
-        if (serverConfiguration.RazorDesignTimePath is { } razorDesignTimePath)
-        {
-            properties = properties.Add("RazorDesignTimeTargets", razorDesignTimePath);
-        }
+        properties = properties.Add("RazorDesignTimeTargets", s_razorDesignTimePath);
 
         if (serverConfiguration.CSharpDesignTimePath is { } csharpDesignTimePath)
         {
@@ -175,11 +174,11 @@ internal abstract class LanguageServerProjectLoader
                 produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
                 {
                     var (@this, toastErrorReporter, buildHostProcessManager) = args;
-                    var projectNeedsRestore = await @this.ReloadProjectAsync(
+                    var projectRestorePath = await @this.ReloadProjectAsync(
                         projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
 
-                    if (projectNeedsRestore)
-                        produceItem(projectToLoad.Path);
+                    if (projectRestorePath is not null)
+                        produceItem(projectRestorePath);
                 },
                 args: (@this: this, toastErrorReporter, buildHostProcessManager),
                 cancellationToken).ConfigureAwait(false);
@@ -200,6 +199,7 @@ internal abstract class LanguageServerProjectLoader
     {
         public required ImmutableArray<ProjectFileInfo> ProjectFileInfos { get; init; }
         public required ImmutableArray<DiagnosticLogItem> DiagnosticLogItems { get; init; }
+        public required string? ProjectRestorePath { get; init; }
         public required ProjectSystemProjectFactory ProjectFactory { get; init; }
         public required bool IsFileBasedProgram { get; init; }
         public required bool IsMiscellaneousFile { get; init; }
@@ -213,8 +213,8 @@ internal abstract class LanguageServerProjectLoader
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
-    /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
-    private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
+    /// <returns>The project file path that needs a NuGet restore, if any.</returns>
+    private async Task<string?> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
         BuildHostProcessKind? preferredBuildHostKindThatWeDidNotGet = null;
         var projectPath = projectToLoad.Path;
@@ -224,7 +224,7 @@ internal abstract class LanguageServerProjectLoader
         {
             if (!_loadedProjects.ContainsKey(projectPath))
             {
-                return false;
+                return null;
             }
         }
 
@@ -238,7 +238,7 @@ internal abstract class LanguageServerProjectLoader
                 // - Reloading file-based app projects, where edits were performed to e.g. delete all `#:` directives,
                 //   making the file no longer a file-based app entry point.
                 _logger.LogDebug("Reload of '{projectPath}' was canceled.", projectPath);
-                return false;
+                return null;
             }
 
             var projectFactory = remoteProjectLoadResult.ProjectFactory;
@@ -252,7 +252,7 @@ internal abstract class LanguageServerProjectLoader
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
                 // We have total failures in evaluation, no point in continuing.
-                return false;
+                return null;
             }
 
             var loadedProjectInfos = remoteProjectLoadResult.ProjectFileInfos;
@@ -262,18 +262,18 @@ internal abstract class LanguageServerProjectLoader
             var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
             if (projectLanguage != null && projectFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
             {
-                return false;
+                return null;
             }
 
             Dictionary<ProjectFileInfo, ProjectLoadTelemetryReporter.TelemetryInfo> telemetryInfos = [];
-            var needsRestore = false;
+            string? projectRestorePath = null;
 
             using (await _gate.DisposableWaitAsync(cancellationToken))
             {
                 if (!_loadedProjects.TryGetValue(projectPath, out var currentLoadState))
                 {
                     // Project was unloaded. Do not proceed with reloading it.
-                    return false;
+                    return null;
                 }
 
                 var previousProjectTargets = currentLoadState is ProjectLoadState.LoadedTargets loaded ? loaded.LoadedProjectTargets : [];
@@ -284,7 +284,11 @@ internal abstract class LanguageServerProjectLoader
                     newProjectTargetsBuilder.Add(target);
 
                     var (outputKind, metadataReferences, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, remoteProjectLoadResult.HasAllInformation, _logger);
-                    needsRestore |= targetNeedsRestore;
+                    if (targetNeedsRestore)
+                    {
+                        projectRestorePath = remoteProjectLoadResult.ProjectRestorePath;
+                    }
+
                     if (!targetAlreadyExists)
                     {
                         telemetryInfos[loadedProjectInfo] = new ProjectLoadTelemetryReporter.TelemetryInfo
@@ -338,7 +342,7 @@ internal abstract class LanguageServerProjectLoader
                 _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
             }
 
-            return needsRestore;
+            return projectRestorePath;
         }
         catch (Exception e)
         {
@@ -347,7 +351,7 @@ internal abstract class LanguageServerProjectLoader
             var diagnosticLogItem = new DiagnosticLogItem(DiagnosticLogItemKind.Error, message, projectPath);
             await LogDiagnosticsAsync([diagnosticLogItem]);
 
-            return false;
+            return null;
         }
 
         async Task<(LoadedProject, bool alreadyExists)> GetOrCreateProjectTargetAsync(ImmutableArray<LoadedProject> previousProjectTargets, ProjectSystemProjectFactory projectFactory, ProjectFileInfo loadedProjectInfo)
@@ -406,24 +410,47 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    /// <summary>
-    /// Begins loading a project with an associated primordial project. Must not be called for a project which has already begun loading.
-    /// </summary>
-    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
+    protected async ValueTask<Project?> GetOrLoadProjectAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, ProjectInfo> createPrimordialProjectInfo, bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            // If this project has already begun loading, we need to throw.
-            // This is because we can't ensure that the workspace and project system will remain in a consistent state after this call.
-            // For example, there could be a need for the project system to track both a primordial project and list of loaded targets, which we don't support.
-            if (_loadedProjects.ContainsKey(projectPath))
+            if (_loadedProjects.TryGetValue(projectPath, out var existingState))
             {
-                Contract.Fail($"Cannot begin loading project '{projectPath}' because it has already begun loading.");
+                // Note: this generally only happens if we fall through to the "add to misc workspace" path,
+                // and we lose a race to begin loading the miscellaneous file project.
+                return LookupExistingProject(existingState);
             }
 
-            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectId));
+            var primordialProjectInfo = createPrimordialProjectInfo(primordialProjectFactory);
+            primordialProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(primordialProjectInfo));
+            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectInfo.Id));
             if (doDesignTimeBuild)
                 _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
+
+            return primordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordialProjectInfo.Id);
+        }
+
+        Project? LookupExistingProject(ProjectLoadState loadState)
+        {
+            if (loadState is ProjectLoadState.Primordial primordial)
+            {
+                return primordial.PrimordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordial.PrimordialProjectId);
+            }
+            else if (loadState is ProjectLoadState.LoadedTargets loadedTargets)
+            {
+                var target = loadedTargets.LoadedProjectTargets.FirstOrDefault();
+                if (target is null)
+                {
+                    _logger.LogWarning("Could not get a project for '{projectPath}' because it loaded with no targets", projectPath);
+                    return null;
+                }
+
+                return target.ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(target.ProjectId);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(loadState);
+            }
         }
     }
 

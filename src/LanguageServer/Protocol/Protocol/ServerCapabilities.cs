@@ -253,7 +253,7 @@ internal class ServerCapabilities
     /// <remarks>Since LSP 3.17</remarks>
     [JsonPropertyName("typeHierarchyProvider")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public SumType<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>? TypeHierarchyProvider { get; init; }
+    public SumType<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>? TypeHierarchyProvider { get; set; }
 
     /// <summary>
     /// The server provides inline values.

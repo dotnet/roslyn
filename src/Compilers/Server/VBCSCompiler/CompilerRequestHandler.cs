@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
                         analyzerLoader: AnalyzerAssemblyLoader,
-                        _driverCache);
+                        _driverCache,
+                        logger: Logger);
                     return true;
                 case LanguageNames.VisualBasic:
                     compiler = new VisualBasicCompilerServer(
@@ -95,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
                         analyzerLoader: AnalyzerAssemblyLoader,
-                        _driverCache);
+                        _driverCache,
+                        logger: Logger);
                     return true;
                 default:
                     compiler = null;

@@ -35,7 +35,7 @@ public sealed class SourceGeneratedDocumentUrisTests : AbstractLanguageServerPro
         Assert.Equal(SourceGeneratedDocumentUri.Scheme, uri.GetRequiredParsedUri().Scheme);
         var deserialized = SourceGeneratedDocumentUri.DeserializeIdentity(testLspServer.TestWorkspace.CurrentSolution, uri.GetRequiredParsedUri());
 
-        AssertEx.NotNull(deserialized);
+        Assert.NotNull(deserialized);
         Assert.Equal(identity, deserialized.Value);
 
         // Debug name is not considered as a the usual part of equality, but we want to ensure we pass this through too

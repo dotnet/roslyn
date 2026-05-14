@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>$(NetRoslynWindowsTests)</TargetFramework>
+    <TargetFramework>$(NetVSCode)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RoslynProjectType>UnitTest</RoslynProjectType>

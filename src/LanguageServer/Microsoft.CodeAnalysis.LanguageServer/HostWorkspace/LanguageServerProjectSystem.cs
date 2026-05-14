@@ -94,6 +94,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         {
             ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
             DiagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken),
+            ProjectRestorePath = projectPath,
             ProjectFactory = _hostProjectFactory,
             IsFileBasedProgram = false,
             IsMiscellaneousFile = false,

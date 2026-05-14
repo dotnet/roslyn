@@ -33,10 +33,10 @@ internal class ExampleLanguageServer : SystemTextJsonLanguageServer<ExampleReque
             .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
             .AddSingleton(this);
 
-        var lifeCycleManager = GetLifeCycleManager();
-        if (lifeCycleManager != null)
+        var onServerShutdown = GetOnServerShutdown();
+        if (onServerShutdown != null)
         {
-            serviceCollection.AddSingleton(lifeCycleManager);
+            serviceCollection.AddSingleton(onServerShutdown);
         }
 
         var lspServices = new ExampleLspServices(serviceCollection);
@@ -44,7 +44,7 @@ internal class ExampleLanguageServer : SystemTextJsonLanguageServer<ExampleReque
         return lspServices;
     }
 
-    protected virtual ILifeCycleManager? GetLifeCycleManager()
+    protected virtual IOnServerShutdown? GetOnServerShutdown()
     {
         return null;
     }
