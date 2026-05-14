@@ -259,12 +259,12 @@
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterDescription">
         <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</source>
-        <target state="new">Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</target>
+        <target state="translated">Metody w interfejsach dziedziczących po IRemoteJsonService nie powinny mieć parametrów typu RazorPinnedSolutionInfoWrapper ani DocumentId, ponieważ nie są one serializowalne w formacie JSON.</target>
         <note>{Locked="IRemoteJsonService"}{Locked="RazorPinnedSolutionInfoWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterMessage">
         <source>Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</source>
-        <target state="new">Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</target>
+        <target state="translated">Parametr „{0}” w „{1}.{2}” ma typ „{3}”, co jest niedozwolone w usłudze JSON</target>
         <note>{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterTitle">
@@ -339,17 +339,17 @@
       </trans-unit>
       <trans-unit id="PooledArrayBuilderAsRefDescription">
         <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</source>
-        <target state="new">Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</target>
+        <target state="translated">Wystąpienie PooledArrayBuilder&lt;T&gt;.AsRef() musi być zmienną „using”.</target>
         <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="PooledArrayBuilderAsRefMessage">
         <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">Wystąpienie PooledArrayBuilder&lt;T&gt;.AsRef() musi być zmienną „using”</target>
         <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="PooledArrayBuilderAsRefTitle">
         <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">Wystąpienie PooledArrayBuilder&lt;T&gt;.AsRef() musi być zmienną „using”</target>
         <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
