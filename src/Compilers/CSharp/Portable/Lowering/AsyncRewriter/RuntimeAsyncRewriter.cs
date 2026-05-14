@@ -48,6 +48,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             // Dynamic await lowering can introduce helper member references after binding has completed. Report missing
             // predefined members here, matching other lowering passes that synthesize required member calls.
             diagnostics.Add(ex.Diagnostic);
+            hoistedLocals.Free();
             return new BoundBadStatement(node.Syntax, ImmutableArray.Create<BoundNode>(node), hasErrors: true);
         }
 
