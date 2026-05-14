@@ -13,19 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private sealed class ClosedClassTypeUnionValueSetFactory : ITypeUnionValueSetFactory
         {
-            private readonly CSharpCompilation _compilation;
             private readonly NamedTypeSymbol _closedClass;
 
-            public ClosedClassTypeUnionValueSetFactory(CSharpCompilation compilation, NamedTypeSymbol closedClass)
+            public ClosedClassTypeUnionValueSetFactory(NamedTypeSymbol closedClass)
             {
                 Debug.Assert(closedClass is NamedTypeSymbol { IsClosed: true });
-                _compilation = compilation;
                 _closedClass = closedClass;
             }
 
-            internal static void ExpandClosedSubtypes(CSharpCompilation compilation, TypeSymbol possibleClosedClass, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder)
+            internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder)
             {
-                if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureClosedClasses) || possibleClosedClass is not NamedTypeSymbol namedType || !namedType.TryGetClosedSubtypes(out var subtypes) || subtypes.IsEmpty)
+                if (possibleClosedClass is not NamedTypeSymbol namedType || !namedType.TryGetClosedSubtypes(out var subtypes) || subtypes.IsEmpty)
                 {
                     AddCaseInfo(builder, possibleClosedClass, originalClosedBase: null);
                     return;
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ImmutableArray<TypeUnionValueSet.CaseInfo> ClosedSubtypes()
             {
                 var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
-                ExpandClosedSubtypes(_compilation, _closedClass, builder);
+                ExpandClosedSubtypes(_closedClass, builder);
                 return builder.ToImmutableAndFree();
             }
 
