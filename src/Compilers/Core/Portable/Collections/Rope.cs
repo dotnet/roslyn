@@ -117,14 +117,7 @@ namespace Microsoft.CodeAnalysis
                 return base.Equals(obj);
             }
 
-            public override int GetHashCode()
-            {
-                int result = Length;
-                foreach (char c in _value)
-                    result = Hash.Combine((int)c, result);
-
-                return result;
-            }
+            public override int GetHashCode() => base.GetHashCode();
         }
 
         /// <summary>
