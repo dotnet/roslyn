@@ -6,11 +6,13 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.VisualStudio.Composition;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+namespace Roslyn.Test.Utilities;
 
-[ExportLspServiceFactory(typeof(LspWorkspaceManager), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[Export(typeof(LspWorkspaceRegistrationService)), Shared, PartNotDiscoverable]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VSTypeScriptLspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
-    : LspWorkspaceManagerFactory(lspWorkspaceRegistrationService);
+internal sealed class TestWorkspaceRegistrationService() : LspWorkspaceRegistrationService
+{
+}

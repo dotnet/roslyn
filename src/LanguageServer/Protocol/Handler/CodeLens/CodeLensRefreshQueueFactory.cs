@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CodeLensRefreshQueueFactory(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+    LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
     IGlobalOptionService globalOptionService,
     FeatureProviderRefresher providerRefresher) : ILspServiceFactory
 {
@@ -22,7 +23,6 @@ internal sealed class CodeLensRefreshQueueFactory(
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-        var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
 
         return new CodeLensRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher, globalOptionService);
     }
