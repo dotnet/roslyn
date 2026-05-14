@@ -105,7 +105,8 @@ internal sealed class ImplementAbstractClassData(
         var context = new CodeGenerationContext(
             contextLocation: classNodeToAddMembersTo.GetLocation(),
             autoInsertionLocation: groupMembers,
-            sortMembers: groupMembers);
+            sortMembers: groupMembers,
+            allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
 
         var info = await _document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
