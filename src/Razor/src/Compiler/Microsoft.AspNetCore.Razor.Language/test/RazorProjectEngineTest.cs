@@ -44,6 +44,7 @@ public class RazorProjectEngineTest
             phase => Assert.IsType<DefaultRazorDocumentClassifierPhase>(phase),
             phase => Assert.IsType<DefaultRazorDirectiveClassifierPhase>(phase),
             phase => Assert.IsType<DefaultRazorOptimizationPhase>(phase),
+            phase => Assert.IsType<DefaultRazorDeclCSharpLoweringPhase>(phase),
             phase => Assert.IsType<DefaultRazorCSharpLoweringPhase>(phase));
     }
 

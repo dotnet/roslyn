@@ -265,6 +265,7 @@ public sealed class RazorProjectEngine
         phases.Add(new DefaultRazorDocumentClassifierPhase());
         phases.Add(new DefaultRazorDirectiveClassifierPhase());
         phases.Add(new DefaultRazorOptimizationPhase());
+        phases.Add(new DefaultRazorDeclCSharpLoweringPhase());
         phases.Add(new DefaultRazorCSharpLoweringPhase());
     }
 
