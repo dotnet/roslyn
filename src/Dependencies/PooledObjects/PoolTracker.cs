@@ -4,13 +4,16 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
+
+#if DEBUG
+using System;
+using System.Linq;
+#endif
 
 namespace Microsoft.CodeAnalysis.PooledObjects;
 
