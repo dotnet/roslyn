@@ -61,6 +61,8 @@
     <MicrosoftBuildLocatorVersion>1.2.6</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildTasksCoreVersion>
+    <!-- Used by BuildBoss/tests to fix CG alerts -->
+    <MicrosoftBuildTasksCoreFixedVersion>16.11.6</MicrosoftBuildTasksCoreFixedVersion>
     <NuGetVisualStudioContractsVersion>5.7.0</NuGetVisualStudioContractsVersion>
     <MicrosoftVisualStudioRpcContractsVersion>16.10.23</MicrosoftVisualStudioRpcContractsVersion>
     <!--
