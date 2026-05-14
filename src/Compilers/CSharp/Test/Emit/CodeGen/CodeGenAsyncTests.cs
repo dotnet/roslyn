@@ -2844,6 +2844,66 @@ class Test
         }
 
         [Fact]
+        public void DynamicProperty_RuntimeAsync_MultipleProperties()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Prop1 { get { Console.WriteLine("Prop1"); return new Awaiter("A1"); } }
+                    public Awaiter Prop2 { get { Console.WriteLine("Prop2"); return new Awaiter("A2"); } }
+                    public Awaiter Prop3 { get { Console.WriteLine("Prop3"); return new Awaiter("A3"); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    private string _name;
+                    public Awaiter(string name) { _name = name; }
+                    public bool IsCompleted { get { Console.WriteLine($"{_name}.IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine($"{_name}.GetResult"); return 1; }
+                    public Awaiter GetAwaiter() { Console.WriteLine($"{_name}.GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        var a = await d.Prop1;
+                        var b = await d.Prop2;
+                        var c = await d.Prop3;
+                        return a + b + c;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Prop1
+                A1.GetAwaiter
+                A1.IsCompleted
+                A1.GetResult
+                Prop2
+                A2.GetAwaiter
+                A2.IsCompleted
+                A2.GetResult
+                Prop3
+                A3.GetAwaiter
+                A3.IsCompleted
+                A3.GetResult
+                3
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
         public void DynamicProperty_RuntimeAsync_NotCompleted_NotINotifyCompletion()
         {
             var source = """
