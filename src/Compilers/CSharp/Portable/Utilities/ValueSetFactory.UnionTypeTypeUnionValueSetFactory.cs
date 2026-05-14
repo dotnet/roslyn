@@ -14,11 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private sealed class UnionTypeTypeUnionValueSetFactory : ITypeUnionValueSetFactory
         {
+            private readonly CSharpCompilation _compilation;
             private readonly NamedTypeSymbol _unionType;
 
-            public UnionTypeTypeUnionValueSetFactory(NamedTypeSymbol unionType)
+            public UnionTypeTypeUnionValueSetFactory(CSharpCompilation compilation, NamedTypeSymbol unionType)
             {
                 Debug.Assert(unionType is NamedTypeSymbol { IsUnionType: true });
+                _compilation = compilation;
                 _unionType = unionType;
             }
 
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
                 foreach (var caseType in _unionType.UnionCaseTypes)
                 {
-                    ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(caseType, builder);
+                    ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(_compilation, caseType, builder);
                 }
 
                 return builder.ToImmutableAndFree();

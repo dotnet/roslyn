@@ -1503,6 +1503,79 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_CSharp14_01()
+    {
+        // Old C# versions treat a closed class, the same as a non-closed class, for pattern matching purposes.
+        // Note: since subtypes do not subsume the base type under old LangVersion, it means certain patterns could go from valid to erroneous on upgrade. See 'Exhaustiveness_BaseTypeSubsumedBySubtypes_01'.
+        var source1 = """
+            public closed class C
+            {
+            }
+
+            public class D1 : C { }
+            public class D2 : C { }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C c)
+                {
+            #line 100
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                    };
+                }
+
+                int M2(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                        C => 3,
+                    };
+                }
+
+                int M3(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        C => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (1,21): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // public closed class C
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("closed classes").WithLocation(1, 21),
+            // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(100, 18));
+
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp0.VerifyDiagnostics();
+
+        var comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp1.VerifyDiagnostics(
+            // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(100, 18));
+
+        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp1.VerifyDiagnostics(
+            // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(100, 18));
+    }
+
+    [Fact]
     public void Exhaustiveness_UnionOfClosedClasses_01()
     {
         // Union with closed classes as case types

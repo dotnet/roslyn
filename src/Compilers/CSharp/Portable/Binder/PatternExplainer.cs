@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Compute the path to the node, excluding the node itself.
             var shortestPathToNode = ShortestPathToNode(nodes, targetNode, nullPaths, out requiresFalseWhenClause);
-            gatherConstraintsAndEvaluations(targetNode, shortestPathToNode, out var constraints, out var evaluations);
+            gatherConstraintsAndEvaluations(binder, targetNode, shortestPathToNode, out var constraints, out var evaluations);
 
             try
             {
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitPathsToNode(rootNode, targetNode, nullPaths, handler: (currentPathToNode, currentRequiresFalseWhenClause) =>
                 {
                     altRequiresFalseWhenClause = currentRequiresFalseWhenClause;
-                    gatherConstraintsAndEvaluations(targetNode, currentPathToNode, out var constraints, out var evaluations);
+                    gatherConstraintsAndEvaluations(binder, targetNode, currentPathToNode, out var constraints, out var evaluations);
 
                     try
                     {
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable();
             }
 
-            static void gatherConstraintsAndEvaluations(BoundDecisionDagNode targetNode, ImmutableArray<BoundDecisionDagNode> pathToNode,
+            static void gatherConstraintsAndEvaluations(Binder binder, BoundDecisionDagNode targetNode, ImmutableArray<BoundDecisionDagNode> pathToNode,
                 out Dictionary<BoundDagTemp, ArrayBuilder<(BoundDagTest, bool)>> constraints,
                 out Dictionary<BoundDagTemp, ArrayBuilder<BoundDagEvaluation>> evaluations)
             {
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool sense = t.WhenTrue == nextNode || (t.WhenFalse != nextNode && t.WhenTrue is BoundWhenDecisionDagNode);
                                 BoundDagTest test = t.Test;
                                 BoundDagTemp temp = test.Input;
-                                if (test is BoundDagTypeTest && sense == false && ValueSetFactory.TypeUnionValueSetFactoryForInput(test.Input) is null)
+                                if (test is BoundDagTypeTest && sense == false && ValueSetFactory.TypeUnionValueSetFactoryForInput(binder.Compilation, test.Input) is null)
                                 {
                                     // A failed type test is not very useful in constructing a counterexample,
                                     // at least not without discriminated unions, so we just drop them.
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string tryHandleTypeUnionLimits()
             {
-                if (evaluations.IsEmpty && ValueSetFactory.TypeUnionValueSetFactoryForInput(input) is { } factory &&
+                if (evaluations.IsEmpty && ValueSetFactory.TypeUnionValueSetFactoryForInput(binder.Compilation, input) is { } factory &&
                     constraints.All(t => t switch
                     {
                         (BoundDagTypeTest _, _) => true,
