@@ -1576,6 +1576,83 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_CSharp14_02()
+    {
+        // Pattern matching a union of closed classes in old LangVersion
+        var source1 = """
+            public union U(C1, C2);
+
+            public closed class C1;
+            public class D1 : C1 { }
+
+            public closed class C2;
+            public class D2 : C2 { }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(U u)
+                {
+                    return u switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                    };
+                }
+
+                int M2(U u)
+                {
+                    return u switch
+                    {
+                        C1 => 1,
+                        C2 => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp0.VerifyDiagnostics();
+
+        var comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp1.VerifyDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1").WithLocation(5, 18),
+            // (7,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             D1 => 1,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D1").WithArguments("unions").WithLocation(7, 13),
+            // (8,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D2").WithArguments("unions").WithLocation(8, 13),
+            // (16,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             C1 => 1,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C1").WithArguments("unions").WithLocation(16, 13),
+            // (17,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             C2 => 2,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C2").WithArguments("unions").WithLocation(17, 13));
+
+        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp1.VerifyDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1").WithLocation(5, 18),
+            // (7,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             D1 => 1,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D1").WithArguments("unions").WithLocation(7, 13),
+            // (8,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D2").WithArguments("unions").WithLocation(8, 13),
+            // (16,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             C1 => 1,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C1").WithArguments("unions").WithLocation(16, 13),
+            // (17,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             C2 => 2,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C2").WithArguments("unions").WithLocation(17, 13));
+    }
+
+    [Fact]
     public void Exhaustiveness_UnionOfClosedClasses_01()
     {
         // Union with closed classes as case types
