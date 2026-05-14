@@ -58,8 +58,8 @@ internal sealed class AutoLoadProjectsInitializer(
             _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionPath);
             await StartAndReportProgressAsync(
                 () => projectSystem.OpenSolutionAsync(solutionPath),
-                string.Format(LanguageServerResources.Loading_0, solutionPath),
-                string.Format(LanguageServerResources.Loaded_0, solutionPath));
+                startMessage: string.Format(LanguageServerResources.Loading_0, solutionPath),
+                endMessage: string.Format(LanguageServerResources.Loaded_0, solutionPath));
             return;
         }
 
@@ -78,8 +78,8 @@ internal sealed class AutoLoadProjectsInitializer(
                     _logger.LogInformation("Found single solution file {SolutionFile} to auto load", solutionFiles[0]);
                     await StartAndReportProgressAsync(
                         () => projectSystem.OpenSolutionAsync(solutionFiles[0]),
-                        string.Format(LanguageServerResources.Loading_0, solutionFiles[0]),
-                        string.Format(LanguageServerResources.Loaded_0, solutionFiles[0]));
+                        startMessage: string.Format(LanguageServerResources.Loading_0, solutionFiles[0]),
+                        endMessage: string.Format(LanguageServerResources.Loaded_0, solutionFiles[0]));
                     return;
                 }
             }
@@ -99,8 +99,8 @@ internal sealed class AutoLoadProjectsInitializer(
 
         await StartAndReportProgressAsync(
             () => projectSystem.OpenProjectsAsync(projectFiles.ToImmutable()),
-            string.Format(LanguageServerResources.Loading_0_projects, projectFiles.Count),
-            string.Format(LanguageServerResources.Loaded_0_projects, projectFiles.Count));
+            startMessage: string.Format(LanguageServerResources.Loading_0_projects, projectFiles.Count),
+            endMessage: string.Format(LanguageServerResources.Loaded_0_projects, projectFiles.Count));
 
         async Task StartAndReportProgressAsync(Func<Task> loadOperation, string startMessage, string endMessage)
         {

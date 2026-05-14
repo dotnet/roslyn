@@ -30,7 +30,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
     private const string StartMessage = "Starting";
     private const string ReportMessage = "Working";
     private const string EndMessage = "Finished";
-    private const string CancelledMessage = "Cancelled";
+    private static readonly string CancelledMessage = LanguageServerProtocolResources.Cancelled;
 
     public WorkDoneProgressTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
@@ -44,7 +44,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
         var clientCallbackTarget = new ClientCallbackTarget();
         await using var server = await CreateTestServerAsync(mutatingLspWorkspace, clientCallbackTarget);
 
-        var response = await GetTestService(server).RunCompleteWorkDoneProgress();
+        await GetTestService(server).RunCompleteWorkDoneProgress();
 
         var end = await clientCallbackTarget.WaitForEndAsync();
         var progressReports = clientCallbackTarget.GetProgressReports();
@@ -92,7 +92,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
             Token = report.Token,
         });
 
-        var response = await requestTask;
+        await requestTask;
 
         var progressReports = clientCallbackTarget.GetProgressReports();
         Assert.Collection(
@@ -110,7 +110,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
         var serverCancellationTokenSource = new CancellationTokenSource();
 
         // Task to hold open the progress on the server until we've observed client cancellation.
-        var serverProgressCompletionSource = new TaskCompletionSource<bool>();
+        var serverProgressCompletionSource = new TaskCompletionSource<object?>();
         var requestTask = GetTestService(server).RunServerCancellationWorkDoneProgress(serverProgressCompletionSource, serverCancellationTokenSource.Token);
         await clientCallbackTarget.WaitForReportAsync();
 
@@ -119,7 +119,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
         await clientCallbackTarget.WaitForServerCancelledAsync();
 
         // Complete the server progress task to allow the server to finish and dispose of the progress reporter.
-        serverProgressCompletionSource.SetResult(true);
+        serverProgressCompletionSource.SetResult(null);
         await requestTask;
 
         var progressReports = clientCallbackTarget.GetProgressReports();
@@ -164,30 +164,29 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
 
     internal sealed class TestWorkDoneProgressService(WorkDoneProgressManager workDoneProgressManager) : ILspService
     {
-        public async Task<bool> RunCompleteWorkDoneProgress()
+        public async Task RunCompleteWorkDoneProgress()
         {
             await using var progress = await CreateProgressAndReport(CancellationToken.None);
-            return true;
         }
 
-        public async Task<bool> RunThrowingWorkDoneProgress()
+        public async Task RunThrowingWorkDoneProgress()
         {
             await using var progress = await CreateProgressAndReport(CancellationToken.None);
             throw new InvalidOperationException("Test progress failed.");
         }
 
-        public async Task<bool> RunClientCancellationWorkDoneProgress()
+        public async Task RunClientCancellationWorkDoneProgress()
         {
             await using var progress = await CreateProgressAndReport(CancellationToken.None);
-            return await WaitForCancellationAsync(progress.CancellationToken);
+            await WaitForCancellationAsync(progress.CancellationToken);
         }
 
-        public async Task<bool> RunServerCancellationWorkDoneProgress(TaskCompletionSource<bool> serverProgressCompletedSource, CancellationToken serverCancellationToken)
+        public async Task RunServerCancellationWorkDoneProgress(TaskCompletionSource<object?> serverProgressCompletedSource, CancellationToken serverCancellationToken)
         {
             await using var progress = await CreateProgressAndReport(serverCancellationToken);
             await WaitForCancellationAsync(serverCancellationToken);
 
-            return await serverProgressCompletedSource.Task;
+            await serverProgressCompletedSource.Task;
         }
 
         private async Task<IWorkDoneProgressReporter> CreateProgressAndReport(CancellationToken cancellationToken)
@@ -210,7 +209,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
             return progress;
         }
 
-        private static async Task<bool> WaitForCancellationAsync(CancellationToken cancellationToken)
+        private static async Task WaitForCancellationAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -219,8 +218,6 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
             }
-
-            return true;
         }
     }
 
@@ -228,9 +225,9 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
     {
         private readonly object _gate = new();
         private bool _createReceived = false;
-        private readonly TaskCompletionSource<ProgressReportParams> _reportSource = CreateTaskCompletionSource<ProgressReportParams>();
-        private readonly TaskCompletionSource<ProgressReportParams> _endSource = CreateTaskCompletionSource<ProgressReportParams>();
-        private readonly TaskCompletionSource<ProgressReportParams> _cancelledEndSource = CreateTaskCompletionSource<ProgressReportParams>();
+        private readonly TaskCompletionSource<ProgressReportParams> _reportSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<ProgressReportParams> _endSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<ProgressReportParams> _cancelledEndSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly List<ProgressReportParams> _progressReports = [];
 
         [JsonRpcMethod(Methods.WindowWorkDoneProgressCreateName, UseSingleObjectParameterDeserialization = true)]
@@ -259,7 +256,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
                     case WorkDoneProgressEnd { Message: EndMessage }:
                         _endSource.TrySetResult(progressReport);
                         break;
-                    case WorkDoneProgressEnd { Message: CancelledMessage }:
+                    case WorkDoneProgressEnd { Message: var message } when message == CancelledMessage:
                         _cancelledEndSource.TrySetResult(progressReport);
                         break;
                     case WorkDoneProgressReport:
@@ -287,9 +284,6 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
                 return [.. _progressReports];
             }
         }
-
-        private static TaskCompletionSource<T> CreateTaskCompletionSource<T>()
-            => new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private readonly record struct ProgressReportParams(

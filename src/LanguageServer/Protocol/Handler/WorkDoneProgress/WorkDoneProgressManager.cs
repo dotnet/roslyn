@@ -72,7 +72,7 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
             // Note - no need to observe client cancellation - the client does not expect an end report when it cancels.
             serverCancellationToken.Register(() =>
             {
-                clientReporter.TryReportEndAsync("Cancelled").ReportNonFatalErrorAsync();
+                clientReporter.TryReportEndAsync(LanguageServerProtocolResources.Cancelled).ReportNonFatalErrorAsync();
             });
 
             lock (_progressLock)
@@ -127,7 +127,7 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
         /// </summary>
         private readonly string _endMessage;
 
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationTokenSource _linkedCancellationSource;
 
         public CancellationToken CancellationToken { get; }
 
@@ -137,8 +137,8 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
             _endMessage = endMessage;
             _manager = manager;
             // Link the server cancellation token to the source handling client side cancellation.
-            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(serverCancellationToken);
-            CancellationToken = _cancellationTokenSource.Token;
+            _linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(serverCancellationToken);
+            CancellationToken = _linkedCancellationSource.Token;
         }
 
         public async Task SendCreateRequestAsync()
@@ -168,7 +168,7 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
         /// </summary>
         public void CancelSource_NoLock()
         {
-            _cancellationTokenSource.Cancel();
+            _linkedCancellationSource.Cancel();
         }
 
         public async ValueTask DisposeAsync()
@@ -177,9 +177,9 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
             var isDisposedByCancellation = false;
             lock (_manager._progressLock)
             {
-                isDisposedByCancellation = _cancellationTokenSource.IsCancellationRequested;
+                isDisposedByCancellation = _linkedCancellationSource.IsCancellationRequested;
                 _manager._progressReporters.Remove(_token);
-                _cancellationTokenSource.Dispose();
+                _linkedCancellationSource.Dispose();
             }
 
             // Do not send an end report if the reporter was disposed due to cancellation.
