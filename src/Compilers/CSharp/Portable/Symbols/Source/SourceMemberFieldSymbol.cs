@@ -137,6 +137,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ref attributes,
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
+
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
+            }
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        {
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics, ErrorLocation, modifyCompilation: true);
+            }
+
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
@@ -170,6 +185,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!this.IsFixedSizeBuffer, "Subclasses representing fixed fields must override");
                 state.NotePartComplete(CompletionPart.FixedSize);
                 return 0;
+            }
+        }
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (ContainingModule.UseUpdatedMemorySafetyRules &&
+                    (Modifiers & DeclarationModifiers.Unsafe) != 0 &&
+                    AssociatedSymbol is null &&
+                    !IsConst)
+                {
+                    return CallerUnsafeMode.Explicit;
+                }
+
+                return CallerUnsafeMode.None;
             }
         }
 

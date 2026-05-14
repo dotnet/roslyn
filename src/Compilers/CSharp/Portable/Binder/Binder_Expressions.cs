@@ -9819,7 +9819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureInlineArrays, diagnostics);
                 diagnostics.ReportUseSite(elementField, node);
-                AssertNotUnsafeMemberAccess(elementField); // https://github.com/dotnet/roslyn/issues/82546: Support unsafe fields?
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, elementField, node);
 
                 TypeSymbol resultType;
 
