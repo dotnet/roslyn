@@ -174,16 +174,6 @@ namespace Microsoft.CodeAnalysis
 
             public override int Length => _value.Length;
             protected override Enumerator GetEnumerator() => new Enumerator(_value);
-
-            public override bool Equals(object? obj)
-            {
-                if (obj is StringRope sr)
-                    return _value == sr._value;
-
-                return base.Equals(obj);
-            }
-
-            public override int GetHashCode() => base.GetHashCode();
         }
 
         /// <summary>
