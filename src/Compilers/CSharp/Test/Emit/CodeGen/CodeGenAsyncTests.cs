@@ -2669,15 +2669,15 @@ class Test
 
                 class Awaitable
                 {
-                    public Awaiter Property => new Awaiter();
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
                 }
 
                 class Awaiter : INotifyCompletion
                 {
-                    public bool IsCompleted => true;
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
                     public void OnCompleted(Action continuation) => throw null;
-                    public int GetResult() => 42;
-                    public Awaiter GetAwaiter() => this;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
                 }
 
                 class Test
@@ -2695,146 +2695,13 @@ class Test
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
-            verifier.VerifyIL("Test.F", """
-                {
-                  // Code size      449 (0x1c1)
-                  .maxstack  10
-                  .locals init (System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> V_0,
-                                System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> V_1,
-                                object V_2,
-                                object V_3)
-                  IL_0000:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Test.<>o__0.<>p__1"
-                  IL_0005:  brtrue.s   IL_002b
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ldtoken    "int"
-                  IL_000d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_0012:  ldtoken    "Test"
-                  IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_001c:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                  IL_0021:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_0026:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Test.<>o__0.<>p__1"
-                  IL_002b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Test.<>o__0.<>p__1"
-                  IL_0030:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
-                  IL_0035:  stloc.0
-                  IL_0036:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Test.<>o__0.<>p__1"
-                  IL_003b:  stloc.1
-                  IL_003c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__0"
-                  IL_0041:  brtrue.s   IL_0073
-                  IL_0043:  ldc.i4.0
-                  IL_0044:  ldstr      "GetAwaiter"
-                  IL_0049:  ldnull
-                  IL_004a:  ldtoken    "Test"
-                  IL_004f:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_0054:  ldc.i4.1
-                  IL_0055:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                  IL_005a:  dup
-                  IL_005b:  ldc.i4.0
-                  IL_005c:  ldc.i4.0
-                  IL_005d:  ldnull
-                  IL_005e:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                  IL_0063:  stelem.ref
-                  IL_0064:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                  IL_0069:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_006e:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__0"
-                  IL_0073:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__0"
-                  IL_0078:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
-                  IL_007d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__0"
-                  IL_0082:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
-                  IL_0087:  brtrue.s   IL_00b8
-                  IL_0089:  ldc.i4.0
-                  IL_008a:  ldstr      "Property"
-                  IL_008f:  ldtoken    "Test"
-                  IL_0094:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_0099:  ldc.i4.1
-                  IL_009a:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                  IL_009f:  dup
-                  IL_00a0:  ldc.i4.0
-                  IL_00a1:  ldc.i4.0
-                  IL_00a2:  ldnull
-                  IL_00a3:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                  IL_00a8:  stelem.ref
-                  IL_00a9:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                  IL_00ae:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_00b3:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
-                  IL_00b8:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
-                  IL_00bd:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
-                  IL_00c2:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
-                  IL_00c7:  ldarg.0
-                  IL_00c8:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_00cd:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_00d2:  stloc.3
-                  IL_00d3:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__-2|0.<>p__2"
-                  IL_00d8:  brtrue.s   IL_00ff
-                  IL_00da:  ldc.i4.s   16
-                  IL_00dc:  ldtoken    "bool"
-                  IL_00e1:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_00e6:  ldtoken    "Test"
-                  IL_00eb:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_00f0:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                  IL_00f5:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_00fa:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__-2|0.<>p__2"
-                  IL_00ff:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__-2|0.<>p__2"
-                  IL_0104:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Target"
-                  IL_0109:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__-2|0.<>p__2"
-                  IL_010e:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__1"
-                  IL_0113:  brtrue.s   IL_0144
-                  IL_0115:  ldc.i4.0
-                  IL_0116:  ldstr      "IsCompleted"
-                  IL_011b:  ldtoken    "Test"
-                  IL_0120:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_0125:  ldc.i4.1
-                  IL_0126:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                  IL_012b:  dup
-                  IL_012c:  ldc.i4.0
-                  IL_012d:  ldc.i4.0
-                  IL_012e:  ldnull
-                  IL_012f:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                  IL_0134:  stelem.ref
-                  IL_0135:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                  IL_013a:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_013f:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__1"
-                  IL_0144:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__1"
-                  IL_0149:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
-                  IL_014e:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__1"
-                  IL_0153:  ldloc.3
-                  IL_0154:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_0159:  callvirt   "bool System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_015e:  brtrue.s   IL_016b
-                  IL_0160:  ldloc.3
-                  IL_0161:  castclass  "System.Runtime.CompilerServices.INotifyCompletion"
-                  IL_0166:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Runtime.CompilerServices.INotifyCompletion>(System.Runtime.CompilerServices.INotifyCompletion)"
-                  IL_016b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_0170:  brtrue.s   IL_01a2
-                  IL_0172:  ldc.i4.0
-                  IL_0173:  ldstr      "GetResult"
-                  IL_0178:  ldnull
-                  IL_0179:  ldtoken    "Test"
-                  IL_017e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_0183:  ldc.i4.1
-                  IL_0184:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                  IL_0189:  dup
-                  IL_018a:  ldc.i4.0
-                  IL_018b:  ldc.i4.0
-                  IL_018c:  ldnull
-                  IL_018d:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                  IL_0192:  stelem.ref
-                  IL_0193:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                  IL_0198:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_019d:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_01a2:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_01a7:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
-                  IL_01ac:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_01b1:  ldloc.3
-                  IL_01b2:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_01b7:  stloc.2
-                  IL_01b8:  ldloc.0
-                  IL_01b9:  ldloc.1
-                  IL_01ba:  ldloc.2
-                  IL_01bb:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_01c0:  ret
-                }
-                """);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
         }
 
         [Fact]
@@ -2847,15 +2714,15 @@ class Test
 
                 class Awaitable
                 {
-                    public Awaiter Property => new Awaiter();
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
                 }
 
                 class Awaiter : INotifyCompletion
                 {
-                    public bool IsCompleted => true;
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
                     public void OnCompleted(Action continuation) => throw null;
-                    public void GetResult() { }
-                    public Awaiter GetAwaiter() => this;
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
                 }
 
                 class Test
@@ -2874,125 +2741,155 @@ class Test
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
-            verifier.VerifyIL("Test.F", """
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_NotCompleted()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
                 {
-                  // Code size      391 (0x187)
-                  .maxstack  10
-                  .locals init (object V_0)
-                  IL_0000:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__0"
-                  IL_0005:  brtrue.s   IL_0037
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ldstr      "GetAwaiter"
-                  IL_000d:  ldnull
-                  IL_000e:  ldtoken    "Test"
-                  IL_0013:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_0018:  ldc.i4.1
-                  IL_0019:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                  IL_001e:  dup
-                  IL_001f:  ldc.i4.0
-                  IL_0020:  ldc.i4.0
-                  IL_0021:  ldnull
-                  IL_0022:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                  IL_0027:  stelem.ref
-                  IL_0028:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                  IL_002d:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_0032:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__0"
-                  IL_0037:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__0"
-                  IL_003c:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
-                  IL_0041:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__0"
-                  IL_0046:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
-                  IL_004b:  brtrue.s   IL_007c
-                  IL_004d:  ldc.i4.0
-                  IL_004e:  ldstr      "Property"
-                  IL_0053:  ldtoken    "Test"
-                  IL_0058:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_005d:  ldc.i4.1
-                  IL_005e:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                  IL_0063:  dup
-                  IL_0064:  ldc.i4.0
-                  IL_0065:  ldc.i4.0
-                  IL_0066:  ldnull
-                  IL_0067:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                  IL_006c:  stelem.ref
-                  IL_006d:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                  IL_0072:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_0077:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
-                  IL_007c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
-                  IL_0081:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
-                  IL_0086:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
-                  IL_008b:  ldarg.0
-                  IL_008c:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_0091:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_0096:  stloc.0
-                  IL_0097:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__-2|0.<>p__2"
-                  IL_009c:  brtrue.s   IL_00c3
-                  IL_009e:  ldc.i4.s   16
-                  IL_00a0:  ldtoken    "bool"
-                  IL_00a5:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_00aa:  ldtoken    "Test"
-                  IL_00af:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_00b4:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                  IL_00b9:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_00be:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__-2|0.<>p__2"
-                  IL_00c3:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__-2|0.<>p__2"
-                  IL_00c8:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Target"
-                  IL_00cd:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__-2|0.<>p__2"
-                  IL_00d2:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__1"
-                  IL_00d7:  brtrue.s   IL_0108
-                  IL_00d9:  ldc.i4.0
-                  IL_00da:  ldstr      "IsCompleted"
-                  IL_00df:  ldtoken    "Test"
-                  IL_00e4:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_00e9:  ldc.i4.1
-                  IL_00ea:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                  IL_00ef:  dup
-                  IL_00f0:  ldc.i4.0
-                  IL_00f1:  ldc.i4.0
-                  IL_00f2:  ldnull
-                  IL_00f3:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                  IL_00f8:  stelem.ref
-                  IL_00f9:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                  IL_00fe:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_0103:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__1"
-                  IL_0108:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__1"
-                  IL_010d:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
-                  IL_0112:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__-2|0.<>p__1"
-                  IL_0117:  ldloc.0
-                  IL_0118:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_011d:  callvirt   "bool System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_0122:  brtrue.s   IL_012f
-                  IL_0124:  ldloc.0
-                  IL_0125:  castclass  "System.Runtime.CompilerServices.INotifyCompletion"
-                  IL_012a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Runtime.CompilerServices.INotifyCompletion>(System.Runtime.CompilerServices.INotifyCompletion)"
-                  IL_012f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_0134:  brtrue.s   IL_016a
-                  IL_0136:  ldc.i4     0x100
-                  IL_013b:  ldstr      "GetResult"
-                  IL_0140:  ldnull
-                  IL_0141:  ldtoken    "Test"
-                  IL_0146:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_014b:  ldc.i4.1
-                  IL_014c:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                  IL_0151:  dup
-                  IL_0152:  ldc.i4.0
-                  IL_0153:  ldc.i4.0
-                  IL_0154:  ldnull
-                  IL_0155:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                  IL_015a:  stelem.ref
-                  IL_015b:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                  IL_0160:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_0165:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_016a:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_016f:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>>.Target"
-                  IL_0174:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__-2|0.<>p__3"
-                  IL_0179:  ldloc.0
-                  IL_017a:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_017f:  ldc.i4.s   42
-                  IL_0181:  call       "void System.Console.WriteLine(int)"
-                  IL_0186:  ret
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
                 }
-                """);
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_VoidResult_NotCompleted()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_NotCompleted_NotINotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            Console.WriteLine(F(new Awaitable()).Result);
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is InvalidCastException)
+                        {
+                            Console.WriteLine("InvalidCastException");
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                InvalidCastException
+                """), verify: Verification.Fails);
         }
 
         [Fact]
