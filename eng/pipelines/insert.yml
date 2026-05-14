@@ -20,6 +20,7 @@ parameters:
 
   - name: devDivAzdoToken
     type: string
+    default: ''
   - name: dncEngAzureSubscription
     type: string
     default: 'DncEng Insertion: Roslyn and Razor'
