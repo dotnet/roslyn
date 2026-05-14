@@ -98,6 +98,7 @@ internal sealed class RazorStartupServiceFactory(
 
             using var languageScope = context.Logger.CreateLanguageContext(LanguageInfoProvider.RazorLanguageName);
             var startupServices = _lazyStartupServices.SelectAndOrderByAsArray(p => p.Value, p => p.Order);
+            var vsClientCapabilities = clientCapabilities.ToVSInternalClientCapabilities();
 
             foreach (var startupService in startupServices)
             {
@@ -109,7 +110,7 @@ internal sealed class RazorStartupServiceFactory(
 
                 try
                 {
-                    await startupService.StartupAsync(clientCapabilities.ToVSInternalClientCapabilities(), context, cancellationToken).ConfigureAwait(false);
+                    await startupService.StartupAsync(vsClientCapabilities, context, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
