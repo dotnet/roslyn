@@ -5,8 +5,8 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 
@@ -42,7 +42,7 @@ internal sealed class CohostPrepareRenameEndpoint(
             razorDocument,
             new PrepareRenameParams
             {
-                TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.CreateDocumentUri() },
+                TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.GetURI() },
                 Position = position
             },
             cancellationToken).ConfigureAwait(false);

@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
@@ -62,7 +62,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.CreateDocumentUri()
+                DocumentUri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = new VSInternalCompletionContext()
@@ -91,7 +91,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
 
         var tdi = resolveEndpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(itemToResolve);
         Assert.NotNull(tdi);
-        Assert.Equal(document.CreateUri(), tdi!.DocumentUri.ParsedUri);
+        Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
         var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, DisposalToken);
 

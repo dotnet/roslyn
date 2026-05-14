@@ -7,8 +7,8 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -92,7 +92,7 @@ internal sealed class CohostFoldingRangeEndpoint(
     {
         var foldingRangeParams = new FoldingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.CreateDocumentUri() }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.GetURI() }
         };
 
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<FoldingRangeParams, FoldingRange[]>(
