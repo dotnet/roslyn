@@ -2723,7 +2723,8 @@ class Test
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
+            var verifier1 = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
+            verifier1.VerifyIL("Test.F", "WRONG1");
         }
 
         [Fact]
@@ -2763,7 +2764,8 @@ class Test
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
+            var verifier2 = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
+            verifier2.VerifyIL("Test.F", "WRONG2");
         }
 
         [Fact]
@@ -2796,7 +2798,8 @@ class Test
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
+            var verifier3 = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
+            verifier3.VerifyIL("Test.F", "WRONG3");
         }
 
         [Fact]
