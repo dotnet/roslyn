@@ -4178,6 +4178,57 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://developercommunity.visualstudio.com/t/Razor-Development:-After-Unpinning-Micr/10961132")]
+    public void BindToComponent_WithAfter_InsideTemplateWithDiscardContext()
+    {
+        // Arrange
+        // Reproduces a bug where the design-time `_ = nameof(...)` discard emitted by
+        // the Razor compiler for @bind:set/event/after parameters collides with a
+        // user-named lambda parameter `_` introduced by `Context="_"` on a templated
+        // parent component. The collision causes the compiler to interpret the
+        // discard as an assignment to the template's `_` context parameter, producing
+        // CS0029 (cannot convert string to <context type>) and cascading CS1662s on
+        // the wrapping template lambdas.
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class FilterContext { }
+
+    public class OuterComponent : ComponentBase
+    {
+        [Parameter]
+        public RenderFragment<FilterContext> ChildContent { get; set; }
+    }
+
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public int Value { get; set; }
+
+        [Parameter]
+        public EventCallback<int> ValueChanged { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<OuterComponent Context=""_"">
+    <MyComponent @bind-Value=""ParentValue"" @bind-Value:after=""OnAfter"" />
+</OuterComponent>
+@code {
+    public int ParentValue { get; set; } = 42;
+    public void OnAfter() { }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void BindToComponent_WithAfter_EventCallback_ReceivesFunction()
     {

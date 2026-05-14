@@ -15,6 +15,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\RazorOnAutoInsertProviderTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateConversionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateDeconstructMethodTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ImplementInterfaceTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ImplementAbstractClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateMethodTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateConstructorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateFieldTests.cs" />
@@ -47,6 +49,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentHighlightEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentPullDiagnosticsTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentSymbolEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostCallHierarchyEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostFindAllReferencesEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostFoldingRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostGeneratedDocumentContentsEndpointTest.cs" />
@@ -56,6 +59,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostInlayHintEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostLinkedEditingRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostOnAutoInsertEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostPrepareRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSelectionRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensRangeEndpointTest.cs" />

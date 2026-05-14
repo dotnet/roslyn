@@ -44,7 +44,7 @@ value => { ParentValue = value; return Task.CompletedTask; }
 #line hidden
 #nullable disable
             ));
-             _ = nameof(global::Test.MyComponent.
+             var (_, _) = (nameof(global::Test.MyComponent.
 #nullable restore
 #line (1,50)-(1,55) "x:\dir\subdir\Test\TestComponent.cshtml"
 Value
@@ -52,7 +52,7 @@ Value
 #line default
 #line hidden
 #nullable disable
-            );
+            ), 0);
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

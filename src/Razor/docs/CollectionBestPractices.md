@@ -252,9 +252,7 @@ using (pool.GetPooledArraySpan(minimumLength: 42, out var span)
 ```
 
 # Object Pools
-- Razor provides object pooling facilities based on
-  [Microsoft.Extensions.ObjectPool](https://www.nuget.org/packages/Microsoft.Extensions.ObjectPool/) (which was
-  originally based on Roslyn’s `ObjectPool<T>`) along with several premade pools for many collection types in the
+- Razor provides object pooling facilities backed by Roslyn’s pooled-object implementation, along with several premade pools for many collection types in the
   [Microsoft.AspNetCore.Razor.PooledObjects](https://github.com/dotnet/razor/tree/5c0677ad275e64300b897de0f6e8856ebe13f07b/src/Shared/Microsoft.AspNetCore.Razor.Utilities.Shared/PooledObjects)
   namespace. These can be used to acquire temporary collections to use for work and return when finished.
 

@@ -9,5 +9,5 @@ namespace Roslyn.LanguageServer.Protocol;
 internal static partial class LspExtensions
 {
     public static void Deconstruct(this LspLocation position, out Uri uri, out LspRange range)
-        => (uri, range) = (position.DocumentUri.GetRequiredParsedUri(), position.Range);
+        => (uri, range) = (position.DocumentUri.GetRequiredSystemUri(), position.Range);
 }

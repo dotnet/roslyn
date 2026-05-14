@@ -85,9 +85,8 @@ internal class ExtractToCssCodeActionProvider(ILoggerFactory loggerFactory) : IR
             RemoveEnd = markupElement.Span.End
         };
 
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.ExtractToCss,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = context.DelegatedDocumentUri,

@@ -3047,7 +3047,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
                     // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
                     // https://github.com/dotnet/roslyn/issues/82546: Confirm this rule with LDM.
-                    if (boundStackAlloc.InitializerOpt is null &&
+                    if (Compilation.SourceModule.UseUpdatedMemorySafetyRules &&
+                        boundStackAlloc.InitializerOpt is null &&
                         ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false })
                     {
                         ReportUnsafeIfNotAllowed(syntax, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
