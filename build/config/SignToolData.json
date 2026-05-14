@@ -205,7 +205,6 @@
     "Microsoft.VisualStudio.Threading.resources.dll",
     "Microsoft.VisualStudio.Validation.dll",
     "Microsoft.Win32.Primitives.dll",
-
     "NuGet.CommandLine.2.8.5.nupkg",
     "StreamJsonRpc.dll",
     "StreamJsonRpc.resources.dll",
