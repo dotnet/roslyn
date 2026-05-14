@@ -282,33 +282,80 @@ internal sealed class SumConverter<T> : JsonConverter<T>
 
     private static bool IsTokenCompatibleWithType(ref Utf8JsonReader reader, SumConverter.SumTypeInfoCache.UnionTypeInfo unionTypeInfo)
     {
-        var isCompatible = true;
-        switch (reader.TokenType)
+        return IsTokenCompatibleWithType(ref reader, unionTypeInfo.Type);
+    }
+
+    private static bool IsTokenCompatibleWithType(ref Utf8JsonReader reader, Type type)
+    {
+        return reader.TokenType switch
         {
-            case JsonTokenType.True:
-            case JsonTokenType.False:
-                isCompatible = unionTypeInfo.Type == typeof(bool);
-                break;
-            case JsonTokenType.Number:
-                isCompatible = unionTypeInfo.Type == typeof(int) ||
-                               unionTypeInfo.Type == typeof(uint) ||
-                               unionTypeInfo.Type == typeof(long) ||
-                               unionTypeInfo.Type == typeof(ulong) ||
-                               unionTypeInfo.Type == typeof(short) ||
-                               unionTypeInfo.Type == typeof(ushort) ||
-                               unionTypeInfo.Type == typeof(byte) ||
-                               unionTypeInfo.Type == typeof(sbyte) ||
-                               unionTypeInfo.Type == typeof(double) ||
-                               unionTypeInfo.Type == typeof(float);
-                break;
-            case JsonTokenType.String:
-                isCompatible = unionTypeInfo.Type == typeof(string) ||
-                               unionTypeInfo.Type == typeof(Uri) ||
-                               unionTypeInfo.Type == typeof(DocumentUri) ||
-                               typeof(IStringEnum).IsAssignableFrom(unionTypeInfo.Type);
-                break;
+            JsonTokenType.True or JsonTokenType.False
+                => type == typeof(bool),
+            JsonTokenType.Number
+                => type == typeof(int) || type == typeof(uint) ||
+                   type == typeof(long) || type == typeof(ulong) ||
+                   type == typeof(short) || type == typeof(ushort) ||
+                   type == typeof(byte) || type == typeof(sbyte) ||
+                   type == typeof(double) || type == typeof(float),
+            JsonTokenType.String
+                => type == typeof(string) ||
+                   type == typeof(Uri) ||
+                   type == typeof(DocumentUri) ||
+                   typeof(IStringEnum).IsAssignableFrom(type),
+            JsonTokenType.StartObject
+                => !IsSerializedAsJsonPrimitiveType(type),
+            JsonTokenType.StartArray
+                => IsArrayElementCompatible(ref reader, type),
+            _ => true,
+        };
+    }
+
+    /// <summary>
+    /// Returns true for types that are serialized as JSON primitives (strings, numbers, booleans)
+    /// rather than JSON objects. Used by array element peeking to reject incompatible element types.
+    /// </summary>
+    private static bool IsSerializedAsJsonPrimitiveType(Type type)
+    {
+        return type == typeof(bool) ||
+               type == typeof(string) ||
+               type == typeof(Uri) ||
+               type == typeof(DocumentUri) ||
+               typeof(IStringEnum).IsAssignableFrom(type) ||
+               type == typeof(int) || type == typeof(uint) ||
+               type == typeof(long) || type == typeof(ulong) ||
+               type == typeof(short) || type == typeof(ushort) ||
+               type == typeof(byte) || type == typeof(sbyte) ||
+               type == typeof(double) || type == typeof(float);
+    }
+
+    /// <summary>
+    /// For array SumType variants, peeks at the first array element to determine compatibility.
+    /// This avoids costly exception-based type probing (e.g., trying to deserialize
+    /// VSInternalCommitCharacter[] as string[] which throws InvalidOperationException per attempt).
+    /// </summary>
+    private static bool IsArrayElementCompatible(ref Utf8JsonReader reader, Type arrayType)
+    {
+        if (!arrayType.IsArray)
+        {
+            return false;
         }
 
-        return isCompatible;
+        var elementType = arrayType.GetElementType()!;
+
+        // Peek at first array element to disambiguate array types.
+        var peekReader = reader;
+        if (!peekReader.Read())
+        {
+            // Can't read into the array — let the normal try/catch handle it.
+            return true;
+        }
+
+        // Empty array is compatible with any array type.
+        if (peekReader.TokenType == JsonTokenType.EndArray)
+        {
+            return true;
+        }
+
+        return IsTokenCompatibleWithType(ref peekReader, elementType);
     }
 }
