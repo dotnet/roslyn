@@ -613,7 +613,7 @@ function Deploy-VsixViaTool() {
       Remove-Item -re -fo $extDir
     }
 
-    Write-Host "Installing all Roslyn VSIX"
+    Write-Host "Installing all Roslyn and Razor VSIXs"
 
     # VSIX files need to be installed in this specific order:
     $orderedVsixFileNames = @(
