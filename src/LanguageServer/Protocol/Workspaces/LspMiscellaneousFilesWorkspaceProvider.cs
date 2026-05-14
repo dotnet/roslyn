@@ -40,11 +40,7 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
 
     private TextDocument? AddMiscellaneousDocument(DocumentUri uri, SourceText documentText, string languageId)
     {
-        var documentFilePath = uri.UriString;
-        if (uri.ParsedUri is not null)
-        {
-            documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri);
-        }
+        var documentFilePath = uri.GetDocumentFilePathFromUri();
 
         var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();
         if (!languageInfoProvider.TryGetLanguageInformation(uri, languageId, out var languageInformation))

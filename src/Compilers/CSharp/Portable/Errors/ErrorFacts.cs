@@ -210,7 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
-                case ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules:
                 case ErrorCode.WRN_UnsafeMeaningless:
                     // Warning level 11 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 11 (C# 15) and that can be reported for pre-existing code.
@@ -2579,8 +2578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CallerUnsafeOverridingSafe
                 or ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe
                 or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
-                or ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget
-                or ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules
                 or ErrorCode.ERR_ExpressionTreeContainsUnionConversion
                 or ErrorCode.ERR_UnionDeclarationNeedsCaseTypes
                 or ErrorCode.ERR_NoImplicitConversionToObject
@@ -2590,6 +2587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnionConstructorCallsDefaultConstructor
                 or ErrorCode.ERR_UnsafeConstructorConstraint
                 or ErrorCode.WRN_UnsafeMeaningless
+                or ErrorCode.ERR_RequiresUnsafeAttributeInSource
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

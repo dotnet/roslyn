@@ -125,16 +125,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyAnalyzersArgumentForStaticApis(analyzers);
         }
 
-        private static void VerifyAnalyzersArgumentForStaticApis(ImmutableArray<DiagnosticAnalyzer> analyzers, bool allowDefaultOrEmpty = false)
+        private static void VerifyAnalyzersArgumentForStaticApis(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            if (analyzers.IsDefaultOrEmpty)
+            if (analyzers.IsDefault)
             {
-                if (allowDefaultOrEmpty)
-                {
-                    return;
-                }
-
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(analyzers));
+                throw new ArgumentNullException(nameof(analyzers));
             }
 
             if (analyzers.Any(static a => a == null))

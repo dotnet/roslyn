@@ -1,0 +1,30 @@
+﻿RazorDocument - [0..24)::24 - [<foo><?xml @foo ?></foo>]
+    MarkupBlock - [0..24)::24
+        MarkupElement - [0..24)::24
+            MarkupStartTag - [0..5)::5 - [<foo>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[foo];
+                CloseAngle;[>];
+            MarkupTextLiteral - [5..11)::6 - [<?xml ] - Gen<Markup>
+                OpenAngle;[<];
+                QuestionMark;[?];
+                Text;[xml];
+                Whitespace;[ ];
+            CSharpCodeBlock - [11..15)::4
+                CSharpImplicitExpression - [11..15)::4
+                    CSharpTransition - [11..12)::1 - Gen<None>
+                        Transition;[@];
+                    CSharpImplicitExpressionBody - [12..15)::3
+                        CSharpCodeBlock - [12..15)::3
+                            CSharpExpressionLiteral - [12..15)::3 - [foo] - Gen<Expr>
+                                Identifier;[foo];
+            MarkupTextLiteral - [15..18)::3 - [ ?>] - Gen<Markup>
+                Whitespace;[ ];
+                QuestionMark;[?];
+                CloseAngle;[>];
+            MarkupEndTag - [18..24)::6 - [</foo>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[foo];
+                CloseAngle;[>];
+    EndOfFile;[];
