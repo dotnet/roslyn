@@ -184,7 +184,7 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
 
             // Do not send an end report if the reporter was disposed due to cancellation.
             // If the client cancelled, the client is not expecting an end report.
-            // If the server cancelled, we have/will send a report in the cancellation callback registered in the constructor.
+            // If the server cancelled, we have/will send a report in the cancellation callback registered in CreateWorkDoneProgressAsync.
             if (!isDisposedByCancellation)
             {
                 await TryReportEndAsync(_endMessage).ConfigureAwait(false);

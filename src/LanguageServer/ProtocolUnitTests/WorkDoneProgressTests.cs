@@ -109,7 +109,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
 
         var serverCancellationTokenSource = new CancellationTokenSource();
 
-        // Task to hold open the progress on the server until we've observed client cancellation.
+        // Task to hold open the progress on the server until we've observed the server cancellation on the client.
         var serverProgressCompletionSource = new TaskCompletionSource<object?>();
         var requestTask = GetTestService(server).RunServerCancellationWorkDoneProgress(serverProgressCompletionSource, serverCancellationTokenSource.Token);
         await clientCallbackTarget.WaitForReportAsync();
