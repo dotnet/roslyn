@@ -3817,6 +3817,18 @@ class Program
         System.Console.Write(Test2(new C1()));
         System.Console.Write(Test2(new C1(""11"")));
         System.Console.Write(Test2(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(11)));
+        System.Console.Write(Test3(new S1()));
+        System.Console.Write(Test3(new S1(""11"")));
+        System.Console.Write(Test3(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new C1(11)));
+        System.Console.Write(Test4(new C1()));
+        System.Console.Write(Test4(new C1(""11"")));
+        System.Console.Write(Test4(null));
     }
 
     static bool Test1(S1? u)
@@ -3828,10 +3840,20 @@ class Program
     {
         return u is not null;
     }   
+
+    static bool Test3(S1? u)
+    {
+        return u is not not null;
+    }   
+
+    static bool Test4(C1 u)
+    {
+        return u is not not null;
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalse TrueFalseTrueFalse").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalse TrueFalseTrueFalse FalseTrueFalseFalse FalseTrueFalseFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
 {
@@ -3864,6 +3886,43 @@ class Program
   IL_0004:  callvirt   ""object C1.Value.get""
   IL_0009:  ldnull
   IL_000a:  cgt.un
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1?.HasValue.get""
+  IL_0007:  brfalse.s  IL_001c
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object S1.Value.get""
+  IL_0018:  ldnull
+  IL_0019:  ceq
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000d
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C1.Value.get""
+  IL_0009:  ldnull
+  IL_000a:  ceq
   IL_000c:  ret
   IL_000d:  ldc.i4.0
   IL_000e:  ret
@@ -9943,6 +10002,27 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/83666")]
+        public void Exhaustiveness_15()
+        {
+            var src = @"
+#nullable enable
+
+public union IntUnion(int);
+
+public static class Repro
+{
+    public static object Deconstruct(IntUnion value) => value switch
+    {
+        int i => i,
+    };
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void EmptyUnion_01()
         {
             var src = @"
@@ -14720,11 +14800,25 @@ class Program
         _ = s switch { int => 1, bool => 3 };
     } 
 
+    static void Test2()
+    {
+#line 200
+        S1 s = default;
+        s.Value.ToString();
+    } 
+
     static void Test3()
     {
 #line 300
         S2 s = default;
         _ = s switch { int => 1, bool => 3 };
+    } 
+
+    static void Test4()
+    {
+#line 400
+        S2 s = default;
+        s.Value.ToString();
     } 
 }
 ";
@@ -14732,7 +14826,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (101,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s switch { int => 1, bool => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(101, 15)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(101, 15),
+                // (201,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(201, 9)
                 );
         }
 
