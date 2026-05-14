@@ -4,122 +4,122 @@
     <body>
       <trans-unit id="cmdIdShowAllTagHelpers|ButtonText">
         <source>Show All Tag Helpers</source>
-        <target state="new">Show All Tag Helpers</target>
+        <target state="translated">Mostrar todos los asistentes de etiquetas</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowInScopeTagHelpers|ButtonText">
         <source>Show In Scope Tag Helpers</source>
-        <target state="new">Show In Scope Tag Helpers</target>
+        <target state="translated">Mostrar asistentes de etiquetas de ámbito</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowReferencedTagHelpers|ButtonText">
         <source>Show Referenced Tag Helpers</source>
-        <target state="new">Show Referenced Tag Helpers</target>
+        <target state="translated">Mostrar asistentes de etiquetas a los que se hace referencia</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddNestedCsFileEditor|ButtonText">
         <source>Add Nested .cs File</source>
-        <target state="new">Add Nested .cs File</target>
+        <target state="translated">Agregar archivo de .cs anidado</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddNestedCsFileEditor|CommandName">
         <source>AddNestedCsFileEditor</source>
-        <target state="new">AddNestedCsFileEditor</target>
+        <target state="translated">AddNestedCsFileEditor</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddNestedCsFileEditor|LocCanonicalName">
         <source>AddNestedCsFileEditor</source>
-        <target state="new">AddNestedCsFileEditor</target>
+        <target state="translated">AddNestedCsFileEditor</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddOrViewNestedCsFile|ButtonText">
         <source>Add or View Nested .cs File</source>
-        <target state="new">Add or View Nested .cs File</target>
+        <target state="translated">Agregar o ver archivo de .cs anidado</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddOrViewNestedCsFile|CommandName">
         <source>AddOrViewNestedCsFile</source>
-        <target state="new">AddOrViewNestedCsFile</target>
+        <target state="translated">AddOrViewNestedCsFile</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddOrViewNestedCsFile|LocCanonicalName">
         <source>AddOrViewNestedCsFile</source>
-        <target state="new">AddOrViewNestedCsFile</target>
+        <target state="translated">AddOrViewNestedCsFile</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddOrViewNestedCssFile|ButtonText">
         <source>Add or View Nested .css File</source>
-        <target state="new">Add or View Nested .css File</target>
+        <target state="translated">Agregar o ver archivo de .css anidado</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddOrViewNestedCssFile|CommandName">
         <source>AddOrViewNestedCssFile</source>
-        <target state="new">AddOrViewNestedCssFile</target>
+        <target state="translated">AddOrViewNestedCssFile</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddOrViewNestedCssFile|LocCanonicalName">
         <source>AddOrViewNestedCssFile</source>
-        <target state="new">AddOrViewNestedCssFile</target>
+        <target state="translated">AddOrViewNestedCssFile</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddOrViewNestedJsFile|ButtonText">
         <source>Add or View Nested .js File</source>
-        <target state="new">Add or View Nested .js File</target>
+        <target state="translated">Agregar o ver archivo de .js anidado</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddOrViewNestedJsFile|CommandName">
         <source>AddOrViewNestedJsFile</source>
-        <target state="new">AddOrViewNestedJsFile</target>
+        <target state="translated">AddOrViewNestedJsFile</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddOrViewNestedJsFile|LocCanonicalName">
         <source>AddOrViewNestedJsFile</source>
-        <target state="new">AddOrViewNestedJsFile</target>
+        <target state="translated">AddOrViewNestedJsFile</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRazorSyntaxVisualizer|ButtonText">
         <source>Razor Syntax Visualizer</source>
-        <target state="new">Razor Syntax Visualizer</target>
+        <target state="translated">Razor Syntax Visualizer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRazorSyntaxVisualizer|CommandName">
         <source>RazorSyntaxVisualizer</source>
-        <target state="new">RazorSyntaxVisualizer</target>
+        <target state="translated">RazorSyntaxVisualizer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidShowFormattingDocument|ButtonText">
         <source>Show Formatting Document</source>
-        <target state="new">Show Formatting Document</target>
+        <target state="translated">Mostrar documento de formato</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidShowGeneratedCode|ButtonText">
         <source>Show Generated C#</source>
-        <target state="new">Show Generated C#</target>
+        <target state="translated">Mostrar C# generado</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
         <source>Show Generated HTML</source>
-        <target state="new">Show Generated HTML</target>
+        <target state="translated">Mostrar HTML generado</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidViewPageEditor|ButtonText">
         <source>View Page</source>
-        <target state="new">View Page</target>
+        <target state="translated">Ver página</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidViewPageEditor|CommandName">
         <source>ViewPageEditor</source>
-        <target state="new">ViewPageEditor</target>
+        <target state="translated">ViewPageEditor</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidViewPageEditor|LocCanonicalName">
         <source>ViewPageEditor</source>
-        <target state="new">ViewPageEditor</target>
+        <target state="translated">ViewPageEditor</target>
         <note />
       </trans-unit>
       <trans-unit id="menuidToolWindowToolbar|ButtonText">
         <source>Razor Syntax Visualizer</source>
-        <target state="new">Razor Syntax Visualizer</target>
+        <target state="translated">Razor Syntax Visualizer</target>
         <note />
       </trans-unit>
     </body>

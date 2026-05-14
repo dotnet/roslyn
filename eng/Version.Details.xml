@@ -153,9 +153,5 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>547c640d5626b2976499cb3433abc741a63d67c5</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.ObjectPool" Version="10.0.1">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>373d4826c58ac2f1c8d49fdaf31bc9eddf9e7437</Sha>
-    </Dependency>
   </ToolsetDependencies>
 </Dependencies>

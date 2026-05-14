@@ -9,8 +9,6 @@ This file should be imported by eng/Versions.props
     <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26257.4</MicrosoftDotNetArcadeSdkPackageVersion>
     <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26257.4</MicrosoftDotNetHelixSdkPackageVersion>
     <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26257.4</MicrosoftDotNetXliffTasksPackageVersion>
-    <!-- dotnet-aspnetcore dependencies -->
-    <MicrosoftExtensionsObjectPoolPackageVersion>10.0.1</MicrosoftExtensionsObjectPoolPackageVersion>
     <!-- dotnet-dotnet dependencies -->
     <MicrosoftBclAsyncInterfacesPackageVersion>10.0.1</MicrosoftBclAsyncInterfacesPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>10.0.1</MicrosoftExtensionsConfigurationPackageVersion>
@@ -54,8 +52,6 @@ This file should be imported by eng/Versions.props
     <MicrosoftDotNetArcadeSdkVersion>$(MicrosoftDotNetArcadeSdkPackageVersion)</MicrosoftDotNetArcadeSdkVersion>
     <MicrosoftDotNetHelixSdkVersion>$(MicrosoftDotNetHelixSdkPackageVersion)</MicrosoftDotNetHelixSdkVersion>
     <MicrosoftDotNetXliffTasksVersion>$(MicrosoftDotNetXliffTasksPackageVersion)</MicrosoftDotNetXliffTasksVersion>
-    <!-- dotnet-aspnetcore dependencies -->
-    <MicrosoftExtensionsObjectPoolVersion>$(MicrosoftExtensionsObjectPoolPackageVersion)</MicrosoftExtensionsObjectPoolVersion>
     <!-- dotnet-dotnet dependencies -->
     <MicrosoftBclAsyncInterfacesVersion>$(MicrosoftBclAsyncInterfacesPackageVersion)</MicrosoftBclAsyncInterfacesVersion>
     <MicrosoftExtensionsConfigurationVersion>$(MicrosoftExtensionsConfigurationPackageVersion)</MicrosoftExtensionsConfigurationVersion>
