@@ -3654,6 +3654,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (100,19): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'U<T1>'
             //     public U<int> u = null!;
             Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "u").WithArguments("U<T1>", "T1", "int").WithLocation(100, 19),
+            // (100,23): error CS0037: Cannot convert null to 'U<int>' because it is a non-nullable value type
+            //     public U<int> u = null!;
+            Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("U<int>").WithLocation(100, 23),
             // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             //         return u switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(200, 18),
