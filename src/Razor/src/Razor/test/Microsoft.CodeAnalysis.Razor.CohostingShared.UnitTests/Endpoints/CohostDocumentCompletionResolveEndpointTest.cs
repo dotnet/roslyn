@@ -94,7 +94,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(request);
         Assert.NotNull(tdi);
-        Assert.Equal(document.GetURI(), new(tdi.Value.Uri));
+        Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 

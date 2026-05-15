@@ -91,7 +91,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
 
         var tdi = resolveEndpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(itemToResolve);
         Assert.NotNull(tdi);
-        Assert.Equal(document.GetURI(), new(tdi.Value.Uri));
+        Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
         var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, DisposalToken);
 

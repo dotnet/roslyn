@@ -45,8 +45,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_Razor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_ThroughMember.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceCodeFixTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceCodeFixTests_Razor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceCodeFixTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AddYieldTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\ChangeToIEnumerableTests.cs" />

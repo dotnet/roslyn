@@ -10,7 +10,11 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -18,6 +22,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
@@ -146,6 +151,19 @@ internal class CodeActionsService(
             newContext = vsContext;
         }
 
+        // @inherits projects onto the base type only (ie, just "Base" in `Component : Base`), but some Roslyn code actions are only
+        // offered on the class declaration itself (ie, "Component" in above). In this case we widen the request to the whole declaration.
+        if (await TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(documentSnapshot, codeDocument, request.Range, projectedRange, cancellationToken).ConfigureAwait(false) is { } inheritsDirectiveRange)
+        {
+            projectedRange = inheritsDirectiveRange;
+
+            if (newContext is VSInternalCodeActionContext inheritsVsContext)
+            {
+                inheritsVsContext.SelectionRange = inheritsDirectiveRange;
+                newContext = inheritsVsContext;
+            }
+        }
+
         return new VSCodeActionParams
         {
             TextDocument = new VSTextDocumentIdentifier()
@@ -156,6 +174,42 @@ internal class CodeActionsService(
             Context = newContext,
             Range = projectedRange,
         };
+    }
+
+    private static async Task<LspRange?> TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(
+        IDocumentSnapshot documentSnapshot,
+        RazorCodeDocument codeDocument,
+        LspRange razorRange,
+        LspRange projectedRange,
+        CancellationToken cancellationToken)
+    {
+        var sourceText = codeDocument.Source.Text;
+        var absoluteIndex = sourceText.GetRequiredAbsoluteIndex(razorRange.Start);
+        var razorToken = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root.FindToken(absoluteIndex);
+        if (razorToken.Parent?.FirstAncestorOrSelf<BaseRazorDirectiveSyntax>() is not RazorDirectiveSyntax directive ||
+            !directive.IsDirective(InheritsDirective.Directive))
+        {
+            return null;
+        }
+
+        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var csharpRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var csharpText = await csharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var projectedStart = csharpText.GetRequiredAbsoluteIndex(projectedRange.Start);
+        var projectedToken = csharpRoot.FindToken(projectedStart);
+        var baseType = projectedToken.Parent?.FirstAncestorOrSelf<BaseTypeSyntax>();
+        if (baseType is null)
+        {
+            return null;
+        }
+
+        var classDeclaration = baseType.Parent?.FirstAncestorOrSelf<ClassDeclarationSyntax>();
+        if (classDeclaration is null)
+        {
+            return null;
+        }
+
+        return csharpText.GetRange(TextSpan.FromBounds(classDeclaration.Identifier.SpanStart, baseType.Type.Span.End));
     }
 
     private RazorVSInternalCodeAction[] ExtractCSharpCodeActionNamesFromData(RazorVSInternalCodeAction[] codeActions)

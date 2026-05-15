@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     builder.Add(
                             $@"{{{posSpecifier}{fmtSpecifier}}}");
                 }
-                specifiers = builder.ToImmutableArray();
+                specifiers = builder.ToImmutableAndFree();
             }
 
             return specifiers;

@@ -15,6 +15,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\RazorOnAutoInsertProviderTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateConversionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateDeconstructMethodTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ImplementInterfaceTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ImplementAbstractClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateMethodTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateConstructorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateFieldTests.cs" />
@@ -62,6 +64,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSelectionRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSignatureHelpEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostTypeHierarchyEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostWillRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NestedFiles\RemoteAddNestedFileServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CascadingTypeParameterFormattingTest.cs" />
