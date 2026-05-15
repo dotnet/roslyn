@@ -10470,9 +10470,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             public class C
             {
                 public int P1 { set { } }
-                public extern int P2 { set; }
-                public static extern int P3 { [DllImport("test")] set; }
-                public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
+                unsafe public extern int P2 { set; }
+                unsafe public static extern int P3 { [DllImport("test")] set; }
+                unsafe public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
             }
             """;
 
@@ -10508,27 +10508,29 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedDiagnostics: commonDiagnostics);
 
         CreateCompilation([libSource, callerSource],
-            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(commonDiagnostics);
 
         CreateCompilation([libSource],
             parseOptions: TestOptions.RegularNext,
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource],
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.RegularNext)
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.Regular14)
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
     }
 
@@ -10574,7 +10576,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [getLibSource("extern")],
+            [getLibSource("unsafe extern")],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -10649,7 +10651,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public class C
                 {
                     unsafe public extern int P1 { set; }
-                    public extern int P2 { unsafe set; }
+                    unsafe public extern int P2 { unsafe set; }
                 }
                 """,
             caller: """
@@ -10678,7 +10680,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                public extern int this[int i] { get; set; }
+                unsafe public extern int this[int i] { get; set; }
             }
             """;
 
@@ -10751,7 +10753,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [getLibSource("extern")],
+            [getLibSource("unsafe extern")],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -10837,7 +10839,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 }
                 public class C2
                 {
-                    public extern int this[int i] { unsafe set; }
+                    unsafe public extern int this[int i] { unsafe set; }
                 }
                 """,
             caller: """
@@ -10866,7 +10868,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             public class C
             {
                 [method: System.Runtime.InteropServices.DllImport("test")]
-                public static extern event System.Action E;
+                unsafe public static extern event System.Action E;
             }
             """;
 
@@ -10950,7 +10952,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             public class C
             {
                 [method: System.Runtime.InteropServices.DllImport("test")]
-                public static extern event System.Action<int*[]> E;
+                unsafe public static extern event System.Action<int*[]> E;
             }
             """;
 
@@ -10987,9 +10989,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
 
         // When compiling the lib under legacy rules, extern members are not unsafe, but members with pointers are.
-        // https://github.com/dotnet/roslyn/issues/81944: There is no error for the pointer even though `unsafe` is missing.
         var libLegacy = CreateCompilation(
-            libSource)
+            libSource,
+            options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics();
 
         foreach (var useCompilationReference in new[] { false, true })
@@ -11506,6 +11508,47 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (16,31): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public delegate void D();
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("safe").WithLocation(16, 31));
+    }
+
+    [Fact]
+    public void SafeModifier_Declarations_Extern()
+    {
+        var source = """
+            #pragma warning disable CS0067, CS0626, CS0824 // unused event, extern without attributes, extern constructor
+            public class C
+            {
+                public extern void M();
+                public extern int P { get; set; }
+                public extern int this[int i] { get; set; }
+                public static extern event System.Action E;
+                public extern C(int x);
+                public static extern C operator +(C x, C y);
+                public static extern explicit operator int(C c);
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (4,12): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            //     public extern void M();
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(4, 12),
+            // (5,12): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            //     public extern int P { get; set; }
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(5, 12),
+            // (6,12): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            //     public extern int this[int i] { get; set; }
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(6, 12),
+            // (7,19): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            //     public static extern event System.Action E;
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(7, 19),
+            // (8,12): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            //     public extern C(int x);
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(8, 12),
+            // (9,19): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            //     public static extern C operator +(C x, C y);
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(9, 19),
+            // (10,19): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            //     public static extern explicit operator int(C c);
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(10, 19));
     }
 
     [Fact]
