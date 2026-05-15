@@ -1551,7 +1551,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (1,21): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // public closed class C
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("closed classes").WithLocation(1, 21),
@@ -1560,28 +1560,28 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
 
         var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp0.VerifyDiagnostics();
+        comp0.VerifyEmitDiagnostics();
 
         var comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
-        comp1.VerifyDiagnostics(
+        comp1.VerifyEmitDiagnostics(
             // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
 
         comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
-        comp1.VerifyDiagnostics(
+        comp1.VerifyEmitDiagnostics(
             // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
 
         comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net100);
-        comp1.VerifyDiagnostics(
+        comp1.VerifyEmitDiagnostics(
             // (113,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //             C => 3,
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C").WithLocation(113, 13));
 
         comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net100);
-        comp1.VerifyDiagnostics(
+        comp1.VerifyEmitDiagnostics(
             // (113,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //             C => 3,
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C").WithLocation(113, 13));
