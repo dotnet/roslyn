@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis
         public abstract string ToString(int maxLength);
         public abstract int Length { get; }
         public bool IsEmpty => Length == 0;
-        protected abstract Enumerator GetEnumerator();
+        public abstract Enumerator GetEnumerator();
         private Rope() { }
 
-        protected struct Enumerator
+        public struct Enumerator
         {
             private string? _currentString;
             private int _index;
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override int Length => _value.Length;
-            protected override Enumerator GetEnumerator() => new Enumerator(_value);
+            public override Enumerator GetEnumerator() => new Enumerator(_value);
         }
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
                 return psb.ToStringAndFree();
             }
 
-            protected override Enumerator GetEnumerator() => new Enumerator(this);
+            public override Enumerator GetEnumerator() => new Enumerator(this);
         }
     }
 }
