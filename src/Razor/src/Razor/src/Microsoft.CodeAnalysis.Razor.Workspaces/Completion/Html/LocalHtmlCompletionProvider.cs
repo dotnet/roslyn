@@ -22,33 +22,35 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
 internal static partial class LocalHtmlCompletionProvider
 {
     /// <summary>
-    /// Default commit characters for HTML element completions.
+    /// Default commit characters for HTML element completions. Uses the same cached arrays
+    /// as <see cref="TagHelperCompletionProvider"/> to enable optimizer ReferenceEquals grouping.
     /// </summary>
-    private static readonly string[] s_elementCommitCharacters = [" ", ">"];
+    private static readonly string[] s_elementCommitCharacters =
+        RazorCommitCharacter.ToStringCommitCharacters(DefaultCommitCharacters.GetElementCommitCharacters(useSpace: true));
 
     /// <summary>
     /// Commit characters when space-commit is disabled.
     /// </summary>
-    private static readonly string[] s_elementCommitCharactersNoSpace = [">"];
+    private static readonly string[] s_elementCommitCharactersNoSpace =
+        RazorCommitCharacter.ToStringCommitCharacters(DefaultCommitCharacters.GetElementCommitCharacters(useSpace: false));
 
     /// <summary>
-    /// Commit characters for HTML attribute completions.
-    /// The '=' commits without inserting since InsertText already includes it.
+    /// Commit characters for HTML attribute completions. The '=' commits without inserting
+    /// because in all cases '=' is already present — either in the snippet insert text
+    /// (e.g., class="$0") or in the existing document text being preserved by the edit range.
+    /// Space allows quickly committing and starting the next attribute.
+    /// Uses the shared <see cref="DefaultCommitCharacters"/> to ensure reference-equal arrays
+    /// with directive attribute items, enabling optimizer promotion to list-level defaults.
     /// </summary>
-    private static readonly VSInternalCommitCharacter[] s_attributeCommitCharacters =
-    [
-        new() { Character = " ", Insert = true },
-        new() { Character = "=", Insert = false },
-    ];
+    private static readonly SumType<string[], VSInternalCommitCharacter[]> s_attributeCommitCharacters =
+        RazorCommitCharacter.ToVsCommitCharacters(DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true, useSpace: true));
 
     /// <summary>
     /// Commit characters for prefix group items. The dash commits without inserting
     /// since InsertText already ends with it.
     /// </summary>
-    private static readonly VSInternalCommitCharacter[] s_prefixGroupCommitCharacters =
-    [
-        new() { Character = "-", Insert = false },
-    ];
+    private static readonly SumType<string[], VSInternalCommitCharacter[]> s_prefixGroupCommitCharacters =
+        RazorCommitCharacter.ToVsCommitCharacters(DefaultCommitCharacters.GetPrefixGroupCommitCharacters());
 
     /// <summary>
     /// Command that re-triggers completion after committing a prefix group item.

@@ -405,7 +405,10 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
             var useSpaceCommit = commitCharacters.Any(static c => c.Character == " ") ||
                                  tagHelper.BoundAttributes.Any(static a => a.IsBooleanProperty);
 
-            commitCharacters = DefaultCommitCharacters.Get(useEqualsCommit, useSpaceCommit, completionContext.UseSnippets);
+            // Always use Insert=false for '=' because '=' is already present in
+            // both cases: in the snippet insert text (="$0") when UseSnippets is true,
+            // or in the existing document text (="value") when UseSnippets is false.
+            commitCharacters = DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: useEqualsCommit, useSpace: useSpaceCommit);
         }
 
         attributeCompletions[attributeName] = new(kind, descriptions, commitCharacters);
