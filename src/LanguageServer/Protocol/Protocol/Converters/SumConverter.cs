@@ -301,16 +301,11 @@ internal sealed class SumConverter<T> : JsonConverter<T>
 
         return reader.TokenType switch
         {
-            JsonTokenType.True or JsonTokenType.False
-                => IsBooleanType(type),
-            JsonTokenType.Number
-                => IsNumericType(type),
-            JsonTokenType.String
-                => IsStringLikeType(type),
-            JsonTokenType.StartObject
-                => !IsSerializedAsJsonPrimitiveType(type),
-            JsonTokenType.StartArray
-                => IsArrayElementCompatible(ref reader, type),
+            JsonTokenType.True or JsonTokenType.False => IsBooleanType(type),
+            JsonTokenType.Number => IsNumericType(type),
+            JsonTokenType.String => IsStringLikeType(type),
+            JsonTokenType.StartObject => !IsSerializedAsJsonPrimitiveType(type),
+            JsonTokenType.StartArray => IsArrayElementCompatible(ref reader, type),
             _ => true,
         };
     }
