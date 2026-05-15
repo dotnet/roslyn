@@ -159,7 +159,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         TypeHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var uri = item.Uri.GetRequiredParsedUri();
+        var uri = item.Uri.GetRequiredSystemUri();
 
         var (mappedDocumentUri, mappedRange) = await DocumentMappingService
             .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, item.Range, cancellationToken)

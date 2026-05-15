@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -7,7 +7,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.TypeHierarchy;
 using Microsoft.CodeAnalysis.Text;
@@ -70,22 +71,22 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
 
         var document = CreateProjectAndRazorDocument(input.Text);
         var preparedItem = Assert.Single(await GetPreparedItemsAsync(document, input.Position));
-        AssertItems([preparedItem], (document.CreateUri(), input, ["derivedDef"]));
+        AssertItems([preparedItem], (document.GetURI().GetRequiredSystemUri(), input, ["derivedDef"]));
 
         var supertypes = await GetSupertypesAsync(document, preparedItem);
-        AssertItems(supertypes, (document.CreateUri(), input, ["midDef"]));
+        AssertItems(supertypes, (document.GetURI().GetRequiredSystemUri(), input, ["midDef"]));
         var midItem = Assert.Single(supertypes);
 
         var midSupertypes = await GetSupertypesAsync(document, midItem);
-        AssertItems(midSupertypes, (document.CreateUri(), input, ["baseDef"]));
+        AssertItems(midSupertypes, (document.GetURI().GetRequiredSystemUri(), input, ["baseDef"]));
         var baseItem = Assert.Single(midSupertypes);
 
         var baseSupertypes = await GetSupertypesAsync(document, baseItem);
-        AssertItems(baseSupertypes, (document.CreateUri(), input, ["midInterfaceDef"]));
+        AssertItems(baseSupertypes, (document.GetURI().GetRequiredSystemUri(), input, ["midInterfaceDef"]));
         var midInterfaceItem = Assert.Single(baseSupertypes);
 
         var midInterfaceSupertypes = await GetSupertypesAsync(document, midInterfaceItem);
-        AssertItems(midInterfaceSupertypes, (document.CreateUri(), input, ["topInterfaceDef"]));
+        AssertItems(midInterfaceSupertypes, (document.GetURI().GetRequiredSystemUri(), input, ["topInterfaceDef"]));
     }
 
     [Fact]
@@ -122,18 +123,18 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
 
         var document = CreateProjectAndRazorDocument(input.Text);
         var preparedItem = Assert.Single(await GetPreparedItemsAsync(document, input.Position));
-        AssertItems([preparedItem], (document.CreateUri(), input, ["rootDef"]));
+        AssertItems([preparedItem], (document.GetURI().GetRequiredSystemUri(), input, ["rootDef"]));
 
         var subtypes = await GetSubtypesAsync(document, preparedItem);
-        AssertItems(subtypes, (document.CreateUri(), input, ["childDef", "directImplDef"]));
+        AssertItems(subtypes, (document.GetURI().GetRequiredSystemUri(), input, ["childDef", "directImplDef"]));
 
         var childItem = Assert.Single(subtypes, item => item.Name == "IChild");
         var childSubtypes = await GetSubtypesAsync(document, childItem);
-        AssertItems(childSubtypes, (document.CreateUri(), input, ["grandchildDef"]));
+        AssertItems(childSubtypes, (document.GetURI().GetRequiredSystemUri(), input, ["grandchildDef"]));
         var grandchildItem = Assert.Single(childSubtypes);
 
         var grandchildSubtypes = await GetSubtypesAsync(document, grandchildItem);
-        AssertItems(grandchildSubtypes, (document.CreateUri(), input, ["indirectImplDef"]));
+        AssertItems(grandchildSubtypes, (document.GetURI().GetRequiredSystemUri(), input, ["indirectImplDef"]));
     }
 
     private async Task<TypeHierarchyItem[]> GetPreparedItemsAsync(
@@ -152,7 +153,7 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
         var request = new TypeHierarchyPrepareParams
         {
             Position = inputText.GetPosition(absolutePosition),
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
         };
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken) ?? [];
