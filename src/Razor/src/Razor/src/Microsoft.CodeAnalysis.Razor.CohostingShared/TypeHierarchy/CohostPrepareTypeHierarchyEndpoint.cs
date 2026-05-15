@@ -7,8 +7,8 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -34,7 +34,7 @@ internal sealed class CohostPrepareTypeHierarchyEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.TypeHierarchy?.DynamicRegistration == true)
         {
@@ -48,8 +48,8 @@ internal sealed class CohostPrepareTypeHierarchyEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TypeHierarchyPrepareParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(TypeHierarchyPrepareParams request)
+        => request.TextDocument;
 
     protected override async Task<TypeHierarchyItem[]?> HandleRequestAsync(TypeHierarchyPrepareParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -69,7 +69,7 @@ internal sealed class CohostPrepareTypeHierarchyEndpoint(
 
     private static TypeHierarchyItem WrapRazorItem(TypeHierarchyItem item, TextDocumentIdentifier textDocument)
     {
-        var uri = item.Uri.GetRequiredParsedUri();
+        var uri = item.Uri.GetRequiredSystemUri();
         return uri.GetDocumentFilePathFromUri().IsRazorFilePath()
             ? RazorTypeHierarchyResolveData.Wrap(item, textDocument.WithUri(uri))
             : item;
