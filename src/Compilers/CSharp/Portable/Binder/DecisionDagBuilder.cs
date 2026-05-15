@@ -4023,13 +4023,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     switch (test)
                     {
-                        case BoundDagNonNullTest n:
-                            if (n.IsExplicitTest)
-                                foundExplicitNullTest = true;
-                            // v != null: value tests require non-null, so if null then impossible
-                            whenTrue = this;
-                            whenFalse = False.Instance;
-                            return;
+                        case BoundDagNonNullTest:
+                            // ValueSets are only created for non-nullable value types,
+                            // so a non-null test on the same input should never reach here.
+                            throw ExceptionUtilities.Unreachable();
                         case BoundDagExplicitNullTest:
                             foundExplicitNullTest = true;
                             // v == null: no value test can match null

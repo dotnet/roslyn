@@ -5107,5 +5107,71 @@ False
 }
 ");
         }
+
+        [Fact]
+        public void ValueSet_WithTypePatternAndOrValues()
+        {
+            // Exercises ValueSet in combination with type tests on an object input.
+            // The `int and (1 or 2 or 3)` pattern creates a ValueSet on the typed int temp.
+            var source = """
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(Test(1));
+        System.Console.Write(Test(2));
+        System.Console.Write(Test(3));
+        System.Console.Write(Test(4));
+        System.Console.Write(Test("x"));
+        System.Console.Write(Test(null));
+    }
+    public static string Test(object o)
+    {
+        return o switch
+        {
+            int and (1 or 2 or 3) => "V",
+            not null => "O",
+            null => "N",
+        };
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "VVVOON");
+        }
+
+        [Fact]
+        public void ValueSet_FilterWithExplicitNullTest()
+        {
+            // Exercises ValueSet.Filter with BoundDagExplicitNullTest.
+            // The `null` arm creates an explicit null test on the object input.
+            // When filtering the ValueSet (inside the `int and (1 or 2 or 3)` arm)
+            // with this null test, the ValueSet must correctly return
+            // whenTrue = False (null can't match values), whenFalse = this.
+            var source = """
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(Test(1));
+        System.Console.Write(Test(2));
+        System.Console.Write(Test(3));
+        System.Console.Write(Test(4));
+        System.Console.Write(Test("x"));
+        System.Console.Write(Test(null));
+    }
+    public static string Test(object o)
+    {
+        return o switch
+        {
+            null => "N",
+            int and (1 or 2 or 3) => "V",
+            _ => "O",
+        };
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "VVVOON");
+        }
+
     }
 }
