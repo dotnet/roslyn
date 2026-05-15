@@ -1506,7 +1506,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     public void Exhaustiveness_CSharp14_01()
     {
         // Old C# versions treat a closed class, the same as a non-closed class, for pattern matching purposes.
-        // Note: since subtypes do not subsume the base type under old LangVersion, it means certain patterns could go from valid to erroneous on upgrade. See 'Exhaustiveness_BaseTypeSubsumedBySubtypes_01'.
+        // Note: since subtypes do not subsume the base type under old LangVersion, it means certain patterns could go from valid to erroneous on upgrade.
         var source1 = """
             public closed class C
             {
@@ -1573,6 +1573,18 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
+
+        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net100);
+        comp1.VerifyDiagnostics(
+            // (113,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //             C => 3,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C").WithLocation(113, 13));
+
+        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net100);
+        comp1.VerifyDiagnostics(
+            // (113,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //             C => 3,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C").WithLocation(113, 13));
     }
 
     [Fact]
