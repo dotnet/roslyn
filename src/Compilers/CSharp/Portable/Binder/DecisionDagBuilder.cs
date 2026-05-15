@@ -4549,6 +4549,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
 
+                                tests1.Free();
+                                tests2.Free();
                                 return false;
                             }
 
@@ -4558,6 +4560,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (!t1.Equals(t2))
                         {
+                            tests1.Free();
+                            tests2.Free();
                             return false;
                         }
                     }

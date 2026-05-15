@@ -58,7 +58,13 @@ namespace Microsoft.CodeAnalysis
             var generator = new PrefixAndDeclarationGenerator(builder);
             generator.Visit(symbol);
 
-            return generator.Failed ? null : builder.ToStringAndFree();
+            if (generator.Failed)
+            {
+                builder.Free();
+                return null;
+            }
+
+            return builder.ToStringAndFree();
         }
 
         /// <summary>
