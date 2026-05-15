@@ -2381,24 +2381,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsSameEntity(test.Input, other.Input);
         }
 
-        /// <summary>
-        /// Check if a test's input is related to a given BoundDagTemp (used by ValueSet.Filter).
-        /// </summary>
-        private static bool CheckInputRelationForValueSet(BoundDagTest test, BoundDagTemp valueSetInput)
-        {
-            if (test.Input == valueSetInput)
-                return true;
-
-            // For null tests, skip the type check (same as CheckInputRelation)
-            if (test is not (BoundDagNonNullTest or BoundDagExplicitNullTest) &&
-                !test.Input.Type.Equals(valueSetInput.Type, TypeCompareKind.AllIgnoreOptions))
-            {
-                return false;
-            }
-
-            return IsSameEntity(test.Input, valueSetInput);
-        }
-
         private static bool IsSameEntity(BoundDagTemp input1, BoundDagTemp input2)
         {
             BoundDagTemp s1Input = OriginalInput(input1);
@@ -4015,29 +3997,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    if (!CheckInputRelationForValueSet(test, Input))
+                    if (!isInputRelated(test, Input))
                     {
                         whenTrue = whenFalse = this;
                         return;
                     }
 
-                    switch (test)
+                    // A BoundDagNonNullTest cannot reach here because ValueSets are only
+                    // created for non-nullable value types (via TryCreateValueSet), and those
+                    // types never have non-null tests on the same input. In cross-type scenarios
+                    // (e.g., object -> int), the type test is always selected before the non-null
+                    // test, so the ValueSet is already resolved by that point.
+                    //
+                    // BoundDagExplicitNullTest CAN reach here when a `null` arm exists in a
+                    // different switch arm (e.g., `null => ..., int and (1 or 2 or 3) => ...`),
+                    // because the explicit null test is selected before the type test.
+                    if (test is BoundDagExplicitNullTest)
                     {
-                        case BoundDagNonNullTest:
-                            // ValueSets are only created for non-nullable value types,
-                            // so a non-null test on the same input should never reach here.
-                            throw ExceptionUtilities.Unreachable();
-                        case BoundDagExplicitNullTest:
-                            foundExplicitNullTest = true;
-                            // v == null: no value test can match null
-                            whenTrue = False.Instance;
-                            whenFalse = this;
-                            return;
+                        foundExplicitNullTest = true;
+                        // v == null: no value test can match null
+                        whenTrue = False.Instance;
+                        whenFalse = this;
+                        return;
                     }
 
                     // For value/relational tests, use set operations
                     whenTrue = ComputeFilteredResult(whenTrueValues);
                     whenFalse = ComputeFilteredResult(whenFalseValues);
+
+                    static bool isInputRelated(BoundDagTest test, BoundDagTemp valueSetInput)
+                    {
+                        if (test.Input == valueSetInput)
+                            return true;
+
+                        // For explicit null tests, skip the type check since the test
+                        // may be on a base type (e.g., object) while the ValueSet is on
+                        // a derived type (e.g., int via a type evaluation).
+                        if (test is not BoundDagExplicitNullTest &&
+                            !test.Input.Type.Equals(valueSetInput.Type, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            return false;
+                        }
+
+                        return IsSameEntity(test.Input, valueSetInput);
+                    }
                 }
 
                 private Tests ComputeFilteredResult(IValueSet? possibleValues)
