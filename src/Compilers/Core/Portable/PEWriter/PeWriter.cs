@@ -271,7 +271,7 @@ namespace Microsoft.Cci
             var strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
             var corFlags = properties.CorFlags;
 
-            var peBuilder = new ExtendedPEBuilder(
+            var peBuilder = new ManagedPEBuilder(
                 peHeaderBuilder,
                 metadataRootBuilder,
                 emitBuilders.IlBlobBuilder,
@@ -282,17 +282,16 @@ namespace Microsoft.Cci
                 CalculateStrongNameSignatureSize(context.Module, privateKeyOpt),
                 entryPointHandle,
                 corFlags,
-                peIdProvider,
-                metadataOnly && !context.IncludePrivateMembers);
+                peIdProvider);
 
             // This needs to force the backing builder to zero due to the issue writing COFF
             // headers. Can remove once this issue is fixed and we've moved to SRM with the 
             // fix
             // https://github.com/dotnet/runtime/issues/99244
             emitBuilders.PortableExecutableBlobBuilder = PooledBlobBuilder.GetInstance(zero: true);
-            var peContentId = peBuilder.Serialize(emitBuilders.PortableExecutableBlobBuilder, out Blob mvidSectionFixup);
+            var peContentId = peBuilder.Serialize(emitBuilders.PortableExecutableBlobBuilder);
 
-            PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
+            PatchModuleVersionIds(mvidFixup, mvidStringFixup, peContentId.Guid);
 
             if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
             {
@@ -332,18 +331,11 @@ namespace Microsoft.Cci
             })!;
         }
 
-        private static void PatchModuleVersionIds(Blob guidFixup, Blob guidSectionFixup, Blob stringFixup, Guid mvid)
+        private static void PatchModuleVersionIds(Blob guidFixup, Blob stringFixup, Guid mvid)
         {
             if (!guidFixup.IsDefault)
             {
                 var writer = new BlobWriter(guidFixup);
-                writer.WriteGuid(mvid);
-                Debug.Assert(writer.RemainingBytes == 0);
-            }
-
-            if (!guidSectionFixup.IsDefault)
-            {
-                var writer = new BlobWriter(guidSectionFixup);
                 writer.WriteGuid(mvid);
                 Debug.Assert(writer.RemainingBytes == 0);
             }
