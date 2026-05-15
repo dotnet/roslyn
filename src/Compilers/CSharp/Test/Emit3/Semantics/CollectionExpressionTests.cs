@@ -3459,10 +3459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(9,17): error CS9176: There is no target type for the collection expression.
-                //         var a = [1, 2, 3].AsArray();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[1, 2, 3]").WithLocation(9, 17));
+            // Under the extension-members-on-typeless-receivers feature, `[1, 2, 3].AsArray()`
+            // now succeeds: T is inferred as int via the collection-expression conversion to T[].
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -3500,10 +3499,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (27,17): error CS9176: There is no target type for the collection expression.
-                //         var b = [4].AsCollection();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[4]").WithLocation(27, 17));
+            // Under the extension-members-on-typeless-receivers feature, `[4].AsCollection()`
+            // now succeeds: T is inferred as int via the collection-expression conversion to S<T>.
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -3530,13 +3528,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
+            // Under the extension-members-on-typeless-receivers feature, `[4].AsCollection()` no
+            // longer reports ERR_CollectionExpressionNoTargetType at the receiver: instead, type
+            // inference is run on the full call (with the collection-expression as the first
+            // argument), and reports the same ERR_CantInferMethTypeArgs as the explicit-form call
+            // because S<T> here implements the non-generic IEnumerable.
             comp.VerifyEmitDiagnostics(
                 // (15,13): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = AsCollection([1, 2, 3]);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(15, 13),
-                // (16,13): error CS9176: There is no target type for the collection expression.
+                // (16,17): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = [4].AsCollection();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[4]").WithLocation(16, 13));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(16, 17));
         }
 
         [Fact]
@@ -4810,11 +4813,9 @@ static class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (27,17): error CS9176: There is no target type for the collection expression.
-                //         var b = [4].AsCollection();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[4]").WithLocation(27, 17)
-                );
+            // Under the extension-members-on-typeless-receivers feature, `[4].AsCollection()`
+            // succeeds: T is inferred via the collection-expression conversion to S<T>?.
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -4832,10 +4833,16 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
+            // Under the extension-members-on-typeless-receivers feature, `[].GetHashCode()` no
+            // longer reports ERR_CollectionExpressionNoTargetType: the collection-expression
+            // receiver enters the extension-method-search path, finds no `GetHashCode` extension,
+            // and reports ERR_NoSuchMember instead. The `?.` and `[]` operators on a typeless
+            // collection expression are out of scope per the spec, so they continue to produce
+            // ERR_CollectionExpressionNoTargetType.
             comp.VerifyEmitDiagnostics(
-                // (5,9): error CS9176: There is no target type for the collection expression.
+                // (5,12): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
                 //         [].GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 12),
                 // (6,9): error CS9176: There is no target type for the collection expression.
                 //         []?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(6, 9),
@@ -4859,10 +4866,12 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
+            // Same pattern as MemberAccess_01: `[1].GetHashCode()` enters the extension-method
+            // search path under the new feature; `?.` and `[]` are out of scope.
             comp.VerifyEmitDiagnostics(
-                // (5,9): error CS9176: There is no target type for the collection expression.
+                // (5,13): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
                 //         [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[1]").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 13),
                 // (6,9): error CS9176: There is no target type for the collection expression.
                 //         [2]?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[2]").WithLocation(6, 9),
@@ -4886,10 +4895,11 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
+            // Same pattern as MemberAccess_01 / _02 (with leading `_ =`).
             comp.VerifyEmitDiagnostics(
-                // (5,13): error CS9176: There is no target type for the collection expression.
+                // (5,16): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
                 //         _ = [].GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 16),
                 // (6,13): error CS9176: There is no target type for the collection expression.
                 //         _ = []?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(6, 13),
@@ -4913,10 +4923,11 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
+            // Same pattern as MemberAccess_02 (with leading `_ =`).
             comp.VerifyEmitDiagnostics(
-                // (5,13): error CS9176: There is no target type for the collection expression.
+                // (5,17): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
                 //         _ = [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[1]").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 17),
                 // (6,13): error CS9176: There is no target type for the collection expression.
                 //         _ = [2]?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[2]").WithLocation(6, 13),
