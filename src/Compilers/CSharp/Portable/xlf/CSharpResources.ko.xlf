@@ -2453,8 +2453,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on extern members that are not marked 'unsafe' when updated memory safety rules are enabled.</source>
-        <target state="new">The 'safe' modifier may only be used on extern members that are not marked 'unsafe' when updated memory safety rules are enabled.</target>
+        <source>The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.</source>
+        <target state="new">The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">

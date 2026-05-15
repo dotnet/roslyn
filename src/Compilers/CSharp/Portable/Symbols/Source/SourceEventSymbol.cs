@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(location), modifyCompilation: true);
             }
 
-            if (HasSafeModifier && (!ContainingModule.UseUpdatedMemorySafetyRules || !IsExtern || HasUnsafeModifier))
+            if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
             {
                 var modifiers = MemberSyntax?.Modifiers ?? default;
                 diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(this.Locations[0]));

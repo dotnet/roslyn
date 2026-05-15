@@ -8116,7 +8116,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_SafeModifierUnsupportedTarget" xml:space="preserve">
-    <value>The 'safe' modifier may only be used on extern members that are not marked 'unsafe' when updated memory safety rules are enabled.</value>
+    <value>The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.</value>
     <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_ExternMemberRequiresUnsafeOrSafe" xml:space="preserve">

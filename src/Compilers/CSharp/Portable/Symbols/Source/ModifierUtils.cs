@@ -111,6 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 checkFeature(DeclarationModifiers.File, MessageID.IDS_FeatureFileTypes) |
                 checkFeature(DeclarationModifiers.Async, MessageID.IDS_FeatureAsync);
 
+            if ((result & DeclarationModifiers.Safe) != 0)
+            {
+                var safeToken = modifierTokens?.FirstOrDefault(SyntaxKind.SafeKeyword) ?? default;
+                modifierErrors |= !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, safeToken, safeToken == default ? errorLocation : null);
+            }
+
             return result;
 
             bool checkFeature(DeclarationModifiers modifier, MessageID featureID)

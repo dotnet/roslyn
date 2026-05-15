@@ -989,7 +989,7 @@ done:
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, unsafeOrExternLocation, modifyCompilation: true);
             }
 
-            if (AssociatedSymbol is null && HasSafeModifier && (!ContainingModule.UseUpdatedMemorySafetyRules || !IsExtern || HasUnsafeModifier))
+            if (AssociatedSymbol is null && HasSafeModifier && (!IsExtern || HasUnsafeModifier))
             {
                 var modifiers = (syntaxReferenceOpt?.GetSyntax() as MemberDeclarationSyntax)?.Modifiers ?? default;
                 diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(this.Locations[0]));
