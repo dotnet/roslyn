@@ -246,7 +246,7 @@ internal partial class CSharpFormattingPass
                         _lineInfoBuilder.Add(CreateLineInfo(processIndentation: false));
                     }
 
-                    // If we're inside an element that ends on this line, clear the field that tracks it.
+                    // If we're at or past an element that wants us to ignore Html formatting, clear the field that tracks it.
                     if (_honourHtmlFormattingUntilLine is { } endLine &&
                         endLine <= line.LineNumber)
                     {
