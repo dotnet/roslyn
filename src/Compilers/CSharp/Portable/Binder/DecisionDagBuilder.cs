@@ -4003,12 +4003,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    // A BoundDagNonNullTest cannot reach here because ValueSets are only
-                    // created for non-nullable value types (via TryCreateValueSet), and those
-                    // types never have non-null tests on the same input. In cross-type scenarios
-                    // (e.g., object -> int), the type test is always selected before the non-null
-                    // test, so the ValueSet is already resolved by that point.
-                    //
+                    // A BoundDagNonNullTest can reach here with unions. When a union's Value
+                    // property is tested (e.g., `union S1(int, string)` with pattern
+                    // `int and (1 or 3 or 5)`), a non-null test is generated on the Value temp.
+                    // Since ValueSets only contain non-nullable value type constants, the non-null
+                    // test is always true for the values in the set.
+                    if (test is BoundDagNonNullTest)
+                    {
+                        whenTrue = this;
+                        whenFalse = False.Instance;
+                        return;
+                    }
+
                     // BoundDagExplicitNullTest CAN reach here when a `null` arm exists in a
                     // different switch arm (e.g., `null => ..., int and (1 or 2 or 3) => ...`),
                     // because the explicit null test is selected before the type test.
@@ -4030,10 +4036,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (test.Input == valueSetInput)
                             return true;
 
-                        // For explicit null tests, skip the type check since the test
+                        // For explicit null tests and non-null tests, skip the type check since the test
                         // may be on a base type (e.g., object) while the ValueSet is on
                         // a derived type (e.g., int via a type evaluation).
-                        if (test is not BoundDagExplicitNullTest &&
+                        if (test is not (BoundDagExplicitNullTest or BoundDagNonNullTest) &&
                             !test.Input.Type.Equals(valueSetInput.Type, TypeCompareKind.AllIgnoreOptions))
                         {
                             return false;
