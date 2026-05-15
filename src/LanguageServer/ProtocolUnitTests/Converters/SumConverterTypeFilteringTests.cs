@@ -12,15 +12,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Converters;
 
-[CollectionDefinition("SumConverterTypeFiltering", DisableParallelization = true)]
-public class SumConverterTypeFilteringCollection;
-
 /// <summary>
 /// Tests for SumConverter's type filtering logic, which avoids costly exception-based
 /// type probing by rejecting incompatible SumType arms based on the JSON token type.
 /// This includes StartObject rejection for primitive types and array element peeking.
 /// </summary>
-[Collection("SumConverterTypeFiltering")]
 public class SumConverterTypeFilteringTests
 {
     [Fact]
@@ -113,7 +109,12 @@ public class SumConverterTypeFilteringTests
     private static T DeserializeWithNoExceptions<T>(string json)
     {
         var exceptions = new List<Exception>();
-        void handler(object? sender, FirstChanceExceptionEventArgs e) => exceptions.Add(e.Exception);
+        var threadId = Environment.CurrentManagedThreadId;
+        void handler(object? sender, FirstChanceExceptionEventArgs e)
+        {
+            if (Environment.CurrentManagedThreadId == threadId)
+                exceptions.Add(e.Exception);
+        }
 
         AppDomain.CurrentDomain.FirstChanceException += handler;
         try

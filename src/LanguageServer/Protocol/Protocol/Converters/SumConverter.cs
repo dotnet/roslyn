@@ -16,6 +16,11 @@ namespace Roslyn.LanguageServer.Protocol;
 
 internal sealed class SumConverter : JsonConverterFactory
 {
+    // These caches are defined on the non-generic class so they are shared across all
+    // SumConverter<T> instantiations rather than duplicated per generic type argument.
+    internal static readonly ConcurrentDictionary<Type, bool> HasCustomJsonConverterCache = new();
+    internal static readonly ConcurrentDictionary<Type, SumTypeInfoCache> SumTypeCache = new();
+
     public override bool CanConvert(Type typeToConvert)
     {
         return typeof(ISumType).IsAssignableFrom(typeToConvert);
@@ -182,7 +187,6 @@ internal sealed class SumConverter : JsonConverterFactory
 internal sealed class SumConverter<T> : JsonConverter<T>
     where T : struct, ISumType
 {
-    private static readonly ConcurrentDictionary<Type, SumConverter.SumTypeInfoCache> SumTypeCache = new();
 
     /// <inheritdoc/>
     public override T Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions options)
@@ -195,7 +199,7 @@ internal sealed class SumConverter<T> : JsonConverter<T>
 
         // objectType will be one of the various SumType variants. In order for this converter to work with all SumTypes it has to use reflection.
         // This method works by attempting to deserialize the json into each of the type parameters to a SumType and stops at the first success.
-        var sumTypeInfoCache = SumTypeCache.GetOrAdd(objectType, (t) => new SumConverter.SumTypeInfoCache(t));
+        var sumTypeInfoCache = SumConverter.SumTypeCache.GetOrAdd(objectType, (t) => new SumConverter.SumTypeInfoCache(t));
 
         var applicableUnionTypeInfos = sumTypeInfoCache.GetApplicableInfos(reader.TokenType);
         if (applicableUnionTypeInfos.Count > 0)
@@ -287,10 +291,10 @@ internal sealed class SumConverter<T> : JsonConverter<T>
 
     private static bool IsTokenCompatibleWithType(ref Utf8JsonReader reader, Type type)
     {
-        // If the type has a custom JsonConverter (e.g., SumType elements), we can't
+        // If the type has a custom JsonConverter (e.g., nested SumType elements), we can't
         // reason about token compatibility since the converter may accept multiple
         // token types. Treat as compatible and let the normal try/catch handle it.
-        if (type.GetCustomAttribute<JsonConverterAttribute>() is not null)
+        if (HasCustomJsonConverterAttribute(type))
         {
             return true;
         }
@@ -340,6 +344,11 @@ internal sealed class SumConverter<T> : JsonConverter<T>
                type == typeof(short) || type == typeof(ushort) ||
                type == typeof(byte) || type == typeof(sbyte) ||
                type == typeof(double) || type == typeof(float);
+    }
+
+    private static bool HasCustomJsonConverterAttribute(Type type)
+    {
+        return SumConverter.HasCustomJsonConverterCache.GetOrAdd(type, static t => t.GetCustomAttribute<JsonConverterAttribute>() is not null);
     }
 
     /// <summary>
