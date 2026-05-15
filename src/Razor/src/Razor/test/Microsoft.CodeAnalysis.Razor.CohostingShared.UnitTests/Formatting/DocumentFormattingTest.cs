@@ -11999,6 +11999,34 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    public Task PreTag_SingleLine_DoesNotLeakIgnoreState()
+        => RunFormattingTestAsync(
+            input: """
+                <section>
+                    <pre>keep</pre>
+                <div>
+                <span>text</span>
+                </div>
+                </section>
+                """,
+            htmlFormatted: """
+                <section>
+                    <pre>keep</pre>
+                    <div>
+                        <span>text</span>
+                    </div>
+                </section>
+                """,
+            expected: """
+                <section>
+                    <pre>keep</pre>
+                    <div>
+                        <span>text</span>
+                    </div>
+                </section>
+                """);
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/11777")]
     public Task RangeFormat_AfterProperty()
         => RunFormattingTestAsync(
