@@ -6,6 +6,11 @@
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(Version)</PackageVersion>
   </PropertyGroup>
 
+  <!-- Match Roslyn's non-official CI build shape so correctness rebuild compares unsigned/public-signed artifacts. -->
+  <PropertyGroup Condition="('$(CI)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true') AND '$(OfficialBuild)' != 'true' AND '$(SignAssembly)' != 'false' AND '$(StrongNameKeyId)' == 'MicrosoftAspNetCore'">
+    <PublicSign>true</PublicSign>
+  </PropertyGroup>
+
   <Target Name="MoveRazorShippingSymbolsPackageToNonShipping" AfterTargets="Pack" Condition="'$(IsPackable)' == 'true' and '$(PackageOutputPath)' != '' and ($([System.String]::Copy('$(PackageOutputPath)').Contains('\Shipping\')) or $([System.String]::Copy('$(PackageOutputPath)').Contains('/Shipping/')))">
     <ItemGroup>
       <_RazorShippingSymbolsPackage Include="$(PackageOutputPath)$(PackageId).$(PackageVersion).symbols.nupkg"
