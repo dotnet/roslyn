@@ -636,4 +636,40 @@ namespace Test
         Assert.Empty(generated.RazorDiagnostics);
         Assert.Contains("global::Test.MyComponent<", generated.Code);
     }
+
+    [Fact]
+    public void GenericComponent_TypeArgumentWithExpressionThenLiteral_DoesNotCrash()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(GenericContextComponent);
+
+        // Act - mix a Razor expression then literal text inside the type-argument value.
+        // The parser emits a CSharpExpression for "@x" followed by an HtmlContent for the
+        // trailing literal, which lowers to multiple children on the TagHelperPropertyIntermediateNode.
+        // That used to hit Assumed.Unreachable in ComponentTypeArgumentIntermediateNode.GetValue.
+        var generated = CompileToCSharp(@"
+@code { string x = ""string""; }
+<GenericContext TItem=""@x trailing"" />");
+
+        // Assert - no crash. The compiler may emit diagnostics about the value, but it
+        // must not throw an InvalidOperationException from Assumed.Unreachable.
+        Assert.NotNull(generated.Code);
+    }
+
+    [Fact]
+    public void GenericComponent_TypeArgumentWithLiteralThenExpression_DoesNotCrash()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(GenericContextComponent);
+
+        // Act - literal text followed by a Razor expression. Razor emits an HtmlContent
+        // for the literal prefix and a CSharpExpression for the trailing expression, which
+        // results in a multi-child TagHelperPropertyIntermediateNode.
+        var generated = CompileToCSharp(@"
+@code { string x = ""string""; }
+<GenericContext TItem=""leading @x"" />");
+
+        // Assert - no crash; we just need lowering to complete without throwing.
+        Assert.NotNull(generated.Code);
+    }
 }

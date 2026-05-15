@@ -42,6 +42,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         var watchedDirectory = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(tempDirectory.Path, watchedDirectory.path);
         Assert.Empty(watchedDirectory.filters);
+        Assert.True(watchedDirectory.includeSubdirectories);
     }
 
     [Fact]
@@ -56,6 +57,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         var watchedDirectory = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(TempRoot.Root, watchedDirectory.path);
         Assert.Empty(watchedDirectory.filters);
+        Assert.True(watchedDirectory.includeSubdirectories);
     }
 
     [Fact]
@@ -74,6 +76,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         var watchedDirectory = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(root.Path, watchedDirectory.path);
         Assert.Empty(watchedDirectory.filters);
+        Assert.True(watchedDirectory.includeSubdirectories);
     }
 
     [Fact]
@@ -92,6 +95,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         var watchedDirectory = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(root.Path, watchedDirectory.path);
         Assert.Empty(watchedDirectory.filters);
+        Assert.True(watchedDirectory.includeSubdirectories);
     }
 
     [Fact]
@@ -110,6 +114,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         var watchedDirectory = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(root.Path, watchedDirectory.path);
         AssertEx.SetEqual(watchedDirectory.filters, ["*.cs", "*.vb"]);
+        Assert.True(watchedDirectory.includeSubdirectories);
     }
 
     [Fact]
@@ -171,6 +176,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         var watchedDirectory = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(tempDirectory.Path, watchedDirectory.path);
         Assert.Equal("*.cs", Assert.Single(watchedDirectory.filters));
+        Assert.False(watchedDirectory.includeSubdirectories);
     }
 
     [Fact]
@@ -190,6 +196,25 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
 
         Assert.Equal(tempDirectory.Path, watchedDirectory.path);
         Assert.Equal("*.cs", Assert.Single(watchedDirectory.filters));
+        Assert.False(watchedDirectory.includeSubdirectories);
+    }
+
+    [Fact]
+    public void EnqueueWatchingFile_FileInExistingSubdirectory_UsesSeparateNonRecursiveWatchers()
+    {
+        var root = _tempRoot.CreateDirectory();
+        var child = root.CreateDirectory("child");
+        var watcher = new DefaultFileChangeWatcher();
+        using var context = watcher.CreateContext([]);
+
+        using var rootFileWatch = context.EnqueueWatchingFile(Path.Combine(root.Path, "root.cs"));
+        using var childFileWatch = context.EnqueueWatchingFile(Path.Combine(child.Path, "child.cs"));
+
+        var watchedDirectories = DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher).ToArray();
+        Assert.Equal(2, watchedDirectories.Length);
+
+        Assert.All(watchedDirectories, w => Assert.Equal("*.cs", Assert.Single(w.filters)));
+        Assert.All(watchedDirectories, w => Assert.False(w.includeSubdirectories));
     }
 
     [Fact]
@@ -234,6 +259,10 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         using var context = watcher.CreateContext([]);
         using var watchedFile = context.EnqueueWatchingFile(nonExistentPath);
         Assert.NotNull(watchedFile);
+
+        var watchedDirectory = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
+        Assert.Equal(TempRoot.Root, watchedDirectory.path);
+        Assert.True(watchedDirectory.includeSubdirectories);
     }
 
     [Fact]
@@ -350,6 +379,23 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         // Consolidation should keep the active watcher count bounded
         Assert.InRange(watchedPaths.Length, 1, 10);
         Assert.All(watchedPaths, w => Assert.Contains("*.cs", w.filters));
+        Assert.Contains(watchedPaths, w => w.includeSubdirectories);
+    }
+
+    [Fact]
+    public void Consolidate_WithExistingNonRecursiveWatcher_MergesFilter()
+    {
+        var root = _tempRoot.CreateDirectory();
+        var watcher = new DefaultFileChangeWatcher(maxWatcherCount: 10);
+        using var context = watcher.CreateContext([]);
+
+        using var firstWatch = context.EnqueueWatchingFile(Path.Combine(root.Path, "one.cs"));
+        using var secondWatch = context.EnqueueWatchingFile(Path.Combine(root.Path, "two.vb"));
+
+        var watchedDirectory = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
+        Assert.Equal(root.Path, watchedDirectory.path);
+        AssertEx.SetEqual(watchedDirectory.filters, ["*.cs", "*.vb"]);
+        Assert.False(watchedDirectory.includeSubdirectories);
     }
 
     [Fact]
@@ -761,6 +807,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         var watchedPath = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(tempDirectory.Path, watchedPath.path);
         Assert.Empty(watchedPath.filters);
+        Assert.True(watchedPath.includeSubdirectories);
     }
 
     [Fact]
@@ -777,6 +824,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         var watchedPath = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(tempDirectory.Path, watchedPath.path);
         Assert.Empty(watchedPath.filters);
+        Assert.True(watchedPath.includeSubdirectories);
     }
 
     [Fact]
@@ -791,6 +839,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         // Shared watcher should exist
         var watchedPath = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(tempDirectory.Path, watchedPath.path);
+        Assert.True(watchedPath.includeSubdirectories);
 
         // Dispose context1
         context1.Dispose();
@@ -798,6 +847,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         // Shared watcher should still exist for context2
         watchedPath = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(tempDirectory.Path, watchedPath.path);
+        Assert.True(watchedPath.includeSubdirectories);
 
         // Dispose context2
         context2.Dispose();
@@ -872,6 +922,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
 
         var watchedPath = Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
         Assert.Equal(tempDirectory.Path, watchedPath.path);
+        Assert.True(watchedPath.includeSubdirectories);
     }
 
     #endregion

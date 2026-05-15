@@ -111,7 +111,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         using var builder = new PooledArrayBuilder<CallHierarchyIncomingCall>(incomingCalls.Length);
         foreach (var incomingCall in incomingCalls)
         {
-            var originalFromUri = incomingCall.From.Uri.GetRequiredParsedUri();
+            var originalFromUri = incomingCall.From.Uri.GetRequiredSystemUri();
             var mappedFromItem = await MapItemAsync(context, incomingCall.From, cancellationToken).ConfigureAwait(false);
             if (mappedFromItem is null)
             {
@@ -158,7 +158,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             return RemoteResponse<CallHierarchyOutgoingCall[]?>.NoFurtherHandling;
         }
 
-        var callerUri = generatedDocument.CreateUri();
+        var callerUri = generatedDocument.CreateSystemUri();
         using var builder = new PooledArrayBuilder<CallHierarchyOutgoingCall>(outgoingCalls.Length);
         foreach (var outgoingCall in outgoingCalls)
         {
@@ -196,7 +196,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
 
     private async Task<CallHierarchyItem?> MapItemAsync(RemoteDocumentContext context, CallHierarchyItem item, CancellationToken cancellationToken)
     {
-        var uri = item.Uri.GetRequiredParsedUri();
+        var uri = item.Uri.GetRequiredSystemUri();
 
         var (mappedDocumentUri, mappedRange) = await DocumentMappingService
             .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, item.Range, cancellationToken)

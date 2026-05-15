@@ -7,8 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentHighlight;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -36,7 +36,7 @@ internal sealed class CohostDocumentHighlightEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.DocumentHighlight?.DynamicRegistration == true)
         {
@@ -50,8 +50,8 @@ internal sealed class CohostDocumentHighlightEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentHighlightParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentHighlightParams request)
+        => request.TextDocument;
 
     protected override async Task<DocumentHighlight[]?> HandleRequestAsync(DocumentHighlightParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
