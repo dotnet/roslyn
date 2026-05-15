@@ -3011,6 +3011,68 @@ class C { }
         }
 
         [Fact]
+        public void ReplaceAdditionalTexts_Reordered_Does_Not_Duplicate_Entries()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var textA = new InMemoryAdditionalText("pathA.txt", "a");
+            var textB = new InMemoryAdditionalText("pathB.txt", "b");
+            var textC = new InMemoryAdditionalText("pathC.txt", "c");
+            var textD = new InMemoryAdditionalText("pathD.txt", "d");
+
+            // Generator produces one source file per additional text, using the path as the hint name.
+            // This mimics the Razor generator pattern where duplicate hint names cause a crash.
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterImplementationSourceOutput(
+                    ctx.AdditionalTextsProvider.Select((t, _) => t.Path).WithTrackingName("Paths"),
+                    (spc, path) =>
+                    {
+                        spc.AddSource(path.Replace(".", "_"), "// " + path);
+                    });
+            }));
+
+            // Run 1: establish baseline with [A, B, C]
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { textA, textB, textC }, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+            Assert.Equal(3, runResult.GeneratedTrees.Length);
+
+            // Run 2: Replace all texts with [C, A, D] — same count, reused instances reordered, one removed (B), one new (D).
+            // This specific ordering triggers the bug: when processing old item B (not in new set),
+            // inputItems[1]=textA was already consumed by the match for old item A, creating a duplicate.
+            driver = driver.ReplaceAdditionalTexts(ImmutableArray.Create<AdditionalText>(textC, textA, textD));
+            driver = driver.RunGenerators(compilation);
+            runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+            Assert.Equal(3, runResult.GeneratedTrees.Length);
+
+            // Verify we got exactly the right 3 outputs (no duplicates, no missing)
+            var paths = runResult.GeneratedTrees.Select(t => t.FilePath).Order().ToArray();
+            Assert.Contains("pathA_txt", paths[0]);
+            Assert.Contains("pathC_txt", paths[1]);
+            Assert.Contains("pathD_txt", paths[2]);
+
+            // Run 3: Run again with same inputs to verify cached state is correct
+            driver = driver.RunGenerators(compilation);
+            runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+            Assert.Equal(3, runResult.GeneratedTrees.Length);
+
+            // Verify the tracked steps show the right paths with no duplicates
+            Assert.Collection(runResult.Results[0].TrackedSteps["Paths"].OrderBy(s => (string)s.Outputs[0].Value),
+                step => Assert.Equal("pathA.txt", step.Outputs[0].Value),
+                step => Assert.Equal("pathC.txt", step.Outputs[0].Value),
+                step => Assert.Equal("pathD.txt", step.Outputs[0].Value));
+        }
+
+        [Fact]
         public void Replaced_Input_Is_Treated_As_Modified()
         {
             var source = @"
