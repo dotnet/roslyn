@@ -164,11 +164,14 @@
       "certificate": "3PartySHA2",
       "strongName": null,
       "values": [
-        "Dlls\\Diagnostics\\Nerdbank.FullDuplexStream.dll",
+        "Vsix\\VisualStudioSetup\\x86\\e_sqlite3.dll",
+        "Vsix\\VisualStudioSetup\\x64\\e_sqlite3.dll",
+        "Vsix\\VisualStudioSetup\\ICSharpCode.Decompiler.dll",
         "Vsix\\VisualStudioSetup\\Mono.Cecil.dll",
         "Vsix\\VisualStudioSetup\\Mono.Cecil.Mdb.dll",
         "Vsix\\VisualStudioSetup\\Mono.Cecil.Pdb.dll",
         "Vsix\\VisualStudioSetup\\Mono.Cecil.Rocks.dll",
+        "Dlls\\Diagnostics\\Nerdbank.FullDuplexStream.dll",
         "Vsix\\VisualStudioSetup\\Newtonsoft.Json.dll",
         "Vsix\\VisualStudioSetup\\SQLitePCLRaw.batteries_green.dll",
         "Vsix\\VisualStudioSetup\\SQLitePCLRaw.batteries_v2.dll",
@@ -179,9 +182,7 @@
     }
   ],
   "exclude": [
-    "e_sqlite3.dll",
     "Humanizer.dll",
-    "ICSharpCode.Decompiler.dll",
     "Microsoft.Build.Conversion.Core.dll",
     "Microsoft.Build.Engine.dll",
     "Microsoft.Build.Framework.dll",
