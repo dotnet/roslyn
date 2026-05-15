@@ -36,7 +36,7 @@ steps:
     displayName: Build and Test
     inputs:
       filePath: eng/build.ps1
-      arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi ${{ iif(eq(parameters.skipCustomRoslynDeploy, true), '-skipCustomRoslynDeploy', '') }} -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }} ${{ iif(ne(parameters.testCaseFilter, ''), format('-testFilter:{0}', parameters.testCaseFilter), '') }}
+      arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi ${{ iif(eq(parameters.skipCustomRoslynDeploy, true), '-skipCustomRoslynDeploy', '') }} -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }} ${{ iif(ne(parameters.testCaseFilter, ''), format('-testFilter:''{0}''', parameters.testCaseFilter), '') }}
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results

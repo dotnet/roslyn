@@ -424,6 +424,7 @@ function TestUsingRunTests() {
   $args += " --dotnet `"$dotnetExe`""
   $args += " --logs `"$LogDir`""
   $args += " --configuration $configuration"
+  $testFilters = @()
 
   if ($testCoreClr) {
     $args += " --runtime core"
@@ -461,12 +462,20 @@ function TestUsingRunTests() {
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 
     if ($lspEditor) {
-      $args += " --testfilter Editor=LanguageServerProtocol"
+      $testFilters += "Editor=LanguageServerProtocol"
     }
   }
 
   if ($testFilter -ne "") {
-    $args += " --testfilter $testFilter"
+    $testFilters += $testFilter
+  }
+
+  if ($testFilters.Count -eq 1) {
+    $args += " --testfilter $($testFilters[0])"
+  }
+  elseif ($testFilters.Count -gt 1) {
+    $combinedTestFilter = ($testFilters | ForEach-Object { "($_)" }) -join "&"
+    $args += " --testfilter $combinedTestFilter"
   }
 
   if (-not $ci -and -not $testVsi) {
