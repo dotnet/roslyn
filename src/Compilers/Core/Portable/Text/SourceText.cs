@@ -744,6 +744,9 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             });
 #else
+            // The netstandard approach can't utilize string.Create, so instead we copy into a temporary buffer
+            // and then construct the string from that. This uses plain arrays as the temporary storage, which avoids
+            // the overhead of a potentially large PooledStringBuilder, which earlier approaches used.
             var copyBuffer = length <= tempBuffer.Length ? tempBuffer : new char[length];
 
             this.CopyTo(position, copyBuffer, 0, length);
