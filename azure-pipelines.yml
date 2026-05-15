@@ -82,9 +82,9 @@ variables:
 
   - name: HelixWindowsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.server2025.amd64.open
+      value: Windows.11.Amd64.Client.Open
     ${{ else }}:
-      value: windows.server2025.amd64
+      value: Windows.11.Amd64.Client
 
   - name: HelixWindowsVsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
