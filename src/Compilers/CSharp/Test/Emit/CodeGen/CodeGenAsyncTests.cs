@@ -11002,7 +11002,6 @@ static class Test1
                 //             await d;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.INotifyCompletion").WithLocation(7, 15)
             );
-
         }
 
         [Fact]
