@@ -439,6 +439,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 executors.Add(scriptsReversed[i].CommonGetExecutor(cancellationToken));
             }
 
+            scriptsReversed.Free();
             return executors.ToImmutableAndFree();
         }
 
