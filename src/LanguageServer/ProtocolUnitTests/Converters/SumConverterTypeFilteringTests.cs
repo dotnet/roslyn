@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Converters;
 /// type probing by rejecting incompatible SumType arms based on the JSON token type.
 /// This includes StartObject rejection for primitive types and array element peeking.
 /// </summary>
-public class SumConverterTypeFilteringTests
+public sealed class SumConverterTypeFilteringTests
 {
     [Fact]
     public void Deserialize_StringArray_MatchesStringArrayArm()
