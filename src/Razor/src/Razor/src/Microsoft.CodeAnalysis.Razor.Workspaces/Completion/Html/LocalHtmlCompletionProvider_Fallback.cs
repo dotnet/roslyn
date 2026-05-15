@@ -80,22 +80,19 @@ internal static partial class LocalHtmlCompletionProvider
 
         for (var node = owner.Parent; node is not null; node = node.Parent)
         {
-            var tagName = node switch
+            if (node is BaseMarkupElementSyntax markupNode &&
+                markupNode.StartTag?.Name.Content is string tagName)
             {
-                MarkupElementSyntax el => el.StartTag?.Name.Content,
-                MarkupTagHelperElementSyntax th => th.StartTag?.Name.Content,
-                _ => null,
-            };
+                if (string.Equals(tagName, "svg", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
 
-            if (string.Equals(tagName, "svg", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            // If we hit a known HTML element, we're in HTML context, not SVG.
-            if (tagName is not null && HtmlCompletionData.GetElement(tagName) is not null)
-            {
-                return false;
+                // If we hit a known HTML element, we're in HTML context, not SVG.
+                if (HtmlCompletionData.GetElement(tagName) is not null)
+                {
+                    return false;
+                }
             }
         }
 

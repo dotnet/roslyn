@@ -513,15 +513,17 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
-    public async Task OutputElementHintTagHelper_ShownWhenHintElementIsInSchema()
+    public async Task OutputElementHintTagHelper_NotShownWhenHintElementNotValidInContext()
     {
-        // A tag helper with [OutputElementHint("strong")] should appear in completions
-        // because "strong" is a valid standard HTML element in the local schema.
-        // The local HTML completion provider knows about all standard elements.
+        // A tag helper with [OutputElementHint("strong")] should NOT appear in completions
+        // inside <select> because "strong" is only valid in flow/phrasing content contexts,
+        // not inside <select> which only allows <option> and <optgroup>.
         await VerifyCompletionListAsync(
             input: """
                 @addTagHelper *, SomeProject
+                <select>
                 <$$
+                </select>
                 """,
             completionContext: new VSInternalCompletionContext()
             {
@@ -529,8 +531,8 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = "<",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["div", "my-bold"],
-            unexpectedItemLabels: [],
+            expectedItemLabels: ["option"],
+            unexpectedItemLabels: ["my-bold"],
             fileKind: RazorFileKind.Legacy,
             additionalFiles: [("TestTagHelper.cs", """
                 using Microsoft.AspNetCore.Razor.TagHelpers;
