@@ -58,6 +58,5 @@ namespace Microsoft.CodeAnalysis
                 SetDataStored();
             }
         }
-
     }
 }

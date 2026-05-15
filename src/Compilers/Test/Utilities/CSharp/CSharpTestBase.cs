@@ -720,7 +720,6 @@ namespace System.Runtime.CompilerServices
             }
             """;
 
-
         protected static readonly string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
