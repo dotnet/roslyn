@@ -293,11 +293,11 @@ namespace Microsoft.CodeAnalysis.Rebuild
             IRebuildArtifactResolver resolver,
             Func<string, SourceText, SyntaxTree> createSyntaxTreeFunc)
         {
-            var syntaxTrees = ResolveSyntaxTrees();
-            var metadataReferences = ResolveMetadataReferences();
+            var syntaxTrees = resolveSyntaxTrees();
+            var metadataReferences = resolveMetadataReferences();
             return (syntaxTrees, metadataReferences);
 
-            ImmutableArray<SyntaxTree> ResolveSyntaxTrees()
+            ImmutableArray<SyntaxTree> resolveSyntaxTrees()
             {
                 var sourceFileCount = GetSourceFileCount();
                 var builder = ImmutableArray.CreateBuilder<SyntaxTree>(sourceFileCount);
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 return builder.MoveToImmutable();
             }
 
-            ImmutableArray<MetadataReference> ResolveMetadataReferences()
+            ImmutableArray<MetadataReference> resolveMetadataReferences()
             {
                 var builder = ImmutableArray.CreateBuilder<MetadataReference>();
                 foreach (var metadataReferenceInfo in GetMetadataReferenceInfo())

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             for (var i = 0; i < TemporaryArray<int>.TestAccessor.InlineCapacity; i++)
             {
                 Assert.Equal(i, array.Count);
-                AddAndCheck();
+                addAndCheck();
                 Assert.False(TemporaryArray<int>.TestAccessor.HasDynamicStorage(in array));
                 Assert.Equal(i + 1, TemporaryArray<int>.TestAccessor.InlineCount(in array));
             }
@@ -52,18 +52,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             // The next add forces a transition to dynamic storage
             Assert.Equal(TemporaryArray<int>.TestAccessor.InlineCapacity, array.Count);
             Assert.False(TemporaryArray<int>.TestAccessor.HasDynamicStorage(in array));
-            AddAndCheck();
+            addAndCheck();
             Assert.True(TemporaryArray<int>.TestAccessor.HasDynamicStorage(in array));
             Assert.Equal(0, TemporaryArray<int>.TestAccessor.InlineCount(in array));
 
             // The next goes directly to existing dynamic storage
             Assert.Equal(TemporaryArray<int>.TestAccessor.InlineCapacity + 1, array.Count);
-            AddAndCheck();
+            addAndCheck();
             Assert.True(TemporaryArray<int>.TestAccessor.HasDynamicStorage(in array));
             Assert.Equal(0, TemporaryArray<int>.TestAccessor.InlineCount(in array));
 
             // Local functions
-            void AddAndCheck()
+            void addAndCheck()
             {
                 var i = array.Count;
                 Assert.Throws<IndexOutOfRangeException>(() => array[i]);

@@ -918,57 +918,57 @@ class C
             var diags = new List<Diagnostic>();
             CommandLineResource resource;
 
-            Assert.True(TryParse(@"\somepath\someFile.goo.bar", out resource));
+            Assert.True(tryParse(@"\somepath\someFile.goo.bar", out resource));
             Assert.Equal(0, diags.Count);
             Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
             Assert.Equal("someFile.goo.bar", resource.ResourceName);
 
-            Assert.True(TryParse(@"\somepath\someFile.goo.bar,someName", out resource));
+            Assert.True(tryParse(@"\somepath\someFile.goo.bar,someName", out resource));
             Assert.Equal(0, diags.Count);
             Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
             Assert.Equal("someName", resource.ResourceName);
 
-            Assert.True(TryParse(@"\somepath\s""ome Fil""e.goo.bar,someName", out resource));
+            Assert.True(tryParse(@"\somepath\s""ome Fil""e.goo.bar,someName", out resource));
             Assert.Equal(0, diags.Count);
             Assert.Equal(@"some File.goo.bar", resource.LinkedResourceFileName);
             Assert.Equal("someName", resource.ResourceName);
 
-            Assert.True(TryParse(@"\somepath\someFile.goo.bar,""some Name"",public", out resource));
+            Assert.True(tryParse(@"\somepath\someFile.goo.bar,""some Name"",public", out resource));
             Assert.Equal(0, diags.Count);
             Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
             Assert.Equal("some Name", resource.ResourceName);
             Assert.True(resource.IsPublic);
 
             // Use file name in place of missing resource name.
-            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,private", out resource));
+            Assert.True(tryParse(@"\somepath\someFile.goo.bar,,private", out resource));
             Assert.Equal(0, diags.Count);
             Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
             Assert.Equal("someFile.goo.bar", resource.ResourceName);
             Assert.False(resource.IsPublic);
 
             // Quoted accessibility is fine.
-            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,""private""", out resource));
+            Assert.True(tryParse(@"\somepath\someFile.goo.bar,,""private""", out resource));
             Assert.Equal(0, diags.Count);
             Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
             Assert.Equal("someFile.goo.bar", resource.ResourceName);
             Assert.False(resource.IsPublic);
 
             // Leading commas are not ignored...
-            Assert.False(TryParse(@",,\somepath\someFile.goo.bar,,private", out resource));
+            Assert.False(tryParse(@",,\somepath\someFile.goo.bar,,private", out resource));
             diags.Verify(
                 // error CS1906: Invalid option '\somepath\someFile.goo.bar'; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(@"\somepath\someFile.goo.bar"));
             diags.Clear();
 
             // ...even if there's whitespace between them.
-            Assert.False(TryParse(@", ,\somepath\someFile.goo.bar,,private", out resource));
+            Assert.False(tryParse(@", ,\somepath\someFile.goo.bar,,private", out resource));
             diags.Verify(
                 // error CS1906: Invalid option '\somepath\someFile.goo.bar'; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(@"\somepath\someFile.goo.bar"));
             diags.Clear();
 
             // Trailing commas are ignored...
-            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,private", out resource));
+            Assert.True(tryParse(@"\somepath\someFile.goo.bar,,private", out resource));
             diags.Verify();
             diags.Clear();
             Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName);
@@ -976,110 +976,110 @@ class C
             Assert.False(resource.IsPublic);
 
             // ...even if there's whitespace between them.
-            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,private, ,", out resource));
+            Assert.True(tryParse(@"\somepath\someFile.goo.bar,,private, ,", out resource));
             diags.Verify();
             diags.Clear();
             Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName);
             Assert.Equal("someFile.goo.bar", resource.ResourceName);
             Assert.False(resource.IsPublic);
 
-            Assert.False(TryParse(@"\somepath\someFile.goo.bar,someName,publi", out resource));
+            Assert.False(tryParse(@"\somepath\someFile.goo.bar,someName,publi", out resource));
             diags.Verify(Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments("publi"));
             diags.Clear();
 
-            Assert.False(TryParse(@"D:rive\relative\path,someName,public", out resource));
+            Assert.False(tryParse(@"D:rive\relative\path,someName,public", out resource));
             diags.Verify(Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"D:rive\relative\path"));
             diags.Clear();
 
-            Assert.False(TryParse(@"inva\l*d?path,someName,public", out resource));
+            Assert.False(tryParse(@"inva\l*d?path,someName,public", out resource));
             diags.Verify(Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"inva\l*d?path"));
             diags.Clear();
 
-            Assert.False(TryParse((string)null, out resource));
+            Assert.False(tryParse((string)null, out resource));
             diags.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments(""));
             diags.Clear();
 
-            Assert.False(TryParse("", out resource));
+            Assert.False(tryParse("", out resource));
             diags.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments(""));
             diags.Clear();
 
-            Assert.False(TryParse(" ", out resource));
+            Assert.False(tryParse(" ", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
 
-            Assert.False(TryParse(" , ", out resource));
+            Assert.False(tryParse(" , ", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
 
-            Assert.True(TryParse("path, ", out resource));
+            Assert.True(tryParse("path, ", out resource));
             diags.Verify();
             diags.Clear();
             Assert.Equal("path", resource.LinkedResourceFileName);
             Assert.Equal("path", resource.ResourceName);
             Assert.True(resource.IsPublic);
 
-            Assert.False(TryParse(" ,name", out resource));
+            Assert.False(tryParse(" ,name", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
 
-            Assert.False(TryParse(" , , ", out resource));
+            Assert.False(tryParse(" , , ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ' '; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
 
-            Assert.False(TryParse("path, , ", out resource));
+            Assert.False(tryParse("path, , ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ' '; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
 
-            Assert.False(TryParse(" ,name, ", out resource));
+            Assert.False(tryParse(" ,name, ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ' '; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
 
-            Assert.False(TryParse(" , ,private", out resource));
+            Assert.False(tryParse(" , ,private", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
 
-            Assert.False(TryParse("path,name,", out resource));
+            Assert.False(tryParse("path,name,", out resource));
             diags.Verify(
                 // CONSIDER: Dev10 actually prints "Invalid option '|'" (note the pipe)
                 // error CS1906: Invalid option ''; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(""));
             diags.Clear();
 
-            Assert.False(TryParse("path,name,,", out resource));
+            Assert.False(tryParse("path,name,,", out resource));
             diags.Verify(
                 // CONSIDER: Dev10 actually prints "Invalid option '|'" (note the pipe)
                 // error CS1906: Invalid option ''; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(""));
             diags.Clear();
 
-            Assert.False(TryParse("path,name, ", out resource));
+            Assert.False(tryParse("path,name, ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ''; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
 
-            Assert.True(TryParse("path, ,private", out resource));
+            Assert.True(tryParse("path, ,private", out resource));
             diags.Verify();
             diags.Clear();
             Assert.Equal("path", resource.LinkedResourceFileName);
             Assert.Equal("path", resource.ResourceName);
             Assert.False(resource.IsPublic);
 
-            Assert.False(TryParse(" ,name,private", out resource));
+            Assert.False(tryParse(" ,name,private", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
@@ -1087,7 +1087,7 @@ class C
 
             var longE = new String('e', 1024);
 
-            Assert.True(TryParse($"path,{longE},private", out resource));
+            Assert.True(tryParse($"path,{longE},private", out resource));
             diags.Verify(); // Now checked during emit.
             diags.Clear();
             Assert.Equal("path", resource.LinkedResourceFileName);
@@ -1096,12 +1096,12 @@ class C
 
             var longI = new String('i', 260);
 
-            Assert.False(TryParse($"{longI},e,private", out resource));
+            Assert.False(tryParse($"{longI},e,private", out resource));
             diags.Verify(
                 // error CS2021: File name '...' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
                 Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(longI).WithLocation(1, 1));
 
-            bool TryParse(string value, out CommandLineResource resource) =>
+            bool tryParse(string value, out CommandLineResource resource) =>
                CSharpCommandLineParser.TryParseResourceDescription(argName: "", value.AsMemory(), WorkingDirectory, diags, isEmbedded: false, out resource);
         }
 
@@ -10171,35 +10171,35 @@ class C
             });
 
             // with no cache, we'll see the callback execute multiple times
-            RunWithNoCache();
+            runWithNoCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithNoCache();
+            runWithNoCache();
             Assert.Equal(2, sourceCallbackCount);
 
-            RunWithNoCache();
+            runWithNoCache();
             Assert.Equal(3, sourceCallbackCount);
 
             // now re-run with a cache
             GeneratorDriverCache cache = new GeneratorDriverCache();
             sourceCallbackCount = 0;
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithNoCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, analyzers: null);
+            void runWithNoCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, analyzers: null);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10224,39 +10224,39 @@ class C
             GeneratorDriverCache cache = new GeneratorDriverCache();
             sourceCallbackCount = 0;
 
-            RunWithCache("1.dll");
+            runWithCache("1.dll");
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache("1.dll");
+            runWithCache("1.dll");
             Assert.Equal(1, sourceCallbackCount);
 
             // now emulate a new compilation, and check we were invoked, but only once
-            RunWithCache("2.dll");
+            runWithCache("2.dll");
             Assert.Equal(2, sourceCallbackCount);
 
-            RunWithCache("2.dll");
+            runWithCache("2.dll");
             Assert.Equal(2, sourceCallbackCount);
 
             // now re-run our first compilation
-            RunWithCache("1.dll");
+            runWithCache("1.dll");
             Assert.Equal(2, sourceCallbackCount);
 
             // a new one
-            RunWithCache("3.dll");
+            runWithCache("3.dll");
             Assert.Equal(3, sourceCallbackCount);
 
             // and another old one
-            RunWithCache("2.dll");
+            runWithCache("2.dll");
             Assert.Equal(3, sourceCallbackCount);
 
-            RunWithCache("1.dll");
+            runWithCache("1.dll");
             Assert.Equal(3, sourceCallbackCount);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache(string outputPath) => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:" + outputPath, "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache(string outputPath) => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:" + outputPath, "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10281,40 +10281,40 @@ class C
             GeneratorDriverCache cache = new GeneratorDriverCache();
             sourceCallbackCount = 0;
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
             // now re-run with the cache disabled
             sourceCallbackCount = 0;
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(2, sourceCallbackCount);
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(3, sourceCallbackCount);
 
             // now clear the cache as well as disabling, and verify we don't put any entries into it either
             cache = new GeneratorDriverCache();
             sourceCallbackCount = 0;
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(0, cache.CacheSize);
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(0, cache.CacheSize);
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(3, sourceCallbackCount);
             Assert.Equal(0, cache.CacheSize);
 
@@ -10322,9 +10322,9 @@ class C
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
 
-            void RunWithCacheDisabled() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCacheDisabled() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10358,32 +10358,32 @@ class C
             // run with the cache
             GeneratorDriverCache cache = new GeneratorDriverCache();
 
-            RunWithOneGenerator();
+            runWithOneGenerator();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(0, sourceCallbackCount2);
 
-            RunWithOneGenerator();
+            runWithOneGenerator();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(0, sourceCallbackCount2);
 
-            RunWithTwoGenerators();
+            runWithTwoGenerators();
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(1, sourceCallbackCount2);
 
-            RunWithTwoGenerators();
+            runWithTwoGenerators();
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(1, sourceCallbackCount2);
 
             // this seems counterintuitive, but when the only thing to change is the generator, we end up back at the state of the project when 
             // we just ran a single generator. Thus we already have an entry in the cache we can use (the one created by the original call to
             // RunWithOneGenerator above) meaning we can use the previously cached results and not run.
-            RunWithOneGenerator();
+            runWithOneGenerator();
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(1, sourceCallbackCount2);
 
-            void RunWithOneGenerator() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithOneGenerator() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
 
-            void RunWithTwoGenerators() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithTwoGenerators() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact(Skip = "Additional file comparison is disabled due to https://github.com/dotnet/roslyn/issues/59209")]
@@ -10411,17 +10411,17 @@ class C
 
             GeneratorDriverCache cache = new GeneratorDriverCache();
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(1, additionalFileCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(1, additionalFileCallbackCount);
 
             additionalFile.WriteAllText("some new content");
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(2, additionalFileCallbackCount); // additional file was updated
 
@@ -10429,7 +10429,7 @@ class C
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/additionalFile:" + additionalFile.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/additionalFile:" + additionalFile.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10482,7 +10482,7 @@ a = globalA");
 
             GeneratorDriverCache cache = new GeneratorDriverCache();
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(1, configOptionsCallbackCount);
             Assert.Equal(1, filteredGlobalCallbackCount);
@@ -10490,7 +10490,7 @@ a = globalA");
             Assert.Equal("globalA", globalA);
             Assert.Equal("localA", localA);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(2, configOptionsCallbackCount); // we can't compare the provider directly, so we consider it modified
             Assert.Equal(1, filteredGlobalCallbackCount); // however, the values in it will cache out correctly.
@@ -10501,7 +10501,7 @@ a = globalA");
 a = diffLocalA
 ");
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(3, configOptionsCallbackCount);
             Assert.Equal(1, filteredGlobalCallbackCount); // the provider changed, but only the local value changed
@@ -10514,7 +10514,7 @@ is_global = true
 a = diffGlobalA
 ");
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(4, configOptionsCallbackCount);
             Assert.Equal(2, filteredGlobalCallbackCount); // only the global value was changed
@@ -10526,7 +10526,7 @@ a = diffGlobalA
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/analyzerConfig:" + editorconfig.Path, "/analyzerConfig:" + globalconfig.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/analyzerConfig:" + editorconfig.Path, "/analyzerConfig:" + globalconfig.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10550,20 +10550,20 @@ class C
             // now re-run with a cache
             GeneratorDriverCache cache = new GeneratorDriverCache();
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(2, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(3, sourceCallbackCount);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -11682,7 +11682,7 @@ class C {
         [CompilerTrait(CompilerFeature.Determinism)]
         public void PathMapPdbEmit()
         {
-            void AssertPdbEmit(TempDirectory dir, string pdbPath, string pePdbPath, params string[] extraArgs)
+            void assertPdbEmit(TempDirectory dir, string pdbPath, string pePdbPath, params string[] extraArgs)
             {
                 var source = @"class Program { static void Main() { } }";
                 var src = dir.CreateFile("a.cs").WriteAllText(source);
@@ -11708,21 +11708,21 @@ class C {
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, pdbPath);
+                assertPdbEmit(dir, pdbPath, pdbPath);
             }
 
             // Simple mapping
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\");
+                assertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\");
             }
 
             // Simple mapping deterministic
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\", "/deterministic");
+                assertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\", "/deterministic");
             }
 
             // Partial mapping
@@ -11730,7 +11730,7 @@ class C {
             {
                 dir.CreateDirectory("pdb");
                 var pdbPath = Path.Combine(dir.Path, @"pdb\a.pdb");
-                AssertPdbEmit(dir, pdbPath, @"q:\pdb\a.pdb", $@"/pathmap:{dir.Path}=q:\");
+                assertPdbEmit(dir, pdbPath, @"q:\pdb\a.pdb", $@"/pathmap:{dir.Path}=q:\");
             }
 
             // Legacy feature flag
@@ -11738,21 +11738,21 @@ class C {
             {
                 Assert.Equal("pdb-path-determinism", Feature.PdbPathDeterminism);
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, @"a.pdb", $@"/features:pdb-path-determinism");
+                assertPdbEmit(dir, pdbPath, @"a.pdb", $@"/features:pdb-path-determinism");
             }
 
             // Unix path map
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, @"/a.pdb", $@"/pathmap:{dir.Path}=/");
+                assertPdbEmit(dir, pdbPath, @"/a.pdb", $@"/pathmap:{dir.Path}=/");
             }
 
             // Multi-specified path map with mixed slashes
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, "/goo/a.pdb", $"/pathmap:{dir.Path}=/goo,{dir.Path}{PathUtilities.DirectorySeparatorChar}=/bar");
+                assertPdbEmit(dir, pdbPath, "/goo/a.pdb", $"/pathmap:{dir.Path}=/goo,{dir.Path}{PathUtilities.DirectorySeparatorChar}=/bar");
             }
         }
 

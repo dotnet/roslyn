@@ -125,12 +125,12 @@ partial class C
         [Fact]
         public void NullableContextFlags()
         {
-            AssertEnabledForInheritance(NullableContext.Disabled, warningsEnabled: false, annotationsEnabled: false);
-            AssertEnabledForInheritance(NullableContext.WarningsEnabled, warningsEnabled: true, annotationsEnabled: false);
-            AssertEnabledForInheritance(NullableContext.AnnotationsEnabled, warningsEnabled: false, annotationsEnabled: true);
-            AssertEnabledForInheritance(NullableContext.Enabled, warningsEnabled: true, annotationsEnabled: true);
+            assertEnabledForInheritance(NullableContext.Disabled, warningsEnabled: false, annotationsEnabled: false);
+            assertEnabledForInheritance(NullableContext.WarningsEnabled, warningsEnabled: true, annotationsEnabled: false);
+            assertEnabledForInheritance(NullableContext.AnnotationsEnabled, warningsEnabled: false, annotationsEnabled: true);
+            assertEnabledForInheritance(NullableContext.Enabled, warningsEnabled: true, annotationsEnabled: true);
 
-            void AssertEnabledForInheritance(NullableContext context, bool warningsEnabled, bool annotationsEnabled)
+            void assertEnabledForInheritance(NullableContext context, bool warningsEnabled, bool annotationsEnabled)
             {
                 Assert.Equal(warningsEnabled, context.WarningsEnabled());
                 Assert.Equal(annotationsEnabled, context.AnnotationsEnabled());

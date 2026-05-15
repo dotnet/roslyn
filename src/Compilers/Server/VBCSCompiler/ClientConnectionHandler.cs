@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             try
             {
-                return await ProcessCoreAsync().ConfigureAwait(false);
+                return await processCoreAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return CompletionData.RequestError;
             }
 
-            async Task<CompletionData> ProcessCoreAsync()
+            async Task<CompletionData> processCoreAsync()
             {
                 using var clientConnection = await clientConnectionTask.ConfigureAwait(false);
                 var request = await clientConnection.ReadBuildRequestAsync(cancellationToken).ConfigureAwait(false);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // suddenly disconnects we need to cancel the compilation that is occurring. It could be the 
             // client hit Ctrl-C due to a run away analyzer.
             var buildCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var compilationTask = ProcessCompilationRequestCoreAsync(CompilerServerHost, request, buildCancellationTokenSource.Token);
+            var compilationTask = processCompilationRequestCoreAsync(CompilerServerHost, request, buildCancellationTokenSource.Token);
             await Task.WhenAny(compilationTask, clientConnection.DisconnectTask).ConfigureAwait(false);
 
             try
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 buildCancellationTokenSource.Cancel();
             }
 
-            static Task<BuildResponse> ProcessCompilationRequestCoreAsync(ICompilerServerHost compilerServerHost, BuildRequest buildRequest, CancellationToken cancellationToken)
+            static Task<BuildResponse> processCompilationRequestCoreAsync(ICompilerServerHost compilerServerHost, BuildRequest buildRequest, CancellationToken cancellationToken)
             {
                 Func<BuildResponse> func = () =>
                 {

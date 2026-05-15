@@ -884,21 +884,21 @@ namespace Microsoft.Cci
             else
             {
                 var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-                WriteValue(CompilationOptionNames.CompilationOptionsVersion, CompilationOptionsSchemaVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
+                writeValue(CompilationOptionNames.CompilationOptionsVersion, CompilationOptionsSchemaVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                writeValue(CompilationOptionNames.CompilerVersion, compilerVersion);
 
-                WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
-                WriteValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString(System.Globalization.CultureInfo.InvariantCulture));
-                WriteValue(CompilationOptionNames.OutputKind, module.OutputKind.ToString());
+                writeValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
+                writeValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString(System.Globalization.CultureInfo.InvariantCulture));
+                writeValue(CompilationOptionNames.OutputKind, module.OutputKind.ToString());
 
                 if (module.EmitOptions.FallbackSourceFileEncoding != null)
                 {
-                    WriteValue(CompilationOptionNames.FallbackEncoding, module.EmitOptions.FallbackSourceFileEncoding.WebName);
+                    writeValue(CompilationOptionNames.FallbackEncoding, module.EmitOptions.FallbackSourceFileEncoding.WebName);
                 }
 
                 if (module.EmitOptions.DefaultSourceFileEncoding != null)
                 {
-                    WriteValue(CompilationOptionNames.DefaultEncoding, module.EmitOptions.DefaultSourceFileEncoding.WebName);
+                    writeValue(CompilationOptionNames.DefaultEncoding, module.EmitOptions.DefaultSourceFileEncoding.WebName);
                 }
 
                 int portabilityPolicy = 0;
@@ -910,21 +910,21 @@ namespace Microsoft.Cci
 
                 if (portabilityPolicy != 0)
                 {
-                    WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    writeValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
 
                 var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
                 var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
                 if ((optimizationLevel, debugPlusMode) != OptimizationLevelFacts.DefaultValues)
                 {
-                    WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
+                    writeValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
                 }
 
                 var platform = module.CommonCompilation.Options.Platform;
-                WriteValue(CompilationOptionNames.Platform, platform.ToString());
+                writeValue(CompilationOptionNames.Platform, platform.ToString());
 
                 var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-                WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
+                writeValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
 
                 module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
             }
@@ -934,7 +934,7 @@ namespace Microsoft.Cci
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationOptions),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
 
-            void WriteValue(string key, string value)
+            void writeValue(string key, string value)
             {
                 builder.WriteUTF8(key);
                 builder.WriteByte(0);

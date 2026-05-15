@@ -1727,7 +1727,7 @@ class A
             // In the original bug, Xamarin iOS, Android, and Mac Mobile profile corlibs were
             // realistic cross-compilation targets.
 
-            void AssertCompilationCorlib(CSharpCompilation compilation)
+            void assertCompilationCorlib(CSharpCompilation compilation)
             {
                 Assert.True(compilation.IsSubmission);
 
@@ -1746,7 +1746,7 @@ class A
                 syntaxTree: Parse("true", options: TestOptions.Script)
             ).VerifyDiagnostics();
 
-            AssertCompilationCorlib(firstCompilation);
+            assertCompilationCorlib(firstCompilation);
 
             var secondCompilation = CSharpCompilation.CreateScriptCompilation(
                 "submission-assembly-2",
@@ -1755,7 +1755,7 @@ class A
                 .WithScriptCompilationInfo(new CSharpScriptCompilationInfo(firstCompilation, null, null))
                 .VerifyDiagnostics();
 
-            AssertCompilationCorlib(secondCompilation);
+            assertCompilationCorlib(secondCompilation);
 
             Assert.Same(firstCompilation.ObjectType, secondCompilation.ObjectType);
 

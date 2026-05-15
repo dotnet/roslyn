@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argumentBuilder = ArrayBuilder<BoundExpression>.GetInstance(tupleCardinality);
                         for (int i = 0; i < tupleCardinality; i++)
                         {
-                            argumentBuilder.Add(MakeBoundConversion(GetTuplePart(operand, i), underlyingConversions[i], types[i], conv));
+                            argumentBuilder.Add(makeBoundConversion(GetTuplePart(operand, i), underlyingConversions[i], types[i], conv));
                         }
                         return new BoundConvertedTupleLiteral(
                             syntax: operand.Syntax,
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            BoundExpression MakeBoundConversion(BoundExpression expr, Conversion conversion, TypeWithAnnotations type, BoundConversion enclosing)
+            BoundExpression makeBoundConversion(BoundExpression expr, Conversion conversion, TypeWithAnnotations type, BoundConversion enclosing)
             {
                 return new BoundConversion(
                     expr.Syntax, expr, conversion, enclosing.Checked, enclosing.ExplicitCastInCode,

@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxTreeFactoryKind.ParseText => CSharpSyntaxTree.ParseText(SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256), parseOptions),
                 SyntaxTreeFactoryKind.Subclass => new MockCSharpSyntaxTree(root, SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256), parseOptions),
                 SyntaxTreeFactoryKind.SynthesizedSyntaxTree => SyntaxNode.CloneNodeAsRoot(root, syntaxTree: null).SyntaxTree,
-                SyntaxTreeFactoryKind.ParsedTreeWithPath => WithInitializedDirectives(CSharpSyntaxTree.Create(root, options: parseOptions, path: "old path", Encoding.UTF8)).WithFilePath("new path"),
-                SyntaxTreeFactoryKind.ParsedTreeWithRootAndOptions => WithInitializedDirectives(SyntaxFactory.ParseSyntaxTree("", options: parseOptions)).WithRootAndOptions(root, parseOptions),
+                SyntaxTreeFactoryKind.ParsedTreeWithPath => withInitializedDirectives(CSharpSyntaxTree.Create(root, options: parseOptions, path: "old path", Encoding.UTF8)).WithFilePath("new path"),
+                SyntaxTreeFactoryKind.ParsedTreeWithRootAndOptions => withInitializedDirectives(SyntaxFactory.ParseSyntaxTree("", options: parseOptions)).WithRootAndOptions(root, parseOptions),
                 _ => throw ExceptionUtilities.UnexpectedValue(factoryKind)
             };
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ");
 
-            static SyntaxTree WithInitializedDirectives(SyntaxTree tree)
+            static SyntaxTree withInitializedDirectives(SyntaxTree tree)
             {
                 _ = ((CSharpSyntaxTree)tree).GetDirectives();
                 return tree;

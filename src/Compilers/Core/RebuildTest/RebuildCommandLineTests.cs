@@ -211,29 +211,29 @@ namespace Nested
         {
             var list = new List<object?[]>();
 
-            Permutate(
+            permutate(
                 new CommandInfo("hw.cs", "test.exe", null),
-                PermutateOptimizations, PermutateExeKinds, PermutatePdbFormat);
-            Permutate(new CommandInfo("lib1.cs", "test.dll", null),
-                PermutateOptimizations, PermutateDllKinds, PermutatePdbFormat, PermutatePathMap);
-            Permutate(new CommandInfo("lib2.cs /target:library /r:SystemRuntime=System.Runtime.dll /debug:embedded", "test.dll", null),
-                PermutateOptimizations);
-            Permutate(new CommandInfo("lib3.cs /target:library", "test.dll", null),
-                PermutateOptimizations, PermutateExternAlias, PermutatePdbFormat);
-            Permutate(new CommandInfo("lib4.cs /target:library", "test.dll", null),
-                PermutateOptimizations, PermutatePdbFormat, PermutatePathMap);
+                permutateOptimizations, PermutateExeKinds, permutatePdbFormat);
+            permutate(new CommandInfo("lib1.cs", "test.dll", null),
+                permutateOptimizations, PermutateDllKinds, permutatePdbFormat, permutatePathMap);
+            permutate(new CommandInfo("lib2.cs /target:library /r:SystemRuntime=System.Runtime.dll /debug:embedded", "test.dll", null),
+                permutateOptimizations);
+            permutate(new CommandInfo("lib3.cs /target:library", "test.dll", null),
+                permutateOptimizations, permutateExternAlias, permutatePdbFormat);
+            permutate(new CommandInfo("lib4.cs /target:library", "test.dll", null),
+                permutateOptimizations, permutatePdbFormat, permutatePathMap);
 
             // This uses a #line directive with the same file name but in different source directories.
             // Need to make sure that we map the same file name but different base paths correctly
-            Permutate(new CommandInfo($"lib4.cs {Path.Combine("dir1", "lib1.cs")} /target:library", "test.dll", null),
-                PermutatePdbFormat, PermutatePathMap);
+            permutate(new CommandInfo($"lib4.cs {Path.Combine("dir1", "lib1.cs")} /target:library", "test.dll", null),
+                permutatePdbFormat, permutatePathMap);
 
-            Permutate(new CommandInfo("lib4.cs lib5.cs /target:library", "test.dll", null),
-                PermutateOptimizations, PermutatePdbFormat, PermutatePathMap);
+            permutate(new CommandInfo("lib4.cs lib5.cs /target:library", "test.dll", null),
+                permutateOptimizations, permutatePdbFormat, permutatePathMap);
 
             return list;
 
-            void Permutate(CommandInfo commandInfo, params Func<CommandInfo, IEnumerable<CommandInfo>>[] permutations)
+            void permutate(CommandInfo commandInfo, params Func<CommandInfo, IEnumerable<CommandInfo>>[] permutations)
             {
                 IEnumerable<CommandInfo> e = new[] { commandInfo };
                 foreach (var p in permutations)
@@ -241,10 +241,10 @@ namespace Nested
                     e = e.SelectMany(p);
                 }
 
-                Add(e);
+                add(e);
             }
 
-            static IEnumerable<CommandInfo> PermutatePathMap(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> permutatePathMap(CommandInfo commandInfo)
             {
                 yield return commandInfo;
                 yield return commandInfo with
@@ -265,7 +265,7 @@ namespace Nested
 
             // Permutate the alias before and after the standard references so that we make sure the 
             // rebuild is resistent to the ordering of aliases. 
-            static IEnumerable<CommandInfo> PermutateExternAlias(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> permutateExternAlias(CommandInfo commandInfo)
             {
                 var alias = @" /r:SystemRuntime1=System.Runtime.dll /r:SystemRuntime2=System.Runtime.dll";
 
@@ -280,7 +280,7 @@ namespace Nested
                 };
             }
 
-            static IEnumerable<CommandInfo> PermutatePdbFormat(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> permutatePdbFormat(CommandInfo commandInfo)
             {
                 yield return commandInfo with
                 {
@@ -294,7 +294,7 @@ namespace Nested
                 };
             }
 
-            static IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> permutateOptimizations(CommandInfo commandInfo)
             {
                 // No options at all for optimization
                 yield return commandInfo;
@@ -316,7 +316,7 @@ namespace Nested
                 };
             }
 
-            void Add(IEnumerable<CommandInfo> commandInfos)
+            void add(IEnumerable<CommandInfo> commandInfos)
             {
                 foreach (var commandInfo in commandInfos)
                 {
@@ -405,28 +405,28 @@ End Namespace
         {
             var list = new List<object?[]>();
 
-            Permutate(
+            permutate(
                 new CommandInfo("hw.vb /debug:embedded", "test.exe", null),
-                PermutateOptimizations, PermutateRuntime, PermutateExeKinds);
-            Permutate(
+                permutateOptimizations, permutateRuntime, PermutateExeKinds);
+            permutate(
                 new CommandInfo("lib1.vb /target:library /debug:embedded", "test.dll", null),
-                PermutateOptimizations, PermutateRuntime);
-            Permutate(
+                permutateOptimizations, permutateRuntime);
+            permutate(
                 new CommandInfo(@"lib1.vb /debug:embedded /d:_MYTYPE=""Empty"" /vbruntime:Microsoft.VisualBasic.dll", "test.dll", null),
-                PermutateOptimizations, PermutateDllKinds);
-            Permutate(
+                permutateOptimizations, PermutateDllKinds);
+            permutate(
                 new CommandInfo("lib2.vb /target:library /debug:embedded", "test.dll", null),
-                PermutatePathMap, PermutateRuntime);
+                permutatePathMap, permutateRuntime);
 
             // This uses a #ExternalSource directive with the same file name but in different source directories.
             // Need to make sure that we map the same file name but different base paths correctly
-            Permutate(
+            permutate(
                 new CommandInfo(@$"lib2.vb {Path.Combine("dir1", "lib1.vb")} /target:library /debug:embedded", "test.dll", null),
-                PermutatePathMap, PermutateRuntime);
+                permutatePathMap, permutateRuntime);
 
             return list;
 
-            void Permutate(CommandInfo commandInfo, params Func<CommandInfo, IEnumerable<CommandInfo>>[] permutations)
+            void permutate(CommandInfo commandInfo, params Func<CommandInfo, IEnumerable<CommandInfo>>[] permutations)
             {
                 IEnumerable<CommandInfo> e = new[] { commandInfo };
                 foreach (var p in permutations)
@@ -434,10 +434,10 @@ End Namespace
                     e = e.SelectMany(p);
                 }
 
-                Add(e);
+                add(e);
             }
 
-            static IEnumerable<CommandInfo> PermutatePathMap(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> permutatePathMap(CommandInfo commandInfo)
             {
                 yield return commandInfo;
                 yield return commandInfo with
@@ -446,7 +446,7 @@ End Namespace
                 };
             }
 
-            static IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> permutateOptimizations(CommandInfo commandInfo)
             {
                 // No options at all for optimization
                 yield return commandInfo;
@@ -468,7 +468,7 @@ End Namespace
                 };
             }
 
-            static IEnumerable<CommandInfo> PermutateRuntime(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> permutateRuntime(CommandInfo commandInfo)
             {
                 yield return commandInfo with
                 {
@@ -481,7 +481,7 @@ End Namespace
                 };
             }
 
-            void Add(IEnumerable<CommandInfo> commandInfos)
+            void add(IEnumerable<CommandInfo> commandInfos)
             {
                 foreach (var commandInfo in commandInfos)
                 {

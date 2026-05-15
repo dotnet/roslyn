@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var isDiagnosticIdEverSuppressed = isAnalyzerEverSuppressed ||
                         SuppressedDiagnosticIdsForUnsuppressedAnalyzers.Contains(descriptor.Id);
 
-                    var effectiveSeverities = GetEffectiveSeverities(descriptor, AnalyzerExecutor.Compilation, AnalyzerExecutor.AnalyzerOptions, cancellationToken);
+                    var effectiveSeverities = getEffectiveSeverities(descriptor, AnalyzerExecutor.Compilation, AnalyzerExecutor.AnalyzerOptions, cancellationToken);
                     var info = new DiagnosticDescriptorErrorLoggerInfo(analyzerExecutionTime, executionPercentage, effectiveSeverities, isDiagnosticIdEverSuppressed);
                     builder.Add((descriptor, info));
                 }
@@ -947,7 +947,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             uniqueDiagnosticIds.Free();
             return builder.ToImmutableAndFree();
 
-            static ImmutableHashSet<ReportDiagnostic> GetEffectiveSeverities(
+            static ImmutableHashSet<ReportDiagnostic> getEffectiveSeverities(
                 DiagnosticDescriptor descriptor,
                 Compilation compilation,
                 AnalyzerOptions analyzerOptions,

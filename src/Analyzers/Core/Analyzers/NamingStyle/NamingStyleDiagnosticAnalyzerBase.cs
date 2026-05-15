@@ -23,7 +23,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
     protected NamingStyleDiagnosticAnalyzerBase()
         : base(IDEDiagnosticIds.NamingRuleId,
                EnforceOnBuildValues.NamingRule,
-               option: null,    // No unique option to configure the diagnosticId
+               hasAnyCodeStyleOption: true,    // Naming rules use dotnet_naming_rule.*.severity for custom severity configuration
                s_localizableTitleNamingStyle,
                s_localizableMessageFormat)
     {
@@ -56,8 +56,13 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
         void SymbolAction(SymbolAnalysisContext symbolContext)
         {
             var sourceTree = symbolContext.Symbol.Locations.FirstOrDefault()?.SourceTree;
-            if (sourceTree == null
-                || ShouldSkipAnalysis(sourceTree, symbolContext.Options, symbolContext.Compilation.Options, notification: null, symbolContext.CancellationToken))
+            if (sourceTree == null)
+            {
+                return;
+            }
+
+            if (!symbolContext.Options.GetAnalyzerOptions(sourceTree).EnforceNamingStyleInBuild
+                && ShouldSkipAnalysis(sourceTree, symbolContext.Options, symbolContext.Compilation.Options, notification: null, symbolContext.CancellationToken))
             {
                 return;
             }
@@ -77,7 +82,8 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
 
         void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            if (ShouldSkipAnalysis(syntaxContext, notification: null))
+            if (!syntaxContext.Options.GetAnalyzerOptions(syntaxContext.Node.SyntaxTree).EnforceNamingStyleInBuild
+                && ShouldSkipAnalysis(syntaxContext, notification: null))
             {
                 return;
             }

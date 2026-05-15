@@ -251,6 +251,7 @@ public sealed class VisualStudioOptionStorageTests
             "FeatureOnOffOptions_RenameTracking",                                           // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
             "file_header_template",                                                         // repository specific
             "dotnet_unsupported_wrapping_column",                                           // TODO: https://github.com/dotnet/roslyn/issues/66062
+            "dotnet_naming_style_enforce_in_build",                                         // Doesn't have VS UI; build-only option
             "insert_final_newline",                                                         // TODO: https://github.com/dotnet/roslyn/issues/66062
             "RazorDesignTimeDocumentFormattingOptions_TabSize",                             // TODO: remove once Razor removes design-time documents
             "RazorDesignTimeDocumentFormattingOptions_UseTabs",                             // TODO: remove once Razor removes design-time documents

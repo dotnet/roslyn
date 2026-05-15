@@ -159,7 +159,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
 
                 if (conditionalSuccesorIsReachable || analyzer.AnalyzeUnreachableBlocks)
                 {
-                    FollowBranch(current, current.ConditionalSuccessor, conditionalSuccessorAnalysisData);
+                    followBranch(current, current.ConditionalSuccessor, conditionalSuccessorAnalysisData);
                 }
             }
             else
@@ -170,7 +170,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
             if (fallThroughSuccessorIsReachable || analyzer.AnalyzeUnreachableBlocks)
             {
                 var branch = current.FallThroughSuccessor;
-                FollowBranch(current, branch, fallThroughAnalysisData);
+                followBranch(current, branch, fallThroughAnalysisData);
 
                 if (current.EnclosingRegion.Kind == ControlFlowRegionKind.Finally &&
                     current.Ordinal == lastBlockOrdinal)
@@ -190,7 +190,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
             // If try block is reachable, we should dispatch an exception from it, even if it is empty.
             // To simplify implementation, we dispatch exception from every reachable basic block and rely
             // on dispatchedExceptionsFromRegions cache to avoid doing duplicate work.
-            DispatchException(current.EnclosingRegion);
+            dispatchException(current.EnclosingRegion);
 
             processedBlocks.Add(current);
         }
@@ -200,7 +200,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
         return resultAnalysisData;
 
         // Local functions.
-        void FollowBranch(BasicBlock current, ControlFlowBranch branch, TBlockAnalysisData currentAnalsisData)
+        void followBranch(BasicBlock current, ControlFlowBranch branch, TBlockAnalysisData currentAnalsisData)
         {
             if (branch == null)
             {
@@ -219,14 +219,14 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
                 case ControlFlowBranchSemantics.Throw:
                 case ControlFlowBranchSemantics.Rethrow:
                     Debug.Assert(branch.Destination == null);
-                    StepThroughFinally(current.EnclosingRegion, destinationOrdinal: lastBlockOrdinal, ref currentAnalsisData);
+                    stepThroughFinally(current.EnclosingRegion, destinationOrdinal: lastBlockOrdinal, ref currentAnalsisData);
                     return;
 
                 case ControlFlowBranchSemantics.Regular:
                 case ControlFlowBranchSemantics.Return:
                     Debug.Assert(branch.Destination != null);
 
-                    if (StepThroughFinally(current.EnclosingRegion, branch.Destination.Ordinal, ref currentAnalsisData))
+                    if (stepThroughFinally(current.EnclosingRegion, branch.Destination.Ordinal, ref currentAnalsisData))
                     {
                         var destination = branch.Destination;
                         var currentDestinationData = analyzer.GetCurrentAnalysisData(destination);
@@ -251,7 +251,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
         }
 
         // Returns whether we should proceed to the destination after finallies were taken care of.
-        bool StepThroughFinally(ControlFlowRegion region, int destinationOrdinal, ref TBlockAnalysisData currentAnalysisData)
+        bool stepThroughFinally(ControlFlowRegion region, int destinationOrdinal, ref TBlockAnalysisData currentAnalysisData)
         {
             while (!region.ContainsBlock(destinationOrdinal))
             {
@@ -261,7 +261,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
                 {
                     Debug.Assert(enclosing.NestedRegions[0] == region);
                     Debug.Assert(enclosing.NestedRegions[1].Kind == ControlFlowRegionKind.Finally);
-                    if (!StepThroughSingleFinally(enclosing.NestedRegions[1], ref currentAnalysisData))
+                    if (!stepThroughSingleFinally(enclosing.NestedRegions[1], ref currentAnalysisData))
                     {
                         // The point that continues dispatch is not reachable. Cancel the dispatch.
                         return false;
@@ -275,7 +275,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
         }
 
         // Returns whether we should proceed with dispatch after finally was taken care of.
-        bool StepThroughSingleFinally(ControlFlowRegion @finally, ref TBlockAnalysisData currentAnalysisData)
+        bool stepThroughSingleFinally(ControlFlowRegion @finally, ref TBlockAnalysisData currentAnalysisData)
         {
             Debug.Assert(@finally.Kind == ControlFlowRegionKind.Finally);
             var previousAnalysisData = analyzer.GetCurrentAnalysisData(blocks[@finally.FirstBlockOrdinal]);
@@ -307,7 +307,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
             return dispatch;
         }
 
-        void DispatchException(ControlFlowRegion fromRegion)
+        void dispatchException(ControlFlowRegion fromRegion)
         {
             do
             {
@@ -325,7 +325,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
                             Debug.Assert(enclosing.NestedRegions[0] == fromRegion);
                             Debug.Assert(enclosing.NestedRegions[1].Kind == ControlFlowRegionKind.Finally);
                             var currentAnalysisData = analyzer.GetCurrentAnalysisData(blocks[fromRegion.FirstBlockOrdinal]);
-                            if (!StepThroughSingleFinally(enclosing.NestedRegions[1], ref currentAnalysisData))
+                            if (!stepThroughSingleFinally(enclosing.NestedRegions[1], ref currentAnalysisData))
                             {
                                 // The point that continues dispatch is not reachable. Cancel the dispatch.
                                 return;
@@ -335,7 +335,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
 
                         case ControlFlowRegionKind.TryAndCatch:
                             Debug.Assert(enclosing.NestedRegions[0] == fromRegion);
-                            DispatchExceptionThroughCatches(enclosing, startAt: 1);
+                            dispatchExceptionThroughCatches(enclosing, startAt: 1);
                             break;
 
                         default:
@@ -353,7 +353,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
 
                     if (index > 0)
                     {
-                        DispatchExceptionThroughCatches(tryAndCatch, startAt: index + 1);
+                        dispatchExceptionThroughCatches(tryAndCatch, startAt: index + 1);
                         fromRegion = tryAndCatch;
                         continue;
                     }
@@ -366,7 +366,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
             while (fromRegion != null);
         }
 
-        void DispatchExceptionThroughCatches(ControlFlowRegion tryAndCatch, int startAt)
+        void dispatchExceptionThroughCatches(ControlFlowRegion tryAndCatch, int startAt)
         {
             // For simplicity, we do not try to figure out whether a catch clause definitely
             // handles all exceptions.

@@ -10,7 +10,12 @@ steps:
     - powershell: eng/make-bootstrap.ps1 -ci -toolset ${{parameters.toolset}} -output '$(Build.SourcesDirectory)/artifacts/bootstrap/ci-bootstrap'
       displayName: Build Bootstrap Compiler
 
+    - powershell: dotnet build src/CodeStyle/CSharp/Analyzers/Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj -c Release -p:DotNetUseShippingVersions=true -o '$(Build.SourcesDirectory)/artifacts/dogfood/codestyle' -bl:'$(Build.SourcesDirectory)/artifacts/log/Release/BuildCodeStyleAnalyzers.binlog'
+      displayName: Build CodeStyle Analyzers
+
     - powershell: eng/test-build-correctness.ps1 -ci -configuration Release -enableDumps -bootstrapDir '$(Build.SourcesDirectory)/artifacts/bootstrap/ci-bootstrap'
+      env:
+        DogfoodCodeStyleAnalyzers: $(Build.SourcesDirectory)/artifacts/dogfood/codestyle
       displayName: Build - Validate Correctness
 
     - template: publish-logs.yml

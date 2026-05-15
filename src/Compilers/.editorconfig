@@ -1,6 +1,7 @@
 # Project-specific settings:
 [*.{cs,vb}]
 # Local functions are camelCase
+dotnet_naming_style_enforce_in_build = true
 dotnet_naming_style.local_function_style.capitalization = camel_case
 dotnet_naming_rule.local_functions_should_be_camel_case.severity = warning
 dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions

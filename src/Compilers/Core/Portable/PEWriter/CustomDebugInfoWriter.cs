@@ -207,7 +207,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            byte[] GetDynamicFlags(ILocalDefinition local)
+            byte[] getDynamicFlags(ILocalDefinition local)
             {
                 var dynamicTransformFlags = local.DynamicTransformFlags;
                 var flags = new byte[CustomDebugInfoEncoder.DynamicAttributeSize];
@@ -231,7 +231,7 @@ namespace Microsoft.Cci
                         dynamicTransformFlags.Length <= CustomDebugInfoEncoder.DynamicAttributeSize &&
                         local.Name.Length < CustomDebugInfoEncoder.IdentifierSize;
                 },
-                (scope, local) => (local.Name, GetDynamicFlags(local), local.DynamicTransformFlags.Length, (local.SlotIndex < 0) ? 0 : local.SlotIndex));
+                (scope, local) => (local.Name, getDynamicFlags(local), local.DynamicTransformFlags.Length, (local.SlotIndex < 0) ? 0 : local.SlotIndex));
 
             if (dynamicLocals == null)
             {
