@@ -5107,5 +5107,293 @@ False
 }
 ");
         }
+
+        [Fact]
+        public void ValueSet_WithTypePatternAndOrValues()
+        {
+            // Exercises ValueSet in combination with type tests on an object input.
+            // The `int and (1 or 2 or 3)` pattern creates a ValueSet on the typed int temp.
+            var source = """
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(Test(1));
+        System.Console.Write(Test(2));
+        System.Console.Write(Test(3));
+        System.Console.Write(Test(4));
+        System.Console.Write(Test("x"));
+        System.Console.Write(Test(null));
+    }
+    public static string Test(object o)
+    {
+        return o switch
+        {
+            int and (1 or 2 or 3) => "V",
+            not null => "O",
+            null => "N",
+        };
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "VVVOON");
+        }
+
+        [Fact]
+        public void ValueSet_FilterWithExplicitNullTest()
+        {
+            // Exercises ValueSet.Filter with BoundDagExplicitNullTest.
+            // The `null` arm creates an explicit null test on the object input.
+            // When filtering the ValueSet (inside the `int and (1 or 2 or 3)` arm)
+            // with this null test, the ValueSet must correctly return
+            // whenTrue = False (null can't match values), whenFalse = this.
+            var source = """
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(Test(1));
+        System.Console.Write(Test(2));
+        System.Console.Write(Test(3));
+        System.Console.Write(Test(4));
+        System.Console.Write(Test("x"));
+        System.Console.Write(Test(null));
+    }
+    public static string Test(object o)
+    {
+        return o switch
+        {
+            null => "N",
+            int and (1 or 2 or 3) => "V",
+            _ => "O",
+        };
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "VVVOON");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_Implicit()
+        {
+            // Exercises ValueSet.Filter with BoundDagNonNullTest from unions.
+            // The `1 or 3 or 5` pattern on a union value creates a ValueSet.
+            // The union DAG generates a non-null test on the Value temp.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(3)));
+                        System.Console.Write(Test(new S1(5)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("hello")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch { string => 0, 1 or 3 or 5 => 1, _ => 2 };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "11120");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_ExplicitType()
+        {
+            // Exercises ValueSet.Filter with BoundDagNonNullTest from unions.
+            // The `int and (1 or 3 or 5)` pattern forces an explicit type test which
+            // generates a non-null test on the same input as the ValueSet.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(3)));
+                        System.Console.Write(Test(new S1(5)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("hello")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch { string => 0, int and (1 or 3 or 5) => 1, _ => 2 };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "11120");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_LargeOrPattern()
+        {
+            // Exercises ValueSet with a larger set of or'd values on a union.
+            // Ensures the ValueSet coalescing works correctly with union non-null tests.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(5)));
+                        System.Console.Write(Test(new S1(10)));
+                        System.Console.Write(Test(new S1(99)));
+                        System.Console.Write(Test(new S1("x")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch
+                        {
+                            string => 0,
+                            int and (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10) => 1,
+                            _ => 2,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "11120");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_NullableUnion()
+        {
+            // Exercises ValueSet with a nullable union type.
+            // The nullable adds an extra layer of null testing.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(3)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("x")));
+                        System.Console.Write(Test(null));
+                    }
+
+                    static int Test(S1? u)
+                    {
+                        return u switch
+                        {
+                            null => 9,
+                            int and (1 or 3 or 5) => 1,
+                            string => 0,
+                            _ => 2,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "11209");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_WithNullArm()
+        {
+            // Exercises both BoundDagExplicitNullTest and BoundDagNonNullTest reaching
+            // the ValueSet. The null arm creates an explicit null test that filters the
+            // ValueSet, and the union generates a non-null test.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(5)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("x")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch
+                        {
+                            null => 9,
+                            int and (1 or 3 or 5) => 1,
+                            string => 0,
+                            _ => 2,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1120");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_NotPattern()
+        {
+            // Exercises ValueSet with negated or-patterns on unions.
+            // `not (1 or 3 or 5)` creates a complement ValueSet.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("x")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch
+                        {
+                            string => 0,
+                            int and not (1 or 3 or 5) => 2,
+                            _ => 1,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "120");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_MultipleArmsWithValues()
+        {
+            // Multiple arms with different value sets on the same union type.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(4)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("x")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch
+                        {
+                            string => 0,
+                            int and (1 or 2 or 3) => 1,
+                            int and (4 or 5 or 6) => 2,
+                            _ => 3,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1230");
+        }
+
     }
 }

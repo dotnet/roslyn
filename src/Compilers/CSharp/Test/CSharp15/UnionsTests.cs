@@ -24837,6 +24837,79 @@ union S13(int, bool)
                 Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "this").WithLocation(53, 7)
                 );
         }
+
+        [Fact]
+        public void AllocPattern_1()
+        {
+            var src = @"
+union S1(int, string)
+{
+    static void Main()
+    {
+    }
+
+    static int Test1(S1 u)
+    {
+        return u switch { string => 0, 1 or 3 or 5 => 1, _ => 2 };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [9]
+[2]: t1 is string ? [3] : [4]
+[3]: leaf <arm> `string => 0`
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 3 ? [8] : [7]
+[7]: t2 == 5 ? [8] : [9]
+[8]: leaf <arm> `1 or 3 or 5 => 1`
+[9]: leaf <arm> `_ => 2`
+",
+forLowering: false);
+        }
+
+        [Fact]
+        public void AllocPattern_2()
+        {
+            var src = @"
+union S1(int, string)
+{
+    static void Main()
+    {
+    }
+
+    static int Test1(S1 u)
+    {
+        return u switch { string => 0, int and (1 or 3 or 5) => 1, _ => 2 };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [9]
+[2]: t1 is string ? [3] : [4]
+[3]: leaf <arm> `string => 0`
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 3 ? [8] : [7]
+[7]: t2 == 5 ? [8] : [9]
+[8]: leaf <arm> `int and (1 or 3 or 5) => 1`
+[9]: leaf <arm> `_ => 2`
+",
+forLowering: false);
+
+        }
     }
 }
 

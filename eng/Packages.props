@@ -242,8 +242,8 @@
     <!--
       Testing.
     -->
-    <PackageVersion Include="BenchmarkDotNet" Version="0.13.0" />
-    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.8" />
     <PackageVersion Include="BasicUndo" Version="0.9.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
@@ -260,11 +260,11 @@
     <PackageVersion Include="Microsoft.VisualStudio.Cache" Version="17.3.26-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="17.8.36726" />
-    <PackageVersion Include="System.Management" Version="7.0.0" />
+    <PackageVersion Include="System.Management" Version="9.0.5" />
     <PackageVersion Include="System.Drawing.Common" Version="10.0.1" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="Moq" Version="4.10.1" />
-    <PackageVersion Include="System.CodeDom" Version="8.0.0" />
+    <PackageVersion Include="System.CodeDom" Version="9.0.5" />
     <PackageVersion Include="InputSimulatorPlus" Version="1.0.7" />
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />

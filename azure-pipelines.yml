@@ -494,6 +494,9 @@ stages:
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
+      - powershell: eng/validate-benchmarks.ps1 -configuration Release -ci
+        displayName: Validate Benchmarks
+
       - script: dotnet build-server shutdown
         displayName: Shutdown Build Server
         continueOnError: true
