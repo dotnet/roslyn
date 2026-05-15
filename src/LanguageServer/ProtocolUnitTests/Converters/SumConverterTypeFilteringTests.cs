@@ -12,6 +12,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Converters;
 
+[CollectionDefinition("SumConverterTypeFiltering", DisableParallelization = true)]
+public class SumConverterTypeFilteringCollection;
+
 /// <summary>
 /// Tests for SumConverter's type filtering logic, which avoids costly exception-based
 /// type probing by rejecting incompatible SumType arms based on the JSON token type.

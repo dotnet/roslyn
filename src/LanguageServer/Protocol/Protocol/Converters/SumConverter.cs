@@ -298,18 +298,11 @@ internal sealed class SumConverter<T> : JsonConverter<T>
         return reader.TokenType switch
         {
             JsonTokenType.True or JsonTokenType.False
-                => type == typeof(bool),
+                => IsBooleanType(type),
             JsonTokenType.Number
-                => type == typeof(int) || type == typeof(uint) ||
-                   type == typeof(long) || type == typeof(ulong) ||
-                   type == typeof(short) || type == typeof(ushort) ||
-                   type == typeof(byte) || type == typeof(sbyte) ||
-                   type == typeof(double) || type == typeof(float),
+                => IsNumericType(type),
             JsonTokenType.String
-                => type == typeof(string) ||
-                   type == typeof(Uri) ||
-                   type == typeof(DocumentUri) ||
-                   typeof(IStringEnum).IsAssignableFrom(type),
+                => IsStringLikeType(type),
             JsonTokenType.StartObject
                 => !IsSerializedAsJsonPrimitiveType(type),
             JsonTokenType.StartArray
@@ -320,16 +313,29 @@ internal sealed class SumConverter<T> : JsonConverter<T>
 
     /// <summary>
     /// Returns true for types that are serialized as JSON primitives (strings, numbers, booleans)
-    /// rather than JSON objects. Used by array element peeking to reject incompatible element types.
+    /// rather than JSON objects. Used to reject incompatible types for StartObject tokens.
     /// </summary>
     private static bool IsSerializedAsJsonPrimitiveType(Type type)
     {
-        return type == typeof(bool) ||
-               type == typeof(string) ||
+        return IsBooleanType(type) || IsStringLikeType(type) || IsNumericType(type);
+    }
+
+    private static bool IsBooleanType(Type type)
+    {
+        return type == typeof(bool);
+    }
+
+    private static bool IsStringLikeType(Type type)
+    {
+        return type == typeof(string) ||
                type == typeof(Uri) ||
                type == typeof(DocumentUri) ||
-               typeof(IStringEnum).IsAssignableFrom(type) ||
-               type == typeof(int) || type == typeof(uint) ||
+               typeof(IStringEnum).IsAssignableFrom(type);
+    }
+
+    private static bool IsNumericType(Type type)
+    {
+        return type == typeof(int) || type == typeof(uint) ||
                type == typeof(long) || type == typeof(ulong) ||
                type == typeof(short) || type == typeof(ushort) ||
                type == typeof(byte) || type == typeof(sbyte) ||
