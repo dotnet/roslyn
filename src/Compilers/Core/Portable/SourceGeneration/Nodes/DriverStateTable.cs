@@ -48,12 +48,18 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// The compilation as initially supplied to the driver (with any post-init trees).
-            /// Available in all phases, including pre-compilation. Use this only for accessing
-            /// properties that are independent of the compilation's syntax trees, such as
-            /// <see cref="CodeAnalysis.Compilation.Options"/> and <see cref="CodeAnalysis.Compilation.ExternalReferences"/>.
+            /// The compilation options from the user-supplied compilation. Available in all
+            /// phases, including pre-compilation, because options are unaffected by source
+            /// generation.
             /// </summary>
-            internal Compilation InitialCompilation => _initialCompilation;
+            internal CompilationOptions InitialCompilationOptions => _initialCompilation.Options;
+
+            /// <summary>
+            /// The metadata references from the user-supplied compilation. Available in all
+            /// phases, including pre-compilation, because references are unaffected by source
+            /// generation.
+            /// </summary>
+            internal ImmutableArray<MetadataReference> InitialMetadataReferences => _initialCompilation.ExternalReferences;
 
             internal SyntaxStore.Builder SyntaxStore
             {

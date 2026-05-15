@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static readonly InputNode<Compilation> Compilation = new InputNode<Compilation>(b => ImmutableArray.Create(GetCompilationOrThrow(b, nameof(IncrementalGeneratorInitializationContext.CompilationProvider))));
 
-        public static readonly InputNode<CompilationOptions> CompilationOptions = new(b => ImmutableArray.Create(b.InitialCompilation.Options), ReferenceEqualityComparer.Instance);
+        public static readonly InputNode<CompilationOptions> CompilationOptions = new InputNode<CompilationOptions>(b => ImmutableArray.Create(b.InitialCompilationOptions), ReferenceEqualityComparer.Instance);
 
         public static readonly InputNode<ParseOptions> ParseOptions = new InputNode<ParseOptions>(b => ImmutableArray.Create(b.DriverState.ParseOptions));
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
 
         public static readonly InputNode<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions = new InputNode<AnalyzerConfigOptionsProvider>(b => ImmutableArray.Create(b.DriverState.OptionsProvider));
 
-        public static readonly InputNode<MetadataReference> MetadataReferences = new InputNode<MetadataReference>(b => b.InitialCompilation.ExternalReferences);
+        public static readonly InputNode<MetadataReference> MetadataReferences = new InputNode<MetadataReference>(b => b.InitialMetadataReferences);
 
         private static Compilation GetCompilationOrThrow(DriverStateTable.Builder b, string providerName)
         {

@@ -3,18 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -339,7 +333,7 @@ class C { }
                 });
             }));
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { additionalText1, additionalText2, additionalText3 });
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { additionalText1, additionalText2, additionalText3 }, driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
             // Original + 2 proto files (b.txt is filtered out)
@@ -354,6 +348,39 @@ class C { }
                 // Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator\a.cs(1,7): warning CS8981: The type name 'a' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class a {}
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "a").WithArguments("a").WithLocation(1, 7));
+
+            // Add another .proto file: pipeline re-evaluates; the filter accepts the new file and a
+            // fresh source output step runs for it. The previously-emitted a and c remain cached
+            // because their inputs (their own AdditionalText entries) are reference-stable.
+            var additionalText4 = new InMemoryAdditionalText("d.proto", "content4");
+            driver = driver.AddAdditionalTexts(ImmutableArray.Create<AdditionalText>(additionalText4));
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out diagnostics);
+
+            Assert.Equal(4, outputCompilation.SyntaxTrees.Count());
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("a"));
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("c"));
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("d"));
+
+            var afterProtoSteps = driver.GetRunResult().Results[0].TrackedSteps[WellKnownGeneratorOutputs.PreCompilationSourceOutput];
+            Assert.Equal(3, afterProtoSteps.Length);
+            // Two of the per-element source-output steps were already produced last run and stayed
+            // cached; one is fresh for d.proto.
+            Assert.Equal(2, afterProtoSteps.Count(s => s.Outputs[0].Reason == IncrementalStepRunReason.Cached));
+            Assert.Equal(1, afterProtoSteps.Count(s => s.Outputs[0].Reason == IncrementalStepRunReason.New));
+
+            // Add another .txt file: the filter rejects it, so no new element reaches the
+            // downstream source-output step. Every existing per-element step stays cached and no
+            // new tree is added to the output compilation.
+            var additionalText5 = new InMemoryAdditionalText("e.txt", "content5");
+            driver = driver.AddAdditionalTexts(ImmutableArray.Create<AdditionalText>(additionalText5));
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out diagnostics);
+
+            Assert.Equal(4, outputCompilation.SyntaxTrees.Count());
+            Assert.Null(outputCompilation.GetTypeByMetadataName("e"));
+
+            var afterTxtSteps = driver.GetRunResult().Results[0].TrackedSteps[WellKnownGeneratorOutputs.PreCompilationSourceOutput];
+            Assert.Equal(3, afterTxtSteps.Length);
+            Assert.All(afterTxtSteps, step => Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason));
         }
 
         #endregion
@@ -835,8 +862,8 @@ class C { }
                 });
                 ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
                 {
-                    // This should NOT run because the pre-compilation phase failed
-                    ctx.AddSource("regular", "class RegularType {}");
+                    // This should NOT run because the pre-compilation phase failed.
+                    Assert.Fail("Standard source output ran even though pre-compilation failed.");
                 });
             }));
 
@@ -852,8 +879,6 @@ class C { }
             // A diagnostic was reported for the pre-compilation failure
             Assert.NotEmpty(diagnostics);
 
-            // The regular source output was NOT produced (generator was stopped)
-            Assert.DoesNotContain(result.GeneratedSources, s => s.HintName == "regular.cs");
             outputCompilation.VerifyDiagnostics();
         }
 
@@ -982,6 +1007,143 @@ class C { }
 
             // A diagnostic was reported
             Assert.NotEmpty(diagnostics);
+        }
+
+        [Fact]
+        public void PreCompilation_Using_SyntaxProvider_Throws()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            // A generator that chains a SyntaxProvider into a pre-compilation source output should
+            // surface a clear generator error, because syntax-based providers depend on a built
+            // compilation that does not yet exist during the pre-compilation phase.
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                var syntax = ic.SyntaxProvider.CreateSyntaxProvider((n, _) => true, (c, _) => c.Node);
+                ic.RegisterPreCompilationSourceOutput(syntax.Collect(), (c, nodes) =>
+                {
+                    c.AddSource("bad", "class Bad {}");
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            outputCompilation.VerifyDiagnostics();
+
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+
+            // Generator should be in error state with a useful InvalidOperationException
+            Assert.NotNull(result.Exception);
+            Assert.IsType<InvalidOperationException>(result.Exception);
+            Assert.Contains("pre-compilation", result.Exception!.Message);
+
+            // The pre-compilation source must NOT have been produced
+            Assert.Empty(result.GeneratedSources);
+            Assert.Null(outputCompilation.GetTypeByMetadataName("Bad"));
+
+            // A diagnostic was reported for the failure
+            Assert.NotEmpty(diagnostics);
+        }
+
+        [Fact]
+        public void PreCompilation_Failure_Skips_Standard_But_Recovers_On_Next_Run()
+        {
+            // A pre-compilation failure must skip the standard phase for that generator in the
+            // same run, since its PreCompilationTrees were dropped and the standard phase has
+            // nothing consistent to run against. On a subsequent run with no other input changes
+            // the generator must still get another chance: incremental generator exceptions are
+            // recoverable, not sticky.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            int preCompCallCount = 0;
+            int standardCallCount = 0;
+            bool shouldThrow = true;
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) =>
+                {
+                    preCompCallCount++;
+                    if (shouldThrow)
+                    {
+                        throw new InvalidOperationException("pre-compilation failed");
+                    }
+                    c.AddSource("precomp", "class PreCompType {}");
+                });
+                ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) => standardCallCount++);
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+
+            // Run 1: pre-comp throws, standard skipped this run.
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation1, out _);
+            Assert.Equal(1, preCompCallCount);
+            Assert.Equal(0, standardCallCount);
+            var run1Result = driver.GetRunResult().Results[0];
+            Assert.NotNull(run1Result.Exception);
+
+            // Run 2: pre-comp now succeeds. Standard must run, generator must recover.
+            shouldThrow = false;
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation2, out _);
+            Assert.Equal(2, preCompCallCount);
+            Assert.Equal(1, standardCallCount);
+            var run2Result = driver.GetRunResult().Results[0];
+            Assert.Null(run2Result.Exception);
+        }
+
+        [Fact]
+        public void V1_Generator_Recovers_From_Standard_Phase_Exception_With_No_Input_Changes()
+        {
+            // Incremental generator exceptions are recoverable: a generator that throws on one
+            // run must get another chance on the next run, even if no inputs changed. This test
+            // guards that contract specifically for v1-style generators that have no
+            // pre-compilation output nodes -- the standard-phase skip-on-failure logic must not
+            // inadvertently make their exceptions sticky.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            int callCount = 0;
+            bool shouldThrow = true;
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
+                {
+                    callCount++;
+                    if (shouldThrow)
+                    {
+                        throw new InvalidOperationException("standard failed");
+                    }
+                    ctx.AddSource("ok", "class Ok {}");
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+
+            // Run 1: throws.
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+            Assert.Equal(1, callCount);
+            Assert.NotNull(driver.GetRunResult().Results[0].Exception);
+
+            // Run 2: same compilation, same inputs, but the generator no longer throws. Must recover.
+            shouldThrow = false;
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+            Assert.Equal(2, callCount);
+            Assert.Null(driver.GetRunResult().Results[0].Exception);
+            Assert.Single(driver.GetRunResult().Results[0].GeneratedSources);
         }
 
         #endregion
@@ -1169,48 +1331,6 @@ class C { }
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("file1"));
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("file2"));
             outputCompilation.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PreCompilation_Using_SyntaxProvider_Throws()
-        {
-            var source = @"
-class C { }
-";
-            var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-
-            // A generator that chains a SyntaxProvider into a pre-compilation source output should
-            // surface a clear generator error, because syntax-based providers depend on a built
-            // compilation that does not yet exist during the pre-compilation phase.
-            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
-            {
-                var syntax = ic.SyntaxProvider.CreateSyntaxProvider((n, _) => true, (c, _) => c.Node);
-                ic.RegisterPreCompilationSourceOutput(syntax.Collect(), (c, nodes) =>
-                {
-                    c.AddSource("bad", "class Bad {}");
-                });
-            }));
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
-            outputCompilation.VerifyDiagnostics();
-
-            var runResult = driver.GetRunResult();
-            var result = Assert.Single(runResult.Results);
-
-            // Generator should be in error state with a useful InvalidOperationException
-            Assert.NotNull(result.Exception);
-            Assert.IsType<InvalidOperationException>(result.Exception);
-            Assert.Contains("pre-compilation", result.Exception!.Message);
-
-            // The pre-compilation source must NOT have been produced
-            Assert.Empty(result.GeneratedSources);
-            Assert.Null(outputCompilation.GetTypeByMetadataName("Bad"));
-
-            // A diagnostic was reported for the failure
-            Assert.NotEmpty(diagnostics);
         }
 
         [Fact]

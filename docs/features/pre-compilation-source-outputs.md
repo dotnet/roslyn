@@ -89,7 +89,7 @@ public readonly struct PreCompilationSourceProductionContext
 }
 ```
 
-`PreCompilationSourceProductionContext` intentionally does **not** include `ReportDiagnostic`. Pre-compilation is an early phase focused purely on producing source; diagnostic reporting should be done in the standard phase.
+`PreCompilationSourceProductionContext` intentionally does **not** include `ReportDiagnostic`. Pre-compilation is an early phase focused purely on producing source; diagnostic reporting should be done in a separate analyzer.
 
 A new `IncrementalGeneratorOutputKind` value is also introduced:
 

@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis
                                      ? new GeneratorState(postInitSources, inputNodes, outputNodes)
                                      : SetGeneratorException(compilation, MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, phase: GeneratorRunPhase.Init, runTime: null, cancellationToken);
                 }
-                else if (generatorState.RequiresConstantTreeReparse(state.ParseOptions))
+                else if (generatorState.RequiresInputTreeReparse(state.ParseOptions))
                 {
                     // the generator is initialized, but we need to reparse constant trees as the parse options have changed
                     var reparsedInitSources = generatorState.PostInitTrees.Length > 0
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
-                if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0 || generatorState.Exception is not null)
+                if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0 || generatorState.PreCompilationFailed)
                 {
                     continue;
                 }
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Like <see cref="ParseAdditionalSources"/>, but reuses a previously-parsed
         /// <see cref="GeneratedSyntaxTree"/> when the corresponding new <see cref="GeneratedSourceText"/>
-        /// has the same <see cref="SourceText"/> reference and hint name at the same position --
+        /// has the same <see cref="Microsoft.CodeAnalysis.Text.SourceText"/> reference and hint name at the same position --
         /// indicating the upstream pre-compilation callback was cached.
         /// </summary>
         /// <remarks>
@@ -539,12 +539,7 @@ namespace Microsoft.CodeAnalysis
             if (filtered is not null)
             {
                 diagnosticBag?.Add(filtered);
-                // If the standard phase failed but the pre-compilation phase succeeded, preserve the
-                // pre-compilation trees: they were already added to the compilation that other generators
-                // observed, so dropping them would leave the failing generator's state inconsistent with
-                // what those generators saw.
-                bool preservePreCompilationTrees = phase == GeneratorRunPhase.Standard;
-                return generatorState.WithError(e, filtered, runTime ?? TimeSpan.Zero, preservePreCompilationTrees);
+                return generatorState.WithError(e, filtered, runTime ?? TimeSpan.Zero, phase);
             }
             return generatorState;
         }
