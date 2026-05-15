@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider
 {
     // Internal for testing
-    internal static readonly ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters = DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true, useSpace: true);
+    internal static readonly ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters = DefaultCommitCharacters.GetMinimizedAttributeCommitCharacters();
     internal static readonly ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters = DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true, useSpace: false);
 
     private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters = DefaultCommitCharacters.GetElementCommitCharacters(useSpace: true);

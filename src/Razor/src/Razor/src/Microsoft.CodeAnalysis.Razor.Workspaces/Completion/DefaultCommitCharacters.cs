@@ -19,10 +19,18 @@ internal static class DefaultCommitCharacters
     private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.CreateArray([" ", ">"]);
     private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharactersWithoutSpace = RazorCommitCharacter.CreateArray([">"]);
 
-    // Attribute commit characters: '=' and/or space, both with Insert=false
+    // Attribute commit characters: '=' and/or space, both with Insert=false.
+    // Used for attributes that have a snippet or existing value (cursor ends up inside quotes).
     private static readonly ImmutableArray<RazorCommitCharacter> s_attributeEqualsCommitCharacters = [new("=", Insert: false)];
     private static readonly ImmutableArray<RazorCommitCharacter> s_attributeEqualsSpaceCommitCharacters = [new("=", Insert: false), new(" ", Insert: false)];
     private static readonly ImmutableArray<RazorCommitCharacter> s_attributeSpaceCommitCharacters = [new(" ", Insert: false)];
+
+    // Minimized (boolean) attribute commit characters: '=' Insert=false, space Insert=true.
+    // For boolean attributes (e.g., disabled, readonly), no snippet is appended so the cursor
+    // ends up right after the attribute name. Space should insert to act as a separator before
+    // the next attribute. '=' still uses Insert=false because if the user types '=' they are
+    // opting out of the minimized form and will type the value themselves.
+    private static readonly ImmutableArray<RazorCommitCharacter> s_minimizedAttributeCommitCharacters = [new("=", Insert: false), new(" ")];
 
     // Prefix group commit characters: '-' commits without inserting since the InsertText already ends with it.
     private static readonly ImmutableArray<RazorCommitCharacter> s_prefixGroupCommitCharacters = [new("-", Insert: false)];
@@ -43,6 +51,7 @@ internal static class DefaultCommitCharacters
     /// <c>Insert=false</c> because in all contexts where '=' is a commit character, '=' is
     /// already present — either in the snippet insert text (e.g., <c>class="$0"</c>) or in the
     /// existing document text preserved by the edit range (e.g., replacing <c>data-X="value"</c>).
+    /// Space uses <c>Insert=false</c> because the cursor ends up inside quotes after a snippet commit.
     /// </summary>
     /// <param name="useEquals">Whether '=' commits the completion.</param>
     /// <param name="useSpace">Whether space commits the completion.</param>
@@ -54,6 +63,16 @@ internal static class DefaultCommitCharacters
             (false, true) => s_attributeSpaceCommitCharacters,
             (false, false) => [],
         };
+
+    /// <summary>
+    /// Gets commit characters for minimized (boolean) attribute completions (e.g., <c>disabled</c>,
+    /// <c>readonly</c>). No snippet is appended, so the cursor ends up right after the attribute name.
+    /// Space uses <c>Insert=true</c> so it acts as a separator before the next attribute.
+    /// '=' uses <c>Insert=false</c> because if the user types '=' they are transitioning from the
+    /// minimized form to an explicit value and will type it themselves.
+    /// </summary>
+    public static ImmutableArray<RazorCommitCharacter> GetMinimizedAttributeCommitCharacters()
+        => s_minimizedAttributeCommitCharacters;
 
     /// <summary>
     /// Gets commit characters for prefix group items (e.g., <c>aria-</c>, <c>data-</c>).

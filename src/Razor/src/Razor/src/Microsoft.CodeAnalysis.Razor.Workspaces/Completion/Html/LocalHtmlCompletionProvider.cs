@@ -46,6 +46,14 @@ internal static partial class LocalHtmlCompletionProvider
         RazorCommitCharacter.ToVsCommitCharacters(DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true, useSpace: true));
 
     /// <summary>
+    /// Commit characters for boolean (minimized) attribute completions. Space uses Insert=true
+    /// because no snippet is appended — the cursor ends up right after the attribute name, and
+    /// space should insert as a separator before the next attribute.
+    /// </summary>
+    private static readonly SumType<string[], VSInternalCommitCharacter[]> s_minimizedAttributeCommitCharacters =
+        RazorCommitCharacter.ToVsCommitCharacters(DefaultCommitCharacters.GetMinimizedAttributeCommitCharacters());
+
+    /// <summary>
     /// Commit characters for prefix group items. The dash commits without inserting
     /// since InsertText already ends with it.
     /// </summary>
@@ -448,12 +456,9 @@ internal static partial class LocalHtmlCompletionProvider
         // Stop as soon as we hit an ancestor that has an end tag.
         for (var node = owner.Parent; node is not null; node = node.Parent)
         {
-            var (tagName, hasEndTag) = node switch
-            {
-                MarkupElementSyntax el => (el.StartTag?.Name.Content, el.EndTag is not null),
-                MarkupTagHelperElementSyntax th => (th.StartTag?.Name.Content, th.EndTag is not null),
-                _ => (null, false),
-            };
+            var (tagName, hasEndTag) = node is BaseMarkupElementSyntax el
+                ? (el.StartTag?.Name.Content, el.EndTag is not null)
+                : (null, false);
 
             if (tagName is null or { Length: 0 })
             {
@@ -473,15 +478,17 @@ internal static partial class LocalHtmlCompletionProvider
                 continue;
             }
 
+            var filterText = "/" + tagName;
+            var labelText = filterText + ">";
             var newText = includeOpenBracket
-                ? "</" + tagName + ">"   // Replace from '<' inclusive
-                : "/" + tagName + ">";   // Replace tag name range only
+                ? "<" + labelText   // Replace from '<' inclusive
+                : labelText;   // Replace tag name range only
 
             var item = new VSInternalCompletionItem
             {
-                Label = "/" + tagName + ">",
+                Label = labelText,
                 Kind = CompletionItemKind.CloseElement,
-                FilterText = "/" + tagName,
+                FilterText = filterText,
                 InsertTextFormat = InsertTextFormat.Plaintext,
                 SortText = $"!{sortIndex++:D2}",
                 TextEdit = new TextEdit { Range = range, NewText = newText },
@@ -675,7 +682,7 @@ internal static partial class LocalHtmlCompletionProvider
             Icon = icon,
             FilterText = attr.Name,
             InsertTextFormat = useSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext,
-            VsCommitCharacters = s_attributeCommitCharacters,
+            VsCommitCharacters = attr.IsBoolean ? s_minimizedAttributeCommitCharacters : s_attributeCommitCharacters,
             Command = useSnippet ? s_retriggerCompletionCommand : null,
             TextEdit = new TextEdit { Range = range, NewText = newText },
         };
