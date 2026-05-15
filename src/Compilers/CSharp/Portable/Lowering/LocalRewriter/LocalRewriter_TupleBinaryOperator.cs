@@ -315,6 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!isLeftNullable && !isRightNullable)
             {
                 // The outer sequence degenerates when we know that both `leftHasValue` and `rightHasValue` are true
+                outerEffects.Free();
                 return innerSequence;
             }
 

@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (intersects)
                 {
-                    info[pair.i].LocalDefs.Free();
+                    info[pair.i].Free();
                     info.Remove(pair.i);
                 }
                 else
