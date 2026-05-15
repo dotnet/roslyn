@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
@@ -27,6 +26,7 @@ using Xunit;
 using Xunit.Abstractions;
 using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 using RoslynConditionalFact = Roslyn.Test.Utilities.ConditionalFactAttribute;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 #if !VSCODE
 using Microsoft.VisualStudio.ProjectSystem;
@@ -687,7 +687,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.CreateDocumentUri()
+                DocumentUri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = new VSInternalCompletionContext()
@@ -1571,7 +1571,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.CreateDocumentUri()
+                DocumentUri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = completionContext
@@ -1678,7 +1678,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.CreateDocumentUri()
+                DocumentUri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = completionContext
@@ -1709,7 +1709,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(item);
         Assert.NotNull(tdi);
-        Assert.Equal(document.CreateUri(), tdi.Value.Uri);
+        Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, DisposalToken);
 

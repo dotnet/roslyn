@@ -1504,7 +1504,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
-        <target state="new">Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</target>
+        <target state="translated">No use "RequiresUnsafeAttribute" en el origen; use el modificador "unsafe" en su lugar.</target>
         <note>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">

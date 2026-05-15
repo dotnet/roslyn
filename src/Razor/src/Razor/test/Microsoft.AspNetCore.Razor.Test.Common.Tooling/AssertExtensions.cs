@@ -28,7 +28,10 @@ internal static class AssertExtensions
         Assert.Equal(expectedClassificationStyle, run.Style);
     }
 
-    public static async Task AssertWorkspaceEditAsync(this WorkspaceEdit workspaceEdit, Solution solution, IEnumerable<(Uri fileUri, string contents)> expectedChanges, CancellationToken cancellationToken)
+    public static Task AssertWorkspaceEditAsync(this WorkspaceEdit workspaceEdit, Solution solution, IEnumerable<(Uri fileUri, string contents)> expectedChanges, CancellationToken cancellationToken)
+        => workspaceEdit.AssertWorkspaceEditAsync(solution, expectedChanges.Select(e => (new DocumentUri(e.fileUri), e.contents)), cancellationToken);
+
+    public static async Task AssertWorkspaceEditAsync(this WorkspaceEdit workspaceEdit, Solution solution, IEnumerable<(DocumentUri fileUri, string contents)> expectedChanges, CancellationToken cancellationToken)
     {
         var changes = Assert.NotNull(workspaceEdit.DocumentChanges);
 
@@ -81,7 +84,7 @@ internal static class AssertExtensions
 
         foreach (var (uri, contents) in expectedChanges)
         {
-            var document = (await solution.GetTextDocumentsAsync(new DocumentUri(uri), cancellationToken)).Single();
+            var document = (await solution.GetTextDocumentsAsync(uri, cancellationToken)).Single();
             var text = await document.GetTextAsync(cancellationToken);
             AssertEx.EqualOrDiff(contents, text.ToString());
         }

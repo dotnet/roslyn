@@ -269,22 +269,22 @@
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterTitle">
         <source>Invalid parameter type in IRemoteJsonService method</source>
-        <target state="new">Invalid parameter type in IRemoteJsonService method</target>
+        <target state="translated">Ungültiger Parametertyp in der IRemoteJsonService-Methode.</target>
         <note>{Locked="IRemoteJsonService"}</note>
       </trans-unit>
       <trans-unit id="ImmutableArrayBoxingDescription">
         <source>Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</source>
-        <target state="new">Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</target>
+        <target state="translated">Der Aufruf der Methoden „EnumerableExtensions“ oder „ReadOnlyListExtensions“ für ImmutableArray&lt;T&gt; führt dazu, dass die Struktur verschachtelt wird, was unnötige Zuweisungen erzeugt. Verwenden Sie stattdessen die entsprechenden Erweiterungsmethoden für ImmutableArray&lt;T&gt;.</target>
         <note>{Locked="EnumerableExtensions"}{Locked="ReadOnlyListExtensions"}{Locked="ImmutableArray&lt;T&gt;"}</note>
       </trans-unit>
       <trans-unit id="ImmutableArrayBoxingMessage">
         <source>Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</source>
-        <target state="new">Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</target>
+        <target state="translated">Der Aufruf von „{0}“ auf ImmutableArray&lt;T&gt; verursacht Verschachtelung. Ziehen Sie in Betracht, stattdessen die Erweiterungsmethode für ImmutableArray&lt;T&gt; zu verwenden.</target>
         <note>{Locked="ImmutableArray&lt;T&gt;"}</note>
       </trans-unit>
       <trans-unit id="ImmutableArrayBoxingTitle">
         <source>ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</source>
-        <target state="new">ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</target>
+        <target state="translated">ImmutableArray&lt;T&gt; wird in IReadOnlyList&lt;T&gt; verschachtelt.</target>
         <note>{Locked="ImmutableArray&lt;T&gt;"}{Locked="IReadOnlyList&lt;T&gt;"}</note>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
