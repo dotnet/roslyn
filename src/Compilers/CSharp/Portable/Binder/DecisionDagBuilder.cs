@@ -2384,7 +2384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Check if a test's input is related to a given BoundDagTemp (used by ValueSet.Filter).
         /// </summary>
-        private bool CheckInputRelationForValueSet(BoundDagTest test, BoundDagTemp valueSetInput)
+        private static bool CheckInputRelationForValueSet(BoundDagTest test, BoundDagTemp valueSetInput)
         {
             if (test.Input == valueSetInput)
                 return true;
@@ -4015,7 +4015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    if (!builder.CheckInputRelationForValueSet(test, Input))
+                    if (!CheckInputRelationForValueSet(test, Input))
                     {
                         whenTrue = whenFalse = this;
                         return;
@@ -4045,7 +4045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 private Tests ComputeFilteredResult(IValueSet? possibleValues)
                 {
-                    if (possibleValues is not IConstantValueSet constantPossible)
+                    if (possibleValues is not IConstantValueSet)
                         return this;
 
                     // Intersect our values with what's possible

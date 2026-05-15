@@ -43,9 +43,9 @@ foreach ($entry in $benchmarkProjects) {
     "--no-build"
   )
 
-  if ($entry.Framework) {
+  if ($entry.ContainsKey("Framework")) {
     $args += "-f"
-    $args += $entry.Framework
+    $args += $entry["Framework"]
   }
 
   # Separator between dotnet args and BenchmarkDotNet args
