@@ -661,18 +661,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ArrayBuilder<BoundDagTemp> outParamTemps = e.MakeOutParameterTemps();
                             try
                             {
-<<<<<<< HEAD
-                                var newPattern = SamplePatternForTemp(binder, elementTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
-                                if (first)
-||||||| bb72253b2c0
-                                var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
-                                if (first)
-=======
                                 bool first = true;
                                 foreach (var elementTemp in outParamTemps)
->>>>>>> upstream/main
                                 {
-                                    var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
+                                    var newPattern = SamplePatternForTemp(binder, elementTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
                                     if (first)
                                     {
                                         first = false;
