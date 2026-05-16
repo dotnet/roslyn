@@ -509,7 +509,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             closed abstract class C { }
             """,
             expectedBindingDiagnostics: [
-                // (1,23): error CS9604: 'C': a closed type cannot be marked abstract because it is always implicitly abstract.
+                // (1,23): error CS9384: 'C': a closed type cannot be marked abstract because it is always implicitly abstract.
                 // closed abstract class C { }
                 Diagnostic(ErrorCode.ERR_ClosedExplicitlyAbstract, "C").WithArguments("C").WithLocation(1, 23)
             ]);
@@ -537,7 +537,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             abstract closed class C { }
             """,
             expectedBindingDiagnostics: [
-                // (1,23): error CS9604: 'C': a closed type cannot be marked abstract because it is always implicitly abstract.
+                // (1,23): error CS9384: 'C': a closed type cannot be marked abstract because it is always implicitly abstract.
                 // abstract closed class C { }
                 Diagnostic(ErrorCode.ERR_ClosedExplicitlyAbstract, "C").WithArguments("C").WithLocation(1, 23)
             ]);
@@ -1326,7 +1326,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             closed class closed { }
             """,
             expectedBindingDiagnostics: [
-                // (1,14): error CS9600: Types and aliases cannot be named 'closed'.
+                // (1,14): error CS9380: Types and aliases cannot be named 'closed'.
                 // closed class closed { }
                 Diagnostic(ErrorCode.ERR_ClosedTypeNameDisallowed, "closed").WithLocation(1, 14)
             ]);
@@ -1876,7 +1876,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
                 Diagnostic(ErrorCode.ERR_TypeExpected, "?").WithLocation(8, 18)
             ],
             expectedBindingDiagnostics: [
-                // (1,15): error CS9600: Types and aliases cannot be named 'closed'.
+                // (1,15): error CS9380: Types and aliases cannot be named 'closed'.
                 // public struct closed { public int item; }
                 Diagnostic(ErrorCode.ERR_ClosedTypeNameDisallowed, "closed").WithLocation(1, 15),
                 // (3,21): error CS0227: Unsafe code may only appear if compiling with /unsafe

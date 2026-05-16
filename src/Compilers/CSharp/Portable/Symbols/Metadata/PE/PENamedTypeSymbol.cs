@@ -1276,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     catch (Exception ex) when (ex is BadImageFormatException or UnsupportedSignatureContent)
                     {
-                        // PROTOTYPE(cc): It seems like we don't know what the candidate subtypes are in this case,
+                        // https://github.com/dotnet/roslyn/issues/83617: It seems like we don't know what the candidate subtypes are in this case,
                         // so, perhaps we should not allow exhausting the type via its subtypes.
                     }
 

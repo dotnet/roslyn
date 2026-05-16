@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureUnions = MessageBase + 12860,
 
-        IDS_FeatureClosedClasses = MessageBase + 12865, // PROTOTYPE(cc): pack
+        IDS_FeatureClosedClasses = MessageBase + 12862,
     }
 
     // Message IDs may refer to strings that need to be localized.
