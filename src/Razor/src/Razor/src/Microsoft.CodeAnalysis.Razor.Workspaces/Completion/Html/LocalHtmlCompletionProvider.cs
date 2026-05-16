@@ -43,7 +43,7 @@ internal static partial class LocalHtmlCompletionProvider
     /// with directive attribute items, enabling optimizer promotion to list-level defaults.
     /// </summary>
     private static readonly SumType<string[], VSInternalCommitCharacter[]> s_attributeCommitCharacters =
-        RazorCommitCharacter.ToVsCommitCharacters(DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true, useSpace: true));
+        RazorCommitCharacter.ToVsCommitCharacters(DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true));
 
     /// <summary>
     /// Commit characters for boolean (minimized) attribute completions. Space uses Insert=true

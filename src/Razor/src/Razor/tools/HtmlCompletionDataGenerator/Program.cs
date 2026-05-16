@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Xml;
@@ -57,7 +57,7 @@ internal static class Program
             var elementGroupsUniqueCode = CodeEmitter.EmitElementGroupsUnique(schema);
             var attrGroupsSharedCode = CodeEmitter.EmitAttributeGroupsShared(schema);
             var attrGroupsUniqueCode = CodeEmitter.EmitAttributeGroupsUnique(schema);
-            
+
             outputFile = Path.GetFullPath(outputFile);
             var outputDir = Path.GetDirectoryName(outputFile)!;
             Directory.CreateDirectory(outputDir);
@@ -117,7 +117,7 @@ internal static class Program
             var accessorCode = CodeEmitter.EmitDescriptionsAccessor(schema);
             var accessorFile = Path.Combine(outputDir!, "HtmlDescriptions.g.cs");
             File.WriteAllText(accessorFile, accessorCode, utf8);
-            
+
             Console.WriteLine($"Generated {outputFile}");
             Console.WriteLine($"Generated {elementInfoFile}");
             Console.WriteLine($"Generated {elementKindFile}");

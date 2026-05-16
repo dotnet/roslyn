@@ -21,7 +21,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
 {
     // Internal for testing
     internal static readonly ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters = DefaultCommitCharacters.GetMinimizedAttributeCommitCharacters();
-    internal static readonly ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters = DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true, useSpace: false);
+    internal static readonly ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters = DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
 
     private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters = DefaultCommitCharacters.GetElementCommitCharacters(useSpace: true);
     private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = DefaultCommitCharacters.GetElementCommitCharacters(useSpace: false);

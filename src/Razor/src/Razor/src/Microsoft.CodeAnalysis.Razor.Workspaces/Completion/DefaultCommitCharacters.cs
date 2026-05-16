@@ -21,9 +21,8 @@ internal static class DefaultCommitCharacters
 
     // Attribute commit characters: '=' and/or space, both with Insert=false.
     // Used for attributes that have a snippet or existing value (cursor ends up inside quotes).
-    private static readonly ImmutableArray<RazorCommitCharacter> s_attributeEqualsCommitCharacters = [new("=", Insert: false)];
-    private static readonly ImmutableArray<RazorCommitCharacter> s_attributeEqualsSpaceCommitCharacters = [new("=", Insert: false), new(" ", Insert: false)];
-    private static readonly ImmutableArray<RazorCommitCharacter> s_attributeSpaceCommitCharacters = [new(" ", Insert: false)];
+    private static readonly ImmutableArray<RazorCommitCharacter> s_attributeCommitCharactersWithEquals = [new("=", Insert: false), new(" ", Insert: false)];
+    private static readonly ImmutableArray<RazorCommitCharacter> s_attributeCommitCharacters = [new(" ", Insert: false)];
 
     // Minimized (boolean) attribute commit characters: '=' Insert=false, space Insert=true.
     // For boolean attributes (e.g., disabled, readonly), no snippet is appended so the cursor
@@ -54,15 +53,8 @@ internal static class DefaultCommitCharacters
     /// Space uses <c>Insert=false</c> because the cursor ends up inside quotes after a snippet commit.
     /// </summary>
     /// <param name="useEquals">Whether '=' commits the completion.</param>
-    /// <param name="useSpace">Whether space commits the completion.</param>
-    public static ImmutableArray<RazorCommitCharacter> GetAttributeCommitCharacters(bool useEquals, bool useSpace)
-        => (useEquals, useSpace) switch
-        {
-            (true, true) => s_attributeEqualsSpaceCommitCharacters,
-            (true, false) => s_attributeEqualsCommitCharacters,
-            (false, true) => s_attributeSpaceCommitCharacters,
-            (false, false) => [],
-        };
+    public static ImmutableArray<RazorCommitCharacter> GetAttributeCommitCharacters(bool useEquals)
+        => useEquals ? s_attributeCommitCharactersWithEquals : s_attributeCommitCharacters;
 
     /// <summary>
     /// Gets commit characters for minimized (boolean) attribute completions (e.g., <c>disabled</c>,

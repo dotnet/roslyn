@@ -189,15 +189,55 @@ internal static partial class CompletionListOptimizer
     }
 
     /// <summary>
-    /// Compares two commit character sources for equality using reference equality.
-    /// This is sufficient because our completion providers use shared static arrays —
-    /// all items in the same group share the same array instance.
+    /// Compares two commit character sources for equality. Tries reference equality first
+    /// (fast path for items from the same provider sharing static arrays), then falls back
+    /// to content equality for items whose arrays were independently deserialized across
+    /// serialization boundaries (e.g., OOP → devenv JSON round-trip produces distinct array
+    /// instances with identical content).
     /// </summary>
     private static bool CommitCharactersEqual(
         string[]? aStrings, VSInternalCommitCharacter[]? aVsChars,
         string[]? bStrings, VSInternalCommitCharacter[]? bVsChars)
     {
-        return ReferenceEquals(aStrings, bStrings) && ReferenceEquals(aVsChars, bVsChars);
+        return ContentEqual(aStrings, bStrings) && ContentEqual(aVsChars, bVsChars);
+    }
+
+    private static bool ContentEqual(string[]? a, string[]? b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (a is null || b is null || a.Length != b.Length)
+        {
+            return false;
+        }
+
+        return a.AsSpan().SequenceEqual(b);
+    }
+
+    private static bool ContentEqual(VSInternalCommitCharacter[]? a, VSInternalCommitCharacter[]? b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (a is null || b is null || a.Length != b.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < a.Length; i++)
+        {
+            if (a[i].Character != b[i].Character || a[i].Insert != b[i].Insert)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
