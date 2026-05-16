@@ -13,8 +13,15 @@ internal static class UnusedDirectiveCache
 
     public static void Set(RazorCodeDocument codeDocument, TextSpan[] spans)
     {
-        s_cache.Remove(codeDocument);
-        s_cache.Add(codeDocument, spans);
+#if NET
+        s_cache.AddOrUpdate(codeDocument, spans);
+#else
+        lock (s_cache)
+        {
+            s_cache.Remove(codeDocument);
+            s_cache.Add(codeDocument, spans);
+        }
+#endif
     }
 
     public static bool TryGet(RazorCodeDocument codeDocument, out TextSpan[] spans)
