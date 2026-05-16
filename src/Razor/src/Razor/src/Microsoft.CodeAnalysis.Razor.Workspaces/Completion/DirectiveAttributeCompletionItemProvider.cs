@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -371,7 +370,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
         => AddCompletion(RazorCompletionItemKind.DirectiveAttribute,
-            attributeName, descriptionInfo, completionContext, attributeCompletions);
+            attributeName, descriptionInfo, attributeCompletions);
 
     private static void AddParameterCompletion(
         string attributeName,
@@ -379,13 +378,12 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
         => AddCompletion(RazorCompletionItemKind.DirectiveAttributeParameter,
-            attributeName, descriptionInfo, completionContext, attributeCompletions);
+            attributeName, descriptionInfo, attributeCompletions);
 
     private static void AddCompletion(
         RazorCompletionItemKind kind,
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
     {
         ImmutableArray<BoundAttributeDescriptionInfo> descriptions;
