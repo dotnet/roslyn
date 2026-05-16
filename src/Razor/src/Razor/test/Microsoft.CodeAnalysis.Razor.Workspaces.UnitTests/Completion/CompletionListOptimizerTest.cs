@@ -41,8 +41,8 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         Assert.Null(item.CommitCharacters);
 
         Assert.NotNull(vsCompletionList.CommitCharacters);
-        var commitCharacter = Assert.Single(vsCompletionList.CommitCharacters.Value.First);
-        Assert.Equal("<", commitCharacter);
+        var promotedChar = Assert.Single(vsCompletionList.CommitCharacters.Value.First);
+        Assert.Equal("<", promotedChar);
     }
 
     [Fact]

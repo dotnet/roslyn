@@ -20,13 +20,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider, IHtmlDependentCompletionItemProvider
 {
     // Internal for testing
-    internal static readonly ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters = RazorCommitCharacter.CreateArray(["=", " "]);
-    internal static readonly ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters = RazorCommitCharacter.CreateArray(["="]);
-    internal static readonly ImmutableArray<RazorCommitCharacter> AttributeSnippetCommitCharacters = RazorCommitCharacter.CreateArray(["="], insert: false);
+    internal static readonly ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters = DefaultCommitCharacters.GetMinimizedAttributeCommitCharacters();
+    internal static readonly ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters = DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
 
-    private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.CreateArray([" ", ">"]);
-    private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = RazorCommitCharacter.CreateArray([">"]);
-
+    private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters = DefaultCommitCharacters.GetElementCommitCharacters(useSpace: true);
+    private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = DefaultCommitCharacters.GetElementCommitCharacters(useSpace: false);
     private readonly ITagHelperCompletionService _tagHelperCompletionService = tagHelperCompletionService;
 
     public bool NeedsHtmlCompletions(RazorCompletionContext context)
@@ -381,8 +379,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         {
             AttributeContext.Indexer => [],
             AttributeContext.Minimized => MinimizedAttributeCommitCharacters,
-            AttributeContext.Full => AttributeCommitCharacters,
-            AttributeContext.FullSnippet => AttributeSnippetCommitCharacters,
+            AttributeContext.Full or AttributeContext.FullSnippet => AttributeCommitCharacters,
             _ => throw new InvalidOperationException("Unexpected context"),
         };
     }

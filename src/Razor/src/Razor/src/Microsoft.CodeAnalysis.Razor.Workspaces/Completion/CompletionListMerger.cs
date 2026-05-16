@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -39,8 +38,6 @@ internal static class CompletionListMerger
         var mergedIsIncomplete = razorCompletionList.IsIncomplete || delegatedCompletionList.IsIncomplete;
         VSInternalCompletionItem[] mergedItems = [.. razorCompletionList.Items, .. delegatedCompletionList.Items];
         var mergedData = MergeData(razorCompletionList.Data, delegatedCompletionList.Data);
-        var mergedCommitCharacters = razorCompletionList.CommitCharacters
-            ?? delegatedCompletionList.CommitCharacters;
         var mergedSuggestionMode = razorCompletionList.SuggestionMode || delegatedCompletionList.SuggestionMode;
 
         // We don't fully support merging continue characters currently. Razor doesn't currently use them so delegated completion lists always win.
@@ -52,7 +49,8 @@ internal static class CompletionListMerger
 
         var mergedCompletionList = new RazorVSInternalCompletionList()
         {
-            CommitCharacters = mergedCommitCharacters,
+            // CommitCharacters intentionally null — EnsureMergeableCommitCharacters dematerialized
+            // both lists to per-item. The post-merge optimizer will re-promote the best group.
             Data = mergedData,
             IsIncomplete = mergedIsIncomplete,
             Items = mergedItems,
@@ -62,8 +60,6 @@ internal static class CompletionListMerger
             {
                 Data = mergedItemDefaultsData,
                 EditRange = mergedItemDefaultsEditRange,
-                // VSCode won't use VSInternalCompletionList.CommitCharacters, make sure we don't lose item defaults
-                CommitCharacters = razorCompletionList.ItemDefaults?.CommitCharacters ?? delegatedCompletionList.ItemDefaults?.CommitCharacters
             }
         };
 
@@ -177,63 +173,37 @@ internal static class CompletionListMerger
 
     private static void EnsureMergeableCommitCharacters(RazorVSInternalCompletionList completionListA, RazorVSInternalCompletionList completionListB)
     {
-        var aInheritsCommitCharacters = completionListA.CommitCharacters is not null || completionListA.ItemDefaults?.CommitCharacters is not null;
-        var bInheritsCommitCharacters = completionListB.CommitCharacters is not null || completionListB.ItemDefaults?.CommitCharacters is not null;
-        if (aInheritsCommitCharacters && bInheritsCommitCharacters)
+        // Dematerialize list-level commit characters from both lists so that all items carry
+        // explicit per-item chars. The post-merge optimizer will re-promote the best group.
+        DematerializeCommitCharacters(completionListA);
+        DematerializeCommitCharacters(completionListB);
+
+        static void DematerializeCommitCharacters(RazorVSInternalCompletionList completionList)
         {
-            // Need to merge commit characters because both are trying to inherit
-
-            var inheritableCommitCharacterCompletionsA = GetCompletionsThatDoNotSpecifyCommitCharacters(completionListA);
-            var inheritableCommitCharacterCompletionsB = GetCompletionsThatDoNotSpecifyCommitCharacters(completionListB);
-            IReadOnlyList<VSInternalCompletionItem>? completionItemsToStopInheriting;
-            RazorVSInternalCompletionList? completionListToStopInheriting;
-
-            // Decide which completion list has more items that benefit from "inheriting" commit characters.
-            if (inheritableCommitCharacterCompletionsA.Length >= inheritableCommitCharacterCompletionsB.Length)
+            var listChars = completionList.CommitCharacters;
+            if (listChars is not null)
             {
-                completionListToStopInheriting = completionListB;
-                completionItemsToStopInheriting = inheritableCommitCharacterCompletionsB;
+                completionList.CommitCharacters = null;
             }
-            else
+            else if (completionList.ItemDefaults?.CommitCharacters is { } defaultChars)
             {
-                completionListToStopInheriting = completionListA;
-                completionItemsToStopInheriting = inheritableCommitCharacterCompletionsA;
+                listChars = defaultChars;
+                completionList.ItemDefaults.CommitCharacters = null;
             }
 
-            for (var i = 0; i < completionItemsToStopInheriting.Count; i++)
+            if (listChars is not null)
             {
-                if (completionListToStopInheriting.CommitCharacters is not null)
+                foreach (var item in completionList.Items)
                 {
-                    completionItemsToStopInheriting[i].VsCommitCharacters = completionListToStopInheriting.CommitCharacters;
-                }
-                else if (completionListToStopInheriting.ItemDefaults?.CommitCharacters is not null)
-                {
-                    completionItemsToStopInheriting[i].VsCommitCharacters = completionListToStopInheriting.ItemDefaults?.CommitCharacters;
+                    if (item is VSInternalCompletionItem vsItem &&
+                        vsItem.CommitCharacters is null &&
+                        vsItem.VsCommitCharacters is null)
+                    {
+                        vsItem.VsCommitCharacters = listChars;
+                    }
                 }
             }
-
-            completionListToStopInheriting.CommitCharacters = null;
-            completionListToStopInheriting.ItemDefaults?.CommitCharacters = null;
         }
-    }
-
-    private static ImmutableArray<VSInternalCompletionItem> GetCompletionsThatDoNotSpecifyCommitCharacters(RazorVSInternalCompletionList completionList)
-    {
-        using var inheritableCompletions = new PooledArrayBuilder<VSInternalCompletionItem>();
-        for (var i = 0; i < completionList.Items.Length; i++)
-        {
-            if (completionList.Items[i] is not VSInternalCompletionItem completionItem ||
-                completionItem.CommitCharacters is not null ||
-                completionItem.VsCommitCharacters is not null)
-            {
-                // Completion item wasn't the right type or already specifies commit characters
-                continue;
-            }
-
-            inheritableCompletions.Add(completionItem);
-        }
-
-        return inheritableCompletions.ToImmutable();
     }
 
     private record MergedCompletionListData(

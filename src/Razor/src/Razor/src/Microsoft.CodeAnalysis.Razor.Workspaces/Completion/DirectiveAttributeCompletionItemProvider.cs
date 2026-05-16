@@ -190,9 +190,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         var isIndexer = completionContext.SelectedAttributeName.EndsWith(Ellipsis, StringComparison.Ordinal);
         var descriptionInfo = BoundAttributeDescriptionInfo.From(attribute, isIndexer, attribute.Parent.TypeName);
 
-        var tagHelper = attribute.Parent;
-
-        if (!TryAddAttributeCompletion(attribute.Name, descriptionInfo, tagHelper, completionContext, attributeCompletions) &&
+        if (!TryAddAttributeCompletion(attribute.Name, descriptionInfo, completionContext, attributeCompletions) &&
             attribute.Parameters.Length > 0)
         {
             // This attribute has parameters and the base attribute name (@bind) is already satisfied. We need to check if there are any valid
@@ -203,7 +201,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
                 if (!completionContext.AlreadySatisfiesParameter(parameter, attribute))
                 {
                     // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
-                    AddAttributeCompletion(attribute.Name, descriptionInfo, tagHelper, completionContext, attributeCompletions);
+                    AddAttributeCompletion(attribute.Name, descriptionInfo, completionContext, attributeCompletions);
                     break;
                 }
             }
@@ -212,7 +210,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         if (!attribute.IndexerNamePrefix.IsNullOrEmpty())
         {
             TryAddAttributeCompletion(
-                attribute.IndexerNamePrefix + Ellipsis, descriptionInfo, tagHelper, completionContext, attributeCompletions);
+                attribute.IndexerNamePrefix + Ellipsis, descriptionInfo, completionContext, attributeCompletions);
         }
     }
 
@@ -258,8 +256,6 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
             DirectiveAttributeCompletionContext completionContext,
             Dictionary<string, AttributeCompletionDetails> attributeCompletions)
         {
-            var tagHelper = attribute.Parent;
-
             foreach (var parameter in parameters)
             {
                 if (completionContext.AlreadySatisfiesParameter(parameter, attribute))
@@ -275,7 +271,6 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
                 AddParameterCompletion(
                     displayName,
                     descriptionInfo: BoundAttributeDescriptionInfo.From(parameter),
-                    tagHelper,
                     completionContext,
                     attributeCompletions);
             }
@@ -355,7 +350,6 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
     private static bool TryAddAttributeCompletion(
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        TagHelperDescriptor tagHelper,
         DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
     {
@@ -367,33 +361,30 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
             return false;
         }
 
-        AddAttributeCompletion(attributeName, descriptionInfo, tagHelper, completionContext, attributeCompletions);
+        AddAttributeCompletion(attributeName, descriptionInfo, completionContext, attributeCompletions);
         return true;
     }
 
     private static void AddAttributeCompletion(
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        TagHelperDescriptor tagHelper,
         DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
         => AddCompletion(RazorCompletionItemKind.DirectiveAttribute,
-            attributeName, descriptionInfo, tagHelper, completionContext, attributeCompletions);
+            attributeName, descriptionInfo, completionContext, attributeCompletions);
 
     private static void AddParameterCompletion(
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        TagHelperDescriptor tagHelper,
         DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
         => AddCompletion(RazorCompletionItemKind.DirectiveAttributeParameter,
-            attributeName, descriptionInfo, tagHelper, completionContext, attributeCompletions);
+            attributeName, descriptionInfo, completionContext, attributeCompletions);
 
     private static void AddCompletion(
         RazorCompletionItemKind kind,
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        TagHelperDescriptor tagHelper,
         DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
     {
@@ -418,14 +409,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         // Verify not an indexer attribute, as those don't commit with standard chars
         if (!attributeName.EndsWith(Ellipsis, StringComparison.Ordinal))
         {
-            // We always add "=" as a commit character in Visual Studio.
-            var useEqualsCommit = !completionContext.Options.UseVsCodeCompletionCommitCharacters ||
-                                  commitCharacters.Any(static c => c.Character == "=");
-
-            var useSpaceCommit = commitCharacters.Any(static c => c.Character == " ") ||
-                                 tagHelper.BoundAttributes.Any(static a => a.IsBooleanProperty);
-
-            commitCharacters = DefaultCommitCharacters.Get(useEqualsCommit, useSpaceCommit, completionContext.UseSnippets);
+            commitCharacters = Completion.DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
         }
 
         attributeCompletions[attributeName] = new(kind, descriptions, commitCharacters);
