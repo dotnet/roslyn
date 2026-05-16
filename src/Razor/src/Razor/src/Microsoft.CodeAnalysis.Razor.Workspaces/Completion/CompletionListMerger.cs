@@ -49,8 +49,9 @@ internal static class CompletionListMerger
 
         var mergedCompletionList = new RazorVSInternalCompletionList()
         {
-            // CommitCharacters intentionally null — EnsureMergeableCommitCharacters dematerialized
-            // both lists to per-item. The post-merge optimizer will re-promote the best group.
+            // CommitCharacters intentionally null — EnsureMergeableCommitCharacters materialized
+            // list-level commit characters onto individual items before merging. This method does
+            // not re-promote a common group back to list-level defaults.
             Data = mergedData,
             IsIncomplete = mergedIsIncomplete,
             Items = mergedItems,

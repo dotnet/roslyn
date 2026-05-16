@@ -16,14 +16,14 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         var commitCharacters = new[] { "<" };
         var completionList = new RazorVSInternalCompletionList()
         {
-            Items = new[]
-            {
+            Items =
+            [
                 new VSInternalCompletionItem()
                 {
                     Label = "Test",
                     VsCommitCharacters = commitCharacters
                 }
-            }
+            ]
         };
         var capabilities = new VSInternalCompletionSetting()
         {
@@ -292,7 +292,7 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         // Item with different chars retains them
         var item2VsChars = ((VSInternalCompletionItem)result.Items[2]).VsCommitCharacters;
         Assert.NotNull(item2VsChars);
-        Assert.Equal(new[] { ">" }, (string[])item2VsChars.Value.Value);
+        Assert.Equal([">"], (string[])item2VsChars.Value.Value!);
     }
 
     [Fact]
