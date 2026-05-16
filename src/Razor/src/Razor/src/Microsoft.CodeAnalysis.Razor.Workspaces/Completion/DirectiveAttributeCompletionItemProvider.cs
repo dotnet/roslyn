@@ -200,7 +200,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
                 if (!completionContext.AlreadySatisfiesParameter(parameter, attribute))
                 {
                     // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
-                    AddAttributeCompletion(attribute.Name, descriptionInfo, completionContext, attributeCompletions);
+                    AddAttributeCompletion(attribute.Name, descriptionInfo, attributeCompletions);
                     break;
                 }
             }
@@ -270,7 +270,6 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
                 AddParameterCompletion(
                     displayName,
                     descriptionInfo: BoundAttributeDescriptionInfo.From(parameter),
-                    completionContext,
                     attributeCompletions);
             }
         }
@@ -360,14 +359,13 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
             return false;
         }
 
-        AddAttributeCompletion(attributeName, descriptionInfo, completionContext, attributeCompletions);
+        AddAttributeCompletion(attributeName, descriptionInfo, attributeCompletions);
         return true;
     }
 
     private static void AddAttributeCompletion(
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
         => AddCompletion(RazorCompletionItemKind.DirectiveAttribute,
             attributeName, descriptionInfo, attributeCompletions);
@@ -375,7 +373,6 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
     private static void AddParameterCompletion(
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
         => AddCompletion(RazorCompletionItemKind.DirectiveAttributeParameter,
             attributeName, descriptionInfo, attributeCompletions);
