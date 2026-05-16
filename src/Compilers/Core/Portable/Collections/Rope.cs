@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis
 
             public bool MoveNext()
             {
+start:
                 if (_currentString != null && _index < _currentString.Length)
                 {
                     Current = _currentString[_index];
@@ -68,10 +69,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 _currentString = str;
                                 _index = 0;
-
-                                Current = str[_index];
-                                _index++;
-                                return true;
+                                goto start;
                             }
 
                             break;
