@@ -210,7 +210,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
-            // (1,21): error CS9601: 'C': a closed type cannot be sealed or static
+            // (1,21): error CS9381: 'C': a closed type cannot be sealed or static
             // sealed closed class C { }
             Diagnostic(ErrorCode.ERR_ClosedSealedStatic, "C").WithArguments("C").WithLocation(1, 21));
 
@@ -229,7 +229,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
-            // (1,21): error CS9601: 'C': a closed type cannot be sealed or static
+            // (1,21): error CS9381: 'C': a closed type cannot be sealed or static
             // static closed class C { }
             Diagnostic(ErrorCode.ERR_ClosedSealedStatic, "C").WithArguments("C").WithLocation(1, 21));
 
@@ -248,7 +248,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
-            // (1,23): error CS9604: 'C': a closed type cannot be marked abstract because it is always implicitly abstract.
+            // (1,23): error CS9384: 'C': a closed type cannot be marked abstract because it is always implicitly abstract.
             // abstract closed class C { }
             Diagnostic(ErrorCode.ERR_ClosedExplicitlyAbstract, "C").WithArguments("C").WithLocation(1, 23));
 
@@ -423,7 +423,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 """;
             var comp2 = CreateCompilation(source2, references: [reference], targetFramework: TargetFramework.Net100);
             comp2.VerifyEmitDiagnostics(
-                // (1,14): error CS9602: 'D': cannot use a closed type 'C' from another assembly as a base type.
+                // (1,14): error CS9382: 'D': cannot use a closed type 'C' from another assembly as a base type.
                 // public class D : C { }
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "D").WithArguments("D", "C").WithLocation(1, 14));
         }
@@ -444,7 +444,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp2 = CreateCompilation(source2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net100);
         comp2.VerifyEmitDiagnostics(
-            // (1,14): error CS9602: 'D': cannot use a closed type 'C' from another assembly as a base type.
+            // (1,14): error CS9382: 'D': cannot use a closed type 'C' from another assembly as a base type.
             // public class D : C { }
             Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "D").WithArguments("D", "C").WithLocation(1, 14));
     }
@@ -515,7 +515,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 """;
             var comp2 = CreateCompilation(source2, references: [reference], targetFramework: TargetFramework.Net100);
             comp2.VerifyEmitDiagnostics(
-                // (1,14): error CS9602: 'E': cannot use a closed type 'D' from another assembly as a base type.
+                // (1,14): error CS9382: 'E': cannot use a closed type 'D' from another assembly as a base type.
                 // public class E : D { }
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "E").WithArguments("E", "D").WithLocation(1, 14));
         }
@@ -588,7 +588,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (2,14): error CS9603: 'D<T>': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
+            // (2,14): error CS9383: 'D<T>': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
             // public class D<T> : C { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("D<T>", "T", "C").WithLocation(2, 14));
 
@@ -630,7 +630,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (5,18): error CS9603: 'Outer<T>.D': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
+            // (5,18): error CS9383: 'Outer<T>.D': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
             //     public class D : C { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<T>.D", "T", "C").WithLocation(5, 18));
 
@@ -668,10 +668,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (4,11): error CS9603: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U5' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
+            // (4,11): error CS9383: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U5' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
             //     class D<U4, U5, U6> : C<U1, U2, U4, U6> { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<U1, U2, U3>.D<U4, U5, U6>", "U5", "C<U1, U2, U4, U6>").WithLocation(4, 11),
-            // (4,11): error CS9603: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U3' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
+            // (4,11): error CS9383: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U3' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
             //     class D<U4, U5, U6> : C<U1, U2, U4, U6> { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<U1, U2, U3>.D<U4, U5, U6>", "U3", "C<U1, U2, U4, U6>").WithLocation(4, 11));
 
@@ -692,7 +692,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (5,14): error CS9603: 'F<T>': The type parameter 'T' must be referenced in the base type 'E' because the base type is closed.
+            // (5,14): error CS9383: 'F<T>': The type parameter 'T' must be referenced in the base type 'E' because the base type is closed.
             // closed class F<T> : E { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "F").WithArguments("F<T>", "T", "E").WithLocation(5, 14));
 
@@ -971,13 +971,13 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 }
                 """, references: [reference], targetFramework: TargetFramework.Net100);
             comp2.VerifyEmitDiagnostics(
-                // (3,7): error CS9602: 'D': cannot use a closed type 'C' from another assembly as a base type.
+                // (3,7): error CS9382: 'D': cannot use a closed type 'C' from another assembly as a base type.
                 // class D : C { }
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "D").WithArguments("D", "C").WithLocation(3, 7),
-                // (4,7): error CS9602: 'E': cannot use a closed type 'C' from another assembly as a base type.
+                // (4,7): error CS9382: 'E': cannot use a closed type 'C' from another assembly as a base type.
                 // class E() : C { }
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "E").WithArguments("E", "C").WithLocation(4, 7),
-                // (5,7): error CS9602: 'F': cannot use a closed type 'C' from another assembly as a base type.
+                // (5,7): error CS9382: 'F': cannot use a closed type 'C' from another assembly as a base type.
                 // class F : C
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "F").WithArguments("F", "C").WithLocation(5, 7),
                 // (16,17): error CS9035: Required member 'C.P' must be set in the object initializer or attribute constructor.
@@ -1500,6 +1500,162 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Container.E1' is not covered.
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Container.E1").WithLocation(5, 18));
+    }
+
+    [Fact]
+    public void Exhaustiveness_CSharp14_01()
+    {
+        // Old C# versions treat a closed class, the same as a non-closed class, for pattern matching purposes.
+        // Note: since subtypes do not subsume the base type under old LangVersion, it means certain patterns could go from valid to erroneous on upgrade.
+        var source1 = """
+            public closed class C
+            {
+            }
+
+            public class D1 : C { }
+            public class D2 : C { }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C c)
+                {
+            #line 100
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                    };
+                }
+
+                int M2(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                        C => 3,
+                    };
+                }
+
+                int M3(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        C => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (1,21): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // public closed class C
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("closed classes").WithLocation(1, 21),
+            // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
+
+        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp0.VerifyEmitDiagnostics();
+
+        var comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp1.VerifyEmitDiagnostics(
+            // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
+
+        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp1.VerifyEmitDiagnostics(
+            // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
+
+        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net100);
+        comp1.VerifyEmitDiagnostics(
+            // (113,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //             C => 3,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C").WithLocation(113, 13));
+
+        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net100);
+        comp1.VerifyEmitDiagnostics(
+            // (113,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //             C => 3,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C").WithLocation(113, 13));
+    }
+
+    [Fact]
+    public void Exhaustiveness_CSharp14_02()
+    {
+        // Pattern matching a union of closed classes in old LangVersion
+        var source1 = """
+            public union U(C1, C2);
+
+            public closed class C1;
+            public class D1 : C1 { }
+
+            public closed class C2;
+            public class D2 : C2 { }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(U u)
+                {
+                    return u switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                    };
+                }
+
+                int M2(U u)
+                {
+                    return u switch
+                    {
+                        C1 => 1,
+                        C2 => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp0.VerifyDiagnostics();
+
+        var comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp1.VerifyDiagnostics(
+            // (7,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             D1 => 1,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D1").WithArguments("unions").WithLocation(7, 13),
+            // (8,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D2").WithArguments("unions").WithLocation(8, 13),
+            // (16,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             C1 => 1,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C1").WithArguments("unions").WithLocation(16, 13),
+            // (17,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             C2 => 2,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C2").WithArguments("unions").WithLocation(17, 13));
+
+        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp1.VerifyDiagnostics(
+            // (7,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             D1 => 1,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D1").WithArguments("unions").WithLocation(7, 13),
+            // (8,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D2").WithArguments("unions").WithLocation(8, 13),
+            // (16,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             C1 => 1,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C1").WithArguments("unions").WithLocation(16, 13),
+            // (17,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             C2 => 2,
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C2").WithArguments("unions").WithLocation(17, 13));
     }
 
     [Fact]
@@ -2976,7 +3132,6 @@ public sealed class ClosedClassesTests : CSharpTestBase
     public void Exhaustiveness_Constraints_02()
     {
         // Subtype definition constraints which do not "overlap" with constructed closed type using type parameters
-        // PROTOTYPE(cc): Should we detect when the subtype cannot unify with the closed type due to subtype constraints?
         var source1 = """
             public closed class C<T>;
             public class D1<U1> : C<U1>;
@@ -4106,7 +4261,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     {
         // Attempt to exhaust a type parameter constrained to closed type.
         // This scenario isn't supported by the exhaustiveness check.
-        // PROTOTYPE(cc): Confirm whether we want to allow exhausting such type parameters via subtypes.
+        // https://github.com/dotnet/roslyn/issues/83617: Confirm whether we want to allow exhausting such type parameters via subtypes.
         var source1 = """
             public closed class E;
             public sealed class F1 : E;
@@ -4496,5 +4651,82 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Assert.True(cOfStringArray.TryGetClosedSubtypes(out subtypes));
             Assert.Equal(["D1<System.String>"], subtypes.ToTestDisplayStrings());
         }
+    }
+
+    [Fact]
+    public void Partial_01()
+    {
+        // Multiple partial declarations specify 'closed'
+        var source = """
+            closed partial class C1;
+            closed partial class C1;
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+
+        var c1 = comp.GetMember<NamedTypeSymbol>("C1");
+        Assert.True(c1.IsClosed);
+    }
+
+    [Fact]
+    public void Partial_02()
+    {
+        // Not all partial declarations specify 'closed'
+        var source = """
+            partial class C1;
+            closed partial class C1;
+
+            closed partial class C2;
+            partial class C2;
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+
+        var c1 = comp.GetMember<NamedTypeSymbol>("C1");
+        Assert.True(c1.IsClosed);
+
+        var c2 = comp.GetMember<NamedTypeSymbol>("C2");
+        Assert.True(c2.IsClosed);
+    }
+
+    [Fact]
+    public void Partial_03()
+    {
+        // Incompatible modifiers are spread across partial declarations
+        var source = """
+            abstract partial class C1;
+            closed partial class C1;
+
+            closed partial class C2;
+            sealed partial class C2;
+
+            static partial class C3;
+            closed partial class C3;
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (1,24): error CS9384: 'C1': a closed type cannot be marked abstract because it is always implicitly abstract.
+            // abstract partial class C1;
+            Diagnostic(ErrorCode.ERR_ClosedExplicitlyAbstract, "C1").WithArguments("C1").WithLocation(1, 24),
+            // (4,22): error CS9381: 'C2': a closed type cannot be sealed or static
+            // closed partial class C2;
+            Diagnostic(ErrorCode.ERR_ClosedSealedStatic, "C2").WithArguments("C2").WithLocation(4, 22),
+            // (7,22): error CS9381: 'C3': a closed type cannot be sealed or static
+            // static partial class C3;
+            Diagnostic(ErrorCode.ERR_ClosedSealedStatic, "C3").WithArguments("C3").WithLocation(7, 22));
+
+        var c1 = comp.GetMember<NamedTypeSymbol>("C1");
+        Assert.True(c1.IsClosed);
+
+        var c2 = comp.GetMember<NamedTypeSymbol>("C2");
+        Assert.True(c2.IsClosed);
+        Assert.True(c2.IsSealed);
+
+        var c3 = comp.GetMember<NamedTypeSymbol>("C3");
+        Assert.True(c3.IsClosed);
+        Assert.True(c3.IsStatic);
     }
 }

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ForType(input.Type);
         }
 
-        public static ITypeUnionValueSetFactory? TypeUnionValueSetFactoryForInput(BoundDagTemp input)
+        public static ITypeUnionValueSetFactory? TypeUnionValueSetFactoryForInput(CSharpCompilation compilation, BoundDagTemp input)
         {
             if (DecisionDagBuilder.IsUnionValue(input, out BoundDagTemp? unionInstance))
             {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (input.Type is NamedTypeSymbol { IsClosed: true } closedClass)
+            if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureClosedClasses) && input.Type is NamedTypeSymbol { IsClosed: true } closedClass)
             {
                 return new ClosedClassTypeUnionValueSetFactory(closedClass);
             }
