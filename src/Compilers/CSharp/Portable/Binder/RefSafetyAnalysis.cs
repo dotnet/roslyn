@@ -751,6 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
                     GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, i, arguments, isExtensionBlockMethod);
                     _ = new PlaceholderRegion(this, placeholders);
+                    placeholders.Free();
                 }
                 Visit(arg);
             }

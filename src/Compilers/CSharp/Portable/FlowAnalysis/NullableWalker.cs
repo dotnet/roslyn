@@ -465,11 +465,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AssertNoPlaceholderReplacements();
 
-            _nestedFunctionVariables?.Free();
+            if (_nestedFunctionVariables is not null)
+            {
+                foreach (var variables in _nestedFunctionVariables.Values)
+                {
+                    variables.Free();
+                }
+
+                _nestedFunctionVariables.Free();
+            }
+
             _resultForPlaceholdersOpt?.Free();
             _methodGroupReceiverMapOpt?.Free();
             _placeholderLocalsOpt?.Free();
-            _variables.Free();
+
+            // Free _variables and its Container chain. The chain exists when _variables
+            // was created from a snapshot (e.g., in AnalyzeLambdaBody) which recursively
+            // creates Container Variables instances not tracked in _nestedFunctionVariables.
+            for (var variables = _variables; variables is not null; variables = variables.Container)
+            {
+                variables.Free();
+            }
+
             Debug.Assert(_targetTypedAnalysisCompletionOpt is null or { Count: 0 });
             _targetTypedAnalysisCompletionOpt?.Free();
             base.Free();
