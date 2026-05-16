@@ -310,8 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnsafeEvolution = MessageBase + 12859,
 
         IDS_FeatureUnions = MessageBase + 12860,
-
-        IDS_FeatureStaticMembersInInterfaces = MessageBase + 12900, // PROTOTYPE: Pack numbers
+        IDS_FeatureStaticMembersInInterfaces = MessageBase + 12861,
     }
 
     // Message IDs may refer to strings that need to be localized.

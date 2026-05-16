@@ -3648,6 +3648,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var nonTypeMembersBuilder = ArrayBuilder<Symbol>.GetInstance(nonTypeMembersWithPartialImplementations.Length);
             nonTypeMembersBuilder.AddRange(nonTypeMembersWithPartialImplementations);
             MergePartialMembers(partialMembersToMerge, nonTypeMembersBuilder, diagnostics);
+
+            foreach (var value in partialMembersToMerge.Values)
+            {
+                if (value is ArrayBuilder<Symbol> arrayBuilder)
+                {
+                    arrayBuilder.Free();
+                }
+            }
+
             partialMembersToMerge.Free();
 
             if (ImmutableInterlocked.InterlockedInitialize(ref nonTypeMembers, nonTypeMembersBuilder.ToImmutableAndFree()))
@@ -5650,6 +5659,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyMembersAndInitializers != null)
                 {
                     // membersAndInitializers is already computed. no point to continue.
+                    staticInitializers?.Free();
+                    instanceInitializers?.Free();
                     return;
                 }
 

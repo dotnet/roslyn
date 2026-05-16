@@ -1310,6 +1310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
 
                     // Now perform overload resolution given only those two constructors and no others.
+                    BoundExpression result;
                     if (@this._binder.TryPerformOverloadResolutionWithConstructorSubset(
                             constructedListType,
                             ref candidateConstructors,
@@ -1323,12 +1324,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ref useSiteInfo,
                             isParamsModifierValidation: false))
                     {
-                        return @this._binder.BindClassCreationExpressionContinued(
+                        result = @this._binder.BindClassCreationExpressionContinued(
                             withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
                     }
+                    else
+                    {
+                        result = @this._binder.CreateBadClassCreationExpression(
+                            withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
+                    }
 
-                    return @this._binder.CreateBadClassCreationExpression(
-                        withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
+                    analyzedArguments.Free();
+                    return result;
                 }
             }
 
