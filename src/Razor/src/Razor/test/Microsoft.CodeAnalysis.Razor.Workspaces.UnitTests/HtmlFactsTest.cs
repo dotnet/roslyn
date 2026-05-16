@@ -84,4 +84,37 @@ public class HtmlFactsTest : RazorToolingIntegrationTestBase
         var nameText = content[nameLocation.Start..nameLocation.End];
         Assert.Equal("@bind", nameText);
     }
+
+    [Fact]
+    public void TryGetAttributeName_MinimizedDirectiveAttributeWithParameter_NameLocationSpansFullName()
+    {
+        // Arrange — Use @bind:format without a value to get a minimized directive attribute.
+        // A minimized attribute has no ="value" part (like HTML boolean attributes).
+        // This tests the MarkupMinimizedTagHelperDirectiveAttributeSyntax branch.
+        var content = """
+            <input type="text" @bind="@CurrentDate" @bind:format />
+            @code {
+                public string CurrentDate { get; set; } = "";
+            }
+            """;
+        var result = CompileToCSharp(content, throwOnFailure: false);
+        var root = result.CodeDocument.GetRequiredSyntaxRoot();
+
+        // Find a minimized directive attribute with a parameter
+        var minimizedDirectiveAttribute = root
+            .DescendantNodes()
+            .OfType<MarkupMinimizedTagHelperDirectiveAttributeSyntax>()
+            .First(a => a.ParameterName is not null);
+
+        // Act
+        var found = HtmlFacts.TryGetAttributeName(minimizedDirectiveAttribute, out _, out var name, out var nameLocation);
+
+        // Assert
+        Assert.True(found);
+        Assert.Equal(minimizedDirectiveAttribute.FullName, name);
+
+        // nameLocation must span from the transition through the parameter name
+        var nameText = content[nameLocation.Start..nameLocation.End];
+        Assert.Equal("@bind:format", nameText);
+    }
 }
