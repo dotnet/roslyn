@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -42,6 +45,111 @@ public static class RazorCodeDocumentExtensions
     internal static bool IsImportsFile(this RazorCodeDocument codeDocument)
         => codeDocument.FileKind.IsComponentImport() ||
            (codeDocument.FileKind.IsLegacy() && string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Returns the content of the <c>@inherits</c> directive if present in a legacy <c>.cshtml</c>
+    /// document's syntax tree, or <see langword="null"/> for non-legacy files or when absent.
+    /// </summary>
+    internal static string? GetInheritsDirectiveValue(this RazorCodeDocument codeDocument)
+    {
+        if (!codeDocument.FileKind.IsLegacy())
+        {
+            return null;
+        }
+
+        var syntaxTree = codeDocument.GetSyntaxTree();
+        if (syntaxTree is null)
+        {
+            return null;
+        }
+
+        // Check the main document first -- its @inherits overrides any from imports.
+        var inheritsValue = FindInheritsDirective(syntaxTree);
+        if (inheritsValue is not null)
+        {
+            return inheritsValue;
+        }
+
+        // Check import syntax trees. The last import's @inherits wins (most specific scope).
+        if (codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
+        {
+            for (var i = importSyntaxTrees.Length - 1; i >= 0; i--)
+            {
+                inheritsValue = FindInheritsDirective(importSyntaxTrees[i]);
+                if (inheritsValue is not null)
+                {
+                    return inheritsValue;
+                }
+            }
+        }
+
+        return null;
+
+        static string? FindInheritsDirective(RazorSyntaxTree tree)
+        {
+            foreach (var node in tree.Root.DescendantNodes())
+            {
+                if (node is RazorDirectiveSyntax
+                    {
+                        DirectiveDescriptor: var descriptor,
+                        Body: RazorDirectiveBodySyntax { CSharpCode: { } csharpCode }
+                    } &&
+                    descriptor == InheritsDirective.Directive)
+                {
+                    return csharpCode.GetContent()?.Trim();
+                }
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Returns all <c>@using</c> directives from the document and its import files, in the
+    /// same order as <see cref="DefaultRazorIntermediateNodeLoweringPhase"/> emits them
+    /// during code generation: imports first (outer to inner), then the page's own usings.
+    /// </summary>
+    internal static ImmutableArray<string> GetUsingDirectives(this RazorCodeDocument codeDocument)
+    {
+        var syntaxTree = codeDocument.GetSyntaxTree();
+        if (syntaxTree is null)
+        {
+            return [];
+        }
+
+        var usings = new List<string>();
+
+        if (codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
+        {
+            foreach (var importTree in importSyntaxTrees)
+            {
+                CollectUsings(importTree, usings);
+            }
+        }
+
+        CollectUsings(syntaxTree, usings);
+
+        return [.. usings];
+
+        static void CollectUsings(RazorSyntaxTree tree, List<string> usings)
+        {
+            foreach (var node in tree.Root.DescendantNodes())
+            {
+                if (node is RazorUsingDirectiveSyntax usingDirective)
+                {
+                    var content = usingDirective.Body?.GetContent()?.Trim();
+                    if (content is not null && content.StartsWith("using ", StringComparison.Ordinal))
+                    {
+                        var ns = content.Substring("using ".Length).TrimEnd(';').Trim();
+                        if (ns.Length > 0)
+                        {
+                            usings.Add(ns);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /// <summary>
     /// Returns whether the directive specified was involved in tag helper binding

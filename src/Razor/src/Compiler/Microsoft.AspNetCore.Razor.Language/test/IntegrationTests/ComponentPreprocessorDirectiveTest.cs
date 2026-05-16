@@ -3,10 +3,11 @@
 
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
-public class ComponentPreprocessorDirectiveTest(bool designTime = false)
+public class ComponentPreprocessorDirectiveTest()
     : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
 {
     internal override RazorFileKind? FileKind => RazorFileKind.Component;
@@ -17,15 +18,12 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
 
     internal override string DefaultFileName => ComponentName + ".razor";
 
-    internal override bool DesignTime => designTime;
-
     protected override string GetDirectoryPath(string testName)
     {
-        var directory = DesignTime ? "ComponentDesignTimePreprocessorDirectiveTest" : "ComponentRuntimePreprocessorDirectiveTest";
-        return $"TestFiles/IntegrationTests/{directory}/{testName}";
+        return $"TestFiles/IntegrationTests/ComponentPreprocessorDirectiveTest/{testName}";
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void IfDefAndPragma()
     {
         var generated = CompileToCSharp("""
@@ -42,7 +40,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void DisabledText_01()
     {
         var generated = CompileToCSharp("""
@@ -58,7 +56,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void PassParseOptionsThrough_01()
     {
         var parseOptions = CSharpParseOptions.WithPreprocessorSymbols("SomeSymbol");
@@ -77,7 +75,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void PassParseOptionsThrough_02()
     {
         var parseOptions = CSharpParseOptions.WithPreprocessorSymbols("SomeSymbol");
@@ -96,7 +94,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void DefineAndUndef()
     {
         var generated = CompileToCSharp("""
@@ -118,7 +116,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         );
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void AfterTag()
     {
         var generated = CompileToCSharp("""
@@ -140,7 +138,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
             Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#endif").WithLocation(7, 1));
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_01()
     {
         var generated = CompileToCSharp("""
@@ -159,7 +157,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
             Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "}").WithLocation(2, 11));
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_02()
     {
         var generated = CompileToCSharp("""
@@ -182,7 +180,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
             Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(5, 12));
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_03()
     {
         var generated = CompileToCSharp("""
@@ -206,7 +204,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
             Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(6, 12));
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_04()
     {
         var generated = CompileToCSharp("""
@@ -235,7 +233,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
             Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(5, 3));
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_05()
     {
         var generated = CompileToCSharp("""
@@ -252,7 +250,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_06()
     {
         var generated = CompileToCSharp("""
@@ -269,7 +267,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_07()
     {
         // This test uses tabs as the leading whitespace
@@ -287,7 +285,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_08()
     {
         // vertical tab
@@ -305,7 +303,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_09()
     {
         // Form feed
@@ -323,7 +321,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_10()
     {
         // NBSP
@@ -341,7 +339,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_11()
     {
         // ZWNBSP
@@ -359,7 +357,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void StartOfLine_12()
     {
         var generated = CompileToCSharp("""
@@ -378,7 +376,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         );
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void MisplacedEndingDirective_01()
     {
         var generated = CompileToCSharp("""
@@ -391,24 +389,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var expectedDiagnostic = DesignTime ?
-            new[]
-            {
-                // x:\dir\subdir\Test\TestComponent.cshtml(14,1): error CS1027: #endif directive expected
-                //
-                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(14, 1),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10)
-            }
-            :
-            new[]
+        var expectedDiagnostic = new[]
             {
 
                // x:\dir\subdir\Test\TestComponent.cshtml(15,1): error CS1027: #endif directive expected
@@ -428,7 +409,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated, expectedDiagnostic);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void MisplacedEndingDirective_02()
     {
         var generated = CompileToCSharp("""
@@ -441,24 +422,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var expectedDiagnostics = DesignTime ?
-            new[]
-            {
-                // x:\dir\subdir\Test\TestComponent.cshtml(14,1): error CS1027: #endif directive expected
-                //
-                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(14, 1),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10)
-            }
-            :
-            new[]
+        var expectedDiagnostics = new[]
             {
                 // x:\dir\subdir\Test\TestComponent.cshtml(15,1): error CS1027: #endif directive expected
                 //
@@ -477,7 +441,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated, expectedDiagnostics);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void MisplacedEndingDirective_03()
     {
         var generated = CompileToCSharp("""
@@ -492,24 +456,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var expectedDiagnostics = DesignTime ?
-            new[]
-            {
-                // x:\dir\subdir\Test\TestComponent.cshtml(16,1): error CS1027: #endif directive expected
-                //
-                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(16, 1),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10)
-            }
-            :
-            new[]
+        var expectedDiagnostics = new[]
             {
                 // x:\dir\subdir\Test\TestComponent.cshtml(17,1): error CS1027: #endif directive expected
                 //
@@ -528,7 +475,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated, expectedDiagnostics);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void MisplacedEndingDirective_04()
     {
         var generated = CompileToCSharp("""
@@ -543,24 +490,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var expectedDiagnostics = DesignTime ?
-            new[]
-            {
-                // x:\dir\subdir\Test\TestComponent.cshtml(16,1): error CS1027: #endif directive expected
-                //
-                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(16, 1),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10)
-            }
-            :
-            new[]
+        var expectedDiagnostics = new[]
             {
                 // x:\dir\subdir\Test\TestComponent.cshtml(17,1): error CS1027: #endif directive expected
                 //
@@ -579,7 +509,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated, expectedDiagnostics);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void MisplacedEndingDirective_05()
     {
         var generated = CompileToCSharp("""
@@ -594,24 +524,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var expectedDiagnostics = DesignTime ?
-            new[]
-            {
-                // x:\dir\subdir\Test\TestComponent.cshtml(16,1): error CS1027: #endif directive expected
-                //
-                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(16, 1),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
-                // (26,10): error CS1513: } expected
-                //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10)
-            }
-            :
-            new[]
+        var expectedDiagnostics = new[]
             {
                 // x:\dir\subdir\Test\TestComponent.cshtml(17,1): error CS1027: #endif directive expected
                 //
@@ -630,7 +543,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated, expectedDiagnostics);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void MisplacedEndingDirective_06()
     {
         var generated = CompileToCSharp("""
@@ -649,7 +562,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void MisplacedEndingDirective_07()
     {
         var generated = CompileToCSharp("""
@@ -668,7 +581,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void MisplacedEndingDirective_08()
     {
         var generated = CompileToCSharp("""
@@ -689,7 +602,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void MisplacedEndingDirective_09()
     {
         var generated = CompileToCSharp("""
@@ -709,7 +622,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [Fact]
     public void MisplacedEndingDirective_10()
     {
         var generated = CompileToCSharp("""

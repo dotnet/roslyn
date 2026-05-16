@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -24,12 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private ImmutableArray<TypeUnionValueSet.CaseInfo> AdjustedTypesInUnion()
             {
-                Debug.Assert(!_unionType.UnionCaseTypes.Any(t => t.IsNullableType()));
-
                 var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
                 foreach (var caseType in _unionType.UnionCaseTypes)
                 {
-                    ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(caseType, builder);
+                    ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(caseType.StrippedType(), builder);
                 }
 
                 return builder.ToImmutableAndFree();

@@ -36,7 +36,6 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
 
         // Assert
         Assert.NotNull(documentNode.Options);
-        Assert.False(documentNode.Options.DesignTime);
         Assert.Equal(4, documentNode.Options.IndentSize);
         Assert.False(documentNode.Options.IndentWithTabs);
     }
@@ -55,7 +54,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
             });
         });
 
-        var codeDocument = projectEngine.CreateEmptyDesignTimeCodeDocument();
+        var codeDocument = projectEngine.CreateEmptyCodeDocument();
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
@@ -63,7 +62,6 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
 
         // Assert
         Assert.NotNull(documentNode.Options);
-        Assert.True(documentNode.Options.DesignTime);
         Assert.Equal(17, documentNode.Options.IndentSize);
         Assert.True(documentNode.Options.IndentWithTabs);
         Assert.True(documentNode.Options.SuppressChecksum);

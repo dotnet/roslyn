@@ -8,11 +8,7 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
-#if COHOSTING
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
-#else
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-#endif
 
 [Collection(HtmlFormattingCollection.Name)]
 public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)

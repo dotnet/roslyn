@@ -58,8 +58,6 @@ internal sealed partial class ParserContext : IDisposable
 
     public HashSet<string> SeenDirectives => _seenDirectivesSet;
 
-    public bool DesignTimeMode => Options.DesignTime;
-
     public bool IsEndOfFile
         => Source.Peek() == -1;
 

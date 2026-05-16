@@ -25,7 +25,7 @@ public class InjectTargetExtension(bool considerNullabilityEnforcement) : IInjec
             throw new ArgumentNullException(nameof(node));
         }
 
-        if (!context.Options.DesignTime && !string.IsNullOrWhiteSpace(node.TypeSource?.FilePath))
+        if (!string.IsNullOrWhiteSpace(node.TypeSource?.FilePath))
         {
             if (node.TypeName == "")
             {

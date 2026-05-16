@@ -207,6 +207,52 @@ internal static class HtmlFacts
         }
     }
 
+    public static bool TryGetAttributeName(
+        SyntaxNode attribute,
+        out TextSpan? prefixLocation,
+        out string? name,
+        out TextSpan nameLocation)
+    {
+        switch (attribute)
+        {
+            case MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock:
+                prefixLocation = minimizedAttributeBlock.NamePrefix?.Span;
+                name = minimizedAttributeBlock.Name.GetContent();
+                nameLocation = minimizedAttributeBlock.Name.Span;
+                return true;
+            case MarkupAttributeBlockSyntax attributeBlock:
+                prefixLocation = attributeBlock.NamePrefix?.Span;
+                name = attributeBlock.Name.GetContent();
+                nameLocation = attributeBlock.Name.Span;
+                return true;
+            case MarkupTagHelperAttributeSyntax tagHelperAttribute:
+                prefixLocation = tagHelperAttribute.NamePrefix?.Span;
+                name = tagHelperAttribute.Name.GetContent();
+                nameLocation = tagHelperAttribute.Name.Span;
+                return true;
+            case MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute:
+                prefixLocation = minimizedAttribute.NamePrefix?.Span;
+                name = minimizedAttribute.Name.GetContent();
+                nameLocation = minimizedAttribute.Name.Span;
+                return true;
+            case MarkupTagHelperDirectiveAttributeSyntax tagHelperDirectiveAttribute:
+                prefixLocation = tagHelperDirectiveAttribute.NamePrefix?.Span;
+                name = tagHelperDirectiveAttribute.FullName;
+                nameLocation = TextSpan.FromBounds(tagHelperDirectiveAttribute.Transition.Span.Start, tagHelperDirectiveAttribute.Name.Span.End);
+                return true;
+            case MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedTagHelperDirectiveAttribute:
+                prefixLocation = minimizedTagHelperDirectiveAttribute.NamePrefix?.Span;
+                name = minimizedTagHelperDirectiveAttribute.FullName;
+                nameLocation = TextSpan.FromBounds(minimizedTagHelperDirectiveAttribute.Transition.Span.Start, minimizedTagHelperDirectiveAttribute.Name.Span.End);
+                return true;
+        }
+
+        prefixLocation = null;
+        name = null;
+        nameLocation = default;
+        return false;
+    }
+
     public static bool TryGetAttributeInfo(
         SyntaxNode attribute,
         out SyntaxToken containingTagNameToken,
@@ -225,49 +271,18 @@ internal static class HtmlFacts
             return false;
         }
 
-        switch (attribute)
+        if (TryGetAttributeName(attribute, out prefixLocation, out selectedAttributeName, out var nameLocation))
         {
-            case MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock:
-                prefixLocation = minimizedAttributeBlock.NamePrefix?.Span;
-                selectedAttributeName = minimizedAttributeBlock.Name.GetContent();
-                selectedAttributeNameLocation = minimizedAttributeBlock.Name.Span;
-                return true;
-            case MarkupAttributeBlockSyntax attributeBlock:
-                prefixLocation = attributeBlock.NamePrefix?.Span;
-                selectedAttributeName = attributeBlock.Name.GetContent();
-                selectedAttributeNameLocation = attributeBlock.Name.Span;
-                return true;
-            case MarkupTagHelperAttributeSyntax tagHelperAttribute:
-                prefixLocation = tagHelperAttribute.NamePrefix?.Span;
-                selectedAttributeName = tagHelperAttribute.Name.GetContent();
-                selectedAttributeNameLocation = tagHelperAttribute.Name.Span;
-                return true;
-            case MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute:
-                prefixLocation = minimizedAttribute.NamePrefix?.Span;
-                selectedAttributeName = minimizedAttribute.Name.GetContent();
-                selectedAttributeNameLocation = minimizedAttribute.Name.Span;
-                return true;
-            case MarkupTagHelperDirectiveAttributeSyntax tagHelperDirectiveAttribute:
-                {
-                    prefixLocation = tagHelperDirectiveAttribute.NamePrefix?.Span;
-                    selectedAttributeName = tagHelperDirectiveAttribute.FullName;
-                    var fullNameSpan = TextSpan.FromBounds(tagHelperDirectiveAttribute.Transition.Span.Start, tagHelperDirectiveAttribute.Name.Span.End);
-                    selectedAttributeNameLocation = fullNameSpan;
-                    return true;
-                }
-            case MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedTagHelperDirectiveAttribute:
-                {
-                    prefixLocation = minimizedTagHelperDirectiveAttribute.NamePrefix?.Span;
-                    selectedAttributeName = minimizedTagHelperDirectiveAttribute.FullName;
-                    var fullNameSpan = TextSpan.FromBounds(minimizedTagHelperDirectiveAttribute.Transition.Span.Start, minimizedTagHelperDirectiveAttribute.Name.Span.End);
-                    selectedAttributeNameLocation = fullNameSpan;
-                    return true;
-                }
-            case MarkupMiscAttributeContentSyntax:
-                prefixLocation = null;
-                selectedAttributeName = null;
-                selectedAttributeNameLocation = null;
-                return true;
+            selectedAttributeNameLocation = nameLocation;
+            return true;
+        }
+
+        if (attribute is MarkupMiscAttributeContentSyntax)
+        {
+            prefixLocation = null;
+            selectedAttributeName = null;
+            selectedAttributeNameLocation = null;
+            return true;
         }
 
         // Not an attribute type that we know of

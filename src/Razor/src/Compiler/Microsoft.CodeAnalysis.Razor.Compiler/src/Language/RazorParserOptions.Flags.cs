@@ -10,7 +10,6 @@ public sealed partial class RazorParserOptions
     [Flags]
     private enum Flags
     {
-        DesignTime = 1 << 0,
         ParseLeadingDirectives = 1 << 1,
         UseRoslynTokenizer = 1 << 2,
         EnableSpanEditHandlers = 1 << 3,

@@ -25,7 +25,7 @@ public class CodeRenderingContextTest
 
         var options = RazorCodeGenerationOptions.Default.WithRazorWarningLevel(warningLevel);
         using var context = new CodeRenderingContext(
-            RuntimeNodeWriter.Instance,
+            IntermediateNodeWriter.Instance,
             TestRazorSourceDocument.Create(),
             documentNode,
             options);
@@ -56,7 +56,7 @@ public class CodeRenderingContextTest
 
         var options = RazorCodeGenerationOptions.Default.WithRazorWarningLevel(0);
         using var context = new CodeRenderingContext(
-            RuntimeNodeWriter.Instance,
+            IntermediateNodeWriter.Instance,
             TestRazorSourceDocument.Create(),
             documentNode,
             options);
@@ -97,7 +97,7 @@ public class CodeRenderingContextTest
 
         var options = RazorCodeGenerationOptions.Default.WithRazorWarningLevel(warningLevel);
         using var context = new CodeRenderingContext(
-            RuntimeNodeWriter.Instance,
+            IntermediateNodeWriter.Instance,
             TestRazorSourceDocument.Create(),
             documentNode,
             options);

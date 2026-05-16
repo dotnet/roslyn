@@ -13,30 +13,6 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
     protected override RazorLanguageVersion Version => RazorLanguageVersion.Version_2_1;
 
     [Fact]
-    public void InstrumentationPass_NoOps_ForDesignTime()
-    {
-        // Arrange
-        var codeDocument = ProjectEngine.CreateEmptyDesignTimeCodeDocument();
-        var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
-
-        var builder = IntermediateNodeBuilder.Create(documentNode);
-
-        builder.Push(new HtmlContentIntermediateNode());
-
-        builder.Add(IntermediateNodeFactory.HtmlToken("Hi"));
-
-        builder.Pop();
-
-        // Act
-        ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
-
-        // Assert
-        Children(
-            documentNode,
-            n => IntermediateNodeAssert.Html("Hi", n));
-    }
-
-    [Fact]
     public void InstrumentationPass_InstrumentsHtml()
     {
         // Arrange

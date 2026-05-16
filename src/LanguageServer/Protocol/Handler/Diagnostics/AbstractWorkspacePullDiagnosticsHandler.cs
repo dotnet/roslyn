@@ -59,14 +59,6 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 
     protected override async ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(TDiagnosticsParams diagnosticsParams, string? requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken)
     {
-        if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
-        {
-            // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
-            // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
-            // document-diagnostics instead.
-            return [];
-        }
-
         return await DiagnosticSourceManager.CreateWorkspaceDiagnosticSourcesAsync(context, requestDiagnosticCategory, cancellationToken).ConfigureAwait(false);
     }
 

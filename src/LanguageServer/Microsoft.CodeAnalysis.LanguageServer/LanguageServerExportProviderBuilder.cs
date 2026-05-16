@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
@@ -18,6 +19,17 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
 
     // For testing purposes, track the last cache write task.
     private static Task? s_cacheWriteTask_forTestingPurposesOnly;
+
+    private static readonly FrozenSet<string> s_dllsToExcludeFromMef = FrozenSet.ToFrozenSet(
+    [
+        // These DLLs are part of Razor, but should only be in their MEF composition not ours
+        "Microsoft.CodeAnalysis.Razor.Workspaces.dll",
+        "Microsoft.CodeAnalysis.Remote.Razor.dll",
+
+        // This is a runtime dependency of Remote.Razor, but its host-layer exports belong to the remote host
+        // composition and conflict with the language server's workspace services if included here.
+        "Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
+    ], StringComparer.OrdinalIgnoreCase);
 
     private LanguageServerExportProviderBuilder(
         ImmutableArray<string> assemblyPaths,
@@ -39,13 +51,16 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
-        // Load any Roslyn assemblies from the extension directory
+        // Load Roslyn assemblies from the language server directory.
         using var _ = ArrayBuilder<string>.GetInstance(out var assemblyPathsBuilder);
 
         // Don't catch IO exceptions as it's better to fail to build the catalog than give back
         // a partial catalog that will surely blow up later.
-        assemblyPathsBuilder.AddRange(Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll"));
-        assemblyPathsBuilder.AddRange(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
+        assemblyPathsBuilder.AddRange(FilterFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll"));
+        assemblyPathsBuilder.AddRange(FilterFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
+
+        // The Razor extension ships with Roslyn and so needs to be in our MEF composition
+        assemblyPathsBuilder.Add(Path.Combine(baseDirectory, "Microsoft.VisualStudioCode.RazorExtension.dll"));
 
         // DevKit assemblies are not shipped in the main language server folder
         // and not included in ExtensionAssemblyPaths (they get loaded into the default ALC).
@@ -72,6 +87,15 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
 
         return exportProvider;
+    }
+
+    private static IEnumerable<string> FilterFiles(string baseDirectory, string filter)
+    {
+        foreach (var file in Directory.EnumerateFiles(baseDirectory, filter))
+        {
+            if (!s_dllsToExcludeFromMef.Contains(Path.GetFileName(file)))
+                yield return file;
+        }
     }
 
     protected override void LogError(string message, Exception exception)

@@ -130,44 +130,6 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
     }
 
     [Fact]
-    public void Execute_NoOps_ForDesignTime()
-    {
-        // Arrange
-        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "/Views/Index.cshtml"));
-        var codeDocument = ProjectEngine.CreateDesignTimeCodeDocument(source);
-
-        var documentNode = new DocumentIntermediateNode()
-        {
-            DocumentKind = MvcViewDocumentClassifierPass.MvcViewDocumentKind,
-            Options = codeDocument.CodeGenerationOptions
-        };
-
-        var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
-        {
-            Name = "SomeNamespace",
-            IsPrimaryNamespace = true,
-        };
-
-        builder.Push(@namespace);
-
-        var @class = new ClassDeclarationIntermediateNode
-        {
-            Name = "SomeName",
-            IsPrimaryClass = true,
-        };
-
-        builder.Add(@class);
-
-        // Act
-        ProjectEngine.ExecutePass<AssemblyAttributeInjectionPass>(codeDocument, documentNode);
-
-        // Assert
-        var node = Assert.Single(documentNode.Children);
-        Assert.Same(@namespace, node);
-    }
-
-    [Fact]
     public void Execute_AddsRazorViewAttribute_ToViews()
     {
         // Arrange

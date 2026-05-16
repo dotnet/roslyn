@@ -1877,7 +1877,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsUnionTypeCore { get; }
 
-        internal ImmutableArray<TypeSymbol> UnionCaseTypes
+#nullable enable
+
+        internal ImmutableArray<TypeSymbol> UnionCaseTypes // https://github.com/dotnet/roslyn/issues/82636: Cache result for definitions?
         {
             get
             {
@@ -1887,21 +1889,111 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                var set = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
+                ForEachUnionFactoryMethod(addCaseType, (builder, set));
+                set.Free();
+                return builder.ToImmutableAndFree();
 
+                static bool addCaseType(MethodSymbol factory, (ArrayBuilder<TypeSymbol> builder, PooledHashSet<TypeSymbol> set) arg)
+                {
+                    (ArrayBuilder<TypeSymbol> builder, HashSet<TypeSymbol> set) = arg;
+                    var candidate = factory.Parameters[0].Type;
+                    if (set.Add(candidate))
+                    {
+                        builder.Add(candidate);
+                    }
+
+                    return false;
+                }
+            }
+        }
+
+        /// <param name="action">If the action returns true, the iteration stops.</param>
+        /// <returns>MethodSymbol for factory method for which action returned true; otherwise, null.</returns>
+        internal MethodSymbol? ForEachUnionFactoryMethod<TArg>(Func<MethodSymbol, TArg, bool> action, TArg arg)
+        {
+            Debug.Assert(IsUnionType);
+
+            NamedTypeSymbol? membersInterfaceForDefinition = GetMemberProviderInterfaceForDefinition();
+
+            if (membersInterfaceForDefinition is not null)
+            {
+                var definition = this.OriginalDefinition;
+                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(this);
+
+                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
+                {
+                    if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
+                    {
+                        method = method.AsMember(membersInterface);
+
+                        if (action(method, arg))
+                        {
+                            return method;
+                        }
+                    }
+                }
+            }
+            else
+            {
                 foreach (var ctor in this.InstanceConstructors)
                 {
                     if (IsSuitableUnionConstructor(ctor))
                     {
-                        var candidate = ctor.Parameters[0].Type.StrippedType();
-                        if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate))
+                        if (action(ctor, arg))
                         {
-                            builder.Add(candidate);
+                            return ctor;
                         }
                     }
                 }
-
-                return builder.ToImmutableAndFree();
             }
+
+            return null;
+
+            static bool isSuitableUnionFactory(NamedTypeSymbol unionType, MethodSymbol factory)
+            {
+                Debug.Assert(unionType.IsDefinition);
+                Debug.Assert(unionType.IsUnionType);
+                Debug.Assert(factory.IsDefinition);
+
+                return factory is
+                {
+                    IsStatic: true,
+                    Arity: 0,
+                    MethodKind: MethodKind.Ordinary,
+                    DeclaredAccessibility: Accessibility.Public,
+                    ReturnsVoid: false,
+                    RefKind: RefKind.None,
+                    ParameterCount: 1,
+                    Parameters: [{ RefKind: RefKind.In or RefKind.None }]
+                } &&
+                unionType.Equals(factory.ReturnType, TypeCompareKind.AllIgnoreOptions);
+            }
+        }
+
+        internal NamedTypeSymbol? GetMemberProviderInterfaceForDefinition()
+        {
+            Debug.Assert(IsUnionType);
+
+            foreach (var type in this.OriginalDefinition.GetTypeMembers(WellKnownMemberNames.UnionMembersInterfaceName))
+            {
+                if (type.Arity != 0)
+                {
+                    continue;
+                }
+
+                if (type.DeclaredAccessibility != Accessibility.Public ||
+                    !type.IsInterface ||
+                    !this.OriginalDefinition.AllInterfacesNoUseSiteDiagnostics.Contains(type, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                {
+                    return null;
+                }
+
+                Debug.Assert(type.IsDefinition);
+                return type;
+            }
+
+            return null;
         }
 
         internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
@@ -1909,6 +2001,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(ctor.MethodKind is MethodKind.Constructor);
             return ctor is { DeclaredAccessibility: Accessibility.Public, ParameterCount: 1, Parameters: [{ RefKind: RefKind.In or RefKind.None }] };
         }
+
+#nullable disable
 
         /// <summary>
         /// Verify if the given type can be used to back a tuple type 

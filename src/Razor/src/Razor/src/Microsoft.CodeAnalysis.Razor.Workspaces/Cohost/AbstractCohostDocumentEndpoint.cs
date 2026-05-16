@@ -4,16 +4,28 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.Razor.Cohost;
 
 internal abstract class AbstractCohostDocumentEndpoint<TRequest, TResponse>(
-    IIncompatibleProjectService incompatibleProjectService) : AbstractRazorCohostDocumentRequestHandler<TRequest, TResponse?>
+    IIncompatibleProjectService incompatibleProjectService) : ILspServiceRequestHandler<TRequest, TResponse?>, ITextDocumentIdentifierHandler<TRequest, TextDocumentIdentifier?>
 {
     private readonly IIncompatibleProjectService _incompatibleProjectService = incompatibleProjectService;
 
-    protected sealed override Task<TResponse?> HandleRequestAsync(TRequest request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    bool IMethodHandler.MutatesSolutionState => MutatesSolutionState;
+
+    bool ISolutionRequiredHandler.RequiresLSPSolution => RequiresLSPSolution;
+
+    TextDocumentIdentifier? ITextDocumentIdentifierHandler<TRequest, TextDocumentIdentifier?>.GetTextDocumentIdentifier(TRequest request)
+        => GetRazorTextDocumentIdentifier(request);
+
+    protected abstract bool MutatesSolutionState { get; }
+
+    protected abstract bool RequiresLSPSolution { get; }
+
+    public Task<TResponse?> HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken)
     {
         if (context.TextDocument is null)
         {
@@ -25,8 +37,10 @@ internal abstract class AbstractCohostDocumentEndpoint<TRequest, TResponse>(
         return HandleRequestAsync(request, context, context.TextDocument, cancellationToken);
     }
 
-    protected virtual Task<TResponse?> HandleRequestAsync(TRequest request, RazorCohostRequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected virtual Task<TResponse?> HandleRequestAsync(TRequest request, RequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
         => HandleRequestAsync(request, razorDocument, cancellationToken);
+
+    protected abstract TextDocumentIdentifier? GetRazorTextDocumentIdentifier(TRequest request);
 
     protected abstract Task<TResponse?> HandleRequestAsync(TRequest request, TextDocument razorDocument, CancellationToken cancellationToken);
 }

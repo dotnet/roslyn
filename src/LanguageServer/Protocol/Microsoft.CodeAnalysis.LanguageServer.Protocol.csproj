@@ -33,25 +33,15 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
-    <!-- Full IVT is through ExternalAccess for functionality -->
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
-    <!-- Restricted IVT is direct for protocol types only -->
-    <RestrictedInternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer" Namespace="Roslyn.Text.Adornments" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Namespace="Roslyn.Text.Adornments" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Namespace="Roslyn.Text.Adornments" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="rzls" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Tooling" Key="$(RazorKey)" />
     <!-- Restricted IVT for protocol types for Razor tests and other non shipping code -->
     <RestrictedInternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer.Test" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer.Test" Namespace="Roslyn.Text.Adornments" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Cohosting" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Tooling" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.Razor.IntegrationTests" Namespace="Roslyn.Text.Adornments" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.UnitTests" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />

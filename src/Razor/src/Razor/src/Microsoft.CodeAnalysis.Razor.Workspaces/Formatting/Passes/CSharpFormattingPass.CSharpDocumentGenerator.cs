@@ -361,8 +361,34 @@ internal partial class CSharpFormattingPass
 
                 // We can't use node.Span because it can contain newlines from the line before, so we have to work a little.
 
-                // First, emit the whitespace, so user spacing is honoured if possible
-                _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
+                // If we're inside an Html attribute, the indentation recorded in the Razor file already includes the fixed
+                // attribute indentation that will be reapplied when we map the formatted C# back. Remove that baseline here
+                // so Roslyn only sees the relative indentation within the expression instead of compounding it each time.
+                var htmlIndentLevel = 0;
+                int? additionalIndentation = null;
+                var attributeNode = node.Ancestors().FirstOrDefault(n => n.IsAnyAttributeSyntax())
+                    ?? (previousLineStartedWithAttributeName ? previousTokenParent?.Parent : null);
+                if (attributeNode?.Parent is BaseMarkupStartTagSyntax attributeStartTag)
+                {
+                    GetAttributeIndentation(attributeStartTag, out htmlIndentLevel, out var attributeAdditionalIndentation);
+                    additionalIndentation = attributeAdditionalIndentation;
+                }
+
+                // First, emit the whitespace, so user spacing is honoured if possible. We do this while taking into account
+                // any indentation we want to add to line up attribute content, otherwise we'd end up pushing that content to
+                // the right repeatedly.
+                var attributeIndentationWidth = (htmlIndentLevel * _tabSize) + additionalIndentation.GetValueOrDefault();
+                if (attributeIndentationWidth <= 0)
+                {
+                    // Attributes don't affect indentation here, so the user's indentation is all we need.
+                    _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
+                }
+                else
+                {
+                    // Take the user's indentation, and subtract our desired attribute indentation, so it's not added repeatedly.
+                    var indentationWidth = Math.Max(_currentLine.GetIndentationSize(_tabSize) - attributeIndentationWidth, 0);
+                    _builder.Append(FormattingUtilities.GetIndentationString(indentationWidth, _insertSpaces, _tabSize));
+                }
 
                 // Now emit the contents of the line. If this is the last line of the expression literal, then we want to stop at the
                 // end of the node, as there could be other contents afterwards, so work out if we're in that case first.
@@ -417,19 +443,6 @@ internal partial class CSharpFormattingPass
                 }
 
                 _builder.AppendLine();
-
-                // Final quirk: If we're inside an Html attribute, it means the Html formatter won't have formatted this line, as multi-line
-                // Html attributes are not valid.
-                // TODO: The traverse up the tree here is not ideal. See comments in https://github.com/dotnet/razor/issues/11371
-                var htmlIndentLevel = 0;
-                int? additionalIndentation = null;
-                var attributeNode = node.Ancestors().FirstOrDefault(n => n.IsAnyAttributeSyntax())
-                    ?? (previousLineStartedWithAttributeName ? previousTokenParent?.Parent : null);
-                if (attributeNode?.Parent is BaseMarkupStartTagSyntax attributeStartTag)
-                {
-                    GetAttributeIndentation(attributeStartTag, out htmlIndentLevel, out var attributeAdditionalIndentation);
-                    additionalIndentation = attributeAdditionalIndentation;
-                }
 
                 if (offsetFromEnd == 0)
                 {

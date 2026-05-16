@@ -375,6 +375,156 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
     }
 
     [Fact]
+    public async Task GenerateMethod_FromRazor_InOtherFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private void M()
+                    {
+                        var x= new Helper();
+                        x.[||]NewMethod();
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private void M()
+                    {
+                        var x= new Helper();
+                        x.NewMethod();
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                    }
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("Helper.cs"), """
+                    using System;
+
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                        internal void NewMethod()
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+    }
+
+    [Fact]
+    public async Task GenerateMethod_FromRazor_InOtherFile_WithUsing()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using MyOtherProject.Data
+
+                @code {
+                    private void M()
+                    {
+                        var x= new Helper();
+                        x.[||]NewMethod();
+                    }
+                }
+                """,
+            expected: """
+                @using MyOtherProject.Data
+
+                @code {
+                    private void M()
+                    {
+                        var x= new Helper();
+                        x.NewMethod();
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                    }
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("Helper.cs"), """
+                    using System;
+
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                        internal void NewMethod()
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+    }
+
+    [Fact]
+    public async Task GenerateMethod_FromRazor_InOtherRazorFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private void M()
+                    {
+                        var x= new OtherComponent();
+                        x.[||]NewMethod();
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private void M()
+                    {
+                        var x= new OtherComponent();
+                        x.NewMethod();
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("OtherComponent.razor"), """
+                    <div>Hi</div>
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("OtherComponent.razor"), """
+                    @using System
+                    <div>Hi</div>
+                    @code {
+                        internal void NewMethod()
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+    }
+
+    [Fact]
     public async Task GenerateMethod_Legacy_WithoutFunctionsBlock_CodeBlockBraceOnNextLine()
     {
         ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });

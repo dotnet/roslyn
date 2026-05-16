@@ -388,7 +388,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!modifierErrors &&
-                typeKind == TypeKind.Delegate &&
                 (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
                 this.ContainingModule.UseUpdatedMemorySafetyRules)
             {
@@ -961,7 +960,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
+        internal bool HasUnsafeModifier => HasFlag(DeclarationModifiers.Unsafe);
+
+        internal bool IntroducesUnsafeContext => HasUnsafeModifier && !ContainingModule.UseUpdatedMemorySafetyRules;
 
         /// <summary>
         /// If this type is file-local, the syntax tree in which the type is declared. Otherwise, null.
@@ -1825,7 +1826,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (member is NamedTypeSymbol type)
             {
-                RoslynDebug.AssertOrFailFast(forDiagnostics);
                 RoslynDebug.AssertOrFailFast(Volatile.Read(ref _lazyTypeMembers)?.Values.Any(types => types.Contains(t => t == (object)type)) == true);
                 return;
             }
@@ -4951,10 +4951,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                         }
 
-                        // https://github.com/dotnet/roslyn/issues/82636: Complain for anything but a type syntax in the parameter syntax
+                        TypeSyntax? typeSyntax = parameterSyntax.Type;
+                        Debug.Assert(typeSyntax != null);
+                        typesBuilder.Add(typeSyntax);
 
-                        Debug.Assert(parameterSyntax.Type != null);
-                        typesBuilder.Add(parameterSyntax.Type);
+                        SyntaxToken syntaxToken = parameterSyntax.GetFirstToken();
+                        if (syntaxToken != typeSyntax.GetFirstToken())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, syntaxToken.GetLocation(), syntaxToken.Text);
+                        }
+
+                        syntaxToken = parameterSyntax.GetLastToken();
+                        if (syntaxToken != typeSyntax.GetLastToken())
+                        {
+                            var nextToken = typeSyntax.GetLastToken().GetNextToken();
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, nextToken.GetLocation(), nextToken.Text);
+                        }
                     }
 
                     int memberOffset = members.Count + typesBuilder.Count; // In order to keep the same relative order between constructors during emit we assign offset in decreasing order
