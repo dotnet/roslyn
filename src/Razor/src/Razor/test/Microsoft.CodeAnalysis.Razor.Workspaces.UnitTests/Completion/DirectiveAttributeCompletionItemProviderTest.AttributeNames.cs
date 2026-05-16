@@ -66,7 +66,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContains(completions, "@bind", "@bind", ["="]);
+        AssertContains(completions, "@bind", "@bind", ["=", " "]);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContainsParameter(completions, "@bind-value:format", "@bind-value:format", ["="]);
+        AssertContainsParameter(completions, "@bind-value:format", "@bind-value:format", ["=", " "]);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContainsParameter(completions, "@bind-value:format=\"$0\"", "@bind-value:format", ["="]);
+        AssertContainsParameter(completions, "@bind-value:format=\"$0\"", "@bind-value:format", ["=", " "]);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContains(completions, "@attributes", "@attributes", ["="]);
+        AssertContains(completions, "@attributes", "@attributes", ["=", " "]);
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "@bind=\"$0\"", "@bind", ["="]);
+        AssertContains(completions, "@bind=\"$0\"", "@bind", ["=", " "]);
     }
 
     [Fact]
@@ -234,7 +234,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "@bind-value=\"$0\"", "@bind-value", ["="]);
+        AssertContains(completions, "@bind-value=\"$0\"", "@bind-value", ["=", " "]);
     }
 
     [Fact]
@@ -247,7 +247,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "@bind=\"$0\"", "@bind", ["="]);
+        AssertContains(completions, "@bind=\"$0\"", "@bind", ["=", " "]);
     }
 
     [Fact]
@@ -260,7 +260,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "@bind=\"$0\"", "@bind", [new RazorCommitCharacter("=", Insert: false)]);
+        AssertContains(completions, "@bind=\"$0\"", "@bind", [new RazorCommitCharacter("=", Insert: false), new RazorCommitCharacter(" ", Insert: false)]);
     }
 
     [Fact]
@@ -277,7 +277,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "@bind=$0", "@bind", ["="]);
+        AssertContains(completions, "@bind=$0", "@bind", ["=", " "]);
     }
 
     [Fact]
@@ -295,7 +295,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "@bind", "@bind", ["="]);
+        AssertContains(completions, "@bind", "@bind", ["=", " "]);
     }
 
     [Fact]
@@ -313,7 +313,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "@bind", "@bind", ["="]);
+        AssertContains(completions, "@bind", "@bind", ["=", " "]);
     }
 
     [Fact]
@@ -342,7 +342,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "@bind=\"$0\"", "@bind", ["="]);
+        AssertContains(completions, "@bind=\"$0\"", "@bind", ["=", " "]);
     }
 
     [Fact]
