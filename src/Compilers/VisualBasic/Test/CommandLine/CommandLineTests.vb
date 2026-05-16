@@ -4944,6 +4944,7 @@ End Class
         End Sub
 
         <Fact()>
+        <ValidatePooledObjects(LeakReason:="Binary file detection exception path")>
         Public Sub BinaryFile()
             Dim binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path
             Dim outWriter As New StringWriter()
@@ -9129,6 +9130,7 @@ End Class
         End Sub
 
         <Fact>
+        <ValidatePooledObjects(LeakReason:="Binary file detection exception path")>
         Public Sub AdditionalFileDiagnostics()
             Dim dir = Temp.CreateDirectory()
             Dim source = dir.CreateFile("a.vb").WriteAllText(<text>

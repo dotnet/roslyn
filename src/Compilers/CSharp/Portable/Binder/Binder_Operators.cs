@@ -3897,6 +3897,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             checkedMethods.Add(method);
                         }
                     }
+
+                    ordinaryMethods.Free();
                 }
             }
 
