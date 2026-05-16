@@ -10,15 +10,15 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Roslyn.LanguageServer.Protocol;
 
 internal sealed class SumConverter : JsonConverterFactory
 {
-    // These caches are defined on the non-generic class so they are shared across all
+    // This cache is defined on the non-generic class so it is shared across all
     // SumConverter<T> instantiations rather than duplicated per generic type argument.
-    internal static readonly ConcurrentDictionary<Type, bool> HasCustomJsonConverterCache = new();
     internal static readonly ConcurrentDictionary<Type, SumTypeInfoCache> SumTypeCache = new();
 
     public override bool CanConvert(Type typeToConvert)
@@ -229,29 +229,39 @@ internal sealed class SumConverter<T> : JsonConverter<T>
                 }
             }
 
+            // Track which arms were skipped by token filtering so pass 2 only retries those.
+            using var _ = ArrayBuilder<SumConverter.SumTypeInfoCache.UnionTypeInfo>.GetInstance(out var untestedArms);
+
+            // Pass 1: Try only token-compatible arms (avoids costly exception-based probing)
             for (var i = 0; i < applicableUnionTypeInfos.Count; i++)
             {
                 var unionTypeInfo = applicableUnionTypeInfos[i];
-
-                if (!IsTokenCompatibleWithType(ref reader, unionTypeInfo))
-                {
-                    continue;
-                }
 
                 if (unionTypeInfo.KindAttribute != null)
                 {
                     continue;
                 }
 
-                try
+                if (!IsTokenCompatibleWithType(ref reader, unionTypeInfo))
                 {
-                    var result = ((SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<T>)unionTypeInfo.StjReaderFunction).Invoke(ref reader, options);
+                    untestedArms.Add(unionTypeInfo);
+                    continue;
+                }
+
+                if (TryDeserializeArm(ref reader, backupReader, unionTypeInfo, options, out var result))
+                {
                     return result;
                 }
-                catch
+            }
+
+            // Pass 2: If no token-compatible arm succeeded, fall back to trying untested arms.
+            // This handles types whose converters accept unexpected token types (e.g.,
+            // converters registered at the property level or via JsonSerializerOptions).
+            for (var i = 0; i < untestedArms.Count; i++)
+            {
+                if (TryDeserializeArm(ref reader, backupReader, untestedArms[i], options, out var result))
                 {
-                    reader = backupReader;
-                    continue;
+                    return result;
                 }
             }
         }
@@ -284,6 +294,21 @@ internal sealed class SumConverter<T> : JsonConverter<T>
         }
     }
 
+    private static bool TryDeserializeArm(ref Utf8JsonReader reader, Utf8JsonReader backupReader, SumConverter.SumTypeInfoCache.UnionTypeInfo unionTypeInfo, JsonSerializerOptions options, out T result)
+    {
+        try
+        {
+            result = ((SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<T>)unionTypeInfo.StjReaderFunction).Invoke(ref reader, options);
+            return true;
+        }
+        catch
+        {
+            reader = backupReader;
+            result = default!;
+            return false;
+        }
+    }
+
     private static bool IsTokenCompatibleWithType(ref Utf8JsonReader reader, SumConverter.SumTypeInfoCache.UnionTypeInfo unionTypeInfo)
     {
         return IsTokenCompatibleWithType(ref reader, unionTypeInfo.Type);
@@ -291,14 +316,6 @@ internal sealed class SumConverter<T> : JsonConverter<T>
 
     private static bool IsTokenCompatibleWithType(ref Utf8JsonReader reader, Type type)
     {
-        // If the type has a custom JsonConverter (e.g., nested SumType elements), we can't
-        // reason about token compatibility since the converter may accept multiple
-        // token types. Treat as compatible and let the normal try/catch handle it.
-        if (HasCustomJsonConverterAttribute(type))
-        {
-            return true;
-        }
-
         return reader.TokenType switch
         {
             JsonTokenType.True or JsonTokenType.False => IsBooleanType(type),
@@ -339,11 +356,6 @@ internal sealed class SumConverter<T> : JsonConverter<T>
                type == typeof(short) || type == typeof(ushort) ||
                type == typeof(byte) || type == typeof(sbyte) ||
                type == typeof(double) || type == typeof(float);
-    }
-
-    private static bool HasCustomJsonConverterAttribute(Type type)
-    {
-        return SumConverter.HasCustomJsonConverterCache.GetOrAdd(type, static t => t.GetCustomAttribute<JsonConverterAttribute>() is not null);
     }
 
     /// <summary>

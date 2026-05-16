@@ -101,6 +101,28 @@ public sealed class SumConverterTypeFilteringTests
         Assert.Equal("hello", str);
     }
 
+    [Fact]
+    public void Deserialize_ArrayWithOptionsRegisteredElementConverter_MatchesViaFallback()
+    {
+        // StringWrapper has no type-level [JsonConverter], so IsTokenCompatibleWithType
+        // sees a String element token and rejects StringWrapper[] (StringWrapper isn't
+        // string/Uri/etc.). int[] is also rejected (Number != String token).
+        // Pass 1 skips both; pass 2 retries and StringWrapper[] succeeds because the
+        // converter registered via options handles String tokens for StringWrapper.
+        // Without the two-pass approach, this would throw "No sum type match".
+        var json = """{"value": ["hello", "world"]}""";
+        var options = new JsonSerializerOptions();
+        options.Converters.Add(new StringWrapperConverter());
+
+        var result = JsonSerializer.Deserialize<IntOrStringWrapperArrayHolder>(json, options);
+
+        Assert.NotNull(result);
+        Assert.True(result.Value.TryGetSecond(out var wrappers));
+        Assert.Equal(2, wrappers.Length);
+        Assert.Equal("hello", wrappers[0].Text);
+        Assert.Equal("world", wrappers[1].Text);
+    }
+
     /// <summary>
     /// Deserializes JSON while asserting that no exceptions are thrown internally.
     /// This verifies that the type filtering logic is actually skipping incompatible
@@ -160,5 +182,33 @@ public sealed class SumConverterTypeFilteringTests
     {
         [JsonPropertyName("value")]
         public SumType<SumType<string, int>[], bool> Value { get; set; }
+    }
+
+    private sealed class IntOrStringWrapperArrayHolder
+    {
+        [JsonPropertyName("value")]
+        public SumType<int[], StringWrapper[]> Value { get; set; }
+    }
+
+    /// <summary>
+    /// A type with no [JsonConverter] attribute. Its converter is registered via
+    /// JsonSerializerOptions to test the two-pass fallback for options-level converters.
+    /// </summary>
+    internal sealed class StringWrapper
+    {
+        public string Text { get; set; } = string.Empty;
+    }
+
+    private sealed class StringWrapperConverter : JsonConverter<StringWrapper>
+    {
+        public override StringWrapper Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            return new StringWrapper { Text = reader.GetString()! };
+        }
+
+        public override void Write(Utf8JsonWriter writer, StringWrapper value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.Text);
+        }
     }
 }
