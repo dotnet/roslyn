@@ -657,22 +657,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int count = method.Parameters.Length - extensionExtra;
                             var subpatternBuilder = new StringBuilder("(");
                             ArrayBuilder<BoundDagTemp> outParamTemps = e.MakeOutParameterTemps();
-                            bool first = true;
-                            foreach (var elementTemp in outParamTemps)
+                            try
                             {
-                                var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
-                                if (first)
+                                bool first = true;
+                                foreach (var elementTemp in outParamTemps)
                                 {
-                                    first = false;
-                                }
-                                else
-                                {
-                                    subpatternBuilder.Append(", ");
-                                }
+                                    var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
+                                    if (first)
+                                    {
+                                        first = false;
+                                    }
+                                    else
+                                    {
+                                        subpatternBuilder.Append(", ");
+                                    }
 
-                                subpatternBuilder.Append(newPattern);
+                                    subpatternBuilder.Append(newPattern);
+                                }
                             }
-                            outParamTemps.Free();
+                            finally
+                            {
+                                outParamTemps.Free();
+                            }
                             subpatternBuilder.Append(')');
                             var result = subpatternBuilder.ToString();
                             if (deconstruction != null && needsPropertyString)

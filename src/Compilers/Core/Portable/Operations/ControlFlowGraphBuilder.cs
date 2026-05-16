@@ -164,12 +164,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
 
-            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region,
+            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocksAndFree(blocks), region,
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
                                         anonymousFunctionsMapOpt?.ToImmutable() ?? ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Empty);
         }
 
-        private static ImmutableArray<BasicBlock> ToImmutableBlocks(ArrayBuilder<BasicBlockBuilder> blockBuilders)
+        private static ImmutableArray<BasicBlock> ToImmutableBlocksAndFree(ArrayBuilder<BasicBlockBuilder> blockBuilders)
         {
             var builder = ArrayBuilder<BasicBlock>.GetInstance(blockBuilders.Count);
 
@@ -193,6 +193,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 builder[blockBuilder.Ordinal].SetPredecessors(blockBuilder.ConvertPredecessorsToBranches(builder));
             }
+
+            // Free the block builders and their pooled objects.
+            foreach (BasicBlockBuilder blockBuilder in blockBuilders)
+            {
+                blockBuilder.Free();
+            }
+
+            blockBuilders.Free();
 
             return builder.ToImmutableAndFree();
 
@@ -3981,6 +3989,7 @@ oneMoreTime:
                 resourceQueue.ReverseContents();
 
                 processQueue(resourceQueue);
+                resourceQueue.Free();
             }
             else
             {
