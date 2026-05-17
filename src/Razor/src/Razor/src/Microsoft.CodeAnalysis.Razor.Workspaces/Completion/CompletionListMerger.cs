@@ -33,6 +33,7 @@ internal static class CompletionListMerger
         }
 
         EnsureMergeableCommitCharacters(razorCompletionList, delegatedCompletionList);
+        EnsureMergeableEditRange(razorCompletionList, delegatedCompletionList);
         EnsureMergeableData(razorCompletionList, delegatedCompletionList);
 
         var mergedIsIncomplete = razorCompletionList.IsIncomplete || delegatedCompletionList.IsIncomplete;
@@ -44,14 +45,17 @@ internal static class CompletionListMerger
         var mergedContinueWithCharacters = razorCompletionList.ContinueCharacters ?? delegatedCompletionList.ContinueCharacters;
 
         var mergedItemDefaultsData = MergeData(razorCompletionList.ItemDefaults?.Data, delegatedCompletionList.ItemDefaults?.Data);
-        // We don't fully support merging edit ranges currently. Razor doesn't currently use them so delegated completion lists always win.
-        var mergedItemDefaultsEditRange = razorCompletionList.ItemDefaults?.EditRange ?? delegatedCompletionList.ItemDefaults?.EditRange;
+
+        // After EnsureMergeableEditRange, one of three states holds:
+        // 1. At most one list had an EditRange (no conflict, pick the non-null one).
+        // 2. Both share the same range (safe to pick either).
+        // 3. Ranges differed and both were dematerialized to null.
+        var mergedEditRange = razorCompletionList.ItemDefaults?.EditRange ?? delegatedCompletionList.ItemDefaults?.EditRange;
 
         var mergedCompletionList = new RazorVSInternalCompletionList()
         {
-            // CommitCharacters intentionally null — EnsureMergeableCommitCharacters materialized
-            // list-level commit characters onto individual items before merging. This method does
-            // not re-promote a common group back to list-level defaults.
+            // CommitCharacters intentionally null — EnsureMergeableCommitCharacters dematerialized
+            // both lists to per-item. The post-merge optimizer will re-promote the best group.
             Data = mergedData,
             IsIncomplete = mergedIsIncomplete,
             Items = mergedItems,
@@ -60,7 +64,7 @@ internal static class CompletionListMerger
             ItemDefaults = new CompletionListItemDefaults()
             {
                 Data = mergedItemDefaultsData,
-                EditRange = mergedItemDefaultsEditRange,
+                EditRange = mergedEditRange,
             }
         };
 
@@ -168,6 +172,58 @@ internal static class CompletionListMerger
             {
                 var item = candidateCompletionList.Items[i];
                 item.Data ??= s_emptyData;
+            }
+        }
+    }
+
+    private static void EnsureMergeableEditRange(RazorVSInternalCompletionList completionListA, RazorVSInternalCompletionList completionListB)
+    {
+        var editRangeA = completionListA.ItemDefaults?.EditRange?.Value;
+        var editRangeB = completionListB.ItemDefaults?.EditRange?.Value;
+
+        if (editRangeA is null || editRangeB is null)
+        {
+            // At most one list uses EditRange — no conflict. The merged list can
+            // just take whichever is non-null (handled by the merged ItemDefaults).
+            return;
+        }
+
+        // If both lists share the same EditRange, no dematerialization is needed.
+        // Merge can preserve that shared range via the merged ItemDefaults.
+        if (editRangeA is LspRange rangeA &&
+            editRangeB is LspRange rangeB &&
+            rangeA.Equals(rangeB))
+        {
+            return;
+        }
+
+        // Ranges differ — dematerialize both to per-item TextEdits so the post-merge
+        // optimizer can evaluate the full combined list correctly.
+        DematerializeEditRange(completionListA);
+        DematerializeEditRange(completionListB);
+
+        static void DematerializeEditRange(RazorVSInternalCompletionList completionList)
+        {
+            if (completionList.ItemDefaults?.EditRange?.Value is not LspRange range)
+            {
+                // Either no EditRange, or it's an InsertReplaceRange. InsertReplaceRange is intentionally
+                // not dematerialized — it requires reconstructing InsertReplaceEdit (two ranges per item),
+                // and no current provider produces it. Items using InsertReplaceRange remain valid after
+                // merge because the merged ItemDefaults preserves it via null-coalescing.
+                return;
+            }
+
+            completionList.ItemDefaults.EditRange = null;
+
+            foreach (var item in completionList.Items)
+            {
+                if (item.TextEdit is null)
+                {
+                    // Reconstruct TextEdit from EditRange + TextEditText (or Label as fallback).
+                    var newText = item.TextEditText ?? item.Label;
+                    item.TextEditText = null;
+                    item.TextEdit = new TextEdit { Range = range, NewText = newText };
+                }
             }
         }
     }

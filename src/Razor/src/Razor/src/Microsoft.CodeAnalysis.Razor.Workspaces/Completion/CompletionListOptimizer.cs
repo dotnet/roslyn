@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
+using System;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -19,7 +19,7 @@ internal static partial class CompletionListOptimizer
     {
         // Check if client supports editRange in ItemDefaults
         var itemDefaults = completionCapability?.CompletionListSetting?.ItemDefaults;
-        if (itemDefaults is null || !itemDefaults.Contains("editRange"))
+        if (itemDefaults is null || Array.IndexOf(itemDefaults, "editRange") < 0)
         {
             return completionList;
         }
@@ -58,8 +58,13 @@ internal static partial class CompletionListOptimizer
         foreach (var item in items)
         {
             var textEdit = (TextEdit)item.TextEdit!.Value;
-            item.TextEditText = textEdit.NewText;
             item.TextEdit = null;
+
+            // If TextEditText would equal Label, omit it — the client falls back to Label.
+            if (textEdit.NewText != item.Label)
+            {
+                item.TextEditText = textEdit.NewText;
+            }
         }
 
         return completionList;

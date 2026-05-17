@@ -127,6 +127,47 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
     }
 
     [Fact]
+    public void PromoteEditRange_TextEditTextEqualsLabel_OmitsTextEditText()
+    {
+        // Arrange — when NewText equals Label, TextEditText should be omitted
+        // because the client falls back to Label automatically.
+        var sharedRange = new LspRange
+        {
+            Start = new Position { Line = 0, Character = 5 },
+            End = new Position { Line = 0, Character = 15 }
+        };
+        var completionList = new RazorVSInternalCompletionList()
+        {
+            Items = [
+                new VSInternalCompletionItem()
+                {
+                    Label = "span",
+                    TextEdit = new TextEdit { Range = sharedRange, NewText = "span" }
+                },
+                new VSInternalCompletionItem()
+                {
+                    Label = "div",
+                    TextEdit = new TextEdit { Range = sharedRange, NewText = "different-text" }
+                }
+            ]
+        };
+        var capabilities = new VSInternalCompletionSetting()
+        {
+            CompletionListSetting = new CompletionListSetting()
+            {
+                ItemDefaults = ["editRange"]
+            }
+        };
+
+        // Act
+        var result = CompletionListOptimizer.Optimize(completionList, capabilities);
+
+        // Assert — "span" item has TextEditText omitted (equals Label), "div" item retains it
+        Assert.Null(result.Items[0].TextEditText);
+        Assert.Equal("different-text", result.Items[1].TextEditText);
+    }
+
+    [Fact]
     public void PromoteEditRange_ItemsHaveDifferentRanges_DoesNotPromote()
     {
         // Arrange

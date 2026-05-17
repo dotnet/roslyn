@@ -977,16 +977,17 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
         var item = Assert.Single(result.Items, i => i.Label == "@bind-value:format");
 
-        // The list should have a TextEdit that replaces the full "bind-Value:after" span (not just "bind-")
-        // This prevents the editor's word-boundary heuristic from stopping at the colon and duplicating ":after"
+        // The list should have an EditRange that replaces the full "@bind-Value:after" span.
+        // Since the TextEdit.NewText equals the Label ("@bind-value:format"), the optimizer
+        // omits TextEditText (the client falls back to Label as the replacement text).
         Assert.True(result.ItemDefaults!.EditRange.HasValue, "Expected ItemDefaults.EditRange on the completion list to prevent duplication");
-        Assert.Equal("bind-value:format", item.TextEditText);
+        Assert.Null(item.TextEditText);
         var textEditRange = Assert.IsType<LspRange>(result.ItemDefaults!.EditRange.Value.Value);
 
-        // The range should cover "bind-Value:after" (everything after '@' through end of parameter name)
+        // The range should cover "@bind-Value:after" (full attribute name including '@' through end of parameter name)
         Assert.Equal(textEditRange.Start.Line, textEditRange.End.Line);
         var replacedLength = textEditRange.End.Character - textEditRange.Start.Character;
-        Assert.Equal("bind-Value:after".Length, replacedLength);
+        Assert.Equal("@bind-Value:after".Length, replacedLength);
     }
 
     [Fact]
