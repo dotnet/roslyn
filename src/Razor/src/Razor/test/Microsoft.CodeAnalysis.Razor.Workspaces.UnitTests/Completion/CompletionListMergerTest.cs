@@ -129,9 +129,11 @@ public class CompletionListMergerTest : ToolingTestBase
         // Act
         var merged = CompletionListMerger.Merge(_completionListWith1, _completionListWith2);
 
-        // Assert
+        // Assert — merger dematerializes both lists, so merged list has no list-level CommitCharacters.
+        // Items that inherited from the list get per-item chars instead.
         Assert.NotNull(merged);
-        Assert.Equal(expectedCommitCharacters, merged.CommitCharacters);
+        Assert.Null(merged.CommitCharacters);
+        Assert.Equal(expectedCommitCharacters, _completionItem1.VsCommitCharacters);
     }
 
     [Fact]
@@ -146,13 +148,16 @@ public class CompletionListMergerTest : ToolingTestBase
         // Act
         var merged = CompletionListMerger.Merge(_completionListWith2, _completionListWith13);
 
-        // Assert
+        // Assert — merger dematerializes both lists, so merged list has no list-level CommitCharacters.
+        // Each item gets its own list's chars pushed to per-item.
         Assert.NotNull(merged);
-        Assert.Equal(expectedCommitCharacters, merged.CommitCharacters);
+        Assert.Null(merged.CommitCharacters);
 
-        // Inherited commit characters got populated onto the non-chosen item.
-        Assert.Equal(_completionItem2.VsCommitCharacters, lesserCommitCharacters);
-        Assert.Null(_completionItem3.VsCommitCharacters);
+        // Items from list2 got their list's chars
+        Assert.Equal(lesserCommitCharacters, _completionItem2.VsCommitCharacters);
+        // Items from list13 got their list's chars
+        Assert.Equal(expectedCommitCharacters, _completionItem1.VsCommitCharacters);
+        Assert.Equal(expectedCommitCharacters, _completionItem3.VsCommitCharacters);
     }
 
     [Fact]
