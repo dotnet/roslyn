@@ -70,6 +70,24 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
     }
 
     [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeName_bind_VsCode_ReturnsEmptyCommitCharacters()
+    {
+        // Arrange
+        var vsCodeOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: true);
+        var context = CreateRazorCompletionContext("<input @$$  />") with
+        {
+            Options = vsCodeOptions
+        };
+
+        // Act
+        var completions = _provider.GetCompletionItems(context);
+
+        // Assert - VS Code handles commit characters upstream, so we should return empty
+        AssertContains(completions, "bind", "@bind", ImmutableArray<string>.Empty);
+        AssertContainsParameter(completions, "bind-value:format", "@bind-value:format", ImmutableArray<string>.Empty);
+    }
+
+    [Fact]
     public void GetCompletionItems_OnDirectiveAttributeName_bind_ReturnsParameterCompletions()
     {
         // Arrange
