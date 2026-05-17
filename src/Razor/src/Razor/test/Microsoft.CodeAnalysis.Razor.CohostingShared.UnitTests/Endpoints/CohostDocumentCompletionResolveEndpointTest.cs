@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text.Json;
@@ -57,7 +57,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
             RemoteServiceInvoker,
             requestInvoker,
             ClientCapabilitiesService,
-            new ThrowingSnippetCompletionItemResolveProvider(),
+            new ThrowingSnippetResolveProvider(),
             LoggerFactory);
 
         var context = new DelegatedCompletionResolutionContext(
@@ -94,7 +94,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(request);
         Assert.NotNull(tdi);
-        Assert.Equal(document.GetURI(), tdi.DocumentUri);
+        Assert.Equal(document.GetURI(), new(tdi.Uri));
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 

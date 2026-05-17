@@ -208,61 +208,81 @@ public class CompletionListMergerTest : ToolingTestBase
         }
     }
 
+    #region EnsureMergeableEditRange
+
     [Fact]
     public void Merge_EditRange_NeitherListHasEditRange_NoChange()
     {
         // Arrange — neither list has EditRange
-        var item1 = new VSInternalCompletionItem { Label = "a", TextEdit = new TextEdit { Range = new LspRange { Start = new(0, 0), End = new(0, 1) }, NewText = "a" } };
-        var item2 = new VSInternalCompletionItem { Label = "b", TextEdit = new TextEdit { Range = new LspRange { Start = new(0, 0), End = new(0, 1) }, NewText = "b" } };
-        var list1 = new RazorVSInternalCompletionList { Items = [item1] };
-        var list2 = new RazorVSInternalCompletionList { Items = [item2] };
+        var listA = new RazorVSInternalCompletionList
+        {
+            Items = [new VSInternalCompletionItem { Label = "item1", TextEdit = new TextEdit { Range = new LspRange { Start = new Position(0, 0), End = new Position(0, 5) }, NewText = "item1" } }]
+        };
+        var listB = new RazorVSInternalCompletionList
+        {
+            Items = [new VSInternalCompletionItem { Label = "item2", TextEdit = new TextEdit { Range = new LspRange { Start = new Position(0, 0), End = new Position(0, 5) }, NewText = "item2" } }]
+        };
 
         // Act
-        var merged = CompletionListMerger.Merge(list1, list2);
+        var merged = CompletionListMerger.Merge(listA, listB);
 
-        // Assert — items keep their TextEdits
+        // Assert — items retain their TextEdits unchanged
         Assert.NotNull(merged);
+        Assert.NotNull(merged.Items[0].TextEdit);
+        Assert.NotNull(merged.Items[1].TextEdit);
         Assert.Null(merged.ItemDefaults?.EditRange);
-        Assert.NotNull(item1.TextEdit);
-        Assert.NotNull(item2.TextEdit);
     }
 
     [Fact]
     public void Merge_EditRange_OnlyOneListHasEditRange_Preserved()
     {
-        // Arrange — only list1 has EditRange
-        var range = new LspRange { Start = new(0, 5), End = new(0, 10) };
-        var item1 = new VSInternalCompletionItem { Label = "a", TextEditText = "alpha" };
-        var item2 = new VSInternalCompletionItem { Label = "b", TextEdit = new TextEdit { Range = new LspRange { Start = new(1, 0), End = new(1, 3) }, NewText = "beta" } };
-        var list1 = new RazorVSInternalCompletionList { Items = [item1], ItemDefaults = new CompletionListItemDefaults { EditRange = range } };
-        var list2 = new RazorVSInternalCompletionList { Items = [item2] };
+        // Arrange — only listA has an EditRange
+        var editRange = new LspRange { Start = new Position(1, 0), End = new Position(1, 10) };
+        var listA = new RazorVSInternalCompletionList
+        {
+            ItemDefaults = new CompletionListItemDefaults { EditRange = editRange },
+            Items = [new VSInternalCompletionItem { Label = "item1", TextEditText = "item1" }]
+        };
+        var listB = new RazorVSInternalCompletionList
+        {
+            Items = [new VSInternalCompletionItem { Label = "item2", TextEdit = new TextEdit { Range = new LspRange { Start = new Position(2, 0), End = new Position(2, 5) }, NewText = "item2" } }]
+        };
 
         // Act
-        var merged = CompletionListMerger.Merge(list1, list2);
+        var merged = CompletionListMerger.Merge(listA, listB);
 
-        // Assert — EditRange preserved from list1
+        // Assert — listA's item still uses TextEditText (EditRange not dematerialized)
         Assert.NotNull(merged);
-        Assert.Equal(range, merged.ItemDefaults?.EditRange?.Value);
+        var item1 = Assert.Single(merged.Items, i => i.Label == "item1");
+        Assert.Equal("item1", ((VSInternalCompletionItem)item1).TextEditText);
+        Assert.Null(item1.TextEdit);
     }
 
     [Fact]
     public void Merge_EditRange_BothListsSameRange_Preserved()
     {
-        // Arrange — both lists share the same EditRange
-        var range = new LspRange { Start = new(0, 5), End = new(0, 10) };
-        var item1 = new VSInternalCompletionItem { Label = "a", TextEditText = "alpha" };
-        var item2 = new VSInternalCompletionItem { Label = "b", TextEditText = "beta" };
-        var list1 = new RazorVSInternalCompletionList { Items = [item1], ItemDefaults = new CompletionListItemDefaults { EditRange = range } };
-        var list2 = new RazorVSInternalCompletionList { Items = [item2], ItemDefaults = new CompletionListItemDefaults { EditRange = range } };
+        // Arrange — both lists have the same EditRange
+        var editRange = new LspRange { Start = new Position(3, 5), End = new Position(3, 15) };
+        var listA = new RazorVSInternalCompletionList
+        {
+            ItemDefaults = new CompletionListItemDefaults { EditRange = editRange },
+            Items = [new VSInternalCompletionItem { Label = "item1", TextEditText = "item1" }]
+        };
+        var listB = new RazorVSInternalCompletionList
+        {
+            ItemDefaults = new CompletionListItemDefaults { EditRange = editRange },
+            Items = [new VSInternalCompletionItem { Label = "item2", TextEditText = "item2" }]
+        };
 
         // Act
-        var merged = CompletionListMerger.Merge(list1, list2);
+        var merged = CompletionListMerger.Merge(listA, listB);
 
-        // Assert — same range preserved, items still use TextEditText
+        // Assert — both items still use TextEditText (EditRange preserved, not dematerialized)
         Assert.NotNull(merged);
-        Assert.Equal(range, merged.ItemDefaults?.EditRange?.Value);
-        Assert.Equal("alpha", item1.TextEditText);
-        Assert.Equal("beta", item2.TextEditText);
+        var item1 = Assert.Single(merged.Items, i => i.Label == "item1");
+        var item2 = Assert.Single(merged.Items, i => i.Label == "item2");
+        Assert.Equal("item1", ((VSInternalCompletionItem)item1).TextEditText);
+        Assert.Equal("item2", ((VSInternalCompletionItem)item2).TextEditText);
         Assert.Null(item1.TextEdit);
         Assert.Null(item2.TextEdit);
     }
@@ -270,71 +290,97 @@ public class CompletionListMergerTest : ToolingTestBase
     [Fact]
     public void Merge_EditRange_DifferentRanges_DematerializesBoth()
     {
-        // Arrange — two lists with different EditRanges
-        var range1 = new LspRange { Start = new(0, 5), End = new(0, 10) };
-        var range2 = new LspRange { Start = new(1, 0), End = new(1, 4) };
-        var item1 = new VSInternalCompletionItem { Label = "a", TextEditText = "alpha" };
-        var item2 = new VSInternalCompletionItem { Label = "b", TextEditText = "beta" };
-        var list1 = new RazorVSInternalCompletionList { Items = [item1], ItemDefaults = new CompletionListItemDefaults { EditRange = range1 } };
-        var list2 = new RazorVSInternalCompletionList { Items = [item2], ItemDefaults = new CompletionListItemDefaults { EditRange = range2 } };
+        // Arrange — lists have different EditRanges
+        var editRangeA = new LspRange { Start = new Position(1, 0), End = new Position(1, 10) };
+        var editRangeB = new LspRange { Start = new Position(1, 0), End = new Position(1, 15) };
+        var listA = new RazorVSInternalCompletionList
+        {
+            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeA },
+            Items = [new VSInternalCompletionItem { Label = "item1", TextEditText = "replaced1" }]
+        };
+        var listB = new RazorVSInternalCompletionList
+        {
+            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeB },
+            Items = [new VSInternalCompletionItem { Label = "item2", TextEditText = "replaced2" }]
+        };
 
         // Act
-        var merged = CompletionListMerger.Merge(list1, list2);
+        var merged = CompletionListMerger.Merge(listA, listB);
 
-        // Assert — EditRange cleared, items get per-item TextEdits reconstructed
+        // Assert — both items now have per-item TextEdits, EditRange cleared
         Assert.NotNull(merged);
-        Assert.Null(merged.ItemDefaults?.EditRange);
+        var item1 = Assert.Single(merged.Items, i => i.Label == "item1");
+        var item2 = Assert.Single(merged.Items, i => i.Label == "item2");
 
-        var textEdit1 = Assert.IsType<TextEdit>(item1.TextEdit!.Value.Value);
-        Assert.Equal(range1, textEdit1.Range);
-        Assert.Equal("alpha", textEdit1.NewText);
-        Assert.Null(item1.TextEditText);
+        Assert.NotNull(item1.TextEdit);
+        var textEdit1 = (TextEdit)item1.TextEdit.Value;
+        Assert.Equal("replaced1", textEdit1.NewText);
+        Assert.Equal(editRangeA, textEdit1.Range);
+        Assert.Null(((VSInternalCompletionItem)item1).TextEditText);
 
-        var textEdit2 = Assert.IsType<TextEdit>(item2.TextEdit!.Value.Value);
-        Assert.Equal(range2, textEdit2.Range);
-        Assert.Equal("beta", textEdit2.NewText);
-        Assert.Null(item2.TextEditText);
+        Assert.NotNull(item2.TextEdit);
+        var textEdit2 = (TextEdit)item2.TextEdit.Value;
+        Assert.Equal("replaced2", textEdit2.NewText);
+        Assert.Equal(editRangeB, textEdit2.Range);
+        Assert.Null(((VSInternalCompletionItem)item2).TextEditText);
     }
 
     [Fact]
     public void Merge_EditRange_DifferentRanges_UsesLabelWhenNoTextEditText()
     {
         // Arrange — item has no TextEditText, should fall back to Label
-        var range1 = new LspRange { Start = new(0, 0), End = new(0, 3) };
-        var range2 = new LspRange { Start = new(1, 0), End = new(1, 2) };
-        var item1 = new VSInternalCompletionItem { Label = "foo" }; // no TextEditText
-        var item2 = new VSInternalCompletionItem { Label = "bar", TextEditText = "baz" };
-        var list1 = new RazorVSInternalCompletionList { Items = [item1], ItemDefaults = new CompletionListItemDefaults { EditRange = range1 } };
-        var list2 = new RazorVSInternalCompletionList { Items = [item2], ItemDefaults = new CompletionListItemDefaults { EditRange = range2 } };
+        var editRangeA = new LspRange { Start = new Position(0, 0), End = new Position(0, 5) };
+        var editRangeB = new LspRange { Start = new Position(0, 0), End = new Position(0, 8) };
+        var listA = new RazorVSInternalCompletionList
+        {
+            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeA },
+            Items = [new VSInternalCompletionItem { Label = "myLabel" }] // no TextEditText
+        };
+        var listB = new RazorVSInternalCompletionList
+        {
+            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeB },
+            Items = [new VSInternalCompletionItem { Label = "other", TextEditText = "otherText" }]
+        };
 
         // Act
-        var merged = CompletionListMerger.Merge(list1, list2);
+        var merged = CompletionListMerger.Merge(listA, listB);
 
-        // Assert — item1 uses Label as NewText
+        // Assert — item1 uses Label as NewText fallback
         Assert.NotNull(merged);
-        var textEdit1 = Assert.IsType<TextEdit>(item1.TextEdit!.Value.Value);
-        Assert.Equal("foo", textEdit1.NewText);
+        var item1 = Assert.Single(merged.Items, i => i.Label == "myLabel");
+        Assert.NotNull(item1.TextEdit);
+        var textEdit1 = (TextEdit)item1.TextEdit.Value;
+        Assert.Equal("myLabel", textEdit1.NewText);
+        Assert.Equal(editRangeA, textEdit1.Range);
     }
 
     [Fact]
     public void Merge_EditRange_DifferentRanges_SkipsItemsWithExistingTextEdit()
     {
-        // Arrange — item already has a TextEdit, should not be overwritten
-        var range1 = new LspRange { Start = new(0, 0), End = new(0, 3) };
-        var range2 = new LspRange { Start = new(1, 0), End = new(1, 2) };
-        var existingRange = new LspRange { Start = new(2, 0), End = new(2, 5) };
-        var item1 = new VSInternalCompletionItem { Label = "foo", TextEdit = new TextEdit { Range = existingRange, NewText = "existing" } };
-        var item2 = new VSInternalCompletionItem { Label = "bar", TextEditText = "baz" };
-        var list1 = new RazorVSInternalCompletionList { Items = [item1], ItemDefaults = new CompletionListItemDefaults { EditRange = range1 } };
-        var list2 = new RazorVSInternalCompletionList { Items = [item2], ItemDefaults = new CompletionListItemDefaults { EditRange = range2 } };
+        // Arrange — item already has a TextEdit; dematerialization should skip it
+        var editRangeA = new LspRange { Start = new Position(0, 0), End = new Position(0, 5) };
+        var editRangeB = new LspRange { Start = new Position(0, 0), End = new Position(0, 8) };
+        var existingTextEdit = new TextEdit { Range = new LspRange { Start = new Position(0, 0), End = new Position(0, 3) }, NewText = "custom" };
+        var listA = new RazorVSInternalCompletionList
+        {
+            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeA },
+            Items = [new VSInternalCompletionItem { Label = "item1", TextEdit = existingTextEdit }]
+        };
+        var listB = new RazorVSInternalCompletionList
+        {
+            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeB },
+            Items = [new VSInternalCompletionItem { Label = "item2", TextEditText = "item2" }]
+        };
 
         // Act
-        var merged = CompletionListMerger.Merge(list1, list2);
+        var merged = CompletionListMerger.Merge(listA, listB);
 
-        // Assert — item1's existing TextEdit is preserved
+        // Assert — item1 keeps its original TextEdit unchanged
         Assert.NotNull(merged);
-        var textEdit1 = Assert.IsType<TextEdit>(item1.TextEdit!.Value.Value);
-        Assert.Equal(existingRange, textEdit1.Range);
-        Assert.Equal("existing", textEdit1.NewText);
+        var item1 = Assert.Single(merged.Items, i => i.Label == "item1");
+        Assert.NotNull(item1.TextEdit);
+        Assert.Same(existingTextEdit, (TextEdit)item1.TextEdit.Value);
     }
+
+    #endregion
 }
