@@ -35,7 +35,7 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
         ["xhtml10t"] = "html",
         ["xhtml11"] = "html",
         ["xhtml5"] = "html",
-    }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+    }.ToFrozenDictionary();
 
     /// <summary>
     /// Snippets that are not meaningful in Razor files (e.g., ASP.NET Web Forms

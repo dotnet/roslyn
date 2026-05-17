@@ -305,8 +305,9 @@ internal static partial class LocalHtmlCompletionProvider
                     ref ancestorNames.AsRef(), out resolveContext);
             }
 
-            // No parent, unknown parent, or parent not in schema.
-            // Check if we should fall back to the external HTML server.
+            // Defensive: FindEffectiveParentTagName currently only returns names that are
+            // in the schema, so GetElement above will always succeed. This guard exists in
+            // case that invariant changes in the future.
             if (ShouldFallBackForElements(owner))
             {
                 return null;
@@ -330,7 +331,6 @@ internal static partial class LocalHtmlCompletionProvider
             items.Add(CreateElementItem(element, commitChars, elementRange));
         }
 
-        resolveContext = LocalHtmlCompletionResolveContext.Empty;
         return new RazorVSInternalCompletionList
         {
             Items = items.ToArray(),
@@ -728,7 +728,7 @@ internal static partial class LocalHtmlCompletionProvider
         return new MarkupContent
         {
             Kind = MarkupKind.Markdown,
-            Value = value!,
+            Value = value ?? "",
         };
     }
 
