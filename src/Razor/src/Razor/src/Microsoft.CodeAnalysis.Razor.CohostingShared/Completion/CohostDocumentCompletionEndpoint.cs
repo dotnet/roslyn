@@ -212,8 +212,8 @@ internal sealed class CohostDocumentCompletionEndpoint(
         }
 
         // Optimize the final list before returning to the editor. After merging Razor, C#, HTML,
-        // and snippet lists, re-promote common commit characters and edit ranges to list-level
-        // defaults to minimize the JSON payload.
+        // and snippet lists, re-promote common commit characters and, when all items have
+        // promotable TextEdits, edit ranges to list-level defaults to minimize the JSON payload.
         var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion;
         combinedCompletionList = CompletionListOptimizer.Optimize(combinedCompletionList, completionCapability);
 

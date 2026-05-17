@@ -188,8 +188,8 @@ internal static class CompletionListMerger
             return;
         }
 
-        // If both lists share the same EditRange, no dematerialization needed —
-        // the optimizer will re-promote the same range after merge.
+        // If both lists share the same EditRange, no dematerialization is needed.
+        // Merge can preserve that shared range via the merged ItemDefaults.
         if (editRangeA is LspRange rangeA &&
             editRangeB is LspRange rangeB &&
             rangeA.Equals(rangeB))
