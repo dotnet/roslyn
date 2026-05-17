@@ -122,7 +122,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
                     // In start-tag context, the '<' is already in the document and outside the
                     // replacement span. Strip it to avoid duplication
                     // (e.g., "<table>...</table>" → "table>...</table>").
-                    if (snippetContext.IsStartTagContext && insertString.Length > 0 && insertString[0] == '<')
+                    if (snippetContext.IsStartTagContext && insertString.Length > 1 && insertString[0] == '<' && char.IsLetter(insertString[1]))
                     {
                         insertString = insertString[1..];
                     }

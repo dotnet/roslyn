@@ -163,7 +163,7 @@ public class LocalHtmlCompletionProviderTest
             [tagHelper.Build()]);
 
         Assert.NotNull(result);
-        var item = result.Items.FirstOrDefault(static item => item.Label == "autofocus");
+        var item = result.Items.FirstOrDefault(static item => item.Label == "autocomplete");
         Assert.NotNull(item);
         // Should be plain name, no ="$0" since the attribute already has a value
         Assert.Equal(InsertTextFormat.Plaintext, item.InsertTextFormat);
@@ -331,9 +331,10 @@ public class LocalHtmlCompletionProviderTest
     [Fact]
     public void ElementCompletion_ImplicitlyClosedElement_OffersParentAsSibling()
     {
-        // <li> is implicitly closed — typing <li> inside an <li> closes the first one.
-        // When inside an implicitly-closable element, the element itself should appear in completions.
-        var result = GetCompletionList("<ul><li><$$</li></ul>");
+        // <li> is implicitly closed — typing <li> inside an unclosed <li> closes the first one.
+        // When inside an implicitly-closable element without an end tag, the element itself
+        // should appear in completions (new sibling implicitly closes current <li>).
+        var result = GetCompletionList("<ul><li><$$</ul>");
 
         Assert.NotNull(result);
         // <li> should appear as a completion (new sibling implicitly closes current <li>)
@@ -343,11 +344,25 @@ public class LocalHtmlCompletionProviderTest
     [Fact]
     public void ElementCompletion_ImplicitlyClosedParagraph_OffersParagraph()
     {
-        // <p> is implicitly closed
-        var result = GetCompletionList("<div><p><$$</p></div>");
+        // <p> is implicitly closed — typing <p> inside an unclosed <p> closes the first one.
+        var result = GetCompletionList("<div><p><$$</div>");
 
         Assert.NotNull(result);
         Assert.Contains(result.Items, static item => item.Label == "p");
+    }
+
+    [Fact]
+    public void ElementCompletion_ImplicitlyClosedElement_WithEndTag_DoesNotOfferParent()
+    {
+        // When the parent <li> has an explicit </li> end tag, typing a child element
+        // is inside the parent — not a sibling. The implicit closure rule only applies
+        // when the parent is unclosed (no end tag).
+        var result = GetCompletionList("<ul><li><$$</li></ul>");
+
+        Assert.NotNull(result);
+        // <li> should NOT appear because the parent has an explicit end tag —
+        // we're inside it, not creating a sibling.
+        Assert.DoesNotContain(result.Items, item => item.Label == "li");
     }
 
     #endregion

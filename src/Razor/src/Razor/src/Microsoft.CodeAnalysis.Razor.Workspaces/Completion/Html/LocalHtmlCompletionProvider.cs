@@ -61,6 +61,11 @@ internal static partial class LocalHtmlCompletionProvider
     /// Authoritative empty completion list — signals that no completions are available
     /// and prevents fallback to an external provider.
     /// </summary>
+    /// <remarks>
+    /// This is a shared singleton. Callers must not mutate the returned instance.
+    /// Safety is guaranteed by the <c>Items.Length > 0</c> guard in RemoteCompletionService
+    /// which prevents this instance from reaching code paths that attach resultIds or run the optimizer.
+    /// </remarks>
     private static readonly RazorVSInternalCompletionList s_emptyCompletionList = new()
     {
         Items = [],
@@ -373,7 +378,9 @@ internal static partial class LocalHtmlCompletionProvider
         // If the parent is an implicitly-closable element without an end tag,
         // offer the parent itself as a child (typing a new sibling implicitly closes this one).
         // Only add it if it's not already in the allowed children list (to avoid duplicates).
-        if (parentInfo.IsImplicitlyClosed && !HasEndTag(owner) &&
+        // Note: HasEndTag takes the start-tag node and checks its Parent (the element node),
+        // so we pass owner.Parent (the element being typed) to check the grandparent element.
+        if (parentInfo.IsImplicitlyClosed && !HasEndTag(owner.Parent) &&
             !allowedChildren.Contains(parentTagName, StringComparer.OrdinalIgnoreCase))
         {
             if (!HasDisallowedAncestor(parentInfo, ref ancestorNames))
