@@ -101,6 +101,8 @@ internal static partial class CompletionListOptimizer
     {
         using var _ = ListPool<CommitCharacterGroup>.GetPooledObject(out var groups);
 
+        bestCommitCharacterGroup = default;
+
         foreach (var completionItem in completionList.Items)
         {
             if (completionItem is not VSInternalCompletionItem vsItem)
@@ -119,7 +121,14 @@ internal static partial class CompletionListOptimizer
                 var group = groups[i];
                 if (CommitCharactersEqual(group.Strings, group.VsChars, strings, vsChars))
                 {
-                    groups[i] = new CommitCharacterGroup(strings, vsChars, group.Count + 1);
+                    var updated = new CommitCharacterGroup(strings, vsChars, group.Count + 1);
+                    groups[i] = updated;
+
+                    if (updated.Count > bestCommitCharacterGroup.Count)
+                    {
+                        bestCommitCharacterGroup = updated;
+                    }
+
                     found = true;
                     break;
                 }
@@ -127,27 +136,17 @@ internal static partial class CompletionListOptimizer
 
             if (!found)
             {
-                groups.Add(new CommitCharacterGroup(strings, vsChars, Count: 1));
+                var newGroup = new CommitCharacterGroup(strings, vsChars, Count: 1);
+                groups.Add(newGroup);
+
+                if (newGroup.Count > bestCommitCharacterGroup.Count)
+                {
+                    bestCommitCharacterGroup = newGroup;
+                }
             }
         }
 
-        if (groups.Count == 0)
-        {
-            bestCommitCharacterGroup = default;
-            return false;
-        }
-
-        bestCommitCharacterGroup = groups[0];
-        for (var i = 1; i < groups.Count; i++)
-        {
-            var group = groups[i];
-            if (group.Count > bestCommitCharacterGroup.Count)
-            {
-                bestCommitCharacterGroup = group;
-            }
-        }
-
-        return true;
+        return bestCommitCharacterGroup.Count > 0;
     }
 
     /// <summary>

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 /// </summary>
 internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemProvider
 {
-    private static readonly ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters = DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
+    private static ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters => DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
 
     // Define the Blazor-specific data attributes
     private static readonly ImmutableArray<(string Name, string Description)> s_blazorDataAttributes =

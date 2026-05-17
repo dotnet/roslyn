@@ -281,6 +281,9 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
     {
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
 
+        // VS Code handles commit characters separately upstream, so we don't send any.
+        var suppressCommitCharacters = completionContext.Options.UseVsCodeCompletionCommitCharacters;
+
         foreach (var (displayText, (kind, descriptions, commitCharacters)) in attributeCompletions)
         {
             var isIndexer = displayText.EndsWith(Ellipsis, StringComparison.Ordinal);
@@ -289,11 +292,15 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
 
             var insertText = ComputeInsertText(displayText, isIndexer, isSnippet, autoInsertAttributeQuotes);
 
+            var itemCommitCharacters = suppressCommitCharacters
+                ? ImmutableArray<RazorCommitCharacter>.Empty
+                : commitCharacters;
+
             Debug.Assert(kind is RazorCompletionItemKind.DirectiveAttribute or RazorCompletionItemKind.DirectiveAttributeParameter);
 
             var razorCompletionItem = kind == RazorCompletionItemKind.DirectiveAttribute
-                ? RazorCompletionItem.CreateDirectiveAttribute(displayText, insertText, descriptionInfo: new(descriptions), commitCharacters, isSnippet, completionContext.ReplacementRange)
-                : RazorCompletionItem.CreateDirectiveAttributeParameter(displayText, insertText, descriptionInfo: new(descriptions), commitCharacters, isSnippet, completionContext.ReplacementRange);
+                ? RazorCompletionItem.CreateDirectiveAttribute(displayText, insertText, descriptionInfo: new(descriptions), itemCommitCharacters, isSnippet, completionContext.ReplacementRange)
+                : RazorCompletionItem.CreateDirectiveAttributeParameter(displayText, insertText, descriptionInfo: new(descriptions), itemCommitCharacters, isSnippet, completionContext.ReplacementRange);
 
             completionItems.Add(razorCompletionItem);
         }

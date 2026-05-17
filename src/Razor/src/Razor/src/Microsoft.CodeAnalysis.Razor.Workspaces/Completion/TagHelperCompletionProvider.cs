@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider, IHtmlDependentCompletionItemProvider
 {
     // Internal for testing
-    internal static readonly ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters = DefaultCommitCharacters.GetMinimizedAttributeCommitCharacters();
-    internal static readonly ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters = DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
+    internal static ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters => DefaultCommitCharacters.GetMinimizedAttributeCommitCharacters();
+    internal static ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters => DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
 
-    private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters = DefaultCommitCharacters.GetElementCommitCharacters(useSpace: true);
-    private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = DefaultCommitCharacters.GetElementCommitCharacters(useSpace: false);
+    private static ImmutableArray<RazorCommitCharacter> ElementCommitCharacters => DefaultCommitCharacters.GetElementCommitCharacters(useSpace: true);
+    private static ImmutableArray<RazorCommitCharacter> ElementCommitCharactersWithoutSpace => DefaultCommitCharacters.GetElementCommitCharacters(useSpace: false);
     private readonly ITagHelperCompletionService _tagHelperCompletionService = tagHelperCompletionService;
 
     public bool NeedsHtmlCompletions(RazorCompletionContext context)
@@ -291,8 +291,8 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();
 
         var commitChars = context.Options.CommitElementsWithSpace
-            ? s_elementCommitCharacters
-            : s_elementCommitCharacters_WithoutSpace;
+            ? ElementCommitCharacters
+            : ElementCommitCharactersWithoutSpace;
 
         foreach (var (displayText, tagHelpers) in completionResult.Completions)
         {
