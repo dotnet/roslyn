@@ -22,6 +22,11 @@
         <target state="translated">ジェネレーターの実行結果から取得したヒント名 '{0}' のソース生成ドキュメントを取得できませんでした。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_Component_FromTag_Title">
+        <source>Create component from tag</source>
+        <target state="new">Create component from tag</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_does_not_belong_to_this_project">
         <source>Document does not belong to this project.</source>
         <target state="translated">ドキュメントはこのプロジェクトに属していません。</target>
@@ -30,6 +35,31 @@
       <trans-unit id="Document_is_not_a_Razor_document">
         <source>Document is not a Razor document.</source>
         <target state="translated">ドキュメントは Razor ドキュメントではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_CodeBehind_Title">
+        <source>Extract block to code behind</source>
+        <target state="new">Extract block to code behind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_Component_Title">
+        <source>Extract element to new component</source>
+        <target state="new">Extract element to new component</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_Css_Title">
+        <source>Extract to {0}.css</source>
+        <target state="new">Extract to {0}.css</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Async_Event_Handler_Title">
+        <source>Generate Async Event Handler '{0}'</source>
+        <target state="new">Generate Async Event Handler '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Handler_Title">
+        <source>Generate Event Handler '{0}'</source>
+        <target state="new">Generate Event Handler '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_run_result_did_not_contain_a_code_document">
@@ -45,6 +75,11 @@
       <trans-unit id="Project_does_not_contain_any_Razor_documents">
         <source>Project does not contain any Razor documents.</source>
         <target state="translated">プロジェクトには Razor ドキュメントが含まれていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Promote_using_directive_to">
+        <source>Promote using directive to {0}</source>
+        <target state="new">Promote using directive to {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Razor_source_generator_did_not_produce_a_host_output">
@@ -65,6 +100,31 @@
       <trans-unit id="Razor_source_generator_reference_incorrect">
         <source>Razor source generator is referenced from '{0}' but we are expecting '{1}', for project '{2}'.</source>
         <target state="translated">Razor ソース ジェネレーターは '{0}' から参照されていますが、プロジェクト '{2}' に対して '{1}' が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_directives">
+        <source>Remove unnecessary directives</source>
+        <target state="new">Remove unnecessary directives</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Fully_Qualified_Component_Title">
+        <source>Simplify fully qualified component</source>
+        <target state="new">Simplify fully qualified component</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
+        <source>Simplify tag to self-closing</source>
+        <target state="new">Simplify tag to self-closing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_And_Consolidate_Usings_Title">
+        <source>Sort and consolidate usings</source>
+        <target state="new">Sort and consolidate usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_attributes">
+        <source>Wrap attributes</source>
+        <target state="new">Wrap attributes</target>
         <note />
       </trans-unit>
     </body>
