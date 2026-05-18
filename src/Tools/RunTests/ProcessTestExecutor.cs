@@ -293,8 +293,10 @@ namespace RunTests
                 try
                 {
                     var doc = XDocument.Load(sequenceFilePath);
-                    var lastTest = doc.Descendants("UnitTest").LastOrDefault();
-                    return lastTest?.Attribute("name")?.Value;
+                    var tests = doc.Descendants("Test");
+                    var incomplete = tests.Where(t => t.Attribute("Completed")?.Value == "False");
+                    var target = incomplete.FirstOrDefault() ?? tests.LastOrDefault();
+                    return target?.Attribute("Name")?.Value;
                 }
                 catch
                 {
