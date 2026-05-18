@@ -12,18 +12,19 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
+namespace Microsoft.CodeAnalysis.CSharp.UseInitializer;
 
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
-internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider
+internal sealed partial class CSharpUseInitializerCodeFixProvider
 {
     private static BaseObjectCreationExpressionSyntax CreateObjectInitializerExpression(
         BaseObjectCreationExpressionSyntax objectCreation,
-        ImmutableArray<CollectionMatch<SyntaxNode>> matches)
+        ImmutableArray<InitializerMatch<SyntaxNode>> matches)
     {
         var expressions = CreateCollectionInitializerExpressions();
         var withLineBreaks = AddLineBreaks(expressions);
@@ -35,7 +36,7 @@ internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
-            UseInitializerHelpers.AddExistingItems<CollectionMatch<SyntaxNode>, ExpressionSyntax>(
+            UseInitializerHelpers.AddExistingItems<InitializerMatch<SyntaxNode>, ExpressionSyntax>(
                 objectCreation, nodesAndTokens, addTrailingComma: matches.Length > 0, static (_, expression) => expression);
 
             for (var i = 0; i < matches.Length; i++)

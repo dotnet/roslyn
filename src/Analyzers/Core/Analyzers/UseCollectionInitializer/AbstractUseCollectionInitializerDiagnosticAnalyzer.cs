@@ -23,6 +23,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     TMemberAccessExpressionSyntax,
     TInvocationExpressionSyntax,
     TExpressionStatementSyntax,
+    TAssignmentStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
     TAnalyzer>
@@ -34,6 +35,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     where TMemberAccessExpressionSyntax : TExpressionSyntax
     where TInvocationExpressionSyntax : TExpressionSyntax
     where TExpressionStatementSyntax : TStatementSyntax
+    where TAssignmentStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
     where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
@@ -43,6 +45,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
+        TAssignmentStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
@@ -80,7 +83,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         SemanticModel semanticModel,
         TObjectCreationExpressionSyntax objectCreationExpression,
         INamedTypeSymbol? expressionType,
-        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> preMatches,
         bool allowSemanticsChange,
         CancellationToken cancellationToken,
         out bool changesSemantics);
@@ -173,6 +176,20 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
                 ? collectionExpressionMatches.Value
                 : collectionInitializerMatches.Value;
 
+        // Pass 3 of the IDE0017+IDE0028 unification: the walk now produces member-initializer
+        // matches alongside Add/index/spread matches so a single walk powers both diagnostic
+        // families. The use-object-initializer diagnostic analyzer
+        // (`AbstractUseObjectInitializerDiagnosticAnalyzer`) is the canonical reporter for
+        // any match list that contains member-initializer entries — it owns the IDE0017 /
+        // IDE0400 routing and dispatches to the right diagnostic ID. Bailing out here when
+        // any match is a member-initializer prevents IDE0028 from double-reporting on the
+        // same span.
+        foreach (var match in matches)
+        {
+            if (match.Kind == InitializerMatchKind.MemberInitializer)
+                return;
+        }
+
         var nodes = containingStatement is null
             ? ImmutableArray<SyntaxNode>.Empty
             : [containingStatement];
@@ -199,7 +216,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         return;
 
-        (ImmutableArray<CollectionMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionInitializerMatches()
+        (ImmutableArray<InitializerMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionInitializerMatches()
         {
             if (containingStatement is null)
                 return null;
@@ -216,7 +233,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             return (matches, shouldUseCollectionExpression: false, changesSemantics);
         }
 
-        (ImmutableArray<CollectionMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
+        (ImmutableArray<InitializerMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
         {
             if (preferExpressionOption.Value == CollectionExpressionPreference.Never)
                 return null;
@@ -242,7 +259,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
     private void FadeOutCode(
         SyntaxNodeAnalysisContext context,
-        ImmutableArray<CollectionMatch<SyntaxNode>> matches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> matches,
         ImmutableArray<Location> locations,
         ImmutableDictionary<string, string?>? properties)
     {

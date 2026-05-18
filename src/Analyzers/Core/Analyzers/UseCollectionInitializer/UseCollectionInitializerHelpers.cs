@@ -16,14 +16,53 @@ internal static class UseCollectionInitializerHelpers
     public const string UseCollectionExpressionName = nameof(UseCollectionExpressionName);
     public const string ChangesSemanticsName = nameof(ChangesSemanticsName);
 
+    /// <summary>
+    /// Property-bag key set by the use-object-initializer diagnostic analyzer (which reports
+    /// IDE0017 and IDE0400) so the unified fix provider can dispatch to the member-initializer
+    /// synthesis path without re-deriving which diagnostic surfaced the fix. The
+    /// <c>ForkingSyntaxEditorBasedCodeFixProvider.FixAsync</c> override only receives the
+    /// diagnostic's <see cref="Diagnostic.Properties"/>, not the diagnostic itself, so the
+    /// analyzer-side mark is the only stable way to distinguish IDE0017/IDE0400 fix requests
+    /// from IDE0028 ones — relevant when a single object creation matches both walks under
+    /// the mixed object/collection initializer feature (csharplang#10185).
+    /// </summary>
+    public const string UseMemberInitializerName = nameof(UseMemberInitializerName);
+
     public static readonly ImmutableDictionary<string, string?> UseCollectionExpressionProperties =
         ImmutableDictionary<string, string?>.Empty.Add(UseCollectionExpressionName, UseCollectionExpressionName);
 
-    public static ImmutableArray<Location> GetLocationsToFade(
+    public static readonly ImmutableDictionary<string, string?> UseMemberInitializerProperties =
+        ImmutableDictionary<string, string?>.Empty.Add(UseMemberInitializerName, UseMemberInitializerName);
+
+    public static ImmutableArray<Location> GetLocationsToFade<TStatementSyntax>(
         ISyntaxFacts syntaxFacts,
-        CollectionMatch<SyntaxNode> matchInfo)
+        InitializerMatch<TStatementSyntax> matchInfo) where TStatementSyntax : SyntaxNode
     {
-        var match = matchInfo.Node;
+        // Pass 1 of the IDE0017+IDE0028 unification: the legacy `CollectionMatch.Node`
+        // (typed as `SyntaxNode`) is replaced by `InitializerMatch.Node` (also `SyntaxNode`)
+        // plus an `InitializerMatchKind` discriminator. Fade-region computation is shape-
+        // driven by `syntaxFacts` predicates and unchanged.
+        return GetLocationsToFadeCore(syntaxFacts, matchInfo.Node);
+    }
+
+    /// <summary>
+    /// Overload for the IDE0300+ collection-expression analyzer family, which still produces
+    /// the legacy <see cref="CollectionMatch{TMatchNode}"/> shape directly (those analyzers
+    /// rewrite EXISTING shapes like <c>new int[] { 1, 2 }</c> into <c>[1, 2]</c> and aren't
+    /// part of the IDE0017+IDE0028 unification). Both overloads dispatch to the same
+    /// node-based core, so fade behavior is identical regardless of match wrapper.
+    /// </summary>
+    public static ImmutableArray<Location> GetLocationsToFade<TMatchNode>(
+        ISyntaxFacts syntaxFacts,
+        CollectionMatch<TMatchNode> matchInfo) where TMatchNode : SyntaxNode
+    {
+        return GetLocationsToFadeCore(syntaxFacts, matchInfo.Node);
+    }
+
+    private static ImmutableArray<Location> GetLocationsToFadeCore(
+        ISyntaxFacts syntaxFacts,
+        SyntaxNode match)
+    {
         var syntaxTree = match.SyntaxTree;
         if (syntaxFacts.IsExpressionStatement(match))
         {

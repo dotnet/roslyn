@@ -17,12 +17,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
+            AssignmentStatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
             VisualBasicCollectionInitializerAnalyzer)
 
         Protected Overrides ReadOnly Property SyntaxHelper As IUpdateExpressionSyntaxHelper(Of ExpressionSyntax, StatementSyntax) =
             VisualBasicUpdateExpressionSyntaxHelper.Instance
+
+        ' VB has no compound-in-initializer language feature; only `=` member initializers
+        ' are valid in `With { ... }`, so subsequent compound expression-statements are never
+        ' foldable. Pass 3 of the IDE0017+IDE0028 unification routes member-init detection
+        ' through this walk for both languages; this hook keeps VB on the legacy behavior.
+        Protected Overrides Function SupportsCompoundAssignmentInInitializer(options As ParseOptions) As Boolean
+            Return False
+        End Function
+
+        ' VB keeps object initializers (`With { ... }`) and collection initializers
+        ' (`From { ... }`) strictly separate; the mixed object/collection initializer feature
+        ' (csharplang#10185) is C#-only.
+        Protected Overrides Function SupportsMixedObjectAndCollectionInitializers(options As ParseOptions) As Boolean
+            Return False
+        End Function
 
         Protected Overrides Function IsInitializerOfLocalDeclarationStatement(localDeclarationStatement As LocalDeclarationStatementSyntax, rootExpression As ObjectCreationExpressionSyntax, ByRef variableDeclarator As VariableDeclaratorSyntax) As Boolean
             Return VisualBasicObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, variableDeclarator)
@@ -39,8 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
         End Function
 
         Protected Overrides Function AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
-                preMatches As ArrayBuilder(Of CollectionMatch(Of SyntaxNode)),
-                postMatches As ArrayBuilder(Of CollectionMatch(Of SyntaxNode)),
+                preMatches As ArrayBuilder(Of InitializerMatch(Of SyntaxNode)),
+                postMatches As ArrayBuilder(Of InitializerMatch(Of SyntaxNode)),
                 ByRef changesSemantics As Boolean,
                 cancellationToken As CancellationToken) As Boolean
             ' Only called for collection expressions, which VB does not support

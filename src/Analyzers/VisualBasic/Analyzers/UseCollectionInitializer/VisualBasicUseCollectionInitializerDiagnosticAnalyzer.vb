@@ -22,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
+            AssignmentStatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
             VisualBasicCollectionInitializerAnalyzer)
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 semanticModel As SemanticModel,
                 objectCreationExpression As ObjectCreationExpressionSyntax,
                 expressionType As INamedTypeSymbol,
-                matches As ImmutableArray(Of CollectionMatch(Of SyntaxNode)),
+                matches As ImmutableArray(Of InitializerMatch(Of SyntaxNode)),
                 allowSemanticsChange As Boolean,
                 cancellationToken As CancellationToken,
                 ByRef changesSemantics As Boolean) As Boolean
