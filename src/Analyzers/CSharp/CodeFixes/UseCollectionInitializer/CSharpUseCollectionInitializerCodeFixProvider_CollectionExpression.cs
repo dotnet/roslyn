@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
+namespace Microsoft.CodeAnalysis.CSharp.UseInitializer;
 
-internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider
+internal sealed partial class CSharpUseInitializerCodeFixProvider
 {
     /// <summary>
     /// Creates the final collection-expression <c>[...]</c> that will replace the given <paramref

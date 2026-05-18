@@ -16,8 +16,23 @@ internal static class UseCollectionInitializerHelpers
     public const string UseCollectionExpressionName = nameof(UseCollectionExpressionName);
     public const string ChangesSemanticsName = nameof(ChangesSemanticsName);
 
+    /// <summary>
+    /// Property-bag key set by the use-object-initializer diagnostic analyzer (which reports
+    /// IDE0017 and IDE0400) so the unified fix provider can dispatch to the member-initializer
+    /// synthesis path without re-deriving which diagnostic surfaced the fix. The
+    /// <c>ForkingSyntaxEditorBasedCodeFixProvider.FixAsync</c> override only receives the
+    /// diagnostic's <see cref="Diagnostic.Properties"/>, not the diagnostic itself, so the
+    /// analyzer-side mark is the only stable way to distinguish IDE0017/IDE0400 fix requests
+    /// from IDE0028 ones — relevant when a single object creation matches both walks under
+    /// the mixed object/collection initializer feature (csharplang#10185).
+    /// </summary>
+    public const string UseMemberInitializerName = nameof(UseMemberInitializerName);
+
     public static readonly ImmutableDictionary<string, string?> UseCollectionExpressionProperties =
         ImmutableDictionary<string, string?>.Empty.Add(UseCollectionExpressionName, UseCollectionExpressionName);
+
+    public static readonly ImmutableDictionary<string, string?> UseMemberInitializerProperties =
+        ImmutableDictionary<string, string?>.Empty.Add(UseMemberInitializerName, UseMemberInitializerName);
 
     public static ImmutableArray<Location> GetLocationsToFade<TStatementSyntax>(
         ISyntaxFacts syntaxFacts,

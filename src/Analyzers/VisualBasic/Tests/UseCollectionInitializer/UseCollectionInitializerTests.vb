@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
+Imports Microsoft.CodeAnalysis.VisualBasic.UseInitializer
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCollectionInitializer
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCol
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),
-                    New VisualBasicUseCollectionInitializerCodeFixProvider())
+                    New VisualBasicUseInitializerCodeFixProvider())
         End Function
 
         <Fact>

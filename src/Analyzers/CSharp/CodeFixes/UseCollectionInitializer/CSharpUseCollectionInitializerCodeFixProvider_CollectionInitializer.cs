@@ -15,12 +15,12 @@ using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
+namespace Microsoft.CodeAnalysis.CSharp.UseInitializer;
 
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
-internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider
+internal sealed partial class CSharpUseInitializerCodeFixProvider
 {
     private static BaseObjectCreationExpressionSyntax CreateObjectInitializerExpression(
         BaseObjectCreationExpressionSyntax objectCreation,

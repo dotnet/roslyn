@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.UseInitializer;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer;
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseObjectInitializerDiagnosticAnalyzer,
-    CSharpUseObjectInitializerCodeFixProvider>;
+    CSharpUseInitializerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
 public sealed partial class UseObjectInitializerTests

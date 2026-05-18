@@ -237,15 +237,21 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
             notification = preferObjectOption.Notification;
         }
 
+        // Pass 2 of the IDE0017+IDE0028 unification routed both IDs (and IDE0400) through a
+        // single shared fix provider; the property tag below tells that provider to use the
+        // member-initializer synthesis path. Without it the fixer would have to re-probe both
+        // walks and could mis-route when the same object creation is foldable by either.
+        var memberInitProperties = UseCollectionInitializerHelpers.UseMemberInitializerProperties;
+
         context.ReportDiagnostic(DiagnosticHelper.Create(
             primaryDescriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
             notification,
             context.Options,
             locations,
-            properties: null));
+            properties: memberInitProperties));
 
-        FadeOutCode(context, unnecessaryDescriptor, matches, locations);
+        FadeOutCode(context, unnecessaryDescriptor, matches, locations, memberInitProperties);
     }
 
     /// <summary>
@@ -295,7 +301,8 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         SyntaxNodeAnalysisContext context,
         DiagnosticDescriptor unnecessaryDescriptor,
         ImmutableArray<InitializerMatch<TStatementSyntax>> matches,
-        ImmutableArray<Location> locations)
+        ImmutableArray<Location> locations,
+        ImmutableDictionary<string, string?> properties)
     {
         var syntaxTree = context.Node.SyntaxTree;
         var syntaxFacts = GetSyntaxFacts();
@@ -341,7 +348,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
                 context.Options,
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations.ToImmutableAndClear(),
-                properties: null));
+                properties: properties));
         }
     }
 

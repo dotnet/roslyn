@@ -1,45 +1,67 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
+using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
+using Microsoft.CodeAnalysis.UseInitializer;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
+namespace Microsoft.CodeAnalysis.CSharp.UseInitializer;
 
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 using ObjectInitializerMatch = InitializerMatch<StatementSyntax>;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseObjectInitializer), Shared]
+/// <summary>
+/// Pass 2 of the IDE0017+IDE0028 unification: a single C# fix provider class registered for
+/// IDE0017 (object-initializer), IDE0028 (collection-initializer), and IDE0400 (mixed
+/// object/collection initializer). Replaces the prior <c>CSharpUseObjectInitializerCodeFixProvider</c>
+/// and <c>CSharpUseCollectionInitializerCodeFixProvider</c> classes. Member-initializer
+/// synthesis (previously the object-initializer fixer) lives in this file; the collection-
+/// initializer and collection-expression synthesizers continue to live in their existing
+/// partial files (<c>CSharpUseCollectionInitializerCodeFixProvider_CollectionInitializer.cs</c>
+/// and <c>_CollectionExpression.cs</c>), now declared as partials of this new class.
+/// </summary>
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionInitializer), Shared]
+[ExtensionOrder(Before = PredefinedCodeFixProviderNames.UseImplicitObjectCreation)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
-    AbstractUseObjectInitializerCodeFixProvider<
+internal sealed partial class CSharpUseInitializerCodeFixProvider() :
+    AbstractUseInitializerCodeFixProvider<
         SyntaxKind,
         ExpressionSyntax,
         StatementSyntax,
         BaseObjectCreationExpressionSyntax,
         MemberAccessExpressionSyntax,
         ExpressionStatementSyntax,
+        InvocationExpressionSyntax,
+        ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
-        CSharpUseNamedMemberInitializerAnalyzer>
+        CSharpUseNamedMemberInitializerAnalyzer,
+        CSharpUseCollectionInitializerAnalyzer>
 {
-    protected override CSharpUseNamedMemberInitializerAnalyzer GetAnalyzer()
+    protected override CSharpUseNamedMemberInitializerAnalyzer GetMemberInitAnalyzer()
         => CSharpUseNamedMemberInitializerAnalyzer.Allocate();
+
+    protected override CSharpUseCollectionInitializerAnalyzer GetCollectionInitAnalyzer()
+        => CSharpUseCollectionInitializerAnalyzer.Allocate();
 
     protected override ISyntaxFormatting SyntaxFormatting => CSharpSyntaxFormatting.Instance;
 
@@ -48,7 +70,22 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
     protected override SyntaxTrivia Whitespace(string text)
         => SyntaxFactory.Whitespace(text);
 
-    protected override StatementSyntax GetNewStatement(
+    protected override async Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesForCollectionInitAsync(
+        Document document,
+        BaseObjectCreationExpressionSyntax objectCreation,
+        bool useCollectionExpression,
+        ImmutableArray<InitializerMatch<SyntaxNode>> preMatches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> postMatches,
+        CancellationToken cancellationToken)
+    {
+        ExpressionSyntax newObjectCreation = useCollectionExpression
+            ? await CreateCollectionExpressionAsync(document, objectCreation, preMatches, postMatches, cancellationToken).ConfigureAwait(false)
+            : CreateObjectInitializerExpression(objectCreation, postMatches);
+
+        return (objectCreation, newObjectCreation);
+    }
+
+    protected override StatementSyntax GetNewStatementForMemberInit(
         StatementSyntax statement,
         BaseObjectCreationExpressionSyntax objectCreation,
         SyntaxFormattingOptions options,
@@ -56,20 +93,20 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
     {
         return statement.ReplaceNode(
             objectCreation,
-            GetNewObjectCreation(objectCreation, options, matches));
+            GetNewObjectCreationForMemberInit(objectCreation, options, matches));
     }
 
-    private BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+    private BaseObjectCreationExpressionSyntax GetNewObjectCreationForMemberInit(
         BaseObjectCreationExpressionSyntax objectCreation,
         SyntaxFormattingOptions options,
         ImmutableArray<ObjectInitializerMatch> matches)
     {
         return UseInitializerHelpers.GetNewObjectCreation(
             objectCreation,
-            CreateExpressions(objectCreation, options, matches));
+            CreateMemberInitExpressions(objectCreation, options, matches));
     }
 
-    private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
+    private SeparatedSyntaxList<ExpressionSyntax> CreateMemberInitExpressions(
         BaseObjectCreationExpressionSyntax objectCreation,
         SyntaxFormattingOptions options,
         ImmutableArray<ObjectInitializerMatch> matches)
@@ -83,11 +120,12 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
         {
             var match = matches[i];
 
-            // After Pass 1 of the IDE0017+IDE0028 unification the match stores only `Statement`
+            // After Pass 1 of the IDE0017+IDE0028 unification the match stores only `Node`
             // and a `Kind` discriminator — the per-kind data (member-access for member-init,
             // argument expression for Add-fold) is recovered here from the statement. The
-            // statement is always an `ExpressionStatementSyntax` because IDE0017's walk only
-            // emits expression-statement-wrapped kinds (member assignment or Add invocation).
+            // statement is always an `ExpressionStatementSyntax` because the member-initializer
+            // walk only emits expression-statement-wrapped kinds (member assignment or Add
+            // invocation).
             var expressionStatement = (ExpressionStatementSyntax)match.Node;
 
             ExpressionSyntax newElement;
@@ -122,8 +160,9 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
                     }
 
                 default:
-                    // IDE0017's walk never emits the other kinds today — guard against silent
-                    // synthesis bugs if a future change extends the walk without extending here.
+                    // The member-initializer walk never emits the other kinds today — guard
+                    // against silent synthesis bugs if a future change extends the walk
+                    // without extending here.
                     throw ExceptionUtilities.UnexpectedValue(match.Kind);
             }
 
