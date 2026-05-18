@@ -56,7 +56,10 @@ internal sealed class AutoLoadProjectsInitializer(
         else if (solutionPath is not null)
         {
             _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionPath);
-            await StartAndReportProgressAsync(() => projectSystem.OpenSolutionAsync(solutionPath));
+            await StartAndReportProgressAsync(
+                () => projectSystem.OpenSolutionAsync(solutionPath),
+                startMessage: string.Format(LanguageServerResources.Loading_0, solutionPath),
+                endMessage: string.Format(LanguageServerResources.Loaded_0, solutionPath));
             return;
         }
 
@@ -73,7 +76,10 @@ internal sealed class AutoLoadProjectsInitializer(
                 if (solutionFiles.Length == 1)
                 {
                     _logger.LogInformation("Found single solution file {SolutionFile} to auto load", solutionFiles[0]);
-                    await StartAndReportProgressAsync(() => projectSystem.OpenSolutionAsync(solutionFiles[0]));
+                    await StartAndReportProgressAsync(
+                        () => projectSystem.OpenSolutionAsync(solutionFiles[0]),
+                        startMessage: string.Format(LanguageServerResources.Loading_0, solutionFiles[0]),
+                        endMessage: string.Format(LanguageServerResources.Loaded_0, solutionFiles[0]));
                     return;
                 }
             }
@@ -91,14 +97,22 @@ internal sealed class AutoLoadProjectsInitializer(
 
         _logger.LogInformation("Discovered {count} projects to auto load", projectFiles.Count);
 
-        await StartAndReportProgressAsync(() => projectSystem.OpenProjectsAsync(projectFiles.ToImmutable()));
+        await StartAndReportProgressAsync(
+            () => projectSystem.OpenProjectsAsync(projectFiles.ToImmutable()),
+            startMessage: string.Format(LanguageServerResources.Loading_0_projects, projectFiles.Count),
+            endMessage: string.Format(LanguageServerResources.Loaded_0_projects, projectFiles.Count));
 
-        async Task StartAndReportProgressAsync(Func<Task> loadOperation)
+        async Task StartAndReportProgressAsync(Func<Task> loadOperation, string startMessage, string endMessage)
         {
             var workDoneProgressManager = context.GetRequiredLspService<WorkDoneProgressManager>();
 
             // We will await for the client to know that we are starting work...
-            var progressReporter = await workDoneProgressManager.CreateWorkDoneProgressAsync(reportProgressToClient: true, cancellationToken);
+            var progressReporter = await workDoneProgressManager.CreateWorkDoneProgressAsync(reportProgressToClient: true,
+                title: startMessage,
+                startMessage: startMessage,
+                endMessage: endMessage,
+                clientCanCancel: false,
+                cancellationToken);
 
             // ...but we'll fire-and-forget for the actual loading. Pass CancellationToken.None since we want to ensure the progressReporter is always disposed.
             Task.Run(async () =>
@@ -112,7 +126,7 @@ internal sealed class AutoLoadProjectsInitializer(
                     }
                     finally
                     {
-                        progressReporter.Dispose();
+                        await progressReporter.DisposeAsync();
                     }
                 }, CancellationToken.None).Forget();
         }

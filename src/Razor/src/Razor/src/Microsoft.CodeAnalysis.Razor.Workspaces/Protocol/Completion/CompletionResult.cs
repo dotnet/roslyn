@@ -7,18 +7,12 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 namespace Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 
 /// <summary>
-/// The result of a phase-1 completion call, carrying both the completion list and
-/// a flag indicating whether a follow-up phase-2 call is needed for HTML-dependent
-/// providers.
+/// The result of a completion call, carrying the Razor/C# completion list and an optional
+/// locally-computed HTML completion list.
 /// </summary>
-/// <remarks>
-/// Static helpers are on <see cref="CompletionResults"/> to avoid a self-referential
-/// value type (struct containing <c>RemoteResponse&lt;CompletionResult&gt;</c>) which
-/// causes a <see cref="System.TypeLoadException"/> on .NET Framework.
-/// </remarks>
 internal record struct CompletionResult(
     [property: JsonPropertyName("completionList")] RazorVSInternalCompletionList? CompletionList,
-    [property: JsonPropertyName("needsHtmlDependentPhase")] bool NeedsHtmlDependentPhase);
+    [property: JsonPropertyName("htmlCompletionList")] RazorVSInternalCompletionList? HtmlCompletionList = null);
 
 /// <summary>
 /// Factory helpers for <see cref="CompletionResult"/> responses. Separated from the
@@ -27,8 +21,8 @@ internal record struct CompletionResult(
 internal static class CompletionResults
 {
     public static readonly RemoteResponse<CompletionResult> CallHtml
-        = new(StopHandling: false, new CompletionResult(null, NeedsHtmlDependentPhase: false));
+        = new(StopHandling: false, new CompletionResult(null));
 
-    public static RemoteResponse<CompletionResult> Create(RazorVSInternalCompletionList? completionList, bool needsHtmlDependentPhase)
-        => new(StopHandling: false, new CompletionResult(completionList, needsHtmlDependentPhase));
+    public static RemoteResponse<CompletionResult> Create(RazorVSInternalCompletionList? completionList, RazorVSInternalCompletionList? htmlCompletionList)
+        => new(StopHandling: false, new CompletionResult(completionList, htmlCompletionList));
 }

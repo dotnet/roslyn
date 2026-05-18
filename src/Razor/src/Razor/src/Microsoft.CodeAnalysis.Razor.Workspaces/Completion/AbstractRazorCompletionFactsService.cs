@@ -4,6 +4,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -20,49 +21,42 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
 {
     private readonly ImmutableArray<IRazorCompletionItemProvider> _providers = providers;
 
-    public CompletionItemsResult GetCompletionItems(RazorCompletionContext context)
+    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         ArgHelper.ThrowIfNull(context);
         ArgHelper.ThrowIfNull(context.TagHelperDocumentContext);
 
-        var needsHtmlDependentCompletionItems = false;
-        using var completions = new PooledArrayBuilder<RazorCompletionItem>();
+        // First pass: collect results and total count.
+        // Most providers return empty for any given context, so this is cheap.
+        using var results = new PooledArrayBuilder<ImmutableArray<RazorCompletionItem>>();
+        var totalCount = 0;
 
         foreach (var provider in _providers)
         {
-            if (provider is IHtmlDependentCompletionItemProvider htmlDependent
-                && htmlDependent.NeedsHtmlCompletions(context))
+            var items = provider.GetCompletionItems(context);
+            if (items.Length > 0)
             {
-                needsHtmlDependentCompletionItems = true;
-            }
-            else
-            {
-                var items = provider.GetCompletionItems(context);
-                completions.AddRange(items);
+                results.Add(items);
+                totalCount += items.Length;
             }
         }
 
-        return new CompletionItemsResult(completions.ToImmutableAndClear(), needsHtmlDependentCompletionItems);
-    }
-
-    public ImmutableArray<RazorCompletionItem> GetHtmlDependentCompletionItems(RazorHtmlDependentCompletionContext context)
-    {
-        ArgHelper.ThrowIfNull(context);
-        ArgHelper.ThrowIfNull(context.TagHelperDocumentContext);
-
-        using var completions = new PooledArrayBuilder<RazorCompletionItem>();
-
-        foreach (var provider in _providers)
+        if (totalCount == 0)
         {
-            if (provider is IHtmlDependentCompletionItemProvider htmlDependent
-                && htmlDependent.NeedsHtmlCompletions(context))
-            {
-                var items = htmlDependent.GetHtmlDependentCompletionItems(context);
-                completions.AddRange(items);
-            }
+            return [];
         }
 
-        return completions.ToImmutableAndClear();
+        // Single properly-sized allocation — no builder overhead needed.
+        var array = new RazorCompletionItem[totalCount];
+        var offset = 0;
+
+        foreach (var result in results)
+        {
+            result.CopyTo(array, offset);
+            offset += result.Length;
+        }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(array);
     }
 
     // Internal for testing

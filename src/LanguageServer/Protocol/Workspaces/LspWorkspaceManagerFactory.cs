@@ -13,12 +13,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(LspWorkspaceManager)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class LspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory
+internal class LspWorkspaceManagerFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var logger = lspServices.GetRequiredService<AbstractLspLogger>();
         var miscFilesWorkspace = lspServices.GetService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
         var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();
         var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
         return new LspWorkspaceManager(logger, miscFilesWorkspace, lspWorkspaceRegistrationService, languageInfoProvider, telemetryLogger);

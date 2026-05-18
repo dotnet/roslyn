@@ -12,7 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\ReferenceEqualityComparer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
@@ -58,5 +61,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.RazorExtension" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.UnitTests" Key="$(RazorKey)" />
   </ItemGroup>
+
+  <Import Project="..\..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
 
 </Project>

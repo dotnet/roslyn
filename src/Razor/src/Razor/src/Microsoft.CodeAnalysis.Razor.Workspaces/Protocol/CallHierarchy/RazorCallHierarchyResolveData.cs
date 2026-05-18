@@ -1,18 +1,16 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.Razor.CallHierarchy;
 
-internal record RazorCallHierarchyResolveData(
-    // NOTE: Uppercase T here is required to match Roslyn's DocumentResolveData structure, so that the Roslyn
-    //       language server can correctly route requests to us in cohosting. In future when we normalize
-    //       on to Roslyn types, we should inherit from that class so we don't have to remember to do this.
-    [property: JsonPropertyName("TextDocument")] TextDocumentIdentifier TextDocument,
+internal sealed record RazorCallHierarchyResolveData(
+    TextDocumentIdentifier TextDocument,
     [property: JsonPropertyName("data")] object? OriginalData,
-    [property: JsonPropertyName("razorCallHierarchy")] bool IsRazorCallHierarchy = true)
+    [property: JsonPropertyName("razorCallHierarchy")] bool IsRazorCallHierarchy = true) : DocumentResolveData(TextDocument)
 {
     public static RazorCallHierarchyResolveData? Unwrap(CallHierarchyItem item)
     {

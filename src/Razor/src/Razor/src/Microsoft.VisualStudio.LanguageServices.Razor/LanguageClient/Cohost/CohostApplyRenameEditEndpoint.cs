@@ -8,13 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
+using IClientLanguageServerManager = Microsoft.CodeAnalysis.LanguageServer.IClientLanguageServerManager;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -22,21 +24,21 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 // NOTE: This has to use RazorMethod, not CohostEndpoint, because it has to use the "default" language,
 // since it has no document associated with it to get any other language.
-[RazorMethod(RazorLSPConstants.ApplyRenameEditName)]
+[Method(RazorLSPConstants.ApplyRenameEditName)]
 [ExportRazorStatelessLspService(typeof(CohostApplyRenameEditEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory)
-    : AbstractRazorCohostRequestHandler<ApplyRenameEditParams, VoidResult>
+    : ILspServiceRequestHandler<ApplyRenameEditParams, VoidResult>
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostApplyRenameEditEndpoint>();
     private readonly IFileSystem _fileSystem = new FileSystem();
 
-    protected override bool MutatesSolutionState => true;
+    bool IMethodHandler.MutatesSolutionState => true;
 
-    protected override bool RequiresLSPSolution => false;
+    bool ISolutionRequiredHandler.RequiresLSPSolution => false;
 
-    protected override async Task<VoidResult> HandleRequestAsync(ApplyRenameEditParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    public async Task<VoidResult> HandleRequestAsync(ApplyRenameEditParams request, RequestContext context, CancellationToken cancellationToken)
     {
         // We're being called from VS, which means CPS has already renamed the razor file on disk. It might also have
         // renamed the .razor.css etc. files, which we will also have suggested to rename, but unfortunately whether it
@@ -48,7 +50,7 @@ internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory
 
         FixUpWorkspaceEdit(request, _fileSystem);
 
-        var razorCohostClientLanguageServerManager = context.GetRequiredService<IRazorClientLanguageServerManager>();
+        var razorCohostClientLanguageServerManager = context.GetRequiredService<IClientLanguageServerManager>();
         var response = await razorCohostClientLanguageServerManager.SendRequestAsync<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
                Methods.WorkspaceApplyEditName,
                new ApplyWorkspaceEditParams() { Edit = request.Edit },

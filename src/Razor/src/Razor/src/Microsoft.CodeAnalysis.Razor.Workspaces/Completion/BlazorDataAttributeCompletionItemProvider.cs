@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 /// </summary>
 internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemProvider
 {
-    private static readonly ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters = RazorCommitCharacter.CreateArray(["="]);
-    private static readonly ImmutableArray<RazorCommitCharacter> AttributeSnippetCommitCharacters = RazorCommitCharacter.CreateArray(["="], insert: false);
+    private static ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters => DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
 
     // Define the Blazor-specific data attributes
     private static readonly ImmutableArray<(string Name, string Description)> s_blazorDataAttributes =
@@ -124,7 +123,7 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
             // VSCode doesn't use commit characters for attribute completions
             var commitCharacters = context.Options.UseVsCodeCompletionCommitCharacters
                 ? ImmutableArray<RazorCommitCharacter>.Empty
-                : (isSnippet ? AttributeSnippetCommitCharacters : AttributeCommitCharacters);
+                : AttributeCommitCharacters;
 
             var descriptionInfo = new AttributeDescriptionInfo(
                 Name: attributeName,

@@ -323,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
             AddRequiredMembersMarkerAttributes(ref attributes, this);
+            AddClosedClassesFeatureRequiredAttribute(ref attributes, this);
         }
     }
 }
