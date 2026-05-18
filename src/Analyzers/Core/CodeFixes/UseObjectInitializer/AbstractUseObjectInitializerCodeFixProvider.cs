@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer;
 
@@ -44,7 +45,24 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         TAnalyzer>, new()
 {
     protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
-        => (AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
+    {
+        // Differentiate the lightbulb title (and the equivalence key that drives fix-all and
+        // user-visible action menus) based on which diagnostic ID surfaced the fix. IDE0017
+        // suggestions stay on the legacy "Object initialization can be simplified" string;
+        // IDE0400 (mixed object/collection initializer) suggestions get the merge-specific
+        // string so users see what is actually being proposed.
+        foreach (var diagnostic in context.Diagnostics)
+        {
+            if (diagnostic.Id == IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId)
+            {
+                return (
+                    AnalyzersResources.Object_and_collection_initialization_can_be_merged,
+                    nameof(AnalyzersResources.Object_and_collection_initialization_can_be_merged));
+            }
+        }
+
+        return (AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
+    }
 
     protected abstract TAnalyzer GetAnalyzer();
 
@@ -55,10 +73,17 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
 
     protected abstract TStatementSyntax GetNewStatement(
         TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, SyntaxFormattingOptions options,
-        ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
+        ImmutableArray<InitializerMatch<TStatementSyntax>> matches);
 
     public override ImmutableArray<string> FixableDiagnosticIds
-        => [IDEDiagnosticIds.UseObjectInitializerDiagnosticId];
+        => [
+            IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+            // Same analyzer + same synthesis path (`UseInitializerHelpers.GetNewObjectCreation`
+            // already picks the wrapper kind from the produced expressions); only the diagnostic
+            // ID differs. See `AbstractUseObjectInitializerDiagnosticAnalyzer.AnalyzeNode` for the
+            // mixed vs. pure routing.
+            IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId,
+        ];
 
     protected override async Task FixAsync(
         Document document,
@@ -87,7 +112,7 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
 
         editor.ReplaceNode(statement, newStatement);
         foreach (var match in matches)
-            editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+            editor.RemoveNode(match.Node, SyntaxRemoveOptions.KeepUnbalancedDirectives);
     }
 
     protected TExpressionSyntax Indent(TExpressionSyntax expression, SyntaxFormattingOptions options)

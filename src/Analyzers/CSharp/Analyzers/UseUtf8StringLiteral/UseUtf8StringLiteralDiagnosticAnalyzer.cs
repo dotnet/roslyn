@@ -106,10 +106,12 @@ internal sealed class UseUtf8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCo
             // For regular parameter arrays the code fix will need to search down
             ReportParameterArrayDiagnostic(context, arrayCreationOperation.Syntax, elements, option.Notification, ArrayCreationOperationLocation.Descendants);
         }
-        else if (elements is [{ Syntax.Parent: (kind: SyntaxKind.CollectionInitializerExpression) }, ..])
+        else if (elements is [{ Syntax.Parent.RawKind: (int)SyntaxKind.CollectionInitializerExpression or (int)SyntaxKind.ObjectInitializerExpression }, ..])
         {
             // For collection initializers where the Add method takes a parameter array, the code fix
-            // will have to search up
+            // will have to search up. Includes the mixed object/collection initializer shape
+            // (dotnet/csharplang#10185) — an element-shape `Add(args)` child of an
+            // `ObjectInitializerExpression` is reachable via the same param-array Add pattern.
             ReportParameterArrayDiagnostic(context, arrayCreationOperation.Syntax, elements, option.Notification, ArrayCreationOperationLocation.Ancestors);
         }
     }

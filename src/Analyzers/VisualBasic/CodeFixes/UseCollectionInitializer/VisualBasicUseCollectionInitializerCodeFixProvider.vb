@@ -42,8 +42,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 document As Document,
                 objectCreation As ObjectCreationExpressionSyntax,
                 useCollectionExpression As Boolean,
-                preMatches As ImmutableArray(Of CollectionMatch(Of SyntaxNode)),
-                postMatches As ImmutableArray(Of CollectionMatch(Of SyntaxNode)),
+                preMatches As ImmutableArray(Of InitializerMatch(Of SyntaxNode)),
+                postMatches As ImmutableArray(Of InitializerMatch(Of SyntaxNode)),
                 cancellationToken As CancellationToken) As Task(Of (SyntaxNode, SyntaxNode))
             Contract.ThrowIfFalse(preMatches.IsEmpty)
             Contract.ThrowIfTrue(useCollectionExpression, "VB does not support collection expressions")
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
         Private Shared Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of CollectionMatch(Of SyntaxNode))) As ObjectCreationExpressionSyntax
+                matches As ImmutableArray(Of InitializerMatch(Of SyntaxNode))) As ObjectCreationExpressionSyntax
 
             Return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation,
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
         Private Shared Function CreateCollectionInitializer(
                 objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of CollectionMatch(Of SyntaxNode))) As CollectionInitializerSyntax
+                matches As ImmutableArray(Of InitializerMatch(Of SyntaxNode))) As CollectionInitializerSyntax
             Dim nodesAndTokens = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
 
             AddExistingItems(objectCreation, nodesAndTokens)
