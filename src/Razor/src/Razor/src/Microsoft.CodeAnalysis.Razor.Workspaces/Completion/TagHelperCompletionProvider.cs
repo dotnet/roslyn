@@ -17,7 +17,7 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider, IHtmlDependentCompletionItemProvider
+internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider
 {
     // Internal for testing
     internal static ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters => DefaultCommitCharacters.GetMinimizedAttributeCommitCharacters();
@@ -26,66 +26,6 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
     private static ImmutableArray<RazorCommitCharacter> ElementCommitCharacters => DefaultCommitCharacters.GetElementCommitCharacters(useSpace: true);
     private static ImmutableArray<RazorCommitCharacter> ElementCommitCharactersWithoutSpace => DefaultCommitCharacters.GetElementCommitCharacters(useSpace: false);
     private readonly ITagHelperCompletionService _tagHelperCompletionService = tagHelperCompletionService;
-
-    public bool NeedsHtmlCompletions(RazorCompletionContext context)
-    {
-        // .razor files never need HTML-dependent completions — tag helpers targeting HTML
-        // schema elements and OutputElementHint are legacy (.cshtml) concepts only.
-        if (context.CodeDocument.FileKind != RazorFileKind.Legacy)
-        {
-            return false;
-        }
-
-        // Only the element completion path uses HTML labels to decide which tag helpers to
-        // surface. The attribute path does not depend on HTML labels at all.
-        var owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(context.Owner);
-        if (owner is not null
-            && owner is not BaseMarkupEndTagSyntax
-            && HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out _, out _)
-            && containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
-        {
-            // Phase 2 is only needed when the document contains tag helpers whose element
-            // completion visibility depends on HTML labels. This includes:
-            // 1. Tag helpers targeting HTML schema elements (e.g., InputTagHelper targeting <input>)
-            // 2. Tag helpers with a TagOutputHint (visibility depends on ExistingCompletions)
-            foreach (var descriptor in context.TagHelperDocumentContext.TagHelpers)
-            {
-                if (descriptor.TagOutputHint is not null
-                    || descriptor.TagMatchingRules.Any(static rule => HtmlFacts.IsHtmlTagName(rule.TagName)))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    public ImmutableArray<RazorCompletionItem> GetHtmlDependentCompletionItems(RazorHtmlDependentCompletionContext context)
-    {
-        var owner = context.Owner;
-        if (owner is null)
-        {
-            Debug.Fail("Owner should never be null.");
-            return [];
-        }
-
-        owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(owner);
-        if (owner is null)
-        {
-            return [];
-        }
-
-        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, out _) &&
-            containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
-        {
-            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(attributes);
-            var containingElement = owner.Parent;
-            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, context.HtmlLabels);
-        }
-
-        return [];
-    }
 
     public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
@@ -106,13 +46,12 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var elementAttributes, out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
-            // When NeedsHtmlCompletions returned false (pure Blazor/component scenario),
-            // element completions run here in phase 1 with no HTML labels. Component
-            // completions are always included regardless of HTML labels, so this still
-            // produces the right results.
             var stringifiedAttributes = TagHelperFacts.StringifyAttributes(elementAttributes);
             var containingElement = owner.Parent;
-            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, htmlLabels: []);
+
+            // Use HTML labels from the context when available (allows filtering tag helpers
+            // based on what HTML elements are valid).
+            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, context.HtmlLabels);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(
@@ -274,7 +213,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         string containingTagName,
         ImmutableArray<KeyValuePair<string, string>> attributes,
         RazorCompletionContext context,
-        HashSet<string> htmlLabels)
+        HashSet<string>? htmlLabels)
     {
         var ancestors = containingElement.Ancestors();
         var (ancestorTagName, ancestorIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);

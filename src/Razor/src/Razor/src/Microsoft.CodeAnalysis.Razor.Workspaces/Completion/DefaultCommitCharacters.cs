@@ -19,6 +19,10 @@ internal static class DefaultCommitCharacters
     private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.CreateArray([" ", ">"]);
     private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharactersWithoutSpace = RazorCommitCharacter.CreateArray([">"]);
 
+    // Cached string[] equivalents for providers that need standard CommitCharacters (not VsCommitCharacters).
+    private static readonly string[] s_elementCommitCharacterStrings = RazorCommitCharacter.ToStringCommitCharacters(s_elementCommitCharacters);
+    private static readonly string[] s_elementCommitCharacterStringsWithoutSpace = RazorCommitCharacter.ToStringCommitCharacters(s_elementCommitCharactersWithoutSpace);
+
     // Attribute commit characters: '=' and/or space, both with Insert=false.
     // Used for attributes that have a snippet or existing value (cursor ends up inside quotes).
     private static readonly ImmutableArray<RazorCommitCharacter> s_attributeCommitCharactersWithEquals = [new("=", Insert: false), new(" ", Insert: false)];
@@ -44,6 +48,13 @@ internal static class DefaultCommitCharacters
     /// <param name="useSpace">Whether space commits (e.g., to start typing attributes).</param>
     public static ImmutableArray<RazorCommitCharacter> GetElementCommitCharacters(bool useSpace)
         => useSpace ? s_elementCommitCharacters : s_elementCommitCharactersWithoutSpace;
+
+    /// <summary>
+    /// Gets cached <c>string[]</c> commit characters for element name completions.
+    /// Shared across providers to ensure reference equality for optimizer grouping.
+    /// </summary>
+    public static string[] GetElementCommitCharacterStrings(bool useSpace)
+        => useSpace ? s_elementCommitCharacterStrings : s_elementCommitCharacterStringsWithoutSpace;
 
     /// <summary>
     /// Gets commit characters for attribute name completions. The '=' character always uses

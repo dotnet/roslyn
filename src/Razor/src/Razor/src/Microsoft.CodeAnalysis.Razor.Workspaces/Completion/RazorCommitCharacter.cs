@@ -14,9 +14,9 @@ internal readonly record struct RazorCommitCharacter(string Character, bool Inse
     // on its underlying array. Since all providers use static ImmutableArray fields,
     // every call with the same field hits the cache and returns the same output array.
     // Shared array instances enable CompletionListOptimizer's ReferenceEquals-based grouping.
-    // The value is string[] when all items have Insert=true (avoids SumType deserialization
-    // exceptions), or VSInternalCommitCharacter[] otherwise.
-    private static readonly Dictionary<ImmutableArray<RazorCommitCharacter>, SumType<string[], VSInternalCommitCharacter[]>> s_cache = [];
+    // Both representations are cached independently since a source may be requested as
+    // string[] (non-VS clients) or VSInternalCommitCharacter[] (VS clients) depending on capabilities.
+    private static readonly Dictionary<ImmutableArray<RazorCommitCharacter>, (string[]? Strings, VSInternalCommitCharacter[]? VsChars)> s_cache = [];
 
     public static ImmutableArray<RazorCommitCharacter> CreateArray(ReadOnlySpan<string> characters, bool insert = true)
     {
@@ -43,7 +43,9 @@ internal readonly record struct RazorCommitCharacter(string Character, bool Inse
         {
             if (s_cache.TryGetValue(source, out var entry))
             {
-                return entry;
+                return entry.VsChars is not null
+                    ? entry.VsChars
+                    : entry.Strings!;
             }
 
             foreach (var ch in source)
@@ -51,7 +53,7 @@ internal readonly record struct RazorCommitCharacter(string Character, bool Inse
                 if (!ch.Insert)
                 {
                     var vsChars = source.SelectAsPlainArray(static c => new VSInternalCommitCharacter() { Character = c.Character, Insert = c.Insert });
-                    s_cache[source] = vsChars;
+                    s_cache[source] = (null, vsChars);
 
                     return vsChars;
                 }
@@ -69,13 +71,13 @@ internal readonly record struct RazorCommitCharacter(string Character, bool Inse
     {
         lock (s_cache)
         {
-            if (s_cache.TryGetValue(source, out var entry))
+            if (s_cache.TryGetValue(source, out var entry) && entry.Strings is not null)
             {
-                return entry.First;
+                return entry.Strings;
             }
 
             var result = source.SelectAsPlainArray(static c => c.Character);
-            s_cache[source] = result;
+            s_cache[source] = (result, entry.VsChars);
 
             return result;
         }
