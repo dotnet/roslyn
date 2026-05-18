@@ -1606,7 +1606,12 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "y++").WithLocation(7, 62)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            // Pinned at pre-mixed-init language version: under the mixed object/collection
+            // initializer feature (dotnet/csharplang#10185) `y++` is treated as an element_initializer
+            // and produces a different diagnostic shape; tests of the post-feature behavior live in
+            // MixedInitializerBindingTests.cs.
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2848,7 +2853,12 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ x = 1 }").WithLocation(10, 54)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            // Pinned at pre-mixed-init language version: under the mixed object/collection
+            // initializer feature the brace-list elements are treated as element_initializers and
+            // produce different diagnostic shapes; tests of the post-feature behavior live in
+            // MixedInitializerBindingTests.cs.
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2921,7 +2931,12 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var").WithLocation(9, 9)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            // Pinned at pre-mixed-init language version: under the mixed object/collection
+            // initializer feature the malformed elements are routed through the element-initializer
+            // path and produce different diagnostics; tests of the post-feature behavior live in
+            // MixedInitializerBindingTests.cs.
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
