@@ -119,7 +119,7 @@ internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider servicePro
         }
     }
 
-    protected override  async Task<IEnumerable<XElement>> CreateAdditionalProjectElementsAsync(Project project, CancellationToken cancellationToken)
+    protected override async Task<IEnumerable<XElement>> CreateAdditionalProjectElementsAsync(Project project, CancellationToken cancellationToken)
     {
         var elements = new List<XElement>();
 
