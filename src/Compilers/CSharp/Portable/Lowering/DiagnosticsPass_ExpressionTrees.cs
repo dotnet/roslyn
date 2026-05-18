@@ -562,6 +562,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitObjectCreationExpression(node);
         }
 
+        public override BoundNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
+        {
+            // Mixed object/collection initializer (dotnet/csharplang#10185): an
+            // `ObjectInitializerExpression` whose `Initializers` contain element-shape entries
+            // cannot be expressed in the Expression API — the `MemberInit` shape accommodates
+            // only `MemberAssignment` / `MemberListBinding` / `MemberMemberBinding`, none of
+            // which map to a top-level `Add(...)` call alongside the member bindings. Reject
+            // before lowering reaches the unsupported branches.
+            if (_inExpressionLambda)
+            {
+                foreach (var initializer in node.Initializers)
+                {
+                    if (initializer.Kind is BoundKind.CollectionElementInitializer or BoundKind.DynamicCollectionElementInitializer)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsMixedObjectAndCollectionInitializer, initializer);
+                    }
+                }
+            }
+
+            return base.VisitObjectInitializerExpression(node);
+        }
+
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
             var indexer = node.Indexer;
