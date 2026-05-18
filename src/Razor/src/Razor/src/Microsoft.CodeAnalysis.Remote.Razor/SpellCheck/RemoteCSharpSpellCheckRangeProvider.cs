@@ -6,9 +6,14 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.SpellCheck;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.SpellCheck;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
@@ -23,8 +28,30 @@ internal sealed class RemoteCSharpSpellCheckRangeProvider() : ICSharpSpellCheckR
         var snapshot = (RemoteDocumentSnapshot)documentContext.Snapshot;
         var generatedDocument = await snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        var csharpRanges = await ExternalAccess.Razor.Cohost.Handlers.SpellCheck.GetSpellCheckSpansAsync(generatedDocument, cancellationToken).ConfigureAwait(false);
+        var csharpRanges = await GetSpellCheckSpansAsync(generatedDocument, cancellationToken).ConfigureAwait(false);
 
         return csharpRanges.SelectAsArray(static r => new SpellCheckRange((int)r.Kind, r.StartIndex, r.Length));
     }
+
+    private static async Task<ImmutableArray<SpellCheckSpan>> GetSpellCheckSpansAsync(Document document, CancellationToken cancellationToken)
+    {
+        var service = document.Project.Services.GetService<ISpellCheckSpanService>();
+        if (service is null)
+        {
+            return [];
+        }
+
+        var spans = await service.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
+
+        using var razorSpans = new PooledArrayBuilder<SpellCheckSpan>(spans.Length);
+        foreach (var span in spans)
+        {
+            var kind = ProtocolConversions.SpellCheckSpanKindToSpellCheckableRangeKind(span.Kind);
+            razorSpans.Add(new SpellCheckSpan(span.TextSpan.Start, span.TextSpan.Length, kind));
+        }
+
+        return razorSpans.ToImmutable();
+    }
+
+    private readonly record struct SpellCheckSpan(int StartIndex, int Length, VSInternalSpellCheckableRangeKind Kind);
 }
