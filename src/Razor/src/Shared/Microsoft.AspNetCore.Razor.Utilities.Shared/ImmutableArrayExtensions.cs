@@ -15,14 +15,6 @@ namespace System.Collections.Immutable;
 /// </summary>
 internal static partial class ImmutableArrayExtensions
 {
-    /// <summary>
-    /// Returns an empty array if the input array is null (default)
-    /// </summary>
-    public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T> array)
-    {
-        return array.IsDefault ? [] : array;
-    }
-
     public static void SetCapacityIfLarger<T>(this ImmutableArray<T>.Builder builder, int newCapacity)
     {
         if (builder.Capacity < newCapacity)
