@@ -291,9 +291,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var initializer in initializers)
             {
                 // Bound initializers may be simple assignments (`Prop = v`), compound assignments
-                // (`Prop += v`), null-coalescing assignments (`Prop ??= v`), or event assignments
-                // (`E += h`). We don't lower them if they contain errors, so below we assume
-                // well-formed shapes.
+                // (`Prop += v`), null-coalescing assignments (`Prop ??= v`), event assignments
+                // (`E += h`), or — under the mixed object/collection initializer feature
+                // (dotnet/csharplang#10185) — collection-element-shape initializers
+                // (`expr` or `{ a, b }` resolved to `Add(...)`). We don't lower entries that
+                // contain errors, so below we assume well-formed shapes.
                 switch (initializer.Kind)
                 {
                     case BoundKind.AssignmentOperator:
@@ -305,6 +307,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundKind.EventAssignmentOperator:
                         AddEventObjectInitializer(result, rewrittenReceiver, (BoundEventAssignmentOperator)initializer);
+                        break;
+                    case BoundKind.CollectionElementInitializer:
+                        {
+                            BoundExpression? rewritten = MakeCollectionInitializer((BoundCollectionElementInitializer)initializer);
+                            if (rewritten != null)
+                                result.Add(rewritten);
+                            break;
+                        }
+                    case BoundKind.DynamicCollectionElementInitializer:
+                        result.Add(MakeDynamicCollectionInitializer(rewrittenReceiver, (BoundDynamicCollectionElementInitializer)initializer));
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(initializer.Kind);

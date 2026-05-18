@@ -4499,11 +4499,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case BoundKind.NullCoalescingAssignmentOperator:
                                 VisitCompoundOrCoalesceObjectElementInitializer(containingSlot, containingType, initializer);
                                 break;
+                            case BoundKind.CollectionElementInitializer:
+                                // Mixed object/collection initializer (dotnet/csharplang#10185): an
+                                // element_initializer appears in an ObjectInitializerExpression. Drive
+                                // flow on it the same way the pure-collection branch below does.
+                                completion += VisitCollectionElementInitializer((BoundCollectionElementInitializer)initializer, containingType, delayCompletionForType);
+                                break;
                             default:
                                 // Event assignments (`E += h`) fall through: the event's backing delegate state
                                 // isn't part of the nullable model in a way that's observable to user code, and the
                                 // compound-style slot tracking wouldn't apply. VisitRvalue on BoundEventAssignmentOperator
-                                // is sufficient to drive flow on the handler argument.
+                                // is sufficient to drive flow on the handler argument. The dynamic-element-initializer
+                                // shape from the mixed feature lands here too — same VisitRvalue treatment as the
+                                // pure-collection branch.
                                 VisitRvalue(initializer);
                                 break;
                         }

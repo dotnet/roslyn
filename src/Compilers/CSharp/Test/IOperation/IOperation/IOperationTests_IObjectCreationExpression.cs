@@ -5403,7 +5403,12 @@ Block[B8] - Exit
     Predecessors: [B7]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+            // Pinned at pre-mixed-init language version: under the mixed object/collection
+            // initializer feature (dotnet/csharplang#10185) the malformed elements are routed
+            // through the element-initializer path, producing a different diagnostic shape and
+            // flow graph; the post-feature behavior is covered by the CSharp15 MixedInitializer*
+            // tests.
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.Regular14);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -14306,7 +14311,12 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+            // Pinned at pre-mixed-init language version: under the mixed object/collection
+            // initializer feature (dotnet/csharplang#10185) `y++` is treated as an
+            // element_initializer (Add target) and produces a different diagnostic shape and flow
+            // graph; tests of the post-feature behavior live in the CSharp15 MixedInitializer*
+            // files.
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.Regular14);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -15394,7 +15404,11 @@ Block[B5] - Exit
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "new()").WithLocation(1, 76)
             };
 
-            var comp = CreateCompilation(source);
+            // Pinned at pre-mixed-init language version: under the mixed object/collection
+            // initializer feature (dotnet/csharplang#10185) these trailing expressions are treated
+            // as element_initializers and produce a different diagnostic shape; tests of the
+            // post-feature behavior live in the CSharp15 MixedInitializer* test files.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
 
             string expectedOperationTree = """
                 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() { F ...  }, new() }')

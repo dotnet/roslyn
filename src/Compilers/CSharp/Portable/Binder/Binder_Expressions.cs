@@ -5845,7 +5845,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                          initializerSyntax.Kind() == SyntaxKind.WithInitializerExpression);
             Debug.Assert((object)initializerType != null);
 
-            if (initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression)
+            bool isObjectInit = initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression;
+            if (isObjectInit)
                 MessageID.IDS_FeatureObjectInitializer.CheckFeatureAvailability(diagnostics, initializerSyntax.OpenBraceToken);
 
             var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
@@ -5858,10 +5859,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             // initializer may target the same member. Indexer (ImplicitElementAccess) targets are
             // unrestricted; ReportDuplicateObjectMemberInitializers filters them out before checking.
             var memberNameMap = PooledDictionary<string, MemberInitializerKind>.GetInstance();
+
+            // Lazily computed on the first non-member-shape child seen in an ObjectInitializerExpression
+            // — i.e. the "mixed" object/collection initializer form (dotnet/csharplang#10185). For a
+            // pure-member object initializer (or any `with` initializer), these stay null and the
+            // IEnumerable + Add-resolution checks never fire.
+            bool? hasEnumerableInitializerType = null;
+            Binder collectionInitializerAddMethodBinder = null;
+
+            // Whether the mixed object/collection initializer feature (dotnet/csharplang#10185) is
+            // enabled in this compilation. When disabled, a non-member-shape child of an object
+            // initializer keeps its pre-feature behavior (ERR_InvalidInitializerElementInitializer
+            // from BindInitializerMemberAssignment); when enabled, it dispatches to the collection
+            // element-initializer binding path so the IEnumerable + Add-resolution rules of
+            // §12.8.16.4 apply per-element.
+            bool isMixedInitializerFeatureEnabled = isObjectInit &&
+                Compilation.IsFeatureEnabled(MessageID.IDS_FeatureMixedObjectAndCollectionInitializers);
+
             foreach (var memberInitializer in initializerSyntax.Expressions)
             {
-                BoundExpression boundMemberInitializer = BindInitializerMemberAssignment(
-                    memberInitializer, diagnostics, implicitReceiver);
+                BoundExpression boundMemberInitializer;
+
+                if (isMixedInitializerFeatureEnabled && !IsObjectInitializerMemberShape(memberInitializer))
+                {
+                    if (hasEnumerableInitializerType is null)
+                    {
+                        hasEnumerableInitializerType = CollectionInitializerTypeImplementsIEnumerable(
+                            initializerType, initializerSyntax, diagnostics);
+                        if (!hasEnumerableInitializerType.Value && !initializerSyntax.HasErrors && !initializerType.IsErrorType())
+                        {
+                            Error(diagnostics, ErrorCode.ERR_CollectionInitRequiresIEnumerable, initializerSyntax, initializerType);
+                        }
+                        collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
+                    }
+
+                    boundMemberInitializer = BindCollectionInitializerElement(
+                        memberInitializer, initializerType,
+                        hasEnumerableInitializerType.Value, collectionInitializerAddMethodBinder, diagnostics, implicitReceiver);
+                }
+                else
+                {
+                    boundMemberInitializer = BindInitializerMemberAssignment(
+                        memberInitializer, diagnostics, implicitReceiver);
+                }
 
                 initializers.Add(boundMemberInitializer);
 
@@ -5874,6 +5914,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitReceiver,
                 initializers.ToImmutableAndFree(),
                 initializerType);
+        }
+
+        // Returns true for the syntactic shapes BindInitializerMemberAssignment treats as a
+        // member_initializer (an assignment-shape — simple, compound, or coalesce — or the bare
+        // IdentifierName recovery shape). All other shapes in an ObjectInitializerExpression are
+        // element_initializers under the mixed object/collection initializer feature
+        // (dotnet/csharplang#10185).
+        //
+        // IdentifierName is intentionally treated as a member-shape (today's "missing `=`" recovery)
+        // rather than as an Add target: the two are syntactically indistinguishable, and silently
+        // turning a typo'd `new C { X = 1, Y }` into `__c.Add(Y)` would mask the more common intent.
+        // Users wanting an element-initializer bound to a bare identifier value can spell it with
+        // a parenthesized or otherwise non-identifier expression.
+        private static bool IsObjectInitializerMemberShape(ExpressionSyntax syntax)
+        {
+            switch (syntax.Kind())
+            {
+                case SyntaxKind.SimpleAssignmentExpression:
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
+                case SyntaxKind.IdentifierName:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private BoundExpression BindInitializerMemberAssignment(

@@ -882,6 +882,11 @@
         <target state="translated">Дерево выражения не может содержать преобразование обработчика интерполированных строк.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsMixedObjectAndCollectionInitializer">
+        <source>An expression tree may not contain a mixed object and collection initializer.</source>
+        <target state="new">An expression tree may not contain a mixed object and collection initializer.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
         <source>An expression tree may not contain a named argument specification out of position</source>
         <target state="translated">Дерево выражений не может содержать спецификацию именованных аргументов вне позиции</target>
@@ -3035,6 +3040,11 @@
       <trans-unit id="IDS_FeatureLockObject">
         <source>Lock object</source>
         <target state="translated">Блокировать объект</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureMixedObjectAndCollectionInitializers">
+        <source>mixed object and collection initializers</source>
+        <target state="new">mixed object and collection initializers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
