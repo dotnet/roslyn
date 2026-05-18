@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -80,6 +80,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Mapping\RazorEditServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ProjectAvailabilityTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetCompletionItemResolveProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetResolveProvider.cs" />
   </ItemGroup>
 </Project>
