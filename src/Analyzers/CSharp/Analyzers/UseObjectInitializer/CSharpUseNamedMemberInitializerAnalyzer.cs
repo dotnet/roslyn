@@ -27,4 +27,7 @@ internal sealed class CSharpUseNamedMemberInitializerAnalyzer :
 
     protected override bool SupportsCompoundAssignmentInInitializer(ParseOptions options)
         => options.LanguageVersion().SupportsCompoundAssignmentInInitializer();
+
+    protected override bool SupportsMixedObjectAndCollectionInitializers(ParseOptions options)
+        => options.LanguageVersion().SupportsMixedObjectAndCollectionInitializers();
 }

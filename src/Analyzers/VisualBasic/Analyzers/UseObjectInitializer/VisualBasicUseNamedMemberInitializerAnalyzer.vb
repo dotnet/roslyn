@@ -27,5 +27,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         Protected Overrides Function SupportsCompoundAssignmentInInitializer(options As ParseOptions) As Boolean
             Return False
         End Function
+
+        ' Visual Basic keeps object initializers (`With { ... }`) and collection initializers
+        ' (`From { ... }`) strictly separate; the mixed object/collection initializer language
+        ' feature is C#-only, so a subsequent `Add` invocation is never foldable into a `With` block.
+        Protected Overrides Function SupportsMixedObjectAndCollectionInitializers(options As ParseOptions) As Boolean
+            Return False
+        End Function
     End Class
 End Namespace

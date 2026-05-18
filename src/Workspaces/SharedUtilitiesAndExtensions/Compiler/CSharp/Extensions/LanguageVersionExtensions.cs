@@ -41,6 +41,9 @@ internal static class LanguageVersionExtensions
     public static bool SupportsCompoundAssignmentInInitializer(this LanguageVersion languageVersion)
         => languageVersion.IsCSharp15OrAbove();
 
+    public static bool SupportsMixedObjectAndCollectionInitializers(this LanguageVersion languageVersion)
+        => languageVersion.IsCSharp15OrAbove();
+
     /// <remarks>
     /// Corresponds to Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.CSharpNext.
     /// </remarks>

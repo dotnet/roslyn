@@ -24,8 +24,22 @@ internal static class UseInitializerHelpers
                 .WithArgumentList(null);
         }
 
-        var firstExpression = expressions.First();
-        var initializerKind = firstExpression is AssignmentExpressionSyntax
+        // Pick the wrapper kind the way the parser would: any assignment-shape element flips the
+        // wrapper to `ObjectInitializerExpression` (including the mixed object/collection
+        // initializer form, dotnet/csharplang#10185, where assignment- and element-shape children
+        // appear together). Scanning all expressions (rather than only the first) ensures we agree
+        // with the parser even when the first element happens to be the bare-expression form.
+        var hasAssignment = false;
+        foreach (var expression in expressions)
+        {
+            if (expression is AssignmentExpressionSyntax)
+            {
+                hasAssignment = true;
+                break;
+            }
+        }
+
+        var initializerKind = hasAssignment
             ? SyntaxKind.ObjectInitializerExpression
             : SyntaxKind.CollectionInitializerExpression;
 

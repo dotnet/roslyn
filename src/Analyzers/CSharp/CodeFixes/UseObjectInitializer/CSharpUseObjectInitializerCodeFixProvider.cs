@@ -81,25 +81,41 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
         {
             var match = matches[i];
             var expressionStatement = match.Statement;
-            var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
             var trivia = match.MemberAccessExpression.GetLeadingTrivia();
-
             var newTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
 
-            var newAssignment = assignment
-                .WithLeft(match.MemberAccessExpression.Name.WithLeadingTrivia(newTrivia))
-                .WithRight(Indent(assignment.Right, options));
+            // Two match shapes are produced by `AbstractUseNamedMemberInitializerAnalyzer`:
+            //   * Member-initializer match (the original IDE0017 shape): the statement holds an
+            //     `AssignmentExpressionSyntax`; the synthesized initializer element is
+            //     `Name = value` (or the matching compound form), built by detaching the
+            //     receiver from the assignment's left.
+            //   * Add-invocation match (added by the mixed object/collection initializer feature,
+            //     dotnet/csharplang#10185): the statement holds an `x.Add(value)` invocation; the
+            //     synthesized initializer element is the bare argument expression `value`, emitted
+            //     as a collection element initializer.
+            ExpressionSyntax newElement;
+            if (match.IsAddInvocation)
+            {
+                newElement = Indent(match.Initializer, options).WithLeadingTrivia(newTrivia);
+            }
+            else
+            {
+                var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
+                newElement = assignment
+                    .WithLeft(match.MemberAccessExpression.Name.WithLeadingTrivia(newTrivia))
+                    .WithRight(Indent(assignment.Right, options));
+            }
 
             if (i < matches.Length - 1)
             {
-                nodesAndTokens.Add(newAssignment);
+                nodesAndTokens.Add(newElement);
                 nodesAndTokens.Add(CommaToken.WithTriviaFrom(expressionStatement.SemicolonToken));
             }
             else
             {
-                newAssignment = newAssignment.WithTrailingTrivia(
+                newElement = newElement.WithTrailingTrivia(
                     expressionStatement.GetTrailingTrivia());
-                nodesAndTokens.Add(newAssignment);
+                nodesAndTokens.Add(newElement);
             }
         }
 
