@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -20,6 +24,34 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
 public sealed partial class UseObjectInitializerTests
 {
+    /// <summary>
+    /// Test wrapper for the mixed object/collection initializer diagnostic (IDE0400). The
+    /// shared analyzer (<see cref="CSharpUseObjectInitializerDiagnosticAnalyzer"/>) registers
+    /// both IDE0017 and IDE0400 descriptors, and the underlying test framework defaults
+    /// markup-driven (<c>[|…|]</c>) expectations to the first descriptor — IDE0017. Tests
+    /// whose synthesized initializer is mixed (and therefore route to IDE0400 in the
+    /// diagnostic-analyzer routing) override <see cref="GetDefaultDiagnostic"/> via this
+    /// subclass so that markup expectations resolve to IDE0400 instead.
+    /// </summary>
+    private sealed class MixedTest : VerifyCS.Test
+    {
+        protected override DiagnosticDescriptor? GetDefaultDiagnostic(DiagnosticAnalyzer[] analyzers)
+        {
+            // If a future refactor drops the IDE0400 descriptor from the analyzer's supported
+            // list, fall back to a hard failure rather than silently letting tests pass under
+            // IDE0017 (the previous "first" descriptor). Without this, removing IDE0400 would
+            // appear to keep tests green while losing the unification behavior the tests were
+            // written to assert.
+            var descriptor = analyzers
+                .SelectMany(a => a.SupportedDiagnostics)
+                .FirstOrDefault(d => d.Id == IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId);
+
+            return descriptor ?? throw new InvalidOperationException(
+                $"MixedTest expected the {nameof(CSharpUseObjectInitializerDiagnosticAnalyzer)} to register " +
+                $"the IDE0400 descriptor, but none was found in SupportedDiagnostics.");
+        }
+    }
+
     private static async Task TestMissingInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         LanguageVersion? languageVersion = null)
@@ -693,8 +725,10 @@ public sealed partial class UseObjectInitializerTests
     [Fact]
     public Task TestSubsequentAddInvocation_FoldsIntoMixedInitializer()
         // Under the mixed initializer feature, a subsequent `c.Add(value)` expression statement
-        // folds into the new object initializer as a bare-element initializer.
-        => new VerifyCS.Test
+        // folds into the new object initializer as a bare-element initializer. The synthesized
+        // initializer mixes member-shape and element-shape children, so the analyzer routes the
+        // diagnostic to IDE0400 — `MixedTest` re-points markup defaults from IDE0017 to IDE0400.
+        => new MixedTest
         {
             TestCode = """
             using System.Collections;
@@ -751,7 +785,8 @@ public sealed partial class UseObjectInitializerTests
     public Task TestSubsequentAddInvocation_InterleavedWithMembers_FoldsInLexicalOrder()
         // Ordering matters: an `Add` call between two member writes lands between them inside the
         // synthesized initializer body, preserving the source-textual order of the statements.
-        => new VerifyCS.Test
+        // The synthesis is mixed, so this routes to IDE0400 via `MixedTest`.
+        => new MixedTest
         {
             TestCode = """
             using System.Collections;
@@ -809,8 +844,9 @@ public sealed partial class UseObjectInitializerTests
     [Fact]
     public Task TestSubsequentAddInvocation_StacksOntoExistingMixedInitializer()
         // Same fold extension applies when the original `new C { ... }` already has a member
-        // initializer; the subsequent `Add` is appended alongside it.
-        => new VerifyCS.Test
+        // initializer; the subsequent `Add` is appended alongside it. Existing member init plus
+        // new Add-shape matches → mixed synthesis → IDE0400 (`MixedTest`).
+        => new MixedTest
         {
             TestCode = """
             using System.Collections;
@@ -1088,8 +1124,9 @@ public sealed partial class UseObjectInitializerTests
     public Task TestSubsequentAddInvocation_LeadingAddThenMember_FoldsAsMixedInitializer()
         // The Add-shape statement may appear before any member assignment. The wrapper kind is
         // still ObjectInitializerExpression because at least one folded element is assignment-
-        // shape, matching the parser's classification of `{ 10, X = 2 }`.
-        => new VerifyCS.Test
+        // shape, matching the parser's classification of `{ 10, X = 2 }`. Mixed synthesis →
+        // IDE0400 (`MixedTest`).
+        => new MixedTest
         {
             TestCode = """
             using System.Collections;
@@ -1144,8 +1181,9 @@ public sealed partial class UseObjectInitializerTests
     public Task TestSubsequentAddInvocation_ExtensionAdd_FoldsAsMixedInitializer()
         // C# 6+ recognizes extension `Add` for collection-initializer folding, and IDE0017's
         // analyzer reuses the same shape recognition. The mixed fold must therefore work when
-        // the only `Add` is an extension on the receiver.
-        => new VerifyCS.Test
+        // the only `Add` is an extension on the receiver. Mixed synthesis → IDE0400
+        // (`MixedTest`).
+        => new MixedTest
         {
             TestCode = """
             using System.Collections;
@@ -1254,6 +1292,123 @@ public sealed partial class UseObjectInitializerTests
                         X = 1
                     };
                     c.Add(10, 20);
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentAddInvocation_MixedInitializer_SuppressedWhenCollectionPreferenceDisabled()
+        // IDE0400 (mixed object/collection initializer) requires BOTH `PreferObjectInitializer`
+        // and `PreferCollectionInitializer` to be enabled — disabling either is treated as the
+        // user signaling they don't want the corresponding pure form, and the mixed form is a
+        // strict superset of both. `TryGetMixedInitializerNotification` returns null when
+        // `PreferCollectionInitializer` is false, suppressing the IDE0400 diagnostic without
+        // routing back to IDE0017 (which would propose an invalid fix that the user has opted
+        // out of by disabling collection-initializer preference).
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C : IEnumerable<int>
+            {
+                public int X { get; set; }
+                public void Add(int item) { }
+                public IEnumerator<int> GetEnumerator() { yield break; }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+
+            class Program
+            {
+                static void M()
+                {
+                    var c = new C();
+                    c.X = 1;
+                    c.Add(10);
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+            Options = { { CodeStyleOptions2.PreferCollectionInitializer, false } },
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentAddInvocation_MixedInitializer_MemberOnlyUnderPreview_StillReportsLegacyIDE0017()
+        // Regression guard for the routing: under Preview, a pure-member-only fold should
+        // still surface IDE0017 (legacy), not IDE0400. The Add-fold path simply doesn't fire
+        // because there's no `c.Add(...)` statement to recognize.
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                public int X { get; set; }
+                public int Y { get; set; }
+            }
+
+            class Program
+            {
+                static void M()
+                {
+                    var c = [|new|] C();
+                    [|c.|]X = 1;
+                    [|c.|]Y = 2;
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                public int X { get; set; }
+                public int Y { get; set; }
+            }
+
+            class Program
+            {
+                static void M()
+                {
+                    var c = new C
+                    {
+                        X = 1,
+                        Y = 2
+                    };
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentAddInvocation_PureAddSequence_YieldsToCollectionInitializer()
+        // When every fold candidate is Add-shape and there is no existing object-member
+        // initializer, the synthesis would be a pure collection initializer — which IDE0028
+        // already owns. The UseObjectInitializer analyzer must therefore *not* report (no
+        // IDE0017 and no IDE0400), avoiding the pre-PR-7 duplicate-suggestion behavior where
+        // both analyzers fired on the same span. The test verifier is wired to this analyzer
+        // only, so the absence of any `[|…|]` marker pins the expected silence.
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C : IEnumerable<int>
+            {
+                public void Add(int item) { }
+                public IEnumerator<int> GetEnumerator() { yield break; }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+
+            class Program
+            {
+                static void M()
+                {
+                    var c = new C();
+                    c.Add(10);
+                    c.Add(20);
                 }
             }
             """,
