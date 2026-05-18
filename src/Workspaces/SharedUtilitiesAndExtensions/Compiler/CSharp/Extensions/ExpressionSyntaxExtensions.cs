@@ -563,6 +563,14 @@ internal static partial class ExpressionSyntaxExtensions
             case SyntaxKind.ExpressionStatement:
             case SyntaxKind.ArrayInitializerExpression:
             case SyntaxKind.CollectionInitializerExpression:
+            // Mixed object/collection initializer (dotnet/csharplang#10185): element-shape
+            // children (bare expressions, brace-list initializers, …) of an
+            // `ObjectInitializerExpression` are replaceable by an LValue exactly as the
+            // element children of a pure `CollectionInitializerExpression` are. The
+            // assignment-shape children (`Prop = value`, `Prop += value`) bind as member
+            // initializers — extracting one to a local can't preserve that semantic, so
+            // we exclude `AssignmentExpressionSyntax` here.
+            case SyntaxKind.ObjectInitializerExpression when expression is not AssignmentExpressionSyntax:
             case SyntaxKind.Argument:
             case SyntaxKind.AttributeArgument:
             case SyntaxKind.AnonymousObjectMemberDeclarator:

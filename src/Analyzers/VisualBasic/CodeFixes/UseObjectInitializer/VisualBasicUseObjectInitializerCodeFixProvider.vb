@@ -92,6 +92,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             For i = 0 To matches.Length - 1
                 Dim match = matches(i)
 
+                ' The mixed object/collection initializer (`Match.IsAddInvocation`) shape is
+                ' produced only by the C# analyzer, gated on
+                ' `SupportsMixedObjectAndCollectionInitializers`, which always returns false
+                ' from `VisualBasicUseNamedMemberInitializerAnalyzer`. If a future change ever
+                ' surfaces an Add-fold match in VB, the VB fixer below would synthesize a
+                ' `NamedFieldInitializer` with `MemberName == ""` and produce broken code, so
+                ' fail loudly here rather than silently corrupt the output.
+                Contract.ThrowIfTrue(match.IsAddInvocation)
+
                 Dim rightValue = Indent(match.Initializer, options)
                 If i < matches.Length - 1 Then
                     rightValue = rightValue.WithoutTrailingTrivia()

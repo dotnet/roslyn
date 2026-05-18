@@ -2486,6 +2486,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PPShebangNotOnFirstLine = 9378,
 
+        ERR_ExpressionTreeContainsMixedObjectAndCollectionInitializer = 9379,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

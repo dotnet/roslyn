@@ -133,6 +133,8 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild RemoveUnnecessaryAsyncModifier = /*IDE0390*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride = /*IDE0391*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
+    public const EnforceOnBuild UseMixedObjectAndCollectionInitializer = /*IDE0400*/ EnforceOnBuild.Recommended;
+
     public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild Json = /*JSON001*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
