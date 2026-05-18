@@ -2,7 +2,11 @@
   "sdk": {
     "version": "10.0.107",
     "allowPrerelease": false,
-    "rollForward": "patch"
+    "rollForward": "patch",
+    "paths": [
+      ".dotnet",
+      "$host$"
+    ]
   },
   "tools": {
     "dotnet": "10.0.107",

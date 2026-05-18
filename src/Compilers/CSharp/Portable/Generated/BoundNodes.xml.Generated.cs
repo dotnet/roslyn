@@ -257,6 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExpressionWithNullability,
         ValueForNullableAnalysis,
         WithExpression,
+        CsxElement,
     }
 
     internal abstract partial class BoundInitializer : BoundNode
@@ -9086,6 +9087,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundCsxElement : BoundExpression
+    {
+        public BoundCsxElement(SyntaxNode syntax, MethodSymbol factoryMethod, MethodSymbol componentMethod, BoundExpression componentArgument, BoundExpression? propsArgument, ImmutableArray<BoundExpression> children, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CsxElement, syntax, type, hasErrors || componentArgument.HasErrors() || propsArgument.HasErrors() || children.HasErrors())
+        {
+
+            RoslynDebug.Assert(factoryMethod is object, "Field 'factoryMethod' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(componentMethod is object, "Field 'componentMethod' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(componentArgument is object, "Field 'componentArgument' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.FactoryMethod = factoryMethod;
+            this.ComponentMethod = componentMethod;
+            this.ComponentArgument = componentArgument;
+            this.PropsArgument = propsArgument;
+            this.Children = children;
+        }
+
+        public new TypeSymbol Type => base.Type!;
+        public MethodSymbol FactoryMethod { get; }
+        public MethodSymbol ComponentMethod { get; }
+        public BoundExpression ComponentArgument { get; }
+        public BoundExpression? PropsArgument { get; }
+        public ImmutableArray<BoundExpression> Children { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCsxElement(this);
+
+        public BoundCsxElement Update(MethodSymbol factoryMethod, MethodSymbol componentMethod, BoundExpression componentArgument, BoundExpression? propsArgument, ImmutableArray<BoundExpression> children, TypeSymbol type)
+        {
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(factoryMethod, this.FactoryMethod) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(componentMethod, this.ComponentMethod) || componentArgument != this.ComponentArgument || propsArgument != this.PropsArgument || children != this.Children || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundCsxElement(this.Syntax, factoryMethod, componentMethod, componentArgument, propsArgument, children, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal abstract partial class BoundTreeVisitor<A, R>
     {
 
@@ -9568,6 +9609,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitValueForNullableAnalysis((BoundValueForNullableAnalysis)node, arg);
                 case BoundKind.WithExpression:
                     return VisitWithExpression((BoundWithExpression)node, arg);
+                case BoundKind.CsxElement:
+                    return VisitCsxElement((BoundCsxElement)node, arg);
             }
 
             return default(R)!;
@@ -9813,6 +9856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitExpressionWithNullability(BoundExpressionWithNullability node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitValueForNullableAnalysis(BoundValueForNullableAnalysis node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitWithExpression(BoundWithExpression node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitCsxElement(BoundCsxElement node, A arg) => this.DefaultVisit(node, arg);
     }
 
     internal abstract partial class BoundTreeVisitor
@@ -10054,6 +10098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitExpressionWithNullability(BoundExpressionWithNullability node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitValueForNullableAnalysis(BoundValueForNullableAnalysis node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitWithExpression(BoundWithExpression node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitCsxElement(BoundCsxElement node) => this.DefaultVisit(node);
     }
 
     internal abstract partial class BoundTreeWalker : BoundTreeVisitor
@@ -11101,6 +11146,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Receiver);
             this.Visit(node.InitializerExpression);
+            return null;
+        }
+        public override BoundNode? VisitCsxElement(BoundCsxElement node)
+        {
+            this.Visit(node.ComponentArgument);
+            this.Visit(node.PropsArgument);
+            this.VisitList(node.Children);
             return null;
         }
     }
@@ -12702,6 +12754,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundObjectInitializerExpressionBase initializerExpression = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpression);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(receiver, cloneMethod, initializerExpression, type);
+        }
+        public override BoundNode? VisitCsxElement(BoundCsxElement node)
+        {
+            MethodSymbol factoryMethod = this.VisitMethodSymbol(node.FactoryMethod);
+            MethodSymbol componentMethod = this.VisitMethodSymbol(node.ComponentMethod);
+            BoundExpression componentArgument = (BoundExpression)this.Visit(node.ComponentArgument);
+            BoundExpression? propsArgument = (BoundExpression?)this.Visit(node.PropsArgument);
+            ImmutableArray<BoundExpression> children = this.VisitList(node.Children);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(factoryMethod, componentMethod, componentArgument, propsArgument, children, type);
         }
     }
 
@@ -15467,6 +15529,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return updatedNode;
         }
+
+        public override BoundNode? VisitCsxElement(BoundCsxElement node)
+        {
+            MethodSymbol factoryMethod = GetUpdatedSymbol(node, node.FactoryMethod);
+            MethodSymbol componentMethod = GetUpdatedSymbol(node, node.ComponentMethod);
+            BoundExpression componentArgument = (BoundExpression)this.Visit(node.ComponentArgument);
+            BoundExpression? propsArgument = (BoundExpression?)this.Visit(node.PropsArgument);
+            ImmutableArray<BoundExpression> children = this.VisitList(node.Children);
+            BoundCsxElement updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(factoryMethod, componentMethod, componentArgument, propsArgument, children, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(factoryMethod, componentMethod, componentArgument, propsArgument, children, node.Type);
+            }
+            return updatedNode;
+        }
     }
 
     internal sealed class BoundTreeDumperNodeProducer : BoundTreeVisitor<object?, TreeDumperNode>
@@ -17685,6 +17768,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
             new TreeDumperNode("cloneMethod", node.CloneMethod, null),
             new TreeDumperNode("initializerExpression", null, new TreeDumperNode[] { Visit(node.InitializerExpression, null) }),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitCsxElement(BoundCsxElement node, object? arg) => new TreeDumperNode("csxElement", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("factoryMethod", node.FactoryMethod, null),
+            new TreeDumperNode("componentMethod", node.ComponentMethod, null),
+            new TreeDumperNode("componentArgument", null, new TreeDumperNode[] { Visit(node.ComponentArgument, null) }),
+            new TreeDumperNode("propsArgument", null, new TreeDumperNode[] { Visit(node.PropsArgument, null) }),
+            new TreeDumperNode("children", null, node.Children.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.Children select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

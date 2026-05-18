@@ -759,6 +759,30 @@ public partial class CSharpSyntaxVisitor<TResult>
 
     /// <summary>Called when the visitor visits a NullableDirectiveTriviaSyntax node.</summary>
     public virtual TResult? VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxElementSyntax node.</summary>
+    public virtual TResult? VisitCsxElement(CsxElementSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxSelfClosingElementSyntax node.</summary>
+    public virtual TResult? VisitCsxSelfClosingElement(CsxSelfClosingElementSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxOpeningElementSyntax node.</summary>
+    public virtual TResult? VisitCsxOpeningElement(CsxOpeningElementSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxClosingElementSyntax node.</summary>
+    public virtual TResult? VisitCsxClosingElement(CsxClosingElementSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxAttributeSyntax node.</summary>
+    public virtual TResult? VisitCsxAttribute(CsxAttributeSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxSpreadAttributeSyntax node.</summary>
+    public virtual TResult? VisitCsxSpreadAttribute(CsxSpreadAttributeSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxExpressionSyntax node.</summary>
+    public virtual TResult? VisitCsxExpression(CsxExpressionSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxTextSyntax node.</summary>
+    public virtual TResult? VisitCsxText(CsxTextSyntax node) => this.DefaultVisit(node);
 }
 
 public partial class CSharpSyntaxVisitor
@@ -1507,6 +1531,30 @@ public partial class CSharpSyntaxVisitor
 
     /// <summary>Called when the visitor visits a NullableDirectiveTriviaSyntax node.</summary>
     public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxElementSyntax node.</summary>
+    public virtual void VisitCsxElement(CsxElementSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxSelfClosingElementSyntax node.</summary>
+    public virtual void VisitCsxSelfClosingElement(CsxSelfClosingElementSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxOpeningElementSyntax node.</summary>
+    public virtual void VisitCsxOpeningElement(CsxOpeningElementSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxClosingElementSyntax node.</summary>
+    public virtual void VisitCsxClosingElement(CsxClosingElementSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxAttributeSyntax node.</summary>
+    public virtual void VisitCsxAttribute(CsxAttributeSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxSpreadAttributeSyntax node.</summary>
+    public virtual void VisitCsxSpreadAttribute(CsxSpreadAttributeSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxExpressionSyntax node.</summary>
+    public virtual void VisitCsxExpression(CsxExpressionSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a CsxTextSyntax node.</summary>
+    public virtual void VisitCsxText(CsxTextSyntax node) => this.DefaultVisit(node);
 }
 
 public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
@@ -2255,6 +2303,30 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     public override SyntaxNode? VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
         => node.Update(VisitToken(node.HashToken), VisitToken(node.NullableKeyword), VisitToken(node.SettingToken), VisitToken(node.TargetToken), VisitToken(node.EndOfDirectiveToken), node.IsActive);
+
+    public override SyntaxNode? VisitCsxElement(CsxElementSyntax node)
+        => node.Update((CsxOpeningElementSyntax?)Visit(node.OpeningElement) ?? throw new ArgumentNullException("openingElement"), VisitList(node.Children), (CsxClosingElementSyntax?)Visit(node.ClosingElement) ?? throw new ArgumentNullException("closingElement"));
+
+    public override SyntaxNode? VisitCsxSelfClosingElement(CsxSelfClosingElementSyntax node)
+        => node.Update(VisitToken(node.LessThanToken), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitList(node.Attributes), VisitToken(node.SlashGreaterThanToken));
+
+    public override SyntaxNode? VisitCsxOpeningElement(CsxOpeningElementSyntax node)
+        => node.Update(VisitToken(node.LessThanToken), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitList(node.Attributes), VisitToken(node.GreaterThanToken));
+
+    public override SyntaxNode? VisitCsxClosingElement(CsxClosingElementSyntax node)
+        => node.Update(VisitToken(node.LessThanToken), VisitToken(node.SlashToken), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.GreaterThanToken));
+
+    public override SyntaxNode? VisitCsxAttribute(CsxAttributeSyntax node)
+        => node.Update((IdentifierNameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.EqualsToken), (ExpressionSyntax?)Visit(node.Value));
+
+    public override SyntaxNode? VisitCsxSpreadAttribute(CsxSpreadAttributeSyntax node)
+        => node.Update(VisitToken(node.OpenBraceToken), VisitToken(node.DotDotDotToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseBraceToken));
+
+    public override SyntaxNode? VisitCsxExpression(CsxExpressionSyntax node)
+        => node.Update(VisitToken(node.OpenBraceToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseBraceToken));
+
+    public override SyntaxNode? VisitCsxText(CsxTextSyntax node)
+        => node.Update(VisitToken(node.TextToken));
 }
 
 public static partial class SyntaxFactory
@@ -6668,4 +6740,120 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new NullableDirectiveTriviaSyntax instance.</summary>
     public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken settingToken, bool isActive)
         => SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.NullableKeyword), settingToken, default, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+
+    /// <summary>Creates a new CsxElementSyntax instance.</summary>
+    public static CsxElementSyntax CsxElement(CsxOpeningElementSyntax openingElement, SyntaxList<CsxNodeSyntax> children, CsxClosingElementSyntax closingElement)
+    {
+        if (openingElement == null) throw new ArgumentNullException(nameof(openingElement));
+        if (closingElement == null) throw new ArgumentNullException(nameof(closingElement));
+        return (CsxElementSyntax)Syntax.InternalSyntax.SyntaxFactory.CsxElement((Syntax.InternalSyntax.CsxOpeningElementSyntax)openingElement.Green, children.Node.ToGreenList<Syntax.InternalSyntax.CsxNodeSyntax>(), (Syntax.InternalSyntax.CsxClosingElementSyntax)closingElement.Green).CreateRed();
+    }
+
+    /// <summary>Creates a new CsxElementSyntax instance.</summary>
+    public static CsxElementSyntax CsxElement(CsxOpeningElementSyntax openingElement, CsxClosingElementSyntax closingElement)
+        => SyntaxFactory.CsxElement(openingElement, default, closingElement);
+
+    /// <summary>Creates a new CsxSelfClosingElementSyntax instance.</summary>
+    public static CsxSelfClosingElementSyntax CsxSelfClosingElement(SyntaxToken lessThanToken, NameSyntax name, SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
+    {
+        if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        return (CsxSelfClosingElementSyntax)Syntax.InternalSyntax.SyntaxFactory.CsxSelfClosingElement((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, (Syntax.InternalSyntax.NameSyntax)name.Green, attributes.Node.ToGreenList<Syntax.InternalSyntax.CsxAttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)slashGreaterThanToken.Node!).CreateRed();
+    }
+
+    /// <summary>Creates a new CsxSelfClosingElementSyntax instance.</summary>
+    public static CsxSelfClosingElementSyntax CsxSelfClosingElement(NameSyntax name, SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
+        => SyntaxFactory.CsxSelfClosingElement(SyntaxFactory.Token(SyntaxKind.LessThanToken), name, attributes, slashGreaterThanToken);
+
+    /// <summary>Creates a new CsxSelfClosingElementSyntax instance.</summary>
+    public static CsxSelfClosingElementSyntax CsxSelfClosingElement(NameSyntax name, SyntaxToken slashGreaterThanToken)
+        => SyntaxFactory.CsxSelfClosingElement(SyntaxFactory.Token(SyntaxKind.LessThanToken), name, default, slashGreaterThanToken);
+
+    /// <summary>Creates a new CsxOpeningElementSyntax instance.</summary>
+    public static CsxOpeningElementSyntax CsxOpeningElement(SyntaxToken lessThanToken, NameSyntax name, SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken greaterThanToken)
+    {
+        if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+        return (CsxOpeningElementSyntax)Syntax.InternalSyntax.SyntaxFactory.CsxOpeningElement((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, (Syntax.InternalSyntax.NameSyntax)name.Green, attributes.Node.ToGreenList<Syntax.InternalSyntax.CsxAttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
+    }
+
+    /// <summary>Creates a new CsxOpeningElementSyntax instance.</summary>
+    public static CsxOpeningElementSyntax CsxOpeningElement(NameSyntax name, SyntaxList<CsxAttributeSyntax> attributes)
+        => SyntaxFactory.CsxOpeningElement(SyntaxFactory.Token(SyntaxKind.LessThanToken), name, attributes, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+
+    /// <summary>Creates a new CsxOpeningElementSyntax instance.</summary>
+    public static CsxOpeningElementSyntax CsxOpeningElement(NameSyntax name)
+        => SyntaxFactory.CsxOpeningElement(SyntaxFactory.Token(SyntaxKind.LessThanToken), name, default, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+
+    /// <summary>Creates a new CsxClosingElementSyntax instance.</summary>
+    public static CsxClosingElementSyntax CsxClosingElement(SyntaxToken lessThanToken, SyntaxToken slashToken, NameSyntax name, SyntaxToken greaterThanToken)
+    {
+        if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+        if (slashToken.Kind() != SyntaxKind.SlashToken) throw new ArgumentException(nameof(slashToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+        return (CsxClosingElementSyntax)Syntax.InternalSyntax.SyntaxFactory.CsxClosingElement((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, (Syntax.InternalSyntax.SyntaxToken)slashToken.Node!, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
+    }
+
+    /// <summary>Creates a new CsxClosingElementSyntax instance.</summary>
+    public static CsxClosingElementSyntax CsxClosingElement(NameSyntax name)
+        => SyntaxFactory.CsxClosingElement(SyntaxFactory.Token(SyntaxKind.LessThanToken), SyntaxFactory.Token(SyntaxKind.SlashToken), name, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+
+    /// <summary>Creates a new CsxAttributeSyntax instance.</summary>
+    public static CsxAttributeSyntax CsxAttribute(IdentifierNameSyntax name, SyntaxToken equalsToken, ExpressionSyntax? value)
+    {
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        switch (equalsToken.Kind())
+        {
+            case SyntaxKind.EqualsToken:
+            case SyntaxKind.None: break;
+            default: throw new ArgumentException(nameof(equalsToken));
+        }
+        return (CsxAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.CsxAttribute((Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken?)equalsToken.Node, value == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)value.Green).CreateRed();
+    }
+
+    /// <summary>Creates a new CsxAttributeSyntax instance.</summary>
+    public static CsxAttributeSyntax CsxAttribute(IdentifierNameSyntax name, ExpressionSyntax? value)
+        => SyntaxFactory.CsxAttribute(name, default, value);
+
+    /// <summary>Creates a new CsxAttributeSyntax instance.</summary>
+    public static CsxAttributeSyntax CsxAttribute(IdentifierNameSyntax name)
+        => SyntaxFactory.CsxAttribute(name, default, default);
+
+    /// <summary>Creates a new CsxAttributeSyntax instance.</summary>
+    public static CsxAttributeSyntax CsxAttribute(string name)
+        => SyntaxFactory.CsxAttribute(SyntaxFactory.IdentifierName(name), default, default);
+
+    /// <summary>Creates a new CsxSpreadAttributeSyntax instance.</summary>
+    public static CsxSpreadAttributeSyntax CsxSpreadAttribute(SyntaxToken openBraceToken, SyntaxToken dotDotDotToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+    {
+        if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
+        if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+        return (CsxSpreadAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.CsxSpreadAttribute((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken)dotDotDotToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
+    }
+
+    /// <summary>Creates a new CsxSpreadAttributeSyntax instance.</summary>
+    public static CsxSpreadAttributeSyntax CsxSpreadAttribute(SyntaxToken dotDotDotToken, ExpressionSyntax expression)
+        => SyntaxFactory.CsxSpreadAttribute(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), dotDotDotToken, expression, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+
+    /// <summary>Creates a new CsxExpressionSyntax instance.</summary>
+    public static CsxExpressionSyntax CsxExpression(SyntaxToken openBraceToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+    {
+        if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
+        if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+        return (CsxExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CsxExpression((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
+    }
+
+    /// <summary>Creates a new CsxExpressionSyntax instance.</summary>
+    public static CsxExpressionSyntax CsxExpression(ExpressionSyntax expression)
+        => SyntaxFactory.CsxExpression(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), expression, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+
+    /// <summary>Creates a new CsxTextSyntax instance.</summary>
+    public static CsxTextSyntax CsxText(SyntaxToken textToken)
+    {
+        return (CsxTextSyntax)Syntax.InternalSyntax.SyntaxFactory.CsxText((Syntax.InternalSyntax.SyntaxToken)textToken.Node!).CreateRed();
+    }
 }

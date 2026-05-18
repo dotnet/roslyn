@@ -27018,6 +27018,758 @@ internal sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSyn
         => new NullableDirectiveTriviaSyntax(this.Kind, this.hashToken, this.nullableKeyword, this.settingToken, this.targetToken, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 }
 
+internal abstract partial class CsxNodeSyntax : ExpressionSyntax
+{
+    internal CsxNodeSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+    }
+
+    internal CsxNodeSyntax(SyntaxKind kind)
+      : base(kind)
+    {
+    }
+}
+
+internal sealed partial class CsxElementSyntax : CsxNodeSyntax
+{
+    internal readonly CsxOpeningElementSyntax openingElement;
+    internal readonly GreenNode? children;
+    internal readonly CsxClosingElementSyntax closingElement;
+
+    internal CsxElementSyntax(SyntaxKind kind, CsxOpeningElementSyntax openingElement, GreenNode? children, CsxClosingElementSyntax closingElement, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openingElement);
+        this.openingElement = openingElement;
+        if (children != null)
+        {
+            this.AdjustFlagsAndWidth(children);
+            this.children = children;
+        }
+        this.AdjustFlagsAndWidth(closingElement);
+        this.closingElement = closingElement;
+    }
+
+    internal CsxElementSyntax(SyntaxKind kind, CsxOpeningElementSyntax openingElement, GreenNode? children, CsxClosingElementSyntax closingElement, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openingElement);
+        this.openingElement = openingElement;
+        if (children != null)
+        {
+            this.AdjustFlagsAndWidth(children);
+            this.children = children;
+        }
+        this.AdjustFlagsAndWidth(closingElement);
+        this.closingElement = closingElement;
+    }
+
+    internal CsxElementSyntax(SyntaxKind kind, CsxOpeningElementSyntax openingElement, GreenNode? children, CsxClosingElementSyntax closingElement)
+      : base(kind)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openingElement);
+        this.openingElement = openingElement;
+        if (children != null)
+        {
+            this.AdjustFlagsAndWidth(children);
+            this.children = children;
+        }
+        this.AdjustFlagsAndWidth(closingElement);
+        this.closingElement = closingElement;
+    }
+
+    public CsxOpeningElementSyntax OpeningElement => this.openingElement;
+    public CoreSyntax.SyntaxList<CsxNodeSyntax> Children => new CoreSyntax.SyntaxList<CsxNodeSyntax>(this.children);
+    public CsxClosingElementSyntax ClosingElement => this.closingElement;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.openingElement,
+            1 => this.children,
+            2 => this.closingElement,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CsxElementSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxElement(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCsxElement(this);
+
+    public CsxElementSyntax Update(CsxOpeningElementSyntax openingElement, CoreSyntax.SyntaxList<CsxNodeSyntax> children, CsxClosingElementSyntax closingElement)
+    {
+        if (openingElement != this.OpeningElement || children != this.Children || closingElement != this.ClosingElement)
+        {
+            var newNode = SyntaxFactory.CsxElement(openingElement, children, closingElement);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new CsxElementSyntax(this.Kind, this.openingElement, this.children, this.closingElement, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new CsxElementSyntax(this.Kind, this.openingElement, this.children, this.closingElement, GetDiagnostics(), annotations);
+}
+
+internal sealed partial class CsxSelfClosingElementSyntax : CsxNodeSyntax
+{
+    internal readonly SyntaxToken lessThanToken;
+    internal readonly NameSyntax name;
+    internal readonly GreenNode? attributes;
+    internal readonly SyntaxToken slashGreaterThanToken;
+
+    internal CsxSelfClosingElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, NameSyntax name, GreenNode? attributes, SyntaxToken slashGreaterThanToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(lessThanToken);
+        this.lessThanToken = lessThanToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        if (attributes != null)
+        {
+            this.AdjustFlagsAndWidth(attributes);
+            this.attributes = attributes;
+        }
+        this.AdjustFlagsAndWidth(slashGreaterThanToken);
+        this.slashGreaterThanToken = slashGreaterThanToken;
+    }
+
+    internal CsxSelfClosingElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, NameSyntax name, GreenNode? attributes, SyntaxToken slashGreaterThanToken, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(lessThanToken);
+        this.lessThanToken = lessThanToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        if (attributes != null)
+        {
+            this.AdjustFlagsAndWidth(attributes);
+            this.attributes = attributes;
+        }
+        this.AdjustFlagsAndWidth(slashGreaterThanToken);
+        this.slashGreaterThanToken = slashGreaterThanToken;
+    }
+
+    internal CsxSelfClosingElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, NameSyntax name, GreenNode? attributes, SyntaxToken slashGreaterThanToken)
+      : base(kind)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(lessThanToken);
+        this.lessThanToken = lessThanToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        if (attributes != null)
+        {
+            this.AdjustFlagsAndWidth(attributes);
+            this.attributes = attributes;
+        }
+        this.AdjustFlagsAndWidth(slashGreaterThanToken);
+        this.slashGreaterThanToken = slashGreaterThanToken;
+    }
+
+    public SyntaxToken LessThanToken => this.lessThanToken;
+    public NameSyntax Name => this.name;
+    public CoreSyntax.SyntaxList<CsxAttributeSyntax> Attributes => new CoreSyntax.SyntaxList<CsxAttributeSyntax>(this.attributes);
+    public SyntaxToken SlashGreaterThanToken => this.slashGreaterThanToken;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.lessThanToken,
+            1 => this.name,
+            2 => this.attributes,
+            3 => this.slashGreaterThanToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CsxSelfClosingElementSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxSelfClosingElement(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCsxSelfClosingElement(this);
+
+    public CsxSelfClosingElementSyntax Update(SyntaxToken lessThanToken, NameSyntax name, CoreSyntax.SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
+    {
+        if (lessThanToken != this.LessThanToken || name != this.Name || attributes != this.Attributes || slashGreaterThanToken != this.SlashGreaterThanToken)
+        {
+            var newNode = SyntaxFactory.CsxSelfClosingElement(lessThanToken, name, attributes, slashGreaterThanToken);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new CsxSelfClosingElementSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.slashGreaterThanToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new CsxSelfClosingElementSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.slashGreaterThanToken, GetDiagnostics(), annotations);
+}
+
+internal sealed partial class CsxOpeningElementSyntax : CsxNodeSyntax
+{
+    internal readonly SyntaxToken lessThanToken;
+    internal readonly NameSyntax name;
+    internal readonly GreenNode? attributes;
+    internal readonly SyntaxToken greaterThanToken;
+
+    internal CsxOpeningElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, NameSyntax name, GreenNode? attributes, SyntaxToken greaterThanToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(lessThanToken);
+        this.lessThanToken = lessThanToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        if (attributes != null)
+        {
+            this.AdjustFlagsAndWidth(attributes);
+            this.attributes = attributes;
+        }
+        this.AdjustFlagsAndWidth(greaterThanToken);
+        this.greaterThanToken = greaterThanToken;
+    }
+
+    internal CsxOpeningElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, NameSyntax name, GreenNode? attributes, SyntaxToken greaterThanToken, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(lessThanToken);
+        this.lessThanToken = lessThanToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        if (attributes != null)
+        {
+            this.AdjustFlagsAndWidth(attributes);
+            this.attributes = attributes;
+        }
+        this.AdjustFlagsAndWidth(greaterThanToken);
+        this.greaterThanToken = greaterThanToken;
+    }
+
+    internal CsxOpeningElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, NameSyntax name, GreenNode? attributes, SyntaxToken greaterThanToken)
+      : base(kind)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(lessThanToken);
+        this.lessThanToken = lessThanToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        if (attributes != null)
+        {
+            this.AdjustFlagsAndWidth(attributes);
+            this.attributes = attributes;
+        }
+        this.AdjustFlagsAndWidth(greaterThanToken);
+        this.greaterThanToken = greaterThanToken;
+    }
+
+    public SyntaxToken LessThanToken => this.lessThanToken;
+    public NameSyntax Name => this.name;
+    public CoreSyntax.SyntaxList<CsxAttributeSyntax> Attributes => new CoreSyntax.SyntaxList<CsxAttributeSyntax>(this.attributes);
+    public SyntaxToken GreaterThanToken => this.greaterThanToken;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.lessThanToken,
+            1 => this.name,
+            2 => this.attributes,
+            3 => this.greaterThanToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CsxOpeningElementSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxOpeningElement(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCsxOpeningElement(this);
+
+    public CsxOpeningElementSyntax Update(SyntaxToken lessThanToken, NameSyntax name, CoreSyntax.SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken greaterThanToken)
+    {
+        if (lessThanToken != this.LessThanToken || name != this.Name || attributes != this.Attributes || greaterThanToken != this.GreaterThanToken)
+        {
+            var newNode = SyntaxFactory.CsxOpeningElement(lessThanToken, name, attributes, greaterThanToken);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new CsxOpeningElementSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.greaterThanToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new CsxOpeningElementSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.greaterThanToken, GetDiagnostics(), annotations);
+}
+
+internal sealed partial class CsxClosingElementSyntax : CsxNodeSyntax
+{
+    internal readonly SyntaxToken lessThanToken;
+    internal readonly SyntaxToken slashToken;
+    internal readonly NameSyntax name;
+    internal readonly SyntaxToken greaterThanToken;
+
+    internal CsxClosingElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, SyntaxToken slashToken, NameSyntax name, SyntaxToken greaterThanToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(lessThanToken);
+        this.lessThanToken = lessThanToken;
+        this.AdjustFlagsAndWidth(slashToken);
+        this.slashToken = slashToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        this.AdjustFlagsAndWidth(greaterThanToken);
+        this.greaterThanToken = greaterThanToken;
+    }
+
+    internal CsxClosingElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, SyntaxToken slashToken, NameSyntax name, SyntaxToken greaterThanToken, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(lessThanToken);
+        this.lessThanToken = lessThanToken;
+        this.AdjustFlagsAndWidth(slashToken);
+        this.slashToken = slashToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        this.AdjustFlagsAndWidth(greaterThanToken);
+        this.greaterThanToken = greaterThanToken;
+    }
+
+    internal CsxClosingElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, SyntaxToken slashToken, NameSyntax name, SyntaxToken greaterThanToken)
+      : base(kind)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(lessThanToken);
+        this.lessThanToken = lessThanToken;
+        this.AdjustFlagsAndWidth(slashToken);
+        this.slashToken = slashToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        this.AdjustFlagsAndWidth(greaterThanToken);
+        this.greaterThanToken = greaterThanToken;
+    }
+
+    public SyntaxToken LessThanToken => this.lessThanToken;
+    public SyntaxToken SlashToken => this.slashToken;
+    public NameSyntax Name => this.name;
+    public SyntaxToken GreaterThanToken => this.greaterThanToken;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.lessThanToken,
+            1 => this.slashToken,
+            2 => this.name,
+            3 => this.greaterThanToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CsxClosingElementSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxClosingElement(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCsxClosingElement(this);
+
+    public CsxClosingElementSyntax Update(SyntaxToken lessThanToken, SyntaxToken slashToken, NameSyntax name, SyntaxToken greaterThanToken)
+    {
+        if (lessThanToken != this.LessThanToken || slashToken != this.SlashToken || name != this.Name || greaterThanToken != this.GreaterThanToken)
+        {
+            var newNode = SyntaxFactory.CsxClosingElement(lessThanToken, slashToken, name, greaterThanToken);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new CsxClosingElementSyntax(this.Kind, this.lessThanToken, this.slashToken, this.name, this.greaterThanToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new CsxClosingElementSyntax(this.Kind, this.lessThanToken, this.slashToken, this.name, this.greaterThanToken, GetDiagnostics(), annotations);
+}
+
+internal sealed partial class CsxAttributeSyntax : CsxNodeSyntax
+{
+    internal readonly IdentifierNameSyntax name;
+    internal readonly SyntaxToken? equalsToken;
+    internal readonly ExpressionSyntax? value;
+
+    internal CsxAttributeSyntax(SyntaxKind kind, IdentifierNameSyntax name, SyntaxToken? equalsToken, ExpressionSyntax? value, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        if (equalsToken != null)
+        {
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+        }
+        if (value != null)
+        {
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
+        }
+    }
+
+    internal CsxAttributeSyntax(SyntaxKind kind, IdentifierNameSyntax name, SyntaxToken? equalsToken, ExpressionSyntax? value, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        if (equalsToken != null)
+        {
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+        }
+        if (value != null)
+        {
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
+        }
+    }
+
+    internal CsxAttributeSyntax(SyntaxKind kind, IdentifierNameSyntax name, SyntaxToken? equalsToken, ExpressionSyntax? value)
+      : base(kind)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+        if (equalsToken != null)
+        {
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+        }
+        if (value != null)
+        {
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
+        }
+    }
+
+    public IdentifierNameSyntax Name => this.name;
+    public SyntaxToken? EqualsToken => this.equalsToken;
+    public ExpressionSyntax? Value => this.value;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.name,
+            1 => this.equalsToken,
+            2 => this.value,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CsxAttributeSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxAttribute(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCsxAttribute(this);
+
+    public CsxAttributeSyntax Update(IdentifierNameSyntax name, SyntaxToken equalsToken, ExpressionSyntax value)
+    {
+        if (name != this.Name || equalsToken != this.EqualsToken || value != this.Value)
+        {
+            var newNode = SyntaxFactory.CsxAttribute(name, equalsToken, value);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new CsxAttributeSyntax(this.Kind, this.name, this.equalsToken, this.value, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new CsxAttributeSyntax(this.Kind, this.name, this.equalsToken, this.value, GetDiagnostics(), annotations);
+}
+
+internal sealed partial class CsxSpreadAttributeSyntax : CsxNodeSyntax
+{
+    internal readonly SyntaxToken openBraceToken;
+    internal readonly SyntaxToken dotDotDotToken;
+    internal readonly ExpressionSyntax expression;
+    internal readonly SyntaxToken closeBraceToken;
+
+    internal CsxSpreadAttributeSyntax(SyntaxKind kind, SyntaxToken openBraceToken, SyntaxToken dotDotDotToken, ExpressionSyntax expression, SyntaxToken closeBraceToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        this.AdjustFlagsAndWidth(dotDotDotToken);
+        this.dotDotDotToken = dotDotDotToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    internal CsxSpreadAttributeSyntax(SyntaxKind kind, SyntaxToken openBraceToken, SyntaxToken dotDotDotToken, ExpressionSyntax expression, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        this.AdjustFlagsAndWidth(dotDotDotToken);
+        this.dotDotDotToken = dotDotDotToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    internal CsxSpreadAttributeSyntax(SyntaxKind kind, SyntaxToken openBraceToken, SyntaxToken dotDotDotToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+      : base(kind)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        this.AdjustFlagsAndWidth(dotDotDotToken);
+        this.dotDotDotToken = dotDotDotToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
+    public SyntaxToken DotDotDotToken => this.dotDotDotToken;
+    public ExpressionSyntax Expression => this.expression;
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.openBraceToken,
+            1 => this.dotDotDotToken,
+            2 => this.expression,
+            3 => this.closeBraceToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CsxSpreadAttributeSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxSpreadAttribute(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCsxSpreadAttribute(this);
+
+    public CsxSpreadAttributeSyntax Update(SyntaxToken openBraceToken, SyntaxToken dotDotDotToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+    {
+        if (openBraceToken != this.OpenBraceToken || dotDotDotToken != this.DotDotDotToken || expression != this.Expression || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.CsxSpreadAttribute(openBraceToken, dotDotDotToken, expression, closeBraceToken);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new CsxSpreadAttributeSyntax(this.Kind, this.openBraceToken, this.dotDotDotToken, this.expression, this.closeBraceToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new CsxSpreadAttributeSyntax(this.Kind, this.openBraceToken, this.dotDotDotToken, this.expression, this.closeBraceToken, GetDiagnostics(), annotations);
+}
+
+internal sealed partial class CsxExpressionSyntax : CsxNodeSyntax
+{
+    internal readonly SyntaxToken openBraceToken;
+    internal readonly ExpressionSyntax expression;
+    internal readonly SyntaxToken closeBraceToken;
+
+    internal CsxExpressionSyntax(SyntaxKind kind, SyntaxToken openBraceToken, ExpressionSyntax expression, SyntaxToken closeBraceToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    internal CsxExpressionSyntax(SyntaxKind kind, SyntaxToken openBraceToken, ExpressionSyntax expression, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    internal CsxExpressionSyntax(SyntaxKind kind, SyntaxToken openBraceToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+      : base(kind)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
+    public ExpressionSyntax Expression => this.expression;
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.openBraceToken,
+            1 => this.expression,
+            2 => this.closeBraceToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CsxExpressionSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxExpression(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCsxExpression(this);
+
+    public CsxExpressionSyntax Update(SyntaxToken openBraceToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+    {
+        if (openBraceToken != this.OpenBraceToken || expression != this.Expression || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.CsxExpression(openBraceToken, expression, closeBraceToken);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new CsxExpressionSyntax(this.Kind, this.openBraceToken, this.expression, this.closeBraceToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new CsxExpressionSyntax(this.Kind, this.openBraceToken, this.expression, this.closeBraceToken, GetDiagnostics(), annotations);
+}
+
+internal sealed partial class CsxTextSyntax : CsxNodeSyntax
+{
+    internal readonly SyntaxToken textToken;
+
+    internal CsxTextSyntax(SyntaxKind kind, SyntaxToken textToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(textToken);
+        this.textToken = textToken;
+    }
+
+    internal CsxTextSyntax(SyntaxKind kind, SyntaxToken textToken, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(textToken);
+        this.textToken = textToken;
+    }
+
+    internal CsxTextSyntax(SyntaxKind kind, SyntaxToken textToken)
+      : base(kind)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(textToken);
+        this.textToken = textToken;
+    }
+
+    public SyntaxToken TextToken => this.textToken;
+
+    internal override GreenNode? GetSlot(int index)
+        => index == 0 ? this.textToken : null;
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CsxTextSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxText(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCsxText(this);
+
+    public CsxTextSyntax Update(SyntaxToken textToken)
+    {
+        if (textToken != this.TextToken)
+        {
+            var newNode = SyntaxFactory.CsxText(textToken);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new CsxTextSyntax(this.Kind, this.textToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new CsxTextSyntax(this.Kind, this.textToken, GetDiagnostics(), annotations);
+}
+
 internal partial class CSharpSyntaxVisitor<TResult>
 {
     public virtual TResult VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
@@ -27268,6 +28020,14 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitCsxElement(CsxElementSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitCsxSelfClosingElement(CsxSelfClosingElementSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitCsxOpeningElement(CsxOpeningElementSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitCsxClosingElement(CsxClosingElementSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitCsxAttribute(CsxAttributeSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitCsxSpreadAttribute(CsxSpreadAttributeSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitCsxExpression(CsxExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitCsxText(CsxTextSyntax node) => this.DefaultVisit(node);
 }
 
 internal partial class CSharpSyntaxVisitor
@@ -27520,6 +28280,14 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual void VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitCsxElement(CsxElementSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitCsxSelfClosingElement(CsxSelfClosingElementSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitCsxOpeningElement(CsxOpeningElementSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitCsxClosingElement(CsxClosingElementSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitCsxAttribute(CsxAttributeSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitCsxSpreadAttribute(CsxSpreadAttributeSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitCsxExpression(CsxExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitCsxText(CsxTextSyntax node) => this.DefaultVisit(node);
 }
 
 internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>
@@ -28267,6 +29035,30 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
 
     public override CSharpSyntaxNode VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
         => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.NullableKeyword), (SyntaxToken)Visit(node.SettingToken), (SyntaxToken)Visit(node.TargetToken), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
+
+    public override CSharpSyntaxNode VisitCsxElement(CsxElementSyntax node)
+        => node.Update((CsxOpeningElementSyntax)Visit(node.OpeningElement), VisitList(node.Children), (CsxClosingElementSyntax)Visit(node.ClosingElement));
+
+    public override CSharpSyntaxNode VisitCsxSelfClosingElement(CsxSelfClosingElementSyntax node)
+        => node.Update((SyntaxToken)Visit(node.LessThanToken), (NameSyntax)Visit(node.Name), VisitList(node.Attributes), (SyntaxToken)Visit(node.SlashGreaterThanToken));
+
+    public override CSharpSyntaxNode VisitCsxOpeningElement(CsxOpeningElementSyntax node)
+        => node.Update((SyntaxToken)Visit(node.LessThanToken), (NameSyntax)Visit(node.Name), VisitList(node.Attributes), (SyntaxToken)Visit(node.GreaterThanToken));
+
+    public override CSharpSyntaxNode VisitCsxClosingElement(CsxClosingElementSyntax node)
+        => node.Update((SyntaxToken)Visit(node.LessThanToken), (SyntaxToken)Visit(node.SlashToken), (NameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.GreaterThanToken));
+
+    public override CSharpSyntaxNode VisitCsxAttribute(CsxAttributeSyntax node)
+        => node.Update((IdentifierNameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.EqualsToken), (ExpressionSyntax)Visit(node.Value));
+
+    public override CSharpSyntaxNode VisitCsxSpreadAttribute(CsxSpreadAttributeSyntax node)
+        => node.Update((SyntaxToken)Visit(node.OpenBraceToken), (SyntaxToken)Visit(node.DotDotDotToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.CloseBraceToken));
+
+    public override CSharpSyntaxNode VisitCsxExpression(CsxExpressionSyntax node)
+        => node.Update((SyntaxToken)Visit(node.OpenBraceToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.CloseBraceToken));
+
+    public override CSharpSyntaxNode VisitCsxText(CsxTextSyntax node)
+        => node.Update((SyntaxToken)Visit(node.TextToken));
 }
 
 internal partial class ContextAwareSyntax
@@ -33671,6 +34463,150 @@ internal partial class ContextAwareSyntax
 
         return new NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia, hashToken, nullableKeyword, settingToken, targetToken, endOfDirectiveToken, isActive, this.context);
     }
+
+    public CsxElementSyntax CsxElement(CsxOpeningElementSyntax openingElement, CoreSyntax.SyntaxList<CsxNodeSyntax> children, CsxClosingElementSyntax closingElement)
+    {
+#if DEBUG
+        if (openingElement == null) throw new ArgumentNullException(nameof(openingElement));
+        if (closingElement == null) throw new ArgumentNullException(nameof(closingElement));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.CsxElement, openingElement, children.Node, closingElement, this.context, out hash);
+        if (cached != null) return (CsxElementSyntax)cached;
+
+        var result = new CsxElementSyntax(SyntaxKind.CsxElement, openingElement, children.Node, closingElement, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public CsxSelfClosingElementSyntax CsxSelfClosingElement(SyntaxToken lessThanToken, NameSyntax name, CoreSyntax.SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
+    {
+#if DEBUG
+        if (lessThanToken == null) throw new ArgumentNullException(nameof(lessThanToken));
+        if (lessThanToken.Kind != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (slashGreaterThanToken == null) throw new ArgumentNullException(nameof(slashGreaterThanToken));
+#endif
+
+        return new CsxSelfClosingElementSyntax(SyntaxKind.CsxSelfClosingElement, lessThanToken, name, attributes.Node, slashGreaterThanToken, this.context);
+    }
+
+    public CsxOpeningElementSyntax CsxOpeningElement(SyntaxToken lessThanToken, NameSyntax name, CoreSyntax.SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken greaterThanToken)
+    {
+#if DEBUG
+        if (lessThanToken == null) throw new ArgumentNullException(nameof(lessThanToken));
+        if (lessThanToken.Kind != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (greaterThanToken == null) throw new ArgumentNullException(nameof(greaterThanToken));
+        if (greaterThanToken.Kind != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+#endif
+
+        return new CsxOpeningElementSyntax(SyntaxKind.CsxOpeningElement, lessThanToken, name, attributes.Node, greaterThanToken, this.context);
+    }
+
+    public CsxClosingElementSyntax CsxClosingElement(SyntaxToken lessThanToken, SyntaxToken slashToken, NameSyntax name, SyntaxToken greaterThanToken)
+    {
+#if DEBUG
+        if (lessThanToken == null) throw new ArgumentNullException(nameof(lessThanToken));
+        if (lessThanToken.Kind != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+        if (slashToken == null) throw new ArgumentNullException(nameof(slashToken));
+        if (slashToken.Kind != SyntaxKind.SlashToken) throw new ArgumentException(nameof(slashToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (greaterThanToken == null) throw new ArgumentNullException(nameof(greaterThanToken));
+        if (greaterThanToken.Kind != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+#endif
+
+        return new CsxClosingElementSyntax(SyntaxKind.CsxClosingElement, lessThanToken, slashToken, name, greaterThanToken, this.context);
+    }
+
+    public CsxAttributeSyntax CsxAttribute(IdentifierNameSyntax name, SyntaxToken? equalsToken, ExpressionSyntax? value)
+    {
+#if DEBUG
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (equalsToken != null)
+        {
+            switch (equalsToken.Kind)
+            {
+                case SyntaxKind.EqualsToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(equalsToken));
+            }
+        }
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.CsxAttribute, name, equalsToken, value, this.context, out hash);
+        if (cached != null) return (CsxAttributeSyntax)cached;
+
+        var result = new CsxAttributeSyntax(SyntaxKind.CsxAttribute, name, equalsToken, value, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public CsxSpreadAttributeSyntax CsxSpreadAttribute(SyntaxToken openBraceToken, SyntaxToken dotDotDotToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+    {
+#if DEBUG
+        if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
+        if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+        if (dotDotDotToken == null) throw new ArgumentNullException(nameof(dotDotDotToken));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
+        if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
+        if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+#endif
+
+        return new CsxSpreadAttributeSyntax(SyntaxKind.CsxSpreadAttribute, openBraceToken, dotDotDotToken, expression, closeBraceToken, this.context);
+    }
+
+    public CsxExpressionSyntax CsxExpression(SyntaxToken openBraceToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+    {
+#if DEBUG
+        if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
+        if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
+        if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
+        if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.CsxExpression, openBraceToken, expression, closeBraceToken, this.context, out hash);
+        if (cached != null) return (CsxExpressionSyntax)cached;
+
+        var result = new CsxExpressionSyntax(SyntaxKind.CsxExpression, openBraceToken, expression, closeBraceToken, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public CsxTextSyntax CsxText(SyntaxToken textToken)
+    {
+#if DEBUG
+        if (textToken == null) throw new ArgumentNullException(nameof(textToken));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.CsxText, textToken, this.context, out hash);
+        if (cached != null) return (CsxTextSyntax)cached;
+
+        var result = new CsxTextSyntax(SyntaxKind.CsxText, textToken, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
 }
 
 internal static partial class SyntaxFactory
@@ -39069,5 +40005,149 @@ internal static partial class SyntaxFactory
 #endif
 
         return new NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia, hashToken, nullableKeyword, settingToken, targetToken, endOfDirectiveToken, isActive);
+    }
+
+    public static CsxElementSyntax CsxElement(CsxOpeningElementSyntax openingElement, CoreSyntax.SyntaxList<CsxNodeSyntax> children, CsxClosingElementSyntax closingElement)
+    {
+#if DEBUG
+        if (openingElement == null) throw new ArgumentNullException(nameof(openingElement));
+        if (closingElement == null) throw new ArgumentNullException(nameof(closingElement));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CsxElement, openingElement, children.Node, closingElement, out hash);
+        if (cached != null) return (CsxElementSyntax)cached;
+
+        var result = new CsxElementSyntax(SyntaxKind.CsxElement, openingElement, children.Node, closingElement);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public static CsxSelfClosingElementSyntax CsxSelfClosingElement(SyntaxToken lessThanToken, NameSyntax name, CoreSyntax.SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
+    {
+#if DEBUG
+        if (lessThanToken == null) throw new ArgumentNullException(nameof(lessThanToken));
+        if (lessThanToken.Kind != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (slashGreaterThanToken == null) throw new ArgumentNullException(nameof(slashGreaterThanToken));
+#endif
+
+        return new CsxSelfClosingElementSyntax(SyntaxKind.CsxSelfClosingElement, lessThanToken, name, attributes.Node, slashGreaterThanToken);
+    }
+
+    public static CsxOpeningElementSyntax CsxOpeningElement(SyntaxToken lessThanToken, NameSyntax name, CoreSyntax.SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken greaterThanToken)
+    {
+#if DEBUG
+        if (lessThanToken == null) throw new ArgumentNullException(nameof(lessThanToken));
+        if (lessThanToken.Kind != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (greaterThanToken == null) throw new ArgumentNullException(nameof(greaterThanToken));
+        if (greaterThanToken.Kind != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+#endif
+
+        return new CsxOpeningElementSyntax(SyntaxKind.CsxOpeningElement, lessThanToken, name, attributes.Node, greaterThanToken);
+    }
+
+    public static CsxClosingElementSyntax CsxClosingElement(SyntaxToken lessThanToken, SyntaxToken slashToken, NameSyntax name, SyntaxToken greaterThanToken)
+    {
+#if DEBUG
+        if (lessThanToken == null) throw new ArgumentNullException(nameof(lessThanToken));
+        if (lessThanToken.Kind != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+        if (slashToken == null) throw new ArgumentNullException(nameof(slashToken));
+        if (slashToken.Kind != SyntaxKind.SlashToken) throw new ArgumentException(nameof(slashToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (greaterThanToken == null) throw new ArgumentNullException(nameof(greaterThanToken));
+        if (greaterThanToken.Kind != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+#endif
+
+        return new CsxClosingElementSyntax(SyntaxKind.CsxClosingElement, lessThanToken, slashToken, name, greaterThanToken);
+    }
+
+    public static CsxAttributeSyntax CsxAttribute(IdentifierNameSyntax name, SyntaxToken? equalsToken, ExpressionSyntax? value)
+    {
+#if DEBUG
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (equalsToken != null)
+        {
+            switch (equalsToken.Kind)
+            {
+                case SyntaxKind.EqualsToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(equalsToken));
+            }
+        }
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CsxAttribute, name, equalsToken, value, out hash);
+        if (cached != null) return (CsxAttributeSyntax)cached;
+
+        var result = new CsxAttributeSyntax(SyntaxKind.CsxAttribute, name, equalsToken, value);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public static CsxSpreadAttributeSyntax CsxSpreadAttribute(SyntaxToken openBraceToken, SyntaxToken dotDotDotToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+    {
+#if DEBUG
+        if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
+        if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+        if (dotDotDotToken == null) throw new ArgumentNullException(nameof(dotDotDotToken));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
+        if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
+        if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+#endif
+
+        return new CsxSpreadAttributeSyntax(SyntaxKind.CsxSpreadAttribute, openBraceToken, dotDotDotToken, expression, closeBraceToken);
+    }
+
+    public static CsxExpressionSyntax CsxExpression(SyntaxToken openBraceToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+    {
+#if DEBUG
+        if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
+        if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
+        if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
+        if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CsxExpression, openBraceToken, expression, closeBraceToken, out hash);
+        if (cached != null) return (CsxExpressionSyntax)cached;
+
+        var result = new CsxExpressionSyntax(SyntaxKind.CsxExpression, openBraceToken, expression, closeBraceToken);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public static CsxTextSyntax CsxText(SyntaxToken textToken)
+    {
+#if DEBUG
+        if (textToken == null) throw new ArgumentNullException(nameof(textToken));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CsxText, textToken, out hash);
+        if (cached != null) return (CsxTextSyntax)cached;
+
+        var result = new CsxTextSyntax(SyntaxKind.CsxText, textToken);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
     }
 }

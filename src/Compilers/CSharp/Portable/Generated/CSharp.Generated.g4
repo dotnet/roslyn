@@ -748,6 +748,7 @@ expression
   | collection_expression
   | conditional_access_expression
   | conditional_expression
+  | csx_node
   | declaration_expression
   | default_expression
   | element_access_expression
@@ -884,6 +885,49 @@ conditional_access_expression
 
 conditional_expression
   : expression '?' expression ':' expression
+  ;
+
+csx_node
+  : csx_attribute
+  | csx_closing_element
+  | csx_element
+  | csx_expression
+  | csx_opening_element
+  | csx_self_closing_element
+  | csx_spread_attribute
+  | csx_text
+  ;
+
+csx_attribute
+  : identifier_name '='? expression?
+  ;
+
+csx_closing_element
+  : '<' '/' name '>'
+  ;
+
+csx_element
+  : csx_opening_element csx_node* csx_closing_element
+  ;
+
+csx_opening_element
+  : '<' name csx_attribute* '>'
+  ;
+
+csx_expression
+  : '{' expression '}'
+  ;
+
+csx_self_closing_element
+  : '<' name csx_attribute* '/>'
+  ;
+
+csx_spread_attribute
+  : '{' syntax_token expression '}'
+  ;
+
+csx_text
+  : syntax_token
   ;
 
 declaration_expression

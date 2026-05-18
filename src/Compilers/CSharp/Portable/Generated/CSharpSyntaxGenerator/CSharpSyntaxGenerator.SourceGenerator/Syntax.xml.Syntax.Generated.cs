@@ -16816,3 +16816,445 @@ public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSynta
     public new NullableDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => Update(this.HashToken, this.NullableKeyword, this.SettingToken, this.TargetToken, endOfDirectiveToken, this.IsActive);
     public NullableDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.NullableKeyword, this.SettingToken, this.TargetToken, this.EndOfDirectiveToken, isActive);
 }
+
+public abstract partial class CsxNodeSyntax : ExpressionSyntax
+{
+    internal CsxNodeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+}
+
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.CsxElement"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class CsxElementSyntax : CsxNodeSyntax
+{
+    private CsxOpeningElementSyntax? openingElement;
+    private SyntaxNode? children;
+    private CsxClosingElementSyntax? closingElement;
+
+    internal CsxElementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public CsxOpeningElementSyntax OpeningElement => GetRedAtZero(ref this.openingElement)!;
+
+    public SyntaxList<CsxNodeSyntax> Children => new SyntaxList<CsxNodeSyntax>(GetRed(ref this.children, 1));
+
+    public CsxClosingElementSyntax ClosingElement => GetRed(ref this.closingElement, 2)!;
+
+    internal override SyntaxNode? GetNodeSlot(int index)
+        => index switch
+        {
+            0 => GetRedAtZero(ref this.openingElement)!,
+            1 => GetRed(ref this.children, 1)!,
+            2 => GetRed(ref this.closingElement, 2)!,
+            _ => null,
+        };
+
+    internal override SyntaxNode? GetCachedSlot(int index)
+        => index switch
+        {
+            0 => this.openingElement,
+            1 => this.children,
+            2 => this.closingElement,
+            _ => null,
+        };
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxElement(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCsxElement(this);
+
+    public CsxElementSyntax Update(CsxOpeningElementSyntax openingElement, SyntaxList<CsxNodeSyntax> children, CsxClosingElementSyntax closingElement)
+    {
+        if (openingElement != this.OpeningElement || children != this.Children || closingElement != this.ClosingElement)
+        {
+            var newNode = SyntaxFactory.CsxElement(openingElement, children, closingElement);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public CsxElementSyntax WithOpeningElement(CsxOpeningElementSyntax openingElement) => Update(openingElement, this.Children, this.ClosingElement);
+    public CsxElementSyntax WithChildren(SyntaxList<CsxNodeSyntax> children) => Update(this.OpeningElement, children, this.ClosingElement);
+    public CsxElementSyntax WithClosingElement(CsxClosingElementSyntax closingElement) => Update(this.OpeningElement, this.Children, closingElement);
+
+    public CsxElementSyntax AddOpeningElementAttributes(params CsxAttributeSyntax[] items) => WithOpeningElement(this.OpeningElement.WithAttributes(this.OpeningElement.Attributes.AddRange(items)));
+    public CsxElementSyntax AddChildren(params CsxNodeSyntax[] items) => WithChildren(this.Children.AddRange(items));
+}
+
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.CsxSelfClosingElement"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class CsxSelfClosingElementSyntax : CsxNodeSyntax
+{
+    private NameSyntax? name;
+    private SyntaxNode? attributes;
+
+    internal CsxSelfClosingElementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken LessThanToken => new SyntaxToken(this, ((InternalSyntax.CsxSelfClosingElementSyntax)this.Green).lessThanToken, Position, 0);
+
+    public NameSyntax Name => GetRed(ref this.name, 1)!;
+
+    public SyntaxList<CsxAttributeSyntax> Attributes => new SyntaxList<CsxAttributeSyntax>(GetRed(ref this.attributes, 2));
+
+    public SyntaxToken SlashGreaterThanToken => new SyntaxToken(this, ((InternalSyntax.CsxSelfClosingElementSyntax)this.Green).slashGreaterThanToken, GetChildPosition(3), GetChildIndex(3));
+
+    internal override SyntaxNode? GetNodeSlot(int index)
+        => index switch
+        {
+            1 => GetRed(ref this.name, 1)!,
+            2 => GetRed(ref this.attributes, 2)!,
+            _ => null,
+        };
+
+    internal override SyntaxNode? GetCachedSlot(int index)
+        => index switch
+        {
+            1 => this.name,
+            2 => this.attributes,
+            _ => null,
+        };
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxSelfClosingElement(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCsxSelfClosingElement(this);
+
+    public CsxSelfClosingElementSyntax Update(SyntaxToken lessThanToken, NameSyntax name, SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
+    {
+        if (lessThanToken != this.LessThanToken || name != this.Name || attributes != this.Attributes || slashGreaterThanToken != this.SlashGreaterThanToken)
+        {
+            var newNode = SyntaxFactory.CsxSelfClosingElement(lessThanToken, name, attributes, slashGreaterThanToken);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public CsxSelfClosingElementSyntax WithLessThanToken(SyntaxToken lessThanToken) => Update(lessThanToken, this.Name, this.Attributes, this.SlashGreaterThanToken);
+    public CsxSelfClosingElementSyntax WithName(NameSyntax name) => Update(this.LessThanToken, name, this.Attributes, this.SlashGreaterThanToken);
+    public CsxSelfClosingElementSyntax WithAttributes(SyntaxList<CsxAttributeSyntax> attributes) => Update(this.LessThanToken, this.Name, attributes, this.SlashGreaterThanToken);
+    public CsxSelfClosingElementSyntax WithSlashGreaterThanToken(SyntaxToken slashGreaterThanToken) => Update(this.LessThanToken, this.Name, this.Attributes, slashGreaterThanToken);
+
+    public CsxSelfClosingElementSyntax AddAttributes(params CsxAttributeSyntax[] items) => WithAttributes(this.Attributes.AddRange(items));
+}
+
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.CsxOpeningElement"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class CsxOpeningElementSyntax : CsxNodeSyntax
+{
+    private NameSyntax? name;
+    private SyntaxNode? attributes;
+
+    internal CsxOpeningElementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken LessThanToken => new SyntaxToken(this, ((InternalSyntax.CsxOpeningElementSyntax)this.Green).lessThanToken, Position, 0);
+
+    public NameSyntax Name => GetRed(ref this.name, 1)!;
+
+    public SyntaxList<CsxAttributeSyntax> Attributes => new SyntaxList<CsxAttributeSyntax>(GetRed(ref this.attributes, 2));
+
+    public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((InternalSyntax.CsxOpeningElementSyntax)this.Green).greaterThanToken, GetChildPosition(3), GetChildIndex(3));
+
+    internal override SyntaxNode? GetNodeSlot(int index)
+        => index switch
+        {
+            1 => GetRed(ref this.name, 1)!,
+            2 => GetRed(ref this.attributes, 2)!,
+            _ => null,
+        };
+
+    internal override SyntaxNode? GetCachedSlot(int index)
+        => index switch
+        {
+            1 => this.name,
+            2 => this.attributes,
+            _ => null,
+        };
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxOpeningElement(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCsxOpeningElement(this);
+
+    public CsxOpeningElementSyntax Update(SyntaxToken lessThanToken, NameSyntax name, SyntaxList<CsxAttributeSyntax> attributes, SyntaxToken greaterThanToken)
+    {
+        if (lessThanToken != this.LessThanToken || name != this.Name || attributes != this.Attributes || greaterThanToken != this.GreaterThanToken)
+        {
+            var newNode = SyntaxFactory.CsxOpeningElement(lessThanToken, name, attributes, greaterThanToken);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public CsxOpeningElementSyntax WithLessThanToken(SyntaxToken lessThanToken) => Update(lessThanToken, this.Name, this.Attributes, this.GreaterThanToken);
+    public CsxOpeningElementSyntax WithName(NameSyntax name) => Update(this.LessThanToken, name, this.Attributes, this.GreaterThanToken);
+    public CsxOpeningElementSyntax WithAttributes(SyntaxList<CsxAttributeSyntax> attributes) => Update(this.LessThanToken, this.Name, attributes, this.GreaterThanToken);
+    public CsxOpeningElementSyntax WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanToken, this.Name, this.Attributes, greaterThanToken);
+
+    public CsxOpeningElementSyntax AddAttributes(params CsxAttributeSyntax[] items) => WithAttributes(this.Attributes.AddRange(items));
+}
+
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.CsxClosingElement"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class CsxClosingElementSyntax : CsxNodeSyntax
+{
+    private NameSyntax? name;
+
+    internal CsxClosingElementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken LessThanToken => new SyntaxToken(this, ((InternalSyntax.CsxClosingElementSyntax)this.Green).lessThanToken, Position, 0);
+
+    public SyntaxToken SlashToken => new SyntaxToken(this, ((InternalSyntax.CsxClosingElementSyntax)this.Green).slashToken, GetChildPosition(1), GetChildIndex(1));
+
+    public NameSyntax Name => GetRed(ref this.name, 2)!;
+
+    public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((InternalSyntax.CsxClosingElementSyntax)this.Green).greaterThanToken, GetChildPosition(3), GetChildIndex(3));
+
+    internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.name, 2)! : null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.name : null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxClosingElement(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCsxClosingElement(this);
+
+    public CsxClosingElementSyntax Update(SyntaxToken lessThanToken, SyntaxToken slashToken, NameSyntax name, SyntaxToken greaterThanToken)
+    {
+        if (lessThanToken != this.LessThanToken || slashToken != this.SlashToken || name != this.Name || greaterThanToken != this.GreaterThanToken)
+        {
+            var newNode = SyntaxFactory.CsxClosingElement(lessThanToken, slashToken, name, greaterThanToken);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public CsxClosingElementSyntax WithLessThanToken(SyntaxToken lessThanToken) => Update(lessThanToken, this.SlashToken, this.Name, this.GreaterThanToken);
+    public CsxClosingElementSyntax WithSlashToken(SyntaxToken slashToken) => Update(this.LessThanToken, slashToken, this.Name, this.GreaterThanToken);
+    public CsxClosingElementSyntax WithName(NameSyntax name) => Update(this.LessThanToken, this.SlashToken, name, this.GreaterThanToken);
+    public CsxClosingElementSyntax WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanToken, this.SlashToken, this.Name, greaterThanToken);
+}
+
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.CsxAttribute"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class CsxAttributeSyntax : CsxNodeSyntax
+{
+    private IdentifierNameSyntax? name;
+    private ExpressionSyntax? value;
+
+    internal CsxAttributeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public IdentifierNameSyntax Name => GetRedAtZero(ref this.name)!;
+
+    public SyntaxToken EqualsToken
+    {
+        get
+        {
+            var slot = ((Syntax.InternalSyntax.CsxAttributeSyntax)this.Green).equalsToken;
+            return slot != null ? new SyntaxToken(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
+        }
+    }
+
+    public ExpressionSyntax? Value => GetRed(ref this.value, 2);
+
+    internal override SyntaxNode? GetNodeSlot(int index)
+        => index switch
+        {
+            0 => GetRedAtZero(ref this.name)!,
+            2 => GetRed(ref this.value, 2),
+            _ => null,
+        };
+
+    internal override SyntaxNode? GetCachedSlot(int index)
+        => index switch
+        {
+            0 => this.name,
+            2 => this.value,
+            _ => null,
+        };
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxAttribute(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCsxAttribute(this);
+
+    public CsxAttributeSyntax Update(IdentifierNameSyntax name, SyntaxToken equalsToken, ExpressionSyntax? value)
+    {
+        if (name != this.Name || equalsToken != this.EqualsToken || value != this.Value)
+        {
+            var newNode = SyntaxFactory.CsxAttribute(name, equalsToken, value);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public CsxAttributeSyntax WithName(IdentifierNameSyntax name) => Update(name, this.EqualsToken, this.Value);
+    public CsxAttributeSyntax WithEqualsToken(SyntaxToken equalsToken) => Update(this.Name, equalsToken, this.Value);
+    public CsxAttributeSyntax WithValue(ExpressionSyntax? value) => Update(this.Name, this.EqualsToken, value);
+}
+
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.CsxSpreadAttribute"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class CsxSpreadAttributeSyntax : CsxNodeSyntax
+{
+    private ExpressionSyntax? expression;
+
+    internal CsxSpreadAttributeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.CsxSpreadAttributeSyntax)this.Green).openBraceToken, Position, 0);
+
+    public SyntaxToken DotDotDotToken => new SyntaxToken(this, ((InternalSyntax.CsxSpreadAttributeSyntax)this.Green).dotDotDotToken, GetChildPosition(1), GetChildIndex(1));
+
+    public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
+
+    public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.CsxSpreadAttributeSyntax)this.Green).closeBraceToken, GetChildPosition(3), GetChildIndex(3));
+
+    internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.expression : null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxSpreadAttribute(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCsxSpreadAttribute(this);
+
+    public CsxSpreadAttributeSyntax Update(SyntaxToken openBraceToken, SyntaxToken dotDotDotToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+    {
+        if (openBraceToken != this.OpenBraceToken || dotDotDotToken != this.DotDotDotToken || expression != this.Expression || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.CsxSpreadAttribute(openBraceToken, dotDotDotToken, expression, closeBraceToken);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public CsxSpreadAttributeSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(openBraceToken, this.DotDotDotToken, this.Expression, this.CloseBraceToken);
+    public CsxSpreadAttributeSyntax WithDotDotDotToken(SyntaxToken dotDotDotToken) => Update(this.OpenBraceToken, dotDotDotToken, this.Expression, this.CloseBraceToken);
+    public CsxSpreadAttributeSyntax WithExpression(ExpressionSyntax expression) => Update(this.OpenBraceToken, this.DotDotDotToken, expression, this.CloseBraceToken);
+    public CsxSpreadAttributeSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.OpenBraceToken, this.DotDotDotToken, this.Expression, closeBraceToken);
+}
+
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.CsxExpression"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class CsxExpressionSyntax : CsxNodeSyntax
+{
+    private ExpressionSyntax? expression;
+
+    internal CsxExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.CsxExpressionSyntax)this.Green).openBraceToken, Position, 0);
+
+    public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
+
+    public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.CsxExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
+
+    internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expression : null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxExpression(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCsxExpression(this);
+
+    public CsxExpressionSyntax Update(SyntaxToken openBraceToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
+    {
+        if (openBraceToken != this.OpenBraceToken || expression != this.Expression || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.CsxExpression(openBraceToken, expression, closeBraceToken);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public CsxExpressionSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(openBraceToken, this.Expression, this.CloseBraceToken);
+    public CsxExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(this.OpenBraceToken, expression, this.CloseBraceToken);
+    public CsxExpressionSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.OpenBraceToken, this.Expression, closeBraceToken);
+}
+
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.CsxText"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class CsxTextSyntax : CsxNodeSyntax
+{
+
+    internal CsxTextSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken TextToken => new SyntaxToken(this, ((InternalSyntax.CsxTextSyntax)this.Green).textToken, Position, 0);
+
+    internal override SyntaxNode? GetNodeSlot(int index) => null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCsxText(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCsxText(this);
+
+    public CsxTextSyntax Update(SyntaxToken textToken)
+    {
+        if (textToken != this.TextToken)
+        {
+            var newNode = SyntaxFactory.CsxText(textToken);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public CsxTextSyntax WithTextToken(SyntaxToken textToken) => Update(textToken);
+}

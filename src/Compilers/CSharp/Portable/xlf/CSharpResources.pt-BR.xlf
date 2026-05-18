@@ -652,6 +652,66 @@
         <target state="translated">Um construtor de cópia '{0}' precisa ser público ou protegido porque o registro não está selado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CsxComponentNotReturningElement">
+        <source>'{0}' cannot be used as a CSX component because it does not return '{1}'.</source>
+        <target state="new">'{0}' cannot be used as a CSX component because it does not return '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxCreateTextNodeNotFound">
+        <source>The nested 'CSX' class on factory type '{0}' does not contain a 'CreateTextNode(string)' method. Text content in CSX elements requires this method.</source>
+        <target state="new">The nested 'CSX' class on factory type '{0}' does not contain a 'CreateTextNode(string)' method. Text content in CSX elements requires this method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxElementTypeNotFound">
+        <source>The nested 'CSX' class on factory type '{0}' does not contain an 'Element' interface. All CSX expressions must evaluate to a 'CSX.Element' type.</source>
+        <target state="new">The nested 'CSX' class on factory type '{0}' does not contain an 'Element' interface. All CSX expressions must evaluate to a 'CSX.Element' type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxFactoryTypeNotFound">
+        <source>CSX factory type '{0}' could not be found. Ensure the type exists and is accessible.</source>
+        <target state="new">CSX factory type '{0}' could not be found. Ensure the type exists and is accessible.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxMissingRequiredProp">
+        <source>Required prop '{0}' of type '{1}' must be specified.</source>
+        <target state="new">Required prop '{0}' of type '{1}' must be specified.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxNamespaceNotFound">
+        <source>CSX factory type '{0}' does not contain a nested class named 'CSX'. The factory type must declare a nested 'CSX' class with at least an 'Element' interface.</source>
+        <target state="new">CSX factory type '{0}' does not contain a nested class named 'CSX'. The factory type must declare a nested 'CSX' class with at least an 'Element' interface.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxOpenClosingTagMismatch">
+        <source>Expected closing tag '{0}' to match opening tag '{1}'.</source>
+        <target state="new">Expected closing tag '{0}' to match opening tag '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxPropTypeMismatch">
+        <source>Cannot convert type '{0}' to '{1}' for CSX attribute '{2}'.</source>
+        <target state="new">Cannot convert type '{0}' to '{1}' for CSX attribute '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxRenderMethodInvalidSignature">
+        <source>Component render method '{0}' must have a second parameter of type '{1}[]' for children. A signature of (TProps, {1}[]) is required.</source>
+        <target state="new">Component render method '{0}' must have a second parameter of type '{1}[]' for children. A signature of (TProps, {1}[]) is required.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxRequiresCsxFactory">
+        <source>CSX syntax requires a CsxFactory to be set in the parse options. Set a factory type to enable CSX.</source>
+        <target state="new">CSX syntax requires a CsxFactory to be set in the parse options. Set a factory type to enable CSX.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxUnknownComponent">
+        <source>The name '{0}' does not exist in the current context or is not a valid CSX component.</source>
+        <target state="new">The name '{0}' does not exist in the current context or is not a valid CSX component.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CsxUnknownProp">
+        <source>'{0}' does not contain a definition for '{1}'. Check the component's props type.</source>
+        <target state="new">'{0}' does not contain a definition for '{1}'. Check the component's props type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
         <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
         <target state="translated">Não é possível emitir esse literal de cadeia de caracteres na seção de dados porque ele tem uma colisão XXHash128 com outro literal de cadeia de caracteres: {0}</target>
