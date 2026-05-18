@@ -80,6 +80,14 @@ namespace RunTests
         /// </summary>
         public bool UseHelix { get; set; }
 
+        public bool UseAzdoParallel => AzdoParallelJobPosition is not null && AzdoParallelTotalJobs is > 1;
+
+        public int AzdoParallelJobIndex => AzdoParallelJobPosition!.Value - 1;
+
+        public int? AzdoParallelJobPosition { get; set; }
+
+        public int? AzdoParallelTotalJobs { get; set; }
+
         /// <summary>
         /// Name of the Helix queue to run tests on (only valid when <see cref="UseHelix" /> is <see langword="true" />).
         /// </summary>
@@ -160,6 +168,8 @@ namespace RunTests
             string? pipelineDefinitionId = null;
             string? phaseName = null;
             string? targetBranchName = null;
+            int? azdoParallelJobPosition = null;
+            int? azdoParallelTotalJobs = null;
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", s => dotnetFilePath = s },
@@ -186,6 +196,8 @@ namespace RunTests
                 { "pipelineDefinitionId=", "Pipeline definition id", s => pipelineDefinitionId = s },
                 { "phaseName=", "Pipeline phase name associated with this test run", s => phaseName = s },
                 { "targetBranchName=", "Target branch of this pipeline run", s => targetBranchName = s },
+                { "azdoParallelJobPosition=", "Azure DevOps parallel job position, 1-based", (int i) => azdoParallelJobPosition = i },
+                { "azdoParallelTotalJobs=", "Azure DevOps total parallel jobs", (int i) => azdoParallelTotalJobs = i },
             };
 
             List<string> assemblyList;
@@ -230,6 +242,45 @@ namespace RunTests
                 ConsoleUtil.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
             }
 
+            azdoParallelJobPosition ??= TryGetEnvironmentInteger("SYSTEM_JOBPOSITIONINPHASE");
+            azdoParallelTotalJobs ??= TryGetEnvironmentInteger("SYSTEM_TOTALJOBSINPHASE");
+
+            if (azdoParallelJobPosition.HasValue != azdoParallelTotalJobs.HasValue)
+            {
+                ConsoleUtil.WriteLine($"Azure DevOps parallel test execution requires both job position and total jobs. azdoParallelJobPosition={azdoParallelJobPosition}, azdoParallelTotalJobs={azdoParallelTotalJobs}");
+                return null;
+            }
+
+            if (azdoParallelJobPosition is { } position && azdoParallelTotalJobs is { } totalJobs)
+            {
+                if (totalJobs < 1)
+                {
+                    ConsoleUtil.WriteLine($"Azure DevOps total parallel jobs must be greater than zero. azdoParallelTotalJobs={totalJobs}");
+                    return null;
+                }
+
+                if (position < 1 || position > totalJobs)
+                {
+                    ConsoleUtil.WriteLine($"Azure DevOps parallel job position must be between 1 and total jobs. azdoParallelJobPosition={position}, azdoParallelTotalJobs={totalJobs}");
+                    return null;
+                }
+
+                if (totalJobs > 1)
+                {
+                    if (helix)
+                    {
+                        ConsoleUtil.WriteLine($"Azure DevOps parallel test execution cannot be combined with Helix execution");
+                        return null;
+                    }
+
+                    if (sequential)
+                    {
+                        ConsoleUtil.WriteLine($"Azure DevOps parallel test execution cannot be combined with sequential execution");
+                        return null;
+                    }
+                }
+            }
+
             return new Options(
                 dotnetFilePath: dotnetFilePath,
                 artifactsDirectory: artifactsPath,
@@ -256,7 +307,26 @@ namespace RunTests
                 PipelineDefinitionId = pipelineDefinitionId,
                 PhaseName = phaseName,
                 TargetBranchName = targetBranchName,
+                AzdoParallelJobPosition = azdoParallelJobPosition,
+                AzdoParallelTotalJobs = azdoParallelTotalJobs,
             };
+
+            static int? TryGetEnvironmentInteger(string name)
+            {
+                var value = Environment.GetEnvironmentVariable(name);
+                if (string.IsNullOrEmpty(value))
+                {
+                    return null;
+                }
+
+                if (int.TryParse(value, out var result))
+                {
+                    return result;
+                }
+
+                ConsoleUtil.WriteLine($"Could not parse environment variable {name} as an integer: {value}");
+                return null;
+            }
 
             static string? TryGetArtifactsPath()
             {

@@ -56,7 +56,7 @@ namespace RunTests
             _options = options;
         }
 
-        private static ImmutableArray<WorkItemInfo> CreateWorkItemsForFullAssemblies(ImmutableArray<AssemblyInfo> assemblies)
+        internal static ImmutableArray<WorkItemInfo> CreateWorkItemsForFullAssemblies(ImmutableArray<AssemblyInfo> assemblies)
         {
             var workItems = new List<WorkItemInfo>();
             var partitionIndex = 0;
@@ -70,12 +70,14 @@ namespace RunTests
         }
 
         internal async Task<RunAllResult> RunAllAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
+            => await RunWorkItemsAsync(CreateWorkItemsForFullAssemblies(assemblies), cancellationToken);
+
+        internal async Task<RunAllResult> RunWorkItemsAsync(ImmutableArray<WorkItemInfo> workItems, CancellationToken cancellationToken)
         {
             // Use 1.5 times the number of processors for unit tests, but only 1 processor for the open integration tests
             // since they perform actual UI operations (such as mouse clicks and sending keystrokes) and we don't want two
             // tests to conflict with one-another.
             var max = _options.Sequential ? 1 : (int)(Environment.ProcessorCount * 1.5);
-            var workItems = CreateWorkItemsForFullAssemblies(assemblies);
             var waiting = new Stack<WorkItemInfo>(workItems);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();

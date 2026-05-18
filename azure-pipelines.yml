@@ -277,16 +277,15 @@ stages:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
-  - template: eng/pipelines/test-windows-job.yml
+  - template: eng/pipelines/test-windows-job-azdo-parallel.yml
     parameters:
       testRunName: 'Test Windows CoreClr Debug'
       jobName: Test_Windows_CoreClr_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      parallel: 4
+      poolParameters: ${{ parameters.vs2026PreviewPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml

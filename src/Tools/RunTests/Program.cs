@@ -140,7 +140,9 @@ namespace RunTests
 
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
 
-            var result = await testRunner.RunAllAsync(assemblyFilePaths, cancellationToken).ConfigureAwait(true);
+            var result = options.UseAzdoParallel
+                ? await AzdoParallelTestRunner.RunAsync(options, assemblyFilePaths, testRunner, cancellationToken).ConfigureAwait(true)
+                : await testRunner.RunAllAsync(assemblyFilePaths, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
