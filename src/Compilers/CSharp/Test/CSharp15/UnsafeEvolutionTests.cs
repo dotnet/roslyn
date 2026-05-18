@@ -11479,25 +11479,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // (4,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (4,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe public void M1() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
-            // (5,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (5,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe public int P1 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (6,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe public int this[int i] { get => i; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 5),
-            // (7,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (7,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe public event System.Action E1;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
-            // (8,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (8,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe public C() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (9,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (9,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe public static C operator +(C x, C y) => x;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(9, 5),
-            // (10,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (10,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe public static explicit operator int(C c) => 0;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
             // (11,21): error CS0106: The modifier 'safe' is not valid for this item
@@ -11538,25 +11538,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // (4,12): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            // (4,12): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public extern void M();
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(4, 12),
-            // (5,12): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            // (5,12): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public extern int P { get; set; }
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(5, 12),
-            // (6,12): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            // (6,12): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public extern int this[int i] { get; set; }
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(6, 12),
-            // (7,19): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            // (7,19): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public static extern event System.Action E;
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(7, 19),
-            // (8,12): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            // (8,12): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public extern C(int x);
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(8, 12),
-            // (9,19): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            // (9,19): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public static extern C operator +(C x, C y);
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(9, 19),
-            // (10,19): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            // (10,19): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public static extern explicit operator int(C c);
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(10, 19));
     }
@@ -11582,36 +11582,36 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // (5,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (5,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe unsafe public extern void M2();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,12): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            // (6,12): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public extern void M3();
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(6, 12),
-            // (8,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (8,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe unsafe public extern int P2 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (10,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (10,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe unsafe public static extern event System.Action E2;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
-            // (12,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (12,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe unsafe public extern C(string s);
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 5),
-            // (13,12): error CS9381: Extern member must be marked 'unsafe' or 'safe'.
+            // (13,12): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public extern C(double d);
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(13, 12));
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (5,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (5,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe unsafe public extern void M2();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (8,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (8,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe unsafe public extern int P2 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (10,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (10,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe unsafe public static extern event System.Action E2;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
-            // (12,5): error CS9380: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (12,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe unsafe public extern C(string s);
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 5));
     }
