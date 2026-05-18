@@ -329,6 +329,42 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact]
+    public Task ObjectInitializer_MixedObjectAndCollection_ElementFirst()
+        => AssertFormatAsync("""
+            using System.Collections;
+            using System.Collections.Generic;
+            public class C : IEnumerable<int>
+            {
+                public int X;
+                public void Add(int item) { }
+                public IEnumerator<int> GetEnumerator() { yield break; }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+                public C M() => new C
+                {
+                    1,
+                    X = 2,
+                    3
+                };
+            }
+            """, """
+            using System.Collections;
+            using System.Collections.Generic;
+            public class C : IEnumerable<int>
+            {
+                public int X;
+                public void Add(int item) { }
+                public IEnumerator<int> GetEnumerator() { yield break; }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+                public C M() => new C
+                                    {
+                                1,
+                            X = 2,
+                                    3
+                                            };
+            }
+            """);
+
+    [Fact]
     public Task AnonymousType()
         => AssertFormatAsync("""
             class C
