@@ -24,11 +24,10 @@ public sealed class WorkspaceStructureLoggerTests
     {
         using var workspace = new AdhocWorkspace();
 
-        var result = await WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
+        var result = await new WorkspaceStructureLogger().BuildWorkspaceStructureAsync(
             workspace.CurrentSolution,
             workspace.Kind,
             progress: null,
-            createAdditionalProjectElementsAsync: null,
             CancellationToken.None);
 
         var root = result.Root;
@@ -44,11 +43,10 @@ public sealed class WorkspaceStructureLoggerTests
         using var workspace = new AdhocWorkspace();
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
 
-        var result = await WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
+        var result = await new WorkspaceStructureLogger().BuildWorkspaceStructureAsync(
             workspace.CurrentSolution,
             workspace.Kind,
             progress: null,
-            createAdditionalProjectElementsAsync: null,
             CancellationToken.None);
 
         var projectElement = result.Root!.Element("project");
@@ -64,11 +62,10 @@ public sealed class WorkspaceStructureLoggerTests
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         workspace.AddDocument(project.Id, "Test.cs", SourceText.From("class C { }"));
 
-        var result = await WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
+        var result = await new WorkspaceStructureLogger().BuildWorkspaceStructureAsync(
             workspace.CurrentSolution,
             workspace.Kind,
             progress: null,
-            createAdditionalProjectElementsAsync: null,
             CancellationToken.None);
 
         var projectElement = result.Root!.Element("project");
@@ -90,11 +87,10 @@ public sealed class WorkspaceStructureLoggerTests
             metadataReferences: [NetFramework.mscorlib]);
         workspace.AddProject(projectInfo);
 
-        var result = await WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
+        var result = await new WorkspaceStructureLogger().BuildWorkspaceStructureAsync(
             workspace.CurrentSolution,
             workspace.Kind,
             progress: null,
-            createAdditionalProjectElementsAsync: null,
             CancellationToken.None);
 
         var projectElement = result.Root!.Element("project");
@@ -117,11 +113,10 @@ public sealed class WorkspaceStructureLoggerTests
             projectReferences: [new ProjectReference(referencedProject.Id)]);
         workspace.AddProject(projectInfo);
 
-        var result = await WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
+        var result = await new WorkspaceStructureLogger().BuildWorkspaceStructureAsync(
             workspace.CurrentSolution,
             workspace.Kind,
             progress: null,
-            createAdditionalProjectElementsAsync: null,
             CancellationToken.None);
 
         var testProjectElement = result.Root!.Elements("project")
@@ -140,11 +135,10 @@ public sealed class WorkspaceStructureLoggerTests
 
         var reports = new List<(int current, int total)>();
 
-        await WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
+        await new WorkspaceStructureLogger().BuildWorkspaceStructureAsync(
             workspace.CurrentSolution,
             workspace.Kind,
             new SynchronousProgress<(int current, int total)>(reports.Add),
-            createAdditionalProjectElementsAsync: null,
             CancellationToken.None);
 
         Assert.Equal(2, reports.Count);
@@ -158,12 +152,10 @@ public sealed class WorkspaceStructureLoggerTests
         using var workspace = new AdhocWorkspace();
         workspace.AddProject("TestProject", LanguageNames.CSharp);
 
-        var result = await WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
+        var result = await new TestWorkspaceStructureLogger().BuildWorkspaceStructureAsync(
             workspace.CurrentSolution,
             workspace.Kind,
             progress: null,
-            createAdditionalProjectElementsAsync: _ => Task.FromResult<IEnumerable<XElement>?>(
-                [new XElement("customElement", new XAttribute("key", "value"))]),
             CancellationToken.None);
 
         var projectElement = result.Root!.Element("project");
@@ -179,11 +171,10 @@ public sealed class WorkspaceStructureLoggerTests
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         workspace.AddDocument(project.Id, "Test.cs", SourceText.From("class C { invalid }"));
 
-        var result = await WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
+        var result = await new WorkspaceStructureLogger().BuildWorkspaceStructureAsync(
             workspace.CurrentSolution,
             workspace.Kind,
             progress: null,
-            createAdditionalProjectElementsAsync: null,
             CancellationToken.None);
 
         var projectElement = result.Root!.Element("project");
@@ -202,12 +193,20 @@ public sealed class WorkspaceStructureLoggerTests
         cts.Cancel();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
+            new WorkspaceStructureLogger().BuildWorkspaceStructureAsync(
                 workspace.CurrentSolution,
                 workspace.Kind,
                 progress: null,
-                createAdditionalProjectElementsAsync: null,
                 cts.Token));
+    }
+
+    private sealed class TestWorkspaceStructureLogger : WorkspaceStructureLogger
+    {
+        protected override Task<IEnumerable<XElement>> CreateAdditionalProjectElementsAsync(Project project, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IEnumerable<XElement>>(
+                [new XElement("customElement", new XAttribute("key", "value"))]);
+        }
     }
 
     // We use this implementation because Progress<T> posts callbacks asynchronously on net472.

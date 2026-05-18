@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -23,7 +24,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging;
 
-internal static class RoslynWorkspaceStructureLogger
+internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider serviceProvider, IThreadingContext threadingContext) : WorkspaceStructureLogger
 {
     public static void ShowSaveDialogAndLog(IServiceProvider serviceProvider)
     {
@@ -96,11 +97,11 @@ internal static class RoslynWorkspaceStructureLogger
                     totalSteps: value.total));
             });
 
-            var document = await WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
+            var workspaceStructureLogger = new RoslynWorkspaceStructureLogger(serviceProvider, threadingContext);
+            var document = await workspaceStructureLogger.BuildWorkspaceStructureAsync(
                 solution,
                 workspace.Kind,
                 progress,
-                createAdditionalProjectElementsAsync: project => CreateVisualStudioProjectElementsAsync(serviceProvider, threadingContext, project),
                 cancellationToken);
 
             File.Delete(path);
@@ -118,7 +119,7 @@ internal static class RoslynWorkspaceStructureLogger
         }
     }
 
-    private static async Task<IEnumerable<XElement>?> CreateVisualStudioProjectElementsAsync(IServiceProvider serviceProvider, IThreadingContext threadingContext, Project project)
+    protected override  async Task<IEnumerable<XElement>> CreateAdditionalProjectElementsAsync(Project project, CancellationToken cancellationToken)
     {
         var elements = new List<XElement>();
 
@@ -130,7 +131,7 @@ internal static class RoslynWorkspaceStructureLogger
         if (dteReferencesElement != null)
             elements.Add(dteReferencesElement);
 
-        return elements.Count > 0 ? elements : null;
+        return elements;
     }
 
     private static XElement? CreateMsBuildReferencesElement(Project project)
@@ -188,7 +189,7 @@ internal static class RoslynWorkspaceStructureLogger
             else
             {
                 dteReferences.Add(new XElement("metadataReference",
-                    reference.Path != null ? new XAttribute("path", WorkspaceStructureLogger.SanitizePath(reference.Path)) : null,
+                    reference.Path != null ? new XAttribute("path", SanitizePath(reference.Path)) : null,
                     new XAttribute("name", reference.Name)));
             }
         }

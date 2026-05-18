@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Logging;
 /// Builds an XML representation of the workspace structure for diagnostic purposes.
 /// This common logic is shared by the Visual Studio command and the LSP handler.
 /// </summary>
-internal static class WorkspaceStructureLogger
+internal class WorkspaceStructureLogger
 {
-    private static int s_NextCompilationId;
-    private static readonly ConditionalWeakTable<Compilation, StrongBox<int>> s_CompilationIds = new();
+    private int _nextCompilationId = -1;
+    private readonly ConditionalWeakTable<Compilation, StrongBox<int>> _compilationIds = new();
 
     /// <summary>
     /// Builds an XML document describing the full workspace structure for the given solution.
@@ -28,15 +28,11 @@ internal static class WorkspaceStructureLogger
     /// <param name="solution">The solution to log.</param>
     /// <param name="workspaceKind">The <see cref="Workspace.Kind"/> string (e.g. "MSBuildWorkspace").</param>
     /// <param name="progress">Optional progress callback receiving (current, total) project counts.</param>
-    /// <param name="createAdditionalProjectElementsAsync">
-    /// Optional delegate that can contribute extra XML elements for each project (e.g. DTE or MSBuild references).
-    /// </param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public static async Task<XDocument> BuildWorkspaceStructureAsync(
+    public async Task<XDocument> BuildWorkspaceStructureAsync(
         Solution solution,
         string? workspaceKind,
         IProgress<(int current, int total)>? progress,
-        Func<Project, Task<IEnumerable<XElement>?>>? createAdditionalProjectElementsAsync,
         CancellationToken cancellationToken = default)
     {
         var document = new XDocument();
@@ -56,15 +52,16 @@ internal static class WorkspaceStructureLogger
 
             var projectElement = await BuildProjectElementAsync(project, cancellationToken).ConfigureAwait(false);
 
-            // Allow callers to inject host-specific elements (e.g. DTE references, MSBuild references)
-            if (createAdditionalProjectElementsAsync != null)
+            // Dump MSBuild <Reference> nodes
+            var msbuildReferencesElement = CreateMsBuildReferencesElement(project);
+            if (msbuildReferencesElement != null)
+                projectElement.Add(msbuildReferencesElement);
+
+            // Allow callers to inject host-specific elements (e.g. DTE references)
+            var additionalElements = await CreateAdditionalProjectElementsAsync(project, cancellationToken).ConfigureAwait(false);
+            if (additionalElements != null)
             {
-                var additionalElements = await createAdditionalProjectElementsAsync(project).ConfigureAwait(false);
-                if (additionalElements != null)
-                {
-                    foreach (var element in additionalElements)
-                        projectElement.Add(element);
-                }
+                projectElement.Add(additionalElements);
             }
 
             // Add workspace references (metadata + project)
@@ -100,6 +97,9 @@ internal static class WorkspaceStructureLogger
         return document;
     }
 
+    protected virtual Task<IEnumerable<XElement>> CreateAdditionalProjectElementsAsync(Project project, CancellationToken cancellationToken)
+        => Task.FromResult<IEnumerable<XElement>>([]);
+
     private static async Task<XElement> BuildProjectElementAsync(Project project, CancellationToken cancellationToken)
     {
         var projectElement = new XElement("project");
@@ -117,7 +117,24 @@ internal static class WorkspaceStructureLogger
         return projectElement;
     }
 
-    private static XElement BuildWorkspaceReferencesElement(Project project)
+    private static XElement? CreateMsBuildReferencesElement(Project project)
+    {
+        if (project.FilePath == null)
+            return null;
+
+        var msbuildProject = XDocument.Load(project.FilePath);
+        var msbuildNamespace = XNamespace.Get("http://schemas.microsoft.com/developer/msbuild/2003");
+
+        var msbuildReferencesElement = new XElement("msbuildReferences");
+
+        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "ProjectReference"));
+        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "Reference"));
+        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "ReferencePath"));
+
+        return msbuildReferencesElement;
+    }
+
+    private XElement BuildWorkspaceReferencesElement(Project project)
     {
         var workspaceReferencesElement = new XElement("workspaceReferences");
 
@@ -137,7 +154,7 @@ internal static class WorkspaceStructureLogger
         return workspaceReferencesElement;
     }
 
-    private static async Task AddCompilationElementsAsync(XElement projectElement, Project project, CancellationToken cancellationToken)
+    private async Task AddCompilationElementsAsync(XElement projectElement, Project project, CancellationToken cancellationToken)
     {
         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (compilation == null)
@@ -188,13 +205,13 @@ internal static class WorkspaceStructureLogger
         return elements;
     }
 
-    internal static string SanitizePath(string s)
+    protected static string SanitizePath(string s)
         => ReplacePathComponent(s, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "%USERPROFILE%");
 
     /// <summary>
     /// Equivalent to string.Replace, but uses OrdinalIgnoreCase for matching.
     /// </summary>
-    private static string ReplacePathComponent(string s, string oldValue, string newValue)
+    protected static string ReplacePathComponent(string s, string oldValue, string newValue)
     {
         while (true)
         {
@@ -206,7 +223,7 @@ internal static class WorkspaceStructureLogger
         }
     }
 
-    internal static XElement CreateElementForPortableExecutableReference(MetadataReference reference)
+    internal XElement CreateElementForPortableExecutableReference(MetadataReference reference)
     {
         var aliasesAttribute = new XAttribute("aliases", string.Join(",", reference.Properties.Aliases));
 
@@ -229,14 +246,10 @@ internal static class WorkspaceStructureLogger
         }
     }
 
-    private static XElement CreateElementForCompilation(Compilation compilation)
+    private XElement CreateElementForCompilation(Compilation compilation)
     {
-        StrongBox<int>? compilationId;
-        if (!s_CompilationIds.TryGetValue(compilation, out compilationId) || compilationId == null)
-        {
-            compilationId = new StrongBox<int>(s_NextCompilationId++);
-            s_CompilationIds.Add(compilation, compilationId);
-        }
+        var compilationId = _compilationIds.GetValue(
+             compilation, _ => new StrongBox<int>(Interlocked.Increment(ref _nextCompilationId)));
 
         var namespaces = new Queue<INamespaceSymbol>();
         var typesElement = new XElement("types");
