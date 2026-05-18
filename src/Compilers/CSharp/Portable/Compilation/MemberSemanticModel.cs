@@ -1307,16 +1307,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override SymbolInfo GetCollectionInitializerSymbolInfoWorker(InitializerExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var boundCollectionInitializer = GetLowerBoundNode(collectionInitializer) as BoundCollectionInitializerExpression;
+            // The public `GetCollectionInitializerSymbolInfo` API filters at the syntax gate to
+            // either `CollectionInitializerExpression` children, or non-assignment-shape children
+            // of `ObjectInitializerExpression` (the mixed object/collection initializer shape,
+            // dotnet/csharplang#10185). For both shapes we forward the per-index bound element
+            // (whatever bound kind `BindCollectionInitializerElement` produced — success or error)
+            // to `GetSymbolInfoForNode`, so the two wrapper shapes return parallel symbol info for
+            // the same element expression.
+            ImmutableArray<BoundExpression> initializers;
+            if (GetLowerBoundNode(collectionInitializer) is BoundObjectInitializerExpressionBase boundInitializer)
+                initializers = boundInitializer.Initializers;
+            else
+                return SymbolInfo.None;
 
-            if (boundCollectionInitializer != null)
-            {
-                var boundAdd = boundCollectionInitializer.Initializers[collectionInitializer.Expressions.IndexOf(node)];
-
-                return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, boundAdd, boundAdd, null, binderOpt: null);
-            }
-
-            return SymbolInfo.None;
+            var boundAdd = initializers[collectionInitializer.Expressions.IndexOf(node)];
+            return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, boundAdd, boundAdd, null, binderOpt: null);
         }
 
         public override SymbolInfo GetSymbolInfo(OrderingSyntax node, CancellationToken cancellationToken = default(CancellationToken))

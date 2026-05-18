@@ -2026,6 +2026,118 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
             """, "global::System.String", mode);
 
     [Theory, CombinatorialData]
+    public Task TestObjectInitializer_CompoundRhs(TestMode mode)
+        => TestAsync("""
+            class C
+            {
+                public int P { get; set; }
+                C M() => new C { P += [|Goo()|] };
+            }
+            """, "global::System.Int32", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestObjectInitializer_NullCoalesceCompoundRhs(TestMode mode)
+        => TestAsync("""
+            #nullable enable
+
+            class C
+            {
+                public string? P { get; set; }
+                C M() => new C { P ??= [|Goo()|] };
+            }
+            """, "global::System.String?", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestObjectInitializer_WithExpression_CompoundRhs(TestMode mode)
+        => TestAsync("""
+            record R(int P)
+            {
+                R M(R r) => r with { P += [|Goo()|] };
+            }
+            """, "global::System.Int32", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestDictionaryInitializer_ImplicitElementAccessKey_Equals(TestMode mode)
+        => TestAsync("""
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var d = new Dictionary<int, string> { [[|Goo()|]] = "v" };
+                }
+            }
+            """, "global::System.Int32", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestDictionaryInitializer_ImplicitElementAccessKey_Compound(TestMode mode)
+        => TestAsync("""
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var d = new Dictionary<int, int> { [[|Goo()|]] += 1 };
+                }
+            }
+            """, "global::System.Int32", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestObjectInitializer_FlagsEnum_BitwiseCompound(
+        TestMode mode,
+        [CombinatorialValues("|=", "&=", "^=")] string op)
+        => TestAsync($$"""
+            using System;
+
+            [Flags]
+            enum Color { Red = 1, Green = 2, Blue = 4 }
+
+            class C
+            {
+                public Color Flags { get; set; }
+                C M() => new C { Flags {{op}} [|Goo()|] };
+            }
+            """, "global::Color", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestWithExpression_FlagsEnum_BitwiseCompound(
+        TestMode mode,
+        [CombinatorialValues("|=", "&=", "^=")] string op)
+        => TestAsync($$"""
+            using System;
+
+            [Flags]
+            enum Color { Red = 1, Green = 2, Blue = 4 }
+
+            record R(Color Flags)
+            {
+                R M(R r) => r with { Flags {{op}} [|Goo()|] };
+            }
+            """, "global::Color", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestMixedObjectAndCollectionInitializer_ElementType(TestMode mode)
+        // Mixed object/collection initializer (dotnet/csharplang#10185): an element-shape child
+        // sitting inside an `ObjectInitializerExpression` wrapper still infers its type from the
+        // `Add` parameter, the same way it would in a pure collection initializer.
+        => TestAsync("""
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C : IEnumerable<int>
+            {
+                public int X { get; set; }
+                public void Add(string item) { }
+                public IEnumerator<int> GetEnumerator() { yield break; }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+
+                C M() => new C { X = 1, [|Goo()|] };
+            }
+            """, "global::System.String", mode);
+
+    [Theory, CombinatorialData]
     public Task TestCustomCollectionInitializerAddMethodWithNullableParameter(TestMode mode)
         => TestAsync("""
             class C : System.Collections.IEnumerable

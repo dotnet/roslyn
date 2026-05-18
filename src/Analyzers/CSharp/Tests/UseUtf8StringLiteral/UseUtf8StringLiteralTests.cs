@@ -703,6 +703,80 @@ public sealed class UseUtf8StringLiteralTests
         }.RunAsync();
 
     [Fact]
+    public Task TestMixedObjectAndCollectionInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode =
+            """
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C : IEnumerable<int>
+            {
+                public int Capacity { get; set; }
+
+                void M(C c)
+                {
+                    // Mixed object/collection initializer (dotnet/csharplang#10185): the wrapper
+                    // is `ObjectInitializerExpression` because `Capacity = 3` is present, but each
+                    // `byte[]` element still flows through the `Add(params byte[] bytes)` shape and
+                    // is eligible for the UTF-8 literal rewrite.
+                    c = new() { Capacity = 3, [|65|], [|66|], [|67|] };
+                }
+
+                public void Add(params byte[] bytes)
+                {
+                }
+
+                public IEnumerator<int> GetEnumerator()
+                {
+                    throw new System.NotImplementedException();
+                }
+
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """,
+            FixedCode =
+            """
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C : IEnumerable<int>
+            {
+                public int Capacity { get; set; }
+
+                void M(C c)
+                {
+                    // Mixed object/collection initializer (dotnet/csharplang#10185): the wrapper
+                    // is `ObjectInitializerExpression` because `Capacity = 3` is present, but each
+                    // `byte[]` element still flows through the `Add(params byte[] bytes)` shape and
+                    // is eligible for the UTF-8 literal rewrite.
+                    c = new() { Capacity = 3, "A"u8.ToArray(), "B"u8.ToArray(), "C"u8.ToArray() };
+                }
+
+                public void Add(params byte[] bytes)
+                {
+                }
+
+                public IEnumerator<int> GetEnumerator()
+                {
+                    throw new System.NotImplementedException();
+                }
+
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            LanguageVersion = LanguageVersion.Preview
+        }.RunAsync();
+
+    [Fact]
     public Task TestUsingWithParamArray()
         => new VerifyCS.Test
         {

@@ -23,31 +23,59 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCompoundAssignment(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
+
+            BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
+            ReportSuppressionIfNeeded(left, diagnostics);
+            BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
+
+            return BindCompoundAssignmentCore(node, left, right, diagnostics);
+        }
+
+        /// <summary>
+        /// Unwraps an object-initializer-member wrapper around a <see cref="BoundEventAccess"/>, so
+        /// both the ordinary <c>c.E += h</c> path and the initializer / with form
+        /// (where the BoundEventAccess is stashed on
+        /// <see cref="BoundObjectInitializerMember.UnderlyingAccess"/>) share one dispatch site.
+        /// </summary>
+        private static BoundEventAccess? TryGetEventAccess(BoundExpression left)
+            => left switch
+            {
+                BoundEventAccess e => e,
+                BoundObjectInitializerMember { UnderlyingAccess: BoundEventAccess e } => e,
+                _ => null,
+            };
+
+        /// <summary>
+        /// Binds a compound assignment given an already-bound left and right. Used by
+        /// <see cref="BindCompoundAssignment"/> for the ordinary expression path, and by
+        /// <c>BindInitializerMemberAssignment</c> for compound member initializers where the left
+        /// has already been bound as a <see cref="BoundObjectInitializerMember"/>.
+        /// </summary>
+        private BoundExpression BindCompoundAssignmentCore(AssignmentExpressionSyntax node, BoundExpression left, BoundExpression right, BindingDiagnosticBag diagnostics)
+        {
             OperatorResolutionForReporting operatorResolutionForReporting = default;
-            BoundExpression result = bindCompoundAssignment(node, ref operatorResolutionForReporting, diagnostics);
+            BoundExpression result = bindCompoundAssignmentCore(node, left, right, ref operatorResolutionForReporting, diagnostics);
             operatorResolutionForReporting.Free();
             return result;
 
-            BoundExpression bindCompoundAssignment(AssignmentExpressionSyntax node, ref OperatorResolutionForReporting operatorResolutionForReporting, BindingDiagnosticBag diagnostics)
+            BoundExpression bindCompoundAssignmentCore(AssignmentExpressionSyntax node, BoundExpression left, BoundExpression right, ref OperatorResolutionForReporting operatorResolutionForReporting, BindingDiagnosticBag diagnostics)
             {
-                node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
-
-                BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
-                ReportSuppressionIfNeeded(left, diagnostics);
-                BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
                 BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
                 // If either operand is bad, don't try to do binary operator overload resolution; that will just
                 // make cascading errors.
 
-                if (left.Kind == BoundKind.EventAccess)
+                BoundEventAccess? eventAccess = TryGetEventAccess(left);
+
+                if (eventAccess is not null)
                 {
                     BinaryOperatorKind kindOperator = kind.Operator();
                     switch (kindOperator)
                     {
                         case BinaryOperatorKind.Addition:
                         case BinaryOperatorKind.Subtraction:
-                            return BindEventAssignment(node, (BoundEventAccess)left, right, kindOperator, diagnostics);
+                            return BindEventAssignment(node, eventAccess, right, kindOperator, diagnostics);
 
                             // fall-through for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
                     }
@@ -108,7 +136,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (left.Kind == BoundKind.EventAccess && !CheckEventValueKind((BoundEventAccess)left, BindValueKind.Assignable, diagnostics))
+                // Non-event-assignment compound operators (`*= / /= / %= / …`) on an event target
+                // bounce through CheckEventValueKind so the event-specific diagnostic (CS0070 from
+                // outside the declaring type; CS0079 for a custom event) wins over a generic CS0019
+                // from overload resolution. `eventAccess` also covers the initializer / with shape
+                // where the BoundEventAccess sits on BoundObjectInitializerMember.UnderlyingAccess.
+                if (eventAccess is not null && !CheckEventValueKind(eventAccess, BindValueKind.Assignable, diagnostics))
                 {
                     // If we're in a place where the event can be assigned, then continue so that we give errors
                     // about the types and operator not lining up.  Otherwise, just report that the event can't
@@ -5825,10 +5858,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
+            return BindNullCoalescingAssignmentOperatorCore(node, leftOperand, rightOperand, diagnostics);
+        }
+
+        /// <summary>
+        /// Completes null-coalescing-assignment binding given pre-bound operands. Factored out so the
+        /// object-initializer/<c>with</c>-expression path can supply a left bound as a
+        /// <see cref="BoundObjectInitializerMember"/> (already validated via
+        /// <see cref="BindValueKind.CompoundAssignment"/>) without re-running <see cref="BindValue"/>.
+        /// Mirrors the <see cref="BindCompoundAssignmentCore"/> split for the eleven regular compound
+        /// operators.
+        /// </summary>
+        private BoundExpression BindNullCoalescingAssignmentOperatorCore(
+            AssignmentExpressionSyntax node,
+            BoundExpression leftOperand,
+            BoundExpression rightOperand,
+            BindingDiagnosticBag diagnostics)
+        {
             // Prevent more cascading errors if there are any on either operand
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
                 diagnostics = BindingDiagnosticBag.Discarded;
+            }
+
+            // `??=` must read the LHS to test for null; for an event target that read goes through the
+            // synthesized backing field. When `IsUsableAsField` is false — custom events (no backing
+            // field) and field-like events accessed from outside the declaring type — `=` already
+            // rejects via CheckEventValueKind with CS0070 / CS0079; `??=` needs the same rejection.
+            // Without it, binding silently accepts the shape and lowering later trips
+            // `Debug.Assert(eventAccess.IsUsableAsField)` in TransformCompoundAssignmentLHS, a pre-
+            // existing crash affecting both `c.E ??= h` and `new C { E ??= h }`.
+            if (TryGetEventAccess(leftOperand) is { IsUsableAsField: false } eventAccess && !leftOperand.HasAnyErrors)
+            {
+                Error(diagnostics, GetBadEventUsageDiagnosticInfo(eventAccess.EventSymbol), GetEventName(eventAccess));
+                return new BoundNullCoalescingAssignmentOperator(
+                    node,
+                    BindToTypeForErrorRecovery(leftOperand),
+                    BindToTypeForErrorRecovery(rightOperand),
+                    CreateErrorType(),
+                    hasErrors: true);
             }
 
             // Given a ??= b, the type of a is A, the type of B is b, and if A is a nullable value type, the underlying
