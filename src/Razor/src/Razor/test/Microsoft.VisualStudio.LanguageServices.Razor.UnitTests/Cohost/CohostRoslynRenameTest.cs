@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
@@ -20,8 +21,6 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
-
-using Rename = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers.Rename;
 
 public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
@@ -374,7 +373,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         var invoker = LocalExportProvider.AssumeNotNull().GetExportedValue<ExportableRemoteServiceInvoker>();
         invoker.SetInvoker(RemoteServiceInvoker);
 
-        var workspaceEdit = await Rename.GetRenameEditAsync(renameDocument, renamePosition, newName, DisposalToken);
+        var workspaceEdit = await RemoteRenameService.GetRenameEditAsync(renameDocument, renamePosition, newName, DisposalToken);
         Assert.NotNull(workspaceEdit);
 
         var csharpSourceText = await csharpDocument.GetTextAsync(DisposalToken);
