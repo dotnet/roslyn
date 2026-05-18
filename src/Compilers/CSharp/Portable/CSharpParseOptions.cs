@@ -47,6 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return PreprocessorSymbols; }
         }
 
+        /// <summary>
+        /// Gets the fully-qualified factory type used for CSX (JSX-like) syntax lowering.
+        /// When set, CSX syntax is enabled in all C# source files compiled with these options.
+        /// The type must expose a nested <c>CSX</c> class containing an <c>Element</c> interface
+        /// and a <c>CreateElement</c> factory method.
+        /// Example: <c>"MyLib.H"</c>
+        /// </summary>
+        public string? CsxFactory { get; private set; }
+
         public CSharpParseOptions(
             LanguageVersion languageVersion = LanguageVersion.Default,
             DocumentationMode documentationMode = DocumentationMode.Parse,
@@ -56,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                   documentationMode,
                   kind,
                   preprocessorSymbols.ToImmutableArrayOrEmpty(),
-                  ImmutableDictionary<string, string>.Empty)
+                  ImmutableDictionary<string, string>.Empty,
+                  csxFactory: "CsxRuntime.H") // This is currently a default - if accepted and merged, it should be wired up via an MSBuild property
         {
         }
 
@@ -65,13 +75,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             DocumentationMode documentationMode,
             SourceCodeKind kind,
             ImmutableArray<string> preprocessorSymbols,
-            IReadOnlyDictionary<string, string>? features)
+            IReadOnlyDictionary<string, string>? features,
+            string? csxFactory = "CsxRuntime.H") // This is currently a default - if accepted and merged, it should be wired up via an MSBuild property
             : base(kind, documentationMode)
         {
             this.SpecifiedLanguageVersion = languageVersion;
             this.LanguageVersion = languageVersion.MapSpecifiedToEffectiveVersion();
             this.PreprocessorSymbols = preprocessorSymbols.ToImmutableArrayOrEmpty();
             _features = features?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty;
+            this.CsxFactory = csxFactory;
         }
 
         private CSharpParseOptions(CSharpParseOptions other) : this(
@@ -79,7 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             documentationMode: other.DocumentationMode,
             kind: other.Kind,
             preprocessorSymbols: other.PreprocessorSymbols,
-            features: other.Features)
+            features: other.Features,
+            csxFactory: other.CsxFactory)
         {
         }
 
@@ -160,6 +173,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Enable some experimental language features for testing.
         /// </summary>
+        /// <summary>
+        /// Creates a new <see cref="CSharpParseOptions"/> with the specified CSX factory type.
+        /// Setting this enables CSX (JSX-like) syntax in all files parsed with these options.
+        /// </summary>
+        /// <param name="csxFactory">
+        /// The fully-qualified name of the factory type (e.g. <c>"MyLib.H"</c>), or <c>null</c> to disable CSX.
+        /// </param>
+        public CSharpParseOptions WithCsxFactory(string? csxFactory)
+        {
+            if (csxFactory == this.CsxFactory)
+            {
+                return this;
+            }
+
+            return new CSharpParseOptions(this) { CsxFactory = csxFactory };
+        }
+
         public new CSharpParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>>? features)
         {
             if (Features == features)
@@ -299,14 +329,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return this.SpecifiedLanguageVersion == other.SpecifiedLanguageVersion;
+            return this.SpecifiedLanguageVersion == other.SpecifiedLanguageVersion
+                && this.CsxFactory == other.CsxFactory;
         }
 
         public override int GetHashCode()
         {
             return
                 Hash.Combine(base.GetHashCodeHelper(),
-                Hash.Combine((int)this.SpecifiedLanguageVersion, 0));
+                Hash.Combine((int)this.SpecifiedLanguageVersion,
+                Hash.Combine(this.CsxFactory?.GetHashCode() ?? 0, 0)));
         }
     }
 }

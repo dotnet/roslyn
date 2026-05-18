@@ -2486,6 +2486,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_RequiresUnsafeAttributeInSource = 9379,
 
+        // CSX (JSX-like component syntax) errors
+        ERR_CsxFactoryTypeNotFound = 9380,
+        ERR_CsxNamespaceNotFound = 9381,
+        ERR_CsxElementTypeNotFound = 9382,
+        ERR_CsxUnknownComponent = 9383,
+        ERR_CsxComponentNotReturningElement = 9384,
+        ERR_CsxUnknownProp = 9385,
+        ERR_CsxPropTypeMismatch = 9386,
+        ERR_CsxMissingRequiredProp = 9387,
+        ERR_CsxOpenClosingTagMismatch = 9388,
+        ERR_CsxRequiresCsxFactory = 9389,
+        ERR_CsxCreateTextNodeNotFound = 9390,
+        ERR_CsxRenderMethodInvalidSignature = 9391,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

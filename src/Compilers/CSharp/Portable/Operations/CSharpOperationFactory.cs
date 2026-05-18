@@ -288,6 +288,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.ArgList:
                 case BoundKind.ArgListOperator:
                 case BoundKind.ConvertedStackAllocExpression:
+                case BoundKind.CsxElement:
                 case BoundKind.FixedLocalCollectionInitializer:
                 case BoundKind.GlobalStatementInitializer:
                 case BoundKind.HostObjectMemberReference:

@@ -2239,6 +2239,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return false;
                                 }
                                 break;
+
+                            case CsxAttributeSyntax csxAttr:
+                                // The attribute name (e.g. `Href` in `<Link Href="..."/>`) is accessed
+                                // as a plain string by the binder — BindExpression is never called on it,
+                                // so AdjustIdentifierMapIfAny never fires for it (flag 2 is never set).
+                                // Exclude it from the map so the assertion doesn't fire.
+                                if (csxAttr.Name == id)
+                                {
+                                    return false;
+                                }
+                                break;
                         }
 
                         if (SyntaxFacts.IsInTypeOnlyContext(id) &&

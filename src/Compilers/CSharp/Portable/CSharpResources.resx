@@ -8307,4 +8307,40 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnionConstructorCallsDefaultConstructor" xml:space="preserve">
     <value>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</value>
   </data>
+  <data name="ERR_CsxFactoryTypeNotFound" xml:space="preserve">
+    <value>CSX factory type '{0}' could not be found. Ensure the type exists and is accessible.</value>
+  </data>
+  <data name="ERR_CsxNamespaceNotFound" xml:space="preserve">
+    <value>CSX factory type '{0}' does not contain a nested class named 'CSX'. The factory type must declare a nested 'CSX' class with at least an 'Element' interface.</value>
+  </data>
+  <data name="ERR_CsxElementTypeNotFound" xml:space="preserve">
+    <value>The nested 'CSX' class on factory type '{0}' does not contain an 'Element' interface. All CSX expressions must evaluate to a 'CSX.Element' type.</value>
+  </data>
+  <data name="ERR_CsxUnknownComponent" xml:space="preserve">
+    <value>The name '{0}' does not exist in the current context or is not a valid CSX component.</value>
+  </data>
+  <data name="ERR_CsxComponentNotReturningElement" xml:space="preserve">
+    <value>'{0}' cannot be used as a CSX component because it does not return '{1}'.</value>
+  </data>
+  <data name="ERR_CsxUnknownProp" xml:space="preserve">
+    <value>'{0}' does not contain a definition for '{1}'. Check the component's props type.</value>
+  </data>
+  <data name="ERR_CsxPropTypeMismatch" xml:space="preserve">
+    <value>Cannot convert type '{0}' to '{1}' for CSX attribute '{2}'.</value>
+  </data>
+  <data name="ERR_CsxMissingRequiredProp" xml:space="preserve">
+    <value>Required prop '{0}' of type '{1}' must be specified.</value>
+  </data>
+  <data name="ERR_CsxOpenClosingTagMismatch" xml:space="preserve">
+    <value>Expected closing tag '{0}' to match opening tag '{1}'.</value>
+  </data>
+  <data name="ERR_CsxRequiresCsxFactory" xml:space="preserve">
+    <value>CSX syntax requires a CsxFactory to be set in the parse options. Set a factory type to enable CSX.</value>
+  </data>
+  <data name="ERR_CsxCreateTextNodeNotFound" xml:space="preserve">
+    <value>The nested 'CSX' class on factory type '{0}' does not contain a 'CreateTextNode(string)' method. Text content in CSX elements requires this method.</value>
+  </data>
+  <data name="ERR_CsxRenderMethodInvalidSignature" xml:space="preserve">
+    <value>Component render method '{0}' must have a second parameter of type '{1}[]' for children. A signature of (TProps, {1}[]) is required.</value>
+  </data>
 </root>

@@ -11335,8 +11335,10 @@ done:
                 case SyntaxKind.SuppressNullableWarningExpression:
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.TrueLiteralExpression:
-                case SyntaxKind.TupleExpression:
-                    return Precedence.Primary;
+                 case SyntaxKind.TupleExpression:
+                 case SyntaxKind.CsxElement:
+                 case SyntaxKind.CsxSelfClosingElement:
+                     return Precedence.Primary;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(op);
             }
@@ -12061,6 +12063,14 @@ done:
                         // ref is not expected to appear in this position.
                         var refKeyword = this.EatToken();
                         return this.AddError(_syntaxFactory.RefExpression(refKeyword, this.ParseExpressionCore()), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+                    case SyntaxKind.LessThanToken:
+                        // CSX element: <MyComponent Prop="val" />  or  <MyComponent>children</MyComponent>
+                        // Only attempt when CsxFactory is configured and the lookahead confirms CSX.
+                        if (this.Options.CsxFactory != null && this.IsPossibleCsxElement())
+                        {
+                            return this.ParseCsxElement();
+                        }
+                        goto default;
                     default:
                         if (IsPredefinedType(tk))
                         {

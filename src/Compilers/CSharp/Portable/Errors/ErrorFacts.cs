@@ -2587,7 +2587,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnionConstructorCallsDefaultConstructor
                 or ErrorCode.ERR_UnsafeConstructorConstraint
                 or ErrorCode.WRN_UnsafeMeaningless
-                or ErrorCode.ERR_RequiresUnsafeAttributeInSource
+                 or ErrorCode.ERR_RequiresUnsafeAttributeInSource
+                 or ErrorCode.ERR_CsxFactoryTypeNotFound
+                 or ErrorCode.ERR_CsxNamespaceNotFound
+                 or ErrorCode.ERR_CsxElementTypeNotFound
+                 or ErrorCode.ERR_CsxUnknownComponent
+                 or ErrorCode.ERR_CsxComponentNotReturningElement
+                 or ErrorCode.ERR_CsxUnknownProp
+                 or ErrorCode.ERR_CsxPropTypeMismatch
+                 or ErrorCode.ERR_CsxMissingRequiredProp
+                 or ErrorCode.ERR_CsxOpenClosingTagMismatch
+                 or ErrorCode.ERR_CsxRequiresCsxFactory
+                 or ErrorCode.ERR_CsxCreateTextNodeNotFound
+                 or ErrorCode.ERR_CsxRenderMethodInvalidSignature
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

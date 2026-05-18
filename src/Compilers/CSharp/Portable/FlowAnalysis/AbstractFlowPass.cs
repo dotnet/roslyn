@@ -2120,6 +2120,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitCsxElement(BoundCsxElement node)
+        {
+            // Visit props and children so definite assignment / flow state is tracked through them.
+            VisitRvalue(node.ComponentArgument);
+            VisitRvalue(node.PropsArgument);
+            foreach (var child in node.Children)
+                VisitRvalue(child);
+            return null;
+        }
+
         public override BoundNode VisitCollectionExpression(BoundCollectionExpression node)
         {
             Visit(node.CollectionCreation);

@@ -3883,6 +3883,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCsxElement(BoundCsxElement node)
+        {
+            // Visit all sub-expressions so every BoundExpression is registered in the
+            // analyzedNullabilityMap (required by DebugVerifier).
+            Visit(node.ComponentArgument);
+            if (node.PropsArgument is not null)
+                Visit(node.PropsArgument);
+            foreach (var child in node.Children)
+                Visit(child);
+
+            // The result is non-null: CreateElement always returns a non-null CSX.Element.
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
         public override BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
         {
             // This method is only involved in method inference with unbound lambdas.

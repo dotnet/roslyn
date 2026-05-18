@@ -2688,4 +2688,28 @@
     <Field Name="InitializerExpression" Type="BoundObjectInitializerExpressionBase" />
   </Node>
 
+  <!-- CSX (JSX-like component syntax) bound nodes -->
+
+  <!--
+    Represents a bound CSX element expression, e.g. <Button Color="red">child</Button>
+    or the self-closing form <Button Color="red" />.
+
+    After binding:
+      - Type            = the CSX.Element type from the factory's nested CSX class
+      - FactoryMethod   = the resolved CreateElement overload on the factory type
+      - ComponentArgument = the bound component reference (e.g. method group for Button)
+      - PropsArgument   = a BoundObjectCreationExpression for new ButtonProps(Color: "red")
+                          or null if the component takes no props parameter
+      - Children        = bound children (each is a CSX.Element, including text nodes
+                          wrapped via CSX.CreateTextNode)
+  -->
+  <Node Name="BoundCsxElement" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="FactoryMethod" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="ComponentMethod" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="ComponentArgument" Type="BoundExpression" Null="disallow"/>
+    <Field Name="PropsArgument" Type="BoundExpression?" Null="allow"/>
+    <Field Name="Children" Type="ImmutableArray&lt;BoundExpression&gt;" Null="NotApplicable"/>
+  </Node>
+
 </Tree>

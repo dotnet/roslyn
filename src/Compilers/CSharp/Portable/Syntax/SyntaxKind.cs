@@ -944,5 +944,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
         UnionDeclaration = 9082,
+
+        // CSX (JSX-like component syntax) node kinds
+        CsxElement = 9083,
+        CsxSelfClosingElement = 9084,
+        CsxOpeningElement = 9085,
+        CsxClosingElement = 9086,
+        CsxAttribute = 9087,
+        CsxSpreadAttribute = 9088,
+        CsxExpression = 9089,
+        CsxText = 9090,
+        CsxFragment = 9091,
+        CsxOpeningFragment = 9092,
+        CsxClosingFragment = 9093,
     }
 }

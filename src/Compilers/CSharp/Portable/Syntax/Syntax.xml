@@ -5199,4 +5199,101 @@
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
   </Node>
+
+  <!-- ============================================================ -->
+  <!-- CSX (JSX-like component syntax) nodes                        -->
+  <!-- ============================================================ -->
+
+  <!-- Abstract base for all nodes that can appear in CSX context   -->
+  <AbstractNode Name="CsxNodeSyntax" Base="ExpressionSyntax">
+  </AbstractNode>
+
+  <!-- <Tag Attr="val">children</Tag> -->
+  <Node Name="CsxElementSyntax" Base="CsxNodeSyntax">
+    <Kind Name="CsxElement"/>
+    <Field Name="OpeningElement" Type="CsxOpeningElementSyntax"/>
+    <Field Name="Children" Type="SyntaxList&lt;CsxNodeSyntax&gt;"/>
+    <Field Name="ClosingElement" Type="CsxClosingElementSyntax"/>
+  </Node>
+
+  <!-- <Tag Attr="val" /> -->
+  <Node Name="CsxSelfClosingElementSyntax" Base="CsxNodeSyntax">
+    <Kind Name="CsxSelfClosingElement"/>
+    <Field Name="LessThanToken" Type="SyntaxToken">
+      <Kind Name="LessThanToken"/>
+    </Field>
+    <Field Name="Name" Type="NameSyntax"/>
+    <Field Name="Attributes" Type="SyntaxList&lt;CsxAttributeSyntax&gt;"/>
+    <Field Name="SlashGreaterThanToken" Type="SyntaxToken"/>
+  </Node>
+
+  <!-- <Tag attrs> — the opening half of a CsxElement -->
+  <Node Name="CsxOpeningElementSyntax" Base="CsxNodeSyntax">
+    <Kind Name="CsxOpeningElement"/>
+    <Field Name="LessThanToken" Type="SyntaxToken">
+      <Kind Name="LessThanToken"/>
+    </Field>
+    <Field Name="Name" Type="NameSyntax"/>
+    <Field Name="Attributes" Type="SyntaxList&lt;CsxAttributeSyntax&gt;"/>
+    <Field Name="GreaterThanToken" Type="SyntaxToken">
+      <Kind Name="GreaterThanToken"/>
+    </Field>
+  </Node>
+
+  <!-- </Tag> — the closing half of a CsxElement -->
+  <Node Name="CsxClosingElementSyntax" Base="CsxNodeSyntax">
+    <Kind Name="CsxClosingElement"/>
+    <Field Name="LessThanToken" Type="SyntaxToken">
+      <Kind Name="LessThanToken"/>
+    </Field>
+    <Field Name="SlashToken" Type="SyntaxToken">
+      <Kind Name="SlashToken"/>
+    </Field>
+    <Field Name="Name" Type="NameSyntax"/>
+    <Field Name="GreaterThanToken" Type="SyntaxToken">
+      <Kind Name="GreaterThanToken"/>
+    </Field>
+  </Node>
+
+  <!-- name={expr}  or  name="str"  or  name (boolean shorthand) -->
+  <Node Name="CsxAttributeSyntax" Base="CsxNodeSyntax">
+    <Kind Name="CsxAttribute"/>
+    <Field Name="Name" Type="IdentifierNameSyntax"/>
+    <Field Name="EqualsToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="Value" Type="ExpressionSyntax" Optional="true"/>
+  </Node>
+
+  <!-- {...expr} — spread attribute -->
+  <Node Name="CsxSpreadAttributeSyntax" Base="CsxNodeSyntax">
+    <Kind Name="CsxSpreadAttribute"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="DotDotDotToken" Type="SyntaxToken"/>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+  </Node>
+
+  <!-- {expr} — embedded C# expression in CSX child content -->
+  <Node Name="CsxExpressionSyntax" Base="CsxNodeSyntax">
+    <Kind Name="CsxExpression"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+  </Node>
+
+  <!-- literal text between tags -->
+  <Node Name="CsxTextSyntax" Base="CsxNodeSyntax">
+    <Kind Name="CsxText"/>
+    <Field Name="TextToken" Type="SyntaxToken"/>
+  </Node>
+
 </Tree>

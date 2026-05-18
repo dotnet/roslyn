@@ -533,6 +533,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Named arguments handled in special way.
                 return this.GetNamedArgumentSymbolInfo((IdentifierNameSyntax)expression, cancellationToken);
             }
+            else if (expression is IdentifierNameSyntax csxAttrIdent && expression.Parent is CsxAttributeSyntax)
+            {
+                // CSX attribute names (e.g. `Label` in `<Button Label="x" />`) have no bound node
+                // of their own — just like named arguments. Resolve the parameter directly.
+                return this.GetCsxAttributeNameSymbolInfo(csxAttrIdent, cancellationToken);
+            }
             else if (SyntaxFacts.IsDeclarationExpressionType(expression, out DeclarationExpressionSyntax parent))
             {
                 switch (parent.Designation.Kind())
@@ -4573,6 +4579,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new SymbolInfo(symbols.ToImmutableAndFree(), containingInvocationInfo.CandidateReason);
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the <see cref="SymbolInfo"/> for a CSX attribute name identifier, e.g. <c>Label</c>
+        /// in <c>&lt;Button Label="x" /&gt;</c>.  CSX attribute names have no bound node of their own
+        /// (just like named arguments), so we resolve the props constructor parameter directly.
+        /// </summary>
+        private SymbolInfo GetCsxAttributeNameSymbolInfo(IdentifierNameSyntax identifierNameSyntax, CancellationToken cancellationToken)
+        {
+            Debug.Assert(identifierNameSyntax.Parent is CsxAttributeSyntax);
+
+            var attrName = identifierNameSyntax.Identifier.ValueText;
+            if (attrName.Length == 0)
+                return SymbolInfo.None;
+
+            var attrSyntax = (CsxAttributeSyntax)identifierNameSyntax.Parent;
+
+            // Walk up to the containing CSX element (self-closing or with children).
+            // Self-closing: attr.Parent == CsxSelfClosingElementSyntax (direct)
+            // With children: attr.Parent == CsxOpeningElementSyntax -> .Parent == CsxElementSyntax
+            CsxNodeSyntax csxElement =
+                attrSyntax.Parent as CsxSelfClosingElementSyntax ??
+                (attrSyntax.Parent?.Parent as CsxElementSyntax as CsxNodeSyntax);
+
+            if (csxElement == null)
+                return SymbolInfo.None;
+
+            // Bind the whole element; pull the props BoundObjectCreationExpression from whichever
+            // bound node is returned — GetLowerBoundNode may return the BoundObjectCreationExpression
+            // for props directly (it shares the same syntax key as the whole element) or the
+            // BoundCsxElement itself; handle both.
+            var memberModel = this.GetMemberModel(csxElement);
+            var lowerBound = memberModel?.GetLowerBoundNode(csxElement);
+            BoundObjectCreationExpression objCreation = lowerBound switch
+            {
+                BoundObjectCreationExpression boc => boc,
+                BoundCsxElement csx => csx.PropsArgument as BoundObjectCreationExpression,
+                _ => null
+            };
+
+            if (objCreation is not null)
+            {
+                var param = FindNamedParameter(objCreation.Constructor.Parameters, attrName);
+                if (param is not null)
+                    return new SymbolInfo(param.GetPublicSymbol());
+            }
+
+            return SymbolInfo.None;
         }
 
         /// <summary>

@@ -867,6 +867,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.WithExpression:
                         return BindWithExpression((WithExpressionSyntax)node, diagnostics);
 
+                    case SyntaxKind.CsxElement:
+                    case SyntaxKind.CsxSelfClosingElement:
+                        return BindCsxElement((CsxNodeSyntax)node, diagnostics);
+
+                    case SyntaxKind.CsxExpression:
+                        // {expr} wrapper — unwrap and bind the inner expression directly.
+                        return BindExpression(((CsxExpressionSyntax)node).Expression, diagnostics);
+
+                    case SyntaxKind.CsxText:
+                        // Literal text content between tags — return a string literal bound node.
+                        return new BoundLiteral(node,
+                            ConstantValue.Create(((CsxTextSyntax)node).TextToken.ValueText),
+                            GetSpecialType(SpecialType.System_String, diagnostics, node));
+
+                    case SyntaxKind.CsxOpeningElement:
+                    case SyntaxKind.CsxClosingElement:
+                    case SyntaxKind.CsxAttribute:
+                        // These are sub-nodes of a CsxElement and cannot be bound in isolation.
+                        // Walk up to the parent CsxElementSyntax and bind that instead, so the
+                        // semantic model (classifier, symbol info, etc.) gets a valid result.
+                        var csxParent = node.Parent as CsxNodeSyntax ?? node.Parent?.Parent as CsxNodeSyntax;
+                        if (csxParent != null)
+                            return BindCsxElement(csxParent, diagnostics);
+                        goto default;
+
                     default:
                         // NOTE: We could probably throw an exception here, but it's conceivable
                         // that a non-parser syntax tree could reach this point with an unexpected
