@@ -49,6 +49,8 @@ internal sealed partial class CSharpUseInitializerCodeFixProvider() :
         StatementSyntax,
         BaseObjectCreationExpressionSyntax,
         MemberAccessExpressionSyntax,
+        // TAssignmentStatementSyntax — `=` and compound `op=` statements (also Add invocations
+        // for the mixed-init Add-fold path) all bind to `ExpressionStatementSyntax` in C#.
         ExpressionStatementSyntax,
         InvocationExpressionSyntax,
         ExpressionStatementSyntax,

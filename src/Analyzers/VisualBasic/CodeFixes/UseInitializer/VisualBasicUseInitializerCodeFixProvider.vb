@@ -44,6 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInitializer
             VariableDeclaratorSyntax,
             VisualBasicUseNamedMemberInitializerAnalyzer,
             VisualBasicCollectionInitializerAnalyzer)
+        ' Note: above the `AssignmentStatementSyntax` slot serves both `TAssignmentStatementSyntax`
+        ' on the abstract base AND the matching slot on the collection-init analyzer's generic
+        ' instantiation — VB's separate AssignmentStatementSyntax type is the right node for both.
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>

@@ -74,6 +74,7 @@ internal abstract class AbstractUseInitializerCodeFixProvider<
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
+        TAssignmentStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
         TCollectionInitAnalyzer>, new()

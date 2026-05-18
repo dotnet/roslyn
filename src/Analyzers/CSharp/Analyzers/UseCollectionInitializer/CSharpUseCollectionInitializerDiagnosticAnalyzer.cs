@@ -31,6 +31,10 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         MemberAccessExpressionSyntax,
         InvocationExpressionSyntax,
         ExpressionStatementSyntax,
+        // For C#, member assignments and `Add` invocations are both wrapped in
+        // `ExpressionStatementSyntax`. Pass 3 of the IDE0017+IDE0028 unification re-uses this
+        // slot for the unified walk's member-init detection — see the analyzer for details.
+        ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
         CSharpUseCollectionInitializerAnalyzer>

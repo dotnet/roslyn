@@ -23,6 +23,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     TMemberAccessExpressionSyntax,
     TInvocationExpressionSyntax,
     TExpressionStatementSyntax,
+    TAssignmentStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
     TAnalyzer>
@@ -34,6 +35,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     where TMemberAccessExpressionSyntax : TExpressionSyntax
     where TInvocationExpressionSyntax : TExpressionSyntax
     where TExpressionStatementSyntax : TStatementSyntax
+    where TAssignmentStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
     where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
@@ -43,6 +45,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
+        TAssignmentStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
@@ -172,6 +175,20 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             collectionExpressionMatches.Value.matches.Length >= collectionInitializerMatches.Value.matches.Length
                 ? collectionExpressionMatches.Value
                 : collectionInitializerMatches.Value;
+
+        // Pass 3 of the IDE0017+IDE0028 unification: the walk now produces member-initializer
+        // matches alongside Add/index/spread matches so a single walk powers both diagnostic
+        // families. The use-object-initializer diagnostic analyzer
+        // (`AbstractUseObjectInitializerDiagnosticAnalyzer`) is the canonical reporter for
+        // any match list that contains member-initializer entries — it owns the IDE0017 /
+        // IDE0400 routing and dispatches to the right diagnostic ID. Bailing out here when
+        // any match is a member-initializer prevents IDE0028 from double-reporting on the
+        // same span.
+        foreach (var match in matches)
+        {
+            if (match.Kind == InitializerMatchKind.MemberInitializer)
+                return;
+        }
 
         var nodes = containingStatement is null
             ? ImmutableArray<SyntaxNode>.Empty

@@ -22,12 +22,24 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     MemberAccessExpressionSyntax,
     InvocationExpressionSyntax,
     ExpressionStatementSyntax,
+    // For C#, member assignments and `Add` invocations are both wrapped in
+    // `ExpressionStatementSyntax`; the unified walk uses this slot to detect assignment-
+    // statement shapes for member-init folding (the discriminator is the inner expression's
+    // kind, not the statement's). Re-using `ExpressionStatementSyntax` here keeps the C#
+    // generic instantiation simple.
+    ExpressionStatementSyntax,
     LocalDeclarationStatementSyntax,
     VariableDeclaratorSyntax,
     CSharpUseCollectionInitializerAnalyzer>
 {
     protected override IUpdateExpressionSyntaxHelper<ExpressionSyntax, StatementSyntax> SyntaxHelper
         => CSharpUpdateExpressionSyntaxHelper.Instance;
+
+    protected override bool SupportsCompoundAssignmentInInitializer(ParseOptions options)
+        => options.LanguageVersion().SupportsCompoundAssignmentInInitializer();
+
+    protected override bool SupportsMixedObjectAndCollectionInitializers(ParseOptions options)
+        => options.LanguageVersion().SupportsMixedObjectAndCollectionInitializers();
 
     protected override bool IsInitializerOfLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement, BaseObjectCreationExpressionSyntax rootExpression, [NotNullWhen(true)] out VariableDeclaratorSyntax? variableDeclarator)
         => CSharpObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, out variableDeclarator);
