@@ -486,6 +486,312 @@ public sealed partial class UseObjectInitializerTests
         }.RunAsync();
 
     [Fact]
+    public Task TestWithExistingInitializerNotIfAlreadyInitialized_Compound()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = [|new|] C()
+                    {
+                        i += 1,
+                    };
+                    [|c.|]j = 1;
+                    c.i = 2;
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i += 1,
+                        j = 1
+                    };
+                    c.i = 2;
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_FoldsIntoInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = [|new|] C { i = 1 };
+                    [|c.|]j += 1;
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i = 1,
+                        j += 1
+                    };
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_PreservesOperatorKind()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                int i;
+                int j;
+                int k;
+                string s;
+
+                void M()
+                {
+                    var c = [|new|] C();
+                    [|c.|]i += 1;
+                    [|c.|]j -= 2;
+                    [|c.|]k *= 3;
+                    [|c.|]s ??= "x";
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                int i;
+                int j;
+                int k;
+                string s;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i += 1,
+                        j -= 2,
+                        k *= 3,
+                        s ??= "x"
+                    };
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_Event_StackedSubscriptions()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public event EventHandler Click;
+
+                void M(EventHandler h1, EventHandler h2)
+                {
+                    var c = [|new|] C();
+                    [|c.|]Click += h1;
+                    [|c.|]Click += h2;
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+
+            class C
+            {
+                public event EventHandler Click;
+
+                void M(EventHandler h1, EventHandler h2)
+                {
+                    var c = new C
+                    {
+                        Click += h1,
+                        Click += h2
+                    };
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_NotOfferedBeforePreview()
+        => new VerifyCS.Test
+        {
+            // The feature is gated to LanguageVersion.Preview. On C# 14 the resulting initializer
+            // would itself be a binder error, so the analyzer must not offer to fold compound-form
+            // subsequent statements. The diagnostic still fires on the `new` for the simple `i = 1`
+            // case (so the pre-existing simple-fold path stays intact), but `c.j += 1;` is left
+            // alone — no `[|c.|]` marker on it.
+            TestCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = [|new|] C();
+                    [|c.|]i = 1;
+                    c.j += 1;
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i = 1
+                    };
+                    c.j += 1;
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_StacksOntoExistingEqualsInitializer()
+        // `{ i = 1 } + c.i += 5` is a valid stack per spec ("= before any compound"); the analyzer
+        // folds the subsequent compound and continues to fold further unrelated targets.
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = [|new|] C { i = 1 };
+                    [|c.|]i += 5;
+                    [|c.|]j = 7;
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i = 1,
+                        i += 5,
+                        j = 7
+                    };
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_StopsAfterEqualsAtSubsequentEquals()
+        // After `{ i = 1 } + c.i = 5` is invalid (would duplicate `=`), so the analyzer stops at
+        // the repeat-name `c.i = 5`. Nothing past that point is folded either; no diagnostic since
+        // there's nothing to do.
+        => TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = new C { i = 1 };
+                    c.i = 5;
+                    c.j = 7;
+                }
+            }
+            """, LanguageVersion.Preview);
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_StopsAfterCompoundAtSubsequentEquals()
+        // `{ i += 1 } + c.i = 5` would be `{ i += 1, i = 5 }`, which violates the "= before any
+        // compound" ordering rule. The analyzer stops at the offending `c.i = 5`. The earlier
+        // existing initializer is left untouched (no further valid fold on either name).
+        => TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int i;
+
+                void M()
+                {
+                    var c = new C { i += 1 };
+                    c.i = 5;
+                }
+            }
+            """, LanguageVersion.Preview);
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_NestedInitializerIsExclusive()
+        // `{ Inner = { X = 1 } }` is the spec's exclusive nested-init form. Any further fold on
+        // `Inner` (compound or otherwise) is rejected.
+        => TestMissingInRegularAndScriptAsync("""
+            class Inner
+            {
+                public int X;
+            }
+
+            class C
+            {
+                public Inner Inner = new Inner();
+            }
+
+            class D
+            {
+                void M()
+                {
+                    var c = new C { Inner = { X = 1 } };
+                    c.Inner = null;
+                }
+            }
+            """, LanguageVersion.Preview);
+
+    [Fact]
     public Task TestMissingBeforeCSharp3()
         => TestMissingInRegularAndScriptAsync(
             """

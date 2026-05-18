@@ -15542,5 +15542,209 @@ Block[B5] - Exit
 
             VerifyFlowGraph(comp, comp.SyntaxTrees[0].GetRoot(), expectedFlowGraph);
         }
+
+        // =========================================================================================
+        // Compound assignment in object initializer / `with` expression. See the
+        // CompoundAssignmentInitializer* test files in the CSharp15 project for the rest of the
+        // SemanticModel surface; the tests below pin the IOperation tree shape specifically.
+        // =========================================================================================
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectCreation_PropertyCompoundInitializer()
+        {
+            string source = @"
+class C
+{
+    public int P { get; set; }
+    public static C Make() => /*<bind>*/new C { P += 5 }/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { P += 5 }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ P += 5 }')
+      Initializers(1):
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'P += 5')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Left: 
+              IPropertyReferenceOperation: System.Int32 C.P { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'P')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectCreation_IndexerCompoundInitializer()
+        {
+            string source = @"
+class C
+{
+    public int this[int i] { get => 0; set { } }
+    public static C Make() => /*<bind>*/new C { [0] += 5 }/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { [0] += 5 }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ [0] += 5 }')
+      Initializers(1):
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: '[0] += 5')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Left: 
+              IPropertyReferenceOperation: System.Int32 C.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '[0]')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '[0]')
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '0')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectCreation_PropertyCoalesceInitializer()
+        {
+            string source = @"
+class C
+{
+    public string P { get; set; }
+    public static C Make() => /*<bind>*/new C { P ??= ""x"" }/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { P ??= ""x"" }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ P ??= ""x"" }')
+      Initializers(1):
+          ICoalesceAssignmentOperation (OperationKind.CoalesceAssignment, Type: System.String) (Syntax: 'P ??= ""x""')
+            Target: 
+              IPropertyReferenceOperation: System.String C.P { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'P')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'P')
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"") (Syntax: '""x""')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectCreation_EventPlusEqualsInitializer()
+        {
+            string source = @"
+using System;
+class C
+{
+    public event EventHandler E;
+    public static C Make(EventHandler h) => /*<bind>*/new C { E += h }/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { E += h }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ E += h }')
+      Initializers(1):
+          IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void) (Syntax: 'E += h')
+            Event Reference: 
+              IEventReferenceOperation: event System.EventHandler C.E (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'E')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
+            Handler: 
+              IParameterReferenceOperation: h (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'h')
+";
+            var expectedDiagnostics = new[] { Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 31) };
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectCreation_CompoundInitializer_BadNestedRhs()
+        {
+            string source = @"
+class C
+{
+    public int P { get; set; }
+    public static C Make() => /*<bind>*/new C { P += { 1, 2 } }/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C { P += { 1, 2 } }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ P += { 1, 2 } }')
+      Initializers(1):
+          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'P += { 1, 2 }')
+            Children(2):
+                IPropertyReferenceOperation: System.Int32 C.P { get; set; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'P')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'P')
+                IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Int32, IsInvalid) (Syntax: '{ 1, 2 }')
+                  Initializers(2):
+                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '1')
+                        Children(1):
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '2')
+                        Children(1):
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+";
+            var expectedDiagnostics = new[]
+            {
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "P").WithArguments("C.P", "int").WithLocation(5, 49),
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "P += { 1, 2 }").WithLocation(5, 49),
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void WithExpression_PropertyCompoundInitializer()
+        {
+            string source = @"
+namespace System.Runtime.CompilerServices { public sealed class IsExternalInit { } }
+record R(int P)
+{
+    public static R Make(R r) => /*<bind>*/r with { P += 5 }/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IWithOperation (OperationKind.With, Type: R) (Syntax: 'r with { P += 5 }')
+  Operand: 
+    IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: R) (Syntax: 'r')
+  CloneMethod: R R.<Clone>$()
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: R) (Syntax: '{ P += 5 }')
+      Initializers(1):
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'P += 5')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Left: 
+              IPropertyReferenceOperation: System.Int32 R.P { get; init; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: 'P')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<WithExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
