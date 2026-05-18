@@ -2169,10 +2169,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     inputType is NamedTypeSymbol { IsUnionType: true } inputUnionType &&
                     Binder.IsUnionTypeValueProperty(inputUnionType, property))
                 {
-                    // https://github.com/dotnet/roslyn/issues/82636: The condition above maches the logic in DecisionDagBuilder.MakeTestsAndBindingsForRecursivePattern
+                    // https://github.com/dotnet/roslyn/issues/82636: The condition above matches the logic in DecisionDagBuilder.MakeTestsAndBindingsForRecursivePattern
                     //                                                and, at the moment, it doesn't accept qualified names for the value property. However, it probably should.
                     //                                                Once that is changed, this place should be updated to match the new logic.
-                    MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, subpattern.Member.Syntax); // Since new exhaustiveness rulles will be used by DecisionDagBuilder.
+                    MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, subpattern.Member.Syntax); // Since new exhaustiveness rules will be used by DecisionDagBuilder.
                 }
 
                 builder.Add(subpattern);
