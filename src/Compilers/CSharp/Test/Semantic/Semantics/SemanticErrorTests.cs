@@ -12039,7 +12039,12 @@ public class C
         return 1;
     }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
+            // Pinned at pre-mixed-init language version: under the mixed object/collection
+            // initializer feature (dotnet/csharplang#10185) `Capacity = 2, 1` is valid because
+            // `List<int>` supports both `Capacity` (member) and `Add` (element); CS0747 no longer
+            // fires for this shape. Tests of the post-feature behavior live in the CSharp15
+            // MixedInitializer* files.
+            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "1"));
         }
 

@@ -966,6 +966,38 @@ public sealed partial class UseAutoPropertyTests
             """, new(parseOptions: CSharp14));
 
     [Fact]
+    public Task TestFieldUsedInWithInitializer()
+        => TestInRegularAndScriptAsync(
+            """
+            record C(int Other)
+            {
+                [|private string prop;|]
+
+                public string Prop
+                {
+                    get
+                    {
+                        var v = this with { prop = "" };
+                        return prop.Trim();
+                    }
+                }
+            }
+            """,
+            """
+            record C(int Other)
+            {
+                public string Prop
+                {
+                    get
+                    {
+                        var v = this with { Prop = "" };
+                        return field.Trim();
+                    }
+                }
+            }
+            """, new(parseOptions: CSharp14));
+
+    [Fact]
     public Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere1()
         => TestInRegularAndScriptAsync(
             """

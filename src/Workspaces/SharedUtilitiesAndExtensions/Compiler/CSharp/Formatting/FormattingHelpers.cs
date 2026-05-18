@@ -389,23 +389,15 @@ internal static class FormattingHelpers
         {
             var parent = initializer.Parent;
             if (parent is AnonymousObjectCreationExpressionSyntax)
-            {
                 return true;
-            }
 
+            // Trust the parser-assigned wrapper kind rather than re-inferring from the first element.
+            // The previous "first element is `AssignmentExpressionSyntax`" heuristic miscategorised
+            // mixed object/collection initializers (dotnet/csharplang#10185) whose first element
+            // happens to be a bare expression while a later element flips the wrapper to
+            // `ObjectInitializerExpression` (e.g. `new C { 1, X = 2 }`).
             if (parent is BaseObjectCreationExpressionSyntax)
-            {
-                if (initializer.Expressions.Count <= 0)
-                {
-                    return true;
-                }
-
-                var expression = initializer.Expressions[0];
-                if (expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
-                {
-                    return true;
-                }
-            }
+                return initializer.IsKind(SyntaxKind.ObjectInitializerExpression);
 
             return false;
         }

@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
@@ -22,4 +24,10 @@ internal sealed class CSharpUseNamedMemberInitializerAnalyzer :
 {
     protected override bool IsInitializerOfLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement, BaseObjectCreationExpressionSyntax rootExpression, [NotNullWhen(true)] out VariableDeclaratorSyntax? variableDeclarator)
         => CSharpObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, out variableDeclarator);
+
+    protected override bool SupportsCompoundAssignmentInInitializer(ParseOptions options)
+        => options.LanguageVersion().SupportsCompoundAssignmentInInitializer();
+
+    protected override bool SupportsMixedObjectAndCollectionInitializers(ParseOptions options)
+        => options.LanguageVersion().SupportsMixedObjectAndCollectionInitializers();
 }
