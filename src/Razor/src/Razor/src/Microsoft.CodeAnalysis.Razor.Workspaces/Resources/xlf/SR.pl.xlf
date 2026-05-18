@@ -12,11 +12,6 @@
         <target state="translated">{0} (i atrybuty req'd...)</target>
         <note>The term "req'd" is an abbreviation for "required"</note>
       </trans-unit>
-      <trans-unit id="Create_Component_FromTag_Title">
-        <source>Create component from tag</source>
-        <target state="translated">Utwórz składnik z tagu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Blazor_directive_attributes">
         <source>Blazor directive attributes</source>
         <target state="translated">Atrybut dyrektywy Blazor</target>
@@ -54,21 +49,6 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
         <target state="translated">Edycja na stronie {0} usuwa zawartość bez białych znaków „{1}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExtractTo_CodeBehind_Title">
-        <source>Extract block to code behind</source>
-        <target state="translated">Wyodrębnij blok do kodu znajdującego się poza</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExtractTo_Component_Title">
-        <source>Extract element to new component</source>
-        <target state="translated">Wyodrębnij element do nowego składnika</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExtractTo_Css_Title">
-        <source>Extract to {0}.css</source>
-        <target state="translated">Wyodrębnij do {0}.css</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">Operacja formatowania jest porzucana, ponieważ spowodowałaby wprowadzenie lub usunięcie jednej z większej liczby diagnostyki.</target>
@@ -82,16 +62,6 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
       <trans-unit id="Formatting_Error">
         <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
         <target state="translated">Błąd formatowania. Porzucanie dalszej pracy, aby nie uszkodzić pliku, zgłoś ten problem. Zobacz: https://aka.ms/razor-formatting-issue</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Async_Event_Handler_Title">
-        <source>Generate Async Event Handler '{0}'</source>
-        <target state="translated">Generuj asynchroniczny program obsługi zdarzeń „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Event_Handler_Title">
-        <source>Generate Event Handler '{0}'</source>
-        <target state="translated">Generuj obsługę zdarzeń „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
@@ -132,31 +102,6 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
       <trans-unit id="PositionLine_Outside_Range">
         <source>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
         <target state="translated">Wykonano zapytanie wiersza "{0}" poza zakresem {1} "{2}". Dokument może być nieaktualny.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Promote_using_directive_to">
-        <source>Promote using directive to {0}</source>
-        <target state="translated">Podwyższ poziom dyrektywy using do {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_directives">
-        <source>Remove unnecessary directives</source>
-        <target state="translated">Usuń niepotrzebne dyrektywy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Fully_Qualified_Component_Title">
-        <source>Simplify fully qualified component</source>
-        <target state="translated">Upraszczanie w pełni kwalifikowanego składnika</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
-        <source>Simplify tag to self-closing</source>
-        <target state="translated">Uprość tag do samodzielnego zamykania</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_And_Consolidate_Usings_Title">
-        <source>Sort and consolidate usings</source>
-        <target state="translated">Sortuj i konsoliduj użycia</target>
         <note />
       </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
@@ -202,11 +147,6 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
       <trans-unit id="Unsupported_razor_project_info_version_encountered">
         <source>Unsupported razor project info version encounted.</source>
         <target state="translated">Napotkano nieobsługiwaną wersję informacji o projekcie Razor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Wrap_attributes">
-        <source>Wrap attributes</source>
-        <target state="translated">Opakowuj atrybuty</target>
         <note />
       </trans-unit>
     </body>

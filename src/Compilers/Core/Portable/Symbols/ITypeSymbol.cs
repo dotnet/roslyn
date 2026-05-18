@@ -143,7 +143,14 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         bool IsRecord { get; }
 
-        // https://github.com/dotnet/roslyn/issues/82636: Add bool IsUnion { get; } ?
+        /// <summary>
+        /// True if language treats the type as a Union.
+        /// </summary>
+        bool IsUnion
+        {
+            [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
+            get;
+        }
 
         /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.

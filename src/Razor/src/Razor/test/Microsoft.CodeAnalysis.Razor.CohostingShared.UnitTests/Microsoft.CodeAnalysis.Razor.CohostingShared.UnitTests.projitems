@@ -30,8 +30,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToComponentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToCssTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateEventHandlerTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\Html\HtmlCodeActionProviderTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\Html\HtmlCodeActionResolverTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\PromoteUsingDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\RemoveUnnecessaryDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\SimplifyFullyQualifiedComponentTests.cs" />
