@@ -121,34 +121,10 @@ internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider servicePro
 
     protected override async Task<IEnumerable<XElement>> CreateAdditionalProjectElementsAsync(Project project, CancellationToken cancellationToken)
     {
-        var elements = new List<XElement>();
-
-        var msbuildReferencesElement = CreateMsBuildReferencesElement(project);
-        if (msbuildReferencesElement != null)
-            elements.Add(msbuildReferencesElement);
-
         var dteReferencesElement = await CreateDteReferencesElementAsync(serviceProvider, threadingContext, project);
-        if (dteReferencesElement != null)
-            elements.Add(dteReferencesElement);
-
-        return elements;
-    }
-
-    private static XElement? CreateMsBuildReferencesElement(Project project)
-    {
-        if (project.FilePath == null)
-            return null;
-
-        var msbuildProject = XDocument.Load(project.FilePath);
-        var msbuildNamespace = XNamespace.Get("http://schemas.microsoft.com/developer/msbuild/2003");
-
-        var msbuildReferencesElement = new XElement("msbuildReferences");
-
-        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "ProjectReference"));
-        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "Reference"));
-        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "ReferencePath"));
-
-        return msbuildReferencesElement;
+        return (dteReferencesElement != null)
+            ? [dteReferencesElement]
+            : [];
     }
 
     private static async Task<XElement?> CreateDteReferencesElementAsync(IServiceProvider serviceProvider, IThreadingContext threadingContext, Project project)
