@@ -102,6 +102,23 @@ public sealed class SumConverterTypeFilteringTests
     }
 
     [Fact]
+    public void Deserialize_ObjectArray_SkipsNestedArrayTypeArm()
+    {
+        // Array element peeking sees a StartObject token in the first element.
+        // int[][] should be rejected because its element type (int[]) is an array
+        // and a JSON object can never deserialize into an array type. Without the
+        // !type.IsArray check on the StartObject case, int[] would pass the filter
+        // (it's not a primitive type) causing an unnecessary deserialization attempt.
+        var json = """{"value": [{"name": "a"}, {"name": "b"}]}""";
+        var result = DeserializeWithNoExceptions<NestedIntArrayOrObjectArrayHolder>(json);
+
+        Assert.True(result.Value.TryGetSecond(out var objects));
+        Assert.Equal(2, objects.Length);
+        Assert.Equal("a", objects[0].Name);
+        Assert.Equal("b", objects[1].Name);
+    }
+
+    [Fact]
     public void Deserialize_ArrayWithOptionsRegisteredElementConverter_MatchesViaFallback()
     {
         // StringWrapper has no type-level [JsonConverter], so IsTokenCompatibleWithType
@@ -188,6 +205,18 @@ public sealed class SumConverterTypeFilteringTests
     {
         [JsonPropertyName("value")]
         public SumType<int[], StringWrapper[]> Value { get; set; }
+    }
+
+    private sealed class NestedIntArrayOrObjectArrayHolder
+    {
+        [JsonPropertyName("value")]
+        public SumType<int[][], SimpleObject[]> Value { get; set; }
+    }
+
+    internal sealed class SimpleObject
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
     }
 
     /// <summary>

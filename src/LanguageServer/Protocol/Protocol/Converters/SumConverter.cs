@@ -321,7 +321,7 @@ internal sealed class SumConverter<T> : JsonConverter<T>
             JsonTokenType.True or JsonTokenType.False => IsBooleanType(type),
             JsonTokenType.Number => IsNumericType(type),
             JsonTokenType.String => IsStringLikeType(type),
-            JsonTokenType.StartObject => !IsSerializedAsJsonPrimitiveType(type),
+            JsonTokenType.StartObject => !IsSerializedAsJsonPrimitiveType(type) && !type.IsArray,
             JsonTokenType.StartArray => IsArrayElementCompatible(ref reader, type),
             _ => true,
         };
@@ -355,7 +355,8 @@ internal sealed class SumConverter<T> : JsonConverter<T>
                type == typeof(long) || type == typeof(ulong) ||
                type == typeof(short) || type == typeof(ushort) ||
                type == typeof(byte) || type == typeof(sbyte) ||
-               type == typeof(double) || type == typeof(float);
+               type == typeof(double) || type == typeof(float) ||
+               type == typeof(decimal);
     }
 
     /// <summary>
