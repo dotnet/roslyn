@@ -64,15 +64,9 @@ start:
                     switch (_stack.Pop())
                     {
                         case StringRope s:
-                            var str = s.ToString();
-                            if (str.Length > 0)
-                            {
-                                _currentString = str;
-                                _index = 0;
-                                goto start;
-                            }
-
-                            break;
+                            _currentString = s.ToString();
+                            _index = 0;
+                            goto start;
                         case ConcatRope c:
                             _stack.Push(c._right);
                             _stack.Push(c._left);
