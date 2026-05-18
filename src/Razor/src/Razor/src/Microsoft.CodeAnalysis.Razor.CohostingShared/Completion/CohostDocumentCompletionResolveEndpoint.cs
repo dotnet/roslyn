@@ -119,6 +119,16 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
                 if (_snippetCompletionItemProvider is not null &&
                     _snippetCompletionItemProvider.TryResolveInsertString(completionItem, out var insertString))
                 {
+                    // In start-tag context, the '<' is already in the document and outside the
+                    // replacement span. Strip it from element-style snippets to avoid duplication
+                    // (e.g., "<table>...</table>" → "table>...</table>").
+                    // The char.IsLetter check intentionally excludes non-element prefixes like
+                    // "<!", "</", "<?" which should not have their '<' stripped.
+                    if (snippetContext.IsStartTagContext && insertString.Length > 1 && insertString[0] == '<' && char.IsLetter(insertString[1]))
+                    {
+                        insertString = insertString[1..];
+                    }
+
                     completionItem.InsertText = insertString;
                 }
 

@@ -38,10 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         Required = 1 << 22, // Used only for properties and fields
         Scoped = 1 << 23,
         File = 1 << 24, // used only for types
-        Safe = 1 << 25,
+        Closed = 1 << 25, // used only for classes
+        Safe = 1 << 26,
 
-        All = (1 << 26) - 1, // all modifiers
-        Unset = 1 << 26, // used when a modifiers value hasn't yet been computed
+        All = (1 << 27) - 1, // all modifiers
+        Unset = 1 << 27, // used when a modifiers value hasn't yet been computed
 
         AccessibilityMask = PrivateProtected | Private | Protected | Internal | ProtectedInternal | Public,
     }

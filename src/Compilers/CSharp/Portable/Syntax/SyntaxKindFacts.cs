@@ -1301,6 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AllowsKeyword:
                 case SyntaxKind.ExtensionKeyword:
                 case SyntaxKind.UnionKeyword:
+                case SyntaxKind.ClosedKeyword:
                 case SyntaxKind.SafeKeyword:
                     return true;
                 default:
@@ -1433,6 +1434,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ExtensionKeyword;
                 case "union":
                     return SyntaxKind.UnionKeyword;
+                case "closed":
+                    return SyntaxKind.ClosedKeyword;
                 case "safe":
                     return SyntaxKind.SafeKeyword;
                 default:
@@ -1886,6 +1889,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "extension";
                 case SyntaxKind.UnionKeyword:
                     return "union";
+                case SyntaxKind.ClosedKeyword:
+                    return "closed";
                 case SyntaxKind.SafeKeyword:
                     return "safe";
                 default:

@@ -34,28 +34,25 @@ internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
         return ExternalHandlers.CodeActions.GetFormattedNewFileContentAsync(document, cancellationToken);
     }
 
-    public async Task<TextEdit[]?> GetSimplifiedTextEditsAsync(DocumentContext documentContext, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
+    public async Task<TextEdit[]?> GetSimplifiedTextEditsAsync(RemoteDocumentContext documentContext, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
     {
-        Debug.Assert(documentContext is RemoteDocumentContext);
-        var context = (RemoteDocumentContext)documentContext;
-
         Document document;
         if (codeBehindUri is null)
         {
             // Edit is for inserting into the generated document
-            document = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            document = await documentContext.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
         }
         else
         {
             // Edit is for inserting into a C# document
-            var solution = context.TextDocument.Project.Solution;
+            var solution = documentContext.TextDocument.Project.Solution;
             var documentIds = solution.GetDocumentIdsWithUri(codeBehindUri);
             if (documentIds.Length == 0)
             {
                 return null;
             }
 
-            document = solution.GetRequiredDocument(documentIds.First(d => d.ProjectId == context.TextDocument.Project.Id));
+            document = solution.GetRequiredDocument(documentIds.First(d => d.ProjectId == documentContext.TextDocument.Project.Id));
         }
 
         return await ExternalHandlers.CodeActions.GetSimplifiedEditsAsync(document, edit, cancellationToken).ConfigureAwait(false);

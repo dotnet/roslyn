@@ -2588,6 +2588,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsafeConstructorConstraint
                 or ErrorCode.WRN_UnsafeMeaningless
                 or ErrorCode.ERR_RequiresUnsafeAttributeInSource
+                or ErrorCode.ERR_ClosedTypeNameDisallowed
+                or ErrorCode.ERR_ClosedSealedStatic
+                or ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly
+                or ErrorCode.ERR_UnderspecifiedClosedSubtype
+                or ErrorCode.ERR_ClosedExplicitlyAbstract
                 or ErrorCode.ERR_SafeModifierUnsupportedTarget
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                     => false,

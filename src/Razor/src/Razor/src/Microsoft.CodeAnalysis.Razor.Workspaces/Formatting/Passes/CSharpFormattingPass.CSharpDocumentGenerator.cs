@@ -246,9 +246,9 @@ internal partial class CSharpFormattingPass
                         _lineInfoBuilder.Add(CreateLineInfo(processIndentation: false));
                     }
 
-                    // If we're inside an element that ends on this line, clear the field that tracks it.
+                    // If we're at or past an element that wants us to ignore Html formatting, clear the field that tracks it.
                     if (_honourHtmlFormattingUntilLine is { } endLine &&
-                        endLine == line.LineNumber)
+                        endLine <= line.LineNumber)
                     {
                         _honourHtmlFormattingUntilLine = null;
                     }
@@ -606,7 +606,11 @@ internal partial class CSharpFormattingPass
                     // If this is an element at the root level, we want to record where it ends. We can't rely on the Visit method
                     // for it, because it might not be at the start of a line. We only care about contents though, so thats why
                     // we are doing this after emitting this line, and subtracting one from the end element line number.
-                    _honourHtmlFormattingUntilLine = GetLineNumber(closeAngle) - 1;
+                    var honouredEndLine = GetLineNumber(closeAngle) - 1;
+                    if (honouredEndLine > _currentLine.LineNumber)
+                    {
+                        _honourHtmlFormattingUntilLine = honouredEndLine;
+                    }
                 }
 
                 return lineInfo;
