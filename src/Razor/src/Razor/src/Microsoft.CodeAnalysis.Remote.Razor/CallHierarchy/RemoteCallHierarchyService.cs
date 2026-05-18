@@ -12,10 +12,10 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CallHierarchy;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using ExternalCallHierarchy = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers.CallHierarchy;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -66,8 +66,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var items = await ExternalCallHierarchy
-            .PrepareCallHierarchyAsync(generatedDocument, positionInfo.Position.ToLinePosition(), cancellationToken)
+        var items = await PrepareCallHierarchyHandler.PrepareCallHierarchyAsync(generatedDocument, positionInfo.Position.ToLinePosition(), cancellationToken)
             .ConfigureAwait(false);
 
         if (items is null)
@@ -99,8 +98,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var incomingCalls = await ExternalCallHierarchy
-            .GetIncomingCallsAsync(generatedDocument, item, cancellationToken)
+        var incomingCalls = await CallHierarchyIncomingCallsHandler.GetIncomingCallsAsync(generatedDocument, item, allowRazorSourceGeneratedDocuments: true, cancellationToken)
             .ConfigureAwait(false);
 
         if (incomingCalls is null)
@@ -149,8 +147,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var outgoingCalls = await ExternalCallHierarchy
-            .GetOutgoingCallsAsync(generatedDocument, item, cancellationToken)
+        var outgoingCalls = await CallHierarchyOutgoingCallsHandler.GetOutgoingCallsAsync(generatedDocument, item, cancellationToken)
             .ConfigureAwait(false);
 
         if (outgoingCalls is null)
