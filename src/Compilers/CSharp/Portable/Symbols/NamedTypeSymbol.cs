@@ -697,6 +697,74 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasDeclaredRequiredMembers { get; }
 
 #nullable enable
+        /// <summary>Returns true if the type is 'closed', i.e. an abstract class where subtyping is only permitted in the current module.</summary>
+        internal abstract bool IsClosed { get; }
+
+        /// <summary>
+        /// Tries to get the set of possible subtypes of a closed type.
+        /// </summary>
+        /// <remarks>
+        /// When a closed class contains type parameters, it's possible that some subtype may or
+        /// may not apply, depending on what type substitution is ultimately performed at a later stage.
+        /// This call will return <see langword="false"/> and an empty subtype list in that situation.
+        /// </remarks>
+        internal bool TryGetClosedSubtypes(out ImmutableArray<NamedTypeSymbol> subtypes)
+        {
+            if (!IsClosed)
+            {
+                subtypes = [];
+                return false;
+            }
+
+            var candidateSubtypes = CandidateClosedSubtypeDefinitions;
+            if (!IsGenericType && candidateSubtypes.All(subtype => !subtype.IsGenericType))
+            {
+                subtypes = candidateSubtypes;
+                return true;
+            }
+
+            var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
+            var baseTypeTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            this.FindTypeParameters(baseTypeTypeParameters);
+
+            var success = tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder, baseTypeTypeParameters);
+            baseTypeTypeParameters.Free();
+            if (!success)
+            {
+                resultBuilder.Free();
+                subtypes = [];
+                return false;
+            }
+
+            subtypes = resultBuilder.ToImmutableAndFree();
+            return true;
+
+            static bool tryGetSpeakableSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes, ArrayBuilder<NamedTypeSymbol> resultBuilder, HashSet<TypeParameterSymbol> baseTypeTypeParameters)
+            {
+                foreach (var candidateSubtype in candidateSubtypes)
+                {
+                    if (TypeUnification.TryUnifyClosedSubtype(candidateSubtype, closedType: @this) is { } unifiedSubtype)
+                    {
+                        if (unifiedSubtype.IsGenericType && unifiedSubtype.ContainsAdditionalTypeParameter(allowedTypeParameters: baseTypeTypeParameters))
+                        {
+                            // If 'unifiedSubtype' contains type parameters which are not present in '@this',
+                            // it implies 'unifiedSubtype' was able to unify but is not speakable at the use site.
+                            return false;
+                        }
+
+                        resultBuilder.Add(unifiedSubtype);
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Gets the set of subtype definitions in the same module whose base type has same original definition as 'this'.
+        /// </summary>
+        internal abstract ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions { get; }
+
         /// <summary>
         /// Whether the type encountered an error while trying to build its complete list of required members.
         /// </summary>
