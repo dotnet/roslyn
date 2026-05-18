@@ -54,7 +54,7 @@ internal class WorkspaceStructureLogger
             var projectElement = await BuildProjectElementAsync(project, cancellationToken).ConfigureAwait(false);
 
             // Dump MSBuild <Reference> nodes
-            var msbuildReferencesElement = await CreateMsBuildReferencesElementAsync(project, cancellationToken).ConfigureAwait(false);
+            var msbuildReferencesElement = CreateMsBuildReferencesElement(project);
             if (msbuildReferencesElement != null)
                 projectElement.Add(msbuildReferencesElement);
 
@@ -118,13 +118,12 @@ internal class WorkspaceStructureLogger
         return projectElement;
     }
 
-    private static async Task<XElement?> CreateMsBuildReferencesElementAsync(Project project, CancellationToken cancellationToken)
+    private static XElement? CreateMsBuildReferencesElement(Project project)
     {
         if (project.FilePath == null)
             return null;
 
-        using var stream = File.OpenRead(project.FilePath);
-        var msbuildProject = await XDocument.LoadAsync(stream, LoadOptions.None, cancellationToken).ConfigureAwait(false);
+        var msbuildProject = XDocument.Load(project.FilePath, LoadOptions.None);
         var msbuildNamespace = XNamespace.Get("http://schemas.microsoft.com/developer/msbuild/2003");
 
         var msbuildReferencesElement = new XElement("msbuildReferences");
