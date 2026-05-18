@@ -54,8 +54,8 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
 
     protected abstract Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesAsync(
         Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression,
-        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
-        ImmutableArray<CollectionMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken);
+        ImmutableArray<InitializerMatch<SyntaxNode>> preMatches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken);
 
     protected sealed override async Task FixAsync(
         Document document,

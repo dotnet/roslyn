@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer;
 
@@ -72,7 +73,7 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
 
     protected abstract TStatementSyntax GetNewStatement(
         TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, SyntaxFormattingOptions options,
-        ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
+        ImmutableArray<InitializerMatch<TStatementSyntax>> matches);
 
     public override ImmutableArray<string> FixableDiagnosticIds
         => [
@@ -111,7 +112,7 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
 
         editor.ReplaceNode(statement, newStatement);
         foreach (var match in matches)
-            editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+            editor.RemoveNode(match.Node, SyntaxRemoveOptions.KeepUnbalancedDirectives);
     }
 
     protected TExpressionSyntax Indent(TExpressionSyntax expression, SyntaxFormattingOptions options)

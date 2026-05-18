@@ -27,7 +27,7 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>,
+        InitializerMatch<TStatementSyntax>,
         TAnalyzer>, IDisposable
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -46,7 +46,15 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-    public ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> Analyze(
+    /// <summary>
+    /// IDE0017's walk produces only the subset of <see cref="InitializerMatchKind"/> kinds that
+    /// member-initializer folding can synthesize: <see cref="InitializerMatchKind.MemberInitializer"/>
+    /// and (under the mixed object/collection initializer feature, csharplang#10185)
+    /// <see cref="InitializerMatchKind.AddInvocation"/>. Pre-Pass-3 of the IDE0017+IDE0028
+    /// unification, IDE0028's walk is the canonical source for index/spread/foreach kinds; this
+    /// walk never emits them and the per-language fixer for IDE0017 can rely on that contract.
+    /// </summary>
+    public ImmutableArray<InitializerMatch<TStatementSyntax>> Analyze(
         SemanticModel semanticModel,
         ISyntaxFacts syntaxFacts,
         TObjectCreationExpressionSyntax objectCreationExpression,
@@ -86,8 +94,8 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     protected abstract bool SupportsMixedObjectAndCollectionInitializers(ParseOptions options);
 
     protected sealed override bool TryAddMatches(
-        ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> preMatches,
-        ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> postMatches,
+        ArrayBuilder<InitializerMatch<TStatementSyntax>> preMatches,
+        ArrayBuilder<InitializerMatch<TStatementSyntax>> postMatches,
         out bool changesSemantics,
         CancellationToken cancellationToken)
     {
@@ -236,8 +244,9 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
 
             seenNames[identifier.ValueText] = false;
 
-            postMatches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
-                statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));
+            postMatches.Add(new InitializerMatch<TStatementSyntax>(
+                Node: statement,
+                Kind: InitializerMatchKind.MemberInitializer));
         }
 
         return true;
@@ -262,7 +271,7 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     /// earlier inside <see cref="UpdateExpressionState{TExpressionSyntax, TStatementSyntax}.TryAnalyzeAddInvocation"/>
     /// via the <c>IsSimpleArgument</c> / <c>IsSimpleMemberAccessExpression</c> gates.
     /// </summary>
-    private Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>? TryMatchAddInvocation(
+    private InitializerMatch<TStatementSyntax>? TryMatchAddInvocation(
         TStatementSyntax subsequentStatement,
         CancellationToken cancellationToken)
     {
@@ -319,12 +328,9 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         if (ImplicitMemberAccessWouldBeAffected(argument))
             return null;
 
-        return new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
-            expressionStatement,
-            memberAccess,
-            argument,
-            memberName: string.Empty,
-            isAddInvocation: true);
+        return new InitializerMatch<TStatementSyntax>(
+            Node: expressionStatement,
+            Kind: InitializerMatchKind.AddInvocation);
     }
 
     private static bool IsExplicitlyImplemented(
@@ -377,44 +383,3 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     }
 }
 
-/// <summary>
-/// A statement matched by IDE0017 that is a candidate for folding into the initializer of the
-/// enclosing object creation. Two shapes are supported:
-/// <list type="bullet">
-/// <item><description>
-/// A member-initializer match (the existing IDE0017 shape): an assignment statement
-/// <c>x.Member = value</c> (or any compound form, when
-/// <see cref="AbstractUseNamedMemberInitializerAnalyzer{TExpressionSyntax,TStatementSyntax,TObjectCreationExpressionSyntax,TMemberAccessExpressionSyntax,TAssignmentStatementSyntax,TLocalDeclarationStatementSyntax,TVariableDeclaratorSyntax,TAnalyzer}.SupportsCompoundAssignmentInInitializer"/>
-/// is true). <see cref="IsAddInvocation"/> is <see langword="false"/>; the fixer emits
-/// <c>MemberName = Initializer</c> (or the matching compound form) inside the resulting initializer.
-/// </description></item>
-/// <item><description>
-/// An element-initializer match (added by the mixed object/collection initializer feature,
-/// dotnet/csharplang#10185): an expression statement <c>x.Add(value)</c>.
-/// <see cref="IsAddInvocation"/> is <see langword="true"/> and the fixer emits
-/// <see cref="Initializer"/> as a bare element initializer. <see cref="MemberName"/> is set to
-/// the empty string (Add-invocation matches never participate in the duplicate-target rules).
-/// </description></item>
-/// </list>
-/// </summary>
-internal readonly struct Match<
-    TExpressionSyntax,
-    TStatementSyntax,
-    TMemberAccessExpressionSyntax,
-    TAssignmentStatementSyntax>(
-    TAssignmentStatementSyntax statement,
-    TMemberAccessExpressionSyntax memberAccessExpression,
-    TExpressionSyntax initializer,
-    string memberName,
-    bool isAddInvocation = false)
-    where TExpressionSyntax : SyntaxNode
-    where TStatementSyntax : SyntaxNode
-    where TMemberAccessExpressionSyntax : TExpressionSyntax
-    where TAssignmentStatementSyntax : TStatementSyntax
-{
-    public readonly TAssignmentStatementSyntax Statement = statement;
-    public readonly TMemberAccessExpressionSyntax MemberAccessExpression = memberAccessExpression;
-    public readonly TExpressionSyntax Initializer = initializer;
-    public readonly string MemberName = memberName;
-    public readonly bool IsAddInvocation = isAddInvocation;
-}

@@ -13,13 +13,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
-using ObjectInitializerMatch = Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>;
+using ObjectInitializerMatch = InitializerMatch<StatementSyntax>;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseObjectInitializer), Shared]
 [method: ImportingConstructor]
@@ -80,30 +82,49 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
         for (var i = 0; i < matches.Length; i++)
         {
             var match = matches[i];
-            var expressionStatement = match.Statement;
-            var trivia = match.MemberAccessExpression.GetLeadingTrivia();
-            var newTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
 
-            // Two match shapes are produced by `AbstractUseNamedMemberInitializerAnalyzer`:
-            //   * Member-initializer match (the original IDE0017 shape): the statement holds an
-            //     `AssignmentExpressionSyntax`; the synthesized initializer element is
-            //     `Name = value` (or the matching compound form), built by detaching the
-            //     receiver from the assignment's left.
-            //   * Add-invocation match (added by the mixed object/collection initializer feature,
-            //     dotnet/csharplang#10185): the statement holds an `x.Add(value)` invocation; the
-            //     synthesized initializer element is the bare argument expression `value`, emitted
-            //     as a collection element initializer.
+            // After Pass 1 of the IDE0017+IDE0028 unification the match stores only `Statement`
+            // and a `Kind` discriminator — the per-kind data (member-access for member-init,
+            // argument expression for Add-fold) is recovered here from the statement. The
+            // statement is always an `ExpressionStatementSyntax` because IDE0017's walk only
+            // emits expression-statement-wrapped kinds (member assignment or Add invocation).
+            var expressionStatement = (ExpressionStatementSyntax)match.Node;
+
             ExpressionSyntax newElement;
-            if (match.IsAddInvocation)
+            switch (match.Kind)
             {
-                newElement = Indent(match.Initializer, options).WithLeadingTrivia(newTrivia);
-            }
-            else
-            {
-                var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
-                newElement = assignment
-                    .WithLeft(match.MemberAccessExpression.Name.WithLeadingTrivia(newTrivia))
-                    .WithRight(Indent(assignment.Right, options));
+                case InitializerMatchKind.MemberInitializer:
+                    // `x.Name = value` (or any compound `x.Name op= value`). Detach the
+                    // receiver and emit the bare `Name = value` (or compound) form.
+                    {
+                        var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
+                        var memberAccess = (MemberAccessExpressionSyntax)assignment.Left;
+                        var memberAccessTrivia = memberAccess.GetLeadingTrivia();
+                        var newMemberTrivia = i == 0 ? memberAccessTrivia.WithoutLeadingBlankLines() : memberAccessTrivia;
+                        newElement = assignment
+                            .WithLeft(memberAccess.Name.WithLeadingTrivia(newMemberTrivia))
+                            .WithRight(Indent(assignment.Right, options));
+                        break;
+                    }
+
+                case InitializerMatchKind.AddInvocation:
+                    // `x.Add(value)` — emit the bare argument expression as a collection
+                    // element initializer (the mixed object/collection initializer shape per
+                    // csharplang#10185).
+                    {
+                        var invocation = (InvocationExpressionSyntax)expressionStatement.Expression;
+                        var memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
+                        var memberAccessTrivia = memberAccess.GetLeadingTrivia();
+                        var newAddTrivia = i == 0 ? memberAccessTrivia.WithoutLeadingBlankLines() : memberAccessTrivia;
+                        var argument = invocation.ArgumentList.Arguments[0].Expression;
+                        newElement = Indent(argument, options).WithLeadingTrivia(newAddTrivia);
+                        break;
+                    }
+
+                default:
+                    // IDE0017's walk never emits the other kinds today — guard against silent
+                    // synthesis bugs if a future change extends the walk without extending here.
+                    throw ExceptionUtilities.UnexpectedValue(match.Kind);
             }
 
             if (i < matches.Length - 1)

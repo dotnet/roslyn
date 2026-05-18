@@ -3,14 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer;
 
@@ -158,7 +161,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         if (!IsValidContainingStatement(containingStatement))
             return;
 
-        var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(m => m.Statement));
+        var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(static m => (SyntaxNode)m.Node));
         if (syntaxFacts.ContainsInterleavedDirective(nodes, context.CancellationToken))
             return;
 
@@ -184,10 +187,20 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         var hasMemberMatch = false;
         foreach (var match in matches)
         {
-            if (match.IsAddInvocation)
-                hasAddMatch = true;
-            else
-                hasMemberMatch = true;
+            switch (match.Kind)
+            {
+                case InitializerMatchKind.AddInvocation:
+                    hasAddMatch = true;
+                    break;
+                case InitializerMatchKind.MemberInitializer:
+                    hasMemberMatch = true;
+                    break;
+                default:
+                    // IDE0017's walk currently never emits IndexAssignment / ForEach kinds; if
+                    // a future change adds them they'd need explicit routing here. Failing fast
+                    // is safer than silently misclassifying the synthesized shape.
+                    throw ExceptionUtilities.UnexpectedValue(match.Kind);
+            }
         }
 
         // Yield to IDE0028 when the synthesis would be a pure collection initializer — the
@@ -199,6 +212,9 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
 
         // Synthesis is mixed iff at least one Add-shape element coexists with at least one
         // member-shape element across either the existing initializer or the matches.
+        // After Pass 1 of the IDE0017+IDE0028 unification, matches are typed as
+        // `InitializerMatch<TStatementSyntax>` with a `Kind` discriminator; the IDE0017 walk
+        // never emits IndexAssignment/ForEach today, so this enum check is exhaustive.
         var isMixed = hasAddMatch && (hasMemberMatch || existingHasMemberInit);
 
         DiagnosticDescriptor primaryDescriptor;
@@ -278,28 +294,39 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
     private void FadeOutCode(
         SyntaxNodeAnalysisContext context,
         DiagnosticDescriptor unnecessaryDescriptor,
-        ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches,
+        ImmutableArray<InitializerMatch<TStatementSyntax>> matches,
         ImmutableArray<Location> locations)
     {
         var syntaxTree = context.Node.SyntaxTree;
-
         var syntaxFacts = GetSyntaxFacts();
 
         foreach (var match in matches)
         {
             using var additionalUnnecessaryLocations = TemporaryArray<Location>.Empty;
 
+            // Pass 1 of unification dropped the rich (MemberAccessExpression, Initializer) data
+            // from the match struct in favor of just (Statement, Kind). Recover them from the
+            // statement here so the fade spans stay identical to what the pre-Pass-1 code
+            // produced. Both supported kinds wrap an expression statement; the inner expression
+            // is an assignment (member-init) or invocation (Add-fold).
+            if (!TryGetFadeAnchors(match, syntaxFacts,
+                    out TMemberAccessExpressionSyntax? memberAccess,
+                    out TExpressionSyntax? initializer))
+            {
+                continue;
+            }
+
             var end = FadeOutOperatorToken
-                ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
-                : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression)!.Span.End;
+                ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(memberAccess).Span.End
+                : syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess)!.Span.End;
 
             var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
-                match.MemberAccessExpression.SpanStart, end));
+                memberAccess.SpanStart, end));
             additionalUnnecessaryLocations.Add(location1);
 
-            if (match.Statement.Span.End > match.Initializer.FullSpan.End)
+            if (match.Node.Span.End > initializer.FullSpan.End)
             {
-                locations.Add(syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)));
+                locations.Add(syntaxTree.GetLocation(TextSpan.FromBounds(initializer.FullSpan.End, match.Node.Span.End)));
             }
 
             if (additionalUnnecessaryLocations.Count == 0)
@@ -315,6 +342,63 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations.ToImmutableAndClear(),
                 properties: null));
+        }
+    }
+
+    /// <summary>
+    /// Recovers the member-access and value-expression anchors for fade-out from an
+    /// <see cref="InitializerMatch{TStatementSyntax}"/>. Both supported kinds (member-init,
+    /// Add-invocation) wrap an expression statement; the inner expression's shape depends on
+    /// the kind. Returns false if the statement doesn't have the expected shape — defensive
+    /// guard against future walk extensions that might emit a kind without a recoverable
+    /// member-access anchor.
+    /// </summary>
+    private static bool TryGetFadeAnchors(
+        InitializerMatch<TStatementSyntax> match,
+        ISyntaxFacts syntaxFacts,
+        [NotNullWhen(true)] out TMemberAccessExpressionSyntax? memberAccess,
+        [NotNullWhen(true)] out TExpressionSyntax? initializer)
+    {
+        memberAccess = null;
+        initializer = null;
+
+        switch (match.Kind)
+        {
+            case InitializerMatchKind.MemberInitializer:
+                // `x.Member = value` (or `x.Member += value` etc.). `IsAnyAssignmentStatement`
+                // is the cross-language predicate covering simple and all compound assignment
+                // statement shapes. The parts helper then splits the assignment into
+                // (left, operator, right); member-access = LHS, initializer = RHS.
+                if (!syntaxFacts.IsAnyAssignmentStatement(match.Node))
+                    return false;
+
+                syntaxFacts.GetPartsOfAssignmentStatement(match.Node, out var left, out _, out var right);
+                memberAccess = left as TMemberAccessExpressionSyntax;
+                initializer = right as TExpressionSyntax;
+                return memberAccess is not null && initializer is not null;
+
+            case InitializerMatchKind.AddInvocation:
+                // `x.Add(value)` (single-arg, per `TryMatchAddInvocation`). Member-access =
+                // `x.Add`, initializer = first argument's expression.
+                var statementExpression = syntaxFacts.GetExpressionOfExpressionStatement(match.Node);
+                if (statementExpression is null || !syntaxFacts.IsInvocationExpression(statementExpression))
+                    return false;
+
+                memberAccess = syntaxFacts.GetExpressionOfInvocationExpression(statementExpression) as TMemberAccessExpressionSyntax;
+                if (memberAccess is null)
+                    return false;
+
+                var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(statementExpression);
+                if (arguments.Count == 0)
+                    return false;
+
+                initializer = syntaxFacts.GetExpressionOfArgument(arguments[0]) as TExpressionSyntax;
+                return initializer is not null;
+
+            default:
+                // IDE0017's walk doesn't emit any other kinds today (see exhaustive switch in
+                // AnalyzeNode). Anything else means a walk extension forgot to extend fade-out.
+                return false;
         }
     }
 }

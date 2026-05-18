@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.UseObjectInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
@@ -49,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 statement As StatementSyntax,
                 objectCreation As ObjectCreationExpressionSyntax,
                 options As SyntaxFormattingOptions,
-                matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As StatementSyntax
+                matches As ImmutableArray(Of InitializerMatch(Of StatementSyntax))) As StatementSyntax
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
                 GetNewObjectCreation(objectCreation, options, matches))
@@ -59,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             totalTrivia.Add(SyntaxFactory.ElasticMarker)
 
             For Each match In matches
-                For Each trivia In match.Statement.GetLeadingTrivia()
+                For Each trivia In match.Node.GetLeadingTrivia()
                     If trivia.Kind = SyntaxKind.CommentTrivia Then
                         totalTrivia.Add(trivia)
                         totalTrivia.Add(SyntaxFactory.ElasticMarker)
@@ -73,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         Private Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
                 options As SyntaxFormattingOptions,
-                matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As ObjectCreationExpressionSyntax
+                matches As ImmutableArray(Of InitializerMatch(Of StatementSyntax))) As ObjectCreationExpressionSyntax
 
             Return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation,
@@ -84,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         Private Function CreateFieldInitializers(
                 objectCreation As ObjectCreationExpressionSyntax,
                 options As SyntaxFormattingOptions,
-                matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
+                matches As ImmutableArray(Of InitializerMatch(Of StatementSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
             Dim nodesAndTokens = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
 
             AddExistingItems(objectCreation, nodesAndTokens)
@@ -92,31 +93,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             For i = 0 To matches.Length - 1
                 Dim match = matches(i)
 
-                ' The mixed object/collection initializer (`Match.IsAddInvocation`) shape is
-                ' produced only by the C# analyzer, gated on
-                ' `SupportsMixedObjectAndCollectionInitializers`, which always returns false
-                ' from `VisualBasicUseNamedMemberInitializerAnalyzer`. If a future change ever
-                ' surfaces an Add-fold match in VB, the VB fixer below would synthesize a
-                ' `NamedFieldInitializer` with `MemberName == ""` and produce broken code, so
-                ' fail loudly here rather than silently corrupt the output.
-                Contract.ThrowIfTrue(match.IsAddInvocation)
+                ' Pass 1 of the IDE0017+IDE0028 unification widened the match type to
+                ' `InitializerMatch(Of StatementSyntax)` with a `Kind` discriminator. VB's
+                ' analyzer only ever emits MemberInitializer (the Add-fold path is gated on
+                ' `SupportsMixedObjectAndCollectionInitializers`, which always returns false in
+                ' VB); fail loudly if a future walk extension surfaces another kind here so
+                ' the VB fixer never silently corrupts the output.
+                Contract.ThrowIfFalse(match.Kind = InitializerMatchKind.MemberInitializer)
 
-                Dim rightValue = Indent(match.Initializer, options)
+                Dim assignment = DirectCast(match.Node, AssignmentStatementSyntax)
+                Dim memberAccess = DirectCast(assignment.Left, MemberAccessExpressionSyntax)
+                Dim memberName = memberAccess.Name.Identifier.ValueText
+
+                Dim rightValue = Indent(assignment.Right, options)
                 If i < matches.Length - 1 Then
                     rightValue = rightValue.WithoutTrailingTrivia()
                 End If
 
                 Dim initializer = SyntaxFactory.NamedFieldInitializer(
                     keyKeyword:=Nothing,
-                    dotToken:=match.MemberAccessExpression.OperatorToken,
-                    name:=SyntaxFactory.IdentifierName(match.MemberName),
-                    equalsToken:=match.Statement.OperatorToken,
+                    dotToken:=memberAccess.OperatorToken,
+                    name:=SyntaxFactory.IdentifierName(memberName),
+                    equalsToken:=assignment.OperatorToken,
                     expression:=rightValue).WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
 
                 nodesAndTokens.Add(initializer)
                 If i < matches.Length - 1 Then
                     Dim comma = SyntaxFactory.Token(SyntaxKind.CommaToken).
-                                              WithTrailingTrivia(match.Initializer.GetTrailingTrivia())
+                                              WithTrailingTrivia(assignment.Right.GetTrailingTrivia())
                     nodesAndTokens.Add(comma)
                 End If
             Next
