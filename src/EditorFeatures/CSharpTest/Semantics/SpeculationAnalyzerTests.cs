@@ -293,6 +293,28 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
             }
             """, "5", true);
 
+    [Fact]
+    public void SpeculationAnalyzerMixedObjectAndCollectionInitializer()
+        // Mixed object/collection initializer (dotnet/csharplang#10185): an element-shape
+        // `Add` target inside a `{ Prop = …, elem }` wrapper must participate in
+        // `ReplacementBreaksCollectionInitializerAddMethod` analysis the same way a pure
+        // collection-initializer element does — without this, swapping `"5"` for `5` would be
+        // declared safe even though it re-resolves to the `Add(int)` overload.
+        => Test("""
+            using System.Collections;
+            class Collection : IEnumerable
+            {
+                public int Y { get; set; }
+                public IEnumerator GetEnumerator() { throw new System.NotImplementedException(); }
+                public void Add(string s) { }
+                public void Add(int i) { }
+                void Main()
+                {
+                    var c = new Collection { Y = 1, [|"5"|] };
+                }
+            }
+            """, "5", semanticChanges: true);
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088815")]
     public void SpeculationAnalyzerBrokenCode()
         => Test("""
@@ -469,8 +491,15 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
             }
             """, replacementExpression: "b", semanticChanges: true);
 
+    // The mixed object/collection initializer (dotnet/csharplang#10185) binder gate requires
+    // a Preview language version, so this file parses under Preview to keep the mixed-init test
+    // active. All other tests in this file probe constructs available in earlier language
+    // versions; raising the parse version is not expected to alter their bind shapes (Preview
+    // only adds new features, it does not redefine pre-existing ones), but the assumption is
+    // worth keeping in mind if a future Preview feature ever conflicts with one of these
+    // test bodies.
     protected override SyntaxTree Parse(string text)
-        => SyntaxFactory.ParseSyntaxTree(text);
+        => SyntaxFactory.ParseSyntaxTree(text, new CSharpParseOptions(LanguageVersion.Preview));
 
     protected override bool IsExpressionNode(SyntaxNode node)
         => node is ExpressionSyntax;

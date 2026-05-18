@@ -51,7 +51,7 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         SemanticModel semanticModel,
         BaseObjectCreationExpressionSyntax objectCreationExpression,
         INamedTypeSymbol? expressionType,
-        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> preMatches,
         bool allowSemanticsChange,
         CancellationToken cancellationToken,
         out bool changesSemantics)
@@ -64,7 +64,7 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         return UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
             semanticModel, objectCreationExpression, replacement, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics);
 
-        static IEnumerable<CollectionElementSyntax> GetMatchElements(ImmutableArray<CollectionMatch<SyntaxNode>> preMatches)
+        static IEnumerable<CollectionElementSyntax> GetMatchElements(ImmutableArray<InitializerMatch<SyntaxNode>> preMatches)
         {
             foreach (var match in preMatches)
             {

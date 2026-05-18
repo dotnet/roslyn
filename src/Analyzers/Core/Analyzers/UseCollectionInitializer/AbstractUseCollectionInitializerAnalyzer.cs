@@ -28,7 +28,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        CollectionMatch<SyntaxNode>, TAnalyzer>
+        InitializerMatch<SyntaxNode>, TAnalyzer>
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
     where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -54,8 +54,8 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
 
     protected abstract bool HasExistingInvalidInitializerForCollection();
     protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
-        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
-        ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+        ArrayBuilder<InitializerMatch<SyntaxNode>> preMatches,
+        ArrayBuilder<InitializerMatch<SyntaxNode>> postMatches,
         out bool mayChangeSemantics,
         CancellationToken cancellationToken);
 
@@ -106,8 +106,8 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
     }
 
     protected sealed override bool TryAddMatches(
-        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
-        ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+        ArrayBuilder<InitializerMatch<SyntaxNode>> preMatches,
+        ArrayBuilder<InitializerMatch<SyntaxNode>> postMatches,
         out bool mayChangeSemantics,
         CancellationToken cancellationToken)
     {
@@ -162,15 +162,39 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         return true;
     }
 
-    private CollectionMatch<SyntaxNode>? TryAnalyzeStatement(
+    private InitializerMatch<SyntaxNode>? TryAnalyzeStatement(
         TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
     {
-        return _analyzeForCollectionExpression
-            ? State.TryAnalyzeStatementForCollectionExpression(this.SyntaxHelper, statement, cancellationToken)
-            : TryAnalyzeStatementForCollectionInitializer(statement, ref seenInvocation, ref seenIndexAssignment, cancellationToken);
+        if (_analyzeForCollectionExpression)
+        {
+            // Collection-expression-mode analysis (foreach, AddRange spreads, etc.) is still
+            // implemented on `UpdateExpressionState` in terms of the legacy `CollectionMatch`
+            // shape; translate to the unified `InitializerMatch` shape here. Pass 3 of the
+            // IDE0017+IDE0028 unification will fold this into a single walk that natively
+            // produces `InitializerMatch` for all kinds.
+            var collectionMatch = State.TryAnalyzeStatementForCollectionExpression(this.SyntaxHelper, statement, cancellationToken);
+            if (collectionMatch is null)
+                return null;
+
+            var node = collectionMatch.Value.Node;
+            // The collection-expression walk emits matches whose source node is either an
+            // expression-statement (Add / AddRange invocation) or a `foreach` statement; pick
+            // the discriminator based on shape so the fixer can dispatch without re-inspecting.
+            var kind = node is TExpressionStatementSyntax
+                ? InitializerMatchKind.AddInvocation
+                : InitializerMatchKind.ForEach;
+            return new InitializerMatch<SyntaxNode>(
+                Node: node,
+                Kind: kind,
+                UseSpread: collectionMatch.Value.UseSpread,
+                UseCast: collectionMatch.Value.UseCast,
+                UseKeyValue: collectionMatch.Value.UseKeyValue);
+        }
+
+        return TryAnalyzeStatementForCollectionInitializer(statement, ref seenInvocation, ref seenIndexAssignment, cancellationToken);
     }
 
-    private CollectionMatch<SyntaxNode>? TryAnalyzeStatementForCollectionInitializer(
+    private InitializerMatch<SyntaxNode>? TryAnalyzeStatementForCollectionInitializer(
         TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
     {
         // At least one of these has to be false.
@@ -193,7 +217,11 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenInvocation = true;
-                return new(expressionStatement, UseSpread: false, useKeyValue);
+                return new InitializerMatch<SyntaxNode>(
+                    Node: expressionStatement,
+                    Kind: InitializerMatchKind.AddInvocation,
+                    UseSpread: false,
+                    UseKeyValue: useKeyValue);
             }
         }
 
@@ -203,7 +231,11 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenIndexAssignment = true;
-                return new(expressionStatement, UseSpread: false, UseKeyValue: this.State.SyntaxFacts.SupportsKeyValuePairElement(statement.SyntaxTree.Options));
+                return new InitializerMatch<SyntaxNode>(
+                    Node: expressionStatement,
+                    Kind: InitializerMatchKind.IndexAssignment,
+                    UseSpread: false,
+                    UseKeyValue: this.State.SyntaxFacts.SupportsKeyValuePairElement(statement.SyntaxTree.Options));
             }
         }
 

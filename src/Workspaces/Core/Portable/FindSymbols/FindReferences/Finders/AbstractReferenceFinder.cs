@@ -444,10 +444,19 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         void CollectMatchingReferences(
             SyntaxNode node, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData)
         {
-            if (!state.SyntaxFacts.IsObjectCollectionInitializer(node))
+            // Walk both the pure `CollectionInitializerExpression` shape and the mixed
+            // `ObjectInitializerExpression` shape (dotnet/csharplang#10185). For the mixed shape,
+            // `GetCollectionInitializerSymbolInfo`'s syntax gate already returns `SymbolInfo.None`
+            // for assignment-shape children, so the per-element `Matches` check silently skips
+            // member initializers and only the element-shape children resolve to an `Add` symbol.
+            SeparatedSyntaxList<SyntaxNode> expressions;
+            if (state.SyntaxFacts.IsObjectCollectionInitializer(node))
+                expressions = state.SyntaxFacts.GetExpressionsOfObjectCollectionInitializer(node);
+            else if (state.SyntaxFacts.IsObjectMemberInitializer(node))
+                expressions = state.SyntaxFacts.GetInitializersOfObjectMemberInitializer(node);
+            else
                 return;
 
-            var expressions = state.SyntaxFacts.GetExpressionsOfObjectCollectionInitializer(node);
             foreach (var expression in expressions)
             {
                 var info = state.SemanticFacts.GetCollectionInitializerSymbolInfo(state.SemanticModel, expression, cancellationToken);

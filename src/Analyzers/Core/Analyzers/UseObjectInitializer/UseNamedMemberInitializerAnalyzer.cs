@@ -27,7 +27,7 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>,
+        InitializerMatch<TStatementSyntax>,
         TAnalyzer>, IDisposable
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -46,7 +46,15 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-    public ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> Analyze(
+    /// <summary>
+    /// IDE0017's walk produces only the subset of <see cref="InitializerMatchKind"/> kinds that
+    /// member-initializer folding can synthesize: <see cref="InitializerMatchKind.MemberInitializer"/>
+    /// and (under the mixed object/collection initializer feature, csharplang#10185)
+    /// <see cref="InitializerMatchKind.AddInvocation"/>. Pre-Pass-3 of the IDE0017+IDE0028
+    /// unification, IDE0028's walk is the canonical source for index/spread/foreach kinds; this
+    /// walk never emits them and the per-language fixer for IDE0017 can rely on that contract.
+    /// </summary>
+    public ImmutableArray<InitializerMatch<TStatementSyntax>> Analyze(
         SemanticModel semanticModel,
         ISyntaxFacts syntaxFacts,
         TObjectCreationExpressionSyntax objectCreationExpression,
@@ -68,14 +76,38 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         return !this.SyntaxFacts.IsObjectCollectionInitializer(this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
     }
 
+    /// <summary>
+    /// Returns true if the language (and its current version) admits compound assignment forms
+    /// (`+=`, `-=`, `??=`, …) as <em>member initializers</em> in object/<c>with</c> initializers.
+    /// When true, a subsequent compound expression-statement targeting the initialized object is a
+    /// candidate for being folded into the initializer; when false, only `=` statements qualify.
+    /// </summary>
+    protected abstract bool SupportsCompoundAssignmentInInitializer(ParseOptions options);
+
+    /// <summary>
+    /// Returns true if the language (and its current version) admits the mixed object/collection
+    /// initializer form (dotnet/csharplang#10185), where a `{ ... }` initializer may contain both
+    /// member-shape assignments and bare-expression element initializers in the same list. When
+    /// true, a subsequent `instance.Add(value)` expression-statement targeting the initialized
+    /// object is a candidate for being folded into the initializer as an element initializer.
+    /// </summary>
+    protected abstract bool SupportsMixedObjectAndCollectionInitializers(ParseOptions options);
+
     protected sealed override bool TryAddMatches(
-        ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> preMatches,
-        ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> postMatches,
+        ArrayBuilder<InitializerMatch<TStatementSyntax>> preMatches,
+        ArrayBuilder<InitializerMatch<TStatementSyntax>> postMatches,
         out bool changesSemantics,
         CancellationToken cancellationToken)
     {
         changesSemantics = false;
-        using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
+
+        // Per-name state for repeat-target handling. `target = { ... }` is exclusive (no further
+        // initializer for that target is permitted, per the spec's nested-init exclusivity rule);
+        // every other shape (`=` with non-init RHS, `+=`, `-=`, `??=`, event `+=`/`-=`, …) is
+        // "set but not exclusive" and admits one or more compound follow-ups (`= → +=`, `+= → +=`,
+        // event `+= h1 → += h2`, etc.). It does NOT admit a follow-up `=` (would either duplicate
+        // an `=` or violate the "= before any compound" ordering rule).
+        using var _1 = PooledDictionary<string, bool>.GetInstance(out var seenNames);
 
         var initializer = this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
         if (initializer != null)
@@ -84,20 +116,53 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
             {
                 if (this.SyntaxFacts.IsNamedMemberInitializer(init))
                 {
-                    this.SyntaxFacts.GetPartsOfNamedMemberInitializer(init, out var name, out _);
-                    seenNames.Add(this.SyntaxFacts.GetIdentifierOfIdentifierName(name).ValueText);
+                    this.SyntaxFacts.GetPartsOfNamedMemberInitializer(init, out var name, out var rhs);
+                    var nameText = this.SyntaxFacts.GetIdentifierOfIdentifierName(name).ValueText;
+                    var isExclusiveNested = this.SyntaxFacts.IsObjectMemberInitializer(rhs)
+                        || this.SyntaxFacts.IsObjectCollectionInitializer(rhs);
+                    seenNames[nameText] = isExclusiveNested;
                 }
             }
         }
+
+        var supportsCompound = this.SupportsCompoundAssignmentInInitializer(_objectCreationExpression.SyntaxTree.Options);
+
+        // Mixed object/collection initializer (dotnet/csharplang#10185) requires the same
+        // precondition as IDE0028's pure-collection fold: the target type must implement
+        // IEnumerable. Without it, the synthesized `new C { X = 1, 10 }` would fail to bind
+        // (ERR_CollectionInitRequiresIEnumerable from the binder). Computed once per analysis,
+        // gated behind the language-version check so we never pay for the symbol lookup on
+        // languages that can't take the Add-fold anyway.
+        var supportsMixed =
+            this.SupportsMixedObjectAndCollectionInitializers(_objectCreationExpression.SyntaxTree.Options) &&
+            TargetImplementsIEnumerable(cancellationToken);
 
         foreach (var subsequentStatement in this.State.GetSubsequentStatements())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Mixed object/collection initializer (dotnet/csharplang#10185): a subsequent
+            // `instance.Add(value)` expression-statement is foldable as an element initializer
+            // inside the same `{ ... }`. Member-shape statements continue through the existing
+            // assignment path below; the duplicate-target rules don't apply to element
+            // initializers (multiple Add calls are always permitted), so the Add-fold doesn't
+            // touch the `seenNames` map.
+            if (supportsMixed && TryMatchAddInvocation(subsequentStatement, cancellationToken) is { } addMatch)
+            {
+                postMatches.Add(addMatch);
+                continue;
+            }
+
             if (subsequentStatement is not TAssignmentStatementSyntax statement)
                 break;
 
-            if (!this.SyntaxFacts.IsSimpleAssignmentStatement(statement))
+            // Subsequent compound expression-statements (`c.x += 1;`) are foldable only on languages
+            // that admit compound member initializers; otherwise the produced initializer would be
+            // syntactically invalid for the target language version.
+            var matches = supportsCompound
+                ? this.SyntaxFacts.IsAnyAssignmentStatement(statement)
+                : this.SyntaxFacts.IsSimpleAssignmentStatement(statement);
+            if (!matches)
                 break;
 
             this.SyntaxFacts.GetPartsOfAssignmentStatement(
@@ -161,18 +226,111 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
 
             // found a match!
             //
-            // If we see an assignment to the same property/field, we can't convert it
-            // to an initializer.
+            // For repeat-target folds: a subsequent `=` is never foldable (would either duplicate
+            // an `=` or violate the "= before any compound" ordering rule), and a subsequent
+            // compound (`+=`, `??=`, event `+=`/`-=`, …) is foldable iff the prior occurrence is
+            // not the exclusive `target = { ... }` form. Subsequent statements never produce a
+            // nested `= { ... }` (it isn't a statement form), so newly-folded entries are always
+            // recorded as non-exclusive.
             var name = this.SyntaxFacts.GetNameOfMemberAccessExpression(leftMemberAccess);
             var identifier = this.SyntaxFacts.GetIdentifierOfSimpleName(name);
-            if (!seenNames.Add(identifier.ValueText))
-                break;
 
-            postMatches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
-                statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));
+            if (seenNames.TryGetValue(identifier.ValueText, out var priorIsExclusiveNested))
+            {
+                var subsequentIsCompound = !this.SyntaxFacts.IsSimpleAssignmentStatement(statement);
+                if (priorIsExclusiveNested || !subsequentIsCompound)
+                    break;
+            }
+
+            seenNames[identifier.ValueText] = false;
+
+            postMatches.Add(new InitializerMatch<TStatementSyntax>(
+                Node: statement,
+                Kind: InitializerMatchKind.MemberInitializer));
         }
 
         return true;
+    }
+
+    private bool TargetImplementsIEnumerable(CancellationToken cancellationToken)
+    {
+        var enumerableType = this.SemanticModel.Compilation.IEnumerableType();
+        if (enumerableType is null)
+            return false;
+
+        var type = this.SemanticModel.GetTypeInfo(_objectCreationExpression, cancellationToken).Type;
+        return type is not null && type.AllInterfaces.Contains(enumerableType);
+    }
+
+    /// <summary>
+    /// Single-argument <c>instance.Add(value)</c> match for the mixed object/collection initializer
+    /// feature (dotnet/csharplang#10185). Multi-argument Add (which would correspond to the
+    /// <c>{ a, b }</c> brace-list element-initializer shape) is intentionally not folded by this
+    /// pass — a later extension can add it if needed. Named arguments (<c>Add(item: v)</c>),
+    /// <c>ref</c>/<c>out</c>/<c>in</c> arguments, and non-member-access invocations are rejected
+    /// earlier inside <see cref="UpdateExpressionState{TExpressionSyntax, TStatementSyntax}.TryAnalyzeAddInvocation"/>
+    /// via the <c>IsSimpleArgument</c> / <c>IsSimpleMemberAccessExpression</c> gates.
+    /// </summary>
+    private InitializerMatch<TStatementSyntax>? TryMatchAddInvocation(
+        TStatementSyntax subsequentStatement,
+        CancellationToken cancellationToken)
+    {
+        // The Add-fold only applies to expression-statement-wrapped invocations; the pattern
+        // match below bails before any invocation-shape helper is invoked on shapes (assignment
+        // statements, block statements, etc.) that don't carry an inner expression in the right
+        // place. In C#, `TAssignmentStatementSyntax` resolves to `ExpressionStatementSyntax`,
+        // which is the parent of both `x = 1;` and `x.Add(1);`; in VB the type resolves to the
+        // narrower `AssignmentStatementSyntax`, which never wraps an invocation — but VB always
+        // returns false from `SupportsMixedObjectAndCollectionInitializers`, so this helper is
+        // unreachable from VB.
+        if (subsequentStatement is not TAssignmentStatementSyntax expressionStatement)
+            return null;
+
+        if (this.SyntaxFacts.GetExpressionOfExpressionStatement(expressionStatement) is not TExpressionSyntax invocation)
+            return null;
+
+        if (!this.SyntaxFacts.IsInvocationExpression(invocation))
+            return null;
+
+        if (!this.State.TryAnalyzeAddInvocation(
+                invocation,
+                requiredArgumentName: null,
+                forCollectionExpression: false,
+                cancellationToken,
+                out var instance,
+                out _))
+        {
+            return null;
+        }
+
+        if (!this.State.ValuePatternMatches(instance))
+            return null;
+
+        if (this.SyntaxFacts.GetExpressionOfInvocationExpression(invocation) is not TMemberAccessExpressionSyntax memberAccess)
+            return null;
+
+        // Reject multi-argument Add here; brace-list (`{ a, b }`) element-initializer synthesis
+        // is intentionally out of scope for this pass. (Named/ref/out args are already rejected
+        // by `IsSimpleArgument` inside `TryAnalyzeAddInvocation`, so reaching this point with
+        // `arguments.Count != 1` always means an additional positional argument.)
+        var arguments = this.SyntaxFacts.GetArgumentsOfInvocationExpression(invocation);
+        if (arguments.Count != 1)
+            return null;
+
+        var argument = (TExpressionSyntax)this.SyntaxFacts.GetExpressionOfArgument(arguments[0]);
+
+        // Folding would change semantics if the argument expression refers to the value being
+        // initialized — the initializer body runs before the user's `var x = ...` binding is
+        // observable to subsequent code.
+        if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(argument, cancellationToken))
+            return null;
+
+        if (ImplicitMemberAccessWouldBeAffected(argument))
+            return null;
+
+        return new InitializerMatch<TStatementSyntax>(
+            Node: expressionStatement,
+            Kind: InitializerMatchKind.AddInvocation);
     }
 
     private static bool IsExplicitlyImplemented(
@@ -225,22 +383,3 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     }
 }
 
-internal readonly struct Match<
-    TExpressionSyntax,
-    TStatementSyntax,
-    TMemberAccessExpressionSyntax,
-    TAssignmentStatementSyntax>(
-    TAssignmentStatementSyntax statement,
-    TMemberAccessExpressionSyntax memberAccessExpression,
-    TExpressionSyntax initializer,
-    string memberName)
-    where TExpressionSyntax : SyntaxNode
-    where TStatementSyntax : SyntaxNode
-    where TMemberAccessExpressionSyntax : TExpressionSyntax
-    where TAssignmentStatementSyntax : TStatementSyntax
-{
-    public readonly TAssignmentStatementSyntax Statement = statement;
-    public readonly TMemberAccessExpressionSyntax MemberAccessExpression = memberAccessExpression;
-    public readonly TExpressionSyntax Initializer = initializer;
-    public readonly string MemberName = memberName;
-}

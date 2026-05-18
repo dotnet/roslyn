@@ -67,7 +67,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\VisualBasicUnsealClassCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\VisualBasicUseAutoPropertyCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\VisualBasicUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicUseCollectionInitializerCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseInitializer\VisualBasicUseInitializerCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\VisualBasicUseCompoundAssignmentCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\MultiLineConditionalExpressionFormattingRule.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForAssignmentCodeFixProvider.vb" />
@@ -77,7 +77,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\VisualBasicUseNullPropagationCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseInitializerHelpers.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\VisualBasicUseObjectInitializerCodeFixProvider.vb" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
