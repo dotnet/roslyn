@@ -3050,58 +3050,6 @@ class Test
         }
 
         [Fact]
-        public void DynamicProperty_RuntimeAsync_NotCompleted_ICriticalPreferredOverINotify()
-        {
-            // Verifies that when an awaiter implements both ICriticalNotifyCompletion and
-            // INotifyCompletion, UnsafeOnCompleted is called (via ICriticalNotifyCompletion),
-            // not OnCompleted.
-            var source = """
-                using System;
-                using System.Runtime.CompilerServices;
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                class Awaitable
-                {
-                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
-                }
-
-                class Awaiter : ICriticalNotifyCompletion
-                {
-                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
-                    public void OnCompleted(Action continuation) { Console.WriteLine("ERROR: OnCompleted should not be called"); continuation(); }
-                    public void UnsafeOnCompleted(Action continuation) { Console.WriteLine("UnsafeOnCompleted"); continuation(); }
-                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
-                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
-                }
-
-                class Test
-                {
-                    public static async Task<int> F(dynamic d)
-                    {
-                        return await d.Property;
-                    }
-
-                    static void Main()
-                    {
-                        Console.WriteLine(F(new Awaitable()).Result);
-                    }
-                }
-                """;
-
-            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            // The output must NOT contain "ERROR: OnCompleted should not be called"
-            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
-                Property
-                GetAwaiter
-                IsCompleted
-                UnsafeOnCompleted
-                GetResult
-                42
-                """), verify: Verification.Fails);
-        }
-
-        [Fact]
         public void DynamicProperty_RuntimeAsync_NotCompleted_OnlyINotifyCompletion()
         {
             // Verifies that when an awaiter implements only INotifyCompletion (not ICriticalNotifyCompletion),
@@ -3150,6 +3098,200 @@ class Test
         }
 
         [Fact]
+        public void DynamicProperty_RuntimeAsync_MissingGetAwaiter_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public object Property { get { Console.WriteLine("Property"); return new object(); } }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'GetAwaiter'") ? "RuntimeBinderException: GetAwaiter" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                RuntimeBinderException: GetAwaiter
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_MissingGetResult_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'GetResult'") ? "RuntimeBinderException: GetResult" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: GetResult
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_MissingIsCompleted_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'IsCompleted'") ? "RuntimeBinderException: IsCompleted" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                RuntimeBinderException: IsCompleted
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_BadIsCompleted_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public string IsCompleted { get { Console.WriteLine("IsCompleted"); return ""; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'string'") && rbe.Message.Contains("'bool'") ? "RuntimeBinderException: string -> bool" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: string -> bool
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
         public void Dynamic_RuntimeAsync_MissingGetAwaiter_RuntimeFailure()
         {
             var source = """
@@ -3170,16 +3312,16 @@ class Test
                         {
                             F(new object()).Wait();
                         }
-                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException)
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
                         {
-                            Console.WriteLine("RuntimeBinderException");
+                            Console.WriteLine(rbe.Message.Contains("'GetAwaiter'") ? "RuntimeBinderException: GetAwaiter" : rbe.Message);
                         }
                     }
                 }
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException: GetAwaiter"), verify: Verification.Fails);
             verifier.VerifyIL("Test.F", """
                 {
                   // Code size      328 (0x148)
@@ -3297,12 +3439,12 @@ class Test
 
                 class Awaitable
                 {
-                    public Awaiter GetAwaiter() => new Awaiter();
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return new Awaiter(); }
                 }
 
                 class Awaiter : INotifyCompletion
                 {
-                    public bool IsCompleted => true;
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
                     public void OnCompleted(Action continuation) => throw null;
                 }
 
@@ -3319,16 +3461,20 @@ class Test
                         {
                             F(new Awaitable()).Wait();
                         }
-                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException)
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
                         {
-                            Console.WriteLine("RuntimeBinderException");
+                            Console.WriteLine(rbe.Message.Contains("'GetResult'") ? "RuntimeBinderException: GetResult" : rbe.Message);
                         }
                     }
                 }
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: GetResult
+                """), verify: Verification.Fails);
         }
 
         [Fact]
@@ -3342,12 +3488,12 @@ class Test
 
                 class Awaitable
                 {
-                    public Awaiter GetAwaiter() => new Awaiter();
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return new Awaiter(); }
                 }
 
                 class Awaiter : INotifyCompletion
                 {
-                    public string IsCompleted => "";
+                    public string IsCompleted { get { Console.WriteLine("IsCompleted"); return ""; } }
                     public void OnCompleted(Action continuation) => throw null;
                     public void GetResult() { }
                 }
@@ -3365,16 +3511,20 @@ class Test
                         {
                             F(new Awaitable()).Wait();
                         }
-                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException)
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
                         {
-                            Console.WriteLine("RuntimeBinderException");
+                            Console.WriteLine(rbe.Message.Contains("'string'") && rbe.Message.Contains("'bool'") ? "RuntimeBinderException: string -> bool" : rbe.Message);
                         }
                     }
                 }
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: string -> bool
+                """), verify: Verification.Fails);
         }
 
         [Fact]
@@ -3746,6 +3896,353 @@ class Test
         }
 
         [Fact]
+        public void DynamicMethod_RuntimeAsync_NotCompleted()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_VoidResult_NotCompleted()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_MultipleMethods()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method1() { Console.WriteLine("Method1"); return new Awaiter("A1"); }
+                    public Awaiter Method2() { Console.WriteLine("Method2"); return new Awaiter("A2"); }
+                    public Awaiter Method3() { Console.WriteLine("Method3"); return new Awaiter("A3"); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    private string _name;
+                    public Awaiter(string name) { _name = name; }
+                    public bool IsCompleted { get { Console.WriteLine($"{_name}.IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine($"{_name}.GetResult"); return 1; }
+                    public Awaiter GetAwaiter() { Console.WriteLine($"{_name}.GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        var a = await d.Method1();
+                        var b = await d.Method2();
+                        var c = await d.Method3();
+                        return a + b + c;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method1
+                A1.GetAwaiter
+                A1.IsCompleted
+                A1.GetResult
+                Method2
+                A2.GetAwaiter
+                A2.IsCompleted
+                A2.GetResult
+                Method3
+                A3.GetAwaiter
+                A3.IsCompleted
+                A3.GetResult
+                3
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_NotCompleted_NotINotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            Console.WriteLine(F(new Awaitable()).Result);
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is InvalidCastException)
+                        {
+                            Console.WriteLine("InvalidCastException");
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                InvalidCastException
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_NotCompleted_ICriticalNotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void UnsafeOnCompleted(Action continuation) { Console.WriteLine("UnsafeOnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                UnsafeOnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_VoidResult_NotCompleted_ICriticalNotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void UnsafeOnCompleted(Action continuation) { Console.WriteLine("UnsafeOnCompleted"); continuation(); }
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                UnsafeOnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_NotCompleted_OnlyINotifyCompletion()
+        {
+            // Verifies that when an awaiter implements only INotifyCompletion (not ICriticalNotifyCompletion),
+            // OnCompleted is called as the fallback path.
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
         public void DynamicMethod_RuntimeAsync_MissingGetAwaiter_RuntimeFailure()
         {
             var source = """
@@ -3753,49 +4250,9 @@ class Test
                 using Microsoft.CSharp.RuntimeBinder;
                 using System.Threading.Tasks;
 
-                class Test
-                {
-                    public static async Task F(dynamic d)
-                    {
-                        await d.Method();
-                    }
-
-                    static void Main()
-                    {
-                        try
-                        {
-                            F(new object()).Wait();
-                        }
-                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException)
-                        {
-                            Console.WriteLine("RuntimeBinderException");
-                        }
-                    }
-                }
-                """;
-
-            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
-        }
-
-        [Fact]
-        public void DynamicMethod_RuntimeAsync_MissingGetResult_RuntimeFailure()
-        {
-            var source = """
-                using System;
-                using Microsoft.CSharp.RuntimeBinder;
-                using System.Runtime.CompilerServices;
-                using System.Threading.Tasks;
-
                 class Awaitable
                 {
-                    public Awaiter Method() => new Awaiter();
-                }
-
-                class Awaiter : INotifyCompletion
-                {
-                    public bool IsCompleted => true;
-                    public void OnCompleted(Action continuation) => throw null;
+                    public object Method() { Console.WriteLine("Method"); return new object(); }
                 }
 
                 class Test
@@ -3811,16 +4268,172 @@ class Test
                         {
                             F(new Awaitable()).Wait();
                         }
-                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException)
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
                         {
-                            Console.WriteLine("RuntimeBinderException");
+                            Console.WriteLine(rbe.Message.Contains("'GetAwaiter'") ? "RuntimeBinderException: GetAwaiter" : rbe.Message);
                         }
                     }
                 }
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException"), verify: Verification.Fails);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                RuntimeBinderException: GetAwaiter
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_MissingGetResult_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'GetResult'") ? "RuntimeBinderException: GetResult" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: GetResult
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_MissingIsCompleted_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'IsCompleted'") ? "RuntimeBinderException: IsCompleted" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                RuntimeBinderException: IsCompleted
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_BadIsCompleted_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public string IsCompleted { get { Console.WriteLine("IsCompleted"); return ""; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'string'") && rbe.Message.Contains("'bool'") ? "RuntimeBinderException: string -> bool" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: string -> bool
+                """), verify: Verification.Fails);
         }
 
         [Fact]
