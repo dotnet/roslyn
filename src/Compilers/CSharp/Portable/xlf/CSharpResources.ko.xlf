@@ -3154,7 +3154,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureStaticMembersInInterfaces">
         <source>static members in interfaces</source>
-        <target state="new">static members in interfaces</target>
+        <target state="translated">인터페이스의 정적 멤버</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
