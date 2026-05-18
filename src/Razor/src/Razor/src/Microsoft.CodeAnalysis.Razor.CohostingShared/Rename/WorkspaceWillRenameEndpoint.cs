@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 
@@ -14,17 +14,17 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
-[ExportLspWillRenameListener("**/*.razor")]
+[ExportRazorWillRenameListener("**/*.razor")]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class WorkspaceWillRenameEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
-    ILoggerFactory loggerFactory) : ILspWillRenameListener
+    ILoggerFactory loggerFactory) : AbstractRazorWillRenameListener
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<WorkspaceWillRenameEndpoint>();
 
-    public Task<WorkspaceEdit?> HandleWillRenameAsync(RenameFilesParams request, RequestContext context, CancellationToken cancellationToken)
+    protected override Task<WorkspaceEdit?> HandleRequestAsync(RenameFilesParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
         var solution = context.Solution;
         if (solution is null)

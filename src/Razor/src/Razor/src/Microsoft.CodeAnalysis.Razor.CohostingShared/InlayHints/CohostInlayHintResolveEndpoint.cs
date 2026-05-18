@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -35,8 +36,8 @@ internal class CohostInlayHintResolveEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(InlayHint request)
-        => GetTextDocumentIdentifier(request);
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(InlayHint request)
+        => GetTextDocumentIdentifier(request)?.ToRazorTextDocumentIdentifier() ?? null;
 
     private TextDocumentIdentifier? GetTextDocumentIdentifier(InlayHint request)
     {

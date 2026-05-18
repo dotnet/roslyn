@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -24,7 +23,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(VSInternalMethods.DocumentPullDiagnosticName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportRazorStatelessLspService(typeof(CohostDocumentPullDiagnosticsEndpoint))]
+[ExportCohostStatelessLspService(typeof(CohostDocumentPullDiagnosticsEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostDocumentPullDiagnosticsEndpoint(
@@ -48,7 +47,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     protected override string LspMethodName => VSInternalMethods.DocumentPullDiagnosticName;
     protected override bool SupportsHtmlDiagnostics => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration is true)
         {
@@ -65,8 +64,8 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         return [];
     }
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
-        => request.TextDocument;
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
+        => request.TextDocument?.ToRazorTextDocumentIdentifier();
 
     protected override async Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {

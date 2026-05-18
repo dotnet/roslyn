@@ -6,7 +6,6 @@ using System.Composition;
 using System.Text.Json;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -18,7 +17,7 @@ internal sealed class CohostSemanticTokensRegistration(ISemanticTokensLegendServ
 {
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.SemanticTokens?.DynamicRegistration == true)
         {

@@ -6,8 +6,8 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -30,7 +30,7 @@ internal sealed class CohostDocumentColorEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         return [new Registration
         {
@@ -39,8 +39,8 @@ internal sealed class CohostDocumentColorEndpoint(
         }];
     }
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentColorParams request)
-        => request.TextDocument;
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentColorParams request)
+        => request.TextDocument.ToRazorTextDocumentIdentifier();
 
     protected override async Task<ColorInformation[]?> HandleRequestAsync(DocumentColorParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {

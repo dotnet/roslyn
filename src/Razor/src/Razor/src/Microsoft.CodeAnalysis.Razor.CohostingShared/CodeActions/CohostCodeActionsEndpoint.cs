@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Cohost;
@@ -47,7 +47,7 @@ internal sealed class CohostCodeActionsEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.CodeAction?.DynamicRegistration == true)
         {
@@ -61,8 +61,8 @@ internal sealed class CohostCodeActionsEndpoint(
         return [];
     }
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSCodeActionParams request)
-        => request.TextDocument;
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSCodeActionParams request)
+        => request.TextDocument.ToRazorTextDocumentIdentifier();
 
     protected override async Task<SumType<Command, CodeAction>[]?> HandleRequestAsync(VSCodeActionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {

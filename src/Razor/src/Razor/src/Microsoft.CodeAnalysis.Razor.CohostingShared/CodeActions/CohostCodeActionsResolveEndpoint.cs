@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -45,7 +45,7 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.CodeAction?.DynamicRegistration == true)
         {
@@ -59,10 +59,10 @@ internal sealed class CohostCodeActionsResolveEndpoint(
         return [];
     }
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(CodeAction request)
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(CodeAction request)
     {
         var resolveParams = RazorCodeActionResolutionParams.Unwrap(request);
-        return resolveParams.TextDocument;
+        return resolveParams.TextDocument.ToRazorTextDocumentIdentifier();
     }
 
     protected override async Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)

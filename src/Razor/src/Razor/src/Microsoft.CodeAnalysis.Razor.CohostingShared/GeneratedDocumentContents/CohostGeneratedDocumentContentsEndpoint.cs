@@ -6,6 +6,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
@@ -29,8 +30,8 @@ internal sealed class CohostGeneratedDocumentContentsEndpoint(
     protected override bool MutatesSolutionState => false;
     protected override bool RequiresLSPSolution => true;
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentContentsRequest request)
-        => request.TextDocument;
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentContentsRequest request)
+        => request.TextDocument.ToRazorTextDocumentIdentifier();
 
     protected override async Task<string?> HandleRequestAsync(DocumentContentsRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
     {

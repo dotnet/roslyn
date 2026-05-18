@@ -7,8 +7,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
@@ -53,7 +53,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
         {
@@ -70,11 +70,11 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         return [];
     }
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
     {
         if (RazorCompletionResolveData.Unwrap(request) is { } data)
         {
-            return data.TextDocument;
+            return data.TextDocument.ToRazorTextDocumentIdentifier();
         }
 
         return null;
@@ -170,7 +170,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
 
     internal readonly struct TestAccessor(CohostDocumentCompletionResolveEndpoint instance)
     {
-        public TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
+        public RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
             => instance.GetRazorTextDocumentIdentifier(request);
 
         public Task<VSInternalCompletionItem?> HandleRequestAsync(

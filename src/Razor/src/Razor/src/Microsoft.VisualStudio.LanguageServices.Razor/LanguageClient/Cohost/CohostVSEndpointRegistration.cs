@@ -3,7 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostVSEndpointRegistration : IDynamicRegistrationProvider
 {
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         return [
             // Project Context, for the nav bar

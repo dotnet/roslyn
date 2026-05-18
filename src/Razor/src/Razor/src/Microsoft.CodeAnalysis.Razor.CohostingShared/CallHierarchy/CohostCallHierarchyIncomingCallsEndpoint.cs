@@ -6,6 +6,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CallHierarchy;
@@ -31,8 +32,8 @@ internal sealed class CohostCallHierarchyIncomingCallsEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(CallHierarchyIncomingCallsParams request)
-        => RazorCallHierarchyResolveData.Unwrap(request.Item)?.TextDocument;
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(CallHierarchyIncomingCallsParams request)
+        => RazorCallHierarchyResolveData.Unwrap(request.Item)?.TextDocument.ToRazorTextDocumentIdentifier();
 
     protected override async Task<CallHierarchyIncomingCall[]?> HandleRequestAsync(CallHierarchyIncomingCallsParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {

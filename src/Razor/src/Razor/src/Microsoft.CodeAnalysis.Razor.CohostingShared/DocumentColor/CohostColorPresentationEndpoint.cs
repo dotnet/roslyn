@@ -5,6 +5,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 
@@ -27,8 +28,8 @@ internal sealed class CohostColorPresentationEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(ColorPresentationParams request)
-        => request.TextDocument;
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(ColorPresentationParams request)
+        => request.TextDocument.ToRazorTextDocumentIdentifier();
 
     protected override async Task<ColorPresentation[]?> HandleRequestAsync(ColorPresentationParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {

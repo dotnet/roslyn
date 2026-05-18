@@ -6,9 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol.NestedFiles;
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 [CohostEndpoint(RazorLSPConstants.AddNestedFileName)]
-[ExportRazorStatelessLspService(typeof(CohostAddNestedFileEndpoint))]
+[ExportCohostStatelessLspService(typeof(CohostAddNestedFileEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostAddNestedFileEndpoint(
@@ -35,8 +34,8 @@ internal sealed class CohostAddNestedFileEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(AddNestedFileParams request)
-        => request.TextDocument;
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(AddNestedFileParams request)
+        => request.TextDocument.ToRazorTextDocumentIdentifier();
 
     protected override Task<VoidResult> HandleRequestAsync(
         AddNestedFileParams request,
@@ -46,7 +45,7 @@ internal sealed class CohostAddNestedFileEndpoint(
 
     protected override async Task<VoidResult> HandleRequestAsync(
         AddNestedFileParams request,
-        RequestContext context,
+        RazorCohostRequestContext context,
         TextDocument razorDocument,
         CancellationToken cancellationToken)
     {
@@ -65,7 +64,7 @@ internal sealed class CohostAddNestedFileEndpoint(
             return new();
         }
 
-        var razorCohostClientLanguageServerManager = context.GetRequiredService<IClientLanguageServerManager>();
+        var razorCohostClientLanguageServerManager = context.GetRequiredService<IRazorClientLanguageServerManager>();
         var response = await razorCohostClientLanguageServerManager.SendRequestAsync<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
             Methods.WorkspaceApplyEditName,
             new ApplyWorkspaceEditParams { Edit = workspaceEdit },

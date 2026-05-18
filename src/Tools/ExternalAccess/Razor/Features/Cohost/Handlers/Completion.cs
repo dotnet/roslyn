@@ -63,13 +63,13 @@ internal static class Completion
     }
 
     public static Task<LSP.VSInternalInlineCompletionItem?> GetInlineCompletionItemsAsync(
-        RequestContext? context,
+        RazorCohostRequestContext? context,
         Document document,
         LinePosition position,
         LSP.FormattingOptions options,
         CancellationToken cancellationToken)
     {
-        // Razor tests don't construct a RequestContext, so we need to handle the null case.
+        // Razor can't construct a RazorCohostRequestContext so we need to handle the null case, for their tests
         var logger = context is { } razorContext ? razorContext.GetRequiredService<ILspLogger>() : NoOpLspLogger.Instance;
         var xmlSnippetParser = document.Project.Solution.Services.ExportProvider.GetService<XmlSnippetParser>();
 

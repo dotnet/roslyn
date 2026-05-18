@@ -6,8 +6,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(VSInternalMethods.TextDocumentUriPresentationName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportRazorStatelessLspService(typeof(CohostUriPresentationEndpoint))]
+[ExportCohostStatelessLspService(typeof(CohostUriPresentationEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostUriPresentationEndpoint(
@@ -37,7 +36,7 @@ internal sealed class CohostUriPresentationEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.SupportsVisualStudioExtensions)
         {
@@ -51,8 +50,8 @@ internal sealed class CohostUriPresentationEndpoint(
         return [];
     }
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalUriPresentationParams request)
-        => request.TextDocument;
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalUriPresentationParams request)
+        => request.TextDocument.ToRazorTextDocumentIdentifier();
 
     protected override async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalUriPresentationParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
