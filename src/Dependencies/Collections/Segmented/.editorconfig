@@ -1,0 +1,11 @@
+# Remove the line below if you want to inherit .editorconfig settings from higher directories
+
+# C# files
+[ImmutableSegmented*.cs]
+# this. and Me. preferences
+dotnet_style_qualification_for_event = true
+dotnet_style_qualification_for_field = true
+dotnet_style_qualification_for_method = true
+dotnet_style_qualification_for_property = true
+
+dotnet_diagnostic.IDE0009.severity = error
