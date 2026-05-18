@@ -2118,6 +2118,26 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
             """, "global::Color", mode);
 
     [Theory, CombinatorialData]
+    public Task TestMixedObjectAndCollectionInitializer_ElementType(TestMode mode)
+        // Mixed object/collection initializer (dotnet/csharplang#10185): an element-shape child
+        // sitting inside an `ObjectInitializerExpression` wrapper still infers its type from the
+        // `Add` parameter, the same way it would in a pure collection initializer.
+        => TestAsync("""
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C : IEnumerable<int>
+            {
+                public int X { get; set; }
+                public void Add(string item) { }
+                public IEnumerator<int> GetEnumerator() { yield break; }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+
+                C M() => new C { X = 1, [|Goo()|] };
+            }
+            """, "global::System.String", mode);
+
+    [Theory, CombinatorialData]
     public Task TestCustomCollectionInitializerAddMethodWithNullableParameter(TestMode mode)
         => TestAsync("""
             class C : System.Collections.IEnumerable

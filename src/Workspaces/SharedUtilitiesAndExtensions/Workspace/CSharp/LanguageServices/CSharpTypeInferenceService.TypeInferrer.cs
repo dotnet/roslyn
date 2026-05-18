@@ -1398,12 +1398,17 @@ internal partial class CSharpTypeInferenceService
                     return addMethodParameterTypes;
                 }
             }
-            else if (initializerExpression.IsKind(SyntaxKind.CollectionInitializerExpression))
+            else if (initializerExpression.IsKind(SyntaxKind.CollectionInitializerExpression) ||
+                     (initializerExpression.IsKind(SyntaxKind.ObjectInitializerExpression) &&
+                      expressionOpt != null &&
+                      !SyntaxFacts.IsAssignmentExpression(expressionOpt.Kind())))
             {
                 if (expressionOpt != null)
                 {
                     // new List<T> { x, ... }
                     // new C { Prop = { x, ... } }
+                    // new C { X = 1, x, ... } — mixed object/collection initializer
+                    //   (dotnet/csharplang#10185); only element-shape children reach here.
                     var addMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expressionOpt).GetAllSymbols();
                     var addMethodParameterTypes = addMethodSymbols
                         .Cast<IMethodSymbol>()
