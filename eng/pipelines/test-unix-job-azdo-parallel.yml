@@ -1,0 +1,71 @@
+# Test on Unix using Azure DevOps parallel jobs
+parameters:
+- name: testRunName
+  type: string
+  default: ''
+- name: jobName
+  type: string
+  default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+- name: testArguments
+  type: string
+  default: ''
+- name: parallel
+  type: number
+  default: 4
+- name: poolParameters
+  type: object
+
+jobs:
+- job: ${{ parameters.jobName }}
+  strategy:
+    parallel: ${{ parameters.parallel }}
+  pool: ${{ parameters.poolParameters }}
+  timeoutInMinutes: 120
+  variables:
+    DOTNET_ROLL_FORWARD: LatestMajor
+    DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
+  steps:
+    - checkout: none
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
+      inputs:
+        artifact: ${{ parameters.testArtifactName }}
+        path: '$(Build.SourcesDirectory)'
+
+    - task: ShellScript@2
+      displayName: Rehydrate RunTests
+      inputs:
+        scriptPath: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/rehydrate.sh
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
+
+    - task: ShellScript@2
+      inputs:
+        scriptPath: ./eng/build.sh
+        args: --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+      displayName: Test
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/${{ parameters.configuration }}/*.xml'
+        mergeTestResults: true
+        testRunTitle: '${{ parameters.testRunName }} Slice $(System.JobPositionInPhase) of $(System.TotalJobsInPhase)'
+      condition: always()
+
+    - template: publish-logs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+        jobName: ${{ parameters.jobName }}
+        artifactNameSuffix: ' Slice $(System.JobPositionInPhase)'
