@@ -10432,16 +10432,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             new C().M();
             """;
 
-        object[] unsafeSymbols = ["C.<M>g__F|0_0"];
+        object[] localFunctionSymbols = ["C.<M>g__F|0_0"];
 
         CompileAndVerifyUnsafe(
             libSource,
             callerSource,
             optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             verify: Verification.Skipped,
-            expectedUnsafeSymbols: unsafeSymbols,
-            expectedSafeSymbols: ["C"],
-            skipSymbolsInSource: unsafeSymbols,
+            expectedUnsafeSymbols: [],
+            expectedSafeSymbols: ["C", .. localFunctionSymbols],
+            skipSymbolsInSource: localFunctionSymbols,
             expectedDiagnostics: []);
 
         CreateCompilation([libSource, callerSource],
@@ -11534,6 +11534,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public extern C(int x);
                 public static extern C operator +(C x, C y);
                 public static extern explicit operator int(C c);
+            }
+
+            public class Program
+            {
+                public static void Test(C c)
+                {
+                    c.M();
+                    c.P = c.P + 1;
+                    c[0] = c[0] + 1;
+                    C.E += null;
+                    _ = new C(0);
+                    _ = c + c;
+                    _ = (int)c;
+                }
             }
             """;
 
