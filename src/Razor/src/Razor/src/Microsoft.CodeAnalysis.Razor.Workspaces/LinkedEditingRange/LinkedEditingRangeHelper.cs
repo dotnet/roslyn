@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using RazorSyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
+using RazorSourceLocation = Microsoft.AspNetCore.Razor.Language.SourceLocation;
 
 namespace Microsoft.CodeAnalysis.Razor.LinkedEditingRange;
 
@@ -42,7 +43,7 @@ internal static class LinkedEditingRangeHelper
 
     private static bool TryGetNearestMarkupNameTokens(
         RazorSyntaxTree syntaxTree,
-        SourceLocation location,
+        RazorSourceLocation location,
         out RazorSyntaxToken startTagNameToken,
         out RazorSyntaxToken endTagNameToken)
     {

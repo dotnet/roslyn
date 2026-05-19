@@ -59,7 +59,7 @@ internal sealed class HtmlDocumentPublisher(
         var currentHtmlSourceText = htmlDocument.Snapshot.AsText();
         var newHtmlSourceText = SourceText.From(htmlText, currentHtmlSourceText.Encoding, currentHtmlSourceText.ChecksumAlgorithm);
         var textChanges = SourceTextDiffer.GetMinimalTextChanges(currentHtmlSourceText, newHtmlSourceText);
-        var changes = textChanges.SelectAsArray(c => new VisualStudioTextChange(c.Span.Start, c.Span.Length, c.NewText.AssumeNotNull()));
+        var changes = Microsoft.CodeAnalysis.ImmutableArrayExtensions.SelectAsArray(textChanges, c => new VisualStudioTextChange(c.Span.Start, c.Span.Length, c.NewText.AssumeNotNull()));
         _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(uri, changes, documentSnapshot.Version, state: checksum);
 
         _logger.LogDebug($"Finished Html document generation for {document.FilePath} (into {htmlDocument.Uri})");

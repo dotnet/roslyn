@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
+using RazorSourceLocation = Microsoft.AspNetCore.Razor.Language.SourceLocation;
+
 namespace Microsoft.CodeAnalysis.Text;
 
 internal static class SourceTextExtensions
@@ -282,14 +284,14 @@ internal static class SourceTextExtensions
         }
     }
 
-    public static bool TryGetSourceLocation(this SourceText text, LinePosition position, out SourceLocation location)
+    public static bool TryGetSourceLocation(this SourceText text, LinePosition position, out RazorSourceLocation location)
         => text.TryGetSourceLocation(position.Line, position.Character, out location);
 
-    public static bool TryGetSourceLocation(this SourceText text, int line, int character, out SourceLocation location)
+    public static bool TryGetSourceLocation(this SourceText text, int line, int character, out RazorSourceLocation location)
     {
         if (text.TryGetAbsoluteIndex(line, character, out var absoluteIndex))
         {
-            location = new SourceLocation(absoluteIndex, line, character);
+            location = new RazorSourceLocation(absoluteIndex, line, character);
             return true;
         }
 

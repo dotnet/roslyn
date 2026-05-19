@@ -30,7 +30,8 @@ public sealed class RazorSyntaxTree
 
         Root = root;
         Source = source;
-        _diagnostics = diagnostics.NullToEmpty();
+        // Keep this fully qualified, since importing Microsoft.CodeAnalysis here collides with Razor syntax types.
+        _diagnostics = Microsoft.CodeAnalysis.ImmutableArrayExtensions.NullToEmpty(diagnostics);
         Options = options;
     }
 

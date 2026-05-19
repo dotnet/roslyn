@@ -4,10 +4,12 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
+using RazorSourceLocation = Microsoft.AspNetCore.Razor.Language.SourceLocation;
+
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal static class SourceLocationExtensions
 {
-    public static LinePosition ToLinePosition(this SourceLocation location)
+    public static LinePosition ToLinePosition(this RazorSourceLocation location)
         => new(location.LineIndex, location.CharacterIndex);
 }
