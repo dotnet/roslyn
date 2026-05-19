@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
+using RazorSourceLocation = Microsoft.AspNetCore.Razor.Language.SourceLocation;
+
 namespace Roslyn.LanguageServer.Protocol;
 
 internal static partial class LspExtensions
@@ -39,7 +41,7 @@ internal static partial class LspExtensions
     public static TextSpan GetTextSpan(this SourceText text, LspRange range)
         => text.GetTextSpan(range.Start.Line, range.Start.Character, range.End.Line, range.End.Character);
 
-    public static bool TryGetSourceLocation(this SourceText text, Position position, out SourceLocation location)
+    public static bool TryGetSourceLocation(this SourceText text, Position position, out RazorSourceLocation location)
         => text.TryGetSourceLocation(position.Line, position.Character, out location);
 
     public static TextChange GetTextChange(this SourceText text, TextEdit edit)
