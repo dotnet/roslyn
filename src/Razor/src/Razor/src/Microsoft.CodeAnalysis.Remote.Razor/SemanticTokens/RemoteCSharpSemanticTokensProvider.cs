@@ -7,7 +7,8 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
@@ -40,13 +41,12 @@ internal class RemoteCSharpSemanticTokensProvider(
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var data = await SemanticTokensRange
-            .GetSemanticTokensAsync(
-                generatedDocument,
-                csharpRanges,
-                supportsVisualStudioExtensions: _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
-                cancellationToken)
-            .ConfigureAwait(false);
+        var data = await SemanticTokensHelpers.HandleRequestHelperAsync(
+            generatedDocument,
+            csharpRanges,
+            supportsVisualStudioExtensions: _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
+            ClassificationOptions.Default,
+            cancellationToken).ConfigureAwait(false);
 
         return data;
     }
