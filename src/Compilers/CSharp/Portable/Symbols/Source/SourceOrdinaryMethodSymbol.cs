@@ -389,6 +389,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override bool IsAsync
+        {
+            get
+            {
+                return IsPartialDefinition
+                    ? this.OtherPartOfPartial?.IsAsync ?? false
+                    : HasAsyncModifier;
+            }
+        }
+
+        internal sealed override bool IsIterator
+        {
+            get
+            {
+                return IsPartialDefinition
+                    ? this.OtherPartOfPartial?.IsIterator ?? false
+                    : base.IsIterator;
+            }
+        }
+
         public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             ref var lazyDocComment = ref expandIncludes ? ref this.lazyExpandedDocComment : ref this.lazyDocComment;
@@ -927,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (!HasAnyBody && IsAsync)
+            else if (!HasAnyBody && HasAsyncModifier)
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
             }

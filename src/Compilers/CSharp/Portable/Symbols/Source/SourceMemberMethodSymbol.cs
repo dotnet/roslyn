@@ -684,11 +684,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool IsAsync
+        internal bool HasAsyncModifier
         {
             get
             {
                 return (this.DeclarationModifiers & DeclarationModifiers.Async) != 0;
+            }
+        }
+
+        public override bool IsAsync
+        {
+            get
+            {
+                return HasAsyncModifier;
             }
         }
 

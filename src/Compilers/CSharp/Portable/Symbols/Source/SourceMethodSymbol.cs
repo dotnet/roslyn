@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
                 // type will not have been created. In this case, omit the attribute.
 
-                if (moduleBuilder.CompilationState.TryGetStateMachineType(target, out NamedTypeSymbol? stateMachineType))
+                if (moduleBuilder.CompilationState.TryGetStateMachineType(target.PartialImplementationPart ?? target, out NamedTypeSymbol? stateMachineType))
                 {
                     var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
                         TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
