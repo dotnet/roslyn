@@ -3,9 +3,9 @@
 # C# files
 [ImmutableSegmented*.cs]
 # this. and Me. preferences
-dotnet_style_qualification_for_event = true
-dotnet_style_qualification_for_field = true
-dotnet_style_qualification_for_method = true
-dotnet_style_qualification_for_property = true
+dotnet_style_qualification_for_event = false
+dotnet_style_qualification_for_field = false
+dotnet_style_qualification_for_method = false
+dotnet_style_qualification_for_property = false
 
-dotnet_diagnostic.IDE0009.severity = error
+dotnet_diagnostic.IDE0006.severity = error
