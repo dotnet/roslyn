@@ -432,6 +432,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool HasSkipLocalsInitAttribute
             => GetDecodedWellKnownAttributeData()?.HasSkipLocalsInitAttribute == true;
 
+        internal bool HasSafeModifier
+            => (_modifiers & DeclarationModifiers.Safe) != 0;
+
         public sealed override bool IsAbstract
         {
             get { return (_modifiers & DeclarationModifiers.Abstract) != 0; }
@@ -480,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return HasUnsafeModifier || IsExtern
+                    return HasUnsafeModifier
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }
@@ -540,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
             if (!explicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
@@ -879,10 +882,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            var modifiers = MemberSyntax?.Modifiers ?? default;
+            var unsafeOrExternLocation = modifiers.GetUnsafeOrExternLocation(location);
+
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, unsafeOrExternLocation);
+            }
+
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                var modifiers = (CSharpSyntaxNode as MemberDeclarationSyntax)?.Modifiers ?? default;
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(location), modifyCompilation: true);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, unsafeOrExternLocation, modifyCompilation: true);
+            }
+
+            if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
+            {
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(this.Locations[0]));
             }
 
             EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();

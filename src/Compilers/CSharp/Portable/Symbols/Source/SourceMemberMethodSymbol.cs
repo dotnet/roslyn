@@ -628,6 +628,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected override bool HasSafeModifier => (this.DeclarationModifiers & DeclarationModifiers.Safe) != 0;
+
         public sealed override bool IsSealed
         {
             get
@@ -974,10 +976,22 @@ done:
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
 
+            var modifiers = (syntaxReferenceOpt?.GetSyntax() as MemberDeclarationSyntax)?.Modifiers ?? default;
+            var unsafeOrExternLocation = modifiers.GetUnsafeOrExternLocation(_location);
+
+            if (ContainingModule.UseUpdatedMemorySafetyRules && AssociatedSymbol is null && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, unsafeOrExternLocation);
+            }
+
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                var modifiers = (syntaxReferenceOpt?.GetSyntax() as MemberDeclarationSyntax)?.Modifiers ?? default;
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(_location), modifyCompilation: true);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, unsafeOrExternLocation, modifyCompilation: true);
+            }
+
+            if (AssociatedSymbol is null && HasSafeModifier && (!IsExtern || HasUnsafeModifier))
+            {
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(this.Locations[0]));
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

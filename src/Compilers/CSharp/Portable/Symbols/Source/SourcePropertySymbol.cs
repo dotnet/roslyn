@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             if (!isExplicitInterfaceImplementation)
@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return HasUnsafeModifier || IsExtern
+                    return HasUnsafeModifier
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }

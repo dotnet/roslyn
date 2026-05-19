@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasUnsafeModifier { get; }
 
+        protected virtual bool HasSafeModifier => false;
+
         internal bool IntroducesUnsafeContext => HasUnsafeModifier && !ContainingModule.UseUpdatedMemorySafetyRules;
 
         /// <summary>
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return CallerUnsafeMode.None;
                     }
 
-                    return HasUnsafeModifier || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                    return HasUnsafeModifier || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }

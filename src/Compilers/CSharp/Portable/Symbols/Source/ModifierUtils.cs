@@ -112,6 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 checkFeature(DeclarationModifiers.Closed, MessageID.IDS_FeatureClosedClasses) |
                 checkFeature(DeclarationModifiers.Async, MessageID.IDS_FeatureAsync);
 
+            if ((result & DeclarationModifiers.Safe) != 0)
+            {
+                var safeToken = modifierTokens?.FirstOrDefault(SyntaxKind.SafeKeyword) ?? default;
+                modifierErrors |= !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, safeToken, safeToken == default ? errorLocation : null);
+            }
+
             return result;
 
             bool checkFeature(DeclarationModifiers modifier, MessageID featureID)
@@ -335,6 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.PartialKeyword);
                 case DeclarationModifiers.Unsafe:
                     return SyntaxFacts.GetText(SyntaxKind.UnsafeKeyword);
+                case DeclarationModifiers.Safe:
+                    return SyntaxFacts.GetText(SyntaxKind.SafeKeyword);
                 case DeclarationModifiers.Fixed:
                     return SyntaxFacts.GetText(SyntaxKind.FixedKeyword);
                 case DeclarationModifiers.Virtual:
@@ -388,6 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Partial;
                 case SyntaxKind.UnsafeKeyword:
                     return DeclarationModifiers.Unsafe;
+                case SyntaxKind.SafeKeyword:
+                    return DeclarationModifiers.Safe;
                 case SyntaxKind.VirtualKeyword:
                     return DeclarationModifiers.Virtual;
                 case SyntaxKind.OverrideKeyword:
@@ -621,6 +631,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var keyword = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword) is { } unsafeKeyword && unsafeKeyword != default
                 ? unsafeKeyword
                 : modifiers.FirstOrDefault(SyntaxKind.ExternKeyword);
+            return keyword != default ? keyword.GetLocation() : fallback;
+        }
+
+        internal static Location GetSafeLocation(this SyntaxTokenList modifiers, Location fallback)
+        {
+            var keyword = modifiers.FirstOrDefault(SyntaxKind.SafeKeyword);
             return keyword != default ? keyword.GetLocation() : fallback;
         }
     }
