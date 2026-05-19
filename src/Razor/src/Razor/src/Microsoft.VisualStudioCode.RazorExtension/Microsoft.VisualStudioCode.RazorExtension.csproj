@@ -43,8 +43,8 @@
     </Content>
   </ItemGroup>
 
-  <!-- Copy the Razor companion assemblies into the local build output for manual VS Code testing without affecting CI packaging. -->
-  <Target Name="PopulateLocalDevelopmentOutput" AfterTargets="Build" Condition="'$(ContinuousIntegrationBuild)' != 'true'">
+  <!-- Copy the Razor companion assemblies into the local build output for manual VS Code testing without affecting CI or source-build packaging. -->
+  <Target Name="PopulateLocalDevelopmentOutput" AfterTargets="Build" Condition="'$(ContinuousIntegrationBuild)' != 'true' and '$(DotNetBuildSourceOnly)' != 'true'">
     <ItemGroup>
       <_LocalRootOutput Include="
           $(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll;
