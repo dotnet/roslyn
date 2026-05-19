@@ -10,16 +10,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class SafeModifierParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
-    [Fact]
-    public void SafeModifier_Method()
+    [Theory]
+    [InlineData("safe public extern void M();", SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("public safe extern void M();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("public extern safe void M();", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
+    [InlineData("extern safe public void M();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword)]
+    public void SafeModifier_Method(string source, params SyntaxKind[] expectedModifiers)
     {
-        UsingDeclaration("safe public extern void M();");
+        UsingDeclaration(source);
 
         N(SyntaxKind.MethodDeclaration);
         {
-            N(SyntaxKind.SafeKeyword);
-            N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.ExternKeyword);
+            foreach (var expectedModifier in expectedModifiers)
+            {
+                N(expectedModifier);
+            }
+
             N(SyntaxKind.PredefinedType);
             {
                 N(SyntaxKind.VoidKeyword);
@@ -35,16 +41,21 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
         EOF();
     }
 
-    [Fact]
-    public void SafeModifier_Property()
+    [Theory]
+    [InlineData("safe public extern int P { get; }", SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("public safe extern int P { get; }", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("public extern safe int P { get; }", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
+    public void SafeModifier_Property(string source, params SyntaxKind[] expectedModifiers)
     {
-        UsingDeclaration("safe public extern int P { get; }");
+        UsingDeclaration(source);
 
         N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.SafeKeyword);
-            N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.ExternKeyword);
+            foreach (var expectedModifier in expectedModifiers)
+            {
+                N(expectedModifier);
+            }
+
             N(SyntaxKind.PredefinedType);
             {
                 N(SyntaxKind.IntKeyword);
@@ -64,17 +75,21 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
         EOF();
     }
 
-    [Fact]
-    public void SafeModifier_Event()
+    [Theory]
+    [InlineData("safe public static extern event System.Action E;", SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("public static safe extern event System.Action E;", SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("public extern safe static event System.Action E;", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.StaticKeyword)]
+    public void SafeModifier_Event(string source, params SyntaxKind[] expectedModifiers)
     {
-        UsingDeclaration("safe public static extern event System.Action E;");
+        UsingDeclaration(source);
 
         N(SyntaxKind.EventFieldDeclaration);
         {
-            N(SyntaxKind.SafeKeyword);
-            N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.StaticKeyword);
-            N(SyntaxKind.ExternKeyword);
+            foreach (var expectedModifier in expectedModifiers)
+            {
+                N(expectedModifier);
+            }
+
             N(SyntaxKind.EventKeyword);
             N(SyntaxKind.VariableDeclaration);
             {
@@ -100,16 +115,21 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
         EOF();
     }
 
-    [Fact]
-    public void SafeModifier_Constructor()
+    [Theory]
+    [InlineData("safe public extern C();", SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("public safe extern C();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("extern safe public C();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword)]
+    public void SafeModifier_Constructor(string source, params SyntaxKind[] expectedModifiers)
     {
-        UsingDeclaration("safe public extern C();");
+        UsingDeclaration(source);
 
         N(SyntaxKind.ConstructorDeclaration);
         {
-            N(SyntaxKind.SafeKeyword);
-            N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.ExternKeyword);
+            foreach (var expectedModifier in expectedModifiers)
+            {
+                N(expectedModifier);
+            }
+
             N(SyntaxKind.IdentifierToken, "C");
             N(SyntaxKind.ParameterList);
             {
@@ -125,7 +145,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("safe static extern void Local();", SyntaxKind.SafeKeyword, SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("static safe extern void Local();", SyntaxKind.StaticKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("static extern safe void Local();", SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
-    public void SafeModifier_LocalFunction_Ordering(string localFunction, params SyntaxKind[] expectedModifiers)
+    public void SafeModifier_LocalFunction(string localFunction, params SyntaxKind[] expectedModifiers)
     {
         UsingTree($$"""
             class C
@@ -360,127 +380,8 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
         EOF();
     }
 
-    [Theory]
-    [InlineData("public safe extern void M();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
-    [InlineData("public extern safe void M();", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
-    [InlineData("extern safe public void M();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword)]
-    public void SafeModifier_Method_Ordering(string source, params SyntaxKind[] expectedModifiers)
-    {
-        UsingDeclaration(source);
-
-        N(SyntaxKind.MethodDeclaration);
-        {
-            foreach (var expectedModifier in expectedModifiers)
-            {
-                N(expectedModifier);
-            }
-
-            N(SyntaxKind.PredefinedType);
-            {
-                N(SyntaxKind.VoidKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "M");
-            N(SyntaxKind.ParameterList);
-            {
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.CloseParenToken);
-            }
-            N(SyntaxKind.SemicolonToken);
-        }
-        EOF();
-    }
-
-    [Theory]
-    [InlineData("public safe extern int P { get; }", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
-    [InlineData("public extern safe int P { get; }", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
-    public void SafeModifier_Property_Ordering(string source, params SyntaxKind[] expectedModifiers)
-    {
-        UsingDeclaration(source);
-
-        N(SyntaxKind.PropertyDeclaration);
-        {
-            foreach (var expectedModifier in expectedModifiers)
-            {
-                N(expectedModifier);
-            }
-
-            N(SyntaxKind.PredefinedType);
-            {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "P");
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
-                {
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-        }
-        EOF();
-    }
-
-    [Theory]
-    [InlineData("public static safe extern event EHandler E;", SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
-    [InlineData("public extern safe static event EHandler E;", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.StaticKeyword)]
-    public void SafeModifier_Event_Ordering(string source, params SyntaxKind[] expectedModifiers)
-    {
-        UsingDeclaration(source);
-
-        N(SyntaxKind.EventFieldDeclaration);
-        {
-            foreach (var expectedModifier in expectedModifiers)
-            {
-                N(expectedModifier);
-            }
-
-            N(SyntaxKind.EventKeyword);
-            N(SyntaxKind.VariableDeclaration);
-            {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "EHandler");
-                }
-                N(SyntaxKind.VariableDeclarator);
-                {
-                    N(SyntaxKind.IdentifierToken, "E");
-                }
-            }
-            N(SyntaxKind.SemicolonToken);
-        }
-        EOF();
-    }
-
-    [Theory]
-    [InlineData("public safe extern C();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
-    [InlineData("extern safe public C();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword)]
-    public void SafeModifier_Constructor_Ordering(string source, params SyntaxKind[] expectedModifiers)
-    {
-        UsingDeclaration(source);
-
-        N(SyntaxKind.ConstructorDeclaration);
-        {
-            foreach (var expectedModifier in expectedModifiers)
-            {
-                N(expectedModifier);
-            }
-
-            N(SyntaxKind.IdentifierToken, "C");
-            N(SyntaxKind.ParameterList);
-            {
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.CloseParenToken);
-            }
-            N(SyntaxKind.SemicolonToken);
-        }
-        EOF();
-    }
-
     [Fact]
-    public void SafeModifier_Constructor_Ordering_AfterExternAmbiguousWithReturnType()
+    public void SafeModifier_Constructor_AfterExternAmbiguousWithReturnType()
     {
         UsingDeclaration("public extern safe C();");
 
