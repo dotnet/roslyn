@@ -40577,31 +40577,31 @@ union S4(int, bool)
             var unionSrc = @"
 union S1(int, bool)
 {
-    S1(string x)
+    public S1(string x)
     : this(1) {}
 }
 
 union S2(int, bool)
 {
-    S2(ref string x)
+    public S2(ref string x)
     : this(1) {}
 }
 
 union S3(int, bool)
 {
-    S3(in string x)
+    public S3(in string x)
     : this(1) {}
 }
 
 union S4(int, bool)
 {
-    S4(ref readonly string x)
+    public S4(ref readonly string x)
     : this(1) {}
 }
 
 union S5(int, bool)
 {
-    S5(out string x)
+    public S5(out string x)
     : this(1) { x = """"; }
 }
 
@@ -40616,26 +40616,41 @@ union S7(int, bool)
     public S7()
     : this(1) {}
 }
+
+union S8(int, bool)
+{
+    private S8(string x)
+    : this(1) {}
+}
+
+union S9(int, bool)
+{
+    internal S9(string x)
+    : this(1) {}
+}
 ";
 
             var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
             comp.VerifyDiagnostics(
-                // (4,5): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
-                //     S1(string x)
-                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S1").WithLocation(4, 5),
-                // (10,5): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
-                //     S2(ref string x)
-                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S2").WithLocation(10, 5),
-                // (16,5): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
-                //     S3(in string x)
-                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S3").WithLocation(16, 5),
-                // (22,5): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
-                //     S4(ref readonly string x)
-                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S4").WithLocation(22, 5),
-                // (28,5): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
-                //     S5(out string x)
-                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S5").WithLocation(28, 5)
+                // (4,12): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                //     public S1(string x)
+                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S1").WithLocation(4, 12),
+                // (10,12): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                //     public S2(ref string x)
+                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S2").WithLocation(10, 12),
+                // (16,12): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                //     public S3(in string x)
+                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S3").WithLocation(16, 12),
+                // (22,12): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                //     public S4(ref readonly string x)
+                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S4").WithLocation(22, 12),
+                // (28,12): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                //     public S5(out string x)
+                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S5").WithLocation(28, 12)
                 );
+
+            VerifyCaseTypes(comp, "S8", ["System.Int32", "System.Boolean"]);
+            VerifyCaseTypes(comp, "S9", ["System.Int32", "System.Boolean"]);
         }
 
         [Fact]
@@ -40713,6 +40728,24 @@ union S13(int, bool)
     : this(y)
     {}
 }
+
+union S14(int, bool)
+{
+    private S14(string x)
+    {}
+}
+
+union S15(int, bool)
+{
+    internal S15(string x)
+    {}
+}
+
+union S16(int, bool)
+{
+    public S16(string x)
+    {}
+}
 ";
 
             var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
@@ -40734,7 +40767,19 @@ union S13(int, bool)
                 Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S10").WithLocation(36, 5),
                 // (53,7): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
                 //     : this()
-                Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "this").WithLocation(53, 7)
+                Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "this").WithLocation(53, 7),
+                // (70,13): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                //     private S14(string x)
+                Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S14").WithLocation(70, 13),
+                // (76,14): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                //     internal S15(string x)
+                Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S15").WithLocation(76, 14),
+                // (82,12): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                //     public S16(string x)
+                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S16").WithLocation(82, 12),
+                // (82,12): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                //     public S16(string x)
+                Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S16").WithLocation(82, 12)
                 );
         }
 
