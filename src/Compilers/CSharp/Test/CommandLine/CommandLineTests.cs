@@ -13096,6 +13096,7 @@ class { }";
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         [Fact]
+        [ValidatePooledObjects(TraceLeaks = true)]
         public void TestNoSuppression_CompilerSemanticError()
         {
             // error CS0246: The type or namespace name 'UndefinedType' could not be found (are you missing a using directive or an assembly reference?)
