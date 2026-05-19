@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -39,8 +41,9 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
     {
         var snapshot = context.Snapshot;
         var generatedDocument = await snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
 
-        var csharpCodeLens = await ExternalAccess.Razor.Cohost.Handlers.CodeLens.GetCodeLensAsync(textDocumentIdentifier, generatedDocument, cancellationToken).ConfigureAwait(false);
+        var csharpCodeLens = await CodeLensHandler.GetCodeLensAsync(textDocumentIdentifier, generatedDocument, globalOptions, cancellationToken).ConfigureAwait(false);
 
         if (csharpCodeLens is null)
         {
@@ -84,6 +87,6 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
         var snapshot = context.Snapshot;
         var generatedDocument = await snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        return await ExternalAccess.Razor.Cohost.Handlers.CodeLens.ResolveCodeLensAsync(codeLens, generatedDocument, cancellationToken).ConfigureAwait(false);
+        return await CodeLensResolveHandler.ResolveCodeLensAsync(codeLens, generatedDocument, cancellationToken).ConfigureAwait(false);
     }
 }
