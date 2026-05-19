@@ -272,6 +272,8 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
   $dotnetBuildTests = if ($buildTests -ne $null -and !$buildTests) { "/p:DotNetBuildTests=false" } else { "" }
+  # Ensure -testVsi builds also produce Razor's dependency VSIX for Deploy-VsixViaTool.
+  $buildDependencyVsix = if ($testVsi) { "/p:BuildDependencyVsix=true" } else { "" }
 
   try {
     MSBuild $toolsetBuildProj `
@@ -302,6 +304,7 @@ function BuildSolution() {
       $generateDocumentationFile `
       $roslynUseHardLinks `
       $dotnetBuildTests `
+      $buildDependencyVsix `
       @properties
   }
   finally {
@@ -613,7 +616,7 @@ function Deploy-VsixViaTool() {
       Remove-Item -re -fo $extDir
     }
 
-    Write-Host "Installing all Roslyn VSIX"
+    Write-Host "Installing all Roslyn and Razor VSIXs"
 
     # VSIX files need to be installed in this specific order:
     $orderedVsixFileNames = @(
@@ -621,6 +624,8 @@ function Deploy-VsixViaTool() {
       "Roslyn.VisualStudio.Setup.vsix",
       "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
       "Roslyn.VisualStudio.Setup.Dependencies.vsix",
+      "Microsoft.VisualStudio.RazorExtension.Dependencies.vsix",
+      "Microsoft.VisualStudio.RazorExtension.vsix",
       "ExpressionEvaluatorPackage.vsix",
       "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
       "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
