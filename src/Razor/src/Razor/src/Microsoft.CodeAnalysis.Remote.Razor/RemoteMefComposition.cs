@@ -163,7 +163,7 @@ internal sealed class RemoteMefComposition
             return null;
         }
 
-        var checksum = new Checksum.Builder();
+        var checksum = new Microsoft.AspNetCore.Razor.Utilities.Checksum.Builder();
         foreach (var assembly in Assemblies)
         {
             var assemblyPath = assembly.Location.AssumeNotNull();
