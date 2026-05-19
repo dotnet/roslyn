@@ -2588,6 +2588,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsafeConstructorConstraint
                 or ErrorCode.WRN_UnsafeMeaningless
                 or ErrorCode.ERR_RequiresUnsafeAttributeInSource
+                or ErrorCode.ERR_ClosedTypeNameDisallowed
+                or ErrorCode.ERR_ClosedSealedStatic
+                or ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly
+                or ErrorCode.ERR_UnderspecifiedClosedSubtype
+                or ErrorCode.ERR_ClosedExplicitlyAbstract
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

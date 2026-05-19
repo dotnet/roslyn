@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,9 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _unionType = unionType;
             }
 
-            private ImmutableArray<TypeSymbol> AdjustedTypesInUnion()
+            private ImmutableArray<TypeUnionValueSet.CaseInfo> AdjustedTypesInUnion()
             {
-                return _unionType.UnionCaseTypes.SelectAsArray(TypeSymbolExtensions.StrippedType);
+                var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
+                foreach (var caseType in _unionType.UnionCaseTypes)
+                {
+                    ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(caseType.StrippedType(), builder);
+                }
+
+                return builder.ToImmutableAndFree();
             }
 
             public TypeUnionValueSet AllValues(ConversionsBase conversions)

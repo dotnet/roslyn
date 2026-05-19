@@ -157,4 +157,40 @@
     <value>@addTagHelper directive is unnecessary.</value>
     <comment>@addTagHelper is a keyword</comment>
   </data>
+  <data name="Create_Component_FromTag_Title" xml:space="preserve">
+    <value>Create component from tag</value>
+  </data>
+  <data name="ExtractTo_CodeBehind_Title" xml:space="preserve">
+    <value>Extract block to code behind</value>
+  </data>
+  <data name="ExtractTo_Component_Title" xml:space="preserve">
+    <value>Extract element to new component</value>
+  </data>
+  <data name="Generate_Async_Event_Handler_Title" xml:space="preserve">
+    <value>Generate Async Event Handler '{0}'</value>
+  </data>
+  <data name="Generate_Event_Handler_Title" xml:space="preserve">
+    <value>Generate Event Handler '{0}'</value>
+  </data>
+  <data name="Promote_using_directive_to" xml:space="preserve">
+    <value>Promote using directive to {0}</value>
+  </data>
+  <data name="Wrap_attributes" xml:space="preserve">
+    <value>Wrap attributes</value>
+  </data>
+  <data name="Simplify_Tag_To_SelfClosing_Title" xml:space="preserve">
+    <value>Simplify tag to self-closing</value>
+  </data>
+  <data name="Simplify_Fully_Qualified_Component_Title" xml:space="preserve">
+    <value>Simplify fully qualified component</value>
+  </data>
+  <data name="Sort_And_Consolidate_Usings_Title" xml:space="preserve">
+    <value>Sort and consolidate usings</value>
+  </data>
+  <data name="ExtractTo_Css_Title" xml:space="preserve">
+    <value>Extract to {0}.css</value>
+  </data>
+  <data name="Remove_unnecessary_directives" xml:space="preserve">
+    <value>Remove unnecessary directives</value>
+  </data>
 </root>
