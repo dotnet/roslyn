@@ -23,7 +23,9 @@ internal static class AzdoParallelTestRunner
         var workItems = AzdoAssemblyPartitioner.GetWorkItemsForJob(
             assemblies,
             options.AzdoParallelTotalJobs!.Value,
-            options.AzdoParallelJobIndex);
+            options.AzdoParallelJobIndex,
+            options.ArtifactsDirectory,
+            options.PlanPath);
 
         await RehydrateAsync(workItems, cancellationToken);
 

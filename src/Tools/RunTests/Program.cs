@@ -120,6 +120,18 @@ namespace RunTests
         private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
             var assemblyFilePaths = GetAssemblyFilePaths(options);
+            if (assemblyFilePaths.Length == 0)
+            {
+                WriteLogFile(options);
+                ConsoleUtil.WriteLine(ConsoleColor.Red, "No assemblies to test");
+                return ExitFailure;
+            }
+
+            if (options.WritePlanPath is { } writePlanPath)
+            {
+                return await WritePartitionPlanAsync(options, assemblyFilePaths, writePlanPath, cancellationToken).ConfigureAwait(false);
+            }
+
             if (options.UseHelix)
             {
                 return await HelixTestRunner.RunAsync(
@@ -131,12 +143,6 @@ namespace RunTests
             var testExecutor = new ProcessTestExecutor();
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
-            if (assemblyFilePaths.Length == 0)
-            {
-                WriteLogFile(options);
-                ConsoleUtil.WriteLine(ConsoleColor.Red, "No assemblies to test");
-                return ExitFailure;
-            }
 
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
 
@@ -159,6 +165,33 @@ namespace RunTests
 
             ConsoleUtil.WriteLine($"All tests passed");
             return ExitSuccess;
+        }
+
+        private static async Task<int> WritePartitionPlanAsync(
+            Options options,
+            ImmutableArray<AssemblyInfo> assemblyFilePaths,
+            string planPath,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                ConsoleUtil.WriteLine($"Generating Azure DevOps partition plan to {planPath}");
+                var plan = await PartitionPlanner.CreatePlanAsync(options, assemblyFilePaths, cancellationToken).ConfigureAwait(false);
+                PartitionPlanner.WritePlanFile(plan, planPath);
+
+                // Emit the partition count as an Azure DevOps output variable so a downstream test job can use
+                // `strategy.parallel: $[dependencies.<plan job>.outputs['<step name>.partitionCount']]`.
+                // The step name in the YAML template must match the `name:` of the script step that runs RunTests.
+                ConsoleUtil.WriteLine($"##vso[task.setvariable variable=partitionCount;isOutput=true]{plan.PartitionCount}");
+                ConsoleUtil.WriteLine($"Plan written: {plan.PartitionCount} partitions covering ~{TimeSpan.FromSeconds(plan.EstimatedDurationSeconds):hh\\:mm\\:ss}");
+                return ExitSuccess;
+            }
+            catch (Exception ex)
+            {
+                ConsoleUtil.WriteLine(ConsoleColor.Red, $"Failed to generate partition plan: {ex}");
+                WriteLogFile(options);
+                return ExitFailure;
+            }
         }
 
         private static void LogProcessResultDetails(ImmutableArray<ProcessResult> processResults)

@@ -13,10 +13,19 @@ namespace RunTests;
 
 internal static class AzdoAssemblyPartitioner
 {
+    /// <summary>
+    /// Picks the work items for the current Azure DevOps slice.
+    ///
+    /// When a partition plan is provided, the slice's work items are looked up by
+    /// <paramref name="jobIndex"/> from the precomputed plan. Otherwise we fall back to the legacy
+    /// test-count balancing across <paramref name="totalJobs"/> bins so legs without a plan still run.
+    /// </summary>
     internal static ImmutableArray<WorkItemInfo> GetWorkItemsForJob(
         ImmutableArray<AssemblyInfo> assemblies,
         int totalJobs,
-        int jobIndex)
+        int jobIndex,
+        string artifactsDirectory,
+        string? planPath)
     {
         if (totalJobs < 1)
         {
@@ -28,6 +37,81 @@ internal static class AzdoAssemblyPartitioner
             throw new ArgumentOutOfRangeException(nameof(jobIndex));
         }
 
+        if (!string.IsNullOrEmpty(planPath) && File.Exists(planPath))
+        {
+            return GetWorkItemsFromPlan(planPath, totalJobs, jobIndex, artifactsDirectory);
+        }
+
+        if (!string.IsNullOrEmpty(planPath))
+        {
+            ConsoleUtil.Warning($"Partition plan file not found at '{planPath}'. Falling back to test-count partitioning.");
+        }
+
+        return GetWorkItemsByTestCount(assemblies, totalJobs, jobIndex);
+    }
+
+    private static ImmutableArray<WorkItemInfo> GetWorkItemsFromPlan(
+        string planPath,
+        int totalJobs,
+        int jobIndex,
+        string artifactsDirectory)
+    {
+        var plan = PartitionPlanner.ReadPlanFile(planPath);
+
+        if (plan.PartitionCount != totalJobs)
+        {
+            ConsoleUtil.Warning(
+                $"Partition plan declares {plan.PartitionCount} partitions but Azure DevOps slice job count is {totalJobs}. " +
+                "The plan's partitionCount should be used to drive strategy.parallel.");
+        }
+
+        if (jobIndex >= plan.Partitions.Length)
+        {
+            throw new InvalidOperationException(
+                $"Slice index {jobIndex} (1-based position {jobIndex + 1}) is out of range for plan with {plan.Partitions.Length} partitions.");
+        }
+
+        var entry = plan.Partitions[jobIndex];
+        ConsoleUtil.WriteLine(
+            $"Loaded partition {entry.Index} from plan: ~{TimeSpan.FromSeconds(entry.EstimatedDurationSeconds):hh\\:mm\\:ss} across {entry.WorkItems.Length} work item(s).");
+
+        var workItems = ImmutableArray.CreateBuilder<WorkItemInfo>(entry.WorkItems.Length);
+        foreach (var workItem in entry.WorkItems)
+        {
+            var filters = ImmutableSortedDictionary.CreateBuilder<AssemblyInfo, ImmutableArray<TestMethodInfo>>();
+            foreach (var assembly in workItem.Assemblies)
+            {
+                var resolved = PartitionPlanner.ResolveAssemblyPath(assembly.RelativePath, artifactsDirectory);
+                if (!File.Exists(resolved))
+                {
+                    throw new InvalidOperationException(
+                        $"Partition plan references assembly '{assembly.RelativePath}' which does not exist at '{resolved}'. " +
+                        "Slice machines must download the same test artifact the planner used.");
+                }
+
+                var testMethods = assembly.TestFullyQualifiedNames
+                    .Select(fqn => new TestMethodInfo(GetSimpleName(fqn), fqn, TimeSpan.Zero))
+                    .ToImmutableArray();
+                filters[new AssemblyInfo(resolved)] = testMethods;
+            }
+
+            workItems.Add(new WorkItemInfo(filters.ToImmutable(), workItem.Id));
+        }
+
+        return workItems.ToImmutable();
+
+        static string GetSimpleName(string fullyQualifiedName)
+        {
+            var lastDot = fullyQualifiedName.LastIndexOf('.');
+            return lastDot < 0 ? fullyQualifiedName : fullyQualifiedName[(lastDot + 1)..];
+        }
+    }
+
+    private static ImmutableArray<WorkItemInfo> GetWorkItemsByTestCount(
+        ImmutableArray<AssemblyInfo> assemblies,
+        int totalJobs,
+        int jobIndex)
+    {
         var assemblyInfos = assemblies
             .Select((assembly, index) => new AssemblyPartitionInfo(assembly, GetTestCount(assembly), index))
             .OrderByDescending(info => info.TestCount)

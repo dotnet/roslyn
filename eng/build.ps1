@@ -71,6 +71,13 @@ param (
   [switch]$helix,
   [string]$helixQueueName = "",
   [string]$helixApiAccessToken = "",
+  [string]$writePlan = "",
+  [string]$planPath = "",
+  [string]$phaseName = "",
+  [int]$targetSliceMinutes = 0,
+  [int]$maxPartitions = 0,
+  [int]$minPartitions = 0,
+  [int]$defaultPartitionsWhenNoHistory = 0,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -487,6 +494,34 @@ function TestUsingRunTests() {
 
   if ($helixApiAccessToken) {
     $args += " --helixApiAccessToken $helixApiAccessToken"
+  }
+
+  if ($writePlan) {
+    $args += " --writePlan `"$writePlan`""
+  }
+
+  if ($planPath) {
+    $args += " --planPath `"$planPath`""
+  }
+
+  if ($phaseName) {
+    $args += " --phaseName `"$phaseName`""
+  }
+
+  if ($targetSliceMinutes -gt 0) {
+    $args += " --targetSliceMinutes $targetSliceMinutes"
+  }
+
+  if ($maxPartitions -gt 0) {
+    $args += " --maxPartitions $maxPartitions"
+  }
+
+  if ($minPartitions -gt 0) {
+    $args += " --minPartitions $minPartitions"
+  }
+
+  if ($defaultPartitionsWhenNoHistory -gt 0) {
+    $args += " --defaultPartitionsWhenNoHistory $defaultPartitionsWhenNoHistory"
   }
 
   try {

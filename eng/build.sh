@@ -78,6 +78,13 @@ ci=false
 helix=false
 helix_queue_name=""
 helix_api_access_token=""
+write_plan=""
+plan_path=""
+phase_name=""
+target_slice_minutes=0
+max_partitions=0
+min_partitions=0
+default_partitions_when_no_history=0
 bootstrap=false
 run_analyzers=false
 skip_documentation=false
@@ -164,6 +171,41 @@ while [[ $# > 0 ]]; do
       ;;
     --helixapiaccesstoken)
       helix_api_access_token=$2
+      args="$args $1"
+      shift
+      ;;
+    --writeplan)
+      write_plan=$2
+      args="$args $1"
+      shift
+      ;;
+    --planpath)
+      plan_path=$2
+      args="$args $1"
+      shift
+      ;;
+    --phasename)
+      phase_name=$2
+      args="$args $1"
+      shift
+      ;;
+    --targetsliceminutes)
+      target_slice_minutes=$2
+      args="$args $1"
+      shift
+      ;;
+    --maxpartitions)
+      max_partitions=$2
+      args="$args $1"
+      shift
+      ;;
+    --minpartitions)
+      min_partitions=$2
+      args="$args $1"
+      shift
+      ;;
+    --defaultpartitionswhennohistory)
+      default_partitions_when_no_history=$2
       args="$args $1"
       shift
       ;;
@@ -410,6 +452,34 @@ if [[ "$test_core_clr" == true ]]; then
 
   if [[ "$helix" == true ]]; then
     runtests_args="$runtests_args --helix"
+  fi
+
+  if [[ -n "$write_plan" ]]; then
+    runtests_args="$runtests_args --writePlan $write_plan"
+  fi
+
+  if [[ -n "$plan_path" ]]; then
+    runtests_args="$runtests_args --planPath $plan_path"
+  fi
+
+  if [[ -n "$phase_name" ]]; then
+    runtests_args="$runtests_args --phaseName $phase_name"
+  fi
+
+  if [[ "$target_slice_minutes" -gt 0 ]]; then
+    runtests_args="$runtests_args --targetSliceMinutes $target_slice_minutes"
+  fi
+
+  if [[ "$max_partitions" -gt 0 ]]; then
+    runtests_args="$runtests_args --maxPartitions $max_partitions"
+  fi
+
+  if [[ "$min_partitions" -gt 0 ]]; then
+    runtests_args="$runtests_args --minPartitions $min_partitions"
+  fi
+
+  if [[ "$default_partitions_when_no_history" -gt 0 ]]; then
+    runtests_args="$runtests_args --defaultPartitionsWhenNoHistory $default_partitions_when_no_history"
   fi
 
   if [[ "$ci" != true ]]; then

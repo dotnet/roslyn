@@ -177,7 +177,6 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testDesktop -testArch x86
-        parallel: 4
         poolParameters: ${{ parameters.vs2026PreviewPool }}
 
   - template: eng/pipelines/test-windows-job-azdo-parallel.yml
@@ -187,7 +186,6 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
-      parallel: 4
       poolParameters: ${{ parameters.vs2026PreviewPool }}
 
 - stage: Windows_Release_Desktop
@@ -200,7 +198,6 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
-      parallel: 4
       poolParameters: ${{ parameters.vs2026PreviewPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
@@ -211,7 +208,6 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
-        parallel: 4
         poolParameters: ${{ parameters.vs2026PreviewPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
@@ -222,7 +218,6 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
-        parallel: 4
         poolParameters: ${{ parameters.vs2026PreviewPool }}
 
 - stage: Windows_Debug_CoreClr
@@ -235,7 +230,6 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr
-      parallel: 4
       poolParameters: ${{ parameters.vs2026PreviewPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
@@ -246,7 +240,6 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testCoreClr
-        parallel: 4
         poolParameters: ${{ parameters.vs2026PreviewPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
@@ -266,7 +259,6 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testIOperation -testCompilerOnly
-      parallel: 4
       poolParameters: ${{ parameters.vs2026PreviewPool }}
 
   - template: eng/pipelines/test-windows-job-azdo-parallel.yml
@@ -276,7 +268,6 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testRuntimeAsync -testCompilerOnly
-      parallel: 4
       poolParameters: ${{ parameters.vs2026PreviewPool }}
 
   # This leg runs almost all the compiler tests supported on CoreCLR, but
@@ -288,7 +279,6 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
-      parallel: 4
       poolParameters: ${{ parameters.vs2026PreviewPool }}
 
 - stage: Windows_Release_CoreClr
@@ -301,7 +291,6 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testCoreClr
-      parallel: 4
       poolParameters: ${{ parameters.vs2026PreviewPool }}
 
 - stage: Unix_Debug_CoreClr
@@ -338,7 +327,6 @@ stages:
         testArtifactName: Transport_Artifacts_macOS_Debug
         configuration: Debug
         testArguments: --testCoreClr
-        parallel: 4
         poolParameters: ${{ parameters.macOSPool }}
 
 - stage: Correctness
