@@ -1634,4 +1634,41 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         Assert.Null(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
     }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/83304")]
+    public async Task Test_BogusGlobalJson_01(bool mutatingLspWorkspace)
+    {
+        // Put a global.json with a bad SDK version in the directory with the file-based app.
+        // This causes us to fail the design-time build and remain in the "miscellaneous file with no references" state.
+        var tempDir = _tempRoot.CreateDirectory();
+        var globalJsonText = """
+            {
+              "sdk": {
+                "version": "42.42.4242"
+              }
+            }
+            """;
+        var globalJsonFile = tempDir.CreateFile("global.json").WriteAllText(globalJsonText);
+
+        var appCsText = """
+            #:sdk Microsoft.Net.Sdk
+            Console.WriteLine("Hello World");
+            """;
+        var appCsFile = tempDir.CreateFile("App.cs").WriteAllText(appCsText);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+        });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        var appCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
+        await testLspServer.OpenDocumentAsync(appCsUri, appCsText).ConfigureAwait(false);
+        await WaitForProjectLoad(appCsUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        Assert.Equal(1, document.Project.Documents.Count());
+        Assert.Empty(document.Project.MetadataReferences);
+    }
 }

@@ -37,18 +37,29 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
             process?.Kill();
         });
 
-        var input = new RunApiInput.GetProject() { EntryPointFileFullPath = documentFilePath };
-        var inputJson = JsonSerializer.Serialize(input, RunFileApiJsonSerializerContext.Default.RunApiInput);
-        await process.StandardInput.WriteAsync(inputJson);
-        process.StandardInput.Close();
+        string? responseJson;
+        try
+        {
+            var input = new RunApiInput.GetProject() { EntryPointFileFullPath = documentFilePath };
+            var inputJson = JsonSerializer.Serialize(input, RunFileApiJsonSerializerContext.Default.RunApiInput);
+            await process.StandardInput.WriteAsync(inputJson);
+            process.StandardInput.Close();
 
-        // Debug severity is used for these because we think it will be common for the user environment to have too old of an SDK for the call to work.
-        // Rather than representing a hard error condition, it represents a condition where we need to gracefully downgrade the experience.
-        process.ErrorDataReceived += (sender, args) => logger.LogDebug($"[stderr] dotnet run-api: {args.Data}");
-        process.BeginErrorReadLine();
+            // Debug severity is used for these because we think it will be common for the user environment to have too old of an SDK for the call to work.
+            // Rather than representing a hard error condition, it represents a condition where we need to gracefully downgrade the experience.
+            process.ErrorDataReceived += (sender, args) => logger.LogDebug($"[stderr] dotnet run-api: {args.Data}");
+            process.BeginErrorReadLine();
 
-        var responseJson = await process.StandardOutput.ReadLineAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
+            responseJson = await process.StandardOutput.ReadLineAsync(cancellationToken);
+            await process.WaitForExitAsync(cancellationToken);
+        }
+        catch (IOException ex)
+        {
+            // This can occur when the subprocess exits before we finish communicating with it,
+            // e.g. when global.json specifies an SDK version which is not installed on the machine.
+            logger.LogDebug(ex, $"IOException communicating with dotnet run-api process for '{documentFilePath}'.");
+            return null;
+        }
 
         if (process.ExitCode != 0)
         {
