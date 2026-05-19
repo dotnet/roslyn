@@ -66,6 +66,7 @@ public abstract class DocumentOutlineTestsBase
 
     private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
         .AddParts(typeof(TestDocumentTrackingService))
+        .AddParts(typeof(TestWorkspaceRegistrationService))
         .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
     protected async Task<DocumentOutlineTestMocks> CreateMocksAsync(string code)

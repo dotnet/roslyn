@@ -55,7 +55,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
     }
 
     protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
-        .AddParts(typeof(TestDocumentTrackingService));
+        .AddParts(typeof(TestDocumentTrackingService))
+        .AddParts(typeof(TestWorkspaceRegistrationService));
 
     private sealed class TestSpanMapperProvider : IDocumentServiceProvider
     {
@@ -414,7 +415,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var listenerProvider = workspace.ExportProvider.GetExportedValues<MockWorkspaceEventListenerProvider>().SingleOrDefault();
         if (listenerProvider is not null)
         {
-            var lspWorkspaceRegistrationListener = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
+            var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
             listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
         }
 
