@@ -203,87 +203,55 @@ internal static class DelegatedCompletionHelper
         return true;
     }
 
-    public static bool ShouldIncludeSnippets(RazorCodeDocument razorCodeDocument, int absoluteIndex)
+    public static bool ShouldIncludeSnippets(RazorCodeDocument razorCodeDocument, int absoluteIndex, out bool isStartTagContext)
     {
+        isStartTagContext = false;
+
         var root = razorCodeDocument.GetRequiredSyntaxRoot();
+        var token = root.FindToken(absoluteIndex, includeWhitespace: true);
 
-        var token = root.FindToken(absoluteIndex, includeWhitespace: false);
-        if (token.Kind == SyntaxKind.EndOfFile &&
-            token.GetPreviousToken().Parent is { } parent &&
-            parent.FirstAncestorOrSelf<RazorSyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n)) is { } eofTag &&
-            IsIncompleteTag(eofTag))
+        // At EOF after an incomplete start tag, the parser doesn't place EOF inside the tag.
+        token = token.Kind == SyntaxKind.EndOfFile
+            ? token.GetPreviousToken()
+            : token;
+
+        // Empty document — allow snippets on explicit invocation.
+        if (token.Kind == SyntaxKind.EndOfFile)
         {
-            // If we're at the end of the file, we check if the previous token is part of an incomplete start or end tag,
-            // because the parser treats whitespace at the end different. eg with "<$$[EOF]" or "<div $$" or "</$$[EOF]",
-            // the EndOfFile won't be seen as being in the tag, so without this special casing snippets would be shown.
-            return false;
-        }
-
-        var node = token.Parent;
-        var startOrEndTag = node?.FirstAncestorOrSelf<RazorSyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n));
-
-        if (startOrEndTag is null)
-        {
-            if (IsInScriptOrStyleOrHtmlComment(node))
-            {
-                // If we're in a style, script, or HTML comment block, we don't want to include HTML snippets.
-                return false;
-            }
-
-            return token.Kind is not (SyntaxKind.OpenAngle or SyntaxKind.CloseAngle);
-        }
-
-        if (startOrEndTag.Span.Start == absoluteIndex)
-        {
-            // We're at the start of the tag, we should include snippets. This is the case for things like $$<div></div> or <div>$$</div>, since the
-            // index is right associative to the token when using FindToken.
-            // However, if the user just typed "</" (e.g., <div></|</div>), suppress snippets because the previous
-            // token is part of an (incomplete) end tag that precedes this position.
-            if (absoluteIndex > 0 &&
-                root.FindToken(absoluteIndex - 1, includeWhitespace: false).Parent is RazorSyntaxNode previousTokenParent &&
-                RazorSyntaxFacts.IsAnyEndTag(previousTokenParent) &&
-                IsIncompleteTag(previousTokenParent))
-            {
-                return false;
-            }
-
             return true;
         }
 
-        return !startOrEndTag.Span.IntersectsWith(absoluteIndex);
-
-        static bool IsInScriptOrStyleOrHtmlComment(AspNetCore.Razor.Language.Syntax.SyntaxNode? initialNode)
+        // Show snippets when the cursor is within a start tag name (e.g., <di$$v>),
+        // or right after '<' where the name hasn't been typed yet.
+        var enclosingStartTag = token.Parent?.FirstAncestorOrSelf<BaseMarkupStartTagSyntax>();
+        if (enclosingStartTag is not null)
         {
-            for (var node = initialNode; node != null; node = node.Parent)
-            {
-                if (node is BaseMarkupElementSyntax elementNode)
-                {
-                    if (RazorSyntaxFacts.IsScriptOrStyleBlock(elementNode))
-                    {
-                        return true;
-                    }
+            // If the position is inside a start tag but NOT in the tag name, it's in an
+            // attribute area (name, value, whitespace between attributes). No snippets there.
+            isStartTagContext = enclosingStartTag.Name.Span.IntersectsWith(absoluteIndex);
 
-                    // If we're in an element but it's not a script or style block, stop looking
-                    break;
-                }
-                else if (node is MarkupCommentBlockSyntax commentNode)
-                {
-                    return true;
-                }
-            }
+            return isStartTagContext;
+        }
 
+        // In text content (element body), snippets are available on explicit invocation only
+        // (the caller must check the invoke kind before using this result).
+        // Only match text literals that are direct element body content,
+        // not those inside attribute blocks (names, prefixes, value delimiters).
+        var owner = token.Parent;
+        if (owner is not MarkupTextLiteralSyntax || owner.Parent is not (MarkupBlockSyntax or BaseMarkupElementSyntax))
+        {
             return false;
         }
 
-        static bool IsIncompleteTag(RazorSyntaxNode tag)
+        // Don't offer snippets inside <script> or <style> blocks — those contain
+        // JavaScript/CSS content, not HTML element markup.
+        if (owner.FirstAncestorOrSelf<BaseMarkupElementSyntax>() is { } el
+            && RazorSyntaxFacts.IsScriptOrStyleBlock(el))
         {
-            return tag switch
-            {
-                BaseMarkupStartTagSyntax startTag => startTag.CloseAngle.IsMissing,
-                BaseMarkupEndTagSyntax endTag => endTag.CloseAngle.IsMissing,
-                _ => false
-            };
+            return false;
         }
+
+        return true;
     }
 
     /// <summary>

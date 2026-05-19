@@ -185,11 +185,11 @@ public partial class DirectiveAttributeCompletionItemProviderTest
         //                       ^     ^    ^
         //                       |     |    `-- parameterLocation.End (index 19)
         //                       |     `-- colon (index 13)
-        //                       `-- @ is at index 7, so replacement starts at index 8 (skipping '@')
-        // "bind-:after" starts at character 8 and ends at character 19, all on line 0
+        //                       `-- @ is at index 7, replacement starts at index 7 (including '@')
+        // "@bind-:after" starts at character 7 and ends at character 19, all on line 0
         Assert.NotNull(itemWithParameter.ReplacementRange);
         Assert.Equal(0, itemWithParameter.ReplacementRange.Value.Start.Line);
-        Assert.Equal(8, itemWithParameter.ReplacementRange.Value.Start.Character);
+        Assert.Equal(7, itemWithParameter.ReplacementRange.Value.Start.Character);
         Assert.Equal(0, itemWithParameter.ReplacementRange.Value.End.Line);
         Assert.Equal(19, itemWithParameter.ReplacementRange.Value.End.Character);
     }

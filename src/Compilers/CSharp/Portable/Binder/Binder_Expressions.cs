@@ -5861,6 +5861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ReportDuplicateObjectMemberInitializers(boundMemberInitializer, memberNameMap, diagnostics);
             }
+            memberNameMap.Free();
 
             return new BoundObjectInitializerExpression(
                 initializerSyntax,
@@ -8798,6 +8799,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Free();
                     actualReceiverArguments?.Free();
 
+                    firstResult.Free(keepArguments: firstResult.AnalyzedArguments == actualMethodArguments);
+
                     if (result.AnalyzedArguments != actualMethodArguments)
                     {
                         actualMethodArguments?.Free();
@@ -8886,6 +8889,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             firstResult = methodResult;
                         }
+                    }
+                    else
+                    {
+                        // keepArguments: true because actualMethodArguments is shared with firstResult
+                        // (both resolutions reference the same AnalyzedArguments instance).
+                        // The arguments lifetime is managed by the caller (ResolveExtension).
+                        methodResult.Free(keepArguments: true);
+                        propertyResult?.Free();
                     }
 
                     return false;
@@ -10438,6 +10449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics,
                         out var implicitIndexerAccess))
                 {
+                    overloadResolutionResult.Free();
                     return implicitIndexerAccess;
                 }
                 else
