@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 [PartNotDiscoverable]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILspServiceFactory
+internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
