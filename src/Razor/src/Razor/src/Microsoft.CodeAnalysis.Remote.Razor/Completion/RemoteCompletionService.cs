@@ -11,6 +11,10 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.Completion.Html;
@@ -25,6 +29,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using CompletionResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.Completion.CompletionResult>;
+using RazorCompletionListCache = Microsoft.CodeAnalysis.Razor.Completion.CompletionListCache;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -37,8 +42,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     private readonly RazorCompletionListProvider _razorCompletionListProvider = args.ExportProvider.GetExportedValue<RazorCompletionListProvider>();
-    private readonly CompletionListCache _completionListCache = args.ExportProvider.GetExportedValue<CompletionListCache>();
-    private readonly CompletionListCacheWrapperProvder _cacheWrapperProvider = args.ExportProvider.GetExportedValue<CompletionListCacheWrapperProvder>();
+    private readonly RazorCompletionListCache _completionListCache = args.ExportProvider.GetExportedValue<RazorCompletionListCache>();
+    private readonly CompletionListCacheProvider _roslynCompletionListCacheProvider = args.ExportProvider.GetExportedValue<CompletionListCacheProvider>();
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
     private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = args.ExportProvider.GetExportedValue<CompletionTriggerAndCommitCharacters>();
     private readonly IRazorFormattingService _formattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
@@ -250,24 +255,16 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         CancellationToken cancellationToken)
     {
         var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
-        if (clientCapabilities.TextDocument?.Completion is not { } completionSetting)
-        {
-            Debug.Fail("Unable to convert VS to Roslyn LSP completion setting");
-            return null;
-        }
-
         var mappedLinePosition = mappedPosition.ToLinePosition();
 
         VSInternalCompletionList? completionList = null;
         using (_telemetryReporter.TrackLspRequest(Methods.TextDocumentCompletionName, Constants.ExternalAccessServerName, TelemetryThresholds.CompletionSubLSPTelemetryThreshold, correlationId))
         {
-            completionList = await ExternalAccess.Razor.Cohost.Handlers.Completion.GetCompletionListAsync(
+            completionList = await GetDelegatedCompletionListAsync(
                 generatedDocument,
                 mappedLinePosition,
                 completionContext,
-                clientCapabilities.SupportsVisualStudioExtensions,
-                completionSetting,
-                _cacheWrapperProvider.GetCache(),
+                clientCapabilities,
                 cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -297,6 +294,36 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         rewrittenResponse.SetResultId(resultId, clientCapabilities);
 
         return rewrittenResponse;
+    }
+
+    private async Task<VSInternalCompletionList?> GetDelegatedCompletionListAsync(
+        Document document,
+        LinePosition linePosition,
+        CompletionContext completionContext,
+        ClientCapabilities clientCapabilities,
+        CancellationToken cancellationToken)
+    {
+        if (clientCapabilities.TextDocument?.Completion is not { } completionCapabilities)
+        {
+            Debug.Fail("Unable to convert VS to Roslyn LSP completion setting");
+            return null;
+        }
+
+        var position = await document
+            .GetPositionFromLinePositionAsync(linePosition, cancellationToken)
+            .ConfigureAwait(false);
+
+        var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var capabilityHelper = new CompletionCapabilityHelper(clientCapabilities.SupportsVisualStudioExtensions(), completionCapabilities);
+
+        return await CompletionHandler.GetCompletionListAsync(
+            document,
+            position,
+            completionContext,
+            globalOptions,
+            capabilityHelper,
+            _roslynCompletionListCacheProvider.GetCache(),
+            cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<SourceGeneratedDocument> GetCSharpGeneratedDocumentAsync(RemoteDocumentSnapshot documentSnapshot, TextEdit? provisionalTextEdit, CancellationToken cancellationToken)
@@ -402,13 +429,10 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             var generatedDocument = await GetCSharpGeneratedDocumentAsync(documentSnapshot, resolutionContext.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
 
             var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
-            var completionListSetting = clientCapabilities.TextDocument?.Completion;
-            var result = await ExternalAccess.Razor.Cohost.Handlers.Completion.ResolveCompletionItemAsync(
+            var result = await ResolveDelegatedCompletionItemAsync(
                 request,
                 generatedDocument,
-                clientCapabilities.SupportsVisualStudioExtensions,
-                completionListSetting ?? new(),
-                _cacheWrapperProvider.GetCache(),
+                clientCapabilities,
                 cancellationToken).ConfigureAwait(false);
 
             var item = JsonHelpers.Convert<CompletionItem, VSInternalCompletionItem>(result).AssumeNotNull();
@@ -431,5 +455,24 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         {
             request.Data = oldData; // Restore original data to avoid side effects, as it may have come from the cache
         }
+    }
+
+    private Task<CompletionItem> ResolveDelegatedCompletionItemAsync(
+        CompletionItem completionItem,
+        Document document,
+        ClientCapabilities clientCapabilities,
+        CancellationToken cancellationToken)
+    {
+        if (clientCapabilities.TextDocument?.Completion is not { } completionCapabilities)
+        {
+            Debug.Fail("Unable to convert VS to Roslyn LSP completion setting");
+            return Task.FromResult(completionItem);
+        }
+
+        var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var capabilityHelper = new CompletionCapabilityHelper(clientCapabilities.SupportsVisualStudioExtensions(), completionCapabilities);
+
+        return CompletionResolveHandler.ResolveCompletionItemAsync(
+            completionItem, document, globalOptions, capabilityHelper, _roslynCompletionListCacheProvider.GetCache(), cancellationToken);
     }
 }

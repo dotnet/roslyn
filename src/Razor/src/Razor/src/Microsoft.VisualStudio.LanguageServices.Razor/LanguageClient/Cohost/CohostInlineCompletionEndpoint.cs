@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -80,7 +82,7 @@ internal sealed class CohostInlineCompletionEndpoint(
             return null;
         }
 
-        var result = await Completion.GetInlineCompletionItemsAsync(context, generatedDocument, position, formattingOptions, cancellationToken).ConfigureAwait(false);
+        var result = await GetInlineCompletionItemsAsync(context, generatedDocument, position, formattingOptions, cancellationToken).ConfigureAwait(false);
         if (result is null)
         {
             return null;
@@ -107,6 +109,20 @@ internal sealed class CohostInlineCompletionEndpoint(
         }
 
         return new VSInternalInlineCompletionList { Items = [result] };
+    }
+
+    private static Task<VSInternalInlineCompletionItem?> GetInlineCompletionItemsAsync(
+        RequestContext? context,
+        Document document,
+        LinePosition position,
+        FormattingOptions options,
+        CancellationToken cancellationToken)
+    {
+        // Razor tests don't construct a RequestContext, so we need to handle the null case.
+        var logger = context?.Logger ?? NoOpLspLogger.Instance;
+        var xmlSnippetParser = document.Project.Solution.Services.ExportProvider.GetService<XmlSnippetParser>();
+
+        return InlineCompletionsHandler.GetInlineCompletionItemsAsync(logger, document, position, options, xmlSnippetParser, cancellationToken);
     }
 
     internal TestAccessor GetTestAccessor() => new(this);
