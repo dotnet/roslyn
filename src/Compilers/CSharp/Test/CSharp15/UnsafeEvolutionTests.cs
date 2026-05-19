@@ -8642,6 +8642,35 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Field_PointerType()
+    {
+        var source = """
+            var c = new C();
+            _ = c.F1;
+            _ = c.F2;
+            c.F2 = default;
+            _ = c.F3;
+            c.F3 = default;
+            _ = new C { F2 = default, F3 = default };
+
+            public class C
+            {
+                public int F1;
+                public int* F2;
+                public delegate*<void> F3;
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules());
+        comp.VerifyDiagnostics();
+        VerifyRequiresUnsafeAttribute(
+            comp.SourceModule,
+            expectedUnsafeSymbols: [],
+            expectedSafeSymbols: ["C", "C.F1", "C.F2", "C.F3"],
+            includesAttributeDefinition: false);
+    }
+
+    [Fact]
     public void Member_Field_Enum()
     {
         CompileAndVerifyUnsafe(
@@ -8718,7 +8747,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             source,
             targetFramework: TargetFramework.Net100,
             options: TestOptions.UnsafeReleaseDll)
-            .VerifyEmitDiagnostics();
+            .VerifyDiagnostics();
 
         CreateCompilation(
             source,

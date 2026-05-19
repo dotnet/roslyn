@@ -192,12 +192,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (ContainingModule.UseUpdatedMemorySafetyRules &&
-                    (Modifiers & DeclarationModifiers.Unsafe) != 0 &&
-                    AssociatedSymbol is null &&
-                    !IsConst)
+                if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return CallerUnsafeMode.Explicit;
+                    return (Modifiers & DeclarationModifiers.Unsafe) != 0 &&
+                        AssociatedSymbol is null &&
+                        !IsConst
+                            ? CallerUnsafeMode.Explicit
+                            : CallerUnsafeMode.None;
                 }
 
                 return !IsFixedSizeBuffer && Type.ContainsPointerOrFunctionPointer()
