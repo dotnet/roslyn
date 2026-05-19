@@ -99,8 +99,11 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         // Use the current function's name as the dynamic call site container suffix so that the runtime async container
         // is distinct from any container created by LocalRewriter for the same method (which uses null/local function
         // ordinal as the suffix), and so that distinct local functions lowered with methodOrdinal -1 get distinct
-        // containers (avoiding nested type name collisions in the enclosing type).
-        _dynamicFactory = new LoweredDynamicOperationFactory(factory, methodOrdinal, factory.CurrentFunction.Name);
+        // containers (avoiding nested type name collisions in the enclosing type). The name may contain '.' (for
+        // example, explicit interface implementations have metadata names like "IFoo.M"), so sanitize it the same way
+        // MakeMethodScopedSynthesizedName sanitizes type names — dots would otherwise break metadata APIs that combine
+        // type names with namespaces.
+        _dynamicFactory = new LoweredDynamicOperationFactory(factory, methodOrdinal, factory.CurrentFunction.Name.Replace('.', GeneratedNameConstants.DotReplacementInTypeNames));
         _placeholderMap = [];
         _variablesToHoist = variablesToHoist;
         _refInitializationHoister = new RefInitializationHoister<LocalSymbol, BoundLocal>(_factory, _factory.CurrentFunction, TypeMap.Empty);

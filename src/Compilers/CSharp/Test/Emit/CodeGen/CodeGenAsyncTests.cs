@@ -4867,6 +4867,62 @@ class Test
         }
 
         [Fact]
+        public void DynamicAwait_RuntimeAsync_ExplicitInterfaceImplementation()
+        {
+            // Explicit interface implementations have metadata names that contain '.', e.g. "IFoo.M".
+            // The runtime async dynamic call site container suffix is derived from the current function's
+            // name, so without sanitization the synthesized nested type would also contain a '.' — which
+            // can confuse metadata APIs that combine type names with namespaces. The container suffix is
+            // sanitized to replace '.' with '-' (GeneratedNameConstants.DotReplacementInTypeNames).
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                interface IFoo
+                {
+                    Task<int> M(dynamic d);
+                }
+
+                class Test : IFoo
+                {
+                    async Task<int> IFoo.M(dynamic d) => await d.Property;
+
+                    static async Task Main()
+                    {
+                        IFoo t = new Test();
+                        Console.WriteLine(await t.M(new Awaitable()));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                AssertEx.SequenceEqual(["Test.<>o__0", "Test.<>o__IFoo-M|0"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            });
+        }
+
+        [Fact]
         public void DynamicProperty_RuntimeAsync_OverloadsAtMethodLevel()
         {
             var source = """
