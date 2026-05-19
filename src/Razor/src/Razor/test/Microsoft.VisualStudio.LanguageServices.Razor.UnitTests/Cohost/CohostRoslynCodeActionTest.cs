@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -709,7 +708,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
         // Roslyn code actions, resolving them, and applying edits through our span mapping service. The main test coverage this gives us is
         // use of the edit service without going through our formatter, which otherwise hides a lot of sins :)
 
-        var codeActions = await ExternalHandlers.CodeActions.GetCodeActionsAsync(csharpDocument, request, supportsVSExtensions: true, DisposalToken);
+        var codeActions = await CohostCodeActionsEndpoint.TestAccessor.GetCodeActionsAsync(csharpDocument, request, supportsVSExtensions: true, DisposalToken);
 
         Assert.NotEmpty(codeActions);
 
@@ -732,7 +731,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
             codeAction = JsonSerializer.Deserialize<CodeAction>(nestedActions[childActionIndex]).AssumeNotNull();
         }
 
-        var resolvedCodeAction = await ExternalHandlers.CodeActions.ResolveCodeActionAsync(csharpDocument, codeAction, [], DisposalToken);
+        var resolvedCodeAction = await CohostCodeActionsResolveEndpoint.TestAccessor.ResolveCodeActionAsync(csharpDocument, codeAction, [], DisposalToken);
 
         var workspaceEdit = resolvedCodeAction.Edit.AssumeNotNull();
 
