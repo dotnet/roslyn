@@ -23,6 +23,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CallHierarchy\CohostCallHierarchyOutgoingCallsEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CallHierarchy\CohostPrepareCallHierarchyEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\CohostDocumentPullDiagnosticsEndpointBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\CohostDocumentPullDiagnosticsHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentColor\CohostColorPresentationEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentColor\CohostDocumentColorEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentHighlight\CohostDocumentHighlightEndpoint.cs" />
