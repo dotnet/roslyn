@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+using Microsoft.CodeAnalysis.Highlighting;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentHighlight;
@@ -66,7 +68,14 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
                 .GetGeneratedDocumentAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            var highlights = await DocumentHighlights.GetHighlightsAsync(generatedDocument, mappedPosition, cancellationToken).ConfigureAwait(false);
+            var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+            var highlightingService = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IHighlightingService>();
+            var highlights = await DocumentHighlightsHandler.GetHighlightsAsync(
+                globalOptions,
+                highlightingService,
+                generatedDocument,
+                mappedPosition,
+                cancellationToken).ConfigureAwait(false);
 
             if (highlights is not null)
             {
