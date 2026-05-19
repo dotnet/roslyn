@@ -39,8 +39,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 /// </item>
 /// </list>
 /// If any of the above are not true (for example, the capacity is a rough hint, or the exact number of elements may not
-/// match the capacity specified, or if it's intended as a scratch buffer, and won't realize a final array), then <see
-/// cref="ArrayBuilder{T}.GetInstance(int, T)"/> should be used instead.
+/// match the capacity specified, or if it's intended as a scratch buffer, and won't realize a final array), then
+/// <see cref="ArrayBuilder{T}"/>'s <c>GetInstance</c> should be used instead.
 /// </remarks>
 [NonCopyable]
 internal struct FixedSizeArrayBuilder<T>(int capacity)
