@@ -251,6 +251,14 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        protected static readonly string ClosedAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class ClosedAttribute : Attribute { }
+            }
+            """;
+
         protected static readonly string IsExternalInitTypeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -3318,9 +3326,10 @@ namespace System
                     }
                     break;
 
-                case IsPatternExpressionSyntax n:
+                case IsPatternExpressionSyntax:
+                case BinaryExpressionSyntax n when n.Kind() == SyntaxKind.IsExpression:
                     {
-                        var b = (BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        var b = (BoundIsPatternExpression)binder.BindExpression((ExpressionSyntax)(object)node, BindingDiagnosticBag.Discarded);
                         decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
                     }
                     break;

@@ -4,37 +4,37 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="new">Value cannot be null or an empty string.</target>
+        <target state="translated">値を null または空の文字列にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="LanguageServer_Initialization_Failed">
         <source>{0} failed to initialize.  Please report a problem via Help -&gt; Send Feedback -&gt; Report a Problem.  Status = {1}.  Exception = {2}</source>
-        <target state="new">{0} failed to initialize.  Please report a problem via Help -&gt; Send Feedback -&gt; Report a Problem.  Status = {1}.  Exception = {2}</target>
+        <target state="translated">{0} を初期化できませんでした。[ヘルプ] -&gt; [フィードバックの送信] -&gt; [問題の報告] で問題を報告してください。状態 = {1}。例外 = {2}</target>
         <note>{0} is the language server name. Status is the status of the initialization. Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="ProximityExpression_Dialog_Description">
         <source>Razor Debugger</source>
-        <target state="new">Razor Debugger</target>
+        <target state="translated">Razor デバッガー</target>
         <note />
       </trans-unit>
       <trans-unit id="ProximityExpression_Dialog_Title">
         <source>Determining proximity expressions...</source>
-        <target state="new">Determining proximity expressions...</target>
+        <target state="translated">近接式を判別しています...</target>
         <note />
       </trans-unit>
       <trans-unit id="Renaming_0_to_1">
         <source>Renaming {0} to {1}</source>
-        <target state="new">Renaming {0} to {1}</target>
+        <target state="translated">{0} の名前を {1} に変更しています</target>
         <note />
       </trans-unit>
       <trans-unit id="Renaming_Razor_Component">
         <source>Renaming Razor Component</source>
-        <target state="new">Renaming Razor Component</target>
+        <target state="translated">Razor コンポーネントの名前を変更しています</target>
         <note />
       </trans-unit>
       <trans-unit id="View Code">
         <source>View Code</source>
-        <target state="new">View Code</target>
+        <target state="translated">コードの表示</target>
         <note />
       </trans-unit>
     </body>

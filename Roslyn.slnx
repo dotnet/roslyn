@@ -420,10 +420,6 @@
   </Folder>
   <Project Path="src/Deployment/RoslynDeployment.csproj" />
   <Folder Name="/Razor/" />
-  <Folder Name="/Razor/Analyzers/">
-    <Project Path="src/Razor/src/Analyzers/Razor.Diagnostics.Analyzers.UnitTests/Razor.Diagnostics.Analyzers.UnitTests.csproj" />
-    <Project Path="src/Razor/src/Analyzers/Razor.Diagnostics.Analyzers/Razor.Diagnostics.Analyzers.csproj" />
-  </Folder>
   <Folder Name="/Razor/benchmarks/">
     <Project Path="src/Razor/src/Compiler/perf/Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj" />
     <Project Path="src/Razor/src/Compiler/perf/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj" />
@@ -487,7 +483,6 @@
     <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.LanguageServices.Razor.UnitTests/Microsoft.VisualStudio.LanguageServices.Razor.UnitTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.Razor.IntegrationTests/Microsoft.VisualStudio.Razor.IntegrationTests.csproj" />
-    <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudioCode.Razor.IntegrationTests/Microsoft.VisualStudioCode.Razor.IntegrationTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudioCode.RazorExtension.UnitTests/Microsoft.VisualStudioCode.RazorExtension.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Tooling/">

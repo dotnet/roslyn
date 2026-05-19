@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -33,8 +34,11 @@ public sealed class HelixWorkItem(
     public override string ToString() => DisplayName;
 }
 
-internal sealed class HelixTestRunner
+internal sealed partial class HelixTestRunner
 {
+    [GeneratedRegex(@"Waiting for completion of job ([0-9a-fA-F-]+) on ")]
+    private static partial Regex HelixJobIdRegex();
+
     internal enum TestOS
     {
         Windows,
@@ -97,14 +101,39 @@ internal sealed class HelixTestRunner
         CopyPayloadFilesToLogs(logsDir, payloadsDir);
         File.Copy(helixFilePath, Path.Combine(logsDir, "helix.proj"));
 
+        string? helixJobId = null;
+
         var process = ProcessRunner.CreateProcess(
             executable: options.DotnetFilePath,
             arguments: arguments,
             captureOutput: true,
-            onOutputDataReceived: (e) => { Debug.Assert(e.Data is not null); ConsoleUtil.WriteLine(e.Data); },
+            onOutputDataReceived: (e) =>
+            {
+                Debug.Assert(e.Data is not null);
+                ConsoleUtil.WriteLine(e.Data);
+
+                if (helixJobId is null)
+                {
+                    var match = HelixJobIdRegex().Match(e.Data);
+                    if (match.Success)
+                    {
+                        helixJobId = match.Groups[1].Value;
+                    }
+                }
+            },
             cancellationToken: cancellationToken);
-        var processResult = await process.Result.ConfigureAwait(false);
-        return processResult.ExitCode;
+
+        try
+        {
+            var processResult = await process.Result.ConfigureAwait(false);
+            return processResult.ExitCode;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            var jobDescription = helixJobId ?? "unknown helix job";
+            ConsoleUtil.Error($"(NETCORE_ENGINEERING_TELEMETRY=Test) Helix job timed out: {jobDescription}");
+            throw;
+        }
 
         void Verify([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression("condition")] string? message = null)
         {

@@ -942,6 +942,7 @@ internal partial class DefaultTagHelperResolutionPhase
             parent.Children.RemoveAt(index);
 
             var insertIndex = index;
+            IntermediateNode? firstInserted = null;
             foreach (var child in elementNode.Children)
             {
                 if (child is UnresolvedAttributeIntermediateNode unresolvedAttr)
@@ -952,23 +953,37 @@ internal partial class DefaultTagHelperResolutionPhase
                         foreach (var lowered in container.Children)
                         {
                             parent.Children.Insert(insertIndex++, lowered);
+                            firstInserted ??= lowered;
                         }
                     }
                     else if (unresolvedAttr.AsMarkupAttribute != null)
                     {
                         parent.Children.Insert(insertIndex++, unresolvedAttr.AsMarkupAttribute);
+                        firstInserted ??= unresolvedAttr.AsMarkupAttribute;
                     }
                     continue;
                 }
 
                 if (child is HtmlAttributeIntermediateNode htmlAttr)
                 {
+                    var beforeUnwrap = insertIndex;
                     insertIndex = UnwrapHtmlAttribute(parent, insertIndex, htmlAttr);
+                    if (firstInserted is null && insertIndex > beforeUnwrap)
+                    {
+                        firstInserted = parent.Children[beforeUnwrap];
+                    }
                     continue;
                 }
 
                 parent.Children.Insert(insertIndex++, child);
+                firstInserted ??= child;
             }
+
+            // Transfer element-level diagnostics onto the first inserted child *before*
+            // MergeAdjacentHtmlContent runs. The merge propagates diagnostics from a removed
+            // sibling into its merge target, so the diagnostics ride along even if
+            // firstInserted is consumed by a left-boundary merge into parent.Children[index - 1].
+            firstInserted?.AddDiagnosticsFromNode(elementNode);
 
             MergeAdjacentHtmlContent(parent, index, insertIndex);
         }
@@ -1132,6 +1147,11 @@ internal partial class DefaultTagHelperResolutionPhase
                 {
                     // Merge next into current.
                     current.Children.AddRange(next.Children);
+
+                    // Preserve any diagnostics on the removed sibling (e.g. orphan-tag
+                    // diagnostics attached to the first inserted child by ConvertToPlainElement)
+                    // so they aren't silently dropped.
+                    current.AddDiagnosticsFromNode(next);
                     if (current.Source is SourceSpan currentSource && next.Source is SourceSpan nextSource)
                     {
                         current.Source = MergeSourceSpans(currentSource, nextSource);

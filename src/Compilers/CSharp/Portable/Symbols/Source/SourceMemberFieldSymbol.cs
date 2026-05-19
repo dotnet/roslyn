@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ErrorLocation);
+                        SourceMemberMethodSymbol.ReportLackOfRuntimeSupportForStaticMembersInInterfaces(declarator, DeclaredAccessibility, diagnostics, ErrorLocation);
                     }
                 }
                 else

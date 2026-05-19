@@ -51,7 +51,11 @@ internal sealed class ImplementAbstractClassData(
         if (abstractClassType == null || !abstractClassType.IsAbstractClass())
             return null;
 
-        if (!CodeGenerator.CanAdd(document.Project.Solution, classType, cancellationToken))
+        var codeGenerationContext = new CodeGenerationContext(
+            contextLocation: classIdentifier.GetLocation(),
+            allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
+
+        if (!CodeGenerator.CanAdd(document.Project.Solution, classType, codeGenerationContext, cancellationToken))
             return null;
 
         var unimplementedMembers = classType.GetAllUnimplementedMembers(
@@ -101,7 +105,8 @@ internal sealed class ImplementAbstractClassData(
         var context = new CodeGenerationContext(
             contextLocation: classNodeToAddMembersTo.GetLocation(),
             autoInsertionLocation: groupMembers,
-            sortMembers: groupMembers);
+            sortMembers: groupMembers,
+            allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
 
         var info = await _document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 

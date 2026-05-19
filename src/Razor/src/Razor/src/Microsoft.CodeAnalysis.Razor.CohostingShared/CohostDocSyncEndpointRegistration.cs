@@ -3,7 +3,7 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IDynamicRegistrationProvider))]
 internal sealed class CohostDocSyncEndpointRegistration : IDynamicRegistrationProvider
 {
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         return [
             // DidOpen, DidChange, DidClose, for document synchronization

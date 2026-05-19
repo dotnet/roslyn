@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudioCode.RazorExtension.Test.Endpoints.Formatting;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 /// <summary>
 /// Tests that explore quirks of the VS Code html formatter, distinct from the VS variety
