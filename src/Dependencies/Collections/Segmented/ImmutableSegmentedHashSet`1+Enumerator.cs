@@ -20,22 +20,22 @@ namespace Microsoft.CodeAnalysis.Collections
 
             internal Enumerator(SegmentedHashSet<T> set)
             {
-                this._set = set;
-                this._enumerator = set.GetEnumerator();
+                _set = set;
+                _enumerator = set.GetEnumerator();
             }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Current"/>
-            public readonly T Current => this._enumerator.Current;
+            public readonly T Current => _enumerator.Current;
 
-            readonly object? IEnumerator.Current => ((IEnumerator)this._enumerator).Current;
+            readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Dispose()"/>
             public readonly void Dispose()
-                => this._enumerator.Dispose();
+                => _enumerator.Dispose();
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.MoveNext()"/>
             public bool MoveNext()
-                => this._enumerator.MoveNext();
+                => _enumerator.MoveNext();
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Reset()"/>
             public void Reset()

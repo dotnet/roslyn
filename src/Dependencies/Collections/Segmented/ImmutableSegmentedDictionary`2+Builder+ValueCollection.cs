@@ -22,43 +22,43 @@ namespace Microsoft.CodeAnalysis.Collections
                 internal ValueCollection(ImmutableSegmentedDictionary<TKey, TValue>.Builder dictionary)
                 {
                     Debug.Assert(dictionary is not null);
-                    this._dictionary = dictionary!;
+                    _dictionary = dictionary!;
                 }
 
-                public int Count => this._dictionary.Count;
+                public int Count => _dictionary.Count;
 
                 bool ICollection<TValue>.IsReadOnly => false;
 
                 bool ICollection.IsSynchronized => false;
 
-                object ICollection.SyncRoot => ((ICollection)this._dictionary).SyncRoot;
+                object ICollection.SyncRoot => ((ICollection)_dictionary).SyncRoot;
 
                 void ICollection<TValue>.Add(TValue item)
                     => throw new NotSupportedException();
 
                 public void Clear()
-                    => this._dictionary.Clear();
+                    => _dictionary.Clear();
 
                 public bool Contains(TValue item)
-                    => this._dictionary.ContainsValue(item);
+                    => _dictionary.ContainsValue(item);
 
                 public void CopyTo(TValue[] array, int arrayIndex)
-                    => this._dictionary.ReadOnlyDictionary.Values.CopyTo(array, arrayIndex);
+                    => _dictionary.ReadOnlyDictionary.Values.CopyTo(array, arrayIndex);
 
                 public ImmutableSegmentedDictionary<TKey, TValue>.ValueCollection.Enumerator GetEnumerator()
-                    => new(this._dictionary.GetEnumerator());
+                    => new(_dictionary.GetEnumerator());
 
                 bool ICollection<TValue>.Remove(TValue item)
                     => throw new NotSupportedException();
 
                 void ICollection.CopyTo(Array array, int index)
-                    => ((ICollection)this._dictionary.ReadOnlyDictionary.Values).CopyTo(array, index);
+                    => ((ICollection)_dictionary.ReadOnlyDictionary.Values).CopyTo(array, index);
 
                 IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
-                    => this.GetEnumerator();
+                    => GetEnumerator();
 
                 IEnumerator IEnumerable.GetEnumerator()
-                    => this.GetEnumerator();
+                    => GetEnumerator();
             }
         }
     }

@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis.Collections
 
             internal ValueBuilder(ImmutableSegmentedDictionary<TKey, TValue> dictionary)
             {
-                this._dictionary = dictionary;
-                this._mutableDictionary = null;
+                _dictionary = dictionary;
+                _mutableDictionary = null;
             }
 
             public IEqualityComparer<TKey> KeyComparer
             {
                 readonly get
                 {
-                    return this.ReadOnlyDictionary.Comparer;
+                    return ReadOnlyDictionary.Comparer;
                 }
 
                 set
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
             }
 
-            public readonly int Count => this.ReadOnlyDictionary.Count;
+            public readonly int Count => ReadOnlyDictionary.Count;
 
             internal readonly SegmentedDictionary<TKey, TValue> ReadOnlyDictionary
             {
@@ -94,14 +94,14 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public TValue this[TKey key]
             {
-                readonly get => this.ReadOnlyDictionary[key];
-                set => this.GetOrCreateMutableDictionary()[key] = value;
+                readonly get => ReadOnlyDictionary[key];
+                set => GetOrCreateMutableDictionary()[key] = value;
             }
 
             object? IDictionary.this[object key]
             {
-                readonly get => ((IDictionary)this.ReadOnlyDictionary)[key];
-                set => ((IDictionary)this.GetOrCreateMutableDictionary())[key] = value;
+                readonly get => ((IDictionary)ReadOnlyDictionary)[key];
+                set => ((IDictionary)GetOrCreateMutableDictionary())[key] = value;
             }
 
             internal SegmentedDictionary<TKey, TValue> GetOrCreateMutableDictionary()
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             public void Add(KeyValuePair<TKey, TValue> item)
-                => this.Add(item.Key, item.Value);
+                => Add(item.Key, item.Value);
 
             public void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> items)
             {
@@ -167,22 +167,22 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public readonly bool Contains(KeyValuePair<TKey, TValue> item)
             {
-                return this.TryGetValue(item.Key, out var value)
+                return TryGetValue(item.Key, out var value)
                     && EqualityComparer<TValue>.Default.Equals(value, item.Value);
             }
 
             public readonly bool ContainsKey(TKey key)
-                => this.ReadOnlyDictionary.ContainsKey(key);
+                => ReadOnlyDictionary.ContainsKey(key);
 
             public readonly bool ContainsValue(TValue value)
-                => this.ReadOnlyDictionary.ContainsValue(value);
+                => ReadOnlyDictionary.ContainsValue(value);
 
             public Enumerator GetEnumerator()
-                => new(this.GetOrCreateMutableDictionary(), Enumerator.ReturnType.KeyValuePair);
+                => new(GetOrCreateMutableDictionary(), Enumerator.ReturnType.KeyValuePair);
 
             public readonly TValue? GetValueOrDefault(TKey key)
             {
-                if (this.TryGetValue(key, out var value))
+                if (TryGetValue(key, out var value))
                     return value;
 
                 return default;
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public readonly TValue GetValueOrDefault(TKey key, TValue defaultValue)
             {
-                if (this.TryGetValue(key, out var value))
+                if (TryGetValue(key, out var value))
                     return value;
 
                 return defaultValue;
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Collections
 #pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
             public readonly bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
 #pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
-                => this.ReadOnlyDictionary.TryGetValue(key, out value);
+                => ReadOnlyDictionary.TryGetValue(key, out value);
 
             public ImmutableSegmentedDictionary<TKey, TValue> ToImmutable()
             {
@@ -267,28 +267,28 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             readonly void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-                => ((ICollection<KeyValuePair<TKey, TValue>>)this.ReadOnlyDictionary).CopyTo(array, arrayIndex);
+                => ((ICollection<KeyValuePair<TKey, TValue>>)ReadOnlyDictionary).CopyTo(array, arrayIndex);
 
             IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
-                => new Enumerator(this.GetOrCreateMutableDictionary(), Enumerator.ReturnType.KeyValuePair);
+                => new Enumerator(GetOrCreateMutableDictionary(), Enumerator.ReturnType.KeyValuePair);
 
             IEnumerator IEnumerable.GetEnumerator()
-                => new Enumerator(this.GetOrCreateMutableDictionary(), Enumerator.ReturnType.KeyValuePair);
+                => new Enumerator(GetOrCreateMutableDictionary(), Enumerator.ReturnType.KeyValuePair);
 
             readonly bool IDictionary.Contains(object key)
-                => ((IDictionary)this.ReadOnlyDictionary).Contains(key);
+                => ((IDictionary)ReadOnlyDictionary).Contains(key);
 
             void IDictionary.Add(object key, object? value)
-                => ((IDictionary)this.GetOrCreateMutableDictionary()).Add(key, value);
+                => ((IDictionary)GetOrCreateMutableDictionary()).Add(key, value);
 
             IDictionaryEnumerator IDictionary.GetEnumerator()
-                => new Enumerator(this.GetOrCreateMutableDictionary(), Enumerator.ReturnType.DictionaryEntry);
+                => new Enumerator(GetOrCreateMutableDictionary(), Enumerator.ReturnType.DictionaryEntry);
 
             void IDictionary.Remove(object key)
-                => ((IDictionary)this.GetOrCreateMutableDictionary()).Remove(key);
+                => ((IDictionary)GetOrCreateMutableDictionary()).Remove(key);
 
             readonly void ICollection.CopyTo(Array array, int index)
-                => ((ICollection)this.ReadOnlyDictionary).CopyTo(array, index);
+                => ((ICollection)ReadOnlyDictionary).CopyTo(array, index);
         }
     }
 }

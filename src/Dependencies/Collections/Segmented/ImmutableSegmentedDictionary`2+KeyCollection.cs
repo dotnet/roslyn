@@ -18,34 +18,34 @@ namespace Microsoft.CodeAnalysis.Collections
 
             internal KeyCollection(ImmutableSegmentedDictionary<TKey, TValue> dictionary)
             {
-                this._dictionary = dictionary;
+                _dictionary = dictionary;
             }
 
-            public int Count => this._dictionary.Count;
+            public int Count => _dictionary.Count;
 
             bool ICollection<TKey>.IsReadOnly => true;
 
             bool ICollection.IsSynchronized => true;
 
-            object ICollection.SyncRoot => ((ICollection)this._dictionary).SyncRoot;
+            object ICollection.SyncRoot => ((ICollection)_dictionary).SyncRoot;
 
             public Enumerator GetEnumerator()
-                => new(this._dictionary.GetEnumerator());
+                => new(_dictionary.GetEnumerator());
 
             public bool Contains(TKey item)
-                => this._dictionary.ContainsKey(item);
+                => _dictionary.ContainsKey(item);
 
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
-                => this.GetEnumerator();
+                => GetEnumerator();
 
             IEnumerator IEnumerable.GetEnumerator()
-                => this.GetEnumerator();
+                => GetEnumerator();
 
             void ICollection<TKey>.CopyTo(TKey[] array, int arrayIndex)
-                => this._dictionary._dictionary.Keys.CopyTo(array, arrayIndex);
+                => _dictionary._dictionary.Keys.CopyTo(array, arrayIndex);
 
             void ICollection.CopyTo(Array array, int index)
-                => ((ICollection)this._dictionary._dictionary.Keys).CopyTo(array, index);
+                => ((ICollection)_dictionary._dictionary.Keys).CopyTo(array, index);
 
             void ICollection<TKey>.Add(TKey item)
                 => throw new NotSupportedException();

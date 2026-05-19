@@ -18,19 +18,19 @@ namespace Microsoft.CodeAnalysis.Collections
 
             internal Enumerator(SegmentedList<T> list)
             {
-                this._list = list;
-                this._enumerator = list.GetEnumerator();
+                _list = list;
+                _enumerator = list.GetEnumerator();
             }
 
-            public readonly T Current => this._enumerator.Current;
+            public readonly T Current => _enumerator.Current;
 
-            readonly object? IEnumerator.Current => ((IEnumerator)this._enumerator).Current;
+            readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
 
             public readonly void Dispose()
-                => this._enumerator.Dispose();
+                => _enumerator.Dispose();
 
             public bool MoveNext()
-                => this._enumerator.MoveNext();
+                => _enumerator.MoveNext();
 
             public void Reset()
             {

@@ -78,46 +78,46 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private ImmutableSegmentedDictionary(SegmentedDictionary<TKey, TValue> dictionary)
         {
-            this._dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
+            _dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
         }
 
-        public IEqualityComparer<TKey> KeyComparer => this._dictionary.Comparer;
+        public IEqualityComparer<TKey> KeyComparer => _dictionary.Comparer;
 
-        public int Count => this._dictionary.Count;
+        public int Count => _dictionary.Count;
 
-        public bool IsEmpty => this._dictionary.Count == 0;
+        public bool IsEmpty => _dictionary.Count == 0;
 
-        public bool IsDefault => this._dictionary == null;
+        public bool IsDefault => _dictionary == null;
 
-        public bool IsDefaultOrEmpty => this._dictionary?.Count is null or 0;
+        public bool IsDefaultOrEmpty => _dictionary?.Count is null or 0;
 
         public KeyCollection Keys => new(this);
 
         public ValueCollection Values => new(this);
 
-        ICollection<TKey> IDictionary<TKey, TValue>.Keys => this.Keys;
+        ICollection<TKey> IDictionary<TKey, TValue>.Keys => Keys;
 
-        ICollection<TValue> IDictionary<TKey, TValue>.Values => this.Values;
+        ICollection<TValue> IDictionary<TKey, TValue>.Values => Values;
 
-        IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => this.Keys;
+        IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => Keys;
 
-        IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => this.Values;
+        IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => Values;
 
         bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => true;
 
-        ICollection IDictionary.Keys => this.Keys;
+        ICollection IDictionary.Keys => Keys;
 
-        ICollection IDictionary.Values => this.Values;
+        ICollection IDictionary.Values => Values;
 
         bool IDictionary.IsReadOnly => true;
 
         bool IDictionary.IsFixedSize => true;
 
-        object ICollection.SyncRoot => this._dictionary;
+        object ICollection.SyncRoot => _dictionary;
 
         bool ICollection.IsSynchronized => true;
 
-        public TValue this[TKey key] => this._dictionary[key];
+        public TValue this[TKey key] => _dictionary[key];
 
         TValue IDictionary<TKey, TValue>.this[TKey key]
         {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         object? IDictionary.this[object key]
         {
-            get => ((IDictionary)this._dictionary)[key];
+            get => ((IDictionary)_dictionary)[key];
             set => throw new NotSupportedException();
         }
 
@@ -182,18 +182,18 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public bool Contains(KeyValuePair<TKey, TValue> pair)
         {
-            return this.TryGetValue(pair.Key, out var value)
+            return TryGetValue(pair.Key, out var value)
                 && EqualityComparer<TValue>.Default.Equals(value, pair.Value);
         }
 
         public bool ContainsKey(TKey key)
-            => this._dictionary.ContainsKey(key);
+            => _dictionary.ContainsKey(key);
 
         public bool ContainsValue(TValue value)
-            => this._dictionary.ContainsValue(value);
+            => _dictionary.ContainsValue(value);
 
         public Enumerator GetEnumerator()
-            => new(this._dictionary, Enumerator.ReturnType.KeyValuePair);
+            => new(_dictionary, Enumerator.ReturnType.KeyValuePair);
 
         public ImmutableSegmentedDictionary<TKey, TValue> Remove(TKey key)
         {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return self;
             }
 
-            var builder = this.ToValueBuilder();
+            var builder = ToValueBuilder();
             builder[key] = value;
             return builder.ToImmutable();
         }
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Collections
 #pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
 #pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
-            => this._dictionary.TryGetValue(key, out value);
+            => _dictionary.TryGetValue(key, out value);
 
         public ImmutableSegmentedDictionary<TKey, TValue> WithComparer(IEqualityComparer<TKey>? keyComparer)
         {
@@ -300,54 +300,54 @@ namespace Microsoft.CodeAnalysis.Collections
             => new(this);
 
         public override int GetHashCode()
-            => this._dictionary?.GetHashCode() ?? 0;
+            => _dictionary?.GetHashCode() ?? 0;
 
         public override bool Equals(object? obj)
         {
             return obj is ImmutableSegmentedDictionary<TKey, TValue> other
-                && this.Equals(other);
+                && Equals(other);
         }
 
         public bool Equals(ImmutableSegmentedDictionary<TKey, TValue> other)
-            => this._dictionary == other._dictionary;
+            => _dictionary == other._dictionary;
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.Clear()
-            => this.Clear();
+            => Clear();
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.Add(TKey key, TValue value)
-            => this.Add(key, value);
+            => Add(key, value);
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
-            => this.AddRange(pairs);
+            => AddRange(pairs);
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.SetItem(TKey key, TValue value)
-            => this.SetItem(key, value);
+            => SetItem(key, value);
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.SetItems(IEnumerable<KeyValuePair<TKey, TValue>> items)
-            => this.SetItems(items);
+            => SetItems(items);
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.RemoveRange(IEnumerable<TKey> keys)
-            => this.RemoveRange(keys);
+            => RemoveRange(keys);
 
-        IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.Remove(TKey key) => this.Remove(key);
+        IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.Remove(TKey key) => Remove(key);
 
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
-            => new Enumerator(this._dictionary, Enumerator.ReturnType.KeyValuePair);
+            => new Enumerator(_dictionary, Enumerator.ReturnType.KeyValuePair);
 
         IDictionaryEnumerator IDictionary.GetEnumerator()
-            => new Enumerator(this._dictionary, Enumerator.ReturnType.DictionaryEntry);
+            => new Enumerator(_dictionary, Enumerator.ReturnType.DictionaryEntry);
 
         IEnumerator IEnumerable.GetEnumerator()
-            => new Enumerator(this._dictionary, Enumerator.ReturnType.KeyValuePair);
+            => new Enumerator(_dictionary, Enumerator.ReturnType.KeyValuePair);
 
         void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-            => ((ICollection<KeyValuePair<TKey, TValue>>)this._dictionary).CopyTo(array, arrayIndex);
+            => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).CopyTo(array, arrayIndex);
 
         bool IDictionary.Contains(object key)
-            => ((IDictionary)this._dictionary).Contains(key);
+            => ((IDictionary)_dictionary).Contains(key);
 
         void ICollection.CopyTo(Array array, int index)
-            => ((ICollection)this._dictionary).CopyTo(array, index);
+            => ((ICollection)_dictionary).CopyTo(array, index);
 
         void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
             => throw new NotSupportedException();

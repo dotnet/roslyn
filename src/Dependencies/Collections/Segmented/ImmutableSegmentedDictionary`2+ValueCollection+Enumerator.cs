@@ -19,21 +19,21 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 internal Enumerator(ImmutableSegmentedDictionary<TKey, TValue>.Enumerator enumerator)
                 {
-                    this._enumerator = enumerator;
+                    _enumerator = enumerator;
                 }
 
-                public readonly TValue Current => this._enumerator.Current.Value;
+                public readonly TValue Current => _enumerator.Current.Value;
 
-                readonly object? IEnumerator.Current => this.Current;
+                readonly object? IEnumerator.Current => Current;
 
                 public readonly void Dispose()
-                    => this._enumerator.Dispose();
+                    => _enumerator.Dispose();
 
                 public bool MoveNext()
-                    => this._enumerator.MoveNext();
+                    => _enumerator.MoveNext();
 
                 public void Reset()
-                    => this._enumerator.Reset();
+                    => _enumerator.Reset();
             }
         }
     }
