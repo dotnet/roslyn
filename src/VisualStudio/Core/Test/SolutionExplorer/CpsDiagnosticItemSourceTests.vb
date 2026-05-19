@@ -57,5 +57,53 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Assert.Contains(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, diagnostic.Text)
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Async Function AnalyzerUnderProjectDirectory_NewerCanonicalNameForm_IsResolved() As Task
+            ' Regression coverage for the case where an analyzer DLL is referenced from a path
+            ' physically located under the consuming project's directory
+            ' (e.g. <Analyzer Include="Analyzers\MinimalGenerator.dll" />), and CPS emits the
+            ' newer (VS16.7+) canonical name form where the canonical name is just the analyzer's
+            ' full file path. The analyzer reference must be resolved so that Solution Explorer
+            ' can attach diagnostic and source-generator child nodes to it. Prior to the fix,
+            ' the project-directory prefix was stripped, leaving a project-relative path that
+            ' never matched AnalyzerReference.FullPath, and HasItems returned false.
+            Dim workspaceXml =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                    </Project>
+                </Workspace>
+
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
+                Dim project = workspace.Projects.Single()
+
+                Dim analyzers = New Dictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer))
+                analyzers.Add(LanguageNames.VisualBasic, ImmutableArray.Create(Of DiagnosticAnalyzer)(New Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty.VisualBasicUseAutoPropertyAnalyzer()))
+
+                ' Place the analyzer at an absolute path *under* the project's directory.
+                Dim projectDirectory = Path.GetDirectoryName(project.FilePath)
+                Dim analyzerPath = Path.Combine(projectDirectory, "Analyzers", "MinimalGenerator.dll")
+
+                workspace.OnAnalyzerReferenceAdded(project.Id, New TestAnalyzerReferenceByLanguage(analyzers, analyzerPath))
+
+                Dim listenerProvider = workspace.GetService(Of IAsynchronousOperationListenerProvider)
+                Dim source As IAttachedCollectionSource = New CpsDiagnosticItemSource(
+                    workspace.GetService(Of IThreadingContext),
+                    workspace,
+                    project.FilePath,
+                    project.Id,
+                    New MockHierarchyItem() With {.CanonicalName = analyzerPath},
+                    New FakeAnalyzersCommandHandler(),
+                    listenerProvider)
+
+                Assert.True(source.HasItems)
+
+                Dim waiter = DirectCast(listenerProvider.GetListener(FeatureAttribute.SourceGenerators), IAsynchronousOperationWaiter)
+                Await waiter.ExpeditedWaitAsync()
+
+                Dim diagnostic = Assert.IsAssignableFrom(Of ITreeDisplayItem)(Assert.Single(source.Items))
+                Assert.Contains(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, diagnostic.Text)
+            End Using
+        End Function
     End Class
 End Namespace

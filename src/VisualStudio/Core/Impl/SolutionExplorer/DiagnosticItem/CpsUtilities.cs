@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -17,61 +18,76 @@ internal static class CpsUtilities
     /// <returns>The full path to the analyzer assembly on disk, or null if <paramref name="analyzerNodeCanonicalName"/>
     /// cannot be parsed.</returns>
     /// <remarks>
-    /// The canonical name takes the following form:
-    /// 
-    ///   [{path to project directory}\]{target framework}\analyzerdependency\{path to assembly}
-    ///   
-    /// e.g.:
-    /// 
-    ///   C:\projects\solutions\MyProj\netstandard2.0\analyzerdependency\C:\users\me\.packages\somePackage\lib\someAnalyzer.dll
-    ///   
-    /// This method exists solely to extract out the "path to assembly" part, i.e.
-    /// "C:\users\me\.packages\somePackage\lib\someAnalyzer.dll". We don't need the
-    /// other parts.
-    /// 
-    /// Note that the path to the project directory is optional.
+    /// Two forms of canonical name are supported:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>
+    /// Legacy form (pre-VS16.7): <c>[{path to project directory}\]{target framework}\analyzerdependency\{path to assembly}</c>,
+    /// e.g. <c>C:\projects\solutions\MyProj\netstandard2.0\analyzerdependency\C:\users\me\.packages\somePackage\lib\someAnalyzer.dll</c>.
+    /// The leading project-directory and <c>{tfm}\analyzerdependency\</c> portions are CPS tree decoration describing how
+    /// the dependency was discovered; the analyzer's actual file path always comes after <c>analyzerdependency\</c> and is
+    /// always rooted. The project-directory prefix is optional.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Newer form (VS16.7+): the canonical name is the analyzer assembly's full file path. No processing is required and
+    /// the value must be returned unchanged so it matches <c>AnalyzerReference.FullPath</c>, including when the analyzer
+    /// physically lives under the project directory (e.g. <c>&lt;Analyzer Include="Analyzers\MyAnalyzer.dll" /&gt;</c>).
+    /// </description>
+    /// </item>
+    /// </list>
     /// </remarks>
     public static string? ExtractAnalyzerFilePath(string projectDirectoryPath, string analyzerNodeCanonicalName)
     {
-        // The canonical name may or may not start with the path to the project's directory.
+        const string AnalyzerDependencySegment = @"analyzerdependency\";
+
         if (!projectDirectoryPath.EndsWith("\\"))
         {
             projectDirectoryPath += '\\';
         }
 
-        if (analyzerNodeCanonicalName.StartsWith(projectDirectoryPath, StringComparison.OrdinalIgnoreCase))
+        // The legacy-form canonical name may start with the path to the project's directory as decoration.
+        // We only strip that prefix for the purpose of detecting the legacy form; for the newer form we must
+        // return the original canonical name unchanged so that analyzers physically located under the project
+        // directory are not converted to project-relative paths (which would fail to match AnalyzerReference.FullPath).
+        var remaining = analyzerNodeCanonicalName;
+        if (remaining.StartsWith(projectDirectoryPath, StringComparison.OrdinalIgnoreCase))
         {
-            // Extract the rest of the string
-            analyzerNodeCanonicalName = analyzerNodeCanonicalName[projectDirectoryPath.Length..];
+            remaining = remaining[projectDirectoryPath.Length..];
         }
 
         // Find the slash after the target framework
-        var backslashIndex = analyzerNodeCanonicalName.IndexOf('\\');
+        var backslashIndex = remaining.IndexOf('\\');
         if (backslashIndex < 0)
         {
             return null;
         }
 
         // If the path does not contain "analyzerdependency\" immediately after the first slash, it
-        // is a newer form of the analyzer tree item's file path (VS16.7) which requires no processing.
-        //
-        // It is theoretically possible that this incorrectly identifies an analyzer assembly
-        // defined under "c:\analyzerdependency\..." as data in the old format, however this is very
-        // unlikely. The side effect of such a problem is that analyzer's diagnostics would not
-        // populate in the tree.
-        if (analyzerNodeCanonicalName.IndexOf(@"analyzerdependency\", backslashIndex + 1, @"analyzerdependency\".Length, StringComparison.OrdinalIgnoreCase) != backslashIndex + 1)
+        // is the newer form of the analyzer tree item's file path (VS16.7+) which requires no processing.
+        if (remaining.IndexOf(AnalyzerDependencySegment, backslashIndex + 1, AnalyzerDependencySegment.Length, StringComparison.OrdinalIgnoreCase) != backslashIndex + 1)
         {
             return analyzerNodeCanonicalName;
         }
 
         // Find the slash after "analyzerdependency"
-        backslashIndex = analyzerNodeCanonicalName.IndexOf('\\', backslashIndex + 1);
+        backslashIndex = remaining.IndexOf('\\', backslashIndex + 1);
         if (backslashIndex < 0)
         {
             return null;
         }
 
-        // The rest of the string is the path.
-        return analyzerNodeCanonicalName[(backslashIndex + 1)..];
+        // The rest of the string is the analyzer path. In the legacy form this is always rooted; if it isn't,
+        // we matched "analyzerdependency\" coincidentally inside a newer-form path that happens to live under
+        // the project directory (e.g. an analyzer at "{projectDir}\netstandard2.0\analyzerdependency\Foo.dll").
+        // Fall back to the newer-form interpretation in that case.
+        var candidate = remaining[(backslashIndex + 1)..];
+        if (!Path.IsPathRooted(candidate))
+        {
+            return analyzerNodeCanonicalName;
+        }
+
+        return candidate;
     }
 }

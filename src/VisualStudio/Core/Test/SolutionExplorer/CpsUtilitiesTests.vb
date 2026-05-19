@@ -46,6 +46,35 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         End Sub
 
         <Fact>
+        Public Sub ExtractAnalyzerFilePath_NewerForm_AnalyzerUnderProjectDirectory()
+            ' Newer-form (VS16.7+) canonical name where the analyzer lives physically under the project
+            ' directory (e.g. <Analyzer Include="Analyzers\MinimalGenerator.dll" />). The canonical name
+            ' is already the full file path and must be returned unchanged so it matches
+            ' AnalyzerReference.FullPath. Previously, the project-directory prefix was stripped, leaving
+            ' a relative path that never matched, preventing source-generator child nodes from attaching
+            ' under the analyzer in Solution Explorer.
+            Dim projectDirectoryFullPath = "C:\Repro\Consumer.Inside"
+            Dim analyzerCanonicalName = "C:\Repro\Consumer.Inside\Analyzers\MinimalGenerator.dll"
+
+            Dim analyzerFileFullPath = CpsUtilities.ExtractAnalyzerFilePath(projectDirectoryFullPath, analyzerCanonicalName)
+            Assert.Equal(expected:="C:\Repro\Consumer.Inside\Analyzers\MinimalGenerator.dll", actual:=analyzerFileFullPath)
+        End Sub
+
+        <Fact>
+        Public Sub ExtractAnalyzerFilePath_NewerForm_AnalyzerUnderProjectDirectory_CoincidentalAnalyzerDependencySegment()
+            ' Pathological newer-form case: the analyzer lives under the project directory at a location
+            ' whose intermediate folder structure happens to mimic the legacy "{tfm}\analyzerdependency\..."
+            ' shape after stripping the project prefix. The candidate extracted from the legacy path is not
+            ' rooted ("Foo.dll"), so we fall back to the newer-form interpretation and return the original
+            ' canonical name.
+            Dim projectDirectoryFullPath = "C:\Proj"
+            Dim analyzerCanonicalName = "C:\Proj\netstandard2.0\analyzerdependency\Foo.dll"
+
+            Dim analyzerFileFullPath = CpsUtilities.ExtractAnalyzerFilePath(projectDirectoryFullPath, analyzerCanonicalName)
+            Assert.Equal(expected:="C:\Proj\netstandard2.0\analyzerdependency\Foo.dll", actual:=analyzerFileFullPath)
+        End Sub
+
+        <Fact>
         Public Sub ExtractAnalyzerFilePath_MalformedCanonicalName()
             Dim projectDirectoryFullPath = "C:\users\me\Solution\Project"
             Dim analyzerCanonicalName = "alpha beta gamma"
