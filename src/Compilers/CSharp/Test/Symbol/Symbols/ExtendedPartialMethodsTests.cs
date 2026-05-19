@@ -1154,8 +1154,6 @@ public partial class C
                 var type = module.ContainingAssembly.GetTypeByMetadataName("C");
                 var method = type.GetMember<MethodSymbol>("M1");
 
-                // note: we're opting to give the same answer for 'IsExtern' on both partial method declarations 
-                // because 'IsExtern' is true when the method is round tripped from metadata.
                 Assert.True(method.IsExtern);
                 if (method.PartialImplementationPart is MethodSymbol implementation)
                 {
@@ -1260,7 +1258,7 @@ partial class C
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            Assert.False(method.IsAsync);
+            Assert.True(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
 
@@ -1281,7 +1279,7 @@ partial class C
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            Assert.False(method.IsAsync);
+            Assert.True(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
 
@@ -1310,7 +1308,7 @@ partial class C
 
             var method = (MethodSymbol)verifier.Compilation.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            Assert.False(method.IsAsync);
+            Assert.True(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
 
