@@ -3092,6 +3092,51 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void FixedSizeBuffer_Unsafe()
+    {
+        var expectedFixedBufferDiagnosticsForLegacyCaller = new[]
+        {
+            // (3,12): error CS9360: This operation may only be used in an unsafe context
+            // int z = s.x[0];
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 12),
+        };
+
+        CompileAndVerifyUnsafe(
+            lib: """
+                public struct S
+                {
+                    public unsafe fixed int x[5], y[10];
+                }
+                """,
+            caller: """
+                var s = new S();
+                int* p = s.y;
+                int z = s.x[0];
+                unsafe
+                {
+                    p = s.y;
+                    z = s.x[0];
+                }
+                """,
+            expectedUnsafeSymbols: ["S.x", "S.y"],
+            expectedSafeSymbols: ["S"],
+            expectedDiagnostics:
+            [
+                // (2,10): error CS9362: 'S.y' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // int* p = s.y;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s.y").WithArguments("S.y").WithLocation(2, 10),
+                // (3,9): error CS9362: 'S.x' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // int z = s.x[0];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s.x").WithArguments("S.x").WithLocation(3, 9),
+                // (3,12): error CS9360: This operation may only be used in an unsafe context
+                // int z = s.x[0];
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 12),
+            ],
+            expectedDiagnosticsWhenReferencingLegacyLib: expectedFixedBufferDiagnosticsForLegacyCaller,
+            expectedDiagnosticsForLegacyCaller: expectedFixedBufferDiagnosticsForLegacyCaller);
+    }
+
+    [Fact]
     public void SkipLocalsInit_NeedsUnsafe()
     {
         var source = """
