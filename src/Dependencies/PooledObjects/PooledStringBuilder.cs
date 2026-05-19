@@ -7,6 +7,10 @@
 using System.Diagnostics;
 using System.Text;
 
+#if DEBUG
+using System.Runtime.CompilerServices;
+#endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     /// <summary>
@@ -89,9 +93,18 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return pool;
         }
 
-        public static PooledStringBuilder GetInstance()
+        public static PooledStringBuilder GetInstance(
+#if DEBUG
+            [CallerFilePath] string? filePath = null,
+            [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            var builder = s_poolInstance.Allocate();
+            var builder = s_poolInstance.Allocate(
+#if DEBUG
+                filePath, lineNumber
+#endif
+                );
             Debug.Assert(builder.Builder.Length == 0);
             return builder;
         }
@@ -104,14 +117,41 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 #if !MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER
         private static readonly ObjectPool<PooledStringBuilder> s_keepLargeInstancesPool = CreatePool();
 
-        public static PooledDisposer<PooledStringBuilder> GetInstance(out StringBuilder instance)
-            => GetInstance(discardLargeInstances: true, out instance);
+        public static PooledDisposer<PooledStringBuilder> GetInstance(
+            out StringBuilder instance
+#if DEBUG
+            , [CallerFilePath] string? filePath = null,
+            [CallerLineNumber] int lineNumber = 0
+#endif
+            )
+            => GetInstance(discardLargeInstances: true, out instance
+#if DEBUG
+                , filePath, lineNumber
+#endif
+                );
 
-        public static PooledDisposer<PooledStringBuilder> GetInstance(bool discardLargeInstances, out StringBuilder instance)
+        public static PooledDisposer<PooledStringBuilder> GetInstance(
+            bool discardLargeInstances,
+            out StringBuilder instance
+#if DEBUG
+            , [CallerFilePath] string? filePath = null,
+            [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
             // If we're discarding large instances (the default behavior), then just use the normal pool.  If we're not, use
             // a specific pool so that *other* normal callers don't accidentally get it and discard it.
-            var pooledInstance = discardLargeInstances ? GetInstance() : s_keepLargeInstancesPool.Allocate();
+            var pooledInstance = discardLargeInstances
+                ? GetInstance(
+#if DEBUG
+                    filePath, lineNumber
+#endif
+                    )
+                : s_keepLargeInstancesPool.Allocate(
+#if DEBUG
+                    filePath, lineNumber
+#endif
+                    );
             instance = pooledInstance;
             return new PooledDisposer<PooledStringBuilder>(pooledInstance, discardLargeInstances);
         }

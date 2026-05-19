@@ -8,6 +8,10 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
+#if DEBUG
+using System.Runtime.CompilerServices;
+#endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     /// <summary>
@@ -67,15 +71,15 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 #endif
 
         internal ObjectPool(Factory factory, bool trimOnFree = true, bool trackLeaks = true,
-            [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-            [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0)
             : this(factory, Environment.ProcessorCount * 2, trimOnFree, trackLeaks, filePath, lineNumber)
         {
         }
 
         internal ObjectPool(Factory factory, int size, bool trimOnFree = true, bool trackLeaks = true,
-            [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-            [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0)
         {
             Debug.Assert(size >= 1);
             _factory = factory;
@@ -88,8 +92,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         internal ObjectPool(Func<ObjectPool<T>, T> factory, int size,
-            [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-            [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0)
         {
             Debug.Assert(size >= 1);
             _factory = () => factory(this);
@@ -114,7 +118,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// Note that Free will try to store recycled objects close to the start thus statistically 
         /// reducing how far we will typically search.
         /// </remarks>
-        internal T Allocate()
+        internal T Allocate(
+#if DEBUG
+            [CallerFilePath] string? filePath = null,
+            [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
             // PERF: Examine the first element. If that fails, AllocateSlow will look at the remaining elements.
             // Note that the initial read is optimistically not synchronized. That is intentional. 
@@ -128,7 +137,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
 #if DEBUG
             if (_trackLeaks)
-                PoolTracker.OnAllocate(inst, _poolName);
+                PoolTracker.OnAllocate(inst, _poolName, filePath, lineNumber);
 #endif
             return inst;
         }

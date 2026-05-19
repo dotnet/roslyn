@@ -61,12 +61,16 @@ internal static class PoolTracker
     /// Records that a pooled object has been allocated.
     /// </summary>
     [Conditional("DEBUG")]
-    internal static void OnAllocate(object obj, string? poolName = null)
+    internal static void OnAllocate(
+        object obj,
+        string? poolName = null,
+        string? filePath = null,
+        int lineNumber = 0)
     {
 #if DEBUG
         if (s_activeTrackers > 0)
         {
-            s_currentContext.Value?.OnAllocate(obj, poolName);
+            s_currentContext.Value?.OnAllocate(obj, poolName, filePath, lineNumber);
         }
 #endif
     }
@@ -116,9 +120,9 @@ internal sealed class PoolTrackingContext
         _traceLeaks = traceLeaks;
     }
 
-    internal void OnAllocate(object obj, string? poolName)
+    internal void OnAllocate(object obj, string? poolName, string? filePath, int lineNumber)
     {
-        _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), poolName, _traceLeaks ? Environment.StackTrace : null));
+        _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), poolName, filePath, lineNumber, _traceLeaks ? Environment.StackTrace : null));
     }
 
     internal void OnFree(object obj)
@@ -148,10 +152,15 @@ internal sealed class PoolTrackingContext
         var sb = new StringBuilder();
         sb.AppendLine("Pool leak detected! The following pooled objects were not returned:");
 
-        foreach (var group in _outstanding.Values.GroupBy(v => (v.Type, v.PoolName)).OrderByDescending(g => g.Count()))
+        foreach (var group in _outstanding.Values.GroupBy(v => (v.Type, v.PoolName, v.FilePath, v.LineNumber)).OrderByDescending(g => g.Count()))
         {
             var poolInfo = group.Key.PoolName is not null ? $" (from {group.Key.PoolName})" : "";
             sb.AppendLine($"  {group.Key.Type}{poolInfo}: {group.Count()}");
+
+            if (group.Key.FilePath is not null)
+            {
+                sb.AppendLine($"    Allocated at: {System.IO.Path.GetFileName(group.Key.FilePath)}:{group.Key.LineNumber}");
+            }
 
             foreach (var info in group)
             {
@@ -166,10 +175,12 @@ internal sealed class PoolTrackingContext
         return sb.ToString();
     }
 
-    private readonly struct AllocationInfo(Type type, string? poolName, string? stackTrace)
+    private readonly struct AllocationInfo(Type type, string? poolName, string? filePath, int lineNumber, string? stackTrace)
     {
         public readonly Type Type = type;
         public readonly string? PoolName = poolName;
+        public readonly string? FilePath = filePath;
+        public readonly int LineNumber = lineNumber;
         public readonly string? StackTrace = stackTrace;
     }
 }
