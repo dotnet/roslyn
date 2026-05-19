@@ -122,6 +122,73 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Theory]
+    [InlineData("safe static extern void Local();", SyntaxKind.SafeKeyword, SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("static safe extern void Local();", SyntaxKind.StaticKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("static extern safe void Local();", SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
+    public void SafeModifier_LocalFunction_Ordering(string localFunction, params SyntaxKind[] expectedModifiers)
+    {
+        UsingTree($$"""
+            class C
+            {
+                void M()
+                {
+                    {{localFunction}}
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalFunctionStatement);
+                        {
+                            foreach (var expectedModifier in expectedModifiers)
+                            {
+                                N(expectedModifier);
+                            }
+
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Local");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory]
     [InlineData("safe public int F;", SyntaxKind.FieldDeclaration)]
     [InlineData("safe public extern int this[int i] { get; }", SyntaxKind.IndexerDeclaration)]
     [InlineData("safe public extern event EHandler E { add; remove; }", SyntaxKind.EventDeclaration)]

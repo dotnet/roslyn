@@ -10423,7 +10423,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 public void M()
                 {
-                    static extern void F();
+                    unsafe static extern void F();
                 }
             }
             """;
@@ -10432,40 +10432,42 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             new C().M();
             """;
 
-        object[] localFunctionSymbols = ["C.<M>g__F|0_0"];
+        object[] unsafeSymbols = ["C.<M>g__F|0_0"];
 
         CompileAndVerifyUnsafe(
             libSource,
             callerSource,
             optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             verify: Verification.Skipped,
-            expectedUnsafeSymbols: [],
-            expectedSafeSymbols: ["C", .. localFunctionSymbols],
-            skipSymbolsInSource: localFunctionSymbols,
+            expectedUnsafeSymbols: unsafeSymbols,
+            expectedSafeSymbols: ["C"],
+            skipSymbolsInSource: unsafeSymbols,
             expectedDiagnostics: []);
 
         CreateCompilation([libSource, callerSource],
-            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
         CreateCompilation([libSource],
             parseOptions: TestOptions.RegularNext,
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource],
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.RegularNext)
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.Regular14)
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
     }
 
@@ -11422,13 +11424,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void SafeModifier_LangVersion()
     {
         var source = """
-            #pragma warning disable CS0067, CS0626, CS0824 // unused event, extern without attributes, extern constructor
+            #pragma warning disable CS0067, CS0626, CS0824, CS8321 // unused event, extern without attributes, extern constructor, unused local function
             public class C
             {
                 safe public extern void M();
                 safe public extern int P { get; set; }
                 safe public static extern event System.Action E;
                 safe public extern C(int x);
+                public void M2()
+                {
+                    safe static extern void Local();
+                }
             }
             """;
 
@@ -11452,14 +11458,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(6, 5),
             // (7,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     safe public extern C(int x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(7, 5));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(7, 5),
+            // (10,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         safe static extern void Local();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(10, 9));
     }
 
     [Fact]
     public void SafeModifier_Declarations()
     {
         var source = """
-            #pragma warning disable CS0067 // unused event
+            #pragma warning disable CS0067, CS8321 // unused event, unused local function
             public class C
             {
                 safe public void M1() { }
@@ -11475,6 +11484,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 safe public interface INested { }
                 safe public enum ENested { }
                 safe public delegate void D();
+                public void M2()
+                {
+                    safe void Local() { }
+                }
             }
             """;
 
@@ -11517,7 +11530,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "ENested").WithArguments("safe").WithLocation(15, 22),
             // (16,31): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public delegate void D();
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("safe").WithLocation(16, 31));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("safe").WithLocation(16, 31),
+            // (19,9): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //         safe void Local() { }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(19, 9));
     }
 
     [Fact]
@@ -11547,6 +11563,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     _ = new C(0);
                     _ = c + c;
                     _ = (int)c;
+                    static extern void Local();
+                    Local();
                 }
             }
             """;
@@ -11572,14 +11590,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(9, 19),
             // (10,19): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public static extern explicit operator int(C c);
-            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(10, 19));
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(10, 19),
+            // (24,16): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
+            //         static extern void Local();
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(24, 16));
     }
 
     [Fact]
     public void SafeModifier_Extern_InvalidUse()
     {
         var source = """
-            #pragma warning disable CS0067, CS0626, CS0824 // unused event, extern without attributes, extern constructor
+            #pragma warning disable CS0067, CS0626, CS0824, CS8321 // unused event, extern without attributes, extern constructor, unused local function
             public class C
             {
                 safe public extern void M1();
@@ -11592,6 +11613,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 safe public extern C(int x);
                 safe unsafe public extern C(string s);
                 public extern C(double d);
+                public void Locals()
+                {
+                    safe static extern void Local1();
+                    safe unsafe static extern void Local2();
+                    static extern void Local3();
+                }
             }
             """;
 
@@ -11613,7 +11640,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 5),
             // (13,12): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public extern C(double d);
-            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(13, 12));
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(13, 12),
+            // (17,9): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //         safe unsafe static extern void Local2();
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(17, 9),
+            // (18,16): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
+            //         static extern void Local3();
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(18, 16));
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (5,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
@@ -11627,7 +11660,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
             // (12,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe unsafe public extern C(string s);
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 5));
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 5),
+            // (17,9): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //         safe unsafe static extern void Local2();
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(17, 9));
     }
 
     [Fact]

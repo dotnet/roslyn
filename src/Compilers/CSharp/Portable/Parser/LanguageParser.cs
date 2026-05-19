@@ -8560,7 +8560,7 @@ done:
 
             var isPossibleModifier =
                 IsAdditionalLocalFunctionModifier(tk)
-                && (tk is not (SyntaxKind.AsyncKeyword or SyntaxKind.ScopedKeyword) || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+                && (tk is not (SyntaxKind.AsyncKeyword or SyntaxKind.SafeKeyword or SyntaxKind.ScopedKeyword) || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
             if (isPossibleModifier)
             {
                 return true;
@@ -10822,7 +10822,7 @@ done:
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
             {
                 SyntaxToken mod;
-                if (k == SyntaxKind.AsyncKeyword)
+                if (k is SyntaxKind.AsyncKeyword or SyntaxKind.SafeKeyword)
                 {
                     // check for things like "async async()" where async is the type and/or the function name
                     if (!shouldTreatAsModifier())
@@ -10905,6 +10905,7 @@ done:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.UnsafeKeyword:
+                case SyntaxKind.SafeKeyword:
                 case SyntaxKind.ExternKeyword:
                 // Not a valid modifier, but we should parse to give a good
                 // error message
@@ -10970,6 +10971,9 @@ done:
                         forceLocalFunc = true;
                         continue;
                     case SyntaxKind.UnsafeKeyword:
+                        forceLocalFunc = true;
+                        continue;
+                    case SyntaxKind.SafeKeyword:
                         forceLocalFunc = true;
                         continue;
                     case SyntaxKind.ReadOnlyKeyword:
