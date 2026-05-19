@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -52,31 +53,48 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace));
     }
 
-    public async Task OpenSolutionAsync(string solutionFilePath)
+    public async Task OpenSolutionAsync(string solutionFilePath, IProgress<LSP.WorkDoneProgress>? progressReporter = null)
     {
         _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
         _hostProjectFactory.SolutionPath = solutionFilePath;
 
         var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, DiagnosticReportingMode.Throw, CancellationToken.None);
-        foreach (var (path, guid) in projects)
+
+        SetProgressTracker(progressReporter, projects.Length);
+        try
         {
-            await BeginLoadingProjectAsync(path, guid);
+            foreach (var (path, guid) in projects)
+            {
+                await BeginLoadingProjectAsync(path, guid);
+            }
+            await WaitForProjectsToFinishLoadingAsync();
+            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
         }
-        await WaitForProjectsToFinishLoadingAsync();
-        await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+        finally
+        {
+            SetProgressTracker(null, 0);
+        }
     }
 
-    public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths)
+    public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths, IProgress<LSP.WorkDoneProgress>? progressReporter = null)
     {
         if (!projectFilePaths.Any())
             return;
 
-        foreach (var path in projectFilePaths)
+        SetProgressTracker(progressReporter, projectFilePaths.Length);
+        try
         {
-            await BeginLoadingProjectAsync(path, projectGuid: null);
+            foreach (var path in projectFilePaths)
+            {
+                await BeginLoadingProjectAsync(path, projectGuid: null);
+            }
+            await WaitForProjectsToFinishLoadingAsync();
+            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
         }
-        await WaitForProjectsToFinishLoadingAsync();
-        await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+        finally
+        {
+            SetProgressTracker(null, 0);
+        }
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
