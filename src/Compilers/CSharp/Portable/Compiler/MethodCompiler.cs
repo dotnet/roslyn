@@ -764,6 +764,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
                     // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named,
                     // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
+                    // For runtime async, the rewriter will use the method name in place of methodOrdinal to ensure uniqueness in generated dynamic container types. This assumes
+                    // that, per containing type, method names passed to CompileSynthesizedMethods are unique; for local functions, this is true because you cannot overload 
                     const int methodOrdinal = -1;
                     MethodBody emittedBody = null;
 

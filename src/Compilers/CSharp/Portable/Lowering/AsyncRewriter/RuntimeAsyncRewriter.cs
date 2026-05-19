@@ -14,13 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 {
-    // LocalRewriter may have already created a dynamic call site container for the same method ordinal. Use a distinct
-    // local function ordinal for runtime async dynamic await lowering. -1 means "no local function" in dynamic call
-    // site container names in GeneratedNames.MakeDynamicCallSiteContainerName, and source local functions use non-negative
-    // ordinals, so -2 avoids both sets. Reusing an ordinal would generate duplicate dynamic call site container type names
-    // for the same method.
-    private const int RuntimeAsyncDynamicCallSiteContainerOrdinal = -2;
-
     public static BoundStatement Rewrite(
         BoundStatement node,
         MethodSymbol method,
@@ -103,7 +96,11 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
     {
         Debug.Assert(factory.CurrentFunction != null);
         _factory = factory;
-        _dynamicFactory = new LoweredDynamicOperationFactory(factory, methodOrdinal, RuntimeAsyncDynamicCallSiteContainerOrdinal);
+        // Use the current function's name as the dynamic call site container suffix so that the runtime async container
+        // is distinct from any container created by LocalRewriter for the same method (which uses null/local function
+        // ordinal as the suffix), and so that distinct local functions lowered with methodOrdinal -1 get distinct
+        // containers (avoiding nested type name collisions in the enclosing type).
+        _dynamicFactory = new LoweredDynamicOperationFactory(factory, methodOrdinal, factory.CurrentFunction.Name);
         _placeholderMap = [];
         _variablesToHoist = variablesToHoist;
         _refInitializationHoister = new RefInitializationHoister<LocalSymbol, BoundLocal>(_factory, _factory.CurrentFunction, TypeMap.Empty);
