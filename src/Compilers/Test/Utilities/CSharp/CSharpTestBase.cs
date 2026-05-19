@@ -723,7 +723,7 @@ namespace System.Runtime.CompilerServices
         protected static readonly string RequiresUnsafeAttributeDefinition = """
             namespace System.Diagnostics.CodeAnalysis
             {
-                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
                 public sealed class RequiresUnsafeAttribute : Attribute { }
             }
             """;
