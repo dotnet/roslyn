@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Threading;
 
