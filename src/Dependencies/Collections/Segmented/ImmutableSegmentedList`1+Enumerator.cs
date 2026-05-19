@@ -18,25 +18,27 @@ namespace Microsoft.CodeAnalysis.Collections
 
             internal Enumerator(SegmentedList<T> list)
             {
-                _list = list;
-                _enumerator = list.GetEnumerator();
+                this._list = list;
+                this._enumerator = list.GetEnumerator();
             }
 
-            public readonly T Current => _enumerator.Current;
+            public readonly T Current => this._enumerator.Current;
 
-            readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
+            readonly object? IEnumerator.Current => ((IEnumerator)this._enumerator).Current;
 
             public readonly void Dispose()
-                => _enumerator.Dispose();
+                => this._enumerator.Dispose();
 
             public bool MoveNext()
-                => _enumerator.MoveNext();
+                => this._enumerator.MoveNext();
 
             public void Reset()
             {
+                var self = this;
                 // Create a new enumerator, since _enumerator.Reset() will fail for cases where the list was mutated
                 // after enumeration started, and ImmutableSegmentList<T>.Builder allows for this case without error.
-                _enumerator = _list.GetEnumerator();
+                self._enumerator = self._list.GetEnumerator();
+                this = self;
             }
         }
     }

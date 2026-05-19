@@ -20,29 +20,31 @@ namespace Microsoft.CodeAnalysis.Collections
 
             internal Enumerator(SegmentedHashSet<T> set)
             {
-                _set = set;
-                _enumerator = set.GetEnumerator();
+                this._set = set;
+                this._enumerator = set.GetEnumerator();
             }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Current"/>
-            public readonly T Current => _enumerator.Current;
+            public readonly T Current => this._enumerator.Current;
 
-            readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
+            readonly object? IEnumerator.Current => ((IEnumerator)this._enumerator).Current;
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Dispose()"/>
             public readonly void Dispose()
-                => _enumerator.Dispose();
+                => this._enumerator.Dispose();
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.MoveNext()"/>
             public bool MoveNext()
-                => _enumerator.MoveNext();
+                => this._enumerator.MoveNext();
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Reset()"/>
             public void Reset()
             {
+                var self = this;
                 // Create a new enumerator, since _enumerator.Reset() will fail for cases where the set was mutated
                 // after enumeration started, and ImmutableSegmentHashSet<T>.Builder allows for this case without error.
-                _enumerator = _set.GetEnumerator();
+                self._enumerator = self._set.GetEnumerator();
+                this = self;
             }
         }
     }

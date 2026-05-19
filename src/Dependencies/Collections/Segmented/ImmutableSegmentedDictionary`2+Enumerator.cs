@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Collections
 
             internal Enumerator(SegmentedDictionary<TKey, TValue> dictionary, ReturnType returnType)
             {
-                _dictionary = dictionary;
-                _returnType = returnType;
-                _enumerator = dictionary.GetEnumerator();
+                this._dictionary = dictionary;
+                this._returnType = returnType;
+                this._enumerator = dictionary.GetEnumerator();
             }
 
             internal enum ReturnType
@@ -42,25 +42,41 @@ namespace Microsoft.CodeAnalysis.Collections
                 DictionaryEntry,
             }
 
-            public readonly KeyValuePair<TKey, TValue> Current => _enumerator.Current;
+            public readonly KeyValuePair<TKey, TValue> Current => this._enumerator.Current;
 
-            readonly object IEnumerator.Current => _returnType == ReturnType.DictionaryEntry ? ((IDictionaryEnumerator)this).Entry : Current;
+            readonly object IEnumerator.Current
+            {
+                get
+                {
+                    var self = this;
+                    return self._returnType == ReturnType.DictionaryEntry ? ((IDictionaryEnumerator)self).Entry : self.Current;
+                }
+            }
 
-            readonly DictionaryEntry IDictionaryEnumerator.Entry => new(Current.Key, Current.Value);
+            readonly DictionaryEntry IDictionaryEnumerator.Entry
+            {
+                get
+                {
+                    var current = this.Current;
+                    return new(current.Key, current.Value);
+                }
+            }
 
-            readonly object IDictionaryEnumerator.Key => Current.Key;
+            readonly object IDictionaryEnumerator.Key => this.Current.Key;
 
-            readonly object? IDictionaryEnumerator.Value => Current.Value;
+            readonly object? IDictionaryEnumerator.Value => this.Current.Value;
 
             public readonly void Dispose()
-                => _enumerator.Dispose();
+                => this._enumerator.Dispose();
 
             public bool MoveNext()
-                => _enumerator.MoveNext();
+                => this._enumerator.MoveNext();
 
             public void Reset()
             {
-                _enumerator = _dictionary.GetEnumerator();
+                var self = this;
+                self._enumerator = self._dictionary.GetEnumerator();
+                this = self;
             }
         }
     }

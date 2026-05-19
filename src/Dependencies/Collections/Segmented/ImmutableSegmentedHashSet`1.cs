@@ -72,25 +72,25 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private ImmutableSegmentedHashSet(SegmentedHashSet<T> set)
         {
-            _set = set;
+            this._set = set;
         }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.KeyComparer"/>
-        public IEqualityComparer<T> KeyComparer => _set.Comparer;
+        public IEqualityComparer<T> KeyComparer => this._set.Comparer;
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Count"/>
-        public int Count => _set.Count;
+        public int Count => this._set.Count;
 
-        public bool IsDefault => _set == null;
+        public bool IsDefault => this._set == null;
 
         /// <inheritdoc cref="ImmutableHashSet{T}.IsEmpty"/>
-        public bool IsEmpty => _set.Count == 0;
+        public bool IsEmpty => this._set.Count == 0;
 
         bool ICollection<T>.IsReadOnly => true;
 
         bool ICollection.IsSynchronized => true;
 
-        object ICollection.SyncRoot => _set;
+        object ICollection.SyncRoot => this._set;
 
         public static bool operator ==(ImmutableSegmentedHashSet<T> left, ImmutableSegmentedHashSet<T> right)
             => left.Equals(right);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Contains(T)"/>
         public bool Contains(T value)
-            => _set.Contains(value);
+            => this._set.Contains(value);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Except(IEnumerable{T})"/>
         public ImmutableSegmentedHashSet<T> Except(IEnumerable<T> other)
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         /// <inheritdoc cref="ImmutableHashSet{T}.GetEnumerator()"/>
         public Enumerator GetEnumerator()
-            => new(_set);
+            => new(this._set);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Intersect(IEnumerable{T})"/>
         public ImmutableSegmentedHashSet<T> Intersect(IEnumerable<T> other)
@@ -196,23 +196,23 @@ namespace Microsoft.CodeAnalysis.Collections
 
         /// <inheritdoc cref="ImmutableHashSet{T}.IsProperSubsetOf(IEnumerable{T})"/>
         public bool IsProperSubsetOf(IEnumerable<T> other)
-            => _set.IsProperSubsetOf(other);
+            => this._set.IsProperSubsetOf(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.IsProperSupersetOf(IEnumerable{T})"/>
         public bool IsProperSupersetOf(IEnumerable<T> other)
-            => _set.IsProperSupersetOf(other);
+            => this._set.IsProperSupersetOf(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.IsSubsetOf(IEnumerable{T})"/>
         public bool IsSubsetOf(IEnumerable<T> other)
-            => _set.IsSubsetOf(other);
+            => this._set.IsSubsetOf(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.IsSupersetOf(IEnumerable{T})"/>
         public bool IsSupersetOf(IEnumerable<T> other)
-            => _set.IsSupersetOf(other);
+            => this._set.IsSupersetOf(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Overlaps(IEnumerable{T})"/>
         public bool Overlaps(IEnumerable<T> other)
-            => _set.Overlaps(other);
+            => this._set.Overlaps(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Remove(T)"/>
         public ImmutableSegmentedHashSet<T> Remove(T value)
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         /// <inheritdoc cref="ImmutableHashSet{T}.SetEquals(IEnumerable{T})"/>
         public bool SetEquals(IEnumerable<T> other)
-            => _set.SetEquals(other);
+            => this._set.SetEquals(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.SymmetricExcept(IEnumerable{T})"/>
         public ImmutableSegmentedHashSet<T> SymmetricExcept(IEnumerable<T> other)
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <inheritdoc cref="ImmutableHashSet{T}.TryGetValue(T, out T)"/>
         public bool TryGetValue(T equalValue, out T actualValue)
         {
-            if (_set.TryGetValue(equalValue, out var value))
+            if (this._set.TryGetValue(equalValue, out var value))
             {
                 actualValue = value;
                 return true;
@@ -308,64 +308,69 @@ namespace Microsoft.CodeAnalysis.Collections
 
             equalityComparer ??= EqualityComparer<T>.Default;
             if (Equals(self.KeyComparer, equalityComparer))
+            {
                 return self;
-
-            return new ImmutableSegmentedHashSet<T>(new SegmentedHashSet<T>(self._set, equalityComparer));
+            }
+            else
+            {
+                return new ImmutableSegmentedHashSet<T>(new SegmentedHashSet<T>(self._set, equalityComparer));
+            }
         }
 
         public override int GetHashCode()
-            => _set?.GetHashCode() ?? 0;
+            => this._set?.GetHashCode() ?? 0;
 
         public override bool Equals(object? obj)
-            => obj is ImmutableSegmentedHashSet<T> other && Equals(other);
+            => obj is ImmutableSegmentedHashSet<T> other && this.Equals(other);
 
         public bool Equals(ImmutableSegmentedHashSet<T> other)
-            => _set == other._set;
+            => this._set == other._set;
 
         IImmutableSet<T> IImmutableSet<T>.Clear()
-            => Clear();
+            => this.Clear();
 
         IImmutableSet<T> IImmutableSet<T>.Add(T value)
-            => Add(value);
+            => this.Add(value);
 
         IImmutableSet<T> IImmutableSet<T>.Remove(T value)
-            => Remove(value);
+            => this.Remove(value);
 
         IImmutableSet<T> IImmutableSet<T>.Intersect(IEnumerable<T> other)
-            => Intersect(other);
+            => this.Intersect(other);
 
         IImmutableSet<T> IImmutableSet<T>.Except(IEnumerable<T> other)
-            => Except(other);
+            => this.Except(other);
 
         IImmutableSet<T> IImmutableSet<T>.SymmetricExcept(IEnumerable<T> other)
-            => SymmetricExcept(other);
+            => this.SymmetricExcept(other);
 
         IImmutableSet<T> IImmutableSet<T>.Union(IEnumerable<T> other)
-            => Union(other);
+            => this.Union(other);
 
         void ICollection<T>.CopyTo(T[] array, int arrayIndex)
-            => _set.CopyTo(array, arrayIndex);
+            => this._set.CopyTo(array, arrayIndex);
 
         void ICollection.CopyTo(Array array, int index)
         {
+            var self = this;
             if (array is null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
             if (index < 0)
                 ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
-            if (array.Length < index + Count)
+            if (array.Length < index + self.Count)
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index);
 
-            foreach (var item in this)
+            foreach (var item in self)
             {
                 array.SetValue(item, index++);
             }
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            => GetEnumerator();
+            => this.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+            => this.GetEnumerator();
 
         bool ISet<T>.Add(T item)
             => throw new NotSupportedException();

@@ -22,43 +22,43 @@ namespace Microsoft.CodeAnalysis.Collections
                 internal KeyCollection(ImmutableSegmentedDictionary<TKey, TValue>.Builder dictionary)
                 {
                     Debug.Assert(dictionary is not null);
-                    _dictionary = dictionary!;
+                    this._dictionary = dictionary!;
                 }
 
-                public int Count => _dictionary.Count;
+                public int Count => this._dictionary.Count;
 
                 bool ICollection<TKey>.IsReadOnly => false;
 
                 bool ICollection.IsSynchronized => false;
 
-                object ICollection.SyncRoot => ((ICollection)_dictionary).SyncRoot;
+                object ICollection.SyncRoot => ((ICollection)this._dictionary).SyncRoot;
 
                 void ICollection<TKey>.Add(TKey item)
                     => throw new NotSupportedException();
 
                 public void Clear()
-                    => _dictionary.Clear();
+                    => this._dictionary.Clear();
 
                 public bool Contains(TKey item)
-                    => _dictionary.ContainsKey(item);
+                    => this._dictionary.ContainsKey(item);
 
                 public void CopyTo(TKey[] array, int arrayIndex)
-                    => _dictionary.ReadOnlyDictionary.Keys.CopyTo(array, arrayIndex);
+                    => this._dictionary.ReadOnlyDictionary.Keys.CopyTo(array, arrayIndex);
 
                 public ImmutableSegmentedDictionary<TKey, TValue>.KeyCollection.Enumerator GetEnumerator()
-                    => new(_dictionary.GetEnumerator());
+                    => new(this._dictionary.GetEnumerator());
 
                 public bool Remove(TKey item)
-                    => _dictionary.Remove(item);
+                    => this._dictionary.Remove(item);
 
                 void ICollection.CopyTo(Array array, int index)
-                    => ((ICollection)_dictionary.ReadOnlyDictionary.Keys).CopyTo(array, index);
+                    => ((ICollection)this._dictionary.ReadOnlyDictionary.Keys).CopyTo(array, index);
 
                 IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
-                    => GetEnumerator();
+                    => this.GetEnumerator();
 
                 IEnumerator IEnumerable.GetEnumerator()
-                    => GetEnumerator();
+                    => this.GetEnumerator();
             }
         }
     }
