@@ -33,16 +33,16 @@ internal static class TagHelperTestData
         TagHelper1_Project1 = TagHelperDescriptorBuilder.CreateTagHelper("TagHelper1", "Project1").Build();
         TagHelper2_Project1 = TagHelperDescriptorBuilder.CreateTagHelper("TagHelper2", "Project1").Build();
         Project1TagHelpers = ImmutableArray.Create(TagHelper1_Project1, TagHelper2_Project1);
-        Project1TagHelperChecksums = Project1TagHelpers.SelectAsArray(t => t.Checksum);
+        Project1TagHelperChecksums = System.Collections.Immutable.ImmutableArrayExtensions.SelectAsArray(Project1TagHelpers, static t => t.Checksum);
 
         Project2FilePath = "C:/path/to/Project2/Project2.csproj";
         Project2Id = ProjectId.CreateNewId();
         TagHelper1_Project2 = TagHelperDescriptorBuilder.CreateTagHelper("TagHelper1", "Project2").Build();
         TagHelper2_Project2 = TagHelperDescriptorBuilder.CreateTagHelper("TagHelper2", "Project2").Build();
         Project2TagHelpers = ImmutableArray.Create(TagHelper1_Project2, TagHelper2_Project2);
-        Project2TagHelperChecksums = Project2TagHelpers.SelectAsArray(t => t.Checksum);
+        Project2TagHelperChecksums = System.Collections.Immutable.ImmutableArrayExtensions.SelectAsArray(Project2TagHelpers, static t => t.Checksum);
 
         Project1AndProject2TagHelpers = ImmutableArray.Create(TagHelper1_Project1, TagHelper2_Project1, TagHelper1_Project2, TagHelper2_Project2);
-        Project1AndProject2TagHelperChecksums = Project1AndProject2TagHelpers.SelectAsArray(t => t.Checksum);
+        Project1AndProject2TagHelperChecksums = System.Collections.Immutable.ImmutableArrayExtensions.SelectAsArray(Project1AndProject2TagHelpers, static t => t.Checksum);
     }
 }
