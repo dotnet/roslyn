@@ -4585,6 +4585,61 @@ class Test
         }
 
         [Fact]
+        public void DynamicAwait_RuntimeAsync_TwoAsyncLocalFunctions()
+        {
+            // Two non-capturing async local functions, each with a dynamic await. Both are lowered
+            // through MethodCompiler.CompileSynthesizedMethods with methodOrdinal = -1, and
+            // RuntimeAsyncRewriter uses a fixed localFunctionOrdinal of -2 for the dynamic call
+            // site container, so both produce a container named "<>o__-2|" nested in Test.
+            // Currently asserts at emit time in PEModuleBuilder.SynthesizedDefinitions.OrderedNestedTypes
+            // because two nested types share the same name.
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1(new Awaitable()));
+                        Console.WriteLine(await L2(new Awaitable()));
+
+                        static async Task<int> L1(dynamic d) => await d.Property;
+                        static async Task<int> L2(dynamic d) => await d.Property;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+        }
+
+        [Fact]
         [WorkItem(638261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638261")]
         public void Await15()
         {
