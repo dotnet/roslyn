@@ -1746,11 +1746,11 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = autoInsertAttributeQuotes, CommitElementsWithSpace = commitElementsWithSpace });
 
-        // If htmlItemLabels wasn't supplied, supply our own to ensure delegation isn't happening and causing a false positive result
 #if VSCODE
         // VS Code always delegates to the HTML LSP, so there's no "unexpected delegation" scenario to catch.
         htmlItemLabels ??= [];
 #else
+        // If htmlItemLabels wasn't supplied, supply our own to ensure delegation isn't happening and causing a false positive result.
         const string InvalidLabel = "_INVALID_";
         htmlItemLabels ??= [InvalidLabel];
 #endif
