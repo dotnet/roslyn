@@ -7133,7 +7133,7 @@ A");
         }
 
         [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void DynamicAmbiguousOrConversion()
         {
             string source = @"

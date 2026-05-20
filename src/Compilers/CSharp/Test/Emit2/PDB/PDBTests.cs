@@ -10686,7 +10686,7 @@ public class C
         }
 
         [WorkItem(37261, "https://github.com/dotnet/roslyn/issues/37261")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchExpression_MethodBody_02()
         {
             string source = @"
@@ -10823,7 +10823,7 @@ public class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_SwitchExpression()
         {
             var source =
@@ -12872,7 +12872,7 @@ class Program
 ", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
         public void InvalidCharacterInPdbPath()
         {

@@ -13672,7 +13672,7 @@ public class B
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [Fact]
         public void UniqueSynthesizedNames_DynamicSiteContainer()
         {
             var source0 = @"

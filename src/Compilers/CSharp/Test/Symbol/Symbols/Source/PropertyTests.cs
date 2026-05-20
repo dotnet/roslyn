@@ -2586,7 +2586,7 @@ End Class";
 
         #endregion
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void InteropDynamification()
         {
             var refSrc = @"

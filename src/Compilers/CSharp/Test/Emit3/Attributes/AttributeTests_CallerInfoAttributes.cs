@@ -4009,7 +4009,7 @@ name: ThingHappened
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void TestCallerMemberName_ConstructorDestructor()
         {
             string source = @"

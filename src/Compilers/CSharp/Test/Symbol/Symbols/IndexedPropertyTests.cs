@@ -2650,7 +2650,7 @@ P[2] = 2
         }
 
         [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(typeof(ClrOnly))]
         public void IndexedPropertyDynamicInvocation()
         {
             var source1 =
@@ -2709,7 +2709,7 @@ End Class";
 
         [WorkItem(846234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846234")]
         [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(typeof(ClrOnly))]
         public void IndexedPropertyDynamicColorColorInvocation()
         {
             var source1 =

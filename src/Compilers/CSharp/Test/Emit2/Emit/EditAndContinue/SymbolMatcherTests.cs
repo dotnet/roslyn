@@ -289,7 +289,7 @@ abstract class C
             Assert.Null(matcher.MapDefinition(h1.GetCciAdapter()));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void VaryingCompilationReferences()
         {
             string libSource = @"
@@ -305,8 +305,9 @@ public class C
             var lib0 = CreateCompilation(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
             var lib1 = CreateCompilation(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
 
-            var compilation0 = CreateCompilation(source, new[] { lib0.ToMetadataReference() }, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source).WithReferences(MscorlibRef, lib1.ToMetadataReference());
+            var lib0Ref = lib0.ToMetadataReference();
+            var compilation0 = CreateCompilation(source, new[] { lib0Ref }, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source).WithReferences(compilation0.References.Where(r => r != lib0Ref).Append(lib1.ToMetadataReference()));
 
             var matcher = CreateMatcher(compilation1, compilation0);
 

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenThrowTests : CSharpTestBase
     {
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void TestThrowNewExpression()
         {
             var source = @"
@@ -36,7 +36,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void TestThrowLocalExpression()
         {
             var source = @"
@@ -60,7 +60,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void TestThrowNull()
         {
             var source = @"

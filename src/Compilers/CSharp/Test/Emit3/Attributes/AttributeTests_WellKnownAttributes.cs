@@ -328,7 +328,7 @@ class C
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void TestPseudoAttributes1()
         {
             #region "Source"

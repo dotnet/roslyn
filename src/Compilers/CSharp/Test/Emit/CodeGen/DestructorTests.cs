@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class DestructorTests : EmitMetadataTestBase
     {
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void ClassDestructor()
         {
             var text = @"
@@ -78,7 +78,7 @@ public class Program
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBodiedClassDestructor()
         {
@@ -132,7 +132,7 @@ public class Program
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBodiedSubClassDestructor()
         {
@@ -213,7 +213,7 @@ public class Program
             compVerifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void SubclassDestructor()
         {
             var text = @"

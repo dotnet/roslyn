@@ -382,7 +382,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: @"WriteReadOnly NormProp 123456");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void TestExplicitImplSignatureMismatches_ParamsAndOptionals()
         {
             // Tests:

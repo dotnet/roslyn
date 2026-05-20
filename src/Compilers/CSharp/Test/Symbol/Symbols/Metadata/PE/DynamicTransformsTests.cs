@@ -453,7 +453,7 @@ class D
                 Diagnostic(ErrorCode.ERR_BindToBogus, "P2").WithArguments("C.P2"));
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(typeof(ClrOnly))]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void TestDynamicTransformsBadMetadata()
         {

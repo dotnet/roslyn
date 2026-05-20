@@ -453,7 +453,7 @@ public class C
 ");
         }
         [WorkItem(546412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546412")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void TestBug15818()
         {
             var source =
@@ -6627,7 +6627,7 @@ public class D
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void InitFromBlob()
         {
             string source = @"

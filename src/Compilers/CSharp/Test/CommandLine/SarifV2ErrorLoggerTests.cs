@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return string.Format(CultureInfo.InvariantCulture, s, arguments);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void AnalyzerDisabledWithCommandLineOptions()
         {
             var source = @"

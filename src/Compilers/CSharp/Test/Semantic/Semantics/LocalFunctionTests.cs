@@ -58,7 +58,7 @@ public class C
             );
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void LocalFunctionResetsLockScopeFlag()
         {
             var source = @"
@@ -87,7 +87,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "localFunc");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void LocalFunctionResetsTryCatchFinallyScopeFlags()
         {
             var source = @"
@@ -144,7 +144,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "123");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void LocalFunctionDoesNotOverwriteInnerLockScopeFlag()
         {
             var source = @"
@@ -179,7 +179,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await Task.Yield()").WithLocation(16, 21));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void LocalFunctionDoesNotOverwriteInnerTryCatchFinallyScopeFlags()
         {
             var source = @"
@@ -246,7 +246,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadYieldInFinally, "yield").WithLocation(42, 21));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void RethrowingExceptionsInCatchInsideLocalFuncIsAllowed()
         {
             var source = @"
@@ -292,7 +292,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "localFunc_thrown");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void RethrowingExceptionsInLocalFuncInsideCatchIsNotAllowed()
         {
             var source = @"

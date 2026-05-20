@@ -182,7 +182,7 @@ class C
         /// <summary>
         /// Symbol matcher considers two source types that only differ in the declaring compilations different.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ChangingCompilationDependencies()
         {
             string srcLib = @"
@@ -245,7 +245,7 @@ class C
             diff2.EmitResult.Diagnostics.Verify();
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DependencyVersionWildcards_Compilation()
         {
             TestDependencyVersionWildcards(
@@ -363,7 +363,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DependencyVersionWildcards_Metadata()
         {
             string srcLib = @"
@@ -432,7 +432,7 @@ class C
         }
 
         [WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DependencyVersionWildcardsCollisions()
         {
             string srcLib01 = @"
@@ -516,7 +516,7 @@ class C
             AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(aref => $"{reader.GetString(aref.Name)}, {aref.Version}"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
         public void CurrentCompilationVersionWildcards()
         {
