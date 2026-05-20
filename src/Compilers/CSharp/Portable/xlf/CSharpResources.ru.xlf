@@ -527,6 +527,26 @@
         <target state="translated">"{0}" не реализует элемент интерфейса "{1}". "{2}" не может реализовывать "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
+        <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
+        <target state="translated">"{0}": невозможно использовать закрытый тип "{1}" из другой сборки в качестве базового типа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedExplicitlyAbstract">
+        <source>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</source>
+        <target state="translated">"{0}": закрытый тип не может быть помечен как абстрактный, так как он всегда неявно является абстрактным.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedSealedStatic">
+        <source>'{0}': a closed type cannot be sealed or static</source>
+        <target state="translated">"{0}": абстрактный тип не может быть запечатанным или статическим</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'closed'.</source>
+        <target state="translated">У типов и псевдонимов не может быть имя "closed".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
         <source>'with(...)' element arguments cannot be dynamic</source>
         <target state="translated">Аргументы элемента "with(...)" не могут быть динамическими</target>
@@ -2687,6 +2707,11 @@
         <target state="translated">Поле '{0}' должно быть полностью назначенным перед возвратом контроля вызывающему элементу. Попробуйте обновить поле до языковой версии "{1}", чтобы автоматически применить значение по умолчанию.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedClosedSubtype">
+        <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
+        <target state="translated">"{0}": параметр типа "{1}" должен быть указан в базовом типе "{2}", так как базовый тип является закрытый.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
         <target state="translated">На параметр типа "{0}" не ссылается ни параметр расширения, ни параметр этого члена</target>
@@ -2907,6 +2932,11 @@
         <target state="translated">проверенные операторы, определяемые пользователем</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureClosedClasses">
+        <source>closed classes</source>
+        <target state="translated">закрытые классы</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
         <source>collection expression arguments</source>
         <target state="translated">аргументы выражения коллекции</target>
@@ -3120,6 +3150,11 @@
       <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
         <source>simple lambda parameter modifiers</source>
         <target state="translated">модификаторы параметров простых лямбда-выражений</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStaticMembersInInterfaces">
+        <source>static members in interfaces</source>
+        <target state="translated">статические элементы в интерфейсах</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">

@@ -527,6 +527,26 @@
         <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może implementować elementu „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
+        <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
+        <target state="new">'{0}': cannot use a closed type '{1}' from another assembly as a base type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedExplicitlyAbstract">
+        <source>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</source>
+        <target state="new">'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedSealedStatic">
+        <source>'{0}': a closed type cannot be sealed or static</source>
+        <target state="new">'{0}': a closed type cannot be sealed or static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'closed'.</source>
+        <target state="new">Types and aliases cannot be named 'closed'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
         <source>'with(...)' element arguments cannot be dynamic</source>
         <target state="translated">Argumenty elementu „with(...)” nie mogą być dynamiczne</target>
@@ -2687,6 +2707,11 @@
         <target state="translated">Pole „{0}” musi być w pełni przypisane, zanim kontrolka zostanie zwrócona do obiektu wywołującego. Rozważ zaktualizowanie pola do wersji językowej „{1}”, aby automatycznie ustawić domyślne pole.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedClosedSubtype">
+        <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
+        <target state="new">'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
         <target state="translated">Parametr typu „{0}” nie jest odwoływany ani przez parametr rozszerzenia, ani przez parametr tej składowej</target>
@@ -2907,6 +2932,11 @@
         <target state="translated">zaznaczone operatory zdefiniowane przez użytkownika</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureClosedClasses">
+        <source>closed classes</source>
+        <target state="new">closed classes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
         <source>collection expression arguments</source>
         <target state="translated">argumenty wyrażenia kolekcji</target>
@@ -3120,6 +3150,11 @@
       <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
         <source>simple lambda parameter modifiers</source>
         <target state="translated">proste modyfikatory parametrów lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStaticMembersInInterfaces">
+        <source>static members in interfaces</source>
+        <target state="translated">statyczne składowe w interfejsach</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
