@@ -1060,6 +1060,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         var view = await GetActiveTextViewAsync(cancellationToken);
         var manager = componentModelService.GetService<IOutliningManagerService>().GetOutliningManager(view);
         var span = new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length);
+        Assumes.NotNull(manager);
         var regions = manager.GetAllRegions(span);
         return regions
                 .OrderBy(s => s.Extent.GetStartPoint(view.TextSnapshot))
