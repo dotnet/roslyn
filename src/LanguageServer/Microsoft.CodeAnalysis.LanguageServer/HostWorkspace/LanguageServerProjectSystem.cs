@@ -60,21 +60,23 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
 
         var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, DiagnosticReportingMode.Throw, CancellationToken.None);
 
-        SetProgressTracker(progressReporter, projects.Length);
+        var progressTracker = progressReporter != null && projects.Length > 0
+            ? new ProjectLoadProgressTracker(progressReporter, projects.Length)
+            : null;
+
         try
         {
             foreach (var (path, guid) in projects)
             {
-                await BeginLoadingProjectAsync(path, guid);
+                await BeginLoadingProjectAsync(path, guid, progressTracker);
             }
-            
+
             await WaitForProjectsToFinishLoadingAsync();
             await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
         }
         finally
         {
             progressReporter?.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
-            SetProgressTracker(null, 0);
         }
     }
 
@@ -83,12 +85,15 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         if (!projectFilePaths.Any())
             return;
 
-        SetProgressTracker(progressReporter, projectFilePaths.Length);
+        var progressTracker = progressReporter != null && projectFilePaths.Length > 0
+            ? new ProjectLoadProgressTracker(progressReporter, projectFilePaths.Length)
+            : null;
+
         try
         {
             foreach (var path in projectFilePaths)
             {
-                await BeginLoadingProjectAsync(path, projectGuid: null);
+                await BeginLoadingProjectAsync(path, projectGuid: null, progressTracker);
             }
 
             await WaitForProjectsToFinishLoadingAsync();
@@ -97,7 +102,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         finally
         {
             progressReporter?.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
-            SetProgressTracker(null, 0);
         }
     }
 

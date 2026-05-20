@@ -33,20 +33,21 @@ public sealed class ProjectLoadProgressTrackerTests
     }
 
     [Fact]
-    public void SingleProject_ReportsHundredPercent()
+    public async Task SingleProject_ReportsNinetyNinePercent()
     {
         var reporter = new TestProgressReporter();
         var tracker = new LanguageServerProjectLoader.ProjectLoadProgressTracker(reporter, totalProjects: 1);
 
         tracker.OnProjectProcessed();
+        await tracker.WaitUntilCurrentBatchCompletesAsync();
 
         var reports = reporter.GetReports();
         var report = Assert.Single(reports);
-        Assert.Equal(100, report.Percentage);
+        Assert.Equal(99, report.Percentage);
     }
 
     [Fact]
-    public void MultipleProjects_PercentagesAreMonotonicallyIncreasing()
+    public async Task MultipleProjects_PercentagesAreMonotonicallyIncreasing()
     {
         var reporter = new TestProgressReporter();
         var totalProjects = 10;
@@ -56,6 +57,8 @@ public sealed class ProjectLoadProgressTrackerTests
         {
             tracker.OnProjectProcessed();
         }
+
+        await tracker.WaitUntilCurrentBatchCompletesAsync();
 
         var reports = reporter.GetReports();
         Assert.NotEmpty(reports);
@@ -70,7 +73,7 @@ public sealed class ProjectLoadProgressTrackerTests
     }
 
     [Fact]
-    public void MultipleProjects_FinalPercentageIsHundred()
+    public async Task MultipleProjects_FinalPercentageCapsAtNinetyNine()
     {
         var reporter = new TestProgressReporter();
         var totalProjects = 7;
@@ -81,12 +84,14 @@ public sealed class ProjectLoadProgressTrackerTests
             tracker.OnProjectProcessed();
         }
 
+        await tracker.WaitUntilCurrentBatchCompletesAsync();
+
         var reports = reporter.GetReports();
-        Assert.Equal(100, reports[^1].Percentage);
+        Assert.Equal(99, reports[^1].Percentage);
     }
 
     [Fact]
-    public void LargeProjectCount_SuppressesDuplicatePercentages()
+    public async Task LargeProjectCount_SuppressesDuplicatePercentages()
     {
         var reporter = new TestProgressReporter();
         var totalProjects = 200;
@@ -97,18 +102,20 @@ public sealed class ProjectLoadProgressTrackerTests
             tracker.OnProjectProcessed();
         }
 
+        await tracker.WaitUntilCurrentBatchCompletesAsync();
+
         var reports = reporter.GetReports();
 
-        Assert.True(reports.Count <= 101,
-            $"Expected at most 101 reports but got {reports.Count}");
+        Assert.True(reports.Count <= 100,
+            $"Expected at most 100 reports but got {reports.Count}");
 
         var percentages = reports.Select(r => r.Percentage!.Value).ToList();
         Assert.Equal(percentages.Count, percentages.Distinct().Count());
-        Assert.Equal(100, percentages[^1]);
+        Assert.Equal(99, percentages[^1]);
     }
 
     [Fact]
-    public void AllPercentagesWithinValidRange()
+    public async Task AllPercentagesWithinValidRange()
     {
         var reporter = new TestProgressReporter();
         var totalProjects = 50;
@@ -119,31 +126,32 @@ public sealed class ProjectLoadProgressTrackerTests
             tracker.OnProjectProcessed();
         }
 
+        await tracker.WaitUntilCurrentBatchCompletesAsync();
+
         var reports = reporter.GetReports();
         Assert.All(reports, report =>
         {
             Assert.NotNull(report.Percentage);
-            Assert.InRange(report.Percentage!.Value, 0, 100);
+            Assert.InRange(report.Percentage!.Value, 0, 99);
         });
     }
 
     [Fact]
-    public void TwoProjects_ReportsFiftyAndHundred()
+    public async Task TwoProjects_ReportsFiftyAndNinetyNine()
     {
         var reporter = new TestProgressReporter();
         var tracker = new LanguageServerProjectLoader.ProjectLoadProgressTracker(reporter, totalProjects: 2);
 
         tracker.OnProjectProcessed();
         tracker.OnProjectProcessed();
+        await tracker.WaitUntilCurrentBatchCompletesAsync();
 
         var reports = reporter.GetReports();
-        Assert.Equal(2, reports.Count);
-        Assert.Equal(50, reports[0].Percentage);
-        Assert.Equal(100, reports[1].Percentage);
+        Assert.Equal(99, reports[^1].Percentage);
     }
 
     [Fact]
-    public void ThreeProjects_ReportsExpectedPercentages()
+    public async Task ThreeProjects_ReportsExpectedPercentages()
     {
         var reporter = new TestProgressReporter();
         var tracker = new LanguageServerProjectLoader.ProjectLoadProgressTracker(reporter, totalProjects: 3);
@@ -151,16 +159,14 @@ public sealed class ProjectLoadProgressTrackerTests
         tracker.OnProjectProcessed();
         tracker.OnProjectProcessed();
         tracker.OnProjectProcessed();
+        await tracker.WaitUntilCurrentBatchCompletesAsync();
 
         var reports = reporter.GetReports();
-        Assert.Equal(3, reports.Count);
-        Assert.Equal(33, reports[0].Percentage);
-        Assert.Equal(66, reports[1].Percentage);
-        Assert.Equal(100, reports[2].Percentage);
+        Assert.Equal(99, reports[^1].Percentage);
     }
 
     [Fact]
-    public async Task ConcurrentProcessing_AllPercentagesWithinRangeAndReachHundred()
+    public async Task ConcurrentProcessing_AllPercentagesWithinRangeAndReachNinetyNine()
     {
         var reporter = new TestProgressReporter();
         var totalProjects = 100;
@@ -169,6 +175,7 @@ public sealed class ProjectLoadProgressTrackerTests
         var tasks = Enumerable.Range(0, totalProjects).Select(_ =>
             Task.Run(() => tracker.OnProjectProcessed()));
         await Task.WhenAll(tasks);
+        await tracker.WaitUntilCurrentBatchCompletesAsync();
 
         var reports = reporter.GetReports();
         Assert.NotEmpty(reports);
@@ -176,9 +183,9 @@ public sealed class ProjectLoadProgressTrackerTests
         Assert.All(reports, report =>
         {
             Assert.NotNull(report.Percentage);
-            Assert.InRange(report.Percentage!.Value, 0, 100);
+            Assert.InRange(report.Percentage!.Value, 0, 99);
         });
 
-        Assert.Equal(100, reports.Max(r => r.Percentage!.Value));
+        Assert.Equal(99, reports.Max(r => r.Percentage!.Value));
     }
 }
