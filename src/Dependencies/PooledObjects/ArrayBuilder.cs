@@ -1007,26 +1007,76 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         private static readonly ObjectPool<ArrayBuilder<T>> s_keepLargeInstancesPool = CreatePool();
 
-        public static PooledDisposer<ArrayBuilder<T>> GetInstance(out ArrayBuilder<T> instance)
-            => GetInstance(discardLargeInstances: true, out instance);
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(
+            out ArrayBuilder<T> instance
+#if DEBUG
+            , [CallerFilePath] string? filePath = null
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
+            => GetInstance(discardLargeInstances: true, out instance
+#if DEBUG
+                , filePath, lineNumber
+#endif
+                );
 
-        public static PooledDisposer<ArrayBuilder<T>> GetInstance(int capacity, out ArrayBuilder<T> instance)
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(
+            int capacity,
+            out ArrayBuilder<T> instance
+#if DEBUG
+            , [CallerFilePath] string? filePath = null
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            instance = GetInstance(capacity);
+            instance = GetInstance(capacity
+#if DEBUG
+                , filePath, lineNumber
+#endif
+                );
             return new PooledDisposer<ArrayBuilder<T>>(instance);
         }
 
-        public static PooledDisposer<ArrayBuilder<T>> GetInstance(int capacity, T fillWithValue, out ArrayBuilder<T> instance)
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(
+            int capacity,
+            T fillWithValue,
+            out ArrayBuilder<T> instance
+#if DEBUG
+            , [CallerFilePath] string? filePath = null
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            instance = GetInstance(capacity, fillWithValue);
+            instance = GetInstance(capacity, fillWithValue
+#if DEBUG
+                , filePath, lineNumber
+#endif
+                );
             return new PooledDisposer<ArrayBuilder<T>>(instance);
         }
 
-        public static PooledDisposer<ArrayBuilder<T>> GetInstance(bool discardLargeInstances, out ArrayBuilder<T> instance)
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(
+            bool discardLargeInstances,
+            out ArrayBuilder<T> instance
+#if DEBUG
+            , [CallerFilePath] string? filePath = null
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
             // If we're discarding large instances (the default behavior), then just use the normal pool.  If we're not, use
             // a specific pool so that *other* normal callers don't accidentally get it and discard it.
-            instance = discardLargeInstances ? GetInstance() : s_keepLargeInstancesPool.Allocate();
+            instance = discardLargeInstances
+                ? GetInstance(
+#if DEBUG
+                    filePath, lineNumber
+#endif
+                    )
+                : s_keepLargeInstancesPool.Allocate(
+#if DEBUG
+                    filePath, lineNumber
+#endif
+                    );
             return new PooledDisposer<ArrayBuilder<T>>(instance, discardLargeInstances);
         }
 

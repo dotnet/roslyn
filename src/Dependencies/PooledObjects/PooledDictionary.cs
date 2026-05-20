@@ -8,6 +8,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
+#if DEBUG
+using System.Runtime.CompilerServices;
+#endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     // Dictionary that can be recycled via an object pool
@@ -52,17 +56,36 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return pool;
         }
 
-        public static PooledDictionary<K, V> GetInstance()
+        public static PooledDictionary<K, V> GetInstance(
+#if DEBUG
+            [CallerFilePath] string? filePath = null,
+            [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            var instance = s_poolInstance.Allocate();
+            var instance = s_poolInstance.Allocate(
+#if DEBUG
+                filePath, lineNumber
+#endif
+                );
             Debug.Assert(instance.Count == 0);
             return instance;
         }
 
 #if !MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER
-        public static PooledDisposer<PooledDictionary<K, V>> GetInstance(out PooledDictionary<K, V> instance)
+        public static PooledDisposer<PooledDictionary<K, V>> GetInstance(
+            out PooledDictionary<K, V> instance
+#if DEBUG
+            , [CallerFilePath] string? filePath = null
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            instance = GetInstance();
+            instance = GetInstance(
+#if DEBUG
+                filePath, lineNumber
+#endif
+                );
             return new PooledDisposer<PooledDictionary<K, V>>(instance);
         }
 
