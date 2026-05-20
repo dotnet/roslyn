@@ -561,7 +561,7 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/81108")]
+        [ConditionalTheory(typeof(WindowsOnly), typeof(CompilerAsync), Reason = "https://github.com/dotnet/runtime/issues/81108 https://github.com/dotnet/roslyn/issues/79352")]
         [CombinatorialData]
         public void AssemblyLoading_DependencyInDifferentDirectory(AnalyzerTestKind kind)
         {

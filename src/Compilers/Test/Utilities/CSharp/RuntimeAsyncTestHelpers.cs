@@ -27,4 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// </returns>
         public static string? ExpectedOutput(string? output) => ExecutionConditionUtil.IsCoreClr && IsRuntimeAsyncEnabled ? output : null;
     }
+
+    public sealed class CompilerAsync : ExecutionCondition
+    {
+        public override bool ShouldSkip => RuntimeAsyncTestHelpers.IsRuntimeAsyncEnabled;
+        public override string SkipReason => "Test not supported when runtime async is enabled";
+    }
 }
