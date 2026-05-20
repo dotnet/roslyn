@@ -28,7 +28,13 @@ internal sealed class SnippetCache
     public ImmutableArray<SnippetInfo> GetSnippets(SnippetLanguage language)
     {
         using var _ = _lock.EnterReadLock();
-        return _snippetCache[language];
+
+        // Use TryGetValue rather than the indexer because the cache is populated
+        // asynchronously after VS starts. Completion can be triggered before
+        // population completes, so we must return an empty array — not throw.
+        return _snippetCache.TryGetValue(language, out var snippets)
+            ? snippets
+            : [];
     }
 
     internal string? TryResolveSnippetString(SnippetCompletionData completionData)

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class CSharpRazorKeywordCompletionItemProvider : IRazorCompletionItemProvider
 {
-    internal static readonly ImmutableArray<RazorCommitCharacter> KeywordCommitCharacters = RazorCommitCharacter.CreateArray([" "]);
+    internal static readonly ImmutableArray<RazorCommitCharacter> KeywordCommitCharacters = DefaultCommitCharacters.GetKeywordCommitCharacters();
 
     // internal for testing
     internal static readonly ImmutableArray<string> CSharpRazorKeywords =

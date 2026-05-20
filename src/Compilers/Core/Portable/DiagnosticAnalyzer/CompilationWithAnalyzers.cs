@@ -797,6 +797,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(scope, driver, compilation, getAnalyzerActionCounts, cancellationToken);
                     }
+
+                    builder.Free();
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

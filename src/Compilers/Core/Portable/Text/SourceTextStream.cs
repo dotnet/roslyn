@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly Encoder _encoder;
 
         internal const int BufferSize = 2048;
-        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[BufferSize], size: 8);
+        // This pool doesn't track leaks because SourceTextStream is used by the lazy SourceText.GetChecksum(),
+        // which can be triggered on a thread whose AsyncLocal still carries a prior test's tracking context.
+        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[BufferSize], size: 8, trackLeaks: false);
 
         private readonly int _minimumTargetBufferCount;
         private int _position;
