@@ -63,7 +63,7 @@ internal sealed partial class HelixTestRunner
 
     internal static async Task<int> RunAsync(Options options, ImmutableArray<AssemblyInfo> assemblies)
     {
-        var cts = new CancellationTokenSource();
+        using var cts = new CancellationTokenSource();
         Console.CancelKeyPress += delegate
         {
             cts.Cancel();
@@ -73,7 +73,7 @@ internal sealed partial class HelixTestRunner
         var (process, helixJobInfoTask) = StartHelixJob(options, helixProjectFilePath);
         try
         {
-            var task = await Task.WhenAny(process.WaitForExitAsync(), helixJobInfoTask);
+            await Task.WhenAny(process.WaitForExitAsync(), helixJobInfoTask);
             if (cts.IsCancellationRequested)
             {
                 process.Kill(entireProcessTree: true);
@@ -211,14 +211,14 @@ internal sealed partial class HelixTestRunner
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException and not TimeoutException)
                 {
-                    ConsoleUtil.Warning($"Error while usiung Helix API for job status: {ex.Message}");
+                    ConsoleUtil.Warning($"Error while using Helix API for job status: {ex.Message}");
                 }
             } while (true);
         }
 
+        // If a work item has been running for more than WorkItemExecutionTimeout, consider it timed out.
         static bool HasTimedOut(HelixWorkItemDetails details)
         {
-            // If a work item has been in the same state for more than 30 minutes, consider it timed out.
             if (details.Started is null)
             {
                 return false;
