@@ -57,32 +57,33 @@ namespace Microsoft.CodeAnalysis.Symbols
 
         /// <summary>
         /// Gets the <see cref="ISymbolInternal"/> for the immediately containing symbol.
+        /// Returns <see langword="null"/> for top-level symbols like namespaces or certain error types.
         /// </summary>
-        ISymbolInternal ContainingSymbol { get; }
+        ISymbolInternal? ContainingSymbol { get; }
 
         /// <summary>
-        /// Gets the <see cref="IAssemblySymbolInternal"/> for the containing assembly. Returns null if the
+        /// Gets the <see cref="IAssemblySymbolInternal"/> for the containing assembly. Returns <see langword="null"/> if the
         /// symbol is shared across multiple assemblies.
         /// </summary>
-        IAssemblySymbolInternal ContainingAssembly { get; }
+        IAssemblySymbolInternal? ContainingAssembly { get; }
 
         /// <summary>
-        /// Gets the <see cref="IModuleSymbolInternal"/> for the containing module. Returns null if the
+        /// Gets the <see cref="IModuleSymbolInternal"/> for the containing module. Returns <see langword="null"/> if the
         /// symbol is shared across multiple modules.
         /// </summary>
-        IModuleSymbolInternal ContainingModule { get; }
+        IModuleSymbolInternal? ContainingModule { get; }
 
         /// <summary>
-        /// Gets the <see cref="INamedTypeSymbolInternal"/> for the containing type. Returns null if the
+        /// Gets the <see cref="INamedTypeSymbolInternal"/> for the containing type. Returns <see langword="null"/> if the
         /// symbol is not contained within a type.
         /// </summary>
-        INamedTypeSymbolInternal ContainingType { get; }
+        INamedTypeSymbolInternal? ContainingType { get; }
 
         /// <summary>
-        /// Gets the <see cref="INamespaceSymbolInternal"/> for the nearest enclosing namespace. Returns null if the
+        /// Gets the <see cref="INamespaceSymbolInternal"/> for the nearest enclosing namespace. Returns <see langword="null"/> if the
         /// symbol isn't contained in a namespace.
         /// </summary>
-        INamespaceSymbolInternal ContainingNamespace { get; }
+        INamespaceSymbolInternal? ContainingNamespace { get; }
 
         /// <summary>
         /// Gets a value indicating whether the symbol is the original definition. Returns false
