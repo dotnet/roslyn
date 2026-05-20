@@ -1,0 +1,179 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically.
+#
+# To exclude from version control, add *.lscache to your .gitignore file.
+#
+# To disable caching, add the following to your VS Code settings:
+#   "dotnet.projectsystem.enableLanguageServiceCache": false
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[properties]
+AssemblyName=BuildBoss
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:TRACE -features:strict -doc:"<PATH>../../../artifacts/obj/BuildBoss/Debug/net472/BuildBoss.xml"
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=7.3
+ProjectAssetsFile=<PATH>../../../artifacts/obj/BuildBoss/project.assets.json
+RootNamespace=BuildBoss
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETFramework
+TargetPath=<PATH>../../../artifacts/bin/BuildBoss/Debug/net472/BuildBoss.exe
+TargetRefPath=<PATH>../../../artifacts/obj/BuildBoss/Debug/net472/ref/BuildBoss.exe
+TemporaryDependencyNodeTargetIdentifier=net472
+
+[commandLineArguments]
+/noconfig
+/unsafe-
+/checked-
+/nowarn:1701,1702,1705,1591,NU1507,NU1510,RS1041,RS1038,1573,1591,1701,NU5105,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:9999
+/doc:<PATH>../../../artifacts/obj/BuildBoss/Debug/net472/BuildBoss.xml
+/define:TRACE;DEBUG;NETFRAMEWORK;NET472;NET20_OR_GREATER;NET30_OR_GREATER;NET35_OR_GREATER;NET40_OR_GREATER;NET45_OR_GREATER;NET451_OR_GREATER;NET452_OR_GREATER;NET46_OR_GREATER;NET461_OR_GREATER;NET462_OR_GREATER;NET47_OR_GREATER;NET471_OR_GREATER;NET472_OR_GREATER
+/highentropyva+
+/nullable:enable
+/debug+
+/debug:embedded
+/filealign:512
+/optimize-
+/out:<PATH>../../../artifacts/obj/BuildBoss/Debug/net472/BuildBoss.exe
+/refout:<PATH>../../../artifacts/obj/BuildBoss/Debug/net472/refint/BuildBoss.exe
+/subsystemversion:6.00
+/target:exe
+/warnaserror-
+/utf8output
+/win32manifest:<PATH>../../../artifacts/obj/BuildBoss/Debug/net472/BuildBoss.exe.manifest
+/deterministic+
+/checksumalgorithm:SHA256
+/langversion:preview
+/skipanalyzers+
+/features:strict
+/warnaserror+:NU1605
+/warnaserror-:IDE0055
+
+[sourceFiles]
+../../../artifacts/obj/BuildBoss/Debug/net472/
+ .NETFramework,Version=v4.7.2.AssemblyAttributes.cs
+  @folderNames=..,..,..,artifacts,obj,BuildBoss,Debug,net472
+ BuildBoss.AssemblyInfo.cs
+  @folderNames=..,..,..,artifacts,obj,BuildBoss,Debug,net472
+CompilerNuGetCheckerUtil.cs
+Extensions.cs
+ICheckerUtil.cs
+InternalsVisibleTo.cs
+OptProfCheckerUtil.cs
+PackageReference.cs
+Program.cs
+ProjectCheckerUtil.cs
+ProjectData.cs
+ProjectEntry.cs
+ProjectKey.cs
+ProjectReferenceEntry.cs
+ProjectType.cs
+ProjectUtil.cs
+SharedUtil.cs
+SolutionCheckerUtil.cs
+SolutionUtil.cs
+StructuredLoggerCheckerUtil.cs
+TargetsCheckerUtil.cs
+
+[metadataReferences]
+<NUGET>/
+ microsoft.bcl.asyncinterfaces/10.0.1/lib/net462/Microsoft.Bcl.AsyncInterfaces.dll
+ microsoft.bcl.hashcode/6.0.0/lib/net462/Microsoft.Bcl.HashCode.dll
+ microsoft.build.framework/18.0.2/ref/net472/Microsoft.Build.Framework.dll
+ microsoft.build.locator/1.10.2/lib/net46/Microsoft.Build.Locator.dll
+ microsoft.build.tasks.core/18.0.2/ref/net472/Microsoft.Build.Tasks.Core.dll
+ microsoft.build.utilities.core/18.0.2/ref/net472/Microsoft.Build.Utilities.Core.dll
+ microsoft.build/18.0.2/ref/net472/Microsoft.Build.dll
+ microsoft.io.redist/6.1.0/lib/net472/Microsoft.IO.Redist.dll
+ microsoft.net.stringtools/18.0.2/ref/net472/Microsoft.NET.StringTools.dll
+ microsoft.netframework.referenceassemblies.net472/1.0.3/build/.NETFramework/v4.7.2/
+  Facades/netstandard.dll
+  mscorlib.dll
+  System.Configuration.dll
+  System.Core.dll
+  System.Data.dll
+  System.dll
+  System.Drawing.dll
+  System.IO.Compression.dll
+  System.IO.Compression.FileSystem.dll
+  System.Numerics.dll
+  System.Runtime.Serialization.dll
+  System.Xml.dll
+  System.Xml.Linq.dll
+  WindowsBase.dll
+ mono.options/6.6.0.161/lib/net40/Mono.Options.dll
+ msbuild.structuredlogger/2.3.113/lib/netstandard2.0/StructuredLogger.dll
+ newtonsoft.json/13.0.3/lib/net45/Newtonsoft.Json.dll
+ system.buffers/4.6.1/lib/net462/System.Buffers.dll
+ system.collections.immutable/10.0.1/lib/net462/System.Collections.Immutable.dll
+ system.configuration.configurationmanager/10.0.1/lib/net462/System.Configuration.ConfigurationManager.dll
+ system.diagnostics.diagnosticsource/10.0.1/lib/net462/System.Diagnostics.DiagnosticSource.dll
+ system.formats.nrbf/10.0.1/lib/net462/System.Formats.Nrbf.dll
+ system.io.pipelines/10.0.1/lib/net462/System.IO.Pipelines.dll
+ system.memory/4.6.3/lib/net462/System.Memory.dll
+ system.numerics.vectors/4.6.1/lib/net462/System.Numerics.Vectors.dll
+ system.reflection.metadata/10.0.1/lib/net462/System.Reflection.Metadata.dll
+ system.reflection.metadataloadcontext/9.0.0/lib/net462/System.Reflection.MetadataLoadContext.dll
+ system.resources.extensions/10.0.1/lib/net462/System.Resources.Extensions.dll
+ system.runtime.compilerservices.unsafe/6.1.2/lib/net462/System.Runtime.CompilerServices.Unsafe.dll
+ system.security.principal.windows/5.0.0/ref/net461/System.Security.Principal.Windows.dll
+ system.text.encodings.web/10.0.1/lib/net462/System.Text.Encodings.Web.dll
+ system.text.json/10.0.1/lib/net462/System.Text.Json.dll
+ system.threading.tasks.dataflow/10.0.1/lib/net462/System.Threading.Tasks.Dataflow.dll
+ system.threading.tasks.extensions/4.6.3/lib/net462/System.Threading.Tasks.Extensions.dll
+
+[analyzerReferences]
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/codestyle/cs/
+ Microsoft.CodeAnalysis.CodeStyle.dll
+ Microsoft.CodeAnalysis.CodeStyle.Fixes.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll
+<NUGET>/microsoft.codeanalysis.bannedapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.BannedApiAnalyzers.dll
+ Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll
+ Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.publicapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.dll
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/analyzers/cs/
+ Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll
+ Microsoft.VisualStudio.Threading.Analyzers.CSharp.dll
+ Microsoft.VisualStudio.Threading.Analyzers.dll
+<NUGET>/roslyn.diagnostics.analyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Roslyn.Diagnostics.Analyzers.dll
+ Roslyn.Diagnostics.CSharp.Analyzers.dll
+<NUGET>/system.text.json/10.0.1/analyzers/dotnet/roslyn4.4/cs/System.Text.Json.SourceGeneration.dll
+
+[analyzerConfigFiles]
+../../../
+ .editorconfig
+ artifacts/obj/BuildBoss/Debug/net472/BuildBoss.GeneratedMSBuildEditorConfig.editorconfig
+ eng/config/globalconfigs/
+  Common.globalconfig
+  NonShipping.globalconfig
+
+[additionalFiles]
+../../../eng/config/BannedSymbols.txt
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/buildTransitive/AdditionalFiles/
+ vs-threading.LegacyThreadSwitchingMembers.txt
+ vs-threading.MainThreadAssertingMethods.txt
+ vs-threading.MainThreadSwitchingMethods.txt
+ vs-threading.MembersRequiringMainThread.txt

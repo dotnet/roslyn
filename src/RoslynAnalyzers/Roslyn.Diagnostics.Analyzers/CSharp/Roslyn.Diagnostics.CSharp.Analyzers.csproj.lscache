@@ -1,0 +1,739 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically.
+#
+# To exclude from version control, add *.lscache to your .gitignore file.
+#
+# To disable caching, add the following to your VS Code settings:
+#   "dotnet.projectsystem.enableLanguageServiceCache": false
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[properties]
+AssemblyName=Roslyn.Diagnostics.CSharp.Analyzers
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:,OLDER_ROSLYN;TRACE -features:strict;flow-analysis -doc:"<PATH>../../../../artifacts/obj/Roslyn.Diagnostics.CSharp.Analyzers/Debug/netstandard2.0/Roslyn.Diagnostics.CSharp.Analyzers.xml"
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=7.3
+ProjectAssetsFile=<PATH>../../../../artifacts/obj/Roslyn.Diagnostics.CSharp.Analyzers/project.assets.json
+RootNamespace=Microsoft.CodeAnalysis.CSharp
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETStandard
+TargetPath=<PATH>../../../../artifacts/bin/Roslyn.Diagnostics.CSharp.Analyzers/Debug/netstandard2.0/Roslyn.Diagnostics.CSharp.Analyzers.dll
+TargetRefPath=<PATH>../../../../artifacts/obj/Roslyn.Diagnostics.CSharp.Analyzers/Debug/netstandard2.0/ref/Roslyn.Diagnostics.CSharp.Analyzers.dll
+TemporaryDependencyNodeTargetIdentifier=netstandard2.0
+
+[commandLineArguments]
+/noconfig
+/unsafe+
+/checked-
+/nowarn:1701,1702,1705,1591,NU1507,NU1510,RS1041,RS1038,1573,1591,1701,IDE0079,NU5105,RS2007,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:9999
+/doc:<PATH>../../../../artifacts/obj/Roslyn.Diagnostics.CSharp.Analyzers/Debug/netstandard2.0/Roslyn.Diagnostics.CSharp.Analyzers.xml
+/define:OLDER_ROSLYN;TRACE;DEBUG;NETSTANDARD;NETSTANDARD2_0;NETSTANDARD1_0_OR_GREATER;NETSTANDARD1_1_OR_GREATER;NETSTANDARD1_2_OR_GREATER;NETSTANDARD1_3_OR_GREATER;NETSTANDARD1_4_OR_GREATER;NETSTANDARD1_5_OR_GREATER;NETSTANDARD1_6_OR_GREATER;NETSTANDARD2_0_OR_GREATER
+/highentropyva+
+/nullable:enable
+/debug+
+/debug:embedded
+/delaysign-
+/filealign:512
+/keyfile:<NUGET>/microsoft.dotnet.arcade.sdk/10.0.0-beta.26201.4/tools/snk/35MSSharedLib1024.snk
+/optimize-
+/out:<PATH>../../../../artifacts/obj/Roslyn.Diagnostics.CSharp.Analyzers/Debug/netstandard2.0/Roslyn.Diagnostics.CSharp.Analyzers.dll
+/refout:<PATH>../../../../artifacts/obj/Roslyn.Diagnostics.CSharp.Analyzers/Debug/netstandard2.0/refint/Roslyn.Diagnostics.CSharp.Analyzers.dll
+/target:library
+/warnaserror-
+/utf8output
+/deterministic+
+/publicsign+
+/checksumalgorithm:SHA256
+/langversion:preview
+/skipanalyzers+
+/features:strict
+/features:flow-analysis
+/warnaserror+:NU1605
+/warnaserror-:IDE0055
+
+[sourceFiles]
+../../../../artifacts/obj/Roslyn.Diagnostics.CSharp.Analyzers/Debug/netstandard2.0/
+ .NETStandard,Version=v2.0.AssemblyAttributes.cs
+  @folderNames=..,..,..,..,artifacts,obj,Roslyn.Diagnostics.CSharp.Analyzers,Debug,netstandard2.0
+ Microsoft.CodeAnalysis.CSharp.CSharpCompilerExtensionsResources.cs
+  @folderNames=..,..,..,..,artifacts,obj,Roslyn.Diagnostics.CSharp.Analyzers,Debug,netstandard2.0
+ Microsoft.CodeAnalysis.CSharp.CSharpWorkspaceExtensionsResources.cs
+  @folderNames=..,..,..,..,artifacts,obj,Roslyn.Diagnostics.CSharp.Analyzers,Debug,netstandard2.0
+ Roslyn.Diagnostics.CSharp.Analyzers.AssemblyInfo.cs
+  @folderNames=..,..,..,..,artifacts,obj,Roslyn.Diagnostics.CSharp.Analyzers,Debug,netstandard2.0
+ Roslyn.Diagnostics.CSharp.Analyzers.InternalsVisibleTo.cs
+  @folderNames=..,..,..,..,artifacts,obj,Roslyn.Diagnostics.CSharp.Analyzers,Debug,netstandard2.0
+../../../Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/CodeGeneration/
+ CSharpCodeGenerationOptions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,CodeGeneration
+ CSharpSyntaxTokens.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,CodeGeneration
+../../../Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/CodeStyle/
+ CSharpCodeStyleOptions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,CodeStyle
+ CSharpCodeStyleOptions_Parsing.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,CodeStyle
+ PreferBracesPreference.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,CodeStyle
+ TypeStyle/
+  TypeStyleHelper.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,CodeStyle,TypeStyle
+  UseVarPreference.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,CodeStyle,TypeStyle
+../../../Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/EmbeddedLanguages/VirtualChars/
+ CSharpVirtualCharService.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,EmbeddedLanguages,VirtualChars
+ RuneExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,EmbeddedLanguages,VirtualChars
+../../../Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/Extensions/
+ ArgumentSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ ArrowExpressionClauseSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ AssignmentExpressionSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ AttributeArgumentSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ BlockSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ CompilationExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ CompilationUnitSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ ContextQuery/SyntaxTreeExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions,ContextQuery
+ ConversionExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ DefaultExpressionSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ DirectiveSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ ExpressionSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ ILocalSymbolExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ ITypeSymbolExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ LanguageVersionExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ MemberAccessExpressionSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ MemberDeclarationSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ MemberDeclarationSyntaxExtensions.DeclarationFinder.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ MemberDeclarationSyntaxExtensions.LocalDeclarationMap.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ MemberDeclarationSyntaxExtensions_GetAttributes.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ OperatorPrecedence.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ ParenthesizedExpressionSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ ParseOptionsExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SemanticModelExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SimpleNameSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ StatementSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SymbolDisplayPartExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SyntaxKindExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SyntaxListExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SyntaxNodeExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SyntaxNodeExtensions.SingleLineRewriter.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SyntaxTokenExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SyntaxTreeExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SyntaxTriviaExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ SyntaxTriviaListExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ TypeSyntaxExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+ VariableDeclaratorExtensions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Extensions
+../../../Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/Formatting/
+ CSharpFormattingOptions2.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+ CSharpFormattingOptions2.Parsers.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+ CSharpSyntaxFormatting.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+ CSharpSyntaxFormattingOptions.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+ DefaultOperationProvider.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+ Engine/
+  AggregatedFormattingResult.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine
+  CSharpFormatEngine.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine
+  CSharpStructuredTriviaFormatEngine.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine
+  FormattingResult.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine
+  Trivia/
+   CSharpTriviaFormatter.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine,Trivia
+   CSharpTriviaFormatter.DocumentationCommentExteriorCommentRewriter.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine,Trivia
+   TriviaDataFactory.Analyzer.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine,Trivia
+   TriviaDataFactory.CodeShapeAnalyzer.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine,Trivia
+   TriviaDataFactory.ComplexTrivia.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine,Trivia
+   TriviaDataFactory.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine,Trivia
+   TriviaDataFactory.FormattedComplexTrivia.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine,Trivia
+   TriviaDataFactory.ModifiedComplexTrivia.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine,Trivia
+   TriviaRewriter.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Engine,Trivia
+ FormattingHelpers.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+ IndentationPlacement.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+ NewLineBeforeOpenBracePlacement.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+ NewLinePlacement.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+ Rules/
+  AnchorIndentationFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  BaseFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  ElasticTriviaFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  EndOfFileTokenFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  IndentBlockFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  IndentUserSettingsFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  NewLineUserSettingFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  QueryExpressionFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  SpacingFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  StructuredTriviaFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  SuppressFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  TokenBasedFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+  WrappingFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting,Rules
+ SpacePlacement.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+ SpacingWithinParentheses.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Formatting
+../../../Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/
+ Helpers/RemoveUnnecessaryImports/CSharpUnnecessaryImportsProvider.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Helpers,RemoveUnnecessaryImports
+ Indentation/CSharpSmartTokenFormatter.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Indentation
+ Services/Precedence/
+  AbstractCSharpPrecedenceService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,Precedence
+  CSharpExpressionPrecedenceService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,Precedence
+  CSharpPatternPrecedenceService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,Precedence
+ Services/
+  RefactoringHelpers/CSharpRefactoringHelpers.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,RefactoringHelpers
+  SelectedMembers/CSharpSelectedMembers.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,SelectedMembers
+  SemanticFacts/CSharpSemanticFacts.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,SemanticFacts
+  SyntaxFacts/
+   CSharpAccessibilityFacts.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,SyntaxFacts
+   CSharpBlockFacts.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,SyntaxFacts
+   CSharpDocumentationCommentService.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,SyntaxFacts
+   CSharpFileBannerFacts.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,SyntaxFacts
+   CSharpHeaderFacts.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,SyntaxFacts
+   CSharpSyntaxFacts.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,SyntaxFacts
+   CSharpSyntaxKinds.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Services,SyntaxFacts
+ Simplification/
+  CSharpInferredMemberNameSimplifier.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Simplification
+  CSharpSimplification.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Simplification
+  CSharpSimplifierOptions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Simplification
+  Simplifiers/CastSimplifier.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Simplification,Simplifiers
+ Utilities/
+  CSharpLightweightOverloadResolution.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities
+  FormattingRangeHelper.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities
+  NameSyntaxComparer.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities
+  SpeculationAnalyzer.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities
+  TokenComparer.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities
+  TypeStyle/
+   CSharpTypeStyleHelper.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities,TypeStyle
+   CSharpTypeStyleHelper.State.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities,TypeStyle
+   CSharpUseExplicitTypeHelper.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities,TypeStyle
+   CSharpUseImplicitTypeHelper.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities,TypeStyle
+  TypeSyntaxComparer.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities
+  UsingsAndExternAliasesDirectiveComparer.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities
+  UsingsAndExternAliasesOrganizer.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Compiler,CSharp,Utilities
+../../../Workspaces/SharedUtilitiesAndExtensions/Workspace/CSharp/
+ CodeFixesAndRefactorings/CSharpFixAllSpanMappingService.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeFixesAndRefactorings
+ CodeGeneration/
+  ArgumentGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  AttributeGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  ConstructorGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  ConversionGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  CSharpCodeGenerationContextInfo.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  CSharpCodeGenerationHelpers.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  CSharpCodeGenerationService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  CSharpCodeGenerationServiceFactory.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  CSharpDeclarationComparer.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  CSharpFlagsEnumGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  DestructorGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  EnumMemberGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  EventGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  ExpressionGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  FieldGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  MethodGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  NamedTypeGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  NamespaceGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  OperatorGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  ParameterGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  PropertyGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  StatementGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+  TypeParameterGenerator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeGeneration
+ CodeRefactorings/CSharpRefactoringHelpersService.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,CodeRefactorings
+ Editing/CSharpImportAdder.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Editing
+ EmbeddedLanguages/VirtualChars/CSharpVirtualCharLanguageServiceFactory.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,EmbeddedLanguages,VirtualChars
+ Extensions/
+  BaseArgumentListSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  BaseNamespaceDeclarationSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  BaseParameterListSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  BasePropertyDeclarationSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  CastExpressionSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  CompilationUnitSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  ContextQuery/
+   CSharpSyntaxContext.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions,ContextQuery
+   CSharpSyntaxContextService.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions,ContextQuery
+   SyntaxTokenExtensions.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions,ContextQuery
+   SyntaxTreeExtensions.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions,ContextQuery
+  DocumentationCommentExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  ExpressionSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  InternalExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  ITypeParameterSymbolExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  ITypeSymbolExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  ITypeSymbolExtensions.ExpressionSyntaxGeneratorVisitor.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  ITypeSymbolExtensions.TypeSyntaxGeneratorVisitor.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  NameSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  QueryExpressionSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  SemanticModelExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  SeparatedSyntaxListExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  StringExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  SyntaxTokenListExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  SyntaxTreeExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  TypeDeclarationSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  TypeSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  UsingDirectiveSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+  WithElementSyntaxExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Extensions
+ Formatting/
+  CSharpSyntaxFormattingOptionsProviders.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Formatting
+  CSharpSyntaxFormattingService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Formatting
+  TypingFormattingRule.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Formatting
+ Indentation/
+  CSharpIndentationService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Indentation
+  CSharpIndentationService.Indenter.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Indentation
+ LanguageServices/
+  CSharpAddImportsService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpBlockFactsService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpCommandLineParserService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpFileBannerFactsService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpGeneratedCodeRecognitionService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpHeaderFactsService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpMoveDeclarationNearReferenceService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpRemoveUnnecessaryImportsService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpRemoveUnnecessaryImportsService.Rewriter.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpReplaceDiscardDeclarationsWithAssignmentsService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpSemanticFactsService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpSemanticFactsServiceFactory.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpSymbolDeclarationService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpSyntaxFactsService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpSyntaxFactsServiceFactory.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpSyntaxGeneratorInternal.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpSyntaxKindsServiceFactory.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpTypeInferenceService.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  CSharpTypeInferenceService.TypeInferrer.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices
+  InitializeParameter/
+   CSharpInitializeParameterService.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices,InitializeParameter
+   InitializeParameterHelpers.cs
+    @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,LanguageServices,InitializeParameter
+ SemanticModelReuse/CSharpSemanticModelReuseLanguageService.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,SemanticModelReuse
+ Simplification/CSharpSimplifierOptionsProviders.cs
+  @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Simplification
+ Utilities/
+  CSharpSimplificationHelpers.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Utilities
+  NameSyntaxIterator.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Utilities
+  NullableHelpers/NullableExtensions.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Utilities,NullableHelpers
+  SyntaxKindSet.cs
+   @folderNames=..,..,..,Workspaces,SharedUtilitiesAndExtensions,Workspace,CSharp,Utilities
+CSharpApplyTraitToClass.cs
+CSharpAvoidOptSuffixForNullableEnableCode.cs
+CSharpAvoidOptSuffixForNullableEnableCodeCodeFixProvider.cs
+CSharpCreateTestAccessor.cs
+CSharpDoNotCapturePrimaryContructorParameters.cs
+CSharpDoNotCopyValue.cs
+CSharpDoNotMixAttributesFromDifferentVersionsOfMEF.Fixer.cs
+CSharpDoNotUseDebugAssertForInterpolatedStrings.cs
+CSharpDoNotUseDebugAssertForInterpolatedStringsFixer.cs
+CSharpExposeMemberForTesting.cs
+CSharpImportingConstructorShouldBeObsoleteCodeFixProvider.cs
+CSharpPartsExportedWithMEFv2MustBeMarkedAsShared.Fixer.cs
+CSharpRunIterations.cs
+CSharpSpecializedEnumerableCreationAnalyzer.cs
+CSharpSymbolDeclaredEventMustBeGeneratedForSourceSymbols.cs
+NumberCommentsRefactoring.cs
+PreferNullLiteral.cs
+PreferNullLiteralCodeFixProvider.cs
+
+[metadataReferences]
+../../../../artifacts/obj/Roslyn.Diagnostics.Analyzers/Debug/netstandard2.0/ref/Roslyn.Diagnostics.Analyzers.dll
+<NUGET>/
+ microsoft.bcl.asyncinterfaces/8.0.0/lib/netstandard2.0/Microsoft.Bcl.AsyncInterfaces.dll
+ microsoft.codeanalysis.common/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.dll
+ microsoft.codeanalysis.csharp.workspaces/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+ microsoft.codeanalysis.csharp/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.CSharp.dll
+ microsoft.codeanalysis.workspaces.common/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.Workspaces.dll
+ netstandard.library/2.0.3/build/netstandard2.0/ref/
+  Microsoft.Win32.Primitives.dll
+  mscorlib.dll
+  netstandard.dll
+  System.AppContext.dll
+  System.Collections.Concurrent.dll
+  System.Collections.dll
+  System.Collections.NonGeneric.dll
+  System.Collections.Specialized.dll
+  System.ComponentModel.Composition.dll
+  System.ComponentModel.dll
+  System.ComponentModel.EventBasedAsync.dll
+  System.ComponentModel.Primitives.dll
+  System.ComponentModel.TypeConverter.dll
+  System.Console.dll
+  System.Core.dll
+  System.Data.Common.dll
+  System.Data.dll
+  System.Diagnostics.Contracts.dll
+  System.Diagnostics.Debug.dll
+  System.Diagnostics.FileVersionInfo.dll
+  System.Diagnostics.Process.dll
+  System.Diagnostics.StackTrace.dll
+  System.Diagnostics.TextWriterTraceListener.dll
+  System.Diagnostics.Tools.dll
+  System.Diagnostics.TraceSource.dll
+  System.Diagnostics.Tracing.dll
+  System.dll
+  System.Drawing.dll
+  System.Drawing.Primitives.dll
+  System.Dynamic.Runtime.dll
+  System.Globalization.Calendars.dll
+  System.Globalization.dll
+  System.Globalization.Extensions.dll
+  System.IO.Compression.dll
+  System.IO.Compression.FileSystem.dll
+  System.IO.Compression.ZipFile.dll
+  System.IO.dll
+  System.IO.FileSystem.dll
+  System.IO.FileSystem.DriveInfo.dll
+  System.IO.FileSystem.Primitives.dll
+  System.IO.FileSystem.Watcher.dll
+  System.IO.IsolatedStorage.dll
+  System.IO.MemoryMappedFiles.dll
+  System.IO.Pipes.dll
+  System.IO.UnmanagedMemoryStream.dll
+  System.Linq.dll
+  System.Linq.Expressions.dll
+  System.Linq.Parallel.dll
+  System.Linq.Queryable.dll
+  System.Net.dll
+  System.Net.Http.dll
+  System.Net.NameResolution.dll
+  System.Net.NetworkInformation.dll
+  System.Net.Ping.dll
+  System.Net.Primitives.dll
+  System.Net.Requests.dll
+  System.Net.Security.dll
+  System.Net.Sockets.dll
+  System.Net.WebHeaderCollection.dll
+  System.Net.WebSockets.Client.dll
+  System.Net.WebSockets.dll
+  System.Numerics.dll
+  System.ObjectModel.dll
+  System.Reflection.dll
+  System.Reflection.Extensions.dll
+  System.Reflection.Primitives.dll
+  System.Resources.Reader.dll
+  System.Resources.ResourceManager.dll
+  System.Resources.Writer.dll
+  System.Runtime.CompilerServices.VisualC.dll
+  System.Runtime.dll
+  System.Runtime.Extensions.dll
+  System.Runtime.Handles.dll
+  System.Runtime.InteropServices.dll
+  System.Runtime.InteropServices.RuntimeInformation.dll
+  System.Runtime.Numerics.dll
+  System.Runtime.Serialization.dll
+  System.Runtime.Serialization.Formatters.dll
+  System.Runtime.Serialization.Json.dll
+  System.Runtime.Serialization.Primitives.dll
+  System.Runtime.Serialization.Xml.dll
+  System.Security.Claims.dll
+  System.Security.Cryptography.Algorithms.dll
+  System.Security.Cryptography.Csp.dll
+  System.Security.Cryptography.Encoding.dll
+  System.Security.Cryptography.Primitives.dll
+  System.Security.Cryptography.X509Certificates.dll
+  System.Security.Principal.dll
+  System.Security.SecureString.dll
+  System.ServiceModel.Web.dll
+  System.Text.Encoding.dll
+  System.Text.Encoding.Extensions.dll
+  System.Text.RegularExpressions.dll
+  System.Threading.dll
+  System.Threading.Overlapped.dll
+  System.Threading.Tasks.dll
+  System.Threading.Tasks.Parallel.dll
+  System.Threading.Thread.dll
+  System.Threading.ThreadPool.dll
+  System.Threading.Timer.dll
+  System.Transactions.dll
+  System.ValueTuple.dll
+  System.Web.dll
+  System.Windows.dll
+  System.Xml.dll
+  System.Xml.Linq.dll
+  System.Xml.ReaderWriter.dll
+  System.Xml.Serialization.dll
+  System.Xml.XDocument.dll
+  System.Xml.XmlDocument.dll
+  System.Xml.XmlSerializer.dll
+  System.Xml.XPath.dll
+  System.Xml.XPath.XDocument.dll
+ system.buffers/4.5.1/ref/netstandard2.0/System.Buffers.dll
+ system.collections.immutable/8.0.0/lib/netstandard2.0/System.Collections.Immutable.dll
+ system.composition.attributedmodel/8.0.0/lib/netstandard2.0/System.Composition.AttributedModel.dll
+ system.composition.convention/8.0.0/lib/netstandard2.0/System.Composition.Convention.dll
+ system.composition.hosting/8.0.0/lib/netstandard2.0/System.Composition.Hosting.dll
+ system.composition.runtime/8.0.0/lib/netstandard2.0/System.Composition.Runtime.dll
+ system.composition.typedparts/8.0.0/lib/netstandard2.0/System.Composition.TypedParts.dll
+ system.io.pipelines/8.0.0/lib/netstandard2.0/System.IO.Pipelines.dll
+ system.memory/4.5.5/lib/netstandard2.0/System.Memory.dll
+ system.numerics.vectors/4.5.0/ref/netstandard2.0/System.Numerics.Vectors.dll
+ system.reflection.metadata/8.0.0/lib/netstandard2.0/System.Reflection.Metadata.dll
+ system.runtime.compilerservices.unsafe/6.0.0/lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll
+ system.text.encoding.codepages/7.0.0/lib/netstandard2.0/System.Text.Encoding.CodePages.dll
+ system.threading.channels/8.0.0/lib/netstandard2.0/System.Threading.Channels.dll
+ system.threading.tasks.extensions/4.5.4/lib/netstandard2.0/System.Threading.Tasks.Extensions.dll
+
+[analyzerReferences]
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/codestyle/cs/
+ Microsoft.CodeAnalysis.CodeStyle.dll
+ Microsoft.CodeAnalysis.CodeStyle.Fixes.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll
+<NUGET>/microsoft.codeanalysis.analyzers/3.3.4/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.Analyzers.dll
+ Microsoft.CodeAnalysis.CSharp.Analyzers.dll
+<NUGET>/microsoft.codeanalysis.bannedapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.BannedApiAnalyzers.dll
+ Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll
+ Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.publicapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.dll
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/analyzers/cs/
+ Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll
+ Microsoft.VisualStudio.Threading.Analyzers.CSharp.dll
+ Microsoft.VisualStudio.Threading.Analyzers.dll
+<NUGET>/roslyn.diagnostics.analyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Roslyn.Diagnostics.Analyzers.dll
+ Roslyn.Diagnostics.CSharp.Analyzers.dll
+
+[analyzerConfigFiles]
+../../../../
+ .editorconfig
+ artifacts/obj/Roslyn.Diagnostics.CSharp.Analyzers/Debug/netstandard2.0/Roslyn.Diagnostics.CSharp.Analyzers.GeneratedMSBuildEditorConfig.editorconfig
+ eng/config/globalconfigs/
+  Common.globalconfig
+  Shipping.globalconfig
+
+[additionalFiles]
+../../../../artifacts/obj/Roslyn.Diagnostics.CSharp.Analyzers/Debug/netstandard2.0/Roslyn.Diagnostics.CSharp.Analyzers.xlf/
+ CSharpCompilerExtensionsResources.cs.resx
+ CSharpCompilerExtensionsResources.de.resx
+ CSharpCompilerExtensionsResources.es.resx
+ CSharpCompilerExtensionsResources.fr.resx
+ CSharpCompilerExtensionsResources.it.resx
+ CSharpCompilerExtensionsResources.ja.resx
+ CSharpCompilerExtensionsResources.ko.resx
+ CSharpCompilerExtensionsResources.pl.resx
+ CSharpCompilerExtensionsResources.pt-BR.resx
+ CSharpCompilerExtensionsResources.ru.resx
+ CSharpCompilerExtensionsResources.tr.resx
+ CSharpCompilerExtensionsResources.zh-Hans.resx
+ CSharpCompilerExtensionsResources.zh-Hant.resx
+ CSharpWorkspaceExtensionsResources.cs.resx
+ CSharpWorkspaceExtensionsResources.de.resx
+ CSharpWorkspaceExtensionsResources.es.resx
+ CSharpWorkspaceExtensionsResources.fr.resx
+ CSharpWorkspaceExtensionsResources.it.resx
+ CSharpWorkspaceExtensionsResources.ja.resx
+ CSharpWorkspaceExtensionsResources.ko.resx
+ CSharpWorkspaceExtensionsResources.pl.resx
+ CSharpWorkspaceExtensionsResources.pt-BR.resx
+ CSharpWorkspaceExtensionsResources.ru.resx
+ CSharpWorkspaceExtensionsResources.tr.resx
+ CSharpWorkspaceExtensionsResources.zh-Hans.resx
+ CSharpWorkspaceExtensionsResources.zh-Hant.resx
+../../../
+ ../eng/config/BannedSymbols.txt
+ Workspaces/SharedUtilitiesAndExtensions/
+  Compiler/CSharp/CSharpCompilerExtensionsResources.resx
+  Workspace/CSharp/CSharpWorkspaceExtensionsResources.resx
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/buildTransitive/AdditionalFiles/
+ vs-threading.LegacyThreadSwitchingMembers.txt
+ vs-threading.MainThreadAssertingMethods.txt
+ vs-threading.MainThreadSwitchingMethods.txt
+ vs-threading.MembersRequiringMainThread.txt
+AnalyzerReleases.Shipped.md
+AnalyzerReleases.Unshipped.md

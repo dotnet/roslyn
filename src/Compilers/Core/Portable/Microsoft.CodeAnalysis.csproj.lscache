@@ -1,0 +1,4552 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically.
+#
+# To exclude from version control, add *.lscache to your .gitignore file.
+#
+# To disable caching, add the following to your VS Code settings:
+#   "dotnet.projectsystem.enableLanguageServiceCache": false
+
+[project]
+language=C#
+lastDtbSucceeded
+
+[sliceDimensions]
+TargetFramework=net10.0
+
+[properties]
+AssemblyName=Microsoft.CodeAnalysis
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:TRACE;COMPILERCORE;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT;MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER -features:strict -doc:"<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net10.0/Microsoft.CodeAnalysis.xml"
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=14.0
+ProjectAssetsFile=<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/project.assets.json
+RootNamespace=Microsoft.CodeAnalysis
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETCoreApp
+TargetPath=<PATH>../../../../artifacts/bin/Microsoft.CodeAnalysis/Debug/net10.0/Microsoft.CodeAnalysis.dll
+TargetRefPath=<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net10.0/ref/Microsoft.CodeAnalysis.dll
+TemporaryDependencyNodeTargetIdentifier=net10.0
+
+[commandLineArguments]
+/noconfig
+/unsafe+
+/checked-
+/nowarn:1701,1702,1705,1591,NU1507,NU1510,RS1041,RS1038,1573,1591,1701,NU5105,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:9999
+/doc:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net10.0/Microsoft.CodeAnalysis.xml
+/define:TRACE;COMPILERCORE;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT;MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER;DEBUG;NET;NET10_0;NETCOREAPP;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NET10_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER
+/highentropyva+
+/nullable:enable
+/features:"InterceptorsNamespaces=;Microsoft.Extensions.Validation.Generated"
+/debug+
+/debug:embedded
+/delaysign-
+/filealign:512
+/keyfile:<NUGET>/microsoft.dotnet.arcade.sdk/10.0.0-beta.26201.4/tools/snk/35MSSharedLib1024.snk
+/optimize-
+/out:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net10.0/Microsoft.CodeAnalysis.dll
+/refout:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net10.0/refint/Microsoft.CodeAnalysis.dll
+/target:library
+/warnaserror-
+/utf8output
+/deterministic+
+/publicsign+
+/checksumalgorithm:SHA256
+/langversion:preview
+/skipanalyzers+
+/features:strict
+/embed:<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/build/PerformanceSensitiveAttribute.cs
+/warnaserror+:NU1605,SYSLIB0011
+/warnaserror-:IDE0055
+
+[sourceFiles]
+../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net10.0/
+ .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,net10.0
+ Microsoft.CodeAnalysis.AssemblyInfo.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,net10.0
+ Microsoft.CodeAnalysis.CodeAnalysisResources.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,net10.0
+ Microsoft.CodeAnalysis.InternalsVisibleTo.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,net10.0
+../../../Dependencies/CodeAnalysis.Debugging/
+ CompilationOptionNames.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoConstants.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoEncoder.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoKind.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoReader.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoRecord.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ DynamicLocalInfo.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ ImportTargetKind.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ PortableCustomDebugInfoKinds.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ StateMachineHoistedLocalScope.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ TupleElementNamesInfo.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ VBImportScopeKind.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+../../../Dependencies/Collections/Extensions/
+ FixedSizeArrayBuilder.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ ICollectionExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ IEnumerableExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ IListExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ ImmutableArrayExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ KeyValuePairExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ MemoryExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+../../../Dependencies/Collections/Internal/
+ ArraySortHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ BitHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ HashHelpers.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ICollectionCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ICollectionCalls`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ICollectionDebugView`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IDictionaryCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IDictionaryDebugView`2.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IEnumerableCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IEnumerableCalls`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IListCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ InsertionBehavior.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ RoslynUnsafe.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SegmentedArrayHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SegmentedArraySegment`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SegmentedHashSetEqualityComparer`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SR.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ThrowHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+../../../Dependencies/Collections/
+ KeyValuePair.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ OneOrMany.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ RoslynEnumerable.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ RoslynImmutableInterlocked.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ Segmented/
+  ImmutableSegmentedDictionary.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+KeyCollection+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+KeyCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+ValueBuilder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+ValueCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+Builder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+ValueBuilder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedListExtensions.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+Builder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+ValueBuilder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedArray.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedArray`1+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedArray`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedCollectionsMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedDictionary`2+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedDictionary`2.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedHashSet`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedList`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+ Specialized/
+  SpecializedCollections.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Collection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Dictionary.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Enumerable.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Enumerator`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.List.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Set.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Collection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Enumerable`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Enumerable`2.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Set.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Singleton.Collection`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Singleton.Enumerator`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+ TemporaryArrayExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ TemporaryArray`1.cs
+  @folderNames=..,..,..,Dependencies,Collections
+../../../Dependencies/Contracts/
+ CollectionBuilderAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ CompilerFeatureRequiredAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Contract.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Contract.InterpolatedStringHandlers.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ EnumExtensions.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ EqualityComparerExtensions.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ErrorReporting/
+  FailFast.cs
+   @folderNames=..,..,..,Dependencies,Contracts,ErrorReporting
+  FatalError.cs
+   @folderNames=..,..,..,Dependencies,Contracts,ErrorReporting
+ ExceptionUtilities.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ExperimentalAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Index.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ InterpolatedStringHandlerArgumentAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ InterpolatedStringHandlerAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ IReadOnlySet.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ IsExternalInit.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ NonCopyableAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ NonDefaultableAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ NullableAttributes.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Range.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ReferenceEqualityComparer.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ RequiredMemberAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ SetsRequiredMembersAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ValueTaskExtensions.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+../../../Dependencies/PooledObjects/
+ ArrayBuilder.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ ArrayBuilder.Enumerator.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ ArrayBuilderExtensions.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ IPooled.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ ObjectPool`1.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledDelegates.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledDictionary.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledDisposer.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledHashSet.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledStringBuilder.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+../AnalyzerDriver/
+ AnalyzerExceptionDescriptionBuilder.cs
+  @folderNames=..,AnalyzerDriver
+ DeclarationComputer.cs
+  @folderNames=..,AnalyzerDriver
+ DeclarationInfo.cs
+  @folderNames=..,AnalyzerDriver
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/build/PerformanceSensitiveAttribute.cs
+AdditionalTextFile.cs
+AssemblyUtilities.cs
+AssemblyUtilitiesCore.cs
+Binding/
+ AbstractLookupSymbolsInfo.cs
+ BindingDiagnosticBag.cs
+ UseSiteInfo.cs
+CaseInsensitiveComparison.cs
+CodeAnalysisEventSource.Common.cs
+CodeAnalysisEventSource.Compiler.cs
+CodeAnalysisResourcesLocalizableErrorArgument.cs
+CodeGen/
+ ArrayMembers.cs
+ AwaitDebugId.cs
+ BasicBlock.cs
+ ClosureDebugInfo.cs
+ CompilationTestData.cs
+ DebugDocumentProvider.cs
+ DebugId.cs
+ EmitState.cs
+ ILBuilder.cs
+ ILBuilderConversions.cs
+ ILBuilderEmit.cs
+ ILEmitStyle.cs
+ ILOpCodeExtensions.cs
+ ItemTokenMap.cs
+ LabelInfo.cs
+ LambdaDebugInfo.cs
+ LambdaRuntimeRudeEditInfo.cs
+ LocalConstantDefinition.cs
+ LocalDebugId.cs
+ LocalDefinition.cs
+ LocalOrParameter.cs
+ LocalScopeManager.cs
+ LocalSlotDebugInfo.cs
+ LocalSlotManager.cs
+ MetadataConstant.cs
+ MetadataCreateArray.cs
+ MetadataNamedArgument.cs
+ MetadataTypeOf.cs
+ MethodBody.cs
+ PermissionSetAttribute.cs
+ PrivateImplementationDetails.cs
+ RawSequencePoint.cs
+ ReferenceDependencyWalker.cs
+ ScopeType.cs
+ SequencePointList.cs
+ SignatureOnlyLocalDefinition.cs
+ StateMachineState.cs
+ StateMachineStateDebugInfo.cs
+ StringTokenMap.cs
+ SwitchIntegralJumpTableEmitter.cs
+ SwitchIntegralJumpTableEmitter.SwitchBucket.cs
+ SwitchStringJumpTableEmitter.cs
+ SynthesizedLocalOrdinalsDispenser.cs
+ TokenMap.cs
+ VariableSlotAllocator.cs
+ Win32Res.cs
+Collections/
+ ArrayBuilderExtensions.cs
+ ArrayElement.cs
+ BitVector.cs
+ Boxes.cs
+ ByteSequenceComparer.cs
+ CachingDictionary.cs
+ CachingFactory.cs
+ CollectionsExtensions.cs
+ ConcurrentCache.cs
+ ConsListExtensions.cs
+ DictionaryExtensions.cs
+ Grouping.cs
+ HashSetExtensions.cs
+ IdentifierCollection.Collection.cs
+ IdentifierCollection.cs
+ ImmutableHashSetExtensions.cs
+ ImmutableMemoryStream.cs
+ IOrderedReadOnlySet.cs
+ KeyedStack.cs
+ OrderedSet.cs
+ OrderPreservingMultiDictionary.cs
+ Rope.cs
+ SmallConcurrentSetOfInts.cs
+ SmallDictionary.cs
+ StaticCast.cs
+ TopologicalSort.cs
+ UnionCollection.cs
+CommandLine/
+ AnalyzerConfig.cs
+ AnalyzerConfig.SectionNameMatching.cs
+ AnalyzerConfigOptionsResult.cs
+ AnalyzerConfigSet.cs
+ CommandLineAnalyzerReference.cs
+ CommandLineArguments.cs
+ CommandLineParser.cs
+ CommandLineReference.cs
+ CommandLineResource.cs
+ CommandLineSourceFile.cs
+ CommonCompiler.CompilerEmitStreamProvider.cs
+ CommonCompiler.CompilerRelativePathResolver.cs
+ CommonCompiler.cs
+ CommonCompiler.ExistingReferencesResolver.cs
+ CommonCompiler.LoggingMetadataFileReferenceResolver.cs
+ CommonCompiler.LoggingSourceFileResolver.cs
+ CommonCompiler.LoggingStrongNameProvider.cs
+ CommonCompiler.LoggingXmlFileResolver.cs
+ CommonCompiler.SuppressionDiagnostic.cs
+ ErrorLogger.cs
+ ErrorLogOptions.cs
+ Feature.cs
+ NoThrowStreamDisposer.cs
+ ReportAnalyzerUtil.cs
+ SarifDiagnosticComparer.cs
+ SarifErrorLogger.cs
+ SarifV1ErrorLogger.cs
+ SarifV2ErrorLogger.cs
+ SarifVersion.cs
+ TouchedFileLogger.cs
+CommitHashAttribute.cs
+Compilation.EmitStream.cs
+Compilation.EmitStreamProvider.cs
+Compilation/
+ CandidateReason.cs
+ CommonModuleCompilationState.cs
+ CommonSyntaxAndDeclarationManager.cs
+ Compilation.cs
+ CompilationOptions.cs
+ CompilationStage.cs
+ ControlFlowAnalysis.cs
+ DataFlowAnalysis.cs
+ DeterministicKey.cs
+ DeterministicKeyBuilder.cs
+ DeterministicKeyOptions.cs
+ EmitDifferenceOptions.cs
+ EmitResult.cs
+ Expression.cs
+ Extensions.cs
+ GeneratedKind.cs
+ IImportScope.cs
+ LoadDirective.cs
+ NullableContext.cs
+ NullableContextOptions.cs
+ OptimizationLevel.cs
+ ParseOptions.cs
+ Platform.cs
+ PreprocessingSymbolInfo.cs
+ RebuildData.cs
+ ScriptCompilationInfo.cs
+ SemanticModel.cs
+ SemanticModelOptions.cs
+ SemanticModelProvider.cs
+ SourceReferenceResolver.cs
+ SpeculativeBindingOption.cs
+ SubsystemVersion.cs
+ SymbolFilter.cs
+ SymbolInfo.cs
+ SyntaxTreeOptionsProvider.cs
+ TypeInfo.cs
+ XmlReferenceResolver.cs
+ConstantValue.cs
+ConstantValueSpecialized.cs
+CryptographicHashProvider.cs
+CvtRes.cs
+Desktop/
+ AssemblyPortabilityPolicy.cs
+ AssemblyVersion.cs
+ DesktopAssemblyIdentityComparer.cs
+ DesktopAssemblyIdentityComparer.Fx.cs
+Diagnostic/
+ CommonDiagnosticComparer.cs
+ CommonMessageProvider.cs
+ CustomObsoleteDiagnosticInfo.cs
+ Diagnostic.cs
+ Diagnostic.DiagnosticWithProgrammaticSuppression.cs
+ DiagnosticArrayExtensions.cs
+ DiagnosticBag.cs
+ DiagnosticDescriptor.cs
+ DiagnosticFormatter.cs
+ DiagnosticInfo.cs
+ DiagnosticSeverity.cs
+ DiagnosticWithInfo.cs
+ Diagnostic_SimpleDiagnostic.cs
+ ExternalFileLocation.cs
+ FileLinePositionSpan.cs
+ LocalizableResourceString.cs
+ LocalizableResourceString.FixedLocalizableString.cs
+ LocalizableString.cs
+ Location.cs
+ LocationKind.cs
+ MetadataLocation.cs
+ NoLocation.cs
+ ProgrammaticSuppressionInfo.cs
+ ReportDiagnostic.cs
+ SeverityFilter.cs
+ SourceLocation.cs
+ SuppressionDescriptor.cs
+ SuppressionInfo.cs
+ WellKnownDiagnosticTags.cs
+ XmlLocation.cs
+DiagnosticAnalyzer/
+ AdditionalText.cs
+ AdditionalTextComparer.cs
+ AdditionalTextValueProvider.cs
+ AnalysisContextInfo.cs
+ AnalysisResult.cs
+ AnalysisResultBuilder.cs
+ AnalysisScope.cs
+ AnalysisValueProvider.cs
+ AnalyzerActionCounts.cs
+ AnalyzerAssemblyLoader.Core.cs
+ AnalyzerAssemblyLoader.cs
+ AnalyzerAssemblyLoader.Desktop.cs
+ AnalyzerConfigOptions.cs
+ AnalyzerConfigOptionsProvider.cs
+ AnalyzerDriver.CompilationData.cs
+ AnalyzerDriver.cs
+ AnalyzerDriver.DeclarationAnalysisData.cs
+ AnalyzerDriver.EventProcessedState.cs
+ AnalyzerDriver.ExecutableCodeBlockAnalyzerActions.cs
+ AnalyzerDriver.GroupedAnalyzerActions.cs
+ AnalyzerDriver.GroupedAnalyzerActionsForAnalyzer.cs
+ AnalyzerDriver.IGroupedAnalyzerActions.cs
+ AnalyzerExecutor.AnalyzerDiagnosticReporter.cs
+ AnalyzerExecutor.cs
+ AnalyzerFileReference.cs
+ AnalyzerImageReference.cs
+ AnalyzerLoadFailureEventArgs.cs
+ AnalyzerManager.AnalyzerExecutionContext.cs
+ AnalyzerManager.cs
+ AnalyzerOptions.cs
+ AnalyzerOptionsExtensions.cs
+ AnalyzerReference.cs
+ AnalyzerTelemetry.cs
+ AsyncQueue.cs
+ CachingSemanticModelProvider.cs
+ CompilationAnalysisValueProvider.cs
+ CompilationAnalysisValueProviderFactory.cs
+ CompilationCompletedEvent.cs
+ CompilationEvent.cs
+ CompilationStartedEvent.cs
+ CompilationUnitCompletedEvent.cs
+ CompilationWithAnalyzers.cs
+ CompilationWithAnalyzersOptions.cs
+ CompilerAnalyzerConfigOptionsProvider.cs
+ CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs
+ CompilerDiagnosticAnalyzer.cs
+ DiagnosticAnalysisContext.cs
+ DiagnosticAnalysisContextHelpers.cs
+ DiagnosticAnalyzer.cs
+ DiagnosticAnalyzerAction.cs
+ DiagnosticAnalyzerAttribute.cs
+ DiagnosticAnalyzerExtensions.cs
+ DiagnosticQueue.cs
+ DiagnosticStartAnalysisScope.cs
+ DiagnosticSuppressor.cs
+ DictionaryAnalyzerConfigOptions.cs
+ IAnalyzerAssemblyLoader.cs
+ IAnalyzerAssemblyResolver.cs
+ IAnalyzerPathResolver.cs
+ ProgramFilesAnalyzerPathResolver.cs
+ ShadowCopyAnalyzerPathResolver.cs
+ SourceOrAdditionalFile.cs
+ SourceTextValueProvider.cs
+ Suppression.cs
+ SuppressMessageAttributeState.cs
+ SuppressMessageAttributeState.TargetScope.cs
+ SuppressMessageAttributeState.TargetSymbolResolver.cs
+ SuppressMessageInfo.cs
+ SymbolDeclaredCompilationEvent.cs
+ SyntaxTreeValueProvider.cs
+ UnresolvedAnalyzerReference.cs
+DiaSymReader/Metadata/
+ IMetadataEmit.cs
+ IMetadataImport.cs
+ ISymWriterMetadataProvider.cs
+ MetadataAdapterBase.cs
+ MetadataImportFieldOffset.cs
+ SymWriterMetadataAdapter.cs
+DiaSymReader/
+ SymUnmanagedFactory.cs
+ Utilities/
+  ComMemoryStream.cs
+  HResult.cs
+  InteropUtilities.cs
+  IUnsafeComStream.cs
+ Writer/
+  ISymUnmanagedAsyncMethodPropertiesWriter.cs
+  ISymUnmanagedCompilerInfoWriter.cs
+  ISymUnmanagedDocumentWriter.cs
+  ISymUnmanagedWriter.cs
+  SymUnmanagedSequencePointsWriter.cs
+  SymUnmanagedWriter.cs
+  SymUnmanagedWriterCreationOptions.cs
+  SymUnmanagedWriterException.cs
+  SymUnmanagedWriterFactory.cs
+  SymUnmanagedWriterImpl.cs
+DocumentationCommentId.cs
+DocumentationComments/
+ DocumentationCommentIncludeCache.cs
+ DocumentationProvider.cs
+ DocumentationProvider.NullDocumentationProvider.cs
+ XmlDocumentationCommentTextReader.cs
+ XmlDocumentationCommentTextReader.XmlStream.cs
+DocumentationMode.cs
+EmbeddedText.cs
+Emit/
+ AnonymousDelegateWithIndexedNamePartialKey.cs
+ AnonymousTypeKey.cs
+ AnonymousTypeValue.cs
+ AsyncMoveNextBodyDebugInfo.cs
+ CommonPEModuleBuilder.cs
+ Context.cs
+ DebugDocumentsBuilder.cs
+ DebugInformationFormat.cs
+ EditAndContinue/
+  AddedOrChangedMethodInfo.cs
+  DefinitionMap.cs
+  DeletedMethodBody.cs
+  DeletedPEMethodDefinition.cs
+  DeletedSourceDefinition.cs
+  DeletedSourceEventDefinition.cs
+  DeletedSourceGenericParameter.cs
+  DeletedSourceMethodDefinition.cs
+  DeletedSourceParameterDefinition.cs
+  DeletedSourcePropertyDefinition.cs
+  DeletedSourceTypeDefinition.cs
+  DeltaMetadataWriter.cs
+  EmitBaseline.cs
+  EmitDifferenceResult.cs
+  EncClosureInfo.cs
+  EncClosureMapValue.cs
+  EncHoistedLocalInfo.cs
+  EncHoistedLocalMetadata.cs
+  EncLambdaInfo.cs
+  EncLambdaMapValue.cs
+  EncLocalInfo.cs
+  EncMappedMethod.cs
+  EncVariableSlotAllocator.cs
+  IDeletedEventDefinition.cs
+  IDeletedMethodDefinition.cs
+  IDeletedPropertyDefinition.cs
+  IPEDeltaAssemblyBuilder.cs
+  LambdaSyntaxFacts.cs
+  SymbolChange.cs
+  SymbolChanges.cs
+  SymbolMatcher.cs
+  SynthesizedTypeMaps.cs
+ EditAndContinueMethodDebugInformation.cs
+ EmitOptions.cs
+ ErrorType.cs
+ HotReloadExceptionCode.cs
+ InstrumentationKind.cs
+ IteratorMoveNextBodyDebugInfo.cs
+ MethodInstrumentation.cs
+ ModulePropertiesForSerialization.cs
+ NoPia/
+  CommonEmbeddedEvent.cs
+  CommonEmbeddedField.cs
+  CommonEmbeddedMember.cs
+  CommonEmbeddedMethod.cs
+  CommonEmbeddedParameter.cs
+  CommonEmbeddedProperty.cs
+  CommonEmbeddedType.cs
+  CommonEmbeddedTypeParameter.cs
+  EmbeddedTypesManager.cs
+  VtblGap.cs
+ RuntimeRudeEdit.cs
+ SemanticEdit.cs
+ SemanticEditKind.cs
+ StateMachineMoveNextDebugInfo.cs
+ SynthesizedDelegateKey.cs
+ SynthesizedDelegateValue.cs
+EncodedStringText.cs
+EnumConstantHelper.cs
+ExtendedSpecialType.cs
+FileKey.cs
+FileSystem/
+ CompilerPathUtilities.cs
+ FileUtilities.cs
+ ICommonCompilerFileSystem.cs
+ PathKind.cs
+ PathUtilities.cs
+ RelativePathResolver.cs
+FileSystemExtensions.cs
+Generated/
+ FlowAnalysis.Generated.cs
+ OperationKind.Generated.cs
+ Operations.Generated.cs
+GlobalSuppressions.cs
+Hashing/
+ BitOperations.cs
+ NonCryptographicHashAlgorithm.cs
+ XxHash128.cs
+ XxHash64.State.cs
+ XxHashShared.cs
+ImplementationIsObsoleteAttribute.cs
+InternalImplementationOnlyAttribute.cs
+InternalSpecialType.cs
+InternalUtilities/
+ ArrayExtensions.cs
+ BitArithmeticUtilities.cs
+ BlobBuildingStream.cs
+ CharMemoryEqualityComparer.cs
+ CommandLineUtilities.cs
+ CompilerOptionParseUtilities.cs
+ ConcurrentDictionaryExtensions.cs
+ ConcurrentLruCache.cs
+ ConcurrentSet.cs
+ ConsList`1.cs
+ Debug.cs
+ DecimalUtilities.cs
+ DocumentationCommentXmlNames.cs
+ EncodingExtensions.cs
+ EnumField.cs
+ EnumUtilties.cs
+ ExceptionExtensions.cs
+ FileLockCheck.cs
+ FileNameUtilities.cs
+ Hash.cs
+ ImmutableListExtensions.cs
+ ImmutableSetWithInsertionOrder`1.cs
+ IncrementalHashExtensions.cs
+ InterlockedOperations.cs
+ IReadOnlyListExtensions.cs
+ ISetExtensions.cs
+ JsonWriter.cs
+ LittleEndianReader.cs
+ MultiDictionary.cs
+ NoMessagePumpSyncContext.cs
+ OrderedMultiDictionary.cs
+ PlatformInformation.cs
+ ReaderWriterLockSlimExtensions.cs
+ ReadOnlyMemoryOfCharComparer.cs
+ ReadOnlyUnmanagedMemoryStream.cs
+ ReflectionUtilities.cs
+ RoslynExperiments.cs
+ RoslynLazyInitializer.cs
+ RoslynParallel.cs
+ RoslynString.cs
+ SemaphoreSlimExtensions.cs
+ SetWithInsertionOrder.cs
+ SharedStopwatch.cs
+ SingleInitNullable.cs
+ SpanUtilities.cs
+ SpecializedSyncContext.cs
+ StackGuard.cs
+ StreamExtensions.cs
+ StringExtensions.cs
+ StringOrdinalComparer.cs
+ StringTable.cs
+ SuppressUnmanagedCodeSecurityAttribute.cs
+ TextKeyedCache.cs
+ ThreadSafeFlagOperations.cs
+ ThreeState.cs
+ UICultureUtilities.cs
+ UnicodeCharacterUtilities.cs
+ WeakList.cs
+ WeakReferenceExtensions.cs
+ XmlUtilities.cs
+Interop/
+ ClrStrongName.cs
+ IClrMetaHost.cs
+ IClrRuntimeInfo.cs
+ IClrStrongName.cs
+IReferenceOrISignature.cs
+IVTConclusion.cs
+MemberDescriptor.cs
+MemoryExtensions.cs
+MetadataReader/
+ EmbeddedResource.cs
+ LocalSlotConstraints.cs
+ MetadataDecoder.cs
+ MetadataHelpers.cs
+ MetadataImportOptions.cs
+ MetadataReaderExtensions.cs
+ MetadataTypeCodeExtensions.cs
+ MetadataTypeName.cs
+ MetadataTypeName.Key.cs
+ ModuleExtensions.cs
+ PEAssembly.cs
+ PEModule.cs
+ SymbolFactory.cs
+ TypeAttributesExtensions.cs
+ TypeNameDecoder.cs
+ UnsupportedSignatureContent.cs
+MetadataReference/
+ AssemblyIdentity.cs
+ AssemblyIdentity.DisplayName.cs
+ AssemblyIdentityComparer.cs
+ AssemblyIdentityExtensions.cs
+ AssemblyIdentityMap.cs
+ AssemblyIdentityParts.cs
+ AssemblyIdentityUtils.cs
+ AssemblyMetadata.cs
+ CompilationReference.cs
+ Metadata.cs
+ MetadataImageKind.cs
+ MetadataImageReference.cs
+ MetadataReference.cs
+ MetadataReferenceProperties.cs
+ MetadataReferenceResolver.cs
+ ModuleMetadata.cs
+ PortableExecutableReference.cs
+ ReferenceDirective.cs
+ UnresolvedMetadataReference.cs
+MethodImplExtensions.cs
+NativePdbWriter/
+ PdbWriter.cs
+ SymWriterMetadataProvider.cs
+Operations/
+ ArgumentKind.cs
+ BasicBlock.cs
+ BasicBlockKind.cs
+ BinaryOperatorKind.cs
+ BranchKind.cs
+ CaptureId.cs
+ CaseKind.cs
+ CommonConversion.cs
+ ControlFlowBranch.cs
+ ControlFlowBranchSemantics.cs
+ ControlFlowConditionKind.cs
+ ControlFlowGraph.cs
+ ControlFlowGraphBuilder.BasicBlockBuilder.cs
+ ControlFlowGraphBuilder.CaptureIdDispenser.cs
+ ControlFlowGraphBuilder.ConditionalAccessOperationTracker.cs
+ ControlFlowGraphBuilder.Context.cs
+ ControlFlowGraphBuilder.cs
+ ControlFlowGraphBuilder.ImplicitInstanceInfo.cs
+ ControlFlowGraphBuilder.InterpolatedStringContext.cs
+ ControlFlowGraphBuilder.RegionBuilder.cs
+ ControlFlowGraphExtensions.cs
+ ControlFlowRegion.cs
+ ControlFlowRegionKind.cs
+ DisposeOperationInfo.cs
+ IConvertibleConversion.cs
+ InstanceReferenceKind.cs
+ InterpolatedStringArgumentPlaceholderKind.cs
+ IOperation.cs
+ IOperation.OperationList.cs
+ IOperation.OperationList.Reversed.cs
+ Loops/
+  ForEachLoopOperationInfo.cs
+  ForToLoopOperationInfo.cs
+  LoopKind.cs
+ Operation.cs
+ OperationCloner.cs
+ OperationExtensions.cs
+ OperationFactory.cs
+ OperationMapBuilder.cs
+ OperationNodes.cs
+ OperationVisitor.cs
+ OperationWalker.cs
+ PlaceholderKind.cs
+ UnaryOperatorKind.cs
+Optional.cs
+OutputKind.cs
+PEWriter/
+ AssemblyReferenceAlias.cs
+ Constants.cs
+ Core.cs
+ CustomDebugInfoWriter.cs
+ DebugSourceDocument.cs
+ DebugSourceInfo.cs
+ ExceptionHandlerRegion.cs
+ ExportedType.cs
+ Expressions.cs
+ ExtendedPEBuilder.cs
+ FullMetadataWriter.cs
+ ICustomAttribute.cs
+ IFileReference.cs
+ IImportScope.cs
+ InheritedTypeParameter.cs
+ InstructionOperandTypes.cs
+ ITypeReferenceExtensions.cs
+ LocalScope.cs
+ ManagedResource.cs
+ MemberRefComparer.cs
+ Members.cs
+ MetadataBuilderExtensions.cs
+ MetadataVisitor.cs
+ MetadataWriter.cs
+ MetadataWriter.DynamicAnalysis.cs
+ MetadataWriter.PortablePdb.cs
+ MethodDefinitionBase.cs
+ MethodSpecComparer.cs
+ Miscellaneous.cs
+ ModifiedTypeReference.cs
+ NativeResourceWriter.cs
+ ParameterDefinitionBase.cs
+ PeWriter.cs
+ PooledBlobBuilder.cs
+ ReferenceIndexer.cs
+ ReferenceIndexerBase.cs
+ ReturnValueParameter.cs
+ RootModuleType.cs
+ SequencePoint.cs
+ SigningUtilities.cs
+ SourceSpan.cs
+ StaticConstructor.cs
+ SymbolEquivalentEqualityComparer.cs
+ TypeLibTypeFlags.cs
+ TypeNameSerializer.cs
+ TypeReferenceIndexer.cs
+ Types.cs
+ TypeSpecComparer.cs
+ Units.cs
+ UsedNamespaceOrType.cs
+PrimitiveTypeCodeExtensions.cs
+RealParser.cs
+ReferenceManager/
+ AssemblyData.cs
+ AssemblyDataForAssemblyBeingBuilt.cs
+ AssemblyReferenceBinding.cs
+ AssemblyReferenceCandidate.cs
+ BoundInputAssembly.cs
+ CommonReferenceManager.Binding.cs
+ CommonReferenceManager.Resolution.cs
+ CommonReferenceManager.State.cs
+ Compilation_MetadataCache.cs
+ MergedAliases.cs
+ ModuleReferences.cs
+ UnifiedAssembly.cs
+ResourceDescription.cs
+ResourceException.cs
+RuleSet/
+ InvalidRuleSetException.cs
+ RuleSet.cs
+ RuleSetInclude.cs
+ RuleSetProcessor.cs
+RuntimeCapability.cs
+SignatureComparer.cs
+SourceCodeKind.cs
+SourceCodeKindExtensions.cs
+SourceFileResolver.cs
+SourceGeneration/
+ AdditionalSourcesCollection.cs
+ GeneratedCodeUtilities.cs
+ GeneratedSourceText.cs
+ GeneratedSyntaxTree.cs
+ GeneratorAdaptor.cs
+ GeneratorAttribute.cs
+ GeneratorContexts.cs
+ GeneratorDriver.cs
+ GeneratorDriverCache.cs
+ GeneratorDriverOptions.cs
+ GeneratorDriverState.cs
+ GeneratorExtensions.cs
+ GeneratorState.cs
+ GeneratorSyntaxWalker.cs
+ GeneratorTimerExtensions.cs
+ GlobalAliases.cs
+ IIncrementalGenerator.cs
+ IncrementalContexts.cs
+ IncrementalGeneratorRunStep.cs
+ IncrementalStepRunReason.cs
+ IncrementalValueProvider.cs
+ IncrementalWrapper.cs
+ ISourceGenerator.cs
+ ISyntaxHelper.cs
+ ISyntaxReceiver.cs
+ Nodes/
+  BatchNode.cs
+  CombineNode.cs
+  DriverStateTable.cs
+  GeneratorRunStateTable.cs
+  HostOutputNode.cs
+  IIncrementalGeneratorNode.cs
+  IIncrementalGeneratorOutputNode.cs
+  InputNode.cs
+  ISyntaxStrategy.cs
+  NodeExtensions.cs
+  NodeStateTable.cs
+  PostInitOutputNode.cs
+  PredicateSyntaxStrategy.cs
+  SharedInputNodes.cs
+  SourceOutputNode.cs
+  StateTableStore.cs
+  SyntaxInputNode.cs
+  SyntaxReceiverStrategy.cs
+  SyntaxValueProvider.cs
+  SyntaxValueProvider_ForAttributeWithMetadataName.cs
+  SyntaxValueProvider_ForAttributeWithSimpleName.cs
+  TransformNode.cs
+  ValueSourceExtensions.cs
+ RunResults.cs
+ SyntaxContextReceiverAdaptor.cs
+ SyntaxStore.cs
+ UserFunction.cs
+ WellKnownGeneratorInputs.cs
+ WellKnownGeneratorOutputs.cs
+SpecialMember.cs
+SpecialMembers.cs
+SpecialType.cs
+SpecialTypeExtensions.cs
+SpecialTypes.cs
+StrongName/
+ CryptoBlobParser.cs
+ DesktopStrongNameProvider.cs
+ StrongNameFileSystem.cs
+ StrongNameKeys.cs
+ StrongNameProvider.cs
+SwitchConstantValueHelper.cs
+SymbolDisplay/
+ AbstractSymbolDisplayVisitor.cs
+ AbstractSymbolDisplayVisitor_Minimal.cs
+ FormattedSymbol.cs
+ FormattedSymbolList.cs
+ ObjectDisplayExtensions.cs
+ ObjectDisplayOptions.cs
+ SymbolDisplayCompilerInternalOptions.cs
+ SymbolDisplayDelegateStyle.cs
+ SymbolDisplayExtensionMethodStyle.cs
+ SymbolDisplayExtensions.cs
+ SymbolDisplayFormat.cs
+ SymbolDisplayGenericsOptions.cs
+ SymbolDisplayGlobalNamespaceStyle.cs
+ SymbolDisplayKindOptions.cs
+ SymbolDisplayLocalOptions.cs
+ SymbolDisplayMemberOptions.cs
+ SymbolDisplayMiscellaneousOptions.cs
+ SymbolDisplayParameterOptions.cs
+ SymbolDisplayPart.cs
+ SymbolDisplayPartKind.cs
+ SymbolDisplayPropertyStyle.cs
+ SymbolDisplayTypeQualificationStyle.cs
+Symbols/
+ Accessibility.cs
+ AnonymousTypes/CommonAnonymousTypeManager.cs
+ Attributes/
+  AttributeDescription.cs
+  AttributeUsageInfo.cs
+  CommonAssemblyWellKnownAttributeData.cs
+  CommonAttributeData.cs
+  CommonAttributeDataComparer.cs
+  CommonEventEarlyWellKnownAttributeData.cs
+  CommonEventWellKnownAttributeData.cs
+  CommonFieldEarlyWellKnownAttributeData.cs
+  CommonFieldWellKnownAttributeData.cs
+  CommonMethodEarlyWellKnownAttributeData.cs
+  CommonMethodWellKnownAttributeData.cs
+  CommonModuleWellKnownAttributeData.cs
+  CommonParameterEarlyWellKnownAttributeData.cs
+  CommonParameterWellKnownAttributeData.cs
+  CommonPropertyEarlyWellKnownAttributeData.cs
+  CommonPropertyWellKnownAttributeData.cs
+  CommonReturnTypeWellKnownAttributeData.cs
+  CommonTypeEarlyWellKnownAttributeData.cs
+  CommonTypeWellKnownAttributeData.cs
+  CustomAttributesBag.cs
+  DecodeWellKnownAttributeArguments.cs
+  EarlyDecodeWellKnownAttributeArguments.cs
+  EarlyWellKnownAttributeData.cs
+  IMarshalAsAttributeTarget.cs
+  IMemberNotNullAttributeTarget.cs
+  ISecurityAttributeTarget.cs
+  ISkipLocalsInitAttributeTarget.cs
+  MarshalAsAttributeDecoder.cs
+  MarshalPseudoCustomAttributeData.cs
+  ObsoleteAttributeData.cs
+  SecurityWellKnownAttributeData.cs
+  UnmanagedCallersOnlyAttributeData.cs
+  WellKnownAttributeData.cs
+ CommonGeneratedNameParser.cs
+ CommonGeneratedNames.cs
+ CompilerFeatureRequiredFeatures.cs
+ CustomModifier.cs
+ CustomModifiersTuple.cs
+ IAliasSymbol.cs
+ IArrayTypeSymbol.cs
+ IArrayTypeSymbolInternal.cs
+ IAssemblySymbol.cs
+ IAssemblySymbolInternal.cs
+ IDiscardSymbol.cs
+ IDynamicTypeSymbol.cs
+ IErrorTypeSymbol.cs
+ IEventSymbol.cs
+ IEventSymbolInternal.cs
+ IFieldSymbol.cs
+ IFieldSymbolInternal.cs
+ IFunctionPointerTypeSymbol.cs
+ ILabelSymbol.cs
+ ILocalSymbol.cs
+ ILocalSymbolInternal.cs
+ IMethodSymbol.cs
+ IMethodSymbolInternal.cs
+ IModuleSymbol.cs
+ IModuleSymbolInternal.cs
+ INamedTypeSymbol.cs
+ INamedTypeSymbolInternal.cs
+ INamespaceOrTypeSymbol.cs
+ INamespaceOrTypeSymbolInternal.cs
+ INamespaceSymbol.cs
+ INamespaceSymbolInternal.cs
+ IParameterSymbol.cs
+ IParameterSymbolInternal.cs
+ IPointerTypeSymbol.cs
+ IPreprocessingSymbol.cs
+ IPropertySymbol.cs
+ IPropertySymbolInternal.cs
+ IRangeVariableSymbol.cs
+ ISourceAssemblySymbol.cs
+ ISourceAssemblySymbolInternal.cs
+ ISymbol.cs
+ ISymbolExtensions.cs
+ ISymbolExtensions_PerformIVTCheck.cs
+ ISymbolInternal.cs
+ ISynthesizedGlobalMethodSymbol.cs
+ ISynthesizedMethodBodyImplementationSymbol.cs
+ ITypeParameterSymbol.cs
+ ITypeParameterSymbolInternal.cs
+ ITypeSymbol.cs
+ ITypeSymbolInternal.cs
+ LanguageNames.cs
+ ManagedKind.cs
+ MethodKind.cs
+ NamespaceKind.cs
+ NullabilityInfo.cs
+ NullableAnnotation.cs
+ NullableFlowState.cs
+ PlatformInvokeInformation.cs
+ RefKind.cs
+ ScopedKind.cs
+ SymbolEqualityComparer.cs
+ SymbolKind.cs
+ SymbolKindExtensions.cs
+ SymbolVisitor.cs
+ SymbolVisitor`1.cs
+ SymbolVisitor`2.cs
+ TypeCompareKind.cs
+ TypedConstant.cs
+ TypedConstantKind.cs
+ TypedConstantValue.cs
+ TypeKind.cs
+ TypeLayout.cs
+ TypeParameterKind.cs
+ VarianceKind.cs
+ WellKnownMemberNames.cs
+Syntax/
+ AbstractWarningStateMap.cs
+ AnnotationExtensions.cs
+ ChildSyntaxList.cs
+ ChildSyntaxList.Enumerator.cs
+ ChildSyntaxList.Reversed.cs
+ CommonSyntaxNodeRemover.cs
+ GreenNode.cs
+ GreenNode.NodeEnumerable.cs
+ GreenNode.NodeFlagsAndSlotCount.cs
+ GreenNodeExtensions.cs
+ ICompilationUnitSyntax.cs
+ InternalSyntax/
+  ChildSyntaxList.cs
+  ChildSyntaxList.Enumerator.cs
+  ChildSyntaxList.Reversed.cs
+  ChildSyntaxList.Reversed.Enumerator.cs
+  GreenNodeExtensions.cs
+  SeparatedSyntaxList.cs
+  SeparatedSyntaxListBuilder.cs
+  SyntaxDiagnosticInfoList.cs
+  SyntaxList.cs
+  SyntaxList.WithLotsOfChildren.cs
+  SyntaxList.WithManyChildren.cs
+  SyntaxList.WithThreeChildren.cs
+  SyntaxList.WithTwoChildren.cs
+  SyntaxListBuilder.cs
+  SyntaxListBuilderExtensions.cs
+  SyntaxListBuilder`1.cs
+  SyntaxListPool.cs
+  SyntaxList`1.cs
+  SyntaxList`1.Enumerator.cs
+  SyntaxNodeCache.cs
+ ISkippedTokensTriviaSyntax.cs
+ IStructuredTriviaSyntax.cs
+ LineDirectiveMap.cs
+ LineDirectiveMap.LineMappingEntry.cs
+ LineMapping.cs
+ LineVisibility.cs
+ SeparatedSyntaxList.cs
+ SeparatedSyntaxList.Enumerator.cs
+ SeparatedSyntaxListBuilder.cs
+ SeparatedSyntaxListExtensions.cs
+ SyntaxAnnotation.cs
+ SyntaxDiffer.cs
+ SyntaxList.cs
+ SyntaxList.SeparatedWithManyChildren.cs
+ SyntaxList.SeparatedWithManyWeakChildren.cs
+ SyntaxList.WithManyChildren.cs
+ SyntaxList.WithManyWeakChildren.cs
+ SyntaxList.WithThreeChildren.cs
+ SyntaxList.WithTwoChildren.cs
+ SyntaxListBuilder.cs
+ SyntaxListBuilderExtensions.cs
+ SyntaxListBuilder`1.cs
+ SyntaxList`1.cs
+ SyntaxList`1.Enumerator.cs
+ SyntaxNavigator.cs
+ SyntaxNode.cs
+ SyntaxNode.Iterators.cs
+ SyntaxNodeExtensions.cs
+ SyntaxNodeExtensions_Tracking.cs
+ SyntaxNodeLocationComparer.cs
+ SyntaxNodeOrToken.cs
+ SyntaxNodeOrTokenList.cs
+ SyntaxNodeOrTokenListBuilder.cs
+ SyntaxReference.cs
+ SyntaxRemoveOptions.cs
+ SyntaxToken.cs
+ SyntaxTokenList.cs
+ SyntaxTokenList.Enumerator.cs
+ SyntaxTokenList.Reversed.cs
+ SyntaxTokenListBuilder.cs
+ SyntaxTree.cs
+ SyntaxTreeComparer.cs
+ SyntaxTreeExtensions.cs
+ SyntaxTrivia.cs
+ SyntaxTriviaList.cs
+ SyntaxTriviaList.Enumerator.cs
+ SyntaxTriviaList.Reversed.cs
+ SyntaxTriviaListBuilder.cs
+ SyntaxWalker.cs
+ SyntaxWalkerDepth.cs
+ TranslationSyntaxReference.cs
+SynthesizedLocalKind.cs
+Text/
+ ChangedText.cs
+ CompositeText.cs
+ LargeText.cs
+ LargeTextWriter.cs
+ LinePosition.cs
+ LinePositionSpan.cs
+ SourceHashAlgorithm.cs
+ SourceHashAlgorithms.cs
+ SourceText.cs
+ SourceTextComparer.cs
+ SourceTextContainer.cs
+ SourceTextStream.cs
+ SourceTextWriter.cs
+ StringBuilderText.cs
+ StringText.cs
+ StringTextWriter.cs
+ SubText.cs
+ TextChange.cs
+ TextChangeEventArgs.cs
+ TextChangeRange.cs
+ TextChangeRangeExtensions.cs
+ TextLine.cs
+ TextLineCollection.cs
+ TextSpan.cs
+ TextUtilities.cs
+TreeDumper.cs
+VersionHelper.cs
+WellKnownMember.cs
+WellKnownMembers.cs
+WellKnownTypes.cs
+Xml/XmlCharType.cs
+XmlFileResolver.cs
+
+[metadataReferences]
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/10.0.5/ref/net10.0/
+ Microsoft.CSharp.dll
+ Microsoft.VisualBasic.Core.dll
+ Microsoft.VisualBasic.dll
+ Microsoft.Win32.Primitives.dll
+ Microsoft.Win32.Registry.dll
+ mscorlib.dll
+ netstandard.dll
+ System.AppContext.dll
+ System.Buffers.dll
+ System.Collections.Concurrent.dll
+ System.Collections.dll
+ System.Collections.Immutable.dll
+ System.Collections.NonGeneric.dll
+ System.Collections.Specialized.dll
+ System.ComponentModel.Annotations.dll
+ System.ComponentModel.DataAnnotations.dll
+ System.ComponentModel.dll
+ System.ComponentModel.EventBasedAsync.dll
+ System.ComponentModel.Primitives.dll
+ System.ComponentModel.TypeConverter.dll
+ System.Configuration.dll
+ System.Console.dll
+ System.Core.dll
+ System.Data.Common.dll
+ System.Data.DataSetExtensions.dll
+ System.Data.dll
+ System.Diagnostics.Contracts.dll
+ System.Diagnostics.Debug.dll
+ System.Diagnostics.DiagnosticSource.dll
+ System.Diagnostics.FileVersionInfo.dll
+ System.Diagnostics.Process.dll
+ System.Diagnostics.StackTrace.dll
+ System.Diagnostics.TextWriterTraceListener.dll
+ System.Diagnostics.Tools.dll
+ System.Diagnostics.TraceSource.dll
+ System.Diagnostics.Tracing.dll
+ System.dll
+ System.Drawing.dll
+ System.Drawing.Primitives.dll
+ System.Dynamic.Runtime.dll
+ System.Formats.Asn1.dll
+ System.Formats.Tar.dll
+ System.Globalization.Calendars.dll
+ System.Globalization.dll
+ System.Globalization.Extensions.dll
+ System.IO.Compression.Brotli.dll
+ System.IO.Compression.dll
+ System.IO.Compression.FileSystem.dll
+ System.IO.Compression.ZipFile.dll
+ System.IO.dll
+ System.IO.FileSystem.AccessControl.dll
+ System.IO.FileSystem.dll
+ System.IO.FileSystem.DriveInfo.dll
+ System.IO.FileSystem.Primitives.dll
+ System.IO.FileSystem.Watcher.dll
+ System.IO.IsolatedStorage.dll
+ System.IO.MemoryMappedFiles.dll
+ System.IO.Pipelines.dll
+ System.IO.Pipes.AccessControl.dll
+ System.IO.Pipes.dll
+ System.IO.UnmanagedMemoryStream.dll
+ System.Linq.AsyncEnumerable.dll
+ System.Linq.dll
+ System.Linq.Expressions.dll
+ System.Linq.Parallel.dll
+ System.Linq.Queryable.dll
+ System.Memory.dll
+ System.Net.dll
+ System.Net.Http.dll
+ System.Net.Http.Json.dll
+ System.Net.HttpListener.dll
+ System.Net.Mail.dll
+ System.Net.NameResolution.dll
+ System.Net.NetworkInformation.dll
+ System.Net.Ping.dll
+ System.Net.Primitives.dll
+ System.Net.Quic.dll
+ System.Net.Requests.dll
+ System.Net.Security.dll
+ System.Net.ServerSentEvents.dll
+ System.Net.ServicePoint.dll
+ System.Net.Sockets.dll
+ System.Net.WebClient.dll
+ System.Net.WebHeaderCollection.dll
+ System.Net.WebProxy.dll
+ System.Net.WebSockets.Client.dll
+ System.Net.WebSockets.dll
+ System.Numerics.dll
+ System.Numerics.Vectors.dll
+ System.ObjectModel.dll
+ System.Reflection.DispatchProxy.dll
+ System.Reflection.dll
+ System.Reflection.Emit.dll
+ System.Reflection.Emit.ILGeneration.dll
+ System.Reflection.Emit.Lightweight.dll
+ System.Reflection.Extensions.dll
+ System.Reflection.Metadata.dll
+ System.Reflection.Primitives.dll
+ System.Reflection.TypeExtensions.dll
+ System.Resources.Reader.dll
+ System.Resources.ResourceManager.dll
+ System.Resources.Writer.dll
+ System.Runtime.CompilerServices.Unsafe.dll
+ System.Runtime.CompilerServices.VisualC.dll
+ System.Runtime.dll
+ System.Runtime.Extensions.dll
+ System.Runtime.Handles.dll
+ System.Runtime.InteropServices.dll
+ System.Runtime.InteropServices.JavaScript.dll
+ System.Runtime.InteropServices.RuntimeInformation.dll
+ System.Runtime.Intrinsics.dll
+ System.Runtime.Loader.dll
+ System.Runtime.Numerics.dll
+ System.Runtime.Serialization.dll
+ System.Runtime.Serialization.Formatters.dll
+ System.Runtime.Serialization.Json.dll
+ System.Runtime.Serialization.Primitives.dll
+ System.Runtime.Serialization.Xml.dll
+ System.Security.AccessControl.dll
+ System.Security.Claims.dll
+ System.Security.Cryptography.Algorithms.dll
+ System.Security.Cryptography.Cng.dll
+ System.Security.Cryptography.Csp.dll
+ System.Security.Cryptography.dll
+ System.Security.Cryptography.Encoding.dll
+ System.Security.Cryptography.OpenSsl.dll
+ System.Security.Cryptography.Primitives.dll
+ System.Security.Cryptography.X509Certificates.dll
+ System.Security.dll
+ System.Security.Principal.dll
+ System.Security.Principal.Windows.dll
+ System.Security.SecureString.dll
+ System.ServiceModel.Web.dll
+ System.ServiceProcess.dll
+ System.Text.Encoding.CodePages.dll
+ System.Text.Encoding.dll
+ System.Text.Encoding.Extensions.dll
+ System.Text.Encodings.Web.dll
+ System.Text.Json.dll
+ System.Text.RegularExpressions.dll
+ System.Threading.AccessControl.dll
+ System.Threading.Channels.dll
+ System.Threading.dll
+ System.Threading.Overlapped.dll
+ System.Threading.Tasks.Dataflow.dll
+ System.Threading.Tasks.dll
+ System.Threading.Tasks.Extensions.dll
+ System.Threading.Tasks.Parallel.dll
+ System.Threading.Thread.dll
+ System.Threading.ThreadPool.dll
+ System.Threading.Timer.dll
+ System.Transactions.dll
+ System.Transactions.Local.dll
+ System.ValueTuple.dll
+ System.Web.dll
+ System.Web.HttpUtility.dll
+ System.Windows.dll
+ System.Xml.dll
+ System.Xml.Linq.dll
+ System.Xml.ReaderWriter.dll
+ System.Xml.Serialization.dll
+ System.Xml.XDocument.dll
+ System.Xml.XmlDocument.dll
+ System.Xml.XmlSerializer.dll
+ System.Xml.XPath.dll
+ System.Xml.XPath.XDocument.dll
+ WindowsBase.dll
+
+[analyzerReferences]
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/10.0.5/analyzers/dotnet/cs/
+ Microsoft.Interop.ComInterfaceGenerator.dll
+ Microsoft.Interop.LibraryImportGenerator.dll
+ Microsoft.Interop.SourceGeneration.dll
+ System.Text.Json.SourceGeneration.dll
+ System.Text.RegularExpressions.Generator.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/codestyle/cs/
+ Microsoft.CodeAnalysis.CodeStyle.dll
+ Microsoft.CodeAnalysis.CodeStyle.Fixes.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll
+<NUGET>/microsoft.codeanalysis.analyzers/5.6.0-2.26172.2/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.Analyzers.dll
+ Microsoft.CodeAnalysis.CSharp.Analyzers.dll
+<NUGET>/microsoft.codeanalysis.bannedapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.BannedApiAnalyzers.dll
+ Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll
+ Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.publicapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.dll
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/analyzers/cs/
+ Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll
+ Microsoft.VisualStudio.Threading.Analyzers.CSharp.dll
+ Microsoft.VisualStudio.Threading.Analyzers.dll
+<NUGET>/roslyn.diagnostics.analyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Roslyn.Diagnostics.Analyzers.dll
+ Roslyn.Diagnostics.CSharp.Analyzers.dll
+
+[analyzerConfigFiles]
+../../../../
+ .editorconfig
+ artifacts/obj/Microsoft.CodeAnalysis/Debug/net10.0/Microsoft.CodeAnalysis.GeneratedMSBuildEditorConfig.editorconfig
+ eng/config/globalconfigs/
+  Common.globalconfig
+  Shipping.globalconfig
+../../
+ ../Dependencies/.editorconfig
+ .editorconfig
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_10_default.globalconfig
+
+[additionalFiles]
+../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net10.0/Microsoft.CodeAnalysis.xlf/
+ CodeAnalysisResources.cs.resx
+ CodeAnalysisResources.de.resx
+ CodeAnalysisResources.es.resx
+ CodeAnalysisResources.fr.resx
+ CodeAnalysisResources.it.resx
+ CodeAnalysisResources.ja.resx
+ CodeAnalysisResources.ko.resx
+ CodeAnalysisResources.pl.resx
+ CodeAnalysisResources.pt-BR.resx
+ CodeAnalysisResources.ru.resx
+ CodeAnalysisResources.tr.resx
+ CodeAnalysisResources.zh-Hans.resx
+ CodeAnalysisResources.zh-Hant.resx
+../../../../eng/config/BannedSymbols.txt
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/buildTransitive/AdditionalFiles/
+ vs-threading.LegacyThreadSwitchingMembers.txt
+ vs-threading.MainThreadAssertingMethods.txt
+ vs-threading.MainThreadSwitchingMethods.txt
+ vs-threading.MembersRequiringMainThread.txt
+BannedSymbols.CompilerLibraries.txt
+CodeAnalysisResources.resx
+PublicAPI.Shipped.txt
+PublicAPI.Unshipped.txt
+
+---
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[sliceDimensions]
+TargetFramework=net8.0
+
+[properties]
+AssemblyName=Microsoft.CodeAnalysis
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:TRACE;COMPILERCORE;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT;MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER -features:strict -doc:"<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net8.0/Microsoft.CodeAnalysis.xml"
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=12.0
+ProjectAssetsFile=<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/project.assets.json
+RootNamespace=Microsoft.CodeAnalysis
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETCoreApp
+TargetPath=<PATH>../../../../artifacts/bin/Microsoft.CodeAnalysis/Debug/net8.0/Microsoft.CodeAnalysis.dll
+TargetRefPath=<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net8.0/ref/Microsoft.CodeAnalysis.dll
+TemporaryDependencyNodeTargetIdentifier=net8.0
+
+[commandLineArguments]
+/noconfig
+/unsafe+
+/checked-
+/nowarn:1701,1702,1705,1591,NU1507,NU1510,RS1041,RS1038,1573,1591,1701,NU5105,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:9999
+/doc:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net8.0/Microsoft.CodeAnalysis.xml
+/define:TRACE;COMPILERCORE;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT;MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER;DEBUG;NET;NET8_0;NETCOREAPP;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER
+/highentropyva+
+/nullable:enable
+/debug+
+/debug:embedded
+/delaysign-
+/filealign:512
+/keyfile:<NUGET>/microsoft.dotnet.arcade.sdk/10.0.0-beta.26201.4/tools/snk/35MSSharedLib1024.snk
+/optimize-
+/out:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net8.0/Microsoft.CodeAnalysis.dll
+/refout:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net8.0/refint/Microsoft.CodeAnalysis.dll
+/target:library
+/warnaserror-
+/utf8output
+/deterministic+
+/publicsign+
+/checksumalgorithm:SHA256
+/langversion:preview
+/skipanalyzers+
+/features:strict
+/embed:<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/build/PerformanceSensitiveAttribute.cs
+/warnaserror+:NU1605,SYSLIB0011
+/warnaserror-:IDE0055
+
+[sourceFiles]
+../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net8.0/
+ .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,net8.0
+ Microsoft.CodeAnalysis.AssemblyInfo.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,net8.0
+ Microsoft.CodeAnalysis.CodeAnalysisResources.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,net8.0
+ Microsoft.CodeAnalysis.InternalsVisibleTo.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,net8.0
+../../../Dependencies/CodeAnalysis.Debugging/
+ CompilationOptionNames.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoConstants.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoEncoder.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoKind.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoReader.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoRecord.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ DynamicLocalInfo.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ ImportTargetKind.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ PortableCustomDebugInfoKinds.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ StateMachineHoistedLocalScope.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ TupleElementNamesInfo.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ VBImportScopeKind.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+../../../Dependencies/Collections/Extensions/
+ FixedSizeArrayBuilder.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ ICollectionExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ IEnumerableExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ IListExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ ImmutableArrayExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ KeyValuePairExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ MemoryExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+../../../Dependencies/Collections/Internal/
+ ArraySortHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ BitHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ HashHelpers.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ICollectionCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ICollectionCalls`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ICollectionDebugView`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IDictionaryCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IDictionaryDebugView`2.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IEnumerableCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IEnumerableCalls`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IListCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ InsertionBehavior.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ RoslynUnsafe.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SegmentedArrayHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SegmentedArraySegment`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SegmentedHashSetEqualityComparer`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SR.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ThrowHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+../../../Dependencies/Collections/
+ KeyValuePair.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ OneOrMany.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ RoslynEnumerable.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ RoslynImmutableInterlocked.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ Segmented/
+  ImmutableSegmentedDictionary.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+KeyCollection+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+KeyCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+ValueBuilder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+ValueCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+Builder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+ValueBuilder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedListExtensions.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+Builder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+ValueBuilder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedArray.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedArray`1+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedArray`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedCollectionsMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedDictionary`2+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedDictionary`2.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedHashSet`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedList`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+ Specialized/
+  SpecializedCollections.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Collection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Dictionary.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Enumerable.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Enumerator`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.List.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Set.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Collection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Enumerable`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Enumerable`2.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Set.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Singleton.Collection`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Singleton.Enumerator`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+ TemporaryArrayExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ TemporaryArray`1.cs
+  @folderNames=..,..,..,Dependencies,Collections
+../../../Dependencies/Contracts/
+ CollectionBuilderAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ CompilerFeatureRequiredAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Contract.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Contract.InterpolatedStringHandlers.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ EnumExtensions.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ EqualityComparerExtensions.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ErrorReporting/
+  FailFast.cs
+   @folderNames=..,..,..,Dependencies,Contracts,ErrorReporting
+  FatalError.cs
+   @folderNames=..,..,..,Dependencies,Contracts,ErrorReporting
+ ExceptionUtilities.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ExperimentalAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Index.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ InterpolatedStringHandlerArgumentAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ InterpolatedStringHandlerAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ IReadOnlySet.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ IsExternalInit.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ NonCopyableAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ NonDefaultableAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ NullableAttributes.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Range.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ReferenceEqualityComparer.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ RequiredMemberAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ SetsRequiredMembersAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ValueTaskExtensions.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+../../../Dependencies/PooledObjects/
+ ArrayBuilder.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ ArrayBuilder.Enumerator.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ ArrayBuilderExtensions.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ IPooled.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ ObjectPool`1.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledDelegates.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledDictionary.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledDisposer.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledHashSet.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledStringBuilder.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+../AnalyzerDriver/
+ AnalyzerExceptionDescriptionBuilder.cs
+  @folderNames=..,AnalyzerDriver
+ DeclarationComputer.cs
+  @folderNames=..,AnalyzerDriver
+ DeclarationInfo.cs
+  @folderNames=..,AnalyzerDriver
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/build/PerformanceSensitiveAttribute.cs
+AdditionalTextFile.cs
+AssemblyUtilities.cs
+AssemblyUtilitiesCore.cs
+Binding/
+ AbstractLookupSymbolsInfo.cs
+ BindingDiagnosticBag.cs
+ UseSiteInfo.cs
+CaseInsensitiveComparison.cs
+CodeAnalysisEventSource.Common.cs
+CodeAnalysisEventSource.Compiler.cs
+CodeAnalysisResourcesLocalizableErrorArgument.cs
+CodeGen/
+ ArrayMembers.cs
+ AwaitDebugId.cs
+ BasicBlock.cs
+ ClosureDebugInfo.cs
+ CompilationTestData.cs
+ DebugDocumentProvider.cs
+ DebugId.cs
+ EmitState.cs
+ ILBuilder.cs
+ ILBuilderConversions.cs
+ ILBuilderEmit.cs
+ ILEmitStyle.cs
+ ILOpCodeExtensions.cs
+ ItemTokenMap.cs
+ LabelInfo.cs
+ LambdaDebugInfo.cs
+ LambdaRuntimeRudeEditInfo.cs
+ LocalConstantDefinition.cs
+ LocalDebugId.cs
+ LocalDefinition.cs
+ LocalOrParameter.cs
+ LocalScopeManager.cs
+ LocalSlotDebugInfo.cs
+ LocalSlotManager.cs
+ MetadataConstant.cs
+ MetadataCreateArray.cs
+ MetadataNamedArgument.cs
+ MetadataTypeOf.cs
+ MethodBody.cs
+ PermissionSetAttribute.cs
+ PrivateImplementationDetails.cs
+ RawSequencePoint.cs
+ ReferenceDependencyWalker.cs
+ ScopeType.cs
+ SequencePointList.cs
+ SignatureOnlyLocalDefinition.cs
+ StateMachineState.cs
+ StateMachineStateDebugInfo.cs
+ StringTokenMap.cs
+ SwitchIntegralJumpTableEmitter.cs
+ SwitchIntegralJumpTableEmitter.SwitchBucket.cs
+ SwitchStringJumpTableEmitter.cs
+ SynthesizedLocalOrdinalsDispenser.cs
+ TokenMap.cs
+ VariableSlotAllocator.cs
+ Win32Res.cs
+Collections/
+ ArrayBuilderExtensions.cs
+ ArrayElement.cs
+ BitVector.cs
+ Boxes.cs
+ ByteSequenceComparer.cs
+ CachingDictionary.cs
+ CachingFactory.cs
+ CollectionsExtensions.cs
+ ConcurrentCache.cs
+ ConsListExtensions.cs
+ DictionaryExtensions.cs
+ Grouping.cs
+ HashSetExtensions.cs
+ IdentifierCollection.Collection.cs
+ IdentifierCollection.cs
+ ImmutableHashSetExtensions.cs
+ ImmutableMemoryStream.cs
+ IOrderedReadOnlySet.cs
+ KeyedStack.cs
+ OrderedSet.cs
+ OrderPreservingMultiDictionary.cs
+ Rope.cs
+ SmallConcurrentSetOfInts.cs
+ SmallDictionary.cs
+ StaticCast.cs
+ TopologicalSort.cs
+ UnionCollection.cs
+CommandLine/
+ AnalyzerConfig.cs
+ AnalyzerConfig.SectionNameMatching.cs
+ AnalyzerConfigOptionsResult.cs
+ AnalyzerConfigSet.cs
+ CommandLineAnalyzerReference.cs
+ CommandLineArguments.cs
+ CommandLineParser.cs
+ CommandLineReference.cs
+ CommandLineResource.cs
+ CommandLineSourceFile.cs
+ CommonCompiler.CompilerEmitStreamProvider.cs
+ CommonCompiler.CompilerRelativePathResolver.cs
+ CommonCompiler.cs
+ CommonCompiler.ExistingReferencesResolver.cs
+ CommonCompiler.LoggingMetadataFileReferenceResolver.cs
+ CommonCompiler.LoggingSourceFileResolver.cs
+ CommonCompiler.LoggingStrongNameProvider.cs
+ CommonCompiler.LoggingXmlFileResolver.cs
+ CommonCompiler.SuppressionDiagnostic.cs
+ ErrorLogger.cs
+ ErrorLogOptions.cs
+ Feature.cs
+ NoThrowStreamDisposer.cs
+ ReportAnalyzerUtil.cs
+ SarifDiagnosticComparer.cs
+ SarifErrorLogger.cs
+ SarifV1ErrorLogger.cs
+ SarifV2ErrorLogger.cs
+ SarifVersion.cs
+ TouchedFileLogger.cs
+CommitHashAttribute.cs
+Compilation.EmitStream.cs
+Compilation.EmitStreamProvider.cs
+Compilation/
+ CandidateReason.cs
+ CommonModuleCompilationState.cs
+ CommonSyntaxAndDeclarationManager.cs
+ Compilation.cs
+ CompilationOptions.cs
+ CompilationStage.cs
+ ControlFlowAnalysis.cs
+ DataFlowAnalysis.cs
+ DeterministicKey.cs
+ DeterministicKeyBuilder.cs
+ DeterministicKeyOptions.cs
+ EmitDifferenceOptions.cs
+ EmitResult.cs
+ Expression.cs
+ Extensions.cs
+ GeneratedKind.cs
+ IImportScope.cs
+ LoadDirective.cs
+ NullableContext.cs
+ NullableContextOptions.cs
+ OptimizationLevel.cs
+ ParseOptions.cs
+ Platform.cs
+ PreprocessingSymbolInfo.cs
+ RebuildData.cs
+ ScriptCompilationInfo.cs
+ SemanticModel.cs
+ SemanticModelOptions.cs
+ SemanticModelProvider.cs
+ SourceReferenceResolver.cs
+ SpeculativeBindingOption.cs
+ SubsystemVersion.cs
+ SymbolFilter.cs
+ SymbolInfo.cs
+ SyntaxTreeOptionsProvider.cs
+ TypeInfo.cs
+ XmlReferenceResolver.cs
+ConstantValue.cs
+ConstantValueSpecialized.cs
+CryptographicHashProvider.cs
+CvtRes.cs
+Desktop/
+ AssemblyPortabilityPolicy.cs
+ AssemblyVersion.cs
+ DesktopAssemblyIdentityComparer.cs
+ DesktopAssemblyIdentityComparer.Fx.cs
+Diagnostic/
+ CommonDiagnosticComparer.cs
+ CommonMessageProvider.cs
+ CustomObsoleteDiagnosticInfo.cs
+ Diagnostic.cs
+ Diagnostic.DiagnosticWithProgrammaticSuppression.cs
+ DiagnosticArrayExtensions.cs
+ DiagnosticBag.cs
+ DiagnosticDescriptor.cs
+ DiagnosticFormatter.cs
+ DiagnosticInfo.cs
+ DiagnosticSeverity.cs
+ DiagnosticWithInfo.cs
+ Diagnostic_SimpleDiagnostic.cs
+ ExternalFileLocation.cs
+ FileLinePositionSpan.cs
+ LocalizableResourceString.cs
+ LocalizableResourceString.FixedLocalizableString.cs
+ LocalizableString.cs
+ Location.cs
+ LocationKind.cs
+ MetadataLocation.cs
+ NoLocation.cs
+ ProgrammaticSuppressionInfo.cs
+ ReportDiagnostic.cs
+ SeverityFilter.cs
+ SourceLocation.cs
+ SuppressionDescriptor.cs
+ SuppressionInfo.cs
+ WellKnownDiagnosticTags.cs
+ XmlLocation.cs
+DiagnosticAnalyzer/
+ AdditionalText.cs
+ AdditionalTextComparer.cs
+ AdditionalTextValueProvider.cs
+ AnalysisContextInfo.cs
+ AnalysisResult.cs
+ AnalysisResultBuilder.cs
+ AnalysisScope.cs
+ AnalysisValueProvider.cs
+ AnalyzerActionCounts.cs
+ AnalyzerAssemblyLoader.Core.cs
+ AnalyzerAssemblyLoader.cs
+ AnalyzerAssemblyLoader.Desktop.cs
+ AnalyzerConfigOptions.cs
+ AnalyzerConfigOptionsProvider.cs
+ AnalyzerDriver.CompilationData.cs
+ AnalyzerDriver.cs
+ AnalyzerDriver.DeclarationAnalysisData.cs
+ AnalyzerDriver.EventProcessedState.cs
+ AnalyzerDriver.ExecutableCodeBlockAnalyzerActions.cs
+ AnalyzerDriver.GroupedAnalyzerActions.cs
+ AnalyzerDriver.GroupedAnalyzerActionsForAnalyzer.cs
+ AnalyzerDriver.IGroupedAnalyzerActions.cs
+ AnalyzerExecutor.AnalyzerDiagnosticReporter.cs
+ AnalyzerExecutor.cs
+ AnalyzerFileReference.cs
+ AnalyzerImageReference.cs
+ AnalyzerLoadFailureEventArgs.cs
+ AnalyzerManager.AnalyzerExecutionContext.cs
+ AnalyzerManager.cs
+ AnalyzerOptions.cs
+ AnalyzerOptionsExtensions.cs
+ AnalyzerReference.cs
+ AnalyzerTelemetry.cs
+ AsyncQueue.cs
+ CachingSemanticModelProvider.cs
+ CompilationAnalysisValueProvider.cs
+ CompilationAnalysisValueProviderFactory.cs
+ CompilationCompletedEvent.cs
+ CompilationEvent.cs
+ CompilationStartedEvent.cs
+ CompilationUnitCompletedEvent.cs
+ CompilationWithAnalyzers.cs
+ CompilationWithAnalyzersOptions.cs
+ CompilerAnalyzerConfigOptionsProvider.cs
+ CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs
+ CompilerDiagnosticAnalyzer.cs
+ DiagnosticAnalysisContext.cs
+ DiagnosticAnalysisContextHelpers.cs
+ DiagnosticAnalyzer.cs
+ DiagnosticAnalyzerAction.cs
+ DiagnosticAnalyzerAttribute.cs
+ DiagnosticAnalyzerExtensions.cs
+ DiagnosticQueue.cs
+ DiagnosticStartAnalysisScope.cs
+ DiagnosticSuppressor.cs
+ DictionaryAnalyzerConfigOptions.cs
+ IAnalyzerAssemblyLoader.cs
+ IAnalyzerAssemblyResolver.cs
+ IAnalyzerPathResolver.cs
+ ProgramFilesAnalyzerPathResolver.cs
+ ShadowCopyAnalyzerPathResolver.cs
+ SourceOrAdditionalFile.cs
+ SourceTextValueProvider.cs
+ Suppression.cs
+ SuppressMessageAttributeState.cs
+ SuppressMessageAttributeState.TargetScope.cs
+ SuppressMessageAttributeState.TargetSymbolResolver.cs
+ SuppressMessageInfo.cs
+ SymbolDeclaredCompilationEvent.cs
+ SyntaxTreeValueProvider.cs
+ UnresolvedAnalyzerReference.cs
+DiaSymReader/Metadata/
+ IMetadataEmit.cs
+ IMetadataImport.cs
+ ISymWriterMetadataProvider.cs
+ MetadataAdapterBase.cs
+ MetadataImportFieldOffset.cs
+ SymWriterMetadataAdapter.cs
+DiaSymReader/
+ SymUnmanagedFactory.cs
+ Utilities/
+  ComMemoryStream.cs
+  HResult.cs
+  InteropUtilities.cs
+  IUnsafeComStream.cs
+ Writer/
+  ISymUnmanagedAsyncMethodPropertiesWriter.cs
+  ISymUnmanagedCompilerInfoWriter.cs
+  ISymUnmanagedDocumentWriter.cs
+  ISymUnmanagedWriter.cs
+  SymUnmanagedSequencePointsWriter.cs
+  SymUnmanagedWriter.cs
+  SymUnmanagedWriterCreationOptions.cs
+  SymUnmanagedWriterException.cs
+  SymUnmanagedWriterFactory.cs
+  SymUnmanagedWriterImpl.cs
+DocumentationCommentId.cs
+DocumentationComments/
+ DocumentationCommentIncludeCache.cs
+ DocumentationProvider.cs
+ DocumentationProvider.NullDocumentationProvider.cs
+ XmlDocumentationCommentTextReader.cs
+ XmlDocumentationCommentTextReader.XmlStream.cs
+DocumentationMode.cs
+EmbeddedText.cs
+Emit/
+ AnonymousDelegateWithIndexedNamePartialKey.cs
+ AnonymousTypeKey.cs
+ AnonymousTypeValue.cs
+ AsyncMoveNextBodyDebugInfo.cs
+ CommonPEModuleBuilder.cs
+ Context.cs
+ DebugDocumentsBuilder.cs
+ DebugInformationFormat.cs
+ EditAndContinue/
+  AddedOrChangedMethodInfo.cs
+  DefinitionMap.cs
+  DeletedMethodBody.cs
+  DeletedPEMethodDefinition.cs
+  DeletedSourceDefinition.cs
+  DeletedSourceEventDefinition.cs
+  DeletedSourceGenericParameter.cs
+  DeletedSourceMethodDefinition.cs
+  DeletedSourceParameterDefinition.cs
+  DeletedSourcePropertyDefinition.cs
+  DeletedSourceTypeDefinition.cs
+  DeltaMetadataWriter.cs
+  EmitBaseline.cs
+  EmitDifferenceResult.cs
+  EncClosureInfo.cs
+  EncClosureMapValue.cs
+  EncHoistedLocalInfo.cs
+  EncHoistedLocalMetadata.cs
+  EncLambdaInfo.cs
+  EncLambdaMapValue.cs
+  EncLocalInfo.cs
+  EncMappedMethod.cs
+  EncVariableSlotAllocator.cs
+  IDeletedEventDefinition.cs
+  IDeletedMethodDefinition.cs
+  IDeletedPropertyDefinition.cs
+  IPEDeltaAssemblyBuilder.cs
+  LambdaSyntaxFacts.cs
+  SymbolChange.cs
+  SymbolChanges.cs
+  SymbolMatcher.cs
+  SynthesizedTypeMaps.cs
+ EditAndContinueMethodDebugInformation.cs
+ EmitOptions.cs
+ ErrorType.cs
+ HotReloadExceptionCode.cs
+ InstrumentationKind.cs
+ IteratorMoveNextBodyDebugInfo.cs
+ MethodInstrumentation.cs
+ ModulePropertiesForSerialization.cs
+ NoPia/
+  CommonEmbeddedEvent.cs
+  CommonEmbeddedField.cs
+  CommonEmbeddedMember.cs
+  CommonEmbeddedMethod.cs
+  CommonEmbeddedParameter.cs
+  CommonEmbeddedProperty.cs
+  CommonEmbeddedType.cs
+  CommonEmbeddedTypeParameter.cs
+  EmbeddedTypesManager.cs
+  VtblGap.cs
+ RuntimeRudeEdit.cs
+ SemanticEdit.cs
+ SemanticEditKind.cs
+ StateMachineMoveNextDebugInfo.cs
+ SynthesizedDelegateKey.cs
+ SynthesizedDelegateValue.cs
+EncodedStringText.cs
+EnumConstantHelper.cs
+ExtendedSpecialType.cs
+FileKey.cs
+FileSystem/
+ CompilerPathUtilities.cs
+ FileUtilities.cs
+ ICommonCompilerFileSystem.cs
+ PathKind.cs
+ PathUtilities.cs
+ RelativePathResolver.cs
+FileSystemExtensions.cs
+Generated/
+ FlowAnalysis.Generated.cs
+ OperationKind.Generated.cs
+ Operations.Generated.cs
+GlobalSuppressions.cs
+Hashing/
+ BitOperations.cs
+ NonCryptographicHashAlgorithm.cs
+ XxHash128.cs
+ XxHash64.State.cs
+ XxHashShared.cs
+ImplementationIsObsoleteAttribute.cs
+InternalImplementationOnlyAttribute.cs
+InternalSpecialType.cs
+InternalUtilities/
+ ArrayExtensions.cs
+ BitArithmeticUtilities.cs
+ BlobBuildingStream.cs
+ CharMemoryEqualityComparer.cs
+ CommandLineUtilities.cs
+ CompilerOptionParseUtilities.cs
+ ConcurrentDictionaryExtensions.cs
+ ConcurrentLruCache.cs
+ ConcurrentSet.cs
+ ConsList`1.cs
+ Debug.cs
+ DecimalUtilities.cs
+ DocumentationCommentXmlNames.cs
+ EncodingExtensions.cs
+ EnumField.cs
+ EnumUtilties.cs
+ ExceptionExtensions.cs
+ FileLockCheck.cs
+ FileNameUtilities.cs
+ Hash.cs
+ ImmutableListExtensions.cs
+ ImmutableSetWithInsertionOrder`1.cs
+ IncrementalHashExtensions.cs
+ InterlockedOperations.cs
+ IReadOnlyListExtensions.cs
+ ISetExtensions.cs
+ JsonWriter.cs
+ LittleEndianReader.cs
+ MultiDictionary.cs
+ NoMessagePumpSyncContext.cs
+ OrderedMultiDictionary.cs
+ PlatformInformation.cs
+ ReaderWriterLockSlimExtensions.cs
+ ReadOnlyMemoryOfCharComparer.cs
+ ReadOnlyUnmanagedMemoryStream.cs
+ ReflectionUtilities.cs
+ RoslynExperiments.cs
+ RoslynLazyInitializer.cs
+ RoslynParallel.cs
+ RoslynString.cs
+ SemaphoreSlimExtensions.cs
+ SetWithInsertionOrder.cs
+ SharedStopwatch.cs
+ SingleInitNullable.cs
+ SpanUtilities.cs
+ SpecializedSyncContext.cs
+ StackGuard.cs
+ StreamExtensions.cs
+ StringExtensions.cs
+ StringOrdinalComparer.cs
+ StringTable.cs
+ SuppressUnmanagedCodeSecurityAttribute.cs
+ TextKeyedCache.cs
+ ThreadSafeFlagOperations.cs
+ ThreeState.cs
+ UICultureUtilities.cs
+ UnicodeCharacterUtilities.cs
+ WeakList.cs
+ WeakReferenceExtensions.cs
+ XmlUtilities.cs
+Interop/
+ ClrStrongName.cs
+ IClrMetaHost.cs
+ IClrRuntimeInfo.cs
+ IClrStrongName.cs
+IReferenceOrISignature.cs
+IVTConclusion.cs
+MemberDescriptor.cs
+MemoryExtensions.cs
+MetadataReader/
+ EmbeddedResource.cs
+ LocalSlotConstraints.cs
+ MetadataDecoder.cs
+ MetadataHelpers.cs
+ MetadataImportOptions.cs
+ MetadataReaderExtensions.cs
+ MetadataTypeCodeExtensions.cs
+ MetadataTypeName.cs
+ MetadataTypeName.Key.cs
+ ModuleExtensions.cs
+ PEAssembly.cs
+ PEModule.cs
+ SymbolFactory.cs
+ TypeAttributesExtensions.cs
+ TypeNameDecoder.cs
+ UnsupportedSignatureContent.cs
+MetadataReference/
+ AssemblyIdentity.cs
+ AssemblyIdentity.DisplayName.cs
+ AssemblyIdentityComparer.cs
+ AssemblyIdentityExtensions.cs
+ AssemblyIdentityMap.cs
+ AssemblyIdentityParts.cs
+ AssemblyIdentityUtils.cs
+ AssemblyMetadata.cs
+ CompilationReference.cs
+ Metadata.cs
+ MetadataImageKind.cs
+ MetadataImageReference.cs
+ MetadataReference.cs
+ MetadataReferenceProperties.cs
+ MetadataReferenceResolver.cs
+ ModuleMetadata.cs
+ PortableExecutableReference.cs
+ ReferenceDirective.cs
+ UnresolvedMetadataReference.cs
+MethodImplExtensions.cs
+NativePdbWriter/
+ PdbWriter.cs
+ SymWriterMetadataProvider.cs
+Operations/
+ ArgumentKind.cs
+ BasicBlock.cs
+ BasicBlockKind.cs
+ BinaryOperatorKind.cs
+ BranchKind.cs
+ CaptureId.cs
+ CaseKind.cs
+ CommonConversion.cs
+ ControlFlowBranch.cs
+ ControlFlowBranchSemantics.cs
+ ControlFlowConditionKind.cs
+ ControlFlowGraph.cs
+ ControlFlowGraphBuilder.BasicBlockBuilder.cs
+ ControlFlowGraphBuilder.CaptureIdDispenser.cs
+ ControlFlowGraphBuilder.ConditionalAccessOperationTracker.cs
+ ControlFlowGraphBuilder.Context.cs
+ ControlFlowGraphBuilder.cs
+ ControlFlowGraphBuilder.ImplicitInstanceInfo.cs
+ ControlFlowGraphBuilder.InterpolatedStringContext.cs
+ ControlFlowGraphBuilder.RegionBuilder.cs
+ ControlFlowGraphExtensions.cs
+ ControlFlowRegion.cs
+ ControlFlowRegionKind.cs
+ DisposeOperationInfo.cs
+ IConvertibleConversion.cs
+ InstanceReferenceKind.cs
+ InterpolatedStringArgumentPlaceholderKind.cs
+ IOperation.cs
+ IOperation.OperationList.cs
+ IOperation.OperationList.Reversed.cs
+ Loops/
+  ForEachLoopOperationInfo.cs
+  ForToLoopOperationInfo.cs
+  LoopKind.cs
+ Operation.cs
+ OperationCloner.cs
+ OperationExtensions.cs
+ OperationFactory.cs
+ OperationMapBuilder.cs
+ OperationNodes.cs
+ OperationVisitor.cs
+ OperationWalker.cs
+ PlaceholderKind.cs
+ UnaryOperatorKind.cs
+Optional.cs
+OutputKind.cs
+PEWriter/
+ AssemblyReferenceAlias.cs
+ Constants.cs
+ Core.cs
+ CustomDebugInfoWriter.cs
+ DebugSourceDocument.cs
+ DebugSourceInfo.cs
+ ExceptionHandlerRegion.cs
+ ExportedType.cs
+ Expressions.cs
+ ExtendedPEBuilder.cs
+ FullMetadataWriter.cs
+ ICustomAttribute.cs
+ IFileReference.cs
+ IImportScope.cs
+ InheritedTypeParameter.cs
+ InstructionOperandTypes.cs
+ ITypeReferenceExtensions.cs
+ LocalScope.cs
+ ManagedResource.cs
+ MemberRefComparer.cs
+ Members.cs
+ MetadataBuilderExtensions.cs
+ MetadataVisitor.cs
+ MetadataWriter.cs
+ MetadataWriter.DynamicAnalysis.cs
+ MetadataWriter.PortablePdb.cs
+ MethodDefinitionBase.cs
+ MethodSpecComparer.cs
+ Miscellaneous.cs
+ ModifiedTypeReference.cs
+ NativeResourceWriter.cs
+ ParameterDefinitionBase.cs
+ PeWriter.cs
+ PooledBlobBuilder.cs
+ ReferenceIndexer.cs
+ ReferenceIndexerBase.cs
+ ReturnValueParameter.cs
+ RootModuleType.cs
+ SequencePoint.cs
+ SigningUtilities.cs
+ SourceSpan.cs
+ StaticConstructor.cs
+ SymbolEquivalentEqualityComparer.cs
+ TypeLibTypeFlags.cs
+ TypeNameSerializer.cs
+ TypeReferenceIndexer.cs
+ Types.cs
+ TypeSpecComparer.cs
+ Units.cs
+ UsedNamespaceOrType.cs
+PrimitiveTypeCodeExtensions.cs
+RealParser.cs
+ReferenceManager/
+ AssemblyData.cs
+ AssemblyDataForAssemblyBeingBuilt.cs
+ AssemblyReferenceBinding.cs
+ AssemblyReferenceCandidate.cs
+ BoundInputAssembly.cs
+ CommonReferenceManager.Binding.cs
+ CommonReferenceManager.Resolution.cs
+ CommonReferenceManager.State.cs
+ Compilation_MetadataCache.cs
+ MergedAliases.cs
+ ModuleReferences.cs
+ UnifiedAssembly.cs
+ResourceDescription.cs
+ResourceException.cs
+RuleSet/
+ InvalidRuleSetException.cs
+ RuleSet.cs
+ RuleSetInclude.cs
+ RuleSetProcessor.cs
+RuntimeCapability.cs
+SignatureComparer.cs
+SourceCodeKind.cs
+SourceCodeKindExtensions.cs
+SourceFileResolver.cs
+SourceGeneration/
+ AdditionalSourcesCollection.cs
+ GeneratedCodeUtilities.cs
+ GeneratedSourceText.cs
+ GeneratedSyntaxTree.cs
+ GeneratorAdaptor.cs
+ GeneratorAttribute.cs
+ GeneratorContexts.cs
+ GeneratorDriver.cs
+ GeneratorDriverCache.cs
+ GeneratorDriverOptions.cs
+ GeneratorDriverState.cs
+ GeneratorExtensions.cs
+ GeneratorState.cs
+ GeneratorSyntaxWalker.cs
+ GeneratorTimerExtensions.cs
+ GlobalAliases.cs
+ IIncrementalGenerator.cs
+ IncrementalContexts.cs
+ IncrementalGeneratorRunStep.cs
+ IncrementalStepRunReason.cs
+ IncrementalValueProvider.cs
+ IncrementalWrapper.cs
+ ISourceGenerator.cs
+ ISyntaxHelper.cs
+ ISyntaxReceiver.cs
+ Nodes/
+  BatchNode.cs
+  CombineNode.cs
+  DriverStateTable.cs
+  GeneratorRunStateTable.cs
+  HostOutputNode.cs
+  IIncrementalGeneratorNode.cs
+  IIncrementalGeneratorOutputNode.cs
+  InputNode.cs
+  ISyntaxStrategy.cs
+  NodeExtensions.cs
+  NodeStateTable.cs
+  PostInitOutputNode.cs
+  PredicateSyntaxStrategy.cs
+  SharedInputNodes.cs
+  SourceOutputNode.cs
+  StateTableStore.cs
+  SyntaxInputNode.cs
+  SyntaxReceiverStrategy.cs
+  SyntaxValueProvider.cs
+  SyntaxValueProvider_ForAttributeWithMetadataName.cs
+  SyntaxValueProvider_ForAttributeWithSimpleName.cs
+  TransformNode.cs
+  ValueSourceExtensions.cs
+ RunResults.cs
+ SyntaxContextReceiverAdaptor.cs
+ SyntaxStore.cs
+ UserFunction.cs
+ WellKnownGeneratorInputs.cs
+ WellKnownGeneratorOutputs.cs
+SpecialMember.cs
+SpecialMembers.cs
+SpecialType.cs
+SpecialTypeExtensions.cs
+SpecialTypes.cs
+StrongName/
+ CryptoBlobParser.cs
+ DesktopStrongNameProvider.cs
+ StrongNameFileSystem.cs
+ StrongNameKeys.cs
+ StrongNameProvider.cs
+SwitchConstantValueHelper.cs
+SymbolDisplay/
+ AbstractSymbolDisplayVisitor.cs
+ AbstractSymbolDisplayVisitor_Minimal.cs
+ FormattedSymbol.cs
+ FormattedSymbolList.cs
+ ObjectDisplayExtensions.cs
+ ObjectDisplayOptions.cs
+ SymbolDisplayCompilerInternalOptions.cs
+ SymbolDisplayDelegateStyle.cs
+ SymbolDisplayExtensionMethodStyle.cs
+ SymbolDisplayExtensions.cs
+ SymbolDisplayFormat.cs
+ SymbolDisplayGenericsOptions.cs
+ SymbolDisplayGlobalNamespaceStyle.cs
+ SymbolDisplayKindOptions.cs
+ SymbolDisplayLocalOptions.cs
+ SymbolDisplayMemberOptions.cs
+ SymbolDisplayMiscellaneousOptions.cs
+ SymbolDisplayParameterOptions.cs
+ SymbolDisplayPart.cs
+ SymbolDisplayPartKind.cs
+ SymbolDisplayPropertyStyle.cs
+ SymbolDisplayTypeQualificationStyle.cs
+Symbols/
+ Accessibility.cs
+ AnonymousTypes/CommonAnonymousTypeManager.cs
+ Attributes/
+  AttributeDescription.cs
+  AttributeUsageInfo.cs
+  CommonAssemblyWellKnownAttributeData.cs
+  CommonAttributeData.cs
+  CommonAttributeDataComparer.cs
+  CommonEventEarlyWellKnownAttributeData.cs
+  CommonEventWellKnownAttributeData.cs
+  CommonFieldEarlyWellKnownAttributeData.cs
+  CommonFieldWellKnownAttributeData.cs
+  CommonMethodEarlyWellKnownAttributeData.cs
+  CommonMethodWellKnownAttributeData.cs
+  CommonModuleWellKnownAttributeData.cs
+  CommonParameterEarlyWellKnownAttributeData.cs
+  CommonParameterWellKnownAttributeData.cs
+  CommonPropertyEarlyWellKnownAttributeData.cs
+  CommonPropertyWellKnownAttributeData.cs
+  CommonReturnTypeWellKnownAttributeData.cs
+  CommonTypeEarlyWellKnownAttributeData.cs
+  CommonTypeWellKnownAttributeData.cs
+  CustomAttributesBag.cs
+  DecodeWellKnownAttributeArguments.cs
+  EarlyDecodeWellKnownAttributeArguments.cs
+  EarlyWellKnownAttributeData.cs
+  IMarshalAsAttributeTarget.cs
+  IMemberNotNullAttributeTarget.cs
+  ISecurityAttributeTarget.cs
+  ISkipLocalsInitAttributeTarget.cs
+  MarshalAsAttributeDecoder.cs
+  MarshalPseudoCustomAttributeData.cs
+  ObsoleteAttributeData.cs
+  SecurityWellKnownAttributeData.cs
+  UnmanagedCallersOnlyAttributeData.cs
+  WellKnownAttributeData.cs
+ CommonGeneratedNameParser.cs
+ CommonGeneratedNames.cs
+ CompilerFeatureRequiredFeatures.cs
+ CustomModifier.cs
+ CustomModifiersTuple.cs
+ IAliasSymbol.cs
+ IArrayTypeSymbol.cs
+ IArrayTypeSymbolInternal.cs
+ IAssemblySymbol.cs
+ IAssemblySymbolInternal.cs
+ IDiscardSymbol.cs
+ IDynamicTypeSymbol.cs
+ IErrorTypeSymbol.cs
+ IEventSymbol.cs
+ IEventSymbolInternal.cs
+ IFieldSymbol.cs
+ IFieldSymbolInternal.cs
+ IFunctionPointerTypeSymbol.cs
+ ILabelSymbol.cs
+ ILocalSymbol.cs
+ ILocalSymbolInternal.cs
+ IMethodSymbol.cs
+ IMethodSymbolInternal.cs
+ IModuleSymbol.cs
+ IModuleSymbolInternal.cs
+ INamedTypeSymbol.cs
+ INamedTypeSymbolInternal.cs
+ INamespaceOrTypeSymbol.cs
+ INamespaceOrTypeSymbolInternal.cs
+ INamespaceSymbol.cs
+ INamespaceSymbolInternal.cs
+ IParameterSymbol.cs
+ IParameterSymbolInternal.cs
+ IPointerTypeSymbol.cs
+ IPreprocessingSymbol.cs
+ IPropertySymbol.cs
+ IPropertySymbolInternal.cs
+ IRangeVariableSymbol.cs
+ ISourceAssemblySymbol.cs
+ ISourceAssemblySymbolInternal.cs
+ ISymbol.cs
+ ISymbolExtensions.cs
+ ISymbolExtensions_PerformIVTCheck.cs
+ ISymbolInternal.cs
+ ISynthesizedGlobalMethodSymbol.cs
+ ISynthesizedMethodBodyImplementationSymbol.cs
+ ITypeParameterSymbol.cs
+ ITypeParameterSymbolInternal.cs
+ ITypeSymbol.cs
+ ITypeSymbolInternal.cs
+ LanguageNames.cs
+ ManagedKind.cs
+ MethodKind.cs
+ NamespaceKind.cs
+ NullabilityInfo.cs
+ NullableAnnotation.cs
+ NullableFlowState.cs
+ PlatformInvokeInformation.cs
+ RefKind.cs
+ ScopedKind.cs
+ SymbolEqualityComparer.cs
+ SymbolKind.cs
+ SymbolKindExtensions.cs
+ SymbolVisitor.cs
+ SymbolVisitor`1.cs
+ SymbolVisitor`2.cs
+ TypeCompareKind.cs
+ TypedConstant.cs
+ TypedConstantKind.cs
+ TypedConstantValue.cs
+ TypeKind.cs
+ TypeLayout.cs
+ TypeParameterKind.cs
+ VarianceKind.cs
+ WellKnownMemberNames.cs
+Syntax/
+ AbstractWarningStateMap.cs
+ AnnotationExtensions.cs
+ ChildSyntaxList.cs
+ ChildSyntaxList.Enumerator.cs
+ ChildSyntaxList.Reversed.cs
+ CommonSyntaxNodeRemover.cs
+ GreenNode.cs
+ GreenNode.NodeEnumerable.cs
+ GreenNode.NodeFlagsAndSlotCount.cs
+ GreenNodeExtensions.cs
+ ICompilationUnitSyntax.cs
+ InternalSyntax/
+  ChildSyntaxList.cs
+  ChildSyntaxList.Enumerator.cs
+  ChildSyntaxList.Reversed.cs
+  ChildSyntaxList.Reversed.Enumerator.cs
+  GreenNodeExtensions.cs
+  SeparatedSyntaxList.cs
+  SeparatedSyntaxListBuilder.cs
+  SyntaxDiagnosticInfoList.cs
+  SyntaxList.cs
+  SyntaxList.WithLotsOfChildren.cs
+  SyntaxList.WithManyChildren.cs
+  SyntaxList.WithThreeChildren.cs
+  SyntaxList.WithTwoChildren.cs
+  SyntaxListBuilder.cs
+  SyntaxListBuilderExtensions.cs
+  SyntaxListBuilder`1.cs
+  SyntaxListPool.cs
+  SyntaxList`1.cs
+  SyntaxList`1.Enumerator.cs
+  SyntaxNodeCache.cs
+ ISkippedTokensTriviaSyntax.cs
+ IStructuredTriviaSyntax.cs
+ LineDirectiveMap.cs
+ LineDirectiveMap.LineMappingEntry.cs
+ LineMapping.cs
+ LineVisibility.cs
+ SeparatedSyntaxList.cs
+ SeparatedSyntaxList.Enumerator.cs
+ SeparatedSyntaxListBuilder.cs
+ SeparatedSyntaxListExtensions.cs
+ SyntaxAnnotation.cs
+ SyntaxDiffer.cs
+ SyntaxList.cs
+ SyntaxList.SeparatedWithManyChildren.cs
+ SyntaxList.SeparatedWithManyWeakChildren.cs
+ SyntaxList.WithManyChildren.cs
+ SyntaxList.WithManyWeakChildren.cs
+ SyntaxList.WithThreeChildren.cs
+ SyntaxList.WithTwoChildren.cs
+ SyntaxListBuilder.cs
+ SyntaxListBuilderExtensions.cs
+ SyntaxListBuilder`1.cs
+ SyntaxList`1.cs
+ SyntaxList`1.Enumerator.cs
+ SyntaxNavigator.cs
+ SyntaxNode.cs
+ SyntaxNode.Iterators.cs
+ SyntaxNodeExtensions.cs
+ SyntaxNodeExtensions_Tracking.cs
+ SyntaxNodeLocationComparer.cs
+ SyntaxNodeOrToken.cs
+ SyntaxNodeOrTokenList.cs
+ SyntaxNodeOrTokenListBuilder.cs
+ SyntaxReference.cs
+ SyntaxRemoveOptions.cs
+ SyntaxToken.cs
+ SyntaxTokenList.cs
+ SyntaxTokenList.Enumerator.cs
+ SyntaxTokenList.Reversed.cs
+ SyntaxTokenListBuilder.cs
+ SyntaxTree.cs
+ SyntaxTreeComparer.cs
+ SyntaxTreeExtensions.cs
+ SyntaxTrivia.cs
+ SyntaxTriviaList.cs
+ SyntaxTriviaList.Enumerator.cs
+ SyntaxTriviaList.Reversed.cs
+ SyntaxTriviaListBuilder.cs
+ SyntaxWalker.cs
+ SyntaxWalkerDepth.cs
+ TranslationSyntaxReference.cs
+SynthesizedLocalKind.cs
+Text/
+ ChangedText.cs
+ CompositeText.cs
+ LargeText.cs
+ LargeTextWriter.cs
+ LinePosition.cs
+ LinePositionSpan.cs
+ SourceHashAlgorithm.cs
+ SourceHashAlgorithms.cs
+ SourceText.cs
+ SourceTextComparer.cs
+ SourceTextContainer.cs
+ SourceTextStream.cs
+ SourceTextWriter.cs
+ StringBuilderText.cs
+ StringText.cs
+ StringTextWriter.cs
+ SubText.cs
+ TextChange.cs
+ TextChangeEventArgs.cs
+ TextChangeRange.cs
+ TextChangeRangeExtensions.cs
+ TextLine.cs
+ TextLineCollection.cs
+ TextSpan.cs
+ TextUtilities.cs
+TreeDumper.cs
+VersionHelper.cs
+WellKnownMember.cs
+WellKnownMembers.cs
+WellKnownTypes.cs
+Xml/XmlCharType.cs
+XmlFileResolver.cs
+
+[metadataReferences]
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.25/ref/net8.0/
+ Microsoft.CSharp.dll
+ Microsoft.VisualBasic.Core.dll
+ Microsoft.VisualBasic.dll
+ Microsoft.Win32.Primitives.dll
+ Microsoft.Win32.Registry.dll
+ mscorlib.dll
+ netstandard.dll
+ System.AppContext.dll
+ System.Buffers.dll
+ System.Collections.Concurrent.dll
+ System.Collections.dll
+ System.Collections.NonGeneric.dll
+ System.Collections.Specialized.dll
+ System.ComponentModel.Annotations.dll
+ System.ComponentModel.DataAnnotations.dll
+ System.ComponentModel.dll
+ System.ComponentModel.EventBasedAsync.dll
+ System.ComponentModel.Primitives.dll
+ System.ComponentModel.TypeConverter.dll
+ System.Configuration.dll
+ System.Console.dll
+ System.Core.dll
+ System.Data.Common.dll
+ System.Data.DataSetExtensions.dll
+ System.Data.dll
+ System.Diagnostics.Contracts.dll
+ System.Diagnostics.Debug.dll
+ System.Diagnostics.DiagnosticSource.dll
+ System.Diagnostics.FileVersionInfo.dll
+ System.Diagnostics.Process.dll
+ System.Diagnostics.StackTrace.dll
+ System.Diagnostics.TextWriterTraceListener.dll
+ System.Diagnostics.Tools.dll
+ System.Diagnostics.TraceSource.dll
+ System.Diagnostics.Tracing.dll
+ System.dll
+ System.Drawing.dll
+ System.Drawing.Primitives.dll
+ System.Dynamic.Runtime.dll
+ System.Formats.Asn1.dll
+ System.Formats.Tar.dll
+ System.Globalization.Calendars.dll
+ System.Globalization.dll
+ System.Globalization.Extensions.dll
+ System.IO.Compression.Brotli.dll
+ System.IO.Compression.dll
+ System.IO.Compression.FileSystem.dll
+ System.IO.Compression.ZipFile.dll
+ System.IO.dll
+ System.IO.FileSystem.AccessControl.dll
+ System.IO.FileSystem.dll
+ System.IO.FileSystem.DriveInfo.dll
+ System.IO.FileSystem.Primitives.dll
+ System.IO.FileSystem.Watcher.dll
+ System.IO.IsolatedStorage.dll
+ System.IO.MemoryMappedFiles.dll
+ System.IO.Pipes.AccessControl.dll
+ System.IO.Pipes.dll
+ System.IO.UnmanagedMemoryStream.dll
+ System.Linq.dll
+ System.Linq.Expressions.dll
+ System.Linq.Parallel.dll
+ System.Linq.Queryable.dll
+ System.Memory.dll
+ System.Net.dll
+ System.Net.Http.dll
+ System.Net.Http.Json.dll
+ System.Net.HttpListener.dll
+ System.Net.Mail.dll
+ System.Net.NameResolution.dll
+ System.Net.NetworkInformation.dll
+ System.Net.Ping.dll
+ System.Net.Primitives.dll
+ System.Net.Quic.dll
+ System.Net.Requests.dll
+ System.Net.Security.dll
+ System.Net.ServicePoint.dll
+ System.Net.Sockets.dll
+ System.Net.WebClient.dll
+ System.Net.WebHeaderCollection.dll
+ System.Net.WebProxy.dll
+ System.Net.WebSockets.Client.dll
+ System.Net.WebSockets.dll
+ System.Numerics.dll
+ System.Numerics.Vectors.dll
+ System.ObjectModel.dll
+ System.Reflection.DispatchProxy.dll
+ System.Reflection.dll
+ System.Reflection.Emit.dll
+ System.Reflection.Emit.ILGeneration.dll
+ System.Reflection.Emit.Lightweight.dll
+ System.Reflection.Extensions.dll
+ System.Reflection.Primitives.dll
+ System.Reflection.TypeExtensions.dll
+ System.Resources.Reader.dll
+ System.Resources.ResourceManager.dll
+ System.Resources.Writer.dll
+ System.Runtime.CompilerServices.Unsafe.dll
+ System.Runtime.CompilerServices.VisualC.dll
+ System.Runtime.dll
+ System.Runtime.Extensions.dll
+ System.Runtime.Handles.dll
+ System.Runtime.InteropServices.dll
+ System.Runtime.InteropServices.JavaScript.dll
+ System.Runtime.InteropServices.RuntimeInformation.dll
+ System.Runtime.Intrinsics.dll
+ System.Runtime.Loader.dll
+ System.Runtime.Numerics.dll
+ System.Runtime.Serialization.dll
+ System.Runtime.Serialization.Formatters.dll
+ System.Runtime.Serialization.Json.dll
+ System.Runtime.Serialization.Primitives.dll
+ System.Runtime.Serialization.Xml.dll
+ System.Security.AccessControl.dll
+ System.Security.Claims.dll
+ System.Security.Cryptography.Algorithms.dll
+ System.Security.Cryptography.Cng.dll
+ System.Security.Cryptography.Csp.dll
+ System.Security.Cryptography.dll
+ System.Security.Cryptography.Encoding.dll
+ System.Security.Cryptography.OpenSsl.dll
+ System.Security.Cryptography.Primitives.dll
+ System.Security.Cryptography.X509Certificates.dll
+ System.Security.dll
+ System.Security.Principal.dll
+ System.Security.Principal.Windows.dll
+ System.Security.SecureString.dll
+ System.ServiceModel.Web.dll
+ System.ServiceProcess.dll
+ System.Text.Encoding.CodePages.dll
+ System.Text.Encoding.dll
+ System.Text.Encoding.Extensions.dll
+ System.Text.Encodings.Web.dll
+ System.Text.Json.dll
+ System.Text.RegularExpressions.dll
+ System.Threading.Channels.dll
+ System.Threading.dll
+ System.Threading.Overlapped.dll
+ System.Threading.Tasks.Dataflow.dll
+ System.Threading.Tasks.dll
+ System.Threading.Tasks.Extensions.dll
+ System.Threading.Tasks.Parallel.dll
+ System.Threading.Thread.dll
+ System.Threading.ThreadPool.dll
+ System.Threading.Timer.dll
+ System.Transactions.dll
+ System.Transactions.Local.dll
+ System.ValueTuple.dll
+ System.Web.dll
+ System.Web.HttpUtility.dll
+ System.Windows.dll
+ System.Xml.dll
+ System.Xml.Linq.dll
+ System.Xml.ReaderWriter.dll
+ System.Xml.Serialization.dll
+ System.Xml.XDocument.dll
+ System.Xml.XmlDocument.dll
+ System.Xml.XmlSerializer.dll
+ System.Xml.XPath.dll
+ System.Xml.XPath.XDocument.dll
+ WindowsBase.dll
+<NUGET>/
+ system.collections.immutable/10.0.1/lib/net8.0/System.Collections.Immutable.dll
+ system.reflection.metadata/10.0.1/lib/net8.0/System.Reflection.Metadata.dll
+
+[analyzerReferences]
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.25/analyzers/dotnet/cs/
+ Microsoft.Interop.ComInterfaceGenerator.dll
+ Microsoft.Interop.LibraryImportGenerator.dll
+ Microsoft.Interop.SourceGeneration.dll
+ System.Text.Json.SourceGeneration.dll
+ System.Text.RegularExpressions.Generator.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/codestyle/cs/
+ Microsoft.CodeAnalysis.CodeStyle.dll
+ Microsoft.CodeAnalysis.CodeStyle.Fixes.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll
+<NUGET>/microsoft.codeanalysis.analyzers/5.6.0-2.26172.2/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.Analyzers.dll
+ Microsoft.CodeAnalysis.CSharp.Analyzers.dll
+<NUGET>/microsoft.codeanalysis.bannedapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.BannedApiAnalyzers.dll
+ Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll
+ Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.publicapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.dll
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/analyzers/cs/
+ Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll
+ Microsoft.VisualStudio.Threading.Analyzers.CSharp.dll
+ Microsoft.VisualStudio.Threading.Analyzers.dll
+<NUGET>/roslyn.diagnostics.analyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Roslyn.Diagnostics.Analyzers.dll
+ Roslyn.Diagnostics.CSharp.Analyzers.dll
+
+[analyzerConfigFiles]
+../../../../
+ .editorconfig
+ artifacts/obj/Microsoft.CodeAnalysis/Debug/net8.0/Microsoft.CodeAnalysis.GeneratedMSBuildEditorConfig.editorconfig
+ eng/config/globalconfigs/
+  Common.globalconfig
+  Shipping.globalconfig
+../../
+ ../Dependencies/.editorconfig
+ .editorconfig
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_8_default.globalconfig
+
+[additionalFiles]
+../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/net8.0/Microsoft.CodeAnalysis.xlf/
+ CodeAnalysisResources.cs.resx
+ CodeAnalysisResources.de.resx
+ CodeAnalysisResources.es.resx
+ CodeAnalysisResources.fr.resx
+ CodeAnalysisResources.it.resx
+ CodeAnalysisResources.ja.resx
+ CodeAnalysisResources.ko.resx
+ CodeAnalysisResources.pl.resx
+ CodeAnalysisResources.pt-BR.resx
+ CodeAnalysisResources.ru.resx
+ CodeAnalysisResources.tr.resx
+ CodeAnalysisResources.zh-Hans.resx
+ CodeAnalysisResources.zh-Hant.resx
+../../../../eng/config/BannedSymbols.txt
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/buildTransitive/AdditionalFiles/
+ vs-threading.LegacyThreadSwitchingMembers.txt
+ vs-threading.MainThreadAssertingMethods.txt
+ vs-threading.MainThreadSwitchingMethods.txt
+ vs-threading.MembersRequiringMainThread.txt
+BannedSymbols.CompilerLibraries.txt
+CodeAnalysisResources.resx
+PublicAPI.Shipped.txt
+PublicAPI.Unshipped.txt
+
+---
+
+[project]
+language=C#
+lastDtbSucceeded
+
+[sliceDimensions]
+TargetFramework=netstandard2.0
+
+[properties]
+AssemblyName=Microsoft.CodeAnalysis
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:TRACE;COMPILERCORE;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT;MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER -features:strict -doc:"<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/netstandard2.0/Microsoft.CodeAnalysis.xml"
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=7.3
+ProjectAssetsFile=<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/project.assets.json
+RootNamespace=Microsoft.CodeAnalysis
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETStandard
+TargetPath=<PATH>../../../../artifacts/bin/Microsoft.CodeAnalysis/Debug/netstandard2.0/Microsoft.CodeAnalysis.dll
+TargetRefPath=<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.dll
+TemporaryDependencyNodeTargetIdentifier=netstandard2.0
+
+[commandLineArguments]
+/noconfig
+/unsafe+
+/checked-
+/nowarn:1701,1702,1705,1591,NU1507,NU1510,RS1041,RS1038,1573,1591,1701,NU5105,Nullable,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:9999
+/doc:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/netstandard2.0/Microsoft.CodeAnalysis.xml
+/define:TRACE;COMPILERCORE;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT;MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER;DEBUG;NETSTANDARD;NETSTANDARD2_0;NETSTANDARD1_0_OR_GREATER;NETSTANDARD1_1_OR_GREATER;NETSTANDARD1_2_OR_GREATER;NETSTANDARD1_3_OR_GREATER;NETSTANDARD1_4_OR_GREATER;NETSTANDARD1_5_OR_GREATER;NETSTANDARD1_6_OR_GREATER;NETSTANDARD2_0_OR_GREATER
+/highentropyva+
+/nullable:enable
+/debug+
+/debug:embedded
+/delaysign-
+/filealign:512
+/keyfile:<NUGET>/microsoft.dotnet.arcade.sdk/10.0.0-beta.26201.4/tools/snk/35MSSharedLib1024.snk
+/optimize-
+/out:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/netstandard2.0/Microsoft.CodeAnalysis.dll
+/refout:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/netstandard2.0/refint/Microsoft.CodeAnalysis.dll
+/target:library
+/warnaserror-
+/utf8output
+/deterministic+
+/publicsign+
+/checksumalgorithm:SHA256
+/langversion:preview
+/skipanalyzers+
+/features:strict
+/embed:<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/build/PerformanceSensitiveAttribute.cs
+/warnaserror+:NU1605
+/warnaserror-:IDE0055
+
+[sourceFiles]
+../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/netstandard2.0/
+ .NETStandard,Version=v2.0.AssemblyAttributes.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,netstandard2.0
+ Microsoft.CodeAnalysis.AssemblyInfo.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,netstandard2.0
+ Microsoft.CodeAnalysis.CodeAnalysisResources.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,netstandard2.0
+ Microsoft.CodeAnalysis.InternalsVisibleTo.cs
+  @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis,Debug,netstandard2.0
+../../../Dependencies/CodeAnalysis.Debugging/
+ CompilationOptionNames.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoConstants.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoEncoder.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoKind.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoReader.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ CustomDebugInfoRecord.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ DynamicLocalInfo.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ ImportTargetKind.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ PortableCustomDebugInfoKinds.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ StateMachineHoistedLocalScope.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ TupleElementNamesInfo.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+ VBImportScopeKind.cs
+  @folderNames=..,..,..,Dependencies,CodeAnalysis.Debugging
+../../../Dependencies/Collections/Extensions/
+ FixedSizeArrayBuilder.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ ICollectionExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ IEnumerableExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ IListExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ ImmutableArrayExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ KeyValuePairExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+ MemoryExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections,Extensions
+../../../Dependencies/Collections/Internal/
+ ArraySortHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ BitHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ HashHelpers.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ICollectionCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ICollectionCalls`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ICollectionDebugView`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IDictionaryCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IDictionaryDebugView`2.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IEnumerableCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IEnumerableCalls`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ IListCalls.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ InsertionBehavior.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ RoslynUnsafe.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SegmentedArrayHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SegmentedArraySegment`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SegmentedHashSetEqualityComparer`1.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ SR.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+ ThrowHelper.cs
+  @folderNames=..,..,..,Dependencies,Collections,Internal
+../../../Dependencies/Collections/
+ KeyValuePair.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ OneOrMany.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ RoslynEnumerable.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ RoslynImmutableInterlocked.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ Segmented/
+  ImmutableSegmentedDictionary.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Builder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+KeyCollection+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+KeyCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+ValueBuilder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2+ValueCollection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedDictionary`2.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+Builder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1+ValueBuilder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedHashSet`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedListExtensions.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+Builder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1+ValueBuilder.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  ImmutableSegmentedList`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedArray.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedArray`1+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedArray`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedCollectionsMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedDictionary`2+PrivateMarshal.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedDictionary`2.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedHashSet`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+  SegmentedList`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Segmented
+ Specialized/
+  SpecializedCollections.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Collection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Dictionary.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Enumerable.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Enumerator.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Enumerator`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.List.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Empty.Set.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Collection.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Enumerable`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Enumerable`2.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.ReadOnly.Set.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Singleton.Collection`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+  SpecializedCollections.Singleton.Enumerator`1.cs
+   @folderNames=..,..,..,Dependencies,Collections,Specialized
+ TemporaryArrayExtensions.cs
+  @folderNames=..,..,..,Dependencies,Collections
+ TemporaryArray`1.cs
+  @folderNames=..,..,..,Dependencies,Collections
+../../../Dependencies/Contracts/
+ CollectionBuilderAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ CompilerFeatureRequiredAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Contract.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Contract.InterpolatedStringHandlers.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ EnumExtensions.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ EqualityComparerExtensions.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ErrorReporting/
+  FailFast.cs
+   @folderNames=..,..,..,Dependencies,Contracts,ErrorReporting
+  FatalError.cs
+   @folderNames=..,..,..,Dependencies,Contracts,ErrorReporting
+ ExceptionUtilities.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ExperimentalAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Index.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ InterpolatedStringHandlerArgumentAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ InterpolatedStringHandlerAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ IReadOnlySet.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ IsExternalInit.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ NonCopyableAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ NonDefaultableAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ NullableAttributes.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ Range.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ReferenceEqualityComparer.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ RequiredMemberAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ SetsRequiredMembersAttribute.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+ ValueTaskExtensions.cs
+  @folderNames=..,..,..,Dependencies,Contracts
+../../../Dependencies/PooledObjects/
+ ArrayBuilder.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ ArrayBuilder.Enumerator.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ ArrayBuilderExtensions.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ IPooled.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ ObjectPool`1.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledDelegates.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledDictionary.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledDisposer.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledHashSet.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+ PooledStringBuilder.cs
+  @folderNames=..,..,..,Dependencies,PooledObjects
+../AnalyzerDriver/
+ AnalyzerExceptionDescriptionBuilder.cs
+  @folderNames=..,AnalyzerDriver
+ DeclarationComputer.cs
+  @folderNames=..,AnalyzerDriver
+ DeclarationInfo.cs
+  @folderNames=..,AnalyzerDriver
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/build/PerformanceSensitiveAttribute.cs
+AdditionalTextFile.cs
+AssemblyUtilities.cs
+AssemblyUtilitiesCore.cs
+Binding/
+ AbstractLookupSymbolsInfo.cs
+ BindingDiagnosticBag.cs
+ UseSiteInfo.cs
+CaseInsensitiveComparison.cs
+CodeAnalysisEventSource.Common.cs
+CodeAnalysisEventSource.Compiler.cs
+CodeAnalysisResourcesLocalizableErrorArgument.cs
+CodeGen/
+ ArrayMembers.cs
+ AwaitDebugId.cs
+ BasicBlock.cs
+ ClosureDebugInfo.cs
+ CompilationTestData.cs
+ DebugDocumentProvider.cs
+ DebugId.cs
+ EmitState.cs
+ ILBuilder.cs
+ ILBuilderConversions.cs
+ ILBuilderEmit.cs
+ ILEmitStyle.cs
+ ILOpCodeExtensions.cs
+ ItemTokenMap.cs
+ LabelInfo.cs
+ LambdaDebugInfo.cs
+ LambdaRuntimeRudeEditInfo.cs
+ LocalConstantDefinition.cs
+ LocalDebugId.cs
+ LocalDefinition.cs
+ LocalOrParameter.cs
+ LocalScopeManager.cs
+ LocalSlotDebugInfo.cs
+ LocalSlotManager.cs
+ MetadataConstant.cs
+ MetadataCreateArray.cs
+ MetadataNamedArgument.cs
+ MetadataTypeOf.cs
+ MethodBody.cs
+ PermissionSetAttribute.cs
+ PrivateImplementationDetails.cs
+ RawSequencePoint.cs
+ ReferenceDependencyWalker.cs
+ ScopeType.cs
+ SequencePointList.cs
+ SignatureOnlyLocalDefinition.cs
+ StateMachineState.cs
+ StateMachineStateDebugInfo.cs
+ StringTokenMap.cs
+ SwitchIntegralJumpTableEmitter.cs
+ SwitchIntegralJumpTableEmitter.SwitchBucket.cs
+ SwitchStringJumpTableEmitter.cs
+ SynthesizedLocalOrdinalsDispenser.cs
+ TokenMap.cs
+ VariableSlotAllocator.cs
+ Win32Res.cs
+Collections/
+ ArrayBuilderExtensions.cs
+ ArrayElement.cs
+ BitVector.cs
+ Boxes.cs
+ ByteSequenceComparer.cs
+ CachingDictionary.cs
+ CachingFactory.cs
+ CollectionsExtensions.cs
+ ConcurrentCache.cs
+ ConsListExtensions.cs
+ DictionaryExtensions.cs
+ Grouping.cs
+ HashSetExtensions.cs
+ IdentifierCollection.Collection.cs
+ IdentifierCollection.cs
+ ImmutableHashSetExtensions.cs
+ ImmutableMemoryStream.cs
+ IOrderedReadOnlySet.cs
+ KeyedStack.cs
+ OrderedSet.cs
+ OrderPreservingMultiDictionary.cs
+ Rope.cs
+ SmallConcurrentSetOfInts.cs
+ SmallDictionary.cs
+ StaticCast.cs
+ TopologicalSort.cs
+ UnionCollection.cs
+CommandLine/
+ AnalyzerConfig.cs
+ AnalyzerConfig.SectionNameMatching.cs
+ AnalyzerConfigOptionsResult.cs
+ AnalyzerConfigSet.cs
+ CommandLineAnalyzerReference.cs
+ CommandLineArguments.cs
+ CommandLineParser.cs
+ CommandLineReference.cs
+ CommandLineResource.cs
+ CommandLineSourceFile.cs
+ CommonCompiler.CompilerEmitStreamProvider.cs
+ CommonCompiler.CompilerRelativePathResolver.cs
+ CommonCompiler.cs
+ CommonCompiler.ExistingReferencesResolver.cs
+ CommonCompiler.LoggingMetadataFileReferenceResolver.cs
+ CommonCompiler.LoggingSourceFileResolver.cs
+ CommonCompiler.LoggingStrongNameProvider.cs
+ CommonCompiler.LoggingXmlFileResolver.cs
+ CommonCompiler.SuppressionDiagnostic.cs
+ ErrorLogger.cs
+ ErrorLogOptions.cs
+ Feature.cs
+ NoThrowStreamDisposer.cs
+ ReportAnalyzerUtil.cs
+ SarifDiagnosticComparer.cs
+ SarifErrorLogger.cs
+ SarifV1ErrorLogger.cs
+ SarifV2ErrorLogger.cs
+ SarifVersion.cs
+ TouchedFileLogger.cs
+CommitHashAttribute.cs
+Compilation.EmitStream.cs
+Compilation.EmitStreamProvider.cs
+Compilation/
+ CandidateReason.cs
+ CommonModuleCompilationState.cs
+ CommonSyntaxAndDeclarationManager.cs
+ Compilation.cs
+ CompilationOptions.cs
+ CompilationStage.cs
+ ControlFlowAnalysis.cs
+ DataFlowAnalysis.cs
+ DeterministicKey.cs
+ DeterministicKeyBuilder.cs
+ DeterministicKeyOptions.cs
+ EmitDifferenceOptions.cs
+ EmitResult.cs
+ Expression.cs
+ Extensions.cs
+ GeneratedKind.cs
+ IImportScope.cs
+ LoadDirective.cs
+ NullableContext.cs
+ NullableContextOptions.cs
+ OptimizationLevel.cs
+ ParseOptions.cs
+ Platform.cs
+ PreprocessingSymbolInfo.cs
+ RebuildData.cs
+ ScriptCompilationInfo.cs
+ SemanticModel.cs
+ SemanticModelOptions.cs
+ SemanticModelProvider.cs
+ SourceReferenceResolver.cs
+ SpeculativeBindingOption.cs
+ SubsystemVersion.cs
+ SymbolFilter.cs
+ SymbolInfo.cs
+ SyntaxTreeOptionsProvider.cs
+ TypeInfo.cs
+ XmlReferenceResolver.cs
+ConstantValue.cs
+ConstantValueSpecialized.cs
+CryptographicHashProvider.cs
+CvtRes.cs
+Desktop/
+ AssemblyPortabilityPolicy.cs
+ AssemblyVersion.cs
+ DesktopAssemblyIdentityComparer.cs
+ DesktopAssemblyIdentityComparer.Fx.cs
+Diagnostic/
+ CommonDiagnosticComparer.cs
+ CommonMessageProvider.cs
+ CustomObsoleteDiagnosticInfo.cs
+ Diagnostic.cs
+ Diagnostic.DiagnosticWithProgrammaticSuppression.cs
+ DiagnosticArrayExtensions.cs
+ DiagnosticBag.cs
+ DiagnosticDescriptor.cs
+ DiagnosticFormatter.cs
+ DiagnosticInfo.cs
+ DiagnosticSeverity.cs
+ DiagnosticWithInfo.cs
+ Diagnostic_SimpleDiagnostic.cs
+ ExternalFileLocation.cs
+ FileLinePositionSpan.cs
+ LocalizableResourceString.cs
+ LocalizableResourceString.FixedLocalizableString.cs
+ LocalizableString.cs
+ Location.cs
+ LocationKind.cs
+ MetadataLocation.cs
+ NoLocation.cs
+ ProgrammaticSuppressionInfo.cs
+ ReportDiagnostic.cs
+ SeverityFilter.cs
+ SourceLocation.cs
+ SuppressionDescriptor.cs
+ SuppressionInfo.cs
+ WellKnownDiagnosticTags.cs
+ XmlLocation.cs
+DiagnosticAnalyzer/
+ AdditionalText.cs
+ AdditionalTextComparer.cs
+ AdditionalTextValueProvider.cs
+ AnalysisContextInfo.cs
+ AnalysisResult.cs
+ AnalysisResultBuilder.cs
+ AnalysisScope.cs
+ AnalysisValueProvider.cs
+ AnalyzerActionCounts.cs
+ AnalyzerAssemblyLoader.Core.cs
+ AnalyzerAssemblyLoader.cs
+ AnalyzerAssemblyLoader.Desktop.cs
+ AnalyzerConfigOptions.cs
+ AnalyzerConfigOptionsProvider.cs
+ AnalyzerDriver.CompilationData.cs
+ AnalyzerDriver.cs
+ AnalyzerDriver.DeclarationAnalysisData.cs
+ AnalyzerDriver.EventProcessedState.cs
+ AnalyzerDriver.ExecutableCodeBlockAnalyzerActions.cs
+ AnalyzerDriver.GroupedAnalyzerActions.cs
+ AnalyzerDriver.GroupedAnalyzerActionsForAnalyzer.cs
+ AnalyzerDriver.IGroupedAnalyzerActions.cs
+ AnalyzerExecutor.AnalyzerDiagnosticReporter.cs
+ AnalyzerExecutor.cs
+ AnalyzerFileReference.cs
+ AnalyzerImageReference.cs
+ AnalyzerLoadFailureEventArgs.cs
+ AnalyzerManager.AnalyzerExecutionContext.cs
+ AnalyzerManager.cs
+ AnalyzerOptions.cs
+ AnalyzerOptionsExtensions.cs
+ AnalyzerReference.cs
+ AnalyzerTelemetry.cs
+ AsyncQueue.cs
+ CachingSemanticModelProvider.cs
+ CompilationAnalysisValueProvider.cs
+ CompilationAnalysisValueProviderFactory.cs
+ CompilationCompletedEvent.cs
+ CompilationEvent.cs
+ CompilationStartedEvent.cs
+ CompilationUnitCompletedEvent.cs
+ CompilationWithAnalyzers.cs
+ CompilationWithAnalyzersOptions.cs
+ CompilerAnalyzerConfigOptionsProvider.cs
+ CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs
+ CompilerDiagnosticAnalyzer.cs
+ DiagnosticAnalysisContext.cs
+ DiagnosticAnalysisContextHelpers.cs
+ DiagnosticAnalyzer.cs
+ DiagnosticAnalyzerAction.cs
+ DiagnosticAnalyzerAttribute.cs
+ DiagnosticAnalyzerExtensions.cs
+ DiagnosticQueue.cs
+ DiagnosticStartAnalysisScope.cs
+ DiagnosticSuppressor.cs
+ DictionaryAnalyzerConfigOptions.cs
+ IAnalyzerAssemblyLoader.cs
+ IAnalyzerAssemblyResolver.cs
+ IAnalyzerPathResolver.cs
+ ProgramFilesAnalyzerPathResolver.cs
+ ShadowCopyAnalyzerPathResolver.cs
+ SourceOrAdditionalFile.cs
+ SourceTextValueProvider.cs
+ Suppression.cs
+ SuppressMessageAttributeState.cs
+ SuppressMessageAttributeState.TargetScope.cs
+ SuppressMessageAttributeState.TargetSymbolResolver.cs
+ SuppressMessageInfo.cs
+ SymbolDeclaredCompilationEvent.cs
+ SyntaxTreeValueProvider.cs
+ UnresolvedAnalyzerReference.cs
+DiaSymReader/Metadata/
+ IMetadataEmit.cs
+ IMetadataImport.cs
+ ISymWriterMetadataProvider.cs
+ MetadataAdapterBase.cs
+ MetadataImportFieldOffset.cs
+ SymWriterMetadataAdapter.cs
+DiaSymReader/
+ SymUnmanagedFactory.cs
+ Utilities/
+  ComMemoryStream.cs
+  HResult.cs
+  InteropUtilities.cs
+  IUnsafeComStream.cs
+ Writer/
+  ISymUnmanagedAsyncMethodPropertiesWriter.cs
+  ISymUnmanagedCompilerInfoWriter.cs
+  ISymUnmanagedDocumentWriter.cs
+  ISymUnmanagedWriter.cs
+  SymUnmanagedSequencePointsWriter.cs
+  SymUnmanagedWriter.cs
+  SymUnmanagedWriterCreationOptions.cs
+  SymUnmanagedWriterException.cs
+  SymUnmanagedWriterFactory.cs
+  SymUnmanagedWriterImpl.cs
+DocumentationCommentId.cs
+DocumentationComments/
+ DocumentationCommentIncludeCache.cs
+ DocumentationProvider.cs
+ DocumentationProvider.NullDocumentationProvider.cs
+ XmlDocumentationCommentTextReader.cs
+ XmlDocumentationCommentTextReader.XmlStream.cs
+DocumentationMode.cs
+EmbeddedText.cs
+Emit/
+ AnonymousDelegateWithIndexedNamePartialKey.cs
+ AnonymousTypeKey.cs
+ AnonymousTypeValue.cs
+ AsyncMoveNextBodyDebugInfo.cs
+ CommonPEModuleBuilder.cs
+ Context.cs
+ DebugDocumentsBuilder.cs
+ DebugInformationFormat.cs
+ EditAndContinue/
+  AddedOrChangedMethodInfo.cs
+  DefinitionMap.cs
+  DeletedMethodBody.cs
+  DeletedPEMethodDefinition.cs
+  DeletedSourceDefinition.cs
+  DeletedSourceEventDefinition.cs
+  DeletedSourceGenericParameter.cs
+  DeletedSourceMethodDefinition.cs
+  DeletedSourceParameterDefinition.cs
+  DeletedSourcePropertyDefinition.cs
+  DeletedSourceTypeDefinition.cs
+  DeltaMetadataWriter.cs
+  EmitBaseline.cs
+  EmitDifferenceResult.cs
+  EncClosureInfo.cs
+  EncClosureMapValue.cs
+  EncHoistedLocalInfo.cs
+  EncHoistedLocalMetadata.cs
+  EncLambdaInfo.cs
+  EncLambdaMapValue.cs
+  EncLocalInfo.cs
+  EncMappedMethod.cs
+  EncVariableSlotAllocator.cs
+  IDeletedEventDefinition.cs
+  IDeletedMethodDefinition.cs
+  IDeletedPropertyDefinition.cs
+  IPEDeltaAssemblyBuilder.cs
+  LambdaSyntaxFacts.cs
+  SymbolChange.cs
+  SymbolChanges.cs
+  SymbolMatcher.cs
+  SynthesizedTypeMaps.cs
+ EditAndContinueMethodDebugInformation.cs
+ EmitOptions.cs
+ ErrorType.cs
+ HotReloadExceptionCode.cs
+ InstrumentationKind.cs
+ IteratorMoveNextBodyDebugInfo.cs
+ MethodInstrumentation.cs
+ ModulePropertiesForSerialization.cs
+ NoPia/
+  CommonEmbeddedEvent.cs
+  CommonEmbeddedField.cs
+  CommonEmbeddedMember.cs
+  CommonEmbeddedMethod.cs
+  CommonEmbeddedParameter.cs
+  CommonEmbeddedProperty.cs
+  CommonEmbeddedType.cs
+  CommonEmbeddedTypeParameter.cs
+  EmbeddedTypesManager.cs
+  VtblGap.cs
+ RuntimeRudeEdit.cs
+ SemanticEdit.cs
+ SemanticEditKind.cs
+ StateMachineMoveNextDebugInfo.cs
+ SynthesizedDelegateKey.cs
+ SynthesizedDelegateValue.cs
+EncodedStringText.cs
+EnumConstantHelper.cs
+ExtendedSpecialType.cs
+FileKey.cs
+FileSystem/
+ CompilerPathUtilities.cs
+ FileUtilities.cs
+ ICommonCompilerFileSystem.cs
+ PathKind.cs
+ PathUtilities.cs
+ RelativePathResolver.cs
+FileSystemExtensions.cs
+Generated/
+ FlowAnalysis.Generated.cs
+ OperationKind.Generated.cs
+ Operations.Generated.cs
+GlobalSuppressions.cs
+Hashing/
+ BitOperations.cs
+ NonCryptographicHashAlgorithm.cs
+ XxHash128.cs
+ XxHash64.State.cs
+ XxHashShared.cs
+ImplementationIsObsoleteAttribute.cs
+InternalImplementationOnlyAttribute.cs
+InternalSpecialType.cs
+InternalUtilities/
+ ArrayExtensions.cs
+ BitArithmeticUtilities.cs
+ BlobBuildingStream.cs
+ CharMemoryEqualityComparer.cs
+ CommandLineUtilities.cs
+ CompilerOptionParseUtilities.cs
+ ConcurrentDictionaryExtensions.cs
+ ConcurrentLruCache.cs
+ ConcurrentSet.cs
+ ConsList`1.cs
+ Debug.cs
+ DecimalUtilities.cs
+ DocumentationCommentXmlNames.cs
+ EncodingExtensions.cs
+ EnumField.cs
+ EnumUtilties.cs
+ ExceptionExtensions.cs
+ FileLockCheck.cs
+ FileNameUtilities.cs
+ Hash.cs
+ ImmutableListExtensions.cs
+ ImmutableSetWithInsertionOrder`1.cs
+ IncrementalHashExtensions.cs
+ InterlockedOperations.cs
+ IReadOnlyListExtensions.cs
+ ISetExtensions.cs
+ JsonWriter.cs
+ LittleEndianReader.cs
+ MultiDictionary.cs
+ NoMessagePumpSyncContext.cs
+ OrderedMultiDictionary.cs
+ PlatformInformation.cs
+ ReaderWriterLockSlimExtensions.cs
+ ReadOnlyMemoryOfCharComparer.cs
+ ReadOnlyUnmanagedMemoryStream.cs
+ ReflectionUtilities.cs
+ RoslynExperiments.cs
+ RoslynLazyInitializer.cs
+ RoslynParallel.cs
+ RoslynString.cs
+ SemaphoreSlimExtensions.cs
+ SetWithInsertionOrder.cs
+ SharedStopwatch.cs
+ SingleInitNullable.cs
+ SpanUtilities.cs
+ SpecializedSyncContext.cs
+ StackGuard.cs
+ StreamExtensions.cs
+ StringExtensions.cs
+ StringOrdinalComparer.cs
+ StringTable.cs
+ SuppressUnmanagedCodeSecurityAttribute.cs
+ TextKeyedCache.cs
+ ThreadSafeFlagOperations.cs
+ ThreeState.cs
+ UICultureUtilities.cs
+ UnicodeCharacterUtilities.cs
+ WeakList.cs
+ WeakReferenceExtensions.cs
+ XmlUtilities.cs
+Interop/
+ ClrStrongName.cs
+ IClrMetaHost.cs
+ IClrRuntimeInfo.cs
+ IClrStrongName.cs
+IReferenceOrISignature.cs
+IVTConclusion.cs
+MemberDescriptor.cs
+MemoryExtensions.cs
+MetadataReader/
+ EmbeddedResource.cs
+ LocalSlotConstraints.cs
+ MetadataDecoder.cs
+ MetadataHelpers.cs
+ MetadataImportOptions.cs
+ MetadataReaderExtensions.cs
+ MetadataTypeCodeExtensions.cs
+ MetadataTypeName.cs
+ MetadataTypeName.Key.cs
+ ModuleExtensions.cs
+ PEAssembly.cs
+ PEModule.cs
+ SymbolFactory.cs
+ TypeAttributesExtensions.cs
+ TypeNameDecoder.cs
+ UnsupportedSignatureContent.cs
+MetadataReference/
+ AssemblyIdentity.cs
+ AssemblyIdentity.DisplayName.cs
+ AssemblyIdentityComparer.cs
+ AssemblyIdentityExtensions.cs
+ AssemblyIdentityMap.cs
+ AssemblyIdentityParts.cs
+ AssemblyIdentityUtils.cs
+ AssemblyMetadata.cs
+ CompilationReference.cs
+ Metadata.cs
+ MetadataImageKind.cs
+ MetadataImageReference.cs
+ MetadataReference.cs
+ MetadataReferenceProperties.cs
+ MetadataReferenceResolver.cs
+ ModuleMetadata.cs
+ PortableExecutableReference.cs
+ ReferenceDirective.cs
+ UnresolvedMetadataReference.cs
+MethodImplExtensions.cs
+NativePdbWriter/
+ PdbWriter.cs
+ SymWriterMetadataProvider.cs
+Operations/
+ ArgumentKind.cs
+ BasicBlock.cs
+ BasicBlockKind.cs
+ BinaryOperatorKind.cs
+ BranchKind.cs
+ CaptureId.cs
+ CaseKind.cs
+ CommonConversion.cs
+ ControlFlowBranch.cs
+ ControlFlowBranchSemantics.cs
+ ControlFlowConditionKind.cs
+ ControlFlowGraph.cs
+ ControlFlowGraphBuilder.BasicBlockBuilder.cs
+ ControlFlowGraphBuilder.CaptureIdDispenser.cs
+ ControlFlowGraphBuilder.ConditionalAccessOperationTracker.cs
+ ControlFlowGraphBuilder.Context.cs
+ ControlFlowGraphBuilder.cs
+ ControlFlowGraphBuilder.ImplicitInstanceInfo.cs
+ ControlFlowGraphBuilder.InterpolatedStringContext.cs
+ ControlFlowGraphBuilder.RegionBuilder.cs
+ ControlFlowGraphExtensions.cs
+ ControlFlowRegion.cs
+ ControlFlowRegionKind.cs
+ DisposeOperationInfo.cs
+ IConvertibleConversion.cs
+ InstanceReferenceKind.cs
+ InterpolatedStringArgumentPlaceholderKind.cs
+ IOperation.cs
+ IOperation.OperationList.cs
+ IOperation.OperationList.Reversed.cs
+ Loops/
+  ForEachLoopOperationInfo.cs
+  ForToLoopOperationInfo.cs
+  LoopKind.cs
+ Operation.cs
+ OperationCloner.cs
+ OperationExtensions.cs
+ OperationFactory.cs
+ OperationMapBuilder.cs
+ OperationNodes.cs
+ OperationVisitor.cs
+ OperationWalker.cs
+ PlaceholderKind.cs
+ UnaryOperatorKind.cs
+Optional.cs
+OutputKind.cs
+PEWriter/
+ AssemblyReferenceAlias.cs
+ Constants.cs
+ Core.cs
+ CustomDebugInfoWriter.cs
+ DebugSourceDocument.cs
+ DebugSourceInfo.cs
+ ExceptionHandlerRegion.cs
+ ExportedType.cs
+ Expressions.cs
+ ExtendedPEBuilder.cs
+ FullMetadataWriter.cs
+ ICustomAttribute.cs
+ IFileReference.cs
+ IImportScope.cs
+ InheritedTypeParameter.cs
+ InstructionOperandTypes.cs
+ ITypeReferenceExtensions.cs
+ LocalScope.cs
+ ManagedResource.cs
+ MemberRefComparer.cs
+ Members.cs
+ MetadataBuilderExtensions.cs
+ MetadataVisitor.cs
+ MetadataWriter.cs
+ MetadataWriter.DynamicAnalysis.cs
+ MetadataWriter.PortablePdb.cs
+ MethodDefinitionBase.cs
+ MethodSpecComparer.cs
+ Miscellaneous.cs
+ ModifiedTypeReference.cs
+ NativeResourceWriter.cs
+ ParameterDefinitionBase.cs
+ PeWriter.cs
+ PooledBlobBuilder.cs
+ ReferenceIndexer.cs
+ ReferenceIndexerBase.cs
+ ReturnValueParameter.cs
+ RootModuleType.cs
+ SequencePoint.cs
+ SigningUtilities.cs
+ SourceSpan.cs
+ StaticConstructor.cs
+ SymbolEquivalentEqualityComparer.cs
+ TypeLibTypeFlags.cs
+ TypeNameSerializer.cs
+ TypeReferenceIndexer.cs
+ Types.cs
+ TypeSpecComparer.cs
+ Units.cs
+ UsedNamespaceOrType.cs
+PrimitiveTypeCodeExtensions.cs
+RealParser.cs
+ReferenceManager/
+ AssemblyData.cs
+ AssemblyDataForAssemblyBeingBuilt.cs
+ AssemblyReferenceBinding.cs
+ AssemblyReferenceCandidate.cs
+ BoundInputAssembly.cs
+ CommonReferenceManager.Binding.cs
+ CommonReferenceManager.Resolution.cs
+ CommonReferenceManager.State.cs
+ Compilation_MetadataCache.cs
+ MergedAliases.cs
+ ModuleReferences.cs
+ UnifiedAssembly.cs
+ResourceDescription.cs
+ResourceException.cs
+RuleSet/
+ InvalidRuleSetException.cs
+ RuleSet.cs
+ RuleSetInclude.cs
+ RuleSetProcessor.cs
+RuntimeCapability.cs
+SignatureComparer.cs
+SourceCodeKind.cs
+SourceCodeKindExtensions.cs
+SourceFileResolver.cs
+SourceGeneration/
+ AdditionalSourcesCollection.cs
+ GeneratedCodeUtilities.cs
+ GeneratedSourceText.cs
+ GeneratedSyntaxTree.cs
+ GeneratorAdaptor.cs
+ GeneratorAttribute.cs
+ GeneratorContexts.cs
+ GeneratorDriver.cs
+ GeneratorDriverCache.cs
+ GeneratorDriverOptions.cs
+ GeneratorDriverState.cs
+ GeneratorExtensions.cs
+ GeneratorState.cs
+ GeneratorSyntaxWalker.cs
+ GeneratorTimerExtensions.cs
+ GlobalAliases.cs
+ IIncrementalGenerator.cs
+ IncrementalContexts.cs
+ IncrementalGeneratorRunStep.cs
+ IncrementalStepRunReason.cs
+ IncrementalValueProvider.cs
+ IncrementalWrapper.cs
+ ISourceGenerator.cs
+ ISyntaxHelper.cs
+ ISyntaxReceiver.cs
+ Nodes/
+  BatchNode.cs
+  CombineNode.cs
+  DriverStateTable.cs
+  GeneratorRunStateTable.cs
+  HostOutputNode.cs
+  IIncrementalGeneratorNode.cs
+  IIncrementalGeneratorOutputNode.cs
+  InputNode.cs
+  ISyntaxStrategy.cs
+  NodeExtensions.cs
+  NodeStateTable.cs
+  PostInitOutputNode.cs
+  PredicateSyntaxStrategy.cs
+  SharedInputNodes.cs
+  SourceOutputNode.cs
+  StateTableStore.cs
+  SyntaxInputNode.cs
+  SyntaxReceiverStrategy.cs
+  SyntaxValueProvider.cs
+  SyntaxValueProvider_ForAttributeWithMetadataName.cs
+  SyntaxValueProvider_ForAttributeWithSimpleName.cs
+  TransformNode.cs
+  ValueSourceExtensions.cs
+ RunResults.cs
+ SyntaxContextReceiverAdaptor.cs
+ SyntaxStore.cs
+ UserFunction.cs
+ WellKnownGeneratorInputs.cs
+ WellKnownGeneratorOutputs.cs
+SpecialMember.cs
+SpecialMembers.cs
+SpecialType.cs
+SpecialTypeExtensions.cs
+SpecialTypes.cs
+StrongName/
+ CryptoBlobParser.cs
+ DesktopStrongNameProvider.cs
+ StrongNameFileSystem.cs
+ StrongNameKeys.cs
+ StrongNameProvider.cs
+SwitchConstantValueHelper.cs
+SymbolDisplay/
+ AbstractSymbolDisplayVisitor.cs
+ AbstractSymbolDisplayVisitor_Minimal.cs
+ FormattedSymbol.cs
+ FormattedSymbolList.cs
+ ObjectDisplayExtensions.cs
+ ObjectDisplayOptions.cs
+ SymbolDisplayCompilerInternalOptions.cs
+ SymbolDisplayDelegateStyle.cs
+ SymbolDisplayExtensionMethodStyle.cs
+ SymbolDisplayExtensions.cs
+ SymbolDisplayFormat.cs
+ SymbolDisplayGenericsOptions.cs
+ SymbolDisplayGlobalNamespaceStyle.cs
+ SymbolDisplayKindOptions.cs
+ SymbolDisplayLocalOptions.cs
+ SymbolDisplayMemberOptions.cs
+ SymbolDisplayMiscellaneousOptions.cs
+ SymbolDisplayParameterOptions.cs
+ SymbolDisplayPart.cs
+ SymbolDisplayPartKind.cs
+ SymbolDisplayPropertyStyle.cs
+ SymbolDisplayTypeQualificationStyle.cs
+Symbols/
+ Accessibility.cs
+ AnonymousTypes/CommonAnonymousTypeManager.cs
+ Attributes/
+  AttributeDescription.cs
+  AttributeUsageInfo.cs
+  CommonAssemblyWellKnownAttributeData.cs
+  CommonAttributeData.cs
+  CommonAttributeDataComparer.cs
+  CommonEventEarlyWellKnownAttributeData.cs
+  CommonEventWellKnownAttributeData.cs
+  CommonFieldEarlyWellKnownAttributeData.cs
+  CommonFieldWellKnownAttributeData.cs
+  CommonMethodEarlyWellKnownAttributeData.cs
+  CommonMethodWellKnownAttributeData.cs
+  CommonModuleWellKnownAttributeData.cs
+  CommonParameterEarlyWellKnownAttributeData.cs
+  CommonParameterWellKnownAttributeData.cs
+  CommonPropertyEarlyWellKnownAttributeData.cs
+  CommonPropertyWellKnownAttributeData.cs
+  CommonReturnTypeWellKnownAttributeData.cs
+  CommonTypeEarlyWellKnownAttributeData.cs
+  CommonTypeWellKnownAttributeData.cs
+  CustomAttributesBag.cs
+  DecodeWellKnownAttributeArguments.cs
+  EarlyDecodeWellKnownAttributeArguments.cs
+  EarlyWellKnownAttributeData.cs
+  IMarshalAsAttributeTarget.cs
+  IMemberNotNullAttributeTarget.cs
+  ISecurityAttributeTarget.cs
+  ISkipLocalsInitAttributeTarget.cs
+  MarshalAsAttributeDecoder.cs
+  MarshalPseudoCustomAttributeData.cs
+  ObsoleteAttributeData.cs
+  SecurityWellKnownAttributeData.cs
+  UnmanagedCallersOnlyAttributeData.cs
+  WellKnownAttributeData.cs
+ CommonGeneratedNameParser.cs
+ CommonGeneratedNames.cs
+ CompilerFeatureRequiredFeatures.cs
+ CustomModifier.cs
+ CustomModifiersTuple.cs
+ IAliasSymbol.cs
+ IArrayTypeSymbol.cs
+ IArrayTypeSymbolInternal.cs
+ IAssemblySymbol.cs
+ IAssemblySymbolInternal.cs
+ IDiscardSymbol.cs
+ IDynamicTypeSymbol.cs
+ IErrorTypeSymbol.cs
+ IEventSymbol.cs
+ IEventSymbolInternal.cs
+ IFieldSymbol.cs
+ IFieldSymbolInternal.cs
+ IFunctionPointerTypeSymbol.cs
+ ILabelSymbol.cs
+ ILocalSymbol.cs
+ ILocalSymbolInternal.cs
+ IMethodSymbol.cs
+ IMethodSymbolInternal.cs
+ IModuleSymbol.cs
+ IModuleSymbolInternal.cs
+ INamedTypeSymbol.cs
+ INamedTypeSymbolInternal.cs
+ INamespaceOrTypeSymbol.cs
+ INamespaceOrTypeSymbolInternal.cs
+ INamespaceSymbol.cs
+ INamespaceSymbolInternal.cs
+ IParameterSymbol.cs
+ IParameterSymbolInternal.cs
+ IPointerTypeSymbol.cs
+ IPreprocessingSymbol.cs
+ IPropertySymbol.cs
+ IPropertySymbolInternal.cs
+ IRangeVariableSymbol.cs
+ ISourceAssemblySymbol.cs
+ ISourceAssemblySymbolInternal.cs
+ ISymbol.cs
+ ISymbolExtensions.cs
+ ISymbolExtensions_PerformIVTCheck.cs
+ ISymbolInternal.cs
+ ISynthesizedGlobalMethodSymbol.cs
+ ISynthesizedMethodBodyImplementationSymbol.cs
+ ITypeParameterSymbol.cs
+ ITypeParameterSymbolInternal.cs
+ ITypeSymbol.cs
+ ITypeSymbolInternal.cs
+ LanguageNames.cs
+ ManagedKind.cs
+ MethodKind.cs
+ NamespaceKind.cs
+ NullabilityInfo.cs
+ NullableAnnotation.cs
+ NullableFlowState.cs
+ PlatformInvokeInformation.cs
+ RefKind.cs
+ ScopedKind.cs
+ SymbolEqualityComparer.cs
+ SymbolKind.cs
+ SymbolKindExtensions.cs
+ SymbolVisitor.cs
+ SymbolVisitor`1.cs
+ SymbolVisitor`2.cs
+ TypeCompareKind.cs
+ TypedConstant.cs
+ TypedConstantKind.cs
+ TypedConstantValue.cs
+ TypeKind.cs
+ TypeLayout.cs
+ TypeParameterKind.cs
+ VarianceKind.cs
+ WellKnownMemberNames.cs
+Syntax/
+ AbstractWarningStateMap.cs
+ AnnotationExtensions.cs
+ ChildSyntaxList.cs
+ ChildSyntaxList.Enumerator.cs
+ ChildSyntaxList.Reversed.cs
+ CommonSyntaxNodeRemover.cs
+ GreenNode.cs
+ GreenNode.NodeEnumerable.cs
+ GreenNode.NodeFlagsAndSlotCount.cs
+ GreenNodeExtensions.cs
+ ICompilationUnitSyntax.cs
+ InternalSyntax/
+  ChildSyntaxList.cs
+  ChildSyntaxList.Enumerator.cs
+  ChildSyntaxList.Reversed.cs
+  ChildSyntaxList.Reversed.Enumerator.cs
+  GreenNodeExtensions.cs
+  SeparatedSyntaxList.cs
+  SeparatedSyntaxListBuilder.cs
+  SyntaxDiagnosticInfoList.cs
+  SyntaxList.cs
+  SyntaxList.WithLotsOfChildren.cs
+  SyntaxList.WithManyChildren.cs
+  SyntaxList.WithThreeChildren.cs
+  SyntaxList.WithTwoChildren.cs
+  SyntaxListBuilder.cs
+  SyntaxListBuilderExtensions.cs
+  SyntaxListBuilder`1.cs
+  SyntaxListPool.cs
+  SyntaxList`1.cs
+  SyntaxList`1.Enumerator.cs
+  SyntaxNodeCache.cs
+ ISkippedTokensTriviaSyntax.cs
+ IStructuredTriviaSyntax.cs
+ LineDirectiveMap.cs
+ LineDirectiveMap.LineMappingEntry.cs
+ LineMapping.cs
+ LineVisibility.cs
+ SeparatedSyntaxList.cs
+ SeparatedSyntaxList.Enumerator.cs
+ SeparatedSyntaxListBuilder.cs
+ SeparatedSyntaxListExtensions.cs
+ SyntaxAnnotation.cs
+ SyntaxDiffer.cs
+ SyntaxList.cs
+ SyntaxList.SeparatedWithManyChildren.cs
+ SyntaxList.SeparatedWithManyWeakChildren.cs
+ SyntaxList.WithManyChildren.cs
+ SyntaxList.WithManyWeakChildren.cs
+ SyntaxList.WithThreeChildren.cs
+ SyntaxList.WithTwoChildren.cs
+ SyntaxListBuilder.cs
+ SyntaxListBuilderExtensions.cs
+ SyntaxListBuilder`1.cs
+ SyntaxList`1.cs
+ SyntaxList`1.Enumerator.cs
+ SyntaxNavigator.cs
+ SyntaxNode.cs
+ SyntaxNode.Iterators.cs
+ SyntaxNodeExtensions.cs
+ SyntaxNodeExtensions_Tracking.cs
+ SyntaxNodeLocationComparer.cs
+ SyntaxNodeOrToken.cs
+ SyntaxNodeOrTokenList.cs
+ SyntaxNodeOrTokenListBuilder.cs
+ SyntaxReference.cs
+ SyntaxRemoveOptions.cs
+ SyntaxToken.cs
+ SyntaxTokenList.cs
+ SyntaxTokenList.Enumerator.cs
+ SyntaxTokenList.Reversed.cs
+ SyntaxTokenListBuilder.cs
+ SyntaxTree.cs
+ SyntaxTreeComparer.cs
+ SyntaxTreeExtensions.cs
+ SyntaxTrivia.cs
+ SyntaxTriviaList.cs
+ SyntaxTriviaList.Enumerator.cs
+ SyntaxTriviaList.Reversed.cs
+ SyntaxTriviaListBuilder.cs
+ SyntaxWalker.cs
+ SyntaxWalkerDepth.cs
+ TranslationSyntaxReference.cs
+SynthesizedLocalKind.cs
+Text/
+ ChangedText.cs
+ CompositeText.cs
+ LargeText.cs
+ LargeTextWriter.cs
+ LinePosition.cs
+ LinePositionSpan.cs
+ SourceHashAlgorithm.cs
+ SourceHashAlgorithms.cs
+ SourceText.cs
+ SourceTextComparer.cs
+ SourceTextContainer.cs
+ SourceTextStream.cs
+ SourceTextWriter.cs
+ StringBuilderText.cs
+ StringText.cs
+ StringTextWriter.cs
+ SubText.cs
+ TextChange.cs
+ TextChangeEventArgs.cs
+ TextChangeRange.cs
+ TextChangeRangeExtensions.cs
+ TextLine.cs
+ TextLineCollection.cs
+ TextSpan.cs
+ TextUtilities.cs
+TreeDumper.cs
+VersionHelper.cs
+WellKnownMember.cs
+WellKnownMembers.cs
+WellKnownTypes.cs
+Xml/XmlCharType.cs
+XmlFileResolver.cs
+
+[metadataReferences]
+<NUGET>/netstandard.library/2.0.3/build/netstandard2.0/ref/
+ Microsoft.Win32.Primitives.dll
+ mscorlib.dll
+ netstandard.dll
+ System.AppContext.dll
+ System.Collections.Concurrent.dll
+ System.Collections.dll
+ System.Collections.NonGeneric.dll
+ System.Collections.Specialized.dll
+ System.ComponentModel.Composition.dll
+ System.ComponentModel.dll
+ System.ComponentModel.EventBasedAsync.dll
+ System.ComponentModel.Primitives.dll
+ System.ComponentModel.TypeConverter.dll
+ System.Console.dll
+ System.Core.dll
+ System.Data.Common.dll
+ System.Data.dll
+ System.Diagnostics.Contracts.dll
+ System.Diagnostics.Debug.dll
+ System.Diagnostics.FileVersionInfo.dll
+ System.Diagnostics.Process.dll
+ System.Diagnostics.StackTrace.dll
+ System.Diagnostics.TextWriterTraceListener.dll
+ System.Diagnostics.Tools.dll
+ System.Diagnostics.TraceSource.dll
+ System.Diagnostics.Tracing.dll
+ System.dll
+ System.Drawing.dll
+ System.Drawing.Primitives.dll
+ System.Dynamic.Runtime.dll
+ System.Globalization.Calendars.dll
+ System.Globalization.dll
+ System.Globalization.Extensions.dll
+ System.IO.Compression.dll
+ System.IO.Compression.FileSystem.dll
+ System.IO.Compression.ZipFile.dll
+ System.IO.dll
+ System.IO.FileSystem.dll
+ System.IO.FileSystem.DriveInfo.dll
+ System.IO.FileSystem.Primitives.dll
+ System.IO.FileSystem.Watcher.dll
+ System.IO.IsolatedStorage.dll
+ System.IO.MemoryMappedFiles.dll
+ System.IO.Pipes.dll
+ System.IO.UnmanagedMemoryStream.dll
+ System.Linq.dll
+ System.Linq.Expressions.dll
+ System.Linq.Parallel.dll
+ System.Linq.Queryable.dll
+ System.Net.dll
+ System.Net.Http.dll
+ System.Net.NameResolution.dll
+ System.Net.NetworkInformation.dll
+ System.Net.Ping.dll
+ System.Net.Primitives.dll
+ System.Net.Requests.dll
+ System.Net.Security.dll
+ System.Net.Sockets.dll
+ System.Net.WebHeaderCollection.dll
+ System.Net.WebSockets.Client.dll
+ System.Net.WebSockets.dll
+ System.Numerics.dll
+ System.ObjectModel.dll
+ System.Reflection.dll
+ System.Reflection.Extensions.dll
+ System.Reflection.Primitives.dll
+ System.Resources.Reader.dll
+ System.Resources.ResourceManager.dll
+ System.Resources.Writer.dll
+ System.Runtime.CompilerServices.VisualC.dll
+ System.Runtime.dll
+ System.Runtime.Extensions.dll
+ System.Runtime.Handles.dll
+ System.Runtime.InteropServices.dll
+ System.Runtime.InteropServices.RuntimeInformation.dll
+ System.Runtime.Numerics.dll
+ System.Runtime.Serialization.dll
+ System.Runtime.Serialization.Formatters.dll
+ System.Runtime.Serialization.Json.dll
+ System.Runtime.Serialization.Primitives.dll
+ System.Runtime.Serialization.Xml.dll
+ System.Security.Claims.dll
+ System.Security.Cryptography.Algorithms.dll
+ System.Security.Cryptography.Csp.dll
+ System.Security.Cryptography.Encoding.dll
+ System.Security.Cryptography.Primitives.dll
+ System.Security.Cryptography.X509Certificates.dll
+ System.Security.Principal.dll
+ System.Security.SecureString.dll
+ System.ServiceModel.Web.dll
+ System.Text.Encoding.dll
+ System.Text.Encoding.Extensions.dll
+ System.Text.RegularExpressions.dll
+ System.Threading.dll
+ System.Threading.Overlapped.dll
+ System.Threading.Tasks.dll
+ System.Threading.Tasks.Parallel.dll
+ System.Threading.Thread.dll
+ System.Threading.ThreadPool.dll
+ System.Threading.Timer.dll
+ System.Transactions.dll
+ System.ValueTuple.dll
+ System.Web.dll
+ System.Windows.dll
+ System.Xml.dll
+ System.Xml.Linq.dll
+ System.Xml.ReaderWriter.dll
+ System.Xml.Serialization.dll
+ System.Xml.XDocument.dll
+ System.Xml.XmlDocument.dll
+ System.Xml.XmlSerializer.dll
+ System.Xml.XPath.dll
+ System.Xml.XPath.XDocument.dll
+<NUGET>/
+ system.buffers/4.6.1/lib/netstandard2.0/System.Buffers.dll
+ system.collections.immutable/10.0.1/lib/netstandard2.0/System.Collections.Immutable.dll
+ system.memory/4.6.3/lib/netstandard2.0/System.Memory.dll
+ system.numerics.vectors/4.6.1/lib/netstandard2.0/System.Numerics.Vectors.dll
+ system.reflection.metadata/10.0.1/lib/netstandard2.0/System.Reflection.Metadata.dll
+ system.runtime.compilerservices.unsafe/6.1.2/lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll
+ system.text.encoding.codepages/8.0.0/lib/netstandard2.0/System.Text.Encoding.CodePages.dll
+ system.threading.tasks.extensions/4.6.3/lib/netstandard2.0/System.Threading.Tasks.Extensions.dll
+
+[analyzerReferences]
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.analyzers/5.6.0-2.26172.2/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.Analyzers.dll
+ Microsoft.CodeAnalysis.CSharp.Analyzers.dll
+<NUGET>/microsoft.codeanalysis.bannedapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.BannedApiAnalyzers.dll
+ Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll
+ Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.publicapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.dll
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/analyzers/cs/
+ Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll
+ Microsoft.VisualStudio.Threading.Analyzers.CSharp.dll
+ Microsoft.VisualStudio.Threading.Analyzers.dll
+<NUGET>/roslyn.diagnostics.analyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Roslyn.Diagnostics.Analyzers.dll
+ Roslyn.Diagnostics.CSharp.Analyzers.dll
+
+[analyzerConfigFiles]
+../../../../
+ .editorconfig
+ artifacts/obj/Microsoft.CodeAnalysis/Debug/netstandard2.0/Microsoft.CodeAnalysis.GeneratedMSBuildEditorConfig.editorconfig
+ eng/config/globalconfigs/
+  Common.globalconfig
+  Shipping.globalconfig
+../../
+ ../Dependencies/.editorconfig
+ .editorconfig
+
+[additionalFiles]
+../../../../artifacts/obj/Microsoft.CodeAnalysis/Debug/netstandard2.0/Microsoft.CodeAnalysis.xlf/
+ CodeAnalysisResources.cs.resx
+ CodeAnalysisResources.de.resx
+ CodeAnalysisResources.es.resx
+ CodeAnalysisResources.fr.resx
+ CodeAnalysisResources.it.resx
+ CodeAnalysisResources.ja.resx
+ CodeAnalysisResources.ko.resx
+ CodeAnalysisResources.pl.resx
+ CodeAnalysisResources.pt-BR.resx
+ CodeAnalysisResources.ru.resx
+ CodeAnalysisResources.tr.resx
+ CodeAnalysisResources.zh-Hans.resx
+ CodeAnalysisResources.zh-Hant.resx
+../../../../eng/config/BannedSymbols.txt
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/buildTransitive/AdditionalFiles/
+ vs-threading.LegacyThreadSwitchingMembers.txt
+ vs-threading.MainThreadAssertingMethods.txt
+ vs-threading.MainThreadSwitchingMethods.txt
+ vs-threading.MembersRequiringMainThread.txt
+BannedSymbols.CompilerLibraries.txt
+CodeAnalysisResources.resx
+PublicAPI.Shipped.txt
+PublicAPI.Unshipped.txt

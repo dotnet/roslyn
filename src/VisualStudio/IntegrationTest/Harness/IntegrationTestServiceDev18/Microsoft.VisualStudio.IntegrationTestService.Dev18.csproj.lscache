@@ -1,0 +1,381 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically.
+#
+# To exclude from version control, add *.lscache to your .gitignore file.
+#
+# To disable caching, add the following to your VS Code settings:
+#   "dotnet.projectsystem.enableLanguageServiceCache": false
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[properties]
+AssemblyName=Microsoft.VisualStudio.IntegrationTestService
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:TRACE -features:strict -doc:"<PATH>../../../../../artifacts/obj/Microsoft.VisualStudio.IntegrationTestService.Dev18/Debug/net472/Microsoft.VisualStudio.IntegrationTestService.xml"
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=7.3
+ProjectAssetsFile=<PATH>../../../../../artifacts/obj/Microsoft.VisualStudio.IntegrationTestService.Dev18/project.assets.json
+RootNamespace=Microsoft.VisualStudio.IntegrationTestService
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETFramework
+TargetPath=<PATH>../../../../../artifacts/bin/Microsoft.VisualStudio.IntegrationTestService.Dev18/Debug/net472/Microsoft.VisualStudio.IntegrationTestService.dll
+TargetRefPath=<PATH>../../../../../artifacts/obj/Microsoft.VisualStudio.IntegrationTestService.Dev18/Debug/net472/ref/Microsoft.VisualStudio.IntegrationTestService.dll
+TemporaryDependencyNodeTargetIdentifier=net472
+
+[commandLineArguments]
+/noconfig
+/unsafe-
+/checked-
+/nowarn:1701,1702,1705,1591,NU1507,NU1510,RS1041,RS1038,1573,1591,1701,NETSDK1023,NU5105,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:9999
+/doc:<PATH>../../../../../artifacts/obj/Microsoft.VisualStudio.IntegrationTestService.Dev18/Debug/net472/Microsoft.VisualStudio.IntegrationTestService.xml
+/define:TRACE;DEBUG;NETFRAMEWORK;NET472;NET20_OR_GREATER;NET30_OR_GREATER;NET35_OR_GREATER;NET40_OR_GREATER;NET45_OR_GREATER;NET451_OR_GREATER;NET452_OR_GREATER;NET46_OR_GREATER;NET461_OR_GREATER;NET462_OR_GREATER;NET47_OR_GREATER;NET471_OR_GREATER;NET472_OR_GREATER
+/highentropyva+
+/nullable:enable
+/link:<NUGET>/microsoft.visualstudio.setup.configuration.interop/4.0.77/lib/net35/Microsoft.VisualStudio.Setup.Configuration.Interop.dll
+/debug+
+/debug:embedded
+/delaysign-
+/filealign:512
+/keyfile:<NUGET>/microsoft.dotnet.arcade.sdk/10.0.0-beta.26201.4/tools/snk/35MSSharedLib1024.snk
+/optimize-
+/out:<PATH>../../../../../artifacts/obj/Microsoft.VisualStudio.IntegrationTestService.Dev18/Debug/net472/Microsoft.VisualStudio.IntegrationTestService.dll
+/refout:<PATH>../../../../../artifacts/obj/Microsoft.VisualStudio.IntegrationTestService.Dev18/Debug/net472/refint/Microsoft.VisualStudio.IntegrationTestService.dll
+/subsystemversion:6.00
+/target:library
+/warnaserror-
+/utf8output
+/deterministic+
+/publicsign+
+/checksumalgorithm:SHA256
+/langversion:preview
+/skipanalyzers+
+/features:strict
+/warnaserror+:NU1605
+/warnaserror-:IDE0055
+
+[sourceFiles]
+../../../../../artifacts/obj/Microsoft.VisualStudio.IntegrationTestService.Dev18/Debug/net472/
+ .NETFramework,Version=v4.7.2.AssemblyAttributes.cs
+  @folderNames=..,..,..,..,..,artifacts,obj,Microsoft.VisualStudio.IntegrationTestService.Dev18,Debug,net472
+ Microsoft.VisualStudio.IntegrationTestService.Dev18.AssemblyInfo.cs
+  @folderNames=..,..,..,..,..,artifacts,obj,Microsoft.VisualStudio.IntegrationTestService.Dev18,Debug,net472
+../IntegrationTestServiceShared/
+ IntegrationService.cs
+  @folderNames=..,IntegrationTestServiceShared
+ IntegrationTestServiceCommands.cs
+  @folderNames=..,IntegrationTestServiceShared
+ IntegrationTestServicePackage.cs
+  @folderNames=..,IntegrationTestServiceShared
+Properties/AssemblyInfo.cs
+
+[metadataReferences]
+<NUGET>/
+ envdte/18.0.2188-preview.1/lib/net472/envdte.dll
+ envdte100/18.0.2188-preview.1/lib/net472/envdte100.dll
+ envdte80/18.0.2188-preview.1/lib/net472/envdte80.dll
+ envdte90/18.0.2188-preview.1/lib/net472/envdte90.dll
+ envdte90a/18.0.2188-preview.1/lib/net472/envdte90a.dll
+ messagepack.annotations/2.5.198/lib/netstandard2.0/MessagePack.Annotations.dll
+ messagepack/2.5.198/lib/net472/MessagePack.dll
+ microsoft.bcl.asyncinterfaces/10.0.1/lib/net462/Microsoft.Bcl.AsyncInterfaces.dll
+ microsoft.build.framework/18.0.2/ref/net472/Microsoft.Build.Framework.dll
+ microsoft.io.redist/6.1.0/lib/net472/Microsoft.IO.Redist.dll
+ microsoft.netframework.referenceassemblies.net472/1.0.3/build/.NETFramework/v4.7.2/Facades/
+  Microsoft.Win32.Primitives.dll
+  netstandard.dll
+  System.AppContext.dll
+  System.Collections.Concurrent.dll
+  System.Collections.dll
+  System.Collections.NonGeneric.dll
+  System.Collections.Specialized.dll
+  System.ComponentModel.Annotations.dll
+  System.ComponentModel.dll
+  System.ComponentModel.EventBasedAsync.dll
+  System.ComponentModel.Primitives.dll
+  System.ComponentModel.TypeConverter.dll
+  System.Console.dll
+  System.Data.Common.dll
+  System.Diagnostics.Contracts.dll
+  System.Diagnostics.Debug.dll
+  System.Diagnostics.FileVersionInfo.dll
+  System.Diagnostics.Process.dll
+  System.Diagnostics.StackTrace.dll
+  System.Diagnostics.TextWriterTraceListener.dll
+  System.Diagnostics.Tools.dll
+  System.Diagnostics.TraceSource.dll
+  System.Drawing.Primitives.dll
+  System.Dynamic.Runtime.dll
+  System.Globalization.Calendars.dll
+  System.Globalization.dll
+  System.Globalization.Extensions.dll
+  System.IO.Compression.ZipFile.dll
+  System.IO.dll
+  System.IO.FileSystem.dll
+  System.IO.FileSystem.DriveInfo.dll
+  System.IO.FileSystem.Primitives.dll
+  System.IO.FileSystem.Watcher.dll
+  System.IO.IsolatedStorage.dll
+  System.IO.MemoryMappedFiles.dll
+  System.IO.Pipes.dll
+  System.IO.UnmanagedMemoryStream.dll
+  System.Linq.dll
+  System.Linq.Expressions.dll
+  System.Linq.Parallel.dll
+  System.Linq.Queryable.dll
+  System.Net.Http.Rtc.dll
+  System.Net.NameResolution.dll
+  System.Net.NetworkInformation.dll
+  System.Net.Ping.dll
+  System.Net.Primitives.dll
+  System.Net.Requests.dll
+  System.Net.Security.dll
+  System.Net.Sockets.dll
+  System.Net.WebHeaderCollection.dll
+  System.Net.WebSockets.Client.dll
+  System.Net.WebSockets.dll
+  System.ObjectModel.dll
+  System.Reflection.dll
+  System.Reflection.Emit.dll
+  System.Reflection.Emit.ILGeneration.dll
+  System.Reflection.Emit.Lightweight.dll
+  System.Reflection.Extensions.dll
+  System.Reflection.Primitives.dll
+  System.Resources.Reader.dll
+  System.Resources.ResourceManager.dll
+  System.Resources.Writer.dll
+  System.Runtime.CompilerServices.VisualC.dll
+  System.Runtime.dll
+  System.Runtime.Extensions.dll
+  System.Runtime.Handles.dll
+  System.Runtime.InteropServices.dll
+  System.Runtime.InteropServices.RuntimeInformation.dll
+  System.Runtime.InteropServices.WindowsRuntime.dll
+  System.Runtime.Numerics.dll
+  System.Runtime.Serialization.Formatters.dll
+  System.Runtime.Serialization.Json.dll
+  System.Runtime.Serialization.Primitives.dll
+  System.Runtime.Serialization.Xml.dll
+  System.Security.Claims.dll
+  System.Security.Cryptography.Algorithms.dll
+  System.Security.Cryptography.Csp.dll
+  System.Security.Cryptography.Encoding.dll
+  System.Security.Cryptography.Primitives.dll
+  System.Security.Cryptography.X509Certificates.dll
+  System.Security.Principal.dll
+  System.Security.SecureString.dll
+  System.ServiceModel.Duplex.dll
+  System.ServiceModel.Http.dll
+  System.ServiceModel.NetTcp.dll
+  System.ServiceModel.Primitives.dll
+  System.ServiceModel.Security.dll
+  System.Text.Encoding.dll
+  System.Text.Encoding.Extensions.dll
+  System.Text.RegularExpressions.dll
+  System.Threading.dll
+  System.Threading.Overlapped.dll
+  System.Threading.Tasks.dll
+  System.Threading.Tasks.Parallel.dll
+  System.Threading.Thread.dll
+  System.Threading.ThreadPool.dll
+  System.Threading.Timer.dll
+  System.ValueTuple.dll
+  System.Xml.ReaderWriter.dll
+  System.Xml.XDocument.dll
+  System.Xml.XmlDocument.dll
+  System.Xml.XmlSerializer.dll
+  System.Xml.XPath.dll
+  System.Xml.XPath.XDocument.dll
+ microsoft.netframework.referenceassemblies.net472/1.0.3/build/.NETFramework/v4.7.2/
+  Microsoft.CSharp.dll
+  mscorlib.dll
+  PresentationCore.dll
+  System.ComponentModel.Composition.dll
+  System.Configuration.dll
+  System.Core.dll
+  System.Data.dll
+  System.Design.dll
+  System.dll
+  System.Drawing.Design.dll
+  System.Drawing.dll
+  System.IO.Compression.FileSystem.dll
+  System.Management.dll
+  System.Net.Http.dll
+  System.Numerics.dll
+  System.Runtime.Remoting.dll
+  System.Runtime.Serialization.dll
+  System.Transactions.dll
+  System.Windows.Forms.dll
+  System.Xaml.dll
+  System.Xml.dll
+  System.Xml.Linq.dll
+  WindowsBase.dll
+ microsoft.servicehub.framework/4.9.14-beta/lib/net472/Microsoft.ServiceHub.Framework.dll
+ microsoft.servicehub.resources/4.6.3148/lib/net472/Microsoft.ServiceHub.Resources.dll
+ microsoft.visualstudio.commandbars/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.CommandBars.dll
+ microsoft.visualstudio.componentmodelhost/17.14.116/lib/net472/Microsoft.VisualStudio.ComponentModelHost.dll
+ microsoft.visualstudio.composition/17.13.50/lib/net472/Microsoft.VisualStudio.Composition.dll
+ microsoft.visualstudio.coreutility/18.0.404-preview/lib/netstandard2.0/Microsoft.VisualStudio.CoreUtility.dll
+ microsoft.visualstudio.debugger.interop.10.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Debugger.Interop.10.0.dll
+ microsoft.visualstudio.debugger.interop.12.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Debugger.Interop.12.0.dll
+ microsoft.visualstudio.debugger.interop.14.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Debugger.Interop.14.0.dll
+ microsoft.visualstudio.debugger.interop.15.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Debugger.Interop.15.0.dll
+ microsoft.visualstudio.debugger.interop.16.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Debugger.Interop.16.0.dll
+ microsoft.visualstudio.debugger.interopa/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Debugger.InteropA.dll
+ microsoft.visualstudio.designer.interfaces/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Designer.Interfaces.dll
+ microsoft.visualstudio.editor/18.0.404-preview/lib/net472/Microsoft.VisualStudio.Editor.dll
+ microsoft.visualstudio.extensibility.editor.contracts/18.0.404-preview/lib/netstandard2.0/Microsoft.VisualStudio.Extensibility.Editor.Contracts.dll
+ microsoft.visualstudio.graphmodel/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.GraphModel.dll
+ microsoft.visualstudio.imagecatalog/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.ImageCatalog.dll
+ microsoft.visualstudio.imaging.interop.14.0.designtime/18.0.2154-preview.1/lib/net472/Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime.dll
+ microsoft.visualstudio.imaging/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Imaging.dll
+ microsoft.visualstudio.interop/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Interop.dll
+ microsoft.visualstudio.language.intellisense/18.0.346-preview/lib/net472/Microsoft.VisualStudio.Language.Intellisense.dll
+ microsoft.visualstudio.language.navigateto.interfaces/18.0.404-preview/lib/net472/Microsoft.VisualStudio.Language.NavigateTo.Interfaces.dll
+ microsoft.visualstudio.language.standardclassification/18.0.404-preview/lib/netstandard2.0/Microsoft.VisualStudio.Language.StandardClassification.dll
+ microsoft.visualstudio.language/18.0.404-preview/lib/netstandard2.0/Microsoft.VisualStudio.Language.dll
+ microsoft.visualstudio.languageserver.client/18.0.14-preview/lib/net472/Microsoft.VisualStudio.LanguageServer.Client.dll
+ microsoft.visualstudio.linux.connectionmanager.store/18.0.2154-preview.1/lib/net472/Microsoft.VisualStudio.Linux.ConnectionManager.Store.dll
+ microsoft.visualstudio.ole.interop/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.OLE.Interop.dll
+ microsoft.visualstudio.package.languageservice.15.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Package.LanguageService.15.0.dll
+ microsoft.visualstudio.projectaggregator/18.0.2154-preview.1/lib/net472/Microsoft.VisualStudio.ProjectAggregator.dll
+ microsoft.visualstudio.remotecontrol/16.3.52/lib/net45/Microsoft.VisualStudio.RemoteControl.dll
+ microsoft.visualstudio.rpccontracts/17.15.25-pre/lib/netstandard2.0/Microsoft.VisualStudio.RpcContracts.dll
+ microsoft.visualstudio.setup.configuration.interop/4.0.77/lib/net35/Microsoft.VisualStudio.Setup.Configuration.Interop.dll
+  @embedInteropTypes
+ microsoft.visualstudio.shell.15.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Shell.15.0.dll
+ microsoft.visualstudio.shell.design/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Shell.Design.dll
+ microsoft.visualstudio.shell.framework/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Shell.Framework.dll
+ microsoft.visualstudio.shell.interop.10.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Shell.Interop.10.0.dll
+ microsoft.visualstudio.shell.interop.11.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Shell.Interop.11.0.dll
+ microsoft.visualstudio.shell.interop.12.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Shell.Interop.12.0.dll
+ microsoft.visualstudio.shell.interop.8.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Shell.Interop.8.0.dll
+ microsoft.visualstudio.shell.interop.9.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Shell.Interop.9.0.dll
+ microsoft.visualstudio.shell.interop/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Shell.Interop.dll
+ microsoft.visualstudio.taskrunnerexplorer.14.0/14.0.0/lib/net40/Microsoft.VisualStudio.TaskRunnerExplorer.14.0.dll
+ microsoft.visualstudio.telemetry/18.0.22/lib/net45/Microsoft.VisualStudio.Telemetry.dll
+ microsoft.visualstudio.text.data/18.0.404-preview/lib/netstandard2.0/Microsoft.VisualStudio.Text.Data.dll
+ microsoft.visualstudio.text.logic/18.0.404-preview/lib/netstandard2.0/Microsoft.VisualStudio.Text.Logic.dll
+ microsoft.visualstudio.text.ui.wpf/18.0.404-preview/lib/net472/Microsoft.VisualStudio.Text.UI.Wpf.dll
+ microsoft.visualstudio.text.ui/18.0.404-preview/lib/netstandard2.0/Microsoft.VisualStudio.Text.UI.dll
+ microsoft.visualstudio.textmanager.interop.10.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.TextManager.Interop.10.0.dll
+ microsoft.visualstudio.textmanager.interop.11.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.TextManager.Interop.11.0.dll
+ microsoft.visualstudio.textmanager.interop.12.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.TextManager.Interop.12.0.dll
+ microsoft.visualstudio.textmanager.interop.8.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.TextManager.Interop.8.0.dll
+ microsoft.visualstudio.textmanager.interop.9.0/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.TextManager.Interop.9.0.dll
+ microsoft.visualstudio.textmanager.interop/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.TextManager.Interop.dll
+ microsoft.visualstudio.texttemplating.vshost/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.TextTemplating.VSHost.dll
+ microsoft.visualstudio.threading.only/17.15.22-alpha/lib/net472/Microsoft.VisualStudio.Threading.dll
+ microsoft.visualstudio.utilities/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.Utilities.dll
+ microsoft.visualstudio.validation/17.8.8/lib/netstandard2.0/Microsoft.VisualStudio.Validation.dll
+ microsoft.visualstudio.vcprojectengine/18.0.2154-preview.1/lib/net472/Microsoft.VisualStudio.VCProjectEngine.dll
+ microsoft.visualstudio.vshelp/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.VSHelp.dll
+ microsoft.visualstudio.vshelp80/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.VSHelp80.dll
+ microsoft.visualstudio.wcfreference.interop/18.0.2188-preview.1/lib/net472/Microsoft.VisualStudio.WCFReference.Interop.dll
+ microsoft.visualstudio.web.browserlink.12.0/12.0.0/lib/net40/Microsoft.VisualStudio.Web.BrowserLink.12.0.dll
+ microsoft.win32.registry/5.0.0/ref/net461/Microsoft.Win32.Registry.dll
+ nerdbank.streams/2.12.87/lib/netstandard2.0/Nerdbank.Streams.dll
+ stdole/18.0.2188-preview.1/lib/net472/stdole.dll
+ streamjsonrpc/2.23.41-alpha/lib/netstandard2.0/StreamJsonRpc.dll
+ system.buffers/4.6.1/lib/net462/System.Buffers.dll
+ system.collections.immutable/10.0.1/lib/net462/System.Collections.Immutable.dll
+ system.composition.attributedmodel/10.0.1/lib/net462/System.Composition.AttributedModel.dll
+ system.composition.convention/10.0.1/lib/net462/System.Composition.Convention.dll
+ system.composition.hosting/10.0.1/lib/net462/System.Composition.Hosting.dll
+ system.composition.runtime/10.0.1/lib/net462/System.Composition.Runtime.dll
+ system.composition.typedparts/10.0.1/lib/net462/System.Composition.TypedParts.dll
+ system.diagnostics.diagnosticsource/10.0.1/lib/net462/System.Diagnostics.DiagnosticSource.dll
+ system.io.pipelines/10.0.1/lib/net462/System.IO.Pipelines.dll
+ system.memory/4.6.3/lib/net462/System.Memory.dll
+ system.numerics.vectors/4.6.1/lib/net462/System.Numerics.Vectors.dll
+ system.reflection.metadata/10.0.1/lib/net462/System.Reflection.Metadata.dll
+ system.runtime.compilerservices.unsafe/6.1.2/lib/net462/System.Runtime.CompilerServices.Unsafe.dll
+ system.security.accesscontrol/6.0.0/lib/net461/System.Security.AccessControl.dll
+ system.security.principal.windows/5.0.0/ref/net461/System.Security.Principal.Windows.dll
+ system.text.encodings.web/10.0.1/lib/net462/System.Text.Encodings.Web.dll
+ system.text.json/10.0.1/lib/net462/System.Text.Json.dll
+ system.threading.accesscontrol/9.0.0/lib/net462/System.Threading.AccessControl.dll
+ system.threading.tasks.dataflow/10.0.1/lib/net462/System.Threading.Tasks.Dataflow.dll
+ system.threading.tasks.extensions/4.6.3/lib/net462/System.Threading.Tasks.Extensions.dll
+ vslangproj/18.0.2188-preview.1/lib/net472/VSLangProj.dll
+ vslangproj100/18.0.2188-preview.1/lib/net472/VSLangProj100.dll
+ vslangproj110/18.0.2188-preview.1/lib/net472/VSLangProj110.dll
+ vslangproj140/18.0.2188-preview.1/lib/net472/VSLangProj140.dll
+ vslangproj150/18.0.2188-preview.1/lib/net472/VSLangProj150.dll
+ vslangproj157/18.0.2188-preview.1/lib/net472/VSLangProj157.dll
+ vslangproj158/18.0.2188-preview.1/lib/net472/VSLangProj158.dll
+ vslangproj165/18.0.2188-preview.1/lib/net472/VSLangProj165.dll
+ vslangproj2/18.0.2188-preview.1/lib/net472/VSLangProj2.dll
+ vslangproj80/18.0.2188-preview.1/lib/net472/VSLangProj80.dll
+ vslangproj90/18.0.2188-preview.1/lib/net472/VSLangProj90.dll
+
+[analyzerReferences]
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/codestyle/cs/
+ Microsoft.CodeAnalysis.CodeStyle.dll
+ Microsoft.CodeAnalysis.CodeStyle.Fixes.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll
+<NUGET>/microsoft.codeanalysis.bannedapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.BannedApiAnalyzers.dll
+ Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll
+ Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.publicapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.dll
+<NUGET>/microsoft.servicehub.analyzers/4.9.14-beta/analyzers/cs/
+ Microsoft.ServiceHub.Analyzers.CodeFixes.dll
+ Microsoft.ServiceHub.Analyzers.CSharp.dll
+ Microsoft.ServiceHub.Analyzers.dll
+<NUGET>/microsoft.visualstudio.composition.analyzers/17.13.50/analyzers/cs/
+ Microsoft.VisualStudio.Composition.Analyzers.CodeFixes.dll
+ Microsoft.VisualStudio.Composition.Analyzers.CSharp.dll
+ Microsoft.VisualStudio.Composition.Analyzers.dll
+<NUGET>/microsoft.visualstudio.sdk.analyzers/17.7.84/analyzers/cs/
+ Microsoft.VisualStudio.SDK.Analyzers.CodeFixes.dll
+ Microsoft.VisualStudio.SDK.Analyzers.dll
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/analyzers/cs/
+ Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll
+ Microsoft.VisualStudio.Threading.Analyzers.CSharp.dll
+ Microsoft.VisualStudio.Threading.Analyzers.dll
+<NUGET>/roslyn.diagnostics.analyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Roslyn.Diagnostics.Analyzers.dll
+ Roslyn.Diagnostics.CSharp.Analyzers.dll
+<NUGET>/system.text.json/10.0.1/analyzers/dotnet/roslyn4.4/cs/System.Text.Json.SourceGeneration.dll
+
+[analyzerConfigFiles]
+../../../../../
+ .editorconfig
+ artifacts/obj/Microsoft.VisualStudio.IntegrationTestService.Dev18/Debug/net472/Microsoft.VisualStudio.IntegrationTestService.Dev18.GeneratedMSBuildEditorConfig.editorconfig
+ eng/config/globalconfigs/
+  Common.globalconfig
+  Shipping.globalconfig
+
+[additionalFiles]
+../../../../../eng/config/BannedSymbols.txt
+<NUGET>/microsoft.visualstudio.sdk.analyzers/17.7.84/build/AdditionalFiles/
+ BannedSymbols.txt
+ vs-threading.LegacyThreadSwitchingMembers.txt
+ vs-threading.MainThreadAssertingMethods.txt
+ vs-threading.MainThreadSwitchingMethods.txt
+ vs-threading.MembersRequiringMainThread.txt
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/buildTransitive/AdditionalFiles/
+ vs-threading.LegacyThreadSwitchingMembers.txt
+ vs-threading.MainThreadAssertingMethods.txt
+ vs-threading.MainThreadSwitchingMethods.txt
+ vs-threading.MembersRequiringMainThread.txt

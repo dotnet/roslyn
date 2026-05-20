@@ -1,0 +1,823 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically.
+#
+# To exclude from version control, add *.lscache to your .gitignore file.
+#
+# To disable caching, add the following to your VS Code settings:
+#   "dotnet.projectsystem.enableLanguageServiceCache": false
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[sliceDimensions]
+TargetFramework=net10.0
+
+[properties]
+AssemblyName=Microsoft.CodeAnalysis.Collections.Package
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:TRACE -features:strict
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=14.0
+ProjectAssetsFile=<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/project.assets.json
+RootNamespace=Microsoft.CodeAnalysis.Collections.Package
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETCoreApp
+TargetPath=<PATH>../../../artifacts/bin/Microsoft.CodeAnalysis.Collections.Package/Debug/net10.0/Microsoft.CodeAnalysis.Collections.Package.dll
+TargetRefPath=<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/Debug/net10.0/ref/Microsoft.CodeAnalysis.Collections.Package.dll
+TemporaryDependencyNodeTargetIdentifier=net10.0
+
+[commandLineArguments]
+/noconfig
+/unsafe+
+/checked-
+/nowarn:1701,1702,1705,1591,NU1507,NU1510,RS1041,RS1038,1573,1591,1701,NU5128,NU5105,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:9999
+/define:TRACE;DEBUG;NET;NET10_0;NETCOREAPP;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NET10_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER
+/highentropyva+
+/nullable:enable
+/features:"InterceptorsNamespaces=;Microsoft.Extensions.Validation.Generated"
+/debug-
+/delaysign-
+/filealign:512
+/keyfile:<NUGET>/microsoft.dotnet.arcade.sdk/10.0.0-beta.26201.4/tools/snk/35MSSharedLib1024.snk
+/optimize-
+/out:<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/Debug/net10.0/Microsoft.CodeAnalysis.Collections.Package.dll
+/refout:<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/Debug/net10.0/refint/Microsoft.CodeAnalysis.Collections.Package.dll
+/target:library
+/warnaserror-
+/utf8output
+/deterministic+
+/publicsign+
+/checksumalgorithm:SHA256
+/langversion:preview
+/skipanalyzers+
+/features:strict
+/warnaserror+:NU1605,SYSLIB0011
+/warnaserror-:IDE0055
+
+[sourceFiles]
+../../../artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/Debug/net10.0/
+ .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+  @folderNames=..,..,..,artifacts,obj,Microsoft.CodeAnalysis.Collections.Package,Debug,net10.0
+ Microsoft.CodeAnalysis.Collections.Package.AssemblyInfo.cs
+  @folderNames=..,..,..,artifacts,obj,Microsoft.CodeAnalysis.Collections.Package,Debug,net10.0
+../Contracts/
+ CollectionBuilderAttribute.cs
+  @folderNames=..,Contracts
+ CompilerFeatureRequiredAttribute.cs
+  @folderNames=..,Contracts
+ Contract.cs
+  @folderNames=..,Contracts
+ Contract.InterpolatedStringHandlers.cs
+  @folderNames=..,Contracts
+ EnumExtensions.cs
+  @folderNames=..,Contracts
+ EqualityComparerExtensions.cs
+  @folderNames=..,Contracts
+ ErrorReporting/
+  FailFast.cs
+   @folderNames=..,Contracts,ErrorReporting
+  FatalError.cs
+   @folderNames=..,Contracts,ErrorReporting
+ ExceptionUtilities.cs
+  @folderNames=..,Contracts
+ ExperimentalAttribute.cs
+  @folderNames=..,Contracts
+ Index.cs
+  @folderNames=..,Contracts
+ InterpolatedStringHandlerArgumentAttribute.cs
+  @folderNames=..,Contracts
+ InterpolatedStringHandlerAttribute.cs
+  @folderNames=..,Contracts
+ IReadOnlySet.cs
+  @folderNames=..,Contracts
+ IsExternalInit.cs
+  @folderNames=..,Contracts
+ NonCopyableAttribute.cs
+  @folderNames=..,Contracts
+ NonDefaultableAttribute.cs
+  @folderNames=..,Contracts
+ NullableAttributes.cs
+  @folderNames=..,Contracts
+ Range.cs
+  @folderNames=..,Contracts
+ ReferenceEqualityComparer.cs
+  @folderNames=..,Contracts
+ RequiredMemberAttribute.cs
+  @folderNames=..,Contracts
+ SetsRequiredMembersAttribute.cs
+  @folderNames=..,Contracts
+ ValueTaskExtensions.cs
+  @folderNames=..,Contracts
+../PooledObjects/
+ ArrayBuilder.cs
+  @folderNames=..,PooledObjects
+ ArrayBuilder.Enumerator.cs
+  @folderNames=..,PooledObjects
+ ArrayBuilderExtensions.cs
+  @folderNames=..,PooledObjects
+ IPooled.cs
+  @folderNames=..,PooledObjects
+ ObjectPool`1.cs
+  @folderNames=..,PooledObjects
+ PooledDelegates.cs
+  @folderNames=..,PooledObjects
+ PooledDictionary.cs
+  @folderNames=..,PooledObjects
+ PooledDisposer.cs
+  @folderNames=..,PooledObjects
+ PooledHashSet.cs
+  @folderNames=..,PooledObjects
+ PooledStringBuilder.cs
+  @folderNames=..,PooledObjects
+Extensions/
+ FixedSizeArrayBuilder.cs
+ ICollectionExtensions.cs
+ IEnumerableExtensions.cs
+ IListExtensions.cs
+ ImmutableArrayExtensions.cs
+ KeyValuePairExtensions.cs
+ MemoryExtensions.cs
+Internal/
+ ArraySortHelper.cs
+ BitHelper.cs
+ HashHelpers.cs
+ ICollectionCalls.cs
+ ICollectionCalls`1.cs
+ ICollectionDebugView`1.cs
+ IDictionaryCalls.cs
+ IDictionaryDebugView`2.cs
+ IEnumerableCalls.cs
+ IEnumerableCalls`1.cs
+ IListCalls.cs
+ InsertionBehavior.cs
+ RoslynUnsafe.cs
+ SegmentedArrayHelper.cs
+ SegmentedArraySegment`1.cs
+ SegmentedHashSetEqualityComparer`1.cs
+ SR.cs
+ ThrowHelper.cs
+KeyValuePair.cs
+OneOrMany.cs
+RoslynEnumerable.cs
+RoslynImmutableInterlocked.cs
+Segmented/
+ ImmutableSegmentedDictionary.cs
+ ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs
+ ImmutableSegmentedDictionary`2+Builder+PrivateMarshal.cs
+ ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs
+ ImmutableSegmentedDictionary`2+Builder.cs
+ ImmutableSegmentedDictionary`2+Enumerator.cs
+ ImmutableSegmentedDictionary`2+KeyCollection+Enumerator.cs
+ ImmutableSegmentedDictionary`2+KeyCollection.cs
+ ImmutableSegmentedDictionary`2+PrivateMarshal.cs
+ ImmutableSegmentedDictionary`2+ValueBuilder.cs
+ ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs
+ ImmutableSegmentedDictionary`2+ValueCollection.cs
+ ImmutableSegmentedDictionary`2.cs
+ ImmutableSegmentedHashSet.cs
+ ImmutableSegmentedHashSet`1+Builder.cs
+ ImmutableSegmentedHashSet`1+Enumerator.cs
+ ImmutableSegmentedHashSet`1+PrivateMarshal.cs
+ ImmutableSegmentedHashSet`1+ValueBuilder.cs
+ ImmutableSegmentedHashSet`1.cs
+ ImmutableSegmentedList.cs
+ ImmutableSegmentedListExtensions.cs
+ ImmutableSegmentedList`1+Builder.cs
+ ImmutableSegmentedList`1+Enumerator.cs
+ ImmutableSegmentedList`1+PrivateMarshal.cs
+ ImmutableSegmentedList`1+ValueBuilder.cs
+ ImmutableSegmentedList`1.cs
+ SegmentedArray.cs
+ SegmentedArray`1+PrivateMarshal.cs
+ SegmentedArray`1.cs
+ SegmentedCollectionsMarshal.cs
+ SegmentedDictionary`2+PrivateMarshal.cs
+ SegmentedDictionary`2.cs
+ SegmentedHashSet`1.cs
+ SegmentedList`1.cs
+Specialized/
+ SpecializedCollections.cs
+ SpecializedCollections.Empty.Collection.cs
+ SpecializedCollections.Empty.cs
+ SpecializedCollections.Empty.Dictionary.cs
+ SpecializedCollections.Empty.Enumerable.cs
+ SpecializedCollections.Empty.Enumerator.cs
+ SpecializedCollections.Empty.Enumerator`1.cs
+ SpecializedCollections.Empty.List.cs
+ SpecializedCollections.Empty.Set.cs
+ SpecializedCollections.ReadOnly.Collection.cs
+ SpecializedCollections.ReadOnly.Enumerable`1.cs
+ SpecializedCollections.ReadOnly.Enumerable`2.cs
+ SpecializedCollections.ReadOnly.Set.cs
+ SpecializedCollections.Singleton.Collection`1.cs
+ SpecializedCollections.Singleton.Enumerator`1.cs
+TemporaryArrayExtensions.cs
+TemporaryArray`1.cs
+
+[metadataReferences]
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/10.0.5/ref/net10.0/
+ Microsoft.CSharp.dll
+ Microsoft.VisualBasic.Core.dll
+ Microsoft.VisualBasic.dll
+ Microsoft.Win32.Primitives.dll
+ Microsoft.Win32.Registry.dll
+ mscorlib.dll
+ netstandard.dll
+ System.AppContext.dll
+ System.Buffers.dll
+ System.Collections.Concurrent.dll
+ System.Collections.dll
+ System.Collections.Immutable.dll
+ System.Collections.NonGeneric.dll
+ System.Collections.Specialized.dll
+ System.ComponentModel.Annotations.dll
+ System.ComponentModel.DataAnnotations.dll
+ System.ComponentModel.dll
+ System.ComponentModel.EventBasedAsync.dll
+ System.ComponentModel.Primitives.dll
+ System.ComponentModel.TypeConverter.dll
+ System.Configuration.dll
+ System.Console.dll
+ System.Core.dll
+ System.Data.Common.dll
+ System.Data.DataSetExtensions.dll
+ System.Data.dll
+ System.Diagnostics.Contracts.dll
+ System.Diagnostics.Debug.dll
+ System.Diagnostics.DiagnosticSource.dll
+ System.Diagnostics.FileVersionInfo.dll
+ System.Diagnostics.Process.dll
+ System.Diagnostics.StackTrace.dll
+ System.Diagnostics.TextWriterTraceListener.dll
+ System.Diagnostics.Tools.dll
+ System.Diagnostics.TraceSource.dll
+ System.Diagnostics.Tracing.dll
+ System.dll
+ System.Drawing.dll
+ System.Drawing.Primitives.dll
+ System.Dynamic.Runtime.dll
+ System.Formats.Asn1.dll
+ System.Formats.Tar.dll
+ System.Globalization.Calendars.dll
+ System.Globalization.dll
+ System.Globalization.Extensions.dll
+ System.IO.Compression.Brotli.dll
+ System.IO.Compression.dll
+ System.IO.Compression.FileSystem.dll
+ System.IO.Compression.ZipFile.dll
+ System.IO.dll
+ System.IO.FileSystem.AccessControl.dll
+ System.IO.FileSystem.dll
+ System.IO.FileSystem.DriveInfo.dll
+ System.IO.FileSystem.Primitives.dll
+ System.IO.FileSystem.Watcher.dll
+ System.IO.IsolatedStorage.dll
+ System.IO.MemoryMappedFiles.dll
+ System.IO.Pipelines.dll
+ System.IO.Pipes.AccessControl.dll
+ System.IO.Pipes.dll
+ System.IO.UnmanagedMemoryStream.dll
+ System.Linq.AsyncEnumerable.dll
+ System.Linq.dll
+ System.Linq.Expressions.dll
+ System.Linq.Parallel.dll
+ System.Linq.Queryable.dll
+ System.Memory.dll
+ System.Net.dll
+ System.Net.Http.dll
+ System.Net.Http.Json.dll
+ System.Net.HttpListener.dll
+ System.Net.Mail.dll
+ System.Net.NameResolution.dll
+ System.Net.NetworkInformation.dll
+ System.Net.Ping.dll
+ System.Net.Primitives.dll
+ System.Net.Quic.dll
+ System.Net.Requests.dll
+ System.Net.Security.dll
+ System.Net.ServerSentEvents.dll
+ System.Net.ServicePoint.dll
+ System.Net.Sockets.dll
+ System.Net.WebClient.dll
+ System.Net.WebHeaderCollection.dll
+ System.Net.WebProxy.dll
+ System.Net.WebSockets.Client.dll
+ System.Net.WebSockets.dll
+ System.Numerics.dll
+ System.Numerics.Vectors.dll
+ System.ObjectModel.dll
+ System.Reflection.DispatchProxy.dll
+ System.Reflection.dll
+ System.Reflection.Emit.dll
+ System.Reflection.Emit.ILGeneration.dll
+ System.Reflection.Emit.Lightweight.dll
+ System.Reflection.Extensions.dll
+ System.Reflection.Metadata.dll
+ System.Reflection.Primitives.dll
+ System.Reflection.TypeExtensions.dll
+ System.Resources.Reader.dll
+ System.Resources.ResourceManager.dll
+ System.Resources.Writer.dll
+ System.Runtime.CompilerServices.Unsafe.dll
+ System.Runtime.CompilerServices.VisualC.dll
+ System.Runtime.dll
+ System.Runtime.Extensions.dll
+ System.Runtime.Handles.dll
+ System.Runtime.InteropServices.dll
+ System.Runtime.InteropServices.JavaScript.dll
+ System.Runtime.InteropServices.RuntimeInformation.dll
+ System.Runtime.Intrinsics.dll
+ System.Runtime.Loader.dll
+ System.Runtime.Numerics.dll
+ System.Runtime.Serialization.dll
+ System.Runtime.Serialization.Formatters.dll
+ System.Runtime.Serialization.Json.dll
+ System.Runtime.Serialization.Primitives.dll
+ System.Runtime.Serialization.Xml.dll
+ System.Security.AccessControl.dll
+ System.Security.Claims.dll
+ System.Security.Cryptography.Algorithms.dll
+ System.Security.Cryptography.Cng.dll
+ System.Security.Cryptography.Csp.dll
+ System.Security.Cryptography.dll
+ System.Security.Cryptography.Encoding.dll
+ System.Security.Cryptography.OpenSsl.dll
+ System.Security.Cryptography.Primitives.dll
+ System.Security.Cryptography.X509Certificates.dll
+ System.Security.dll
+ System.Security.Principal.dll
+ System.Security.Principal.Windows.dll
+ System.Security.SecureString.dll
+ System.ServiceModel.Web.dll
+ System.ServiceProcess.dll
+ System.Text.Encoding.CodePages.dll
+ System.Text.Encoding.dll
+ System.Text.Encoding.Extensions.dll
+ System.Text.Encodings.Web.dll
+ System.Text.Json.dll
+ System.Text.RegularExpressions.dll
+ System.Threading.AccessControl.dll
+ System.Threading.Channels.dll
+ System.Threading.dll
+ System.Threading.Overlapped.dll
+ System.Threading.Tasks.Dataflow.dll
+ System.Threading.Tasks.dll
+ System.Threading.Tasks.Extensions.dll
+ System.Threading.Tasks.Parallel.dll
+ System.Threading.Thread.dll
+ System.Threading.ThreadPool.dll
+ System.Threading.Timer.dll
+ System.Transactions.dll
+ System.Transactions.Local.dll
+ System.ValueTuple.dll
+ System.Web.dll
+ System.Web.HttpUtility.dll
+ System.Windows.dll
+ System.Xml.dll
+ System.Xml.Linq.dll
+ System.Xml.ReaderWriter.dll
+ System.Xml.Serialization.dll
+ System.Xml.XDocument.dll
+ System.Xml.XmlDocument.dll
+ System.Xml.XmlSerializer.dll
+ System.Xml.XPath.dll
+ System.Xml.XPath.XDocument.dll
+ WindowsBase.dll
+
+[analyzerReferences]
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/10.0.5/analyzers/dotnet/cs/
+ Microsoft.Interop.ComInterfaceGenerator.dll
+ Microsoft.Interop.LibraryImportGenerator.dll
+ Microsoft.Interop.SourceGeneration.dll
+ System.Text.Json.SourceGeneration.dll
+ System.Text.RegularExpressions.Generator.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/codestyle/cs/
+ Microsoft.CodeAnalysis.CodeStyle.dll
+ Microsoft.CodeAnalysis.CodeStyle.Fixes.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll
+<NUGET>/microsoft.codeanalysis.bannedapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.BannedApiAnalyzers.dll
+ Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll
+ Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.publicapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.dll
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/analyzers/cs/
+ Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll
+ Microsoft.VisualStudio.Threading.Analyzers.CSharp.dll
+ Microsoft.VisualStudio.Threading.Analyzers.dll
+<NUGET>/roslyn.diagnostics.analyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Roslyn.Diagnostics.Analyzers.dll
+ Roslyn.Diagnostics.CSharp.Analyzers.dll
+
+[analyzerConfigFiles]
+../../../
+ .editorconfig
+ artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/Debug/net10.0/Microsoft.CodeAnalysis.Collections.Package.GeneratedMSBuildEditorConfig.editorconfig
+ eng/config/globalconfigs/
+  Common.globalconfig
+  Shipping.globalconfig
+../.editorconfig
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_10_default.globalconfig
+
+[additionalFiles]
+../../../eng/config/BannedSymbols.txt
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/buildTransitive/AdditionalFiles/
+ vs-threading.LegacyThreadSwitchingMembers.txt
+ vs-threading.MainThreadAssertingMethods.txt
+ vs-threading.MainThreadSwitchingMethods.txt
+ vs-threading.MembersRequiringMainThread.txt
+
+---
+
+[project]
+language=C#
+lastDtbSucceeded
+
+[sliceDimensions]
+TargetFramework=netstandard2.0
+
+[properties]
+AssemblyName=Microsoft.CodeAnalysis.Collections.Package
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:TRACE -features:strict
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=7.3
+ProjectAssetsFile=<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/project.assets.json
+RootNamespace=Microsoft.CodeAnalysis.Collections.Package
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETStandard
+TargetPath=<PATH>../../../artifacts/bin/Microsoft.CodeAnalysis.Collections.Package/Debug/netstandard2.0/Microsoft.CodeAnalysis.Collections.Package.dll
+TargetRefPath=<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.Collections.Package.dll
+TemporaryDependencyNodeTargetIdentifier=netstandard2.0
+
+[commandLineArguments]
+/noconfig
+/unsafe+
+/checked-
+/nowarn:1701,1702,1705,1591,NU1507,NU1510,RS1041,RS1038,1573,1591,1701,NU5128,NU5105,Nullable,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:9999
+/define:TRACE;DEBUG;NETSTANDARD;NETSTANDARD2_0;NETSTANDARD1_0_OR_GREATER;NETSTANDARD1_1_OR_GREATER;NETSTANDARD1_2_OR_GREATER;NETSTANDARD1_3_OR_GREATER;NETSTANDARD1_4_OR_GREATER;NETSTANDARD1_5_OR_GREATER;NETSTANDARD1_6_OR_GREATER;NETSTANDARD2_0_OR_GREATER
+/highentropyva+
+/nullable:enable
+/debug-
+/delaysign-
+/filealign:512
+/keyfile:<NUGET>/microsoft.dotnet.arcade.sdk/10.0.0-beta.26201.4/tools/snk/35MSSharedLib1024.snk
+/optimize-
+/out:<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/Debug/netstandard2.0/Microsoft.CodeAnalysis.Collections.Package.dll
+/refout:<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/Debug/netstandard2.0/refint/Microsoft.CodeAnalysis.Collections.Package.dll
+/target:library
+/warnaserror-
+/utf8output
+/deterministic+
+/publicsign+
+/checksumalgorithm:SHA256
+/langversion:preview
+/skipanalyzers+
+/features:strict
+/warnaserror+:NU1605
+/warnaserror-:IDE0055
+
+[sourceFiles]
+../../../artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/Debug/netstandard2.0/
+ .NETStandard,Version=v2.0.AssemblyAttributes.cs
+  @folderNames=..,..,..,artifacts,obj,Microsoft.CodeAnalysis.Collections.Package,Debug,netstandard2.0
+ Microsoft.CodeAnalysis.Collections.Package.AssemblyInfo.cs
+  @folderNames=..,..,..,artifacts,obj,Microsoft.CodeAnalysis.Collections.Package,Debug,netstandard2.0
+../Contracts/
+ CollectionBuilderAttribute.cs
+  @folderNames=..,Contracts
+ CompilerFeatureRequiredAttribute.cs
+  @folderNames=..,Contracts
+ Contract.cs
+  @folderNames=..,Contracts
+ Contract.InterpolatedStringHandlers.cs
+  @folderNames=..,Contracts
+ EnumExtensions.cs
+  @folderNames=..,Contracts
+ EqualityComparerExtensions.cs
+  @folderNames=..,Contracts
+ ErrorReporting/
+  FailFast.cs
+   @folderNames=..,Contracts,ErrorReporting
+  FatalError.cs
+   @folderNames=..,Contracts,ErrorReporting
+ ExceptionUtilities.cs
+  @folderNames=..,Contracts
+ ExperimentalAttribute.cs
+  @folderNames=..,Contracts
+ Index.cs
+  @folderNames=..,Contracts
+ InterpolatedStringHandlerArgumentAttribute.cs
+  @folderNames=..,Contracts
+ InterpolatedStringHandlerAttribute.cs
+  @folderNames=..,Contracts
+ IReadOnlySet.cs
+  @folderNames=..,Contracts
+ IsExternalInit.cs
+  @folderNames=..,Contracts
+ NonCopyableAttribute.cs
+  @folderNames=..,Contracts
+ NonDefaultableAttribute.cs
+  @folderNames=..,Contracts
+ NullableAttributes.cs
+  @folderNames=..,Contracts
+ Range.cs
+  @folderNames=..,Contracts
+ ReferenceEqualityComparer.cs
+  @folderNames=..,Contracts
+ RequiredMemberAttribute.cs
+  @folderNames=..,Contracts
+ SetsRequiredMembersAttribute.cs
+  @folderNames=..,Contracts
+ ValueTaskExtensions.cs
+  @folderNames=..,Contracts
+../PooledObjects/
+ ArrayBuilder.cs
+  @folderNames=..,PooledObjects
+ ArrayBuilder.Enumerator.cs
+  @folderNames=..,PooledObjects
+ ArrayBuilderExtensions.cs
+  @folderNames=..,PooledObjects
+ IPooled.cs
+  @folderNames=..,PooledObjects
+ ObjectPool`1.cs
+  @folderNames=..,PooledObjects
+ PooledDelegates.cs
+  @folderNames=..,PooledObjects
+ PooledDictionary.cs
+  @folderNames=..,PooledObjects
+ PooledDisposer.cs
+  @folderNames=..,PooledObjects
+ PooledHashSet.cs
+  @folderNames=..,PooledObjects
+ PooledStringBuilder.cs
+  @folderNames=..,PooledObjects
+Extensions/
+ FixedSizeArrayBuilder.cs
+ ICollectionExtensions.cs
+ IEnumerableExtensions.cs
+ IListExtensions.cs
+ ImmutableArrayExtensions.cs
+ KeyValuePairExtensions.cs
+ MemoryExtensions.cs
+Internal/
+ ArraySortHelper.cs
+ BitHelper.cs
+ HashHelpers.cs
+ ICollectionCalls.cs
+ ICollectionCalls`1.cs
+ ICollectionDebugView`1.cs
+ IDictionaryCalls.cs
+ IDictionaryDebugView`2.cs
+ IEnumerableCalls.cs
+ IEnumerableCalls`1.cs
+ IListCalls.cs
+ InsertionBehavior.cs
+ RoslynUnsafe.cs
+ SegmentedArrayHelper.cs
+ SegmentedArraySegment`1.cs
+ SegmentedHashSetEqualityComparer`1.cs
+ SR.cs
+ ThrowHelper.cs
+KeyValuePair.cs
+OneOrMany.cs
+RoslynEnumerable.cs
+RoslynImmutableInterlocked.cs
+Segmented/
+ ImmutableSegmentedDictionary.cs
+ ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs
+ ImmutableSegmentedDictionary`2+Builder+PrivateMarshal.cs
+ ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs
+ ImmutableSegmentedDictionary`2+Builder.cs
+ ImmutableSegmentedDictionary`2+Enumerator.cs
+ ImmutableSegmentedDictionary`2+KeyCollection+Enumerator.cs
+ ImmutableSegmentedDictionary`2+KeyCollection.cs
+ ImmutableSegmentedDictionary`2+PrivateMarshal.cs
+ ImmutableSegmentedDictionary`2+ValueBuilder.cs
+ ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs
+ ImmutableSegmentedDictionary`2+ValueCollection.cs
+ ImmutableSegmentedDictionary`2.cs
+ ImmutableSegmentedHashSet.cs
+ ImmutableSegmentedHashSet`1+Builder.cs
+ ImmutableSegmentedHashSet`1+Enumerator.cs
+ ImmutableSegmentedHashSet`1+PrivateMarshal.cs
+ ImmutableSegmentedHashSet`1+ValueBuilder.cs
+ ImmutableSegmentedHashSet`1.cs
+ ImmutableSegmentedList.cs
+ ImmutableSegmentedListExtensions.cs
+ ImmutableSegmentedList`1+Builder.cs
+ ImmutableSegmentedList`1+Enumerator.cs
+ ImmutableSegmentedList`1+PrivateMarshal.cs
+ ImmutableSegmentedList`1+ValueBuilder.cs
+ ImmutableSegmentedList`1.cs
+ SegmentedArray.cs
+ SegmentedArray`1+PrivateMarshal.cs
+ SegmentedArray`1.cs
+ SegmentedCollectionsMarshal.cs
+ SegmentedDictionary`2+PrivateMarshal.cs
+ SegmentedDictionary`2.cs
+ SegmentedHashSet`1.cs
+ SegmentedList`1.cs
+Specialized/
+ SpecializedCollections.cs
+ SpecializedCollections.Empty.Collection.cs
+ SpecializedCollections.Empty.cs
+ SpecializedCollections.Empty.Dictionary.cs
+ SpecializedCollections.Empty.Enumerable.cs
+ SpecializedCollections.Empty.Enumerator.cs
+ SpecializedCollections.Empty.Enumerator`1.cs
+ SpecializedCollections.Empty.List.cs
+ SpecializedCollections.Empty.Set.cs
+ SpecializedCollections.ReadOnly.Collection.cs
+ SpecializedCollections.ReadOnly.Enumerable`1.cs
+ SpecializedCollections.ReadOnly.Enumerable`2.cs
+ SpecializedCollections.ReadOnly.Set.cs
+ SpecializedCollections.Singleton.Collection`1.cs
+ SpecializedCollections.Singleton.Enumerator`1.cs
+TemporaryArrayExtensions.cs
+TemporaryArray`1.cs
+
+[metadataReferences]
+<NUGET>/netstandard.library/2.0.3/build/netstandard2.0/ref/
+ Microsoft.Win32.Primitives.dll
+ mscorlib.dll
+ netstandard.dll
+ System.AppContext.dll
+ System.Collections.Concurrent.dll
+ System.Collections.dll
+ System.Collections.NonGeneric.dll
+ System.Collections.Specialized.dll
+ System.ComponentModel.Composition.dll
+ System.ComponentModel.dll
+ System.ComponentModel.EventBasedAsync.dll
+ System.ComponentModel.Primitives.dll
+ System.ComponentModel.TypeConverter.dll
+ System.Console.dll
+ System.Core.dll
+ System.Data.Common.dll
+ System.Data.dll
+ System.Diagnostics.Contracts.dll
+ System.Diagnostics.Debug.dll
+ System.Diagnostics.FileVersionInfo.dll
+ System.Diagnostics.Process.dll
+ System.Diagnostics.StackTrace.dll
+ System.Diagnostics.TextWriterTraceListener.dll
+ System.Diagnostics.Tools.dll
+ System.Diagnostics.TraceSource.dll
+ System.Diagnostics.Tracing.dll
+ System.dll
+ System.Drawing.dll
+ System.Drawing.Primitives.dll
+ System.Dynamic.Runtime.dll
+ System.Globalization.Calendars.dll
+ System.Globalization.dll
+ System.Globalization.Extensions.dll
+ System.IO.Compression.dll
+ System.IO.Compression.FileSystem.dll
+ System.IO.Compression.ZipFile.dll
+ System.IO.dll
+ System.IO.FileSystem.dll
+ System.IO.FileSystem.DriveInfo.dll
+ System.IO.FileSystem.Primitives.dll
+ System.IO.FileSystem.Watcher.dll
+ System.IO.IsolatedStorage.dll
+ System.IO.MemoryMappedFiles.dll
+ System.IO.Pipes.dll
+ System.IO.UnmanagedMemoryStream.dll
+ System.Linq.dll
+ System.Linq.Expressions.dll
+ System.Linq.Parallel.dll
+ System.Linq.Queryable.dll
+ System.Net.dll
+ System.Net.Http.dll
+ System.Net.NameResolution.dll
+ System.Net.NetworkInformation.dll
+ System.Net.Ping.dll
+ System.Net.Primitives.dll
+ System.Net.Requests.dll
+ System.Net.Security.dll
+ System.Net.Sockets.dll
+ System.Net.WebHeaderCollection.dll
+ System.Net.WebSockets.Client.dll
+ System.Net.WebSockets.dll
+ System.Numerics.dll
+ System.ObjectModel.dll
+ System.Reflection.dll
+ System.Reflection.Extensions.dll
+ System.Reflection.Primitives.dll
+ System.Resources.Reader.dll
+ System.Resources.ResourceManager.dll
+ System.Resources.Writer.dll
+ System.Runtime.CompilerServices.VisualC.dll
+ System.Runtime.dll
+ System.Runtime.Extensions.dll
+ System.Runtime.Handles.dll
+ System.Runtime.InteropServices.dll
+ System.Runtime.InteropServices.RuntimeInformation.dll
+ System.Runtime.Numerics.dll
+ System.Runtime.Serialization.dll
+ System.Runtime.Serialization.Formatters.dll
+ System.Runtime.Serialization.Json.dll
+ System.Runtime.Serialization.Primitives.dll
+ System.Runtime.Serialization.Xml.dll
+ System.Security.Claims.dll
+ System.Security.Cryptography.Algorithms.dll
+ System.Security.Cryptography.Csp.dll
+ System.Security.Cryptography.Encoding.dll
+ System.Security.Cryptography.Primitives.dll
+ System.Security.Cryptography.X509Certificates.dll
+ System.Security.Principal.dll
+ System.Security.SecureString.dll
+ System.ServiceModel.Web.dll
+ System.Text.Encoding.dll
+ System.Text.Encoding.Extensions.dll
+ System.Text.RegularExpressions.dll
+ System.Threading.dll
+ System.Threading.Overlapped.dll
+ System.Threading.Tasks.dll
+ System.Threading.Tasks.Parallel.dll
+ System.Threading.Thread.dll
+ System.Threading.ThreadPool.dll
+ System.Threading.Timer.dll
+ System.Transactions.dll
+ System.ValueTuple.dll
+ System.Web.dll
+ System.Windows.dll
+ System.Xml.dll
+ System.Xml.Linq.dll
+ System.Xml.ReaderWriter.dll
+ System.Xml.Serialization.dll
+ System.Xml.XDocument.dll
+ System.Xml.XmlDocument.dll
+ System.Xml.XmlSerializer.dll
+ System.Xml.XPath.dll
+ System.Xml.XPath.XDocument.dll
+<NUGET>/
+ system.buffers/4.6.1/lib/netstandard2.0/System.Buffers.dll
+ system.collections.immutable/10.0.1/lib/netstandard2.0/System.Collections.Immutable.dll
+ system.memory/4.6.3/lib/netstandard2.0/System.Memory.dll
+ system.numerics.vectors/4.6.1/lib/netstandard2.0/System.Numerics.Vectors.dll
+ system.runtime.compilerservices.unsafe/6.1.2/lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll
+ system.threading.tasks.extensions/4.6.3/lib/netstandard2.0/System.Threading.Tasks.Extensions.dll
+
+[analyzerReferences]
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.bannedapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.BannedApiAnalyzers.dll
+ Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll
+ Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.publicapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.dll
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/analyzers/cs/
+ Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll
+ Microsoft.VisualStudio.Threading.Analyzers.CSharp.dll
+ Microsoft.VisualStudio.Threading.Analyzers.dll
+<NUGET>/roslyn.diagnostics.analyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Roslyn.Diagnostics.Analyzers.dll
+ Roslyn.Diagnostics.CSharp.Analyzers.dll
+
+[analyzerConfigFiles]
+../../../
+ .editorconfig
+ artifacts/obj/Microsoft.CodeAnalysis.Collections.Package/Debug/netstandard2.0/Microsoft.CodeAnalysis.Collections.Package.GeneratedMSBuildEditorConfig.editorconfig
+ eng/config/globalconfigs/
+  Common.globalconfig
+  Shipping.globalconfig
+../.editorconfig
+
+[additionalFiles]
+../../../eng/config/BannedSymbols.txt
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/buildTransitive/AdditionalFiles/
+ vs-threading.LegacyThreadSwitchingMembers.txt
+ vs-threading.MainThreadAssertingMethods.txt
+ vs-threading.MainThreadSwitchingMethods.txt
+ vs-threading.MembersRequiringMainThread.txt
