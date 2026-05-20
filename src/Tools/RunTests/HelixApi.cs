@@ -13,6 +13,10 @@ using System.Threading.Tasks;
 
 namespace RunTests;
 
+/// <summary>
+/// Helper class for interacting with the Helix API to query job and work item status, fetch logs, and cancel jobs. Based
+/// on the API documented at https://helix.dot.net/swagger/ui
+/// </summary>
 internal sealed class HelixApi : IDisposable
 {
     private const string HelixBaseUrl = "https://helix.dot.net";

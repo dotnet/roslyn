@@ -71,24 +71,22 @@ internal sealed partial class HelixTestRunner
 
         var helixProjectFilePath = await CreateHelixArtifactsAsync(options, assemblies, cts.Token).ConfigureAwait(false);
         var (process, helixJobInfoTask) = StartHelixJob(options, helixProjectFilePath);
-        var processWaitTask = process.WaitForExitAsync();
-
-        var task = await Task.WhenAny(processWaitTask, helixJobInfoTask);
-        if (cts.IsCancellationRequested)
-        {
-            process.Kill(entireProcessTree: true);
-            return -1;
-        }
-
-        if (!helixJobInfoTask.IsCompletedSuccessfully)
-        {
-            ConsoleUtil.Error($"Helix completed without specifying a job id in the output. This breaks our tooling");
-            return -1;
-        }
-
-        var (helixJobId, helixJobCancellationToken) = await helixJobInfoTask;
         try
         {
+            var task = await Task.WhenAny(process.WaitForExitAsync(), helixJobInfoTask);
+            if (cts.IsCancellationRequested)
+            {
+                process.Kill(entireProcessTree: true);
+                return -1;
+            }
+
+            if (!helixJobInfoTask.IsCompletedSuccessfully)
+            {
+                ConsoleUtil.Error($"Helix completed without specifying a job id in the output. This breaks our tooling");
+                return -1;
+            }
+
+            var (helixJobId, helixJobCancellationToken) = await helixJobInfoTask;
             return await WaitForHelixJobCompletionAsync(process, helixJobId, helixJobCancellationToken, options.HelixApiAccessToken, Path.Combine(options.ArtifactsDirectory, "TestResults", options.Configuration), cts.Token);
         }
         finally
@@ -103,7 +101,7 @@ internal sealed partial class HelixTestRunner
     /// <summary>
     /// This method will wait for the helix job to complete using the timeout for Helix work item execution.
     /// 
-    /// The most important factor is the helix process itself. If that exits then the assumption is that it 
+    /// The most important factor is the local helix process itself. If that exits then the assumption is that it 
     /// successfully reported the status of work items. Hence the moment it is done we can stop waiting and
     /// return. The polling for Helix information is all about adding context and real errors to the tests
     /// in the case helix has issues and cannot complete the process successfully.
@@ -118,7 +116,6 @@ internal sealed partial class HelixTestRunner
         {
             await WaitForAllWorkItemsRunningAsync(helixApi, helixJobId, processWaitTask, cancellationToken);
             await WaitForWorkItemsToCompleteOrTimeoutAsync(helixApi, helixJobId, helixCancellationToken, testResultsDirectory, processWaitTask, cancellationToken);
-
             await process.WaitForExitAsync(cancellationToken);
             return process.ExitCode;
         }
@@ -129,6 +126,7 @@ internal sealed partial class HelixTestRunner
             throw;
         }
 
+        // Wait until all of the work items have started running
         static async Task WaitForAllWorkItemsRunningAsync(HelixApi helixApi, string helixJobId, Task processWaitTask, CancellationToken cancellationToken)
         {
             var startTime = DateTime.UtcNow;
@@ -142,10 +140,7 @@ internal sealed partial class HelixTestRunner
                     return;
                 }
 
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
+                cancellationToken.ThrowIfCancellationRequested();
 
                 try
                 {
@@ -158,6 +153,11 @@ internal sealed partial class HelixTestRunner
 
                     var elapsed = DateTime.UtcNow - startTime;
                     Console.WriteLine($"Job Time: {elapsed:hh\\:mm} Work Item States Running: {workItems.Running} Unscheduled: {workItems.Unscheduled} Waiting: {workItems.Waiting} Finished: {workItems.Finished}");
+
+                    if (elapsed > TimeSpan.FromMinutes(20))
+                    {
+                        ConsoleUtil.Warning($"Helix job {helixJobId} has {details.WorkItems.Waiting} queued work items after {elapsed:hh\\:mm}. This indicates a queue backup");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -179,10 +179,7 @@ internal sealed partial class HelixTestRunner
                     return;
                 }
 
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
+                cancellationToken.ThrowIfCancellationRequested();
 
                 try
                 {
