@@ -61,6 +61,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSelectionRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensEndpointTestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensFullEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSignatureHelpEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostTypeHierarchyEndpointTest.cs" />
