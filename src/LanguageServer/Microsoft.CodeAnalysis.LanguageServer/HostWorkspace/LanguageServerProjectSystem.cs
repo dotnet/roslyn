@@ -72,6 +72,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         }
         finally
         {
+            progressReporter?.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
             SetProgressTracker(null, 0);
         }
     }
@@ -93,6 +94,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         }
         finally
         {
+            progressReporter?.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
             SetProgressTracker(null, 0);
         }
     }

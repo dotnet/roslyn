@@ -194,13 +194,18 @@ internal abstract class LanguageServerProjectLoader
                 produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
                 {
                     var (@this, toastErrorReporter, buildHostProcessManager) = args;
-                    var projectRestorePath = await @this.ReloadProjectAsync(
-                        projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+                    try
+                    {
+                        var projectRestorePath = await @this.ReloadProjectAsync(
+                            projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
 
-                    if (projectRestorePath is not null)
-                        produceItem(projectRestorePath);
-
-                    Volatile.Read(ref @this._progressTracker)?.OnProjectProcessed();
+                        if (projectRestorePath is not null)
+                            produceItem(projectRestorePath);
+                    }
+                    finally
+                    {
+                        Volatile.Read(ref @this._progressTracker)?.OnProjectProcessed();
+                    }
                 },
                 args: (@this: this, toastErrorReporter, buildHostProcessManager),
                 cancellationToken).ConfigureAwait(false);
@@ -595,13 +600,17 @@ internal abstract class LanguageServerProjectLoader
             var percentage = (int)(processed * 100L / totalProjects);
             percentage = Math.Min(percentage, 100);
 
-            // Suppress reports with the same percentage to reduce notification spam for large solutions.
-            var lastPercentage = Volatile.Read(ref _lastReportedPercentage);
-            if (percentage <= lastPercentage)
-                return;
+            // Atomically claim this percentage update. If another thread already advanced
+            // _lastReportedPercentage past our value, we skip reporting to ensure monotonicity.
+            while (true)
+            {
+                var lastPercentage = Volatile.Read(ref _lastReportedPercentage);
+                if (percentage <= lastPercentage)
+                    return;
 
-            // Best-effort update — races are acceptable since the client handles non-monotonic values.
-            Volatile.Write(ref _lastReportedPercentage, percentage);
+                if (Interlocked.CompareExchange(ref _lastReportedPercentage, percentage, lastPercentage) == lastPercentage)
+                    break;
+            }
 
             reporter.Report(new LSP.WorkDoneProgressReport
             {
