@@ -22,7 +22,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsPackageVersion>10.0.1</MicrosoftExtensionsOptionsPackageVersion>
     <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.1</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
     <MicrosoftExtensionsPrimitivesPackageVersion>10.0.1</MicrosoftExtensionsPrimitivesPackageVersion>
-    <RoslynDiagnosticsAnalyzersPackageVersion>5.6.0-2.26265.112</RoslynDiagnosticsAnalyzersPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.6.0-2.26269.115</RoslynDiagnosticsAnalyzersPackageVersion>
     <SystemCollectionsImmutablePackageVersion>10.0.1</SystemCollectionsImmutablePackageVersion>
     <SystemCommandLinePackageVersion>2.0.8</SystemCommandLinePackageVersion>
     <SystemComponentModelCompositionPackageVersion>10.0.1</SystemComponentModelCompositionPackageVersion>
