@@ -8,6 +8,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
+#if DEBUG
+using System.Runtime.CompilerServices;
+#endif
+
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
 namespace Microsoft.CodeAnalysis.PooledObjects
@@ -38,19 +42,40 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private static readonly ConcurrentDictionary<IEqualityComparer<K>, ObjectPool<PooledDictionary<K, V>>> s_poolInstancesByComparer
             = new();
 
-        public static PooledDictionary<K, V> GetInstance(IEqualityComparer<K>? keyComparer = null)
+        public static PooledDictionary<K, V> GetInstance(
+            IEqualityComparer<K>? keyComparer
+#if DEBUG
+            , [CallerFilePath] string? filePath = null
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
             var pool = keyComparer == null ?
                 s_poolInstance :
                 s_poolInstancesByComparer.GetOrAdd(keyComparer, CreatePool);
-            var instance = pool.Allocate();
+            var instance = pool.Allocate(
+#if DEBUG
+                filePath, lineNumber
+#endif
+                );
             Debug.Assert(instance.Count == 0);
             return instance;
         }
 
-        public static PooledDictionary<K, V> GetInstance(IEnumerable<KeyValuePair<K, V>> initializer, IEqualityComparer<K>? keyComparer = null)
+        public static PooledDictionary<K, V> GetInstance(
+            IEnumerable<KeyValuePair<K, V>> initializer,
+            IEqualityComparer<K>? keyComparer = null
+#if DEBUG
+            , [CallerFilePath] string? filePath = null
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            var instance = GetInstance(keyComparer);
+            var instance = GetInstance(keyComparer
+#if DEBUG
+                , filePath, lineNumber
+#endif
+                );
             foreach (var kvp in initializer)
             {
                 instance.Add(kvp.Key, kvp.Value);

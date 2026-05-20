@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public static PooledDictionary<K, V> GetInstance(
 #if DEBUG
-            [CallerFilePath] string? filePath = null,
-            [CallerLineNumber] int lineNumber = 0
+            [CallerLineNumber] int lineNumber = 0,
+            [CallerFilePath] string? filePath = null
 #endif
             )
         {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             instance = GetInstance(
 #if DEBUG
-                filePath, lineNumber
+                lineNumber, filePath
 #endif
                 );
             return new PooledDisposer<PooledDictionary<K, V>>(instance);
