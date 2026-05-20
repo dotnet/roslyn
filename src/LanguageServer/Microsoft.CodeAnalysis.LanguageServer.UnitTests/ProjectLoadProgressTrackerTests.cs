@@ -9,9 +9,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public sealed class ProjectLoadProgressTrackerTests
 {
-    /// <summary>
-    /// Collects <see cref="WorkDoneProgressReport"/> instances reported via <see cref="IProgress{T}"/>.
-    /// </summary>
     private sealed class TestProgressReporter : IProgress<WorkDoneProgress>
     {
         private readonly object _gate = new();
@@ -92,8 +89,6 @@ public sealed class ProjectLoadProgressTrackerTests
     public void LargeProjectCount_SuppressesDuplicatePercentages()
     {
         var reporter = new TestProgressReporter();
-        // With 200 projects, each project is 0.5%, so many consecutive projects
-        // map to the same integer percentage. The tracker should suppress duplicates.
         var totalProjects = 200;
         var tracker = new LanguageServerProjectLoader.ProjectLoadProgressTracker(reporter, totalProjects);
 
@@ -104,15 +99,11 @@ public sealed class ProjectLoadProgressTrackerTests
 
         var reports = reporter.GetReports();
 
-        // With 200 projects, we should get at most 101 reports (one per integer percentage 0-100).
         Assert.True(reports.Count <= 101,
             $"Expected at most 101 reports but got {reports.Count}");
 
-        // All percentages should be unique.
         var percentages = reports.Select(r => r.Percentage!.Value).ToList();
         Assert.Equal(percentages.Count, percentages.Distinct().Count());
-
-        // Final percentage should be 100.
         Assert.Equal(100, percentages[^1]);
     }
 
@@ -157,9 +148,9 @@ public sealed class ProjectLoadProgressTrackerTests
         var reporter = new TestProgressReporter();
         var tracker = new LanguageServerProjectLoader.ProjectLoadProgressTracker(reporter, totalProjects: 3);
 
-        tracker.OnProjectProcessed(); // 33%
-        tracker.OnProjectProcessed(); // 66%
-        tracker.OnProjectProcessed(); // 100%
+        tracker.OnProjectProcessed();
+        tracker.OnProjectProcessed();
+        tracker.OnProjectProcessed();
 
         var reports = reporter.GetReports();
         Assert.Equal(3, reports.Count);
@@ -175,7 +166,6 @@ public sealed class ProjectLoadProgressTrackerTests
         var totalProjects = 100;
         var tracker = new LanguageServerProjectLoader.ProjectLoadProgressTracker(reporter, totalProjects);
 
-        // Simulate concurrent processing from multiple threads
         var tasks = Enumerable.Range(0, totalProjects).Select(_ =>
             Task.Run(() => tracker.OnProjectProcessed()));
         await Task.WhenAll(tasks);
@@ -183,14 +173,12 @@ public sealed class ProjectLoadProgressTrackerTests
         var reports = reporter.GetReports();
         Assert.NotEmpty(reports);
 
-        // All percentages must be within [0, 100].
         Assert.All(reports, report =>
         {
             Assert.NotNull(report.Percentage);
             Assert.InRange(report.Percentage!.Value, 0, 100);
         });
 
-        // The maximum reported percentage must be 100.
         Assert.Equal(100, reports.Max(r => r.Percentage!.Value));
     }
 }
