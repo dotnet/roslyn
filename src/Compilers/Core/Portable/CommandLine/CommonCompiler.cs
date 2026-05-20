@@ -1230,12 +1230,17 @@ namespace Microsoft.CodeAnalysis
             // But before we do so, we need to run diagnostic suppressors (if any) on all suppressable warnings/errors (if any).
             if (HasUnsuppressableErrors(diagnostics))
             {
-                if (analyzerDriver == null || !analyzerDriver.HasDiagnosticSuppressors || !HasSuppressableWarningsOrErrors(diagnostics))
+                if (analyzerDriver != null && analyzerDriver.HasDiagnosticSuppressors && HasSuppressableWarningsOrErrors(diagnostics))
                 {
-                    return;
+                    analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, cancellationToken);
                 }
 
-                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, cancellationToken);
+                if (analyzerDriver != null)
+                {
+                    compilation.EnsureCompilationEventQueueCompleted();
+                    analyzerDriver.GetDiagnosticsAsync(compilation, cancellationToken).Wait(cancellationToken);
+                }
+
                 return;
             }
 
