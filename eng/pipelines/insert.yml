@@ -56,7 +56,7 @@ steps:
     inputs:
       version: 8.0.x
 
-  - script: dotnet tool install Microsoft.RoslynTools --tool-path "$(Build.SourcesDirectory)\.tools" --prerelease --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
+  - script: dotnet tool install Microsoft.RoslynTools --tool-path "$(Build.SourcesDirectory)\.tools" --prerelease --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
     displayName: 'Install roslyn-tools'
 
   - powershell: |
