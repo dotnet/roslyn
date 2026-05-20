@@ -8830,7 +8830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            internal override TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method)
+            internal override TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method, ImmutableArray<ParameterSymbol> delegateParameters)
             {
                 if (_walker.TryGetMethodGroupReceiverNullability(group.ReceiverOpt, out TypeWithState receiverType))
                 {
@@ -8839,7 +8839,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                         method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
                     }
                 }
-                return method.ReturnTypeWithAnnotations;
+
+                var returnType = method.ReturnTypeWithAnnotations;
+                var returnNotNullIfParameterNotNull = method.ReturnNotNullIfParameterNotNull;
+                if (returnNotNullIfParameterNotNull.IsEmpty || delegateParameters.IsDefault)
+                {
+                    return returnType;
+                }
+
+                // https://github.com/dotnet/roslyn/issues/77475 : [return: NotNullIfNotNull(p)] means the return is
+                // non-null whenever any listed parameter is non-null. If the delegate supplies a non-null type for
+                // some listed parameter, that condition always holds for conversions through this delegate, so infer a
+                // non-null return (mirroring lambda reinference).
+                var methodParameters = method.Parameters;
+                int n = Math.Min(methodParameters.Length, delegateParameters.Length);
+                for (int i = 0; i < n; i++)
+                {
+                    if (!returnNotNullIfParameterNotNull.Contains(methodParameters[i].Name))
+                    {
+                        continue;
+                    }
+
+                    var delegateParameter = delegateParameters[i];
+                    var delegateParamState = GetParameterState(delegateParameter.TypeWithAnnotations, delegateParameter.FlowAnalysisAnnotations);
+                    if (delegateParamState.State == NullableFlowState.NotNull)
+                    {
+                        return returnType.AsNotAnnotated();
+                    }
+                }
+
+                return returnType;
             }
         }
 
