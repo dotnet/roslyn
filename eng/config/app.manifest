@@ -15,6 +15,7 @@
     <windowsSettings>
       <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
       <supportedArchitectures xmlns="http://schemas.microsoft.com/SMI/2024/WindowsSettings">amd64 arm64</supportedArchitectures>
+      <heapType xmlns="http://schemas.microsoft.com/SMI/2020/WindowsSettings">SegmentHeap</heapType>
     </windowsSettings>
   </application>
 </assembly>
