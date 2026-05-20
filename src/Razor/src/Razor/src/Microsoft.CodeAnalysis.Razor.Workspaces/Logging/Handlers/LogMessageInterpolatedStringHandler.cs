@@ -4,13 +4,14 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using RazorPooledObjects = Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Razor.Logging;
 
 [InterpolatedStringHandler]
 internal ref struct LogMessageInterpolatedStringHandler
 {
-    private PooledObject<StringBuilder> _builder;
+    private RazorPooledObjects.PooledObject<StringBuilder> _builder;
     private readonly bool _isEnabled;
 
     public LogMessageInterpolatedStringHandler(int literalLength, int _, ILogger logger, LogLevel logLevel, out bool isEnabled)

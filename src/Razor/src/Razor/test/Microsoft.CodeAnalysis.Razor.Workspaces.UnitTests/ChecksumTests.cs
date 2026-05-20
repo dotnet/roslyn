@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Utilities;
+using RazorChecksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -38,61 +38,61 @@ public class ChecksumTests(ITestOutputHelper testOutput) : ToolingTestBase(testO
         }
     }
 
-    private static readonly Func<Checksum> s_empty = () =>
+    private static readonly Func<RazorChecksum> s_empty = () =>
     {
-        var builder = new Checksum.Builder();
+        var builder = new RazorChecksum.Builder();
         return builder.FreeAndGetChecksum();
     };
 
-    private static readonly Func<Checksum> s_falseValue = () =>
+    private static readonly Func<RazorChecksum> s_falseValue = () =>
     {
-        var builder = new Checksum.Builder();
+        var builder = new RazorChecksum.Builder();
         builder.Append(false);
         return builder.FreeAndGetChecksum();
     };
 
-    private static readonly Func<Checksum> s_trueValue = () =>
+    private static readonly Func<RazorChecksum> s_trueValue = () =>
     {
-        var builder = new Checksum.Builder();
+        var builder = new RazorChecksum.Builder();
         builder.Append(true);
         return builder.FreeAndGetChecksum();
     };
 
-    private static Func<Checksum> CreateInt32(int value)
+    private static Func<RazorChecksum> CreateInt32(int value)
     {
         return () =>
         {
-            var builder = new Checksum.Builder();
+            var builder = new RazorChecksum.Builder();
             builder.Append(value);
             return builder.FreeAndGetChecksum();
         };
     }
 
-    private static Func<Checksum> CreateInt64(long value)
+    private static Func<RazorChecksum> CreateInt64(long value)
     {
         return () =>
         {
-            var builder = new Checksum.Builder();
+            var builder = new RazorChecksum.Builder();
             builder.Append(value);
             return builder.FreeAndGetChecksum();
         };
     }
 
-    private static Func<Checksum> CreateString(string? value)
+    private static Func<RazorChecksum> CreateString(string? value)
     {
         return () =>
         {
-            var builder = new Checksum.Builder();
+            var builder = new RazorChecksum.Builder();
             builder.Append(value);
             return builder.FreeAndGetChecksum();
         };
     }
 
-    private static Func<Checksum> Combine(params Func<Checksum>[] producers)
+    private static Func<RazorChecksum> Combine(params Func<RazorChecksum>[] producers)
     {
         return () =>
         {
-            var builder = new Checksum.Builder();
+            var builder = new RazorChecksum.Builder();
             foreach (var producer in producers)
             {
                 builder.Append(producer());
@@ -104,7 +104,7 @@ public class ChecksumTests(ITestOutputHelper testOutput) : ToolingTestBase(testO
 
     [Theory]
     [MemberData(nameof(Checksums))]
-    internal void TestEquality(bool areEqual, Func<Checksum> producer1, Func<Checksum> producer2)
+    internal void TestEquality(bool areEqual, Func<RazorChecksum> producer1, Func<RazorChecksum> producer2)
     {
         var checksum1 = producer1();
         var checksum2 = producer2();
@@ -124,11 +124,11 @@ public class ChecksumTests(ITestOutputHelper testOutput) : ToolingTestBase(testO
     {
         object? largeString = RazorTestResources.GetResourceText("FormattingTest.razor");
 
-        var builder = new Checksum.Builder();
+        var builder = new RazorChecksum.Builder();
         builder.Append(largeString);
 
         var result = builder.FreeAndGetChecksum();
 
-        Assert.NotEqual(result, Checksum.Null);
+        Assert.NotEqual(result, RazorChecksum.Null);
     }
 }
