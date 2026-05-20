@@ -77,15 +77,19 @@ namespace Microsoft.CodeAnalysis
                         var usedCache = tableBuilder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
                         Debug.Assert(usedCache);
                     }
-                    else if (inputItems.Length == previousTable.Count)
+                    else if (inputItems.Length == previousTable.Count
+                        && itemsSet.Remove(inputItems[itemIndex]))
                     {
-                        // When the number of items matches the previous iteration, we use a heuristic to mark the input as modified
+                        // When the number of items matches the previous iteration, we use a heuristic to mark the input as modified.
                         // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
                         // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
                         // but will perform an extra comparison that is omitted in the pure 'added' case.
+                        //
+                        // We also check that the replacement item (inputItems[itemIndex]) hasn't already been consumed by a prior
+                        // itemsSet.Remove(oldItem) match. If it was, using it here would create a duplicate entry. In that case,
+                        // we fall through to remove the old entry, and the unconsumed new item will be added at the end.
                         var modified = tableBuilder.TryModifyEntry(inputItems[itemIndex], elapsedTime, noInputStepsStepInfo, EntryState.Modified);
                         Debug.Assert(modified);
-                        itemsSet.Remove(inputItems[itemIndex]);
                     }
                     else
                     {
