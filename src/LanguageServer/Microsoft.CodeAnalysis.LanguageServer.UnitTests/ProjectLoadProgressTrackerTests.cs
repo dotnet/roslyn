@@ -137,7 +137,7 @@ public sealed class ProjectLoadProgressTrackerTests
     }
 
     [Fact]
-    public async Task TwoProjects_ReportsFiftyAndNinetyNine()
+    public async Task TwoProjects_FinalPercentageIsNinetyNine()
     {
         var reporter = new TestProgressReporter();
         var tracker = new LanguageServerProjectLoader.ProjectLoadProgressTracker(reporter, totalProjects: 2);
@@ -151,7 +151,7 @@ public sealed class ProjectLoadProgressTrackerTests
     }
 
     [Fact]
-    public async Task ThreeProjects_ReportsExpectedPercentages()
+    public async Task ThreeProjects_FinalPercentageIsNinetyNine()
     {
         var reporter = new TestProgressReporter();
         var tracker = new LanguageServerProjectLoader.ProjectLoadProgressTracker(reporter, totalProjects: 3);

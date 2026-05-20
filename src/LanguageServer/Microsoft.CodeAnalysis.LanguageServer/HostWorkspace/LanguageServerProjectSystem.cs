@@ -76,6 +76,9 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         }
         finally
         {
+            if (progressTracker != null)
+                await progressTracker.WaitUntilCurrentBatchCompletesAsync();
+
             progressReporter?.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
         }
     }
@@ -101,6 +104,9 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         }
         finally
         {
+            if (progressTracker != null)
+                await progressTracker.WaitUntilCurrentBatchCompletesAsync();
+
             progressReporter?.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
         }
     }
