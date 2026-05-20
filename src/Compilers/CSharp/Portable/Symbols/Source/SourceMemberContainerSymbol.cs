@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var ctor in InstanceConstructors)
                 {
-                    if (ctor.ParameterCount == 1 && ctor is not SynthesizedUnionCtor)
+                    if (ctor.DeclaredAccessibility == Accessibility.Public && ctor.ParameterCount == 1 && ctor is not SynthesizedUnionCtor)
                     {
                         diagnostics.Add(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, ctor.GetFirstLocation());
                     }
