@@ -16,14 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 /// </summary>
 internal sealed class FormattingResult : AbstractFormattingResult
 {
-    internal FormattingResult(TreeData treeInfo, TokenStream tokenStream, TextSpan spanToFormat)
+    private readonly SyntaxFormattingOptions _options;
+
+    internal FormattingResult(TreeData treeInfo, TokenStream tokenStream, TextSpan spanToFormat, SyntaxFormattingOptions options)
         : base(treeInfo, tokenStream, spanToFormat)
     {
+        this._options = options;
     }
 
     protected override SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> changeMap, CancellationToken cancellationToken)
     {
-        var rewriter = new TriviaRewriter(this.TreeInfo.Root, new TextSpanMutableIntervalTree(this.FormattedSpan), changeMap, cancellationToken);
+        var rewriter = new TriviaRewriter(this.TreeInfo.Root, new TextSpanMutableIntervalTree(this.FormattedSpan), changeMap, this._options, cancellationToken);
         return rewriter.Transform();
     }
 }
