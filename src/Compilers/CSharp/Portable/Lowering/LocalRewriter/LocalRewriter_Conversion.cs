@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConversion(BoundConversion node)
         {
+            return VisitConversion(node, passedAsParameter: null);
+        }
+
+        public BoundExpression VisitConversion(BoundConversion node, ParameterSymbol? passedAsParameter)
+        {
             switch (node.ConversionKind)
             {
                 case ConversionKind.InterpolatedString:
@@ -37,11 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.SwitchExpression:
                     // Skip through target-typed switches
                     Debug.Assert(node.Operand is BoundConvertedSwitchExpression { WasTargetTyped: true });
-                    return Visit(node.Operand)!;
+                    return (BoundExpression)Visit(node.Operand)!;
                 case ConversionKind.ConditionalExpression:
                     // Skip through target-typed conditionals
                     Debug.Assert(node.Operand is BoundConditionalOperator { WasTargetTyped: true });
-                    return Visit(node.Operand)!;
+                    return (BoundExpression)Visit(node.Operand)!;
                 case ConversionKind.ObjectCreation:
                     // Skip through target-typed new
                     Debug.Assert(node.Operand is not null);
@@ -59,11 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return objectCreation;
 
                 case ConversionKind.ImplicitNullable when node.Conversion.UnderlyingConversions[0].Kind is ConversionKind.CollectionExpression:
-                    var rewrittenCollection = RewriteCollectionExpressionConversion(node.Conversion.UnderlyingConversions[0], (BoundCollectionExpression)node.Operand);
+                    var rewrittenCollection = RewriteCollectionExpressionConversion(node.Conversion.UnderlyingConversions[0], (BoundCollectionExpression)node.Operand, passedAsParameter);
                     return ConvertToNullable(node.Syntax, node.Type, rewrittenCollection);
 
                 case ConversionKind.CollectionExpression:
-                    return RewriteCollectionExpressionConversion(node.Conversion, (BoundCollectionExpression)node.Operand);
+                    return RewriteCollectionExpressionConversion(node.Conversion, (BoundCollectionExpression)node.Operand, passedAsParameter);
             }
 
             var rewrittenType = VisitType(node.Type);
