@@ -109,3 +109,4 @@ stages:
         oop64bit: $(_oop64bit)
         lspEditor: false
         skipCheckout: true
+        buildArguments: -replaceInstalledRazorExtension

@@ -61,6 +61,7 @@ param (
   # Test actions
   [string]$testArch = "x64",
   [switch]$testVsi,
+  [switch]$replaceInstalledRazorExtension,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testCompilerOnly = $false,
@@ -101,6 +102,8 @@ function Print-Usage() {
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
+  Write-Host "  -replaceInstalledRazorExtension"
+  Write-Host "                            Remove the installed Razor payload so integration tests use the branch-built Razor VSIX"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
   Write-Host "  -testRuntimeAsync         Run tests with runtime async validation enabled (see DOTNET_RuntimeAsync in codebase)"
@@ -200,6 +203,11 @@ function Process-Arguments() {
 
   if ($testVsi -and $helix) {
     Write-Host "Cannot run integration tests on Helix"
+    exit 1
+  }
+
+  if ($replaceInstalledRazorExtension -and -not $testVsi) {
+    Write-Host "Cannot replace the installed Razor extension without -testVsi"
     exit 1
   }
 
@@ -614,6 +622,18 @@ function Deploy-VsixViaTool() {
         Write-Host "`tUninstalling $name"
       }
       Remove-Item -re -fo $extDir
+    }
+
+    if ($replaceInstalledRazorExtension) {
+      # DartLab images already include the product Razor extension at this path. Remove it so the branch VSIX can replace the same payload.
+      $installedRazorDir = Join-Path $vsDir "Common7\IDE\CommonExtensions\Microsoft\RazorLanguageServices"
+      if (Test-Path $installedRazorDir) {
+        Write-Host "Removing installed Razor extension payload from `"$installedRazorDir`""
+        Remove-Item -Recurse -Force $installedRazorDir
+      }
+      else {
+        Write-Host "No installed Razor extension payload found at `"$installedRazorDir`""
+      }
     }
 
     Write-Host "Installing all Roslyn and Razor VSIXs"

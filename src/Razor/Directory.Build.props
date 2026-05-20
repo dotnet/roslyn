@@ -79,8 +79,7 @@
     <RazorExtensionInstallationFolderBase>Microsoft\RazorLanguageServices</RazorExtensionInstallationFolderBase>
     <!-- Sub-folder used by ServiceHub core components -->
     <RazorServiceHubCoreSubFolder>ServiceHubCore</RazorServiceHubCoreSubFolder>
-    <!-- Only stamp insertion metadata in official builds so integration CI can sideload the local VSIX. -->
-    <RazorVisualStudioInsertionComponent Condition="'$(OfficialBuild)' == 'true'">Microsoft.VisualStudio.RazorExtension</RazorVisualStudioInsertionComponent>
+    <RazorVisualStudioInsertionComponent>Microsoft.VisualStudio.RazorExtension</RazorVisualStudioInsertionComponent>
   </PropertyGroup>
 
   <!--
