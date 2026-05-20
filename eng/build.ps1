@@ -48,6 +48,7 @@ param (
   [switch]$fromVMR = $false,
   [switch]$oop64bit = $true,
   [switch]$lspEditor = $false,
+  [switch]$enableCompilerCache = $false,
   [string]$solution = "Roslyn.slnx",
 
   # official build settings
@@ -119,6 +120,7 @@ function Print-Usage() {
   Write-Host "  -warnNotAsError <codes>   Suppress specific warnings from being treated as errors (semi-colon delimited)"
   Write-Host "  -productBuild             Build the repository in product-build mode"
   Write-Host "  -fromVMR                  Set when building from within the VMR"
+  Write-Host "  -enableCompilerCache      Download and enable the compiler cache before building"
   Write-Host "  -solution                 Solution to build (default is Roslyn.slnx)"
   Write-Host ""
   Write-Host "Official build settings:"
@@ -813,6 +815,11 @@ try {
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish) {
+    if ($enableCompilerCache) {
+      $enableCacheScript = Join-Path $RepoRoot "eng/enable-compiler-cache.cs"
+      &(Ensure-DotNetSdk) run --file $enableCacheScript -- --configuration $configuration
+      Test-LastExitCode
+    }
     BuildSolution
   }
 

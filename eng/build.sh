@@ -34,6 +34,7 @@ usage()
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
   echo "  --bootstrap                Build using a bootstrap compilers"
+  echo "  --enableCompilerCache      Download and enable the compiler cache before building"
   echo "  --runAnalyzers             Run analyzers during build operations"
   echo "  --skipDocumentation        Skip generation of XML documentation files"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
@@ -70,6 +71,7 @@ test_mono=false
 test_ioperation=false
 test_runtime_async=false
 test_compiler_only=false
+enable_compiler_cache=false
 
 configuration="Debug"
 verbosity='minimal'
@@ -171,6 +173,9 @@ while [[ $# > 0 ]]; do
       bootstrap=true
       # Bootstrap requires restore
       restore=true
+      ;;
+    --enablecompilercache)
+      enable_compiler_cache=true
       ;;
     --runanalyzers)
       run_analyzers=true
@@ -390,6 +395,9 @@ if [[ "$bootstrap" == true ]]; then
 fi
 
 if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mono" == true ]]; then
+  if [[ "$enable_compiler_cache" == true ]]; then
+    "$DOTNET_INSTALL_DIR/dotnet" run --file "$scriptroot/enable-compiler-cache.cs" -- --configuration "$configuration"
+  fi
   BuildSolution
 fi
 
