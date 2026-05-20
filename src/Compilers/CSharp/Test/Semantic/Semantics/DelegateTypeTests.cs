@@ -2362,6 +2362,71 @@ public static class E
             AssertEx.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82191")]
+        public void MethodGroup_ToMissingDelegate_GetSymbolInfo_BestEffort()
+        {
+            var source = """
+class C
+{
+    static void M<T>(int x) { }
+
+    static void Test()
+    {
+        Foo(M<int>);
+    }
+
+    static void Foo(MissingDelegate d) { }
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,21): error CS0246: The type or namespace name 'MissingDelegate' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void Foo(MissingDelegate d) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingDelegate").WithArguments("MissingDelegate").WithLocation(10, 21));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var methodGroup = GetSyntax<GenericNameSyntax>(tree, "M<int>");
+            Assert.Equal("void C.M<T>(System.Int32 x)", model.GetSymbolInfo(methodGroup).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82191")]
+        public void MethodGroup_ToMissingDelegate_GetSymbolInfo_BestEffort_ExtensionMethod()
+        {
+            var source = """
+class C
+{
+    static void Test()
+    {
+        Foo(Ext.M);
+    }
+
+    static void Foo(MissingDelegate d) { }
+}
+
+static class Ext
+{
+    public static void M(this C c, int x) { }
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,21): error CS0246: The type or namespace name 'MissingDelegate' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void Foo(MissingDelegate d) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingDelegate").WithArguments("MissingDelegate").WithLocation(8, 21));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var methodGroup = GetSyntax<MemberAccessExpressionSyntax>(tree, "Ext.M");
+            // Verify symbol is resolved for extension method method group
+            var symbol = model.GetSymbolInfo(methodGroup).Symbol;
+            Assert.NotNull(symbol);
+            Assert.Equal("M", symbol.Name);
+            Assert.True(((IMethodSymbol)symbol).IsExtensionMethod);
+        }
+
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
         public void MethodGroup_ScopeByScope_InstanceReceiver(bool useCSharp13)
         {

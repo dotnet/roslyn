@@ -3715,9 +3715,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            Debug.Assert(Conversions.IsAssignableFromMulticastDelegate(delegateOrFuncPtrType, ref discardedUseSiteInfo) || delegateOrFuncPtrType.TypeKind == TypeKind.Delegate || delegateOrFuncPtrType.TypeKind == TypeKind.FunctionPointer);
+            Debug.Assert(Conversions.IsAssignableFromMulticastDelegate(delegateOrFuncPtrType, ref discardedUseSiteInfo) || delegateOrFuncPtrType.TypeKind == TypeKind.Delegate || delegateOrFuncPtrType.TypeKind == TypeKind.FunctionPointer || delegateOrFuncPtrType.TypeKind == TypeKind.Error);
             Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
+
+            if (delegateOrFuncPtrType.TypeKind == TypeKind.Error)
+            {
+                return false;
+            }
 
             if (!Conversions.IsAssignableFromMulticastDelegate(delegateOrFuncPtrType, ref discardedUseSiteInfo))
             {
