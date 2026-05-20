@@ -38,6 +38,12 @@ internal abstract class LanguageServerProjectLoader
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
+    /// Optional tracker for reporting project load percentage progress to the client.
+    /// Set by derived classes before initiating loads, cleared after completion.
+    /// </summary>
+    private ProjectLoadProgressTracker? _progressTracker;
+
+    /// <summary>
     /// Guards access to <see cref="_loadedProjects"/>.
     /// To keep the LSP queue responsive, <see cref="_gate"/> must not be held while performing design-time builds.
     /// </summary>
@@ -87,6 +93,20 @@ internal abstract class LanguageServerProjectLoader
     /// Indicates whether loads should report UI progress to the client for this loader.
     /// </summary>
     protected virtual bool EnableProgressReporting => true;
+
+    /// <summary>
+    /// Sets or clears the progress tracker for reporting project load percentage.
+    /// Call with a non-null reporter and the total project count before initiating loads,
+    /// and call with <see langword="null"/> after loads complete to clear the tracker.
+    /// </summary>
+    protected void SetProgressTracker(IProgress<LSP.WorkDoneProgress>? progressReporter, int totalProjects)
+    {
+        Volatile.Write(
+            ref _progressTracker,
+            progressReporter != null && totalProjects > 0
+                ? new ProjectLoadProgressTracker(progressReporter, totalProjects)
+                : null);
+    }
 
     protected LanguageServerProjectLoader(
         LanguageServerWorkspaceFactory workspaceFactory,
@@ -179,6 +199,8 @@ internal abstract class LanguageServerProjectLoader
 
                     if (projectRestorePath is not null)
                         produceItem(projectRestorePath);
+
+                    Volatile.Read(ref @this._progressTracker)?.OnProjectProcessed();
                 },
                 args: (@this: this, toastErrorReporter, buildHostProcessManager),
                 cancellationToken).ConfigureAwait(false);
@@ -555,6 +577,36 @@ internal abstract class LanguageServerProjectLoader
             }
 
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Helper for tracking and reporting project load percentage progress.
+    /// Reports percentage via <see cref="LSP.WorkDoneProgressReport"/> as projects are processed.
+    /// </summary>
+    internal sealed class ProjectLoadProgressTracker(IProgress<LSP.WorkDoneProgress> reporter, int totalProjects)
+    {
+        private int _projectsProcessed;
+        private int _lastReportedPercentage = -1;
+
+        public void OnProjectProcessed()
+        {
+            var processed = Interlocked.Increment(ref _projectsProcessed);
+            var percentage = (int)(processed * 100L / totalProjects);
+            percentage = Math.Min(percentage, 100);
+
+            // Suppress reports with the same percentage to reduce notification spam for large solutions.
+            var lastPercentage = Volatile.Read(ref _lastReportedPercentage);
+            if (percentage <= lastPercentage)
+                return;
+
+            // Best-effort update — races are acceptable since the client handles non-monotonic values.
+            Volatile.Write(ref _lastReportedPercentage, percentage);
+
+            reporter.Report(new LSP.WorkDoneProgressReport
+            {
+                Percentage = percentage,
+            });
         }
     }
 }
