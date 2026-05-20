@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,12 +22,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(ExportedPartsShouldHaveImportingConstructorCodeFixProvider))]
-    [Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
-    public class ExportedPartsShouldHaveImportingConstructorCodeFixProvider() : CodeFixProvider
+    public abstract class AbstractExportedPartsShouldHaveImportingConstructorCodeFixProvider() : CodeFixProvider
     {
+        protected abstract bool IsOnPrimaryConstructorTypeDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
+        protected abstract SyntaxNode AddMethodTarget(SyntaxNode attributeList);
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(ExportedPartsShouldHaveImportingConstructor.Rule.Id);
 
         public override FixAllProvider GetFixAllProvider()
@@ -155,7 +155,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }
 
-        private static async Task<Document> AddImportingConstructorAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private async Task<Document> AddImportingConstructorAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -164,13 +164,18 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var declaration = generator.TryGetContainingDeclaration(constructor, DeclarationKind.Constructor);
+            var isPrimaryConstructorTypeDeclaration = this.IsOnPrimaryConstructorTypeDeclaration(constructor, out var typeDeclaration);
+            var declaration = isPrimaryConstructorTypeDeclaration
+                ? typeDeclaration
+                : generator.TryGetContainingDeclaration(constructor, DeclarationKind.Constructor);
             if (declaration is null)
             {
                 return document;
             }
 
-            var exportedType = semanticModel.GetDeclaredSymbol(declaration, cancellationToken)?.ContainingType;
+            var exportedTypeSymbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+            var exportedType = exportedTypeSymbol as INamedTypeSymbol
+                ?? exportedTypeSymbol?.ContainingType;
             if (exportedType is null)
             {
                 return document;
@@ -201,7 +206,10 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol).WithAddImportsAnnotation()));
+            var importingConstructorAttribute = generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol).WithAddImportsAnnotation());
+            importingConstructorAttribute = isPrimaryConstructorTypeDeclaration ? this.AddMethodTarget(importingConstructorAttribute) : importingConstructorAttribute;
+
+            var newDeclaration = generator.AddAttributes(declaration, importingConstructorAttribute);
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }
     }
