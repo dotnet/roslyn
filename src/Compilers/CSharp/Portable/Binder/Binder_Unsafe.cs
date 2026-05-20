@@ -38,14 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location)
         {
-            if (!this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
+            var useUpdatedMemorySafetyRules = this.Compilation.SourceModule.UseUpdatedMemorySafetyRules;
+            if (!useUpdatedMemorySafetyRules && symbol.CallerUnsafeMode != CallerUnsafeMode.Implicit)
             {
                 return;
             }
 
             ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, arg, location, forConstructorConstraint: false);
 
-            if (ShouldCheckConstraints)
+            if (useUpdatedMemorySafetyRules && ShouldCheckConstraints)
             {
                 switch (symbol)
                 {
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location, bool forConstructorConstraint, ReadOnlySpan<object> additionalArgs = default)
         {
-            Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules);
+            Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules || symbol.CallerUnsafeMode == CallerUnsafeMode.Implicit);
 
             var callerUnsafeMode = symbol.CallerUnsafeMode;
             if (callerUnsafeMode != CallerUnsafeMode.None)
