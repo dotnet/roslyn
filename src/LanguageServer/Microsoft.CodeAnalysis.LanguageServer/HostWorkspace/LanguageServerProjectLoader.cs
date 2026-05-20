@@ -410,6 +410,78 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
+    /// <summary>
+    /// Loads a project from cached <see cref="ProjectFileInfo"/> data, bypassing the primordial project step.
+    /// A design-time build is still queued to ensure the project is up-to-date.
+    /// Returns <c>null</c> if the project is already loaded or if the cached info could not be applied.
+    /// </summary>
+    protected async ValueTask<Project?> GetOrLoadProjectFromCachedInfoAsync(
+        string projectPath,
+        ProjectSystemProjectFactory projectFactory,
+        ImmutableArray<ProjectFileInfo> cachedProjectFileInfos,
+        bool isMiscellaneousFile,
+        bool hasAllInformation)
+    {
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            if (_loadedProjects.TryGetValue(projectPath, out var existingState))
+            {
+                return LookupExistingProjectCore(existingState, projectPath);
+            }
+
+            var newProjectTargets = ArrayBuilder<LoadedProject>.GetInstance(cachedProjectFileInfos.Length);
+            try
+            {
+                foreach (var cachedInfo in cachedProjectFileInfos)
+                {
+                    var targetFramework = cachedInfo.TargetFramework;
+                    var projectSystemName = targetFramework is null ? projectPath : $"{projectPath} (${targetFramework})";
+
+                    var projectCreationInfo = new ProjectSystemProjectCreationInfo
+                    {
+                        AssemblyName = projectSystemName,
+                        FilePath = PathUtilities.IsAbsolute(projectPath) && File.Exists(projectPath) ? projectPath : null,
+                        CompilationOutputAssemblyFilePath = cachedInfo.IntermediateOutputFilePath,
+                    };
+
+                    var projectSystemProject = await projectFactory.CreateAndAddToWorkspaceAsync(
+                        projectSystemName,
+                        cachedInfo.Language,
+                        projectCreationInfo,
+                        _workspaceFactory.ProjectSystemHostInfo,
+                        CancellationToken.None).ConfigureAwait(false);
+
+                    var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
+                    loadedProject.NeedsReload += (_, _) =>
+                        _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: false));
+
+                    await loadedProject.UpdateWithNewProjectInfoAsync(cachedInfo, isMiscellaneousFile, hasAllInformation, _logger);
+                    newProjectTargets.Add(loadedProject);
+                }
+            }
+            catch
+            {
+                // If anything goes wrong creating targets from cached info, dispose what we created and return null.
+                foreach (var target in newProjectTargets)
+                {
+                    target.Dispose();
+                }
+
+                newProjectTargets.Free();
+                return null;
+            }
+
+            var targets = newProjectTargets.ToImmutableAndFree();
+            _loadedProjects.Add(projectPath, new ProjectLoadState.LoadedTargets(targets));
+
+            // Always queue a design-time build to ensure we have the most up-to-date info.
+            _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
+
+            var firstTarget = targets.FirstOrDefault();
+            return firstTarget?.ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(firstTarget.ProjectId);
+        }
+    }
+
     protected async ValueTask<Project?> GetOrLoadProjectAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, ProjectInfo> createPrimordialProjectInfo, bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
@@ -430,27 +502,29 @@ internal abstract class LanguageServerProjectLoader
             return primordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordialProjectInfo.Id);
         }
 
-        Project? LookupExistingProject(ProjectLoadState loadState)
-        {
-            if (loadState is ProjectLoadState.Primordial primordial)
-            {
-                return primordial.PrimordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordial.PrimordialProjectId);
-            }
-            else if (loadState is ProjectLoadState.LoadedTargets loadedTargets)
-            {
-                var target = loadedTargets.LoadedProjectTargets.FirstOrDefault();
-                if (target is null)
-                {
-                    _logger.LogWarning("Could not get a project for '{projectPath}' because it loaded with no targets", projectPath);
-                    return null;
-                }
+        Project? LookupExistingProject(ProjectLoadState loadState) => LookupExistingProjectCore(loadState, projectPath);
+    }
 
-                return target.ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(target.ProjectId);
-            }
-            else
+    private Project? LookupExistingProjectCore(ProjectLoadState loadState, string projectPath)
+    {
+        if (loadState is ProjectLoadState.Primordial primordial)
+        {
+            return primordial.PrimordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordial.PrimordialProjectId);
+        }
+        else if (loadState is ProjectLoadState.LoadedTargets loadedTargets)
+        {
+            var target = loadedTargets.LoadedProjectTargets.FirstOrDefault();
+            if (target is null)
             {
-                throw ExceptionUtilities.UnexpectedValue(loadState);
+                _logger.LogWarning("Could not get a project for '{projectPath}' because it loaded with no targets", projectPath);
+                return null;
             }
+
+            return target.ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(target.ProjectId);
+        }
+        else
+        {
+            throw ExceptionUtilities.UnexpectedValue(loadState);
         }
     }
 

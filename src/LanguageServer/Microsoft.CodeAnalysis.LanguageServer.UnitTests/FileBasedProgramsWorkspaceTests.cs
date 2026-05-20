@@ -1634,4 +1634,128 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         Assert.Null(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
     }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_CacheWrittenAfterDTB(bool mutatingLspWorkspace)
+    {
+        // Verify that after a design-time build completes for a file-based program,
+        // the ProjectFileInfo cache file is written to disk.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        var tempDir = _tempRoot.CreateDirectory();
+        var sourceText = """
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World!");
+            """;
+        var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+
+        // Wait for the DTB to complete.
+        await WaitForProjectLoad(looseFileUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+
+        // Verify the cache file was written to the artifacts directory.
+        var artifactsPath = VirtualProjectXmlProvider.GetArtifactsPath(sourceFile.Path);
+        var cacheFilePath = Path.Combine(artifactsPath, "projectfileinfo.cache");
+        Assert.True(File.Exists(cacheFilePath), $"Expected cache file at '{cacheFilePath}' to exist after DTB.");
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_CacheUsedOnReload(bool mutatingLspWorkspace)
+    {
+        // Verify that after the cache is written, closing and reopening the same file-based program
+        // uses the cache to load the project immediately in the Host workspace,
+        // then a DTB still runs to update it.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+
+        var tempDir = _tempRoot.CreateDirectory();
+        var sourceText = """
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World!");
+            """;
+        var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+
+        // First open: triggers DTB which writes the cache.
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(looseFileUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+
+        // Verify cache exists.
+        var artifactsPath = VirtualProjectXmlProvider.GetArtifactsPath(sourceFile.Path);
+        var cacheFilePath = Path.Combine(artifactsPath, "projectfileinfo.cache");
+        Assert.True(File.Exists(cacheFilePath), $"Expected cache file to exist after first DTB.");
+
+        // Close the document (which unloads the project when discovery is disabled).
+        await testLspServer.CloseDocumentAsync(looseFileUri);
+        (workspace, document) = await GetLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Null(workspace);
+        Assert.Null(document);
+
+        // Reopen the same file. The cache should be used so the project loads into the Host workspace immediately.
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+
+        // The project should be available in the Host workspace right away (from cache),
+        // without waiting for a DTB to complete.
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+        Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
+
+        // Wait for the DTB that was queued by the cache path to complete.
+        await WaitForProjectLoad(looseFileUri, testLspServer);
+
+        // After DTB, still in Host workspace with full info.
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_NoCacheOnFirstLoad(bool mutatingLspWorkspace)
+    {
+        // Verify that when no cache exists, the first load goes through the primordial path.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        var tempDir = _tempRoot.CreateDirectory();
+        var sourceText = """
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World!");
+            """;
+        var sourceFile = tempDir.CreateFile("NoCacheFile.cs").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+
+        // Ensure no cache exists.
+        var artifactsPath = VirtualProjectXmlProvider.GetArtifactsPath(sourceFile.Path);
+        var cacheFilePath = Path.Combine(artifactsPath, "projectfileinfo.cache");
+        Assert.False(File.Exists(cacheFilePath));
+
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+
+        // Before DTB completes, the document is in the misc workspace with a primordial project.
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
+
+        await WaitForProjectLoad(looseFileUri, testLspServer);
+
+        // After DTB, moved to Host workspace.
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+
+        // And now the cache should exist.
+        Assert.True(File.Exists(cacheFilePath));
+    }
 }
