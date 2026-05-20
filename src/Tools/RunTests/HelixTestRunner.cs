@@ -48,6 +48,28 @@ internal sealed partial class HelixTestRunner
 
     internal static async Task<int> RunAsync(Options options, ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
     {
+        var helixProjectFilePath = await CreateHelixArtifactsAsync(options, assemblies, cancellationToken).ConfigureAwait(false);
+        var (process, helixJobId) = await StartHelixJobAsync(options, helixProjectFilePath, cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            var processResult = await process.Result.ConfigureAwait(false);
+            return processResult.ExitCode;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            var jobDescription = helixJobId ?? "unknown helix job";
+            ConsoleUtil.Error($"(NETCORE_ENGINEERING_TELEMETRY=Test) Helix job timed out: {jobDescription}");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Creates the helix project file and payload artifacts on disk. Returns the path to the
+    /// generated helix project file.
+    /// </summary>
+    internal static async Task<string> CreateHelixArtifactsAsync(Options options, ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
+    {
         Verify(options.UseHelix);
         Verify(!options.IncludeHtml);
         Verify(string.IsNullOrEmpty(options.TestFilter));
@@ -84,7 +106,29 @@ internal sealed partial class HelixTestRunner
         var helixFilePath = Path.Combine(options.ArtifactsDirectory, "helix.proj");
         File.WriteAllText(helixFilePath, helixProjectFileContent);
 
-        var arguments = $"build -bl:{Path.Combine(logsDir, "helix.binlog")} {helixFilePath}";
+        CopyPayloadFilesToLogs(logsDir, payloadsDir);
+        File.Copy(helixFilePath, Path.Combine(logsDir, "helix.proj"));
+
+        return helixFilePath;
+
+        void Verify([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression("condition")] string? message = null)
+        {
+            if (!condition)
+            {
+                throw new Exception($"Verify failed: {message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Constructs the dotnet build arguments, launches the process, and returns the process info
+    /// along with the helix job id once it is parsed from the process output. The job id will be
+    /// <see langword="null"/> if the process exits before emitting a job id (e.g. build failure).
+    /// </summary>
+    internal static async Task<(ProcessInfo ProcessInfo, string? HelixJobId)> StartHelixJobAsync(Options options, string helixProjectFilePath, CancellationToken cancellationToken)
+    {
+        var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
+        var arguments = $"build -bl:{Path.Combine(logsDir, "helix.binlog")} {helixProjectFilePath}";
         if (!string.IsNullOrEmpty(options.HelixApiAccessToken))
         {
             // Internal queues require an access token.
@@ -98,10 +142,7 @@ internal sealed partial class HelixTestRunner
             arguments += $" -p:Creator=\"{queuedBy}\"";
         }
 
-        CopyPayloadFilesToLogs(logsDir, payloadsDir);
-        File.Copy(helixFilePath, Path.Combine(logsDir, "helix.proj"));
-
-        string? helixJobId = null;
+        var helixJobIdSource = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         var process = ProcessRunner.CreateProcess(
             executable: options.DotnetFilePath,
@@ -112,36 +153,23 @@ internal sealed partial class HelixTestRunner
                 Debug.Assert(e.Data is not null);
                 ConsoleUtil.WriteLine(e.Data);
 
-                if (helixJobId is null)
+                if (!helixJobIdSource.Task.IsCompleted)
                 {
                     var match = HelixJobIdRegex().Match(e.Data);
                     if (match.Success)
                     {
-                        helixJobId = match.Groups[1].Value;
+                        helixJobIdSource.TrySetResult(match.Groups[1].Value);
                     }
                 }
             },
             cancellationToken: cancellationToken);
 
-        try
-        {
-            var processResult = await process.Result.ConfigureAwait(false);
-            return processResult.ExitCode;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            var jobDescription = helixJobId ?? "unknown helix job";
-            ConsoleUtil.Error($"(NETCORE_ENGINEERING_TELEMETRY=Test) Helix job timed out: {jobDescription}");
-            throw;
-        }
+        // Wait for either the job id to be parsed from output, or for the process to exit
+        // (whichever comes first). If the process exits before we see a job id, return null.
+        await Task.WhenAny(helixJobIdSource.Task, process.Result).ConfigureAwait(false);
+        var helixJobId = helixJobIdSource.Task.IsCompletedSuccessfully ? helixJobIdSource.Task.Result : null;
 
-        void Verify([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression("condition")] string? message = null)
-        {
-            if (!condition)
-            {
-                throw new Exception($"Verify failed: {message}");
-            }
-        }
+        return (process, helixJobId);
     }
 
     /// <summary>
