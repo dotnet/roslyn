@@ -60,7 +60,7 @@ public abstract class CohostSemanticTokensEndpointTestBase(ITestOutputHelper tes
             testName += "_misc_file";
         }
 
-        var baselineFileName = Path.Combine("TestFiles", "SemanticTokens", $"{testName}.txt");
+        var baselineFileName = Path.Combine("TestFiles", this.GetType().Name, $"{testName}.txt");
         if (GenerateBaselines.ShouldGenerate)
         {
             WriteBaselineFile(actualFileContents, baselineFileName);
