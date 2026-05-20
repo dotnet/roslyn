@@ -1622,7 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         {
                             var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+                            var binder = GetDefaultParameterValueBinder(syntax).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.UnsafeRegion, ContainingSymbol); // this binder is good for our purpose
 
                             binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
@@ -1681,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         {
                             var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+                            var binder = GetDefaultParameterValueBinder(syntax).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.UnsafeRegion, ContainingSymbol); // this binder is good for our purpose
 
                             binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
