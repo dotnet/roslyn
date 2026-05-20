@@ -18,4 +18,12 @@ internal class DocumentRangeFormattingOptions : IWorkDoneProgressOptions
     [JsonPropertyName("workDoneProgress")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool WorkDoneProgress { get; init; }
+
+    /// <summary>
+    /// Whether the server supports formatting multiple ranges at once.
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    [JsonPropertyName("rangesSupport")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool RangesSupport { get; init; }
 }
