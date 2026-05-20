@@ -991,7 +991,7 @@ done:
 
             if (AssociatedSymbol is null && HasSafeModifier && (!IsExtern || HasUnsafeModifier))
             {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(this.Locations[0]));
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(_location));
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

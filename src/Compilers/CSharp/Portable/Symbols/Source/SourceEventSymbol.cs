@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
             {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(this.Locations[0]));
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(location));
             }
 
             EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();

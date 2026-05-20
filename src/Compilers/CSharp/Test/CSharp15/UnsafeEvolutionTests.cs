@@ -9924,6 +9924,56 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Extern_Method_Partial_Differences()
+    {
+        var source = """
+            #pragma warning disable CS0067, CS0626, CS0824 // unused event, extern without attributes, extern constructor
+            using System;
+
+            public partial class C
+            {
+                public unsafe static partial void M1();
+                public safe static extern partial void M1();
+
+                public static partial void M2();
+                public unsafe static extern partial void M2();
+
+                public unsafe partial event Action E1;
+                public safe extern partial event Action E1;
+
+                public partial event Action E2;
+                public unsafe extern partial event Action E2;
+
+                public unsafe partial C();
+                public safe extern partial C();
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (7,44): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public safe static extern partial void M1();
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "M1").WithLocation(7, 44),
+            // (9,32): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
+            //     public static partial void M2();
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "M2").WithLocation(9, 32),
+            // (10,46): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public unsafe static extern partial void M2();
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "M2").WithLocation(10, 46),
+            // (13,45): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public safe extern partial event Action E1;
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "E1").WithLocation(13, 45),
+            // (15,33): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
+            //     public partial event Action E2;
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "E2").WithLocation(15, 33),
+            // (16,47): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public unsafe extern partial event Action E2;
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "E2").WithLocation(16, 47),
+            // (19,32): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public safe extern partial C();
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "C").WithLocation(19, 32));
+    }
+
+    [Fact]
     public void Extern_Method_WithPointers()
     {
         static string getLibSource(string modifiers) => $$"""
@@ -10749,6 +10799,31 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Extern_Indexer_SafeModifier()
+    {
+        var libSource = """
+            #pragma warning disable CS0626 // extern without attributes
+            public class C
+            {
+                public safe extern int this[int i] { get; set; }
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c[0] = c[0] + 123;
+            """;
+
+        CompileAndVerifyUnsafe(
+            libSource,
+            callerSource,
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: [],
+            expectedSafeSymbols: ["C", "C.this[]", "C.get_Item", "C.set_Item"],
+            expectedDiagnostics: []);
+    }
+
+    [Fact]
     public void Extern_Indexer_WithPointers()
     {
         static string getLibSource(string modifiers) => $$"""
@@ -11282,6 +11357,31 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Extern_Operator_SafeModifier()
+    {
+        var libSource = """
+            #pragma warning disable CS0626 // extern without attributes
+            public class C
+            {
+                public safe static extern C operator +(C x, C y);
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            _ = c + c;
+            """;
+
+        CompileAndVerifyUnsafe(
+            libSource,
+            callerSource,
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: [],
+            expectedSafeSymbols: ["C", "C.op_Addition"],
+            expectedDiagnostics: []);
     }
 
     [Fact]
