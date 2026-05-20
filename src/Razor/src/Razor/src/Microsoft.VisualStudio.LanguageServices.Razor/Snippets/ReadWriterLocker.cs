@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 
-namespace Microsoft.AspNetCore.Razor;
+namespace Microsoft.VisualStudio.Razor.Snippets;
 
 internal class ReadWriterLocker
 {
@@ -31,7 +30,7 @@ internal class ReadWriterLocker
 
     private static TimeSpan GetTimeout()
     {
-        if (Debugger.IsAttached)
+        if (System.Diagnostics.Debugger.IsAttached)
         {
             return s_maxTimeout;
         }

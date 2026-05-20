@@ -9,18 +9,9 @@
     <Import_RootNamespace>Microsoft.AspNetCore.Razor</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)..\Microsoft.AspNetCore.Razor.Utilities.Shared\*.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\Microsoft.AspNetCore.Razor.Utilities.Shared\PooledObjects\**\*.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\Microsoft.AspNetCore.Razor.Utilities.Shared\Threading\**\*.cs" />
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)..\Microsoft.AspNetCore.Razor.Utilities.Shared\Resources\SR.resx">
-      <GenerateSource>true</GenerateSource>
-      <Namespace>Microsoft.AspNetCore.Razor.Utilities.Shared.Resources</Namespace>
-    </EmbeddedResource>
-    <Using Include="Microsoft.AspNetCore.Razor.Utilities.Shared.Resources" />
+    <Compile Include="$(MSBuildThisFileDirectory)**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
-    <ExpectedCompile Include="$(MSBuildThisFileDirectory)..\Microsoft.AspNetCore.Razor.Utilities.Shared\*.cs" />
-    <ExpectedCompile Include="$(MSBuildThisFileDirectory)..\Microsoft.AspNetCore.Razor.Utilities.Shared\PooledObjects\**\*$(DefaultLanguageSourceExtension)" />
-    <ExpectedCompile Include="$(MSBuildThisFileDirectory)..\Microsoft.AspNetCore.Razor.Utilities.Shared\Threading\**\*$(DefaultLanguageSourceExtension)" />
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>
