@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -61,12 +62,13 @@ internal static class PoolTracker
     /// Records that a pooled object has been allocated.
     /// </summary>
     [Conditional("DEBUG")]
-    internal static void OnAllocate(object obj, string? poolName = null)
+    internal static void OnAllocate(object obj, string? poolName = null, string? filePath = null, int lineNumber = 0)
     {
 #if DEBUG
         if (s_activeTrackers > 0)
         {
-            s_currentContext.Value?.OnAllocate(obj, poolName);
+            var allocSite = filePath is not null ? Path.GetFileName(filePath) + ":" + lineNumber : poolName;
+            s_currentContext.Value?.OnAllocate(obj, allocSite);
         }
 #endif
     }

@@ -4105,7 +4105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     static void assemble(SequenceTests toAssemble, ArrayBuilder<Tests> tests)
                     {
                         var length = toAssemble.RemainingTests.Length;
-                        var newSequence = ArrayBuilder<Tests>.GetInstance(length, null!);
+                        var newSequence = ArrayBuilder<Tests>.GetInstance(length, fillWithValue: null!);
                         for (int i = length - 1; i >= 0; i--)
                         {
                             newSequence[i] = tests.Pop();
