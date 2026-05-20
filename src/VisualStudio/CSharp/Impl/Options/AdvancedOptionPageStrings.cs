@@ -126,11 +126,11 @@ internal static class AdvancedOptionPageStrings
     public static string Option_Display_diagnostics_inline
         => ServicesVSResources.Display_diagnostics_inline;
 
-    public static string Option_at_the_end_of_the_line_of_code
-        => ServicesVSResources.at_the_end_of_the_line_of_code;
+    public static string Option_At_the_end_of_the_line_of_code
+        => ServicesVSResources.At_the_end_of_the_line_of_code;
 
-    public static string Option_on_the_right_edge_of_the_editor_window
-        => ServicesVSResources.on_the_right_edge_of_the_editor_window;
+    public static string Option_On_the_right_edge_of_the_editor_window
+        => ServicesVSResources.On_the_right_edge_of_the_editor_window;
 
     public static string Option_RenameTrackingPreview
         => ServicesVSResources.Show_preview_for_rename_tracking;
@@ -138,11 +138,11 @@ internal static class AdvancedOptionPageStrings
     public static string Option_Split_string_literals_on_enter
         => CSharpVSResources.Split_string_literals_on_enter;
 
-    public static string Option_DisplayLineSeparators
-        => ServicesVSResources.Show_procedure_line_separators;
-
     public static string Option_Underline_reassigned_variables
         => ServicesVSResources.Underline_reassigned_variables;
+
+    public static string Option_DisplayLineSeparators
+        => ServicesVSResources._Show_procedure_line_separators;
 
     public static string Option_Strike_out_obsolete_symbols
         => ServicesVSResources.Strike_out_obsolete_symbols;
@@ -165,11 +165,14 @@ internal static class AdvancedOptionPageStrings
     public static string Option_When_inserting_properties_events_and_methods_place_them
         => ServicesVSResources.When_inserting_properties_events_and_methods_place_them;
 
-    public static string Option_with_other_members_of_the_same_kind
-        => ServicesVSResources.with_other_members_of_the_same_kind;
+    public static string Option_With_other_members_of_the_same_kind
+        => ServicesVSResources.With_other_members_of_the_same_kind;
 
-    public static string Option_at_the_end
-        => ServicesVSResources.at_the_end;
+    public static string Option_At_the_end
+        => ServicesVSResources.At_the_end;
+
+    public static string Option_When_generating_properties_colon
+        => ServicesVSResources.When_generating_properties_colon;
 
     public static string Option_When_generating_properties
         => ServicesVSResources.When_generating_properties;
@@ -177,11 +180,11 @@ internal static class AdvancedOptionPageStrings
     public static string Option_prefer_auto_properties
         => ServicesVSResources.codegen_prefer_auto_properties;
 
-    public static string Option_prefer_throwing_properties
-        => ServicesVSResources.prefer_throwing_properties;
-
     public static string Option_Comments
         => ServicesVSResources.Comments;
+
+    public static string Option_prefer_throwing_properties
+        => ServicesVSResources.Prefer_throwing_properties;
 
     public static string Option_GenerateXmlDocCommentsForTripleSlash
         => CSharpVSResources.Generate_XML_documentation_comments_for;
@@ -333,6 +336,9 @@ internal static class AdvancedOptionPageStrings
     public static string Option_JSON_strings
         => ServicesVSResources.JSON_strings;
 
+    public static string Option_Enable_file_logging_for_diagnostics_logged_in_temp_roslyn_folder
+        => ServicesVSResources.Enable_file_logging_for_diagnostics_logged_in_temp_roslyn_folder;
+
     public static string Option_Colorize_JSON_strings
         => ServicesVSResources.Colorize_JSON_strings;
 
@@ -363,6 +369,21 @@ internal static class AdvancedOptionPageStrings
     public static string Option_Automatic_Run_generators_after_any_change
         => ServicesVSResources.Automatic_Run_generators_after_any_change;
 
+    public static string Option_Rename
+        => EditorFeaturesResources.Rename;
+
+    public static string Option_Rename_asynchronously_experimental
+        => ServicesVSResources.Rename_asynchronously_experimental;
+
+    public static string Document_Outline
+        => ServicesVSResources.Document_Outline;
+
+    public static string Option_Enable_document_outline_experimental_requires_restart
+        => ServicesVSResources.Enable_document_outline_experimental_requires_restart;
+
     public static string Option_Balanced_Run_generators_after_saving_or_building
         => ServicesVSResources.Balanced_Run_generators_after_saving_or_building;
+
+    public static string Option_Automatically_reload_updated_analyzers_and_generators_requires_restart
+        => ServicesVSResources.Automatically_reload_updated_analyzers_and_generators_requires_restart;
 }
