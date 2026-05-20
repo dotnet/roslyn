@@ -88,8 +88,5 @@ internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefacto
 
         public override string Title
             => GenerateEqualsAndGetHashCodeAction.GetTitle(_generateEquals, _generateGetHashCode) + "...";
-
-        internal override bool IsApplicableInLspWithoutUI(Host.SolutionServices services)
-            => (_service._pickMembersService_forTestingPurposes ?? services.GetService<IPickMembersService>()) is not null;
     }
 }
