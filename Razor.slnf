@@ -50,6 +50,7 @@
       "src\\Razor\\src\\Razor\\test\\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests\\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests.csproj",
       "src\\Razor\\src\\Razor\\test\\Microsoft.VisualStudio.Razor.IntegrationTests\\Microsoft.VisualStudio.Razor.IntegrationTests.csproj",
       "src\\Razor\\src\\Razor\\test\\Microsoft.VisualStudioCode.RazorExtension.UnitTests\\Microsoft.VisualStudioCode.RazorExtension.UnitTests.csproj",
+      "src\\Razor\\src\\Shared\\Microsoft.AspNetCore.Razor.SharedUtilities\\Microsoft.AspNetCore.Razor.SharedUtilities.shproj",
       "src\\Razor\\src\\Shared\\Microsoft.AspNetCore.Razor.Test.Common\\Microsoft.AspNetCore.Razor.Test.Common.csproj",
       "src\\Razor\\src\\Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests\\Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests.csproj",
       "src\\Razor\\src\\Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared\\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj",
