@@ -57,7 +57,13 @@ internal sealed class NoMessagePumpSyncContext : SynchronizationContext
         // and if .NET Core ever adds CoWait support on Windows, we'll still behave properly.
         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
         {
-            return (int)WaitForMultipleObjects((uint)waitHandles.Length, waitHandles, waitAll, (uint)millisecondsTimeout);
+            unsafe
+            {
+                fixed (IntPtr* pHandles = waitHandles)
+                {
+                    return (int)WaitForMultipleObjects((uint)waitHandles.Length, pHandles, waitAll ? 1 : 0, (uint)millisecondsTimeout);
+                }
+            }
         }
         else
         {
@@ -74,6 +80,6 @@ internal sealed class NoMessagePumpSyncContext : SynchronizationContext
     /// <param name="waitHandles">The handles to wait for.</param>
     /// <param name="waitAll">A flag indicating whether all handles must be signaled before returning.</param>
     /// <param name="millisecondsTimeout">A timeout that will cause this method to return.</param>
-    [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-    private static extern int WaitForMultipleObjects(uint handleCount, IntPtr[] waitHandles, [MarshalAs(UnmanagedType.Bool)] bool waitAll, uint millisecondsTimeout);
+    [DllImport("kernel32.dll", ExactSpelling = true)]
+    private static extern unsafe int WaitForMultipleObjects(uint handleCount, IntPtr* waitHandles, int waitAll, uint millisecondsTimeout);
 }

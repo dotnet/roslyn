@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
 using System.Text;
 using Roslyn.Utilities;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [UnconditionalSuppressMessage("SingleFile", "IL3000:Assembly.Location", Justification = "Assembly.Location is used for event tracing display purposes only.")]
         public static RunTimer CreateSingleGeneratorRunTimer(this CodeAnalysisEventSource eventSource, ISourceGenerator generator, Func<TimeSpan, TimeSpan> adjustRunTime)
         {
             if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))

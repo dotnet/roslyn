@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis
                 return resolver.GetResolvedSatellitePath(originalPath, cultureInfo);
             }
 
-            return GetSatelliteAssemblyPath(originalPath, cultureInfo);
+            return RucSpacer.GetSatelliteAssemblyPath(originalPath, cultureInfo);
         }
 
         /// <summary>
@@ -299,31 +300,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method mimics the .NET lookup rules for satellite assemblies and will return the ideal
-        /// resource assembly for the given culture.
+        /// Nested class to prevent RequiresUnreferencedCode attribute on containing type from flowing down.
+        /// Adding RequiresUnreferencedCode makes all nested static members effectively "RequiresUnreferencedCode",
+        /// but not members of nested classes or nested classes themselves. This is mostly correct for AnalyzerAssemblyLoader
+        /// but is incorrect for a few static methods, which we move into this class to avoid propagating the warnings.
         /// </summary>
-        internal static string? GetSatelliteAssemblyPath(string assemblyFilePath, CultureInfo cultureInfo)
+        internal static class RucSpacer
         {
-            var assemblyFileName = Path.GetFileName(assemblyFilePath);
-            var satelliteAssemblyName = Path.ChangeExtension(assemblyFileName, ".resources.dll");
-            var path = Path.GetDirectoryName(assemblyFilePath);
-            if (path is null)
+            /// <summary>
+            /// This method mimics the .NET lookup rules for satellite assemblies and will return the ideal
+            /// resource assembly for the given culture.
+            /// </summary>
+            internal static string? GetSatelliteAssemblyPath(string assemblyFilePath, CultureInfo cultureInfo)
             {
-                return null;
-            }
-
-            while (cultureInfo != CultureInfo.InvariantCulture)
-            {
-                var filePath = Path.Combine(path, cultureInfo.Name, satelliteAssemblyName);
-                if (File.Exists(filePath))
+                var assemblyFileName = Path.GetFileName(assemblyFilePath);
+                var satelliteAssemblyName = Path.ChangeExtension(assemblyFileName, ".resources.dll");
+                var path = Path.GetDirectoryName(assemblyFilePath);
+                if (path is null)
                 {
-                    return filePath;
+                    return null;
                 }
 
-                cultureInfo = cultureInfo.Parent;
-            }
+                while (cultureInfo != CultureInfo.InvariantCulture)
+                {
+                    var filePath = Path.Combine(path, cultureInfo.Name, satelliteAssemblyName);
+                    if (File.Exists(filePath))
+                    {
+                        return filePath;
+                    }
 
-            return null;
+                    cultureInfo = cultureInfo.Parent;
+                }
+
+                return null;
+            }
         }
 
         public string? GetOriginalDependencyLocation(AssemblyName assemblyName)
@@ -403,6 +413,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
         /// will be the base directory where shadow copy assemblies are stored. </param>
+        [RequiresUnreferencedCode("Analyzer assemblies are loaded dynamically by design.")]
         internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
             string windowsShadowPath,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default,

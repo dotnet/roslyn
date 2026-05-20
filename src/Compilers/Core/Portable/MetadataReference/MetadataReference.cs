@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
@@ -296,11 +297,13 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         [Obsolete("Use CreateFromFile(assembly.Location) instead", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [RequiresAssemblyFiles]
         public static MetadataReference CreateFromAssembly(Assembly assembly)
         {
             return CreateFromAssemblyInternal(assembly);
         }
 
+        [RequiresAssemblyFiles]
         internal static MetadataImageReference CreateFromAssemblyInternal(Assembly assembly)
         {
             return CreateFromAssemblyInternal(assembly, default(MetadataReferenceProperties));
@@ -324,6 +327,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         [Obsolete("Use CreateFromFile(assembly.Location) instead", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [RequiresAssemblyFiles]
         public static MetadataReference CreateFromAssembly(
             Assembly assembly,
             MetadataReferenceProperties properties,
@@ -332,6 +336,7 @@ namespace Microsoft.CodeAnalysis
             return CreateFromAssemblyInternal(assembly, properties, documentation);
         }
 
+        [RequiresAssemblyFiles]
         internal static string GetAssemblyFilePath(
             Assembly assembly,
             MetadataReferenceProperties properties)
@@ -360,6 +365,7 @@ namespace Microsoft.CodeAnalysis
             return location;
         }
 
+        [RequiresAssemblyFiles]
         internal static MetadataImageReference CreateFromAssemblyInternal(
             Assembly assembly,
             MetadataReferenceProperties properties,
@@ -373,6 +379,7 @@ namespace Microsoft.CodeAnalysis
             return CreateFromFile(peStream, filePath, PEStreamOptions.Default, properties, documentation);
         }
 
+        [RequiresAssemblyFiles]
         internal static bool HasMetadata(Assembly assembly)
         {
             return !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location);

@@ -12,159 +12,155 @@ using System.Security;
 
 namespace Microsoft.CodeAnalysis.Interop
 {
-    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("9FD93CCF-3280-4391-B3A9-96E1CDE77C8D"), SuppressUnmanagedCodeSecurity]
-    internal interface IClrStrongName
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("9FD93CCF-3280-4391-B3A9-96E1CDE77C8D"), SuppressUnmanagedCodeSecurity]
+    [GeneratedWhenPossibleComInterface]
+    internal partial interface IClrStrongName
     {
         void GetHashFromAssemblyFile(
-            [In, MarshalAs(UnmanagedType.LPStr)] string pszFilePath,
-            [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
+            [MarshalAs(UnmanagedType.LPStr)] string pszFilePath,
+            ref int piHashAlg,
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] pbHash,
-            [In, MarshalAs(UnmanagedType.U4)] int cchHash,
-            [MarshalAs(UnmanagedType.U4)] out int pchHash);
+            int cchHash,
+            out int pchHash);
 
         void GetHashFromAssemblyFileW(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
-            [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
+            ref int piHashAlg,
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] pbHash,
-            [In, MarshalAs(UnmanagedType.U4)] int cchHash,
-            [MarshalAs(UnmanagedType.U4)] out int pchHash);
+            int cchHash,
+            out int pchHash);
 
         void GetHashFromBlob(
-            [In] IntPtr pbBlob,
-            [In, MarshalAs(UnmanagedType.U4)] int cchBlob,
-            [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
+            IntPtr pbBlob,
+            int cchBlob,
+            ref int piHashAlg,
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 5)] byte[] pbHash,
-            [In, MarshalAs(UnmanagedType.U4)] int cchHash,
-            [MarshalAs(UnmanagedType.U4)] out int pchHash);
+            int cchHash,
+            out int pchHash);
 
         void GetHashFromFile(
-            [In, MarshalAs(UnmanagedType.LPStr)] string pszFilePath,
-            [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
+            [MarshalAs(UnmanagedType.LPStr)] string pszFilePath,
+            ref int piHashAlg,
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] pbHash,
-            [In, MarshalAs(UnmanagedType.U4)] int cchHash,
-            [MarshalAs(UnmanagedType.U4)] out int pchHash);
+            int cchHash,
+            out int pchHash);
 
         void GetHashFromFileW(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
-            [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
+            ref int piHashAlg,
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] pbHash,
-            [In, MarshalAs(UnmanagedType.U4)] int cchHash,
-            [MarshalAs(UnmanagedType.U4)] out int pchHash);
+            int cchHash,
+            out int pchHash);
 
         void GetHashFromHandle(
-            [In] IntPtr hFile,
-            [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
+            IntPtr hFile,
+            ref int piHashAlg,
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] pbHash,
-            [In, MarshalAs(UnmanagedType.U4)] int cchHash,
-            [MarshalAs(UnmanagedType.U4)] out int pchHash);
+            int cchHash,
+            out int pchHash);
 
-        [return: MarshalAs(UnmanagedType.U4)]
         int StrongNameCompareAssemblies(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzAssembly1,
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzAssembly2);
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzAssembly1,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzAssembly2);
 
         void StrongNameFreeBuffer(
-            [In] IntPtr pbMemory);
+            IntPtr pbMemory);
 
         void StrongNameGetBlob(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] pbBlob,
-            [In, Out, MarshalAs(UnmanagedType.U4)] ref int pcbBlob);
+            ref int pcbBlob);
 
         void StrongNameGetBlobFromImage(
-            [In] IntPtr pbBase,
-            [In, MarshalAs(UnmanagedType.U4)] int dwLength,
+            IntPtr pbBase,
+            int dwLength,
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] pbBlob,
-            [In, Out, MarshalAs(UnmanagedType.U4)] ref int pcbBlob);
+            ref int pcbBlob);
 
         void StrongNameGetPublicKey(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
-            [In] IntPtr pbKeyBlob,
-            [In, MarshalAs(UnmanagedType.U4)] int cbKeyBlob,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
+            IntPtr pbKeyBlob,
+            int cbKeyBlob,
             out IntPtr ppbPublicKeyBlob,
-            [MarshalAs(UnmanagedType.U4)] out int pcbPublicKeyBlob);
+            out int pcbPublicKeyBlob);
 
-        [return: MarshalAs(UnmanagedType.U4)]
         int StrongNameHashSize(
-            [In, MarshalAs(UnmanagedType.U4)] int ulHashAlg);
+            int ulHashAlg);
 
         void StrongNameKeyDelete(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer);
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer);
 
         void StrongNameKeyGen(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
-            [In, MarshalAs(UnmanagedType.U4)] int dwFlags,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
+            int dwFlags,
             out IntPtr ppbKeyBlob,
-            [MarshalAs(UnmanagedType.U4)] out int pcbKeyBlob);
+            out int pcbKeyBlob);
 
         void StrongNameKeyGenEx(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
-            [In, MarshalAs(UnmanagedType.U4)] int dwFlags,
-            [In, MarshalAs(UnmanagedType.U4)] int dwKeySize,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
+            int dwFlags,
+            int dwKeySize,
             out IntPtr ppbKeyBlob,
-            [MarshalAs(UnmanagedType.U4)] out int pcbKeyBlob);
+            out int pcbKeyBlob);
 
         void StrongNameKeyInstall(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
-            [In] IntPtr pbKeyBlob,
-            [In, MarshalAs(UnmanagedType.U4)] int cbKeyBlob);
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
+            IntPtr pbKeyBlob,
+            int cbKeyBlob);
 
         void StrongNameSignatureGeneration(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
-            [In] IntPtr pbKeyBlob,
-            [In, MarshalAs(UnmanagedType.U4)] int cbKeyBlob,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
+            IntPtr pbKeyBlob,
+            int cbKeyBlob,
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 5)] byte[] ppbSignatureBlob,
-            [MarshalAs(UnmanagedType.U4)] out int pcbSignatureBlob);
+            out int pcbSignatureBlob);
 
         void StrongNameSignatureGenerationEx(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string wszFilePath,
-            [In, MarshalAs(UnmanagedType.LPWStr)] string wszKeyContainer,
-            [In] IntPtr pbKeyBlob,
-            [In, MarshalAs(UnmanagedType.U4)] int cbKeyBlob,
+            [MarshalAs(UnmanagedType.LPWStr)] string wszFilePath,
+            [MarshalAs(UnmanagedType.LPWStr)] string wszKeyContainer,
+            IntPtr pbKeyBlob,
+            int cbKeyBlob,
             out IntPtr ppbSignatureBlob,
-            [MarshalAs(UnmanagedType.U4)] out int pcbSignatureBlob,
-            [In, MarshalAs(UnmanagedType.U4)] int dwFlags);
+            out int pcbSignatureBlob,
+            int dwFlags);
 
         void StrongNameSignatureSize(
-            [In] IntPtr pbPublicKeyBlob,
-            [In, MarshalAs(UnmanagedType.U4)] int cbPublicKeyBlob,
-            [MarshalAs(UnmanagedType.U4)] out int pcbSize);
+            IntPtr pbPublicKeyBlob,
+            int cbPublicKeyBlob,
+            out int pcbSize);
 
-        [return: MarshalAs(UnmanagedType.U4)]
         int StrongNameSignatureVerification(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
-            [In, MarshalAs(UnmanagedType.U4)] int dwInFlags);
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
+            int dwInFlags);
 
         [return: MarshalAs(UnmanagedType.Bool)]
         bool StrongNameSignatureVerificationEx(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
-            [In, MarshalAs(UnmanagedType.Bool)] bool fForceVerification,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
+            [MarshalAs(UnmanagedType.Bool)] bool fForceVerification,
             out IntPtr ptr);
 
-        [return: MarshalAs(UnmanagedType.U4)]
         int StrongNameSignatureVerificationFromImage(
-            [In] IntPtr pbBase,
-            [In, MarshalAs(UnmanagedType.U4)] int dwLength,
-            [In, MarshalAs(UnmanagedType.U4)] int dwInFlags);
+            IntPtr pbBase,
+            int dwLength,
+            int dwInFlags);
 
         void StrongNameTokenFromAssembly(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
             out IntPtr ppbStrongNameToken,
-            [MarshalAs(UnmanagedType.U4)] out int pcbStrongNameToken);
+            out int pcbStrongNameToken);
 
         void StrongNameTokenFromAssemblyEx(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
             out IntPtr ppbStrongNameToken,
-            [MarshalAs(UnmanagedType.U4)] out int pcbStrongNameToken,
+            out int pcbStrongNameToken,
             out IntPtr ppbPublicKeyBlob,
-            [MarshalAs(UnmanagedType.U4)] out int pcbPublicKeyBlob);
+            out int pcbPublicKeyBlob);
 
         void StrongNameTokenFromPublicKey(
-            [In] IntPtr pbPublicKeyBlob,
-            [In, MarshalAs(UnmanagedType.U4)] int cbPublicKeyBlob,
+            IntPtr pbPublicKeyBlob,
+            int cbPublicKeyBlob,
             out IntPtr ppbStrongNameToken,
-            [MarshalAs(UnmanagedType.U4)] out int pcbStrongNameToken);
+            out int pcbStrongNameToken);
     }
 }
-

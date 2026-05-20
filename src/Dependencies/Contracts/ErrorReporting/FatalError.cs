@@ -8,6 +8,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// This file is in linked into multiple layers, but we want to ensure that all layers have the same copy.
         /// This lets us copy the handler in this instance into the same in another instance.
         /// </remarks>
+        [RequiresUnreferencedCode("Copies error handlers across layers using reflection on linked source files.")]
         public static void CopyHandlersTo(Assembly assembly)
         {
             copyHandlerTo(assembly, s_handler, nameof(s_handler));
