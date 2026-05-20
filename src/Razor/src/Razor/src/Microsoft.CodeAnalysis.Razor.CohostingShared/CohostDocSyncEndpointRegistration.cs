@@ -16,26 +16,31 @@ internal sealed class CohostDocSyncEndpointRegistration : IDynamicRegistrationPr
 {
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
-        return [
-            // DidOpen, DidChange, DidClose, for document synchronization
-            new Registration
-            {
-                Method = Methods.TextDocumentDidOpenName,
-                RegisterOptions = new TextDocumentRegistrationOptions()
-            },
-            new Registration
-            {
-                Method = Methods.TextDocumentDidChangeName,
-                RegisterOptions = new TextDocumentChangeRegistrationOptions()
+        if (clientCapabilities.TextDocument?.Synchronization?.DynamicRegistration is true)
+        {
+            return [
+                // DidOpen, DidChange, DidClose, for document synchronization
+                new Registration
                 {
-                    SyncKind = TextDocumentSyncKind.Incremental
-                }
-            },
-            new Registration
-            {
-                Method = Methods.TextDocumentDidCloseName,
-                RegisterOptions = new TextDocumentRegistrationOptions()
-            },
-        ];
+                    Method = Methods.TextDocumentDidOpenName,
+                    RegisterOptions = new TextDocumentRegistrationOptions()
+                },
+                new Registration
+                {
+                    Method = Methods.TextDocumentDidChangeName,
+                    RegisterOptions = new TextDocumentChangeRegistrationOptions()
+                    {
+                        SyncKind = TextDocumentSyncKind.Incremental
+                    }
+                },
+                new Registration
+                {
+                    Method = Methods.TextDocumentDidCloseName,
+                    RegisterOptions = new TextDocumentRegistrationOptions()
+                },
+            ];
+        }
+
+        return [];
     }
 }
