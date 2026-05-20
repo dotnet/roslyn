@@ -43,13 +43,15 @@ namespace Microsoft.CodeAnalysis
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
             if (sourceTable.IsCached && previousTable is not null)
             {
-                this.LogTables(stepName, s_tableType, previousTable, previousTable, sourceTable);
+                this.LogTables(stepName, s_tableType, previousTable, previousTable, sourceTable, TimeSpan.Zero);
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
                     return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, equalityComparer: null);
                 }
                 return previousTable;
             }
+
+            var tableStopwatch = SharedStopwatch.StartNew();
 
             var tableBuilder = graphState.CreateTableBuilder(previousTable, stepName, equalityComparer: null);
             foreach (var entry in sourceTable)
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(stepName, s_tableType, previousTable, newTable, sourceTable);
+            this.LogTables(stepName, s_tableType, previousTable, newTable, sourceTable, tableStopwatch.Elapsed);
             return newTable;
         }
 
