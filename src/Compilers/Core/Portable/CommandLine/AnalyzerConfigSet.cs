@@ -183,9 +183,7 @@ namespace Microsoft.CodeAnalysis
 
             var sectionKey = _sectionKeyPool.Allocate();
 
-            var normalizedPath = PathUtilities.CollapseWithForwardSlash(sourcePath.AsSpan());
-            normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
-            normalizedPath = PathUtilities.NormalizeDriveLetter(normalizedPath);
+            var normalizedPath = PathUtilities.NormalizePathForEditorConfig(sourcePath);
 
             // If we have a global config, add any sections that match the full path. We can have at most one section since
             // we would have merged them earlier.
@@ -493,8 +491,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (IsAbsoluteEditorConfigPath(section.Name))
                     {
-                        // Let's recreate the section with the name unescaped, since we can then properly merge and match it later
-                        var unescapedSection = new Section(UnescapeSectionName(section.Name), section.Properties);
+                        // Let's recreate the section with the name unescaped and normalized, since we can then properly merge and match it later
+                        var unescapedName = UnescapeSectionName(section.Name);
+                        var normalizedName = PathUtilities.NormalizePathForEditorConfig(unescapedName);
+                        var unescapedSection = new Section(normalizedName, section.Properties);
 
                         MergeSection(config.PathToFile, unescapedSection, config.GlobalLevel, isGlobalSection: false);
                     }
