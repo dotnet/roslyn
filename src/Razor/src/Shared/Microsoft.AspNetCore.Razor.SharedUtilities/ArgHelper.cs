@@ -7,6 +7,7 @@ using System.Collections.Generic;
 #endif
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using SR = Microsoft.AspNetCore.Razor.SharedUtilities.Resources.CollectionUtilitiesSR;
 
 namespace Microsoft.AspNetCore.Razor;
 

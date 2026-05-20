@@ -15,6 +15,8 @@
     <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
 
+  <Import Project="..\Microsoft.AspNetCore.Razor.SharedUtilities\Microsoft.AspNetCore.Razor.SharedUtilities.projitems" Label="Shared" />
+
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
@@ -49,8 +51,6 @@
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Compiler" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.UnitTests" Key="$(RazorKey)" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Key="$(RazorKey)" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />

@@ -11,6 +11,13 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)**\*.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\CollectionUtilitiesSR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>Microsoft.AspNetCore.Razor.SharedUtilities.Resources</Namespace>
+    </EmbeddedResource>
+    <None Include="$(MSBuildThisFileDirectory)Resources\xlf\CollectionUtilitiesSR*.xlf" />
+  </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>

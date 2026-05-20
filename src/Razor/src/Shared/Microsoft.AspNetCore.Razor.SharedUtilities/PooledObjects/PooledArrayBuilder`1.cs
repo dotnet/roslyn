@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Utilities;
+using SR = Microsoft.AspNetCore.Razor.SharedUtilities.Resources.CollectionUtilitiesSR;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 

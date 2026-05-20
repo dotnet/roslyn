@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
+using SR = Microsoft.AspNetCore.Razor.SharedUtilities.Resources.CollectionUtilitiesSR;
 
 namespace System.Collections.Immutable;
 
