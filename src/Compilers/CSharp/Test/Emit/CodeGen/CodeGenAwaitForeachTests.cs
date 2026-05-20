@@ -1465,7 +1465,7 @@ public class C
                     IL_006a:  brtrue.s   IL_007a
                     IL_006c:  ldloc.s    V_4
                     IL_006e:  ldftn      "void C.<>c__DisplayClass0_0.<Main>b__0()"
-                    IL_0074:  newobj     "System.Action..ctor(object, System.IntPtr)"
+                    IL_0074:  newobj     "System.Action..ctor(object, nint)"
                     IL_0079:  stloc.0
                     IL_007a:  ldloc.1
                     IL_007b:  callvirt   "System.Threading.Tasks.Task<bool> C.AsyncEnumerator.MoveNextAsync()"
@@ -11166,7 +11166,7 @@ public static class Extensions
                   IL_0008:  pop
                   IL_0009:  ldsfld     "C.<>c C.<>c.<>9"
                   IL_000e:  ldftn      "int C.<>c.<Main>b__0_0()"
-                  IL_0014:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0014:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_0019:  dup
                   IL_001a:  stsfld     "System.Func<int> C.<>c.<>9__0_0"
                   IL_001f:  call       "C.Enumerator Extensions.GetAsyncEnumerator(System.Func<int>)"

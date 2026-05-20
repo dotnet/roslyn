@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -21,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AttributeTests_NativeInteger : CSharpTestBase
     {
         private static readonly SymbolDisplayFormat FormatWithSpecialTypes = SymbolDisplayFormat.TestFormat
-            .WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
+            .WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         [Fact]
         public void EmptyProject()
@@ -46,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(new[] { NativeIntegerAttributeDefinition, source });
             var expected =
 @"Program
-    [NativeInteger] System.IntPtr F1
-    [NativeInteger] System.UIntPtr[] F2
+    [NativeInteger] nint F1
+    [NativeInteger] nuint[] F2
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -73,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
-    [NativeInteger] System.IntPtr F1
-    [NativeInteger] System.UIntPtr[] F2
+    [NativeInteger] nint F1
+    [NativeInteger] nuint[] F2
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -441,13 +439,13 @@ using System.Runtime.CompilerServices;
 
                 var expected =
     @"B
-    void F0(System.IntPtr x, System.UIntPtr y)
-        [NativeInteger({ True })] System.IntPtr x
-        [NativeInteger({ True })] System.UIntPtr y
-    void F1(A<System.Int32, System.UIntPtr> a)
-        [NativeInteger({ True })] A<System.Int32, System.UIntPtr> a
-    void F2(A<System.IntPtr, System.UInt32> a)
-        [NativeInteger({ True })] A<System.IntPtr, System.UInt32> a
+    void F0(nint x, nuint y)
+        [NativeInteger({ True })] nint x
+        [NativeInteger({ True })] nuint y
+    void F1(A<System.Int32, nuint> a)
+        [NativeInteger({ True })] A<System.Int32, nuint> a
+    void F2(A<nint, System.UInt32> a)
+        [NativeInteger({ True })] A<nint, System.UInt32> a
 ";
                 AssertNativeIntegerAttributes(type.ContainingModule, expected);
             }
@@ -644,8 +642,8 @@ using System.Runtime.CompilerServices;
         [NativeInteger({  })] ? a
     void F1(? a)
         [NativeInteger({ True })] ? a
-    void F2(A<System.IntPtr, System.UIntPtr> a)
-        [NativeInteger({ False, True })] A<System.IntPtr, System.UIntPtr> a
+    void F2(A<System.IntPtr, nuint> a)
+        [NativeInteger({ False, True })] A<System.IntPtr, nuint> a
     void F3(? a)
         [NativeInteger({ False, True, True })] ? a
 ";
@@ -817,12 +815,12 @@ public class C<T>
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"C<T>
-    [NativeInteger] C<T>.S<System.IntPtr> F1
-    [NativeInteger] C<System.UIntPtr>.I<T> F2
-    [NativeInteger] C<E>.D<System.IntPtr> F3
-    [NativeInteger] C<System.UIntPtr>.D<dynamic> F4
-    [NativeInteger({ True, False })] C<C<System.UIntPtr>.D<System.IntPtr>>.F F5
-    [NativeInteger({ False, True })] C<C<System.UIntPtr>.F>.D<System.IntPtr> F6
+    [NativeInteger] C<T>.S<nint> F1
+    [NativeInteger] C<nuint>.I<T> F2
+    [NativeInteger] C<E>.D<nint> F3
+    [NativeInteger] C<nuint>.D<dynamic> F4
+    [NativeInteger({ True, False })] C<C<nuint>.D<System.IntPtr>>.F F5
+    [NativeInteger({ False, True })] C<C<System.UIntPtr>.F>.D<nint> F6
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -878,8 +876,8 @@ public class D
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
-    [NativeInteger] System.IntPtr F1
-    [NativeInteger({ False, True })] (System.IntPtr, System.UIntPtr[]) F2
+    [NativeInteger] nint F1
+    [NativeInteger({ False, True })] (System.IntPtr, nuint[]) F2
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -895,7 +893,7 @@ public class D
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
-    [NativeInteger({ False, True })] (System.IntPtr, System.UIntPtr[]) F()
+    [NativeInteger({ False, True })] (System.IntPtr, nuint[]) F()
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -911,9 +909,9 @@ public class D
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
-    void F(System.IntPtr x, System.UIntPtr y)
-        [NativeInteger] System.IntPtr x
-        [NativeInteger] System.UIntPtr y
+    void F(nint x, nuint y)
+        [NativeInteger] nint x
+        [NativeInteger] nuint y
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -929,8 +927,8 @@ public class D
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
-    [NativeInteger({ False, True })] (System.IntPtr, System.UIntPtr[]) P { get; }
-        [NativeInteger({ False, True })] (System.IntPtr, System.UIntPtr[]) P.get
+    [NativeInteger({ False, True })] (System.IntPtr, nuint[]) P { get; }
+        [NativeInteger({ False, True })] (System.IntPtr, nuint[]) P.get
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -946,12 +944,12 @@ public class D
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
-    System.Object this[System.IntPtr x, (System.UIntPtr[], System.IntPtr) y] { get; }
-        [NativeInteger] System.IntPtr x
-        [NativeInteger({ True, False })] (System.UIntPtr[], System.IntPtr) y
-        System.Object this[System.IntPtr x, (System.UIntPtr[], System.IntPtr) y].get
-            [NativeInteger] System.IntPtr x
-            [NativeInteger({ True, False })] (System.UIntPtr[], System.IntPtr) y
+    System.Object this[nint x, (nuint[], System.IntPtr) y] { get; }
+        [NativeInteger] nint x
+        [NativeInteger({ True, False })] (nuint[], System.IntPtr) y
+        System.Object this[nint x, (nuint[], System.IntPtr) y].get
+            [NativeInteger] nint x
+            [NativeInteger({ True, False })] (nuint[], System.IntPtr) y
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -968,11 +966,11 @@ public class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
-    [NativeInteger] event System.EventHandler<System.UIntPtr[]> E
+    [NativeInteger] event System.EventHandler<nuint[]> E
         void E.add
-            [NativeInteger] System.EventHandler<System.UIntPtr[]> value
+            [NativeInteger] System.EventHandler<nuint[]> value
         void E.remove
-            [NativeInteger] System.EventHandler<System.UIntPtr[]> value
+            [NativeInteger] System.EventHandler<nuint[]> value
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -988,7 +986,7 @@ public class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"C
-    [NativeInteger] System.IntPtr operator +(C a, C b)
+    [NativeInteger] nint operator +(C a, C b)
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -1004,8 +1002,8 @@ public class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"C
-    C operator +(C a, System.UIntPtr[] b)
-        [NativeInteger] System.UIntPtr[] b
+    C operator +(C a, nuint[] b)
+        [NativeInteger] nuint[] b
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -1018,8 +1016,8 @@ public class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"D
-    [NativeInteger] System.IntPtr Invoke()
-    [NativeInteger] System.IntPtr EndInvoke(System.IAsyncResult result)
+    [NativeInteger] nint Invoke()
+    [NativeInteger] nint EndInvoke(System.IAsyncResult result)
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -1032,12 +1030,12 @@ public class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"D
-    void Invoke(System.IntPtr x, System.UIntPtr[] y)
-        [NativeInteger] System.IntPtr x
-        [NativeInteger] System.UIntPtr[] y
-    System.IAsyncResult BeginInvoke(System.IntPtr x, System.UIntPtr[] y, System.AsyncCallback callback, System.Object @object)
-        [NativeInteger] System.IntPtr x
-        [NativeInteger] System.UIntPtr[] y
+    void Invoke(nint x, nuint[] y)
+        [NativeInteger] nint x
+        [NativeInteger] nuint[] y
+    System.IAsyncResult BeginInvoke(nint x, nuint[] y, System.AsyncCallback callback, System.Object @object)
+        [NativeInteger] nint x
+        [NativeInteger] nuint[] y
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -1311,7 +1309,7 @@ class Program
             var expected =
 @"Program
     Program.<>c
-        [NativeInteger] <>A{00000003}<System.IntPtr> <>9__0_0
+        [NativeInteger] <>A{00000003}<nint> <>9__0_0
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -1335,11 +1333,11 @@ unsafe public class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
             var expected =
 @"Program
-    [NativeInteger] System.IntPtr F1
-    [NativeInteger] System.UIntPtr[] F2
-    [NativeInteger] System.IntPtr* F3
-    [NativeInteger({ True, True })] A<System.IntPtr>.B<System.UIntPtr> F4
-    [NativeInteger({ True, True })] (System.IntPtr, System.UIntPtr) F5
+    [NativeInteger] nint F1
+    [NativeInteger] nuint[] F2
+    [NativeInteger] nint* F3
+    [NativeInteger({ True, True })] A<nint>.B<nuint> F4
+    [NativeInteger({ True, True })] (nint, nuint) F5
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -1359,8 +1357,8 @@ unsafe public class B
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
             var expected =
 @"B
-    [NativeInteger({ True, True, True, True, True, True, True, False })] A<(System.Object, (System.IntPtr, System.UIntPtr, System.IntPtr[], System.UIntPtr, System.IntPtr, System.UIntPtr*[], System.IntPtr, System.UIntPtr))> F1
-    [NativeInteger({ True, True, True, False, True, True })] A<(System.IntPtr, System.Object, System.UIntPtr[], System.Object, System.IntPtr, System.Object, (System.IntPtr, System.UIntPtr), System.Object, System.UIntPtr)> F2
+    [NativeInteger({ True, True, True, True, True, True, True, False })] A<(System.Object, (nint, nuint, nint[], nuint, nint, nuint*[], nint, System.UIntPtr))> F1
+    [NativeInteger({ True, True, True, False, True, True })] A<(nint, System.Object, nuint[], System.Object, nint, System.Object, (System.IntPtr, nuint), System.Object, nuint)> F2
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -1415,8 +1413,8 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (System.In
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
-    void F2(System.UIntPtr x)
-        [NativeInteger] System.UIntPtr x
+    void F2(nuint x)
+        [NativeInteger] nuint x
 ";
             AssertNativeIntegerAttributes(comp, expected);
 
@@ -1518,21 +1516,21 @@ class C<T, U, V>
             {
                 var expectedAttributes = @"
 C<T, U, V>
-    [NativeInteger] C<dynamic, T, System.IntPtr> F0
-    [NativeInteger({ True, False })] C<dynamic, System.IntPtr, System.IntPtr> F1
-    [NativeInteger({ True, False })] C<dynamic, System.UIntPtr, System.UIntPtr> F2
-    [NativeInteger({ True, False })] C<T, System.IntPtr, System.IntPtr> F3
-    [NativeInteger({ True, False })] C<T, System.UIntPtr, System.UIntPtr> F4
+    [NativeInteger] C<dynamic, T, nint> F0
+    [NativeInteger({ True, False })] C<dynamic, nint, System.IntPtr> F1
+    [NativeInteger({ True, False })] C<dynamic, nuint, System.UIntPtr> F2
+    [NativeInteger({ True, False })] C<T, nint, System.IntPtr> F3
+    [NativeInteger({ True, False })] C<T, nuint, System.UIntPtr> F4
 ";
 
                 AssertNativeIntegerAttributes(module, expectedAttributes);
                 var c = module.GlobalNamespace.GetTypeMember("C");
 
-                assert("C<dynamic, T, System.IntPtr>", "F0");
-                assert("C<dynamic, System.IntPtr, System.IntPtr>", "F1");
-                assert("C<dynamic, System.UIntPtr, System.UIntPtr>", "F2");
-                assert("C<T, System.IntPtr, System.IntPtr>", "F3");
-                assert("C<T, System.UIntPtr, System.UIntPtr>", "F4");
+                assert("C<dynamic, T, nint>", "F0");
+                assert("C<dynamic, nint, System.IntPtr>", "F1");
+                assert("C<dynamic, nuint, System.UIntPtr>", "F2");
+                assert("C<T, nint, System.IntPtr>", "F3");
+                assert("C<T, nuint, System.UIntPtr>", "F4");
 
                 void assert(string expectedType, string fieldName)
                 {
@@ -1563,29 +1561,29 @@ unsafe class C
             {
                 var expectedAttributes = @"
 C
-    [NativeInteger] delegate*<System.IntPtr, System.Object, System.Object> F0
-    [NativeInteger({ True, True, True })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F1
-    [NativeInteger({ True, False, False })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F2
-    [NativeInteger({ False, True, False })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F3
-    [NativeInteger({ False, False, True })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F4
-    [NativeInteger({ True, False, False, False })] delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr> F5
-    [NativeInteger({ False, False, False, True })] delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F6
-    [NativeInteger({ False, True, False, False })] delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr> F7
-    [NativeInteger({ False, False, True, False })] delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F8
+    [NativeInteger] delegate*<nint, System.Object, System.Object> F0
+    [NativeInteger({ True, True, True })] delegate*<nint, nint, nint> F1
+    [NativeInteger({ True, False, False })] delegate*<System.IntPtr, System.IntPtr, nint> F2
+    [NativeInteger({ False, True, False })] delegate*<nint, System.IntPtr, System.IntPtr> F3
+    [NativeInteger({ False, False, True })] delegate*<System.IntPtr, nint, System.IntPtr> F4
+    [NativeInteger({ True, False, False, False })] delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, nint> F5
+    [NativeInteger({ False, False, False, True })] delegate*<nint, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F6
+    [NativeInteger({ False, True, False, False })] delegate*<delegate*<System.IntPtr, System.IntPtr, nint>, System.IntPtr> F7
+    [NativeInteger({ False, False, True, False })] delegate*<System.IntPtr, delegate*<System.IntPtr, nint, System.IntPtr>> F8
 ";
 
                 AssertNativeIntegerAttributes(module, expectedAttributes);
                 var c = module.GlobalNamespace.GetTypeMember("C");
 
-                assert("delegate*<System.IntPtr, System.Object, System.Object>", "F0");
-                assert("delegate*<System.IntPtr, System.IntPtr, System.IntPtr>", "F1");
-                assert("delegate*<System.IntPtr, System.IntPtr, System.IntPtr>", "F2");
-                assert("delegate*<System.IntPtr, System.IntPtr, System.IntPtr>", "F3");
-                assert("delegate*<System.IntPtr, System.IntPtr, System.IntPtr>", "F4");
-                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr>", "F5");
-                assert("delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>>", "F6");
-                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr>", "F7");
-                assert("delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>>", "F8");
+                assert("delegate*<nint, System.Object, System.Object>", "F0");
+                assert("delegate*<nint, nint, nint>", "F1");
+                assert("delegate*<System.IntPtr, System.IntPtr, nint>", "F2");
+                assert("delegate*<nint, System.IntPtr, System.IntPtr>", "F3");
+                assert("delegate*<System.IntPtr, nint, System.IntPtr>", "F4");
+                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, nint>", "F5");
+                assert("delegate*<nint, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>>", "F6");
+                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, nint>, System.IntPtr>", "F7");
+                assert("delegate*<System.IntPtr, delegate*<System.IntPtr, nint, System.IntPtr>>", "F8");
 
                 void assert(string expectedType, string fieldName)
                 {

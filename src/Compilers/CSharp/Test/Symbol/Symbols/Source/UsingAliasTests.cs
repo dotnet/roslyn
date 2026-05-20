@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -253,8 +252,9 @@ partial class A : Object {}
         [InlineData("int*", "System.Int32*")]
         [InlineData("delegate*<int,int>", "delegate*<System.Int32, System.Int32>")]
         [InlineData("dynamic", "dynamic")]
-        [InlineData("nint", "System.IntPtr")]
-        public void GetAliasTypeInfo(string aliasType, string expected)
+        [InlineData("nint", "nint")]
+        [InlineData("nint", "System.IntPtr", TargetFramework.Net100)]
+        public void GetAliasTypeInfo(string aliasType, string expected, TargetFramework targetFramework = TargetFramework.Standard)
         {
             // Should get the same results in the semantic model regardless of whether the using has the 'unsafe'
             // keyword or not.
@@ -266,7 +266,7 @@ partial class A : Object {}
                 var text = $"using {unsafeString} O = {aliasType};";
                 var tree = Parse(text);
                 var root = tree.GetCompilationUnitRoot();
-                var comp = CreateCompilation(tree);
+                var comp = CreateCompilation(tree, targetFramework: targetFramework);
 
                 var usingAlias = root.Usings[0];
 
