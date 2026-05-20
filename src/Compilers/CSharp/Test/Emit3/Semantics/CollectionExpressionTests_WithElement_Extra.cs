@@ -6815,8 +6815,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(6, 9));
     }
 
-#if DICTIONARY_EXPRESSIONS
-
     [Fact]
     public void InterfaceTarget_ReorderedArguments()
     {
@@ -6974,7 +6972,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
     {
         string source = $$"""
-#nullable enable
+                #nullable enable
                 using System.Collections.Generic;
                 class Program
                 {
@@ -7900,7 +7898,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             }
         }
     }
-#endif
 
     [Theory]
     [CombinatorialData]
