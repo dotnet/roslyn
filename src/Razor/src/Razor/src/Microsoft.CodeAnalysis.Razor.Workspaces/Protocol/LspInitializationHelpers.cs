@@ -38,20 +38,15 @@ internal static class LspInitializationHelpers
         return options;
     }
 
-    public static void EnableSemanticTokens(this VSInternalServerCapabilities serverCapabilities, ISemanticTokensLegendService legend)
+    public static SemanticTokensOptions EnableSemanticTokens(this SemanticTokensOptions options, ISemanticTokensLegendService legend, bool supportsSemanticTokensRange)
     {
-        serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions().EnableSemanticTokens(legend);
-    }
-
-    public static SemanticTokensOptions EnableSemanticTokens(this SemanticTokensOptions options, ISemanticTokensLegendService legend)
-    {
-        options.Full = false;
+        options.Full = !supportsSemanticTokensRange;
         options.Legend = new SemanticTokensLegend
         {
             TokenModifiers = legend.TokenModifiers.All,
             TokenTypes = legend.TokenTypes.All
         };
-        options.Range = true;
+        options.Range = supportsSemanticTokensRange;
 
         return options;
     }

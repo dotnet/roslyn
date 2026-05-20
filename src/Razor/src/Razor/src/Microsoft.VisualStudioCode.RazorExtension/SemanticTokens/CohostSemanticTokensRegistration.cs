@@ -26,11 +26,15 @@ internal sealed class CohostSemanticTokensRegistration(ISemanticTokensLegendServ
             var clientCapabilitiesString = JsonSerializer.Serialize(clientCapabilities);
             semanticTokensRefreshQueue.Initialize(clientCapabilitiesString);
 
+            // We prefer Range over Full for performance reasons, so only advertise full support if Range isn't
+            // available. The Range capability is SumType<bool, object> which is why the check is a bit odd.
+            var supportsSemanticTokensRange = clientCapabilities.TextDocument?.SemanticTokens?.Requests?.Range?.Value is not (false or null);
+
             return [new Registration()
             {
                 Method = Methods.TextDocumentSemanticTokensName,
                 RegisterOptions = new SemanticTokensRegistrationOptions()
-                    .EnableSemanticTokens(_semanticTokensLegendService)
+                    .EnableSemanticTokens(_semanticTokensLegendService, supportsSemanticTokensRange)
             }];
         }
 
