@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
@@ -27,5 +28,56 @@ public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutp
         var codeActionResults = await testLspServer.RunGetCodeActionsAsync(CreateCodeActionParams(caretLocation));
 
         Assert.Contains(codeActionResults, action => action.Title == "Move static members to another type...");
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83181")]
+    [CombinatorialData]
+    public async Task TestMoveStaticMembersActionMovesSelectedMembersToHelperClass(bool includeDevKitComponents)
+    {
+        var markup =
+            """
+            class A
+            {
+                {|selection:public static int Foo() => 1;
+
+                public static int Bar() => 2;|}
+                public static int Baz() => 3;
+            }
+            """;
+        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents, new ClientCapabilities
+        {
+            Workspace = new WorkspaceClientCapabilities
+            {
+                WorkspaceEdit = new WorkspaceEditSetting
+                {
+                    ResourceOperations = [ResourceOperationKind.Create]
+                }
+            }
+        });
+        var selectionLocation = testLspServer.GetLocations("selection").Single();
+
+        var codeActionResults = await testLspServer.RunGetCodeActionsAsync(CreateCodeActionParams(selectionLocation));
+        var unresolvedCodeAction = Assert.Single(codeActionResults, action => action.Title == "Move static members to another type...");
+
+        var resolvedCodeAction = await testLspServer.RunGetCodeActionResolveAsync(unresolvedCodeAction);
+        testLspServer.ApplyWorkspaceEdit(resolvedCodeAction.Edit);
+
+        AssertEx.Equal("""
+            class A
+            {
+                public static int Baz() => 3;
+            }
+            """, testLspServer.GetDocumentText(selectionLocation.DocumentUri));
+
+        var helperUri = ProtocolConversions.CreateAbsoluteDocumentUri(
+            Path.Combine(Path.GetDirectoryName(selectionLocation.DocumentUri.GetRequiredParsedUri().LocalPath)!, "AHelpers.cs"));
+        AssertEx.Equal("""
+            internal static class AHelpers
+            {
+                public static int Foo() => 1;
+
+                public static int Bar() => 2;
+            }
+            """, testLspServer.GetDocumentText(helperUri));
     }
 }
