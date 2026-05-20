@@ -577,7 +577,6 @@ internal abstract class LanguageServerProjectLoader
         private readonly int _totalProjects;
         private readonly AsyncBatchingWorkQueue<VoidResult> _progressQueue;
         private int _projectsProcessed;
-        private int _lastReportedPercentage = -1;
 
         public ProjectLoadProgressTracker(IProgress<LSP.WorkDoneProgress> reporter, int totalProjects, IAsynchronousOperationListener? listener = null)
         {
@@ -592,25 +591,18 @@ internal abstract class LanguageServerProjectLoader
         }
 
         public void OnProjectProcessed()
-        {
-            Interlocked.Increment(ref _projectsProcessed);
-            _progressQueue.AddWork(default(VoidResult));
-        }
+            => _progressQueue.AddWork(default(VoidResult));
 
         private ValueTask ReportProgressAsync(ImmutableSegmentedList<VoidResult> batch, CancellationToken cancellationToken)
         {
-            var processed = Volatile.Read(ref _projectsProcessed);
-            var percentage = (int)((long)processed * 100 / _totalProjects);
+            _projectsProcessed += batch.Count;
+            var percentage = (int)((long)_projectsProcessed * 100 / _totalProjects);
             percentage = Math.Min(percentage, 99);
 
-            if (percentage > _lastReportedPercentage)
+            _reporter.Report(new LSP.WorkDoneProgressReport
             {
-                _lastReportedPercentage = percentage;
-                _reporter.Report(new LSP.WorkDoneProgressReport
-                {
-                    Percentage = percentage,
-                });
-            }
+                Percentage = percentage,
+            });
 
             return ValueTask.CompletedTask;
         }
