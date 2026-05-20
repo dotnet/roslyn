@@ -36,6 +36,21 @@ public sealed class HelixWorkItem(
 
 internal sealed partial class HelixTestRunner
 {
+    /// <summary>
+    /// We attempt to partition our tests into work items that execute in under 2 minutes 30s.  This is a derived limit based on a goal of running all tests
+    /// in under 5 minutes.  However because of overhead in setting up the test run, e.g.
+    ///   1.  Test discovery.
+    ///   2.  Downloading assets to the helix machine.
+    ///   3.  Setting up the test host for each assembly.
+    ///   
+    /// </summary>
+    internal static TimeSpan WorkItemScheduleTime { get; } = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// This is the amount of time we will wait for a helix work item to complete before we time out the entire job.
+    /// </summary>
+    internal static TimeSpan WorkItemExecutionTimeout { get; } = TimeSpan.FromMinutes(30);
+
     [GeneratedRegex(@"HelixJobId=(\S+) HelixJobCancellationToken=(\S+)")]
     private static partial Regex HelixJobInfoRegex();
 
@@ -74,7 +89,7 @@ internal sealed partial class HelixTestRunner
         var (helixJobId, helixJobCancellationToken) = await helixJobInfoTask;
         try
         {
-            return await WaitForHelixJobCompletionAsync(process, helixJobId, options.HelixApiAccessToken, cts.Token);
+            return await WaitForHelixJobCompletionAsync(process, helixJobId, helixJobCancellationToken, options.HelixApiAccessToken, cts.Token);
         }
         finally
         {
@@ -85,59 +100,123 @@ internal sealed partial class HelixTestRunner
         }
     }
 
-    private static async Task<int> WaitForHelixJobCompletionAsync(Process process, string helixJobId, string? helixApiAccessToken, CancellationToken cancellationToken)
+    /// <summary>
+    /// This method will wait for the helix job to complete using the timeout for Helix work item execution.
+    /// 
+    /// The most important factor is the helix process itself. If that exits then the assumption is that it 
+    /// successfully reported the status of work items. Hence the moment it is done we can stop waiting and
+    /// return. The polling for Helix information is all about adding context and real errors to the tests
+    /// in the case helix has issues and cannot complete the process successfully.
+    /// </summary>
+    private static async Task<int> WaitForHelixJobCompletionAsync(Process process, string helixJobId, string helixCancellationToken, string? helixApiAccessToken, CancellationToken cancellationToken)
     {
         ConsoleUtil.WriteLine($"Waiting for Helix job {helixJobId} to complete...");
         using var helixApi = new HelixApi(helixApiAccessToken);
-        var workItemNameList = (await helixApi.GetWorkItemsAsync(helixJobId, cancellationToken))
-            .Select(w => w.Name)
-            .ToList();
+        var processWaitTask = process.WaitForExitAsync(cancellationToken);
 
-        var helixTimeout = TimeSpan.FromMinutes(30);
-
-        do
+        try
         {
-            await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+            await WaitForAllWorkItemsRunningAsync(helixApi, helixJobId, processWaitTask, cancellationToken);
+            await WaitForWorkItemsToCompleteOrTimeoutAsync(helixApi, helixJobId, helixCancellationToken, processWaitTask, cancellationToken);
 
-            if (process.HasExited)
-            {
-                Console.WriteLine($"Helix process completed with exit code {process.ExitCode}");
-                return process.ExitCode;
-            }
+            await process.WaitForExitAsync(cancellationToken);
+            return process.ExitCode;
+        }
+        catch (OperationCanceledException)
+        {
+            ConsoleUtil.WriteLine($"Cancellation requested. Attempting to cancel Helix job {helixJobId}...");
+            await helixApi.CancelJobAsync(helixJobId, helixCancellationToken, CancellationToken.None);
+            throw;
+        }
 
-            try
+        static async Task WaitForAllWorkItemsRunningAsync(HelixApi helixApi, string helixJobId, Task processWaitTask, CancellationToken cancellationToken)
+        {
+            Console.WriteLine($"Waiting for all work items in Helix job {helixJobId} to start running...");
+            do
             {
-                var index = 0;
-                while (index < workItemNameList.Count)
+                var delayTask = Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+                var completedTask = await Task.WhenAny(processWaitTask, delayTask);
+                if (completedTask == processWaitTask)
                 {
-                    var name = workItemNameList[index];
-                    var details = await helixApi.GetWorkItemDetailsAsync(helixJobId, name, cancellationToken);
-                    if (details.Finished is not null)
-                    {
-                        ConsoleUtil.WriteLine($"Helix Job {helixJobId} Work item {name} finished with state {details.State}");
-                        workItemNameList.RemoveAt(index);
-                        continue;
-                    }
-
-                    if (HasTimedOut(details))
-                    {
-                        ConsoleUtil.Error($"Helix Job {helixJobId} Work item {name} has been in state {details.State} for more than {helixTimeout}. Timing out the job.");
-                        return -1;
-                    }
-
-                    index++;
+                    return;
                 }
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                try
+                {
+                    var details = await helixApi.GetJobDetailsAsync(helixJobId, cancellationToken);
+                    var workItems = details.WorkItems;
+                    if (workItems.Unscheduled != 0 && workItems.Waiting != 0)
+                    {
+                        Console.WriteLine($"All work items are running");
+                    }
+
+                    Console.WriteLine($"Running: {workItems.Running} Unscheduled: {workItems.Unscheduled} Waiting: {workItems.Waiting} Finished: {workItems.Finished}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error while polling Helix API for job status: {ex.Message}");
+                }
+
+            } while (true);
+        }
+
+        static async Task WaitForWorkItemsToCompleteOrTimeoutAsync(HelixApi helixApi, string helixJobId, string helixCancellationToken, Task processWaitTask, CancellationToken cancellationToken)
+        {
+            do
             {
-                ConsoleUtil.Error($"Error while polling Helix API for job status: {ex.Message}");
-            }
-        } while (workItemNameList.Count > 0);
+                var delayTask = Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+                await Task.WhenAny(processWaitTask, delayTask);
 
-        await process.WaitForExitAsync(cancellationToken);
-        return process.ExitCode;
+                if (processWaitTask.IsCompleted)
+                {
+                    return;
+                }
 
-        bool HasTimedOut(HelixWorkItemDetails details)
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                try
+                {
+                    var workItemList = await helixApi.GetWorkItemsAsync(helixJobId, cancellationToken);
+                    var workItemGroups = workItemList.GroupBy(x => x.State).Select(g => $"{g.Key}: {g.Count()}");
+                    Console.WriteLine($"Work item states: {string.Join(", ", workItemGroups)}");
+
+                    var hitTimeout = false;
+                    foreach (var workItem in workItemList.Where(x => x.State == "Running"))
+                    {
+                        var details = await helixApi.GetWorkItemDetailsAsync(helixJobId, workItem.Name, cancellationToken);
+                        if (details.Finished is not null)
+                        {
+                            continue;
+                        }
+
+                        if (HasTimedOut(details))
+                        {
+                            ConsoleUtil.Error($"Helix Job {helixJobId} Work item {workItem.Name} has been in state {details.State} for more than {WorkItemExecutionTimeout}. Timing out the job.");
+                            hitTimeout = true;
+                        }
+                    }
+
+                    if (hitTimeout)
+                    {
+                        throw new Exception($"One or more work items in Helix job {helixJobId} have timed out. Timing out the entire job.");
+                    }
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    ConsoleUtil.Warning($"Error while usiung Helix API for job status: {ex.Message}");
+                }
+            } while (true);
+        }
+
+        static bool HasTimedOut(HelixWorkItemDetails details)
         {
             // If a work item has been in the same state for more than 30 minutes, consider it timed out.
             if (details.Started is null)
@@ -146,8 +225,9 @@ internal sealed partial class HelixTestRunner
             }
 
             var started = DateTimeOffset.Parse(details.Started);
-            return DateTimeOffset.UtcNow - started > helixTimeout;
+            return DateTimeOffset.UtcNow - started > WorkItemExecutionTimeout;
         }
+
     }
 
     /// <summary>
