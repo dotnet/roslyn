@@ -1527,5 +1527,181 @@ unsafe class A
             Assert.Throws<ArgumentException>(() => ((Compilation)comp2).IsSymbolAccessibleWithin(ptr1, b));
             Assert.Throws<ArgumentException>(() => ((Compilation)comp2).IsSymbolAccessibleWithin(ptr2, b));
         }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76584")]
+        [InlineData("public")]
+        [InlineData("internal")]
+        public void EmbeddedAttribute_IsSymbolAccessibleWithin(string accessibility)
+        {
+            // Create assembly 1 with a public type marked with EmbeddedAttribute
+            var source1 = $$"""
+                [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Assembly2")]
+
+                namespace Microsoft.CodeAnalysis
+                {
+                    internal sealed class EmbeddedAttribute : System.Attribute { }
+                }
+
+                [Microsoft.CodeAnalysis.Embedded]
+                {{accessibility}} class Sample { }
+
+                {{accessibility}} class NonEmbeddedSample { }
+                """;
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Assembly1");
+            comp1.VerifyDiagnostics();
+
+            var sampleTypeInComp1 = comp1.GetTypeByMetadataName("Sample");
+            Assert.NotNull(sampleTypeInComp1);
+            var nonEmbeddedTypeInComp1 = comp1.GetTypeByMetadataName("NonEmbeddedSample");
+            Assert.NotNull(nonEmbeddedTypeInComp1);
+            Assert.True(sampleTypeInComp1.HasCodeAnalysisEmbeddedAttribute);
+
+            // The symbol should be accessible within its own assembly
+            var assembly1SymbolPublic = comp1.Assembly.GetPublicSymbol();
+            Assert.True(((Compilation)comp1).IsSymbolAccessibleWithin(sampleTypeInComp1.GetPublicSymbol(), assembly1SymbolPublic));
+            Assert.True(((Compilation)comp1).IsSymbolAccessibleWithin(sampleTypeInComp1.GetPublicSymbol(), nonEmbeddedTypeInComp1.GetPublicSymbol()));
+
+            // Create assembly 2 that references assembly 1
+            var comp2 = CreateCompilation("class OtherClass { }", references: [comp1.ToMetadataReference()], assemblyName: "Assembly2");
+
+            // Get the Sample type from the referenced assembly
+            var sampleSymbol = comp2.GetReferencedAssemblySymbol(comp1.ToMetadataReference()).GetTypeByMetadataName("Sample");
+            Assert.NotNull(sampleSymbol);
+            var nonEmbeddedSampleSymbol = comp2.GetTypeByMetadataName("NonEmbeddedSample");
+            Assert.NotNull(nonEmbeddedSampleSymbol);
+
+            var otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass");
+            var assembly2Symbol = comp2.Assembly.GetPublicSymbol();
+
+            // Even with InternalsVisibleTo and public accessibility, symbols with EmbeddedAttribute should not be accessible from another assembly
+            Assert.False(((Compilation)comp2).IsSymbolAccessibleWithin(sampleSymbol.GetPublicSymbol(), otherClassSymbol.GetPublicSymbol()));
+            Assert.False(((Compilation)comp2).IsSymbolAccessibleWithin(sampleSymbol.GetPublicSymbol(), assembly2Symbol));
+            Assert.True(((Compilation)comp2).IsSymbolAccessibleWithin(nonEmbeddedSampleSymbol.GetPublicSymbol(), otherClassSymbol.GetPublicSymbol()));
+            Assert.True(((Compilation)comp2).IsSymbolAccessibleWithin(nonEmbeddedSampleSymbol.GetPublicSymbol(), assembly2Symbol));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76584")]
+        [CombinatorialData]
+        public void EmbeddedAttribute_NestedType_OnOuterType_IsSymbolAccessibleWithin([CombinatorialValues("public", "internal")] string outerAccessibility, [CombinatorialValues("public", "internal")] string innerAccessibility)
+        {
+            // Test that nested types within an EmbeddedAttribute-decorated type are also inaccessible
+            var source1 = $$"""
+                [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Assembly2")]
+
+                namespace Microsoft.CodeAnalysis
+                {
+                    internal sealed class EmbeddedAttribute : System.Attribute { }
+                }
+
+                [Microsoft.CodeAnalysis.Embedded]
+                {{outerAccessibility}} class OuterSample
+                {
+                    {{innerAccessibility}} class Nested { }
+                }
+                """;
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Assembly1");
+            comp1.VerifyDiagnostics();
+
+            var outerSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample").GetPublicSymbol();
+            var nestedPublicSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample+Nested").GetPublicSymbol();
+            Assert.NotNull(outerSymbolInComp1);
+            Assert.NotNull(nestedPublicSymbolInComp1);
+
+            // The types should be accessible within their own assembly
+            var assembly1SymbolPublic = comp1.Assembly.GetPublicSymbol();
+            Assert.True(((Compilation)comp1).IsSymbolAccessibleWithin(outerSymbolInComp1, assembly1SymbolPublic));
+            Assert.True(((Compilation)comp1).IsSymbolAccessibleWithin(nestedPublicSymbolInComp1, assembly1SymbolPublic));
+            Assert.True(((Compilation)comp1).IsSymbolAccessibleWithin(nestedPublicSymbolInComp1, outerSymbolInComp1));
+
+            var comp1Reference = comp1.ToMetadataReference();
+            var comp2 = CreateCompilation("class OtherClass { }", references: [comp1Reference], assemblyName: "Assembly2");
+
+            // Get types from the referenced assembly
+            var assembly1Symbol = comp2.GetReferencedAssemblySymbol(comp1Reference).GetPublicSymbol();
+            var outerSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample");
+            var nestedPublicSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+Nested");
+            Assert.NotNull(outerSymbol);
+            Assert.NotNull(nestedPublicSymbol);
+
+            var otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass").GetPublicSymbol();
+            var assembly2Symbol = comp2.Assembly.GetPublicSymbol();
+
+            // The outer type with EmbeddedAttribute should not be accessible
+            Assert.False(((Compilation)comp2).IsSymbolAccessibleWithin(outerSymbol, otherClassSymbol));
+            Assert.False(((Compilation)comp2).IsSymbolAccessibleWithin(outerSymbol, assembly2Symbol));
+
+            // Nested types should not be accessible if the outer type has EmbeddedAttribute
+            Assert.False(((Compilation)comp2).IsSymbolAccessibleWithin(nestedPublicSymbol, otherClassSymbol));
+            Assert.False(((Compilation)comp2).IsSymbolAccessibleWithin(nestedPublicSymbol, assembly2Symbol));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76584")]
+        [CombinatorialData]
+        public void EmbeddedAttribute_NestedType_OnNestedType_IsSymbolAccessibleWithin([CombinatorialValues("public", "internal")] string outerAccessibility, [CombinatorialValues("public", "internal")] string innerAccessibility)
+        {
+            // Test that nested types within an EmbeddedAttribute-decorated type are also inaccessible
+            var source1 = $$"""
+                [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Assembly2")]
+
+                namespace Microsoft.CodeAnalysis
+                {
+                    internal sealed class EmbeddedAttribute : System.Attribute { }
+                }
+
+                {{outerAccessibility}} class OuterSample
+                {
+                    [Microsoft.CodeAnalysis.Embedded]
+                    {{innerAccessibility}} class NestedEmbedded { }
+
+                    {{innerAccessibility}} class NestedNonEmbedded { }
+                }
+                """;
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Assembly1");
+            comp1.VerifyDiagnostics();
+
+            var outerSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample").GetPublicSymbol();
+            var nestedEmbeddedSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample+NestedEmbedded").GetPublicSymbol();
+            var nestedNonEmbeddedSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample+NestedNonEmbedded").GetPublicSymbol();
+
+            Assert.NotNull(outerSymbolInComp1);
+            Assert.NotNull(nestedEmbeddedSymbolInComp1);
+            Assert.NotNull(nestedNonEmbeddedSymbolInComp1);
+
+            // The types should be accessible within their own assembly
+            var assembly1SymbolPublic = comp1.Assembly.GetPublicSymbol();
+            Assert.True(((Compilation)comp1).IsSymbolAccessibleWithin(outerSymbolInComp1, assembly1SymbolPublic));
+            Assert.True(((Compilation)comp1).IsSymbolAccessibleWithin(nestedEmbeddedSymbolInComp1, assembly1SymbolPublic));
+            Assert.True(((Compilation)comp1).IsSymbolAccessibleWithin(nestedEmbeddedSymbolInComp1, outerSymbolInComp1));
+            Assert.True(((Compilation)comp1).IsSymbolAccessibleWithin(nestedNonEmbeddedSymbolInComp1, assembly1SymbolPublic));
+            Assert.True(((Compilation)comp1).IsSymbolAccessibleWithin(nestedNonEmbeddedSymbolInComp1, outerSymbolInComp1));
+
+            var comp1Reference = comp1.ToMetadataReference();
+            var comp2 = CreateCompilation("class OtherClass { }", references: [comp1Reference], assemblyName: "Assembly2");
+
+            // Get types from the referenced assembly
+            var assembly1Symbol = comp2.GetReferencedAssemblySymbol(comp1Reference);
+            var outerSymbol = comp2.GetTypeByMetadataName("OuterSample").GetPublicSymbol();
+            var nestedEmbeddedSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+NestedEmbedded").GetPublicSymbol();
+            var nestedNonEmbeddedPublicSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+NestedNonEmbedded").GetPublicSymbol();
+            Assert.NotNull(outerSymbol);
+            Assert.NotNull(nestedEmbeddedSymbol);
+            Assert.NotNull(nestedNonEmbeddedPublicSymbol);
+
+            var otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass").GetPublicSymbol(); ;
+            var assembly2Symbol = comp2.Assembly.GetPublicSymbol();
+
+            Assert.True(((Compilation)comp2).IsSymbolAccessibleWithin(outerSymbol, otherClassSymbol));
+            Assert.True(((Compilation)comp2).IsSymbolAccessibleWithin(outerSymbol, assembly2Symbol));
+
+            // Embedded on a nested type has no effect
+            Assert.True(((Compilation)comp2).IsSymbolAccessibleWithin(nestedEmbeddedSymbol, otherClassSymbol));
+            Assert.True(((Compilation)comp2).IsSymbolAccessibleWithin(nestedEmbeddedSymbol, assembly2Symbol));
+
+            Assert.True(((Compilation)comp2).IsSymbolAccessibleWithin(nestedNonEmbeddedPublicSymbol, otherClassSymbol));
+            Assert.True(((Compilation)comp2).IsSymbolAccessibleWithin(nestedNonEmbeddedPublicSymbol, assembly2Symbol));
+        }
     }
 }
