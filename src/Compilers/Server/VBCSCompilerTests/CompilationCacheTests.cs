@@ -171,6 +171,51 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
+        public void TryRestoreCachedResult_StampsRestoredOutputsWithSpecifiedTimestamp()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "Timestamped.dll";
+            var hashKey = "timestampedhash";
+            var outputDir = Temp.CreateDirectory().Path;
+            var restoredTimestampUtc = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+            var cachedTimestampUtc = restoredTimestampUtc.AddDays(-1);
+
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            Directory.CreateDirectory(entryDir);
+
+            writeCachedFile("assembly", [1]);
+            writeCachedFile("pdb", [2]);
+            writeCachedFile("refassembly", [3]);
+            writeCachedFile("xmldoc", [4]);
+
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(outputDir, dllName),
+                PdbPath = Path.Combine(outputDir, "Timestamped.pdb"),
+                RefAssemblyPath = Path.Combine(outputDir, "ref", dllName),
+                XmlDocPath = Path.Combine(outputDir, "Timestamped.xml"),
+            };
+
+            Directory.CreateDirectory(Path.Combine(outputDir, "ref"));
+
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, _logger, restoredTimestampUtc);
+
+            Assert.True(result);
+            Assert.Equal(restoredTimestampUtc, File.GetLastWriteTimeUtc(outputFiles.AssemblyPath));
+            Assert.Equal(restoredTimestampUtc, File.GetLastWriteTimeUtc(outputFiles.PdbPath!));
+            Assert.Equal(restoredTimestampUtc, File.GetLastWriteTimeUtc(outputFiles.RefAssemblyPath!));
+            Assert.Equal(restoredTimestampUtc, File.GetLastWriteTimeUtc(outputFiles.XmlDocPath!));
+
+            void writeCachedFile(string fileName, byte[] contents)
+            {
+                var path = Path.Combine(entryDir, fileName);
+                File.WriteAllBytes(path, contents);
+                File.SetLastWriteTimeUtc(path, cachedTimestampUtc);
+            }
+        }
+
+        [Fact]
         public void TryRestoreCachedResult_ReturnsFalse_WhenRequestedOutputFileMissingFromCache()
         {
             var cacheDir = Temp.CreateDirectory().Path;

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -137,17 +138,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Checks whether a cached result exists for the given DLL name and hash key.
         /// On a hit, all cached output files are copied to the paths specified by
-        /// <paramref name="outputFiles"/>. Returns <see langword="false"/> if no cached
-        /// entry exists or if any required file copy fails.
+        /// <paramref name="outputFiles"/> and stamped with <paramref name="restoredOutputTimestampUtc"/>.
+        /// Returns <see langword="false"/> if no cached entry exists or if any required file copy fails.
         /// </summary>
         internal bool TryRestoreCachedResult(
             string dllName,
             string hashKey,
             CompilationOutputFiles outputFiles,
-            ICompilerServerLogger logger)
+            ICompilerServerLogger logger,
+            DateTime? restoredOutputTimestampUtc = null)
         {
             var entryDir = GetCacheEntryDirectory(dllName, hashKey);
             var cachedAssemblyPath = Path.Combine(entryDir, AssemblyFileName);
+            var outputTimestampUtc = restoredOutputTimestampUtc ?? DateTime.UtcNow;
+            Debug.Assert(outputTimestampUtc.Kind == DateTimeKind.Utc);
 
             try
             {
@@ -178,10 +182,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 logger.Log($"Cache hit: {dllName} [{hashKey}]");
                 TouchLastUsed(entryDir, logger);
-                File.Copy(cachedAssemblyPath, outputFiles.AssemblyPath, overwrite: true);
-                copyIfNeeded(entryDir, PdbFileName, outputFiles.PdbPath);
-                copyIfNeeded(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath);
-                copyIfNeeded(entryDir, XmlDocFileName, outputFiles.XmlDocPath);
+                copyRestoredOutput(cachedAssemblyPath, outputFiles.AssemblyPath, outputTimestampUtc);
+                copyIfNeeded(entryDir, PdbFileName, outputFiles.PdbPath, outputTimestampUtc);
+                copyIfNeeded(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath, outputTimestampUtc);
+                copyIfNeeded(entryDir, XmlDocFileName, outputFiles.XmlDocPath, outputTimestampUtc);
             }
             catch (Exception ex)
             {
@@ -202,14 +206,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return !File.Exists(Path.Combine(entryDir, cachedFileName));
             }
 
-            static void copyIfNeeded(string entryDir, string cachedFileName, string? targetPath)
+            static void copyIfNeeded(string entryDir, string cachedFileName, string? targetPath, DateTime outputTimestampUtc)
             {
                 if (targetPath is null)
                 {
                     return;
                 }
 
-                File.Copy(Path.Combine(entryDir, cachedFileName), targetPath, overwrite: true);
+                copyRestoredOutput(Path.Combine(entryDir, cachedFileName), targetPath, outputTimestampUtc);
+            }
+
+            static void copyRestoredOutput(string sourcePath, string targetPath, DateTime outputTimestampUtc)
+            {
+                File.Copy(sourcePath, targetPath, overwrite: true);
+                File.SetLastWriteTimeUtc(targetPath, outputTimestampUtc);
             }
         }
 
