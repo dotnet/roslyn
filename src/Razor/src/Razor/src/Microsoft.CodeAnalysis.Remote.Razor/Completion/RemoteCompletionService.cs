@@ -243,7 +243,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                     }
                 }
 
-                if (!razorCompletionOptions.UseVsCodeCompletionCommitCharacters)
+                if (!razorCompletionOptions.IsVsCode)
                 {
                     // Store resolve context so that completionItem/resolve can populate Detail
                     // and Documentation in O(1) without walking the HTML schema.
@@ -257,7 +257,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 }
             }
 
-            if (razorCompletionOptions.UseVsCodeCompletionCommitCharacters)
+            if (razorCompletionOptions.IsVsCode)
             {
                 // VSCode should fallback to the html language server for html completions
                 localHtmlCompletionList = null;

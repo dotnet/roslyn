@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -389,8 +389,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = "<",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["text", "EditForm", "InputDate", "div"],
-            htmlItemLabels: ["div"]);
+#if VSCODE
+            htmlItemLabels: ["div"],
+#endif
+            expectedItemLabels: ["text", "EditForm", "InputDate", "div"]);
     }
 
     [Fact]
@@ -453,7 +455,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["LayoutView", "EditForm", "ValidationMessage", "div"],
+#if VSCODE
             htmlItemLabels: ["div"],
+#endif
             itemToResolve: "EditForm",
             expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Forms.EditForm");
     }
@@ -475,8 +479,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = "<",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["div", "h1", "LayoutView", "EditForm", "ValidationMessage"],
-            htmlItemLabels: ["div", "h1"]);
+#if VSCODE
+            htmlItemLabels: ["div", "h1"],
+#endif
+            expectedItemLabels: ["div", "h1", "LayoutView", "EditForm", "ValidationMessage"]);
     }
 
     [Fact]
@@ -496,7 +502,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["my-bold", "strong"],
+#if VSCODE
             htmlItemLabels: ["strong"],
+#endif
             fileKind: RazorFileKind.Legacy,
             additionalFiles: [("TestTagHelper.cs", """
                 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -618,7 +626,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             },
             unexpectedItemLabels: ["priority"],
             expectedItemLabels: ["style"],
+#if VSCODE
             htmlItemLabels: ["style"],
+#endif
             fileKind: RazorFileKind.Legacy,
             additionalFiles: [("TestTagHelper.cs", """
                 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -1010,8 +1020,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["div", "h1", "LayoutView", "EditForm", "ValidationMessage"],
-            unexpectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: ["div", "h1"]);
+#if VSCODE
+            htmlItemLabels: ["div", "h1"],
+#endif
+            unexpectedItemLabels: ["snippet1", "snippet2"]);
     }
 
     [Fact]
@@ -1049,8 +1061,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["div", "h1", "LayoutView", "EditForm", "ValidationMessage"],
-            commitElementsWithSpace: false,
-            htmlItemLabels: ["div", "h1"]);
+#if VSCODE
+            htmlItemLabels: ["div", "h1"],
+#endif
+            commitElementsWithSpace: false);
     }
 
     // Tests HTML attributes and DirectiveAttributeTransitionCompletionItemProvider
@@ -1071,8 +1085,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["style", "dir", "@..."],
-            htmlItemLabels: ["style", "dir"]);
+#if VSCODE
+            htmlItemLabels: ["style", "dir"],
+#endif
+            expectedItemLabels: ["style", "dir", "@..."]);
     }
 
     // Tests HTML attributes and DirectiveAttributeCompletionItemProvider
@@ -1094,9 +1110,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["style", "dir", "@rendermode", "@bind-..."],
-            htmlItemLabels: ["style", "dir"],
             itemToResolve: "@rendermode",
 #if VSCODE
+            htmlItemLabels: ["style", "dir"],
             expectedResolvedItemDescription: """
                 IComponentRenderMode RenderMode.RenderMode
 
@@ -1307,9 +1323,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit", "@..."],
-            htmlItemLabels: ["style", "dir"],
             itemToResolve: "FormName",
 #if VSCODE
+            htmlItemLabels: ["style", "dir"],
             expectedResolvedItemDescription: "string EditForm.FormName");
 #else
             expectedResolvedItemDescription: "string Microsoft.AspNetCore.Components.Forms.EditForm.FormName");
@@ -1334,9 +1350,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit", "@..."],
-            htmlItemLabels: ["style", "dir"],
             itemToResolve: "FormName",
 #if VSCODE
+            htmlItemLabels: ["style", "dir"],
             expectedResolvedItemDescription: "string EditForm.FormName");
 #else
             expectedResolvedItemDescription: "string Microsoft.AspNetCore.Components.Forms.EditForm.FormName");
@@ -1358,8 +1374,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit", "@..."],
-            htmlItemLabels: ["style", "dir"]);
+#if VSCODE
+            htmlItemLabels: ["style", "dir"],
+#endif
+            expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit", "@..."]);
     }
 
     [Fact]
@@ -1380,7 +1398,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["FormName", "OnValidSubmit", "@...", "style"],
+#if VSCODE
             htmlItemLabels: ["style"],
+#endif
             autoInsertAttributeQuotes: false);
     }
 
@@ -1464,7 +1484,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
             expectedItemLabels: ["LayoutView", "EditForm", "ValidationMessage", "div", "Router", SR.FormatComponentCompletionWithRequiredAttributesLabel("Router")],
+#if VSCODE
             htmlItemLabels: ["div"],
+#endif
             itemToResolve: SR.FormatComponentCompletionWithRequiredAttributesLabel("Router"),
             expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Routing.Router",
             expected: $"""
@@ -1494,8 +1516,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = null,
                 TriggerKind = CompletionTriggerKind.Invoked
             },
-            expectedItemLabels: ["data-enhance", "data-enhance-nav", "data-permanent", "dir", "@..."],
-            htmlItemLabels: ["dir"]);
+#if VSCODE
+            htmlItemLabels: ["dir"],
+#endif
+            expectedItemLabels: ["data-enhance", "data-enhance-nav", "data-permanent", "dir", "@..."]);
     }
 
     [Fact]
@@ -1517,7 +1541,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
+#if VSCODE
             htmlItemLabels: ["dir"],
+#endif
             unexpectedItemLabels: ["data-enhance"]);
     }
 
@@ -1540,7 +1566,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
+#if VSCODE
             htmlItemLabels: ["dir"],
+#endif
             unexpectedItemLabels: ["data-enhance"]);
     }
 
@@ -1563,7 +1591,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
+#if VSCODE
             htmlItemLabels: ["dir"],
+#endif
             unexpectedItemLabels: ["data-enhance"]);
     }
 
