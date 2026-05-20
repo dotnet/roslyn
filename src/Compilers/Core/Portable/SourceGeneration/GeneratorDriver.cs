@@ -561,12 +561,19 @@ namespace Microsoft.CodeAnalysis
             var diagnostic = CreateGeneratorExceptionDiagnostic(provider, generator, e, isInit: phase == GeneratorRunPhase.Init);
             var filtered = compilation.Options.FilterDiagnostic(diagnostic, cancellationToken);
 
+            // Build output respects the compilation's diagnostic options: a suppressed warning isn't
+            // added to the driver diagnostic bag.
             if (filtered is not null)
             {
                 diagnosticBag?.Add(filtered);
-                return generatorState.WithError(e, filtered, runTime ?? TimeSpan.Zero, phase);
             }
-            return generatorState;
+
+            // The per-generator run result always carries the failure diagnostic when an exception
+            // is recorded -- this preserves the documented invariant of GeneratorRunResult and
+            // ensures that a pre-compilation phase failure is recorded so the standard phase will
+            // skip this generator (otherwise standard-phase outputs would run with stale/missing
+            // pre-comp trees).
+            return generatorState.WithError(e, filtered ?? diagnostic, runTime ?? TimeSpan.Zero, phase);
         }
 
         private static Diagnostic CreateGeneratorExceptionDiagnostic(CommonMessageProvider provider, ISourceGenerator generator, Exception e, bool isInit)

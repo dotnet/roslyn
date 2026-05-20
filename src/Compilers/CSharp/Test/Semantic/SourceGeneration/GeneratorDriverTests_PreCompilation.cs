@@ -1146,6 +1146,115 @@ class C { }
             Assert.Single(driver.GetRunResult().Results[0].GeneratedSources);
         }
 
+        [Fact]
+        public void PreCompilation_Throws_With_Warning_Suppressed_Still_Stops_Generator()
+        {
+            // Even when the source generator failure warning (CS8785) is suppressed via NoWarn,
+            // a pre-compilation phase failure must still be recorded on GeneratorState so the
+            // standard phase skips this generator. Otherwise the standard phase would proceed
+            // with stale/missing pre-comp trees -- silent corruption.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            var options = ((CSharpCompilationOptions)TestOptions.DebugDll)
+                .WithSpecificDiagnosticOptions("CS8785", ReportDiagnostic.Suppress);
+            Compilation compilation = CreateCompilation(source, options: options, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, t) =>
+                {
+                    throw new InvalidOperationException("pre-compilation failed");
+                });
+                ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
+                {
+                    Assert.Fail("Standard source output ran even though pre-compilation failed.");
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            // The failure is still observable via the run result, even though the warning was suppressed.
+            var result = Assert.Single(driver.GetRunResult().Results);
+            Assert.NotNull(result.Exception);
+            Assert.IsType<InvalidOperationException>(result.Exception);
+            // The per-generator run result still carries the failure diagnostic (invariant of GeneratorRunResult).
+            Assert.Single(result.Diagnostics);
+
+            // No diagnostic flows to the driver bag because the warning was suppressed by the compilation options.
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Standard_Phase_Throws_With_Warning_Suppressed_Exception_Still_Observable()
+        {
+            // When the source generator failure warning (CS8785) is suppressed via NoWarn,
+            // a standard-phase exception must still be recorded on GeneratorRunResult.Exception
+            // so callers (and incremental recovery logic) can observe it.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            var options = ((CSharpCompilationOptions)TestOptions.DebugDll)
+                .WithSpecificDiagnosticOptions("CS8785", ReportDiagnostic.Suppress);
+            Compilation compilation = CreateCompilation(source, options: options, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
+                {
+                    throw new InvalidOperationException("standard phase failed");
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            var result = Assert.Single(driver.GetRunResult().Results);
+            Assert.NotNull(result.Exception);
+            Assert.IsType<InvalidOperationException>(result.Exception);
+            Assert.Single(result.Diagnostics);
+
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Init_Phase_Throws_With_Warning_Suppressed_Exception_Still_Observable()
+        {
+            // When the source generator init failure warning (CS8784) is suppressed via NoWarn,
+            // an init-phase exception must still be recorded on GeneratorRunResult.Exception.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            var options = ((CSharpCompilationOptions)TestOptions.DebugDll)
+                .WithSpecificDiagnosticOptions("CS8784", ReportDiagnostic.Suppress);
+            Compilation compilation = CreateCompilation(source, options: options, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                throw new InvalidOperationException("init failed");
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            var result = Assert.Single(driver.GetRunResult().Results);
+            Assert.NotNull(result.Exception);
+            Assert.IsType<InvalidOperationException>(result.Exception);
+            Assert.Single(result.Diagnostics);
+
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
+        }
+
         #endregion
 
         #region GeneratedSources
