@@ -754,7 +754,7 @@ _ = {
 
 ##### Dynamic awaiters
 
-Dynamic awaits use the same runtime async suspension points as the statically-typed case, but the compiler does not statically know the awaiter type. For dynamic properties, the property access and await pattern operations remain dynamic operations, while the value passed to the runtime helper is first attempted as `ICriticalNotifyCompletion` (via an `as` cast) and falls back to a hard cast to `INotifyCompletion`. This matches the existing state machine behavior for dynamic awaits.
+Dynamic awaits use the same runtime async suspension points as the statically-typed case, but the compiler does not statically know the awaiter type. Whether the awaited expression is a dynamic local, a dynamic property access, a dynamic method invocation, or any other dynamic expression, evaluating that expression and the await pattern operations (`GetAwaiter`, `IsCompleted`, `GetResult`) remain dynamic operations, while the value passed to the runtime helper is first attempted as `ICriticalNotifyCompletion` (via an `as` cast) and falls back to a hard cast to `INotifyCompletion`. This matches the existing state machine behavior for dynamic awaits.
 
 ```cs
 dynamic c = GetDynamicReceiver();
@@ -787,7 +787,7 @@ _ = {
 
 The dynamic strategy for implementation is:
 
-1. Preserve the existing dynamic call sites used to evaluate the awaited property and call `GetAwaiter`.
+1. Preserve the existing dynamic call sites used to evaluate the awaited expression and call `GetAwaiter`.
 2. Store the dynamic awaiter in a synthesized temp so `IsCompleted`, the notification interface conversions, and `GetResult` observe the same awaiter instance.
 3. Emit the `IsCompleted` dynamic operation using the normal await pattern rules.
 4. When `IsCompleted` is false, first try an `as` cast to `ICriticalNotifyCompletion`. If that succeeds, pass the result to `AsyncHelpers.UnsafeAwaitAwaiter<ICriticalNotifyCompletion>`. Otherwise, perform a hard cast to `INotifyCompletion` and pass that to `AsyncHelpers.AwaitAwaiter<INotifyCompletion>`. This mirrors the priority used by existing state machine lowering for dynamic awaits.
