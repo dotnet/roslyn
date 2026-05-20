@@ -1238,7 +1238,7 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerDriver != null)
                 {
                     compilation.EnsureCompilationEventQueueCompleted();
-                    analyzerDriver.GetDiagnosticsAsync(compilation, cancellationToken).Wait(cancellationToken);
+                    analyzerDriver.WhenCompletedTask.Wait(cancellationToken);
                 }
 
                 return;
