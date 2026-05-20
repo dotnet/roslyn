@@ -74,9 +74,9 @@ public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutp
         AssertEx.Equal("""
             internal static class AHelpers
             {
-                public static int Foo() => 1;
 
                 public static int Bar() => 2;
+                public static int Foo() => 1;
             }
             """, testLspServer.GetDocumentText(helperUri));
     }
