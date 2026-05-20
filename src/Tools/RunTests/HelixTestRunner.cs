@@ -154,7 +154,7 @@ internal sealed partial class HelixTestRunner
                     var elapsed = DateTime.UtcNow - startTime;
                     Console.WriteLine($"Job Time: {elapsed:hh\\:mm} Work Item States Running: {workItems.Running} Unscheduled: {workItems.Unscheduled} Waiting: {workItems.Waiting} Finished: {workItems.Finished}");
 
-                    if (elapsed > TimeSpan.FromMinutes(20))
+                    if (workItems.Waiting > 0 && elapsed > TimeSpan.FromMinutes(20))
                     {
                         ConsoleUtil.Warning($"Helix job {helixJobId} has {details.WorkItems.Waiting} queued work items after {elapsed:hh\\:mm}. This indicates a queue backup");
                     }
