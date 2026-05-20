@@ -80,6 +80,47 @@ namespace RunTests
         /// </summary>
         public bool UseHelix { get; set; }
 
+        public bool UseAzdoParallel => AzdoParallelJobPosition is not null && AzdoParallelTotalJobs is > 1;
+
+        public int AzdoParallelJobIndex => AzdoParallelJobPosition!.Value - 1;
+
+        public int? AzdoParallelJobPosition { get; set; }
+
+        public int? AzdoParallelTotalJobs { get; set; }
+
+        /// <summary>
+        /// When set, RunTests writes a partition plan JSON to this path and exits without running any tests.
+        /// </summary>
+        public string? WritePlanPath { get; set; }
+
+        /// <summary>
+        /// When set, the Azure DevOps parallel runner reads its work items for the current slice from this plan
+        /// instead of computing a fresh partition.
+        /// </summary>
+        public string? PlanPath { get; set; }
+
+        /// <summary>
+        /// Target wall-clock duration for a single Azure DevOps slice when generating a plan. Used to compute the
+        /// number of partitions: ceil(totalEstimatedRuntime / TargetSliceMinutes).
+        /// </summary>
+        public int TargetSliceMinutes { get; set; } = 30;
+
+        /// <summary>
+        /// Minimum partition count emitted by the planner (floor of the partition-count clamp).
+        /// </summary>
+        public int MinPartitions { get; set; } = 1;
+
+        /// <summary>
+        /// Maximum partition count emitted by the planner (cap of the partition-count clamp).
+        /// </summary>
+        public int MaxPartitions { get; set; } = 30;
+
+        /// <summary>
+        /// Partition count to fall back on when the planner cannot find any historical timing data
+        /// (e.g. brand new branch). Bounded by <see cref="MinPartitions"/> and <see cref="MaxPartitions"/>.
+        /// </summary>
+        public int DefaultPartitionsWhenNoHistory { get; set; } = 4;
+
         /// <summary>
         /// Name of the Helix queue to run tests on (only valid when <see cref="UseHelix" /> is <see langword="true" />).
         /// </summary>
@@ -160,6 +201,14 @@ namespace RunTests
             string? pipelineDefinitionId = null;
             string? phaseName = null;
             string? targetBranchName = null;
+            int? azdoParallelJobPosition = null;
+            int? azdoParallelTotalJobs = null;
+            string? writePlanPath = null;
+            string? planPath = null;
+            int targetSliceMinutes = 30;
+            int minPartitions = 1;
+            int maxPartitions = 30;
+            int defaultPartitionsWhenNoHistory = 4;
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", s => dotnetFilePath = s },
@@ -186,6 +235,14 @@ namespace RunTests
                 { "pipelineDefinitionId=", "Pipeline definition id", s => pipelineDefinitionId = s },
                 { "phaseName=", "Pipeline phase name associated with this test run", s => phaseName = s },
                 { "targetBranchName=", "Target branch of this pipeline run", s => targetBranchName = s },
+                { "azdoParallelJobPosition=", "Azure DevOps parallel job position, 1-based", (int i) => azdoParallelJobPosition = i },
+                { "azdoParallelTotalJobs=", "Azure DevOps total parallel jobs", (int i) => azdoParallelTotalJobs = i },
+                { "writePlan=", "Write a partition plan JSON to the given path and exit without running tests", s => writePlanPath = s },
+                { "planPath=", "Path to a partition plan JSON to drive Azure DevOps parallel slice execution", s => planPath = s },
+                { "targetSliceMinutes=", "Target wall-clock minutes per Azure DevOps slice for plan generation (default 30)", (int i) => targetSliceMinutes = i },
+                { "minPartitions=", "Minimum partition count emitted by the planner (default 1)", (int i) => minPartitions = i },
+                { "maxPartitions=", "Maximum partition count emitted by the planner (default 30)", (int i) => maxPartitions = i },
+                { "defaultPartitionsWhenNoHistory=", "Partition count to use when no test history is available (default 4)", (int i) => defaultPartitionsWhenNoHistory = i },
             };
 
             List<string> assemblyList;
@@ -230,6 +287,75 @@ namespace RunTests
                 ConsoleUtil.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
             }
 
+            azdoParallelJobPosition ??= TryGetEnvironmentInteger("SYSTEM_JOBPOSITIONINPHASE");
+            azdoParallelTotalJobs ??= TryGetEnvironmentInteger("SYSTEM_TOTALJOBSINPHASE");
+
+            if (writePlanPath is not null && planPath is not null)
+            {
+                ConsoleUtil.WriteLine("--writePlan and --planPath cannot be combined.");
+                return null;
+            }
+
+            if (writePlanPath is not null && helix)
+            {
+                ConsoleUtil.WriteLine("--writePlan cannot be combined with --helix.");
+                return null;
+            }
+
+            if (targetSliceMinutes < 1)
+            {
+                ConsoleUtil.WriteLine($"--targetSliceMinutes must be >= 1. Got {targetSliceMinutes}.");
+                return null;
+            }
+
+            if (minPartitions < 1 || maxPartitions < minPartitions)
+            {
+                ConsoleUtil.WriteLine($"--minPartitions/--maxPartitions invalid: min={minPartitions}, max={maxPartitions}.");
+                return null;
+            }
+
+            if (defaultPartitionsWhenNoHistory < 1)
+            {
+                ConsoleUtil.WriteLine($"--defaultPartitionsWhenNoHistory must be >= 1. Got {defaultPartitionsWhenNoHistory}.");
+                return null;
+            }
+
+            if (azdoParallelJobPosition.HasValue != azdoParallelTotalJobs.HasValue)
+            {
+                ConsoleUtil.WriteLine($"Azure DevOps parallel test execution requires both job position and total jobs. azdoParallelJobPosition={azdoParallelJobPosition}, azdoParallelTotalJobs={azdoParallelTotalJobs}");
+                return null;
+            }
+
+            if (azdoParallelJobPosition is { } position && azdoParallelTotalJobs is { } totalJobs)
+            {
+                if (totalJobs < 1)
+                {
+                    ConsoleUtil.WriteLine($"Azure DevOps total parallel jobs must be greater than zero. azdoParallelTotalJobs={totalJobs}");
+                    return null;
+                }
+
+                if (position < 1 || position > totalJobs)
+                {
+                    ConsoleUtil.WriteLine($"Azure DevOps parallel job position must be between 1 and total jobs. azdoParallelJobPosition={position}, azdoParallelTotalJobs={totalJobs}");
+                    return null;
+                }
+
+                if (totalJobs > 1)
+                {
+                    if (helix)
+                    {
+                        ConsoleUtil.WriteLine($"Azure DevOps parallel test execution cannot be combined with Helix execution");
+                        return null;
+                    }
+
+                    if (sequential)
+                    {
+                        ConsoleUtil.WriteLine($"Azure DevOps parallel test execution cannot be combined with sequential execution");
+                        return null;
+                    }
+                }
+            }
+
             return new Options(
                 dotnetFilePath: dotnetFilePath,
                 artifactsDirectory: artifactsPath,
@@ -256,7 +382,32 @@ namespace RunTests
                 PipelineDefinitionId = pipelineDefinitionId,
                 PhaseName = phaseName,
                 TargetBranchName = targetBranchName,
+                AzdoParallelJobPosition = azdoParallelJobPosition,
+                AzdoParallelTotalJobs = azdoParallelTotalJobs,
+                WritePlanPath = writePlanPath,
+                PlanPath = planPath,
+                TargetSliceMinutes = targetSliceMinutes,
+                MinPartitions = minPartitions,
+                MaxPartitions = maxPartitions,
+                DefaultPartitionsWhenNoHistory = defaultPartitionsWhenNoHistory,
             };
+
+            static int? TryGetEnvironmentInteger(string name)
+            {
+                var value = Environment.GetEnvironmentVariable(name);
+                if (string.IsNullOrEmpty(value))
+                {
+                    return null;
+                }
+
+                if (int.TryParse(value, out var result))
+                {
+                    return result;
+                }
+
+                ConsoleUtil.WriteLine($"Could not parse environment variable {name} as an integer: {value}");
+                return null;
+            }
 
             static string? TryGetArtifactsPath()
             {

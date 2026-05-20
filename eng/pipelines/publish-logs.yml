@@ -5,6 +5,9 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
+- name: artifactNameSuffix
+  type: string
+  default: ''
 
 steps:
   - task: PowerShell@2
@@ -42,6 +45,6 @@ steps:
     displayName: Publish Logs
     inputs:
       targetPath: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
-      artifactName: '${{ parameters.jobName }} Attempt $(System.JobAttempt) Logs'
+      artifactName: '${{ parameters.jobName }}${{ parameters.artifactNameSuffix }} Attempt $(System.JobAttempt) Logs'
     continueOnError: true
     condition: always()

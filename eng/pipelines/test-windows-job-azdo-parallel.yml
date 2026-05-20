@@ -1,0 +1,150 @@
+# Test on Windows Desktop using Azure DevOps parallel jobs
+parameters:
+- name: testRunName
+  type: string
+  default: ''
+- name: jobName
+  type: string
+  default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+- name: testArguments
+  type: string
+  default: ''
+- name: targetSliceMinutes
+  type: number
+  default: 30
+- name: maxPartitions
+  type: number
+  default: 30
+- name: defaultParallel
+  type: number
+  default: 4
+- name: poolParameters
+  type: object
+
+jobs:
+# Planner job: queries the previous successful build's per-test runtime history
+# (TestHistoryManager) and writes a partition plan that decides how many slices
+# we need for the actual test job + which work items each slice owns.
+- job: ${{ parameters.jobName }}_Plan
+  displayName: 'Plan ${{ parameters.testRunName }}'
+  pool: ${{ parameters.poolParameters }}
+  timeoutInMinutes: 30
+  variables:
+    DOTNET_ROLL_FORWARD: LatestMajor
+    DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
+  steps:
+    - checkout: none
+
+    # .NET 10 is needed since our unit tests target net10.0
+    - task: UseDotNet@2
+      displayName: 'Install .NET 10 Runtime'
+      inputs:
+        packageType: sdk
+        version: '10.0.x'
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
+      inputs:
+        artifact: ${{ parameters.testArtifactName }}
+        path: '$(Build.SourcesDirectory)'
+
+    - task: BatchScript@1
+      displayName: Rehydrate RunTests
+      inputs:
+        filename: artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/rehydrate.cmd
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+    # Run the planner. We pass the test job's phaseName explicitly via the CLI because
+    # AzDo doesn't let us override SYSTEM_PHASENAME via the `env:` block — the agent
+    # always reports the running phase. Without this, TestHistoryManager would look up
+    # history for `${jobName}_Plan` instead of the eventual `${jobName}` test job.
+    - task: PowerShell@2
+      name: plan
+      displayName: Generate Partition Plan
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -writePlan "$(Build.SourcesDirectory)\artifacts\partitionPlan\partitionPlan.json" -phaseName ${{ parameters.jobName }} -targetSliceMinutes ${{ parameters.targetSliceMinutes }} -maxPartitions ${{ parameters.maxPartitions }}
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Partition Plan
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)\artifacts\partitionPlan'
+        artifactName: 'Plan_${{ parameters.jobName }}'
+      condition: succeededOrFailed()
+
+# Test job: fans out using the partition count emitted by the planner. If the
+# planner failed to emit a value (e.g., the planner job didn't run) we fall back
+# to `defaultParallel` so the leg still runs.
+- job: ${{ parameters.jobName }}
+  dependsOn: ${{ parameters.jobName }}_Plan
+  strategy:
+    parallel: $[ coalesce(dependencies.${{ parameters.jobName }}_Plan.outputs['plan.partitionCount'], '${{ parameters.defaultParallel }}') ]
+  pool: ${{ parameters.poolParameters }}
+  timeoutInMinutes: 120
+  variables:
+    DOTNET_ROLL_FORWARD: LatestMajor
+    DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
+  steps:
+    - checkout: none
+
+    # .NET 10 is needed since our unit tests target net10.0
+    - task: UseDotNet@2
+      displayName: 'Install .NET 10 Runtime'
+      inputs:
+        packageType: sdk
+        version: '10.0.x'
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
+      inputs:
+        artifact: ${{ parameters.testArtifactName }}
+        path: '$(Build.SourcesDirectory)'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Partition Plan
+      inputs:
+        artifact: 'Plan_${{ parameters.jobName }}'
+        path: '$(Build.SourcesDirectory)\artifacts\partitionPlan'
+
+    - task: BatchScript@1
+      displayName: Rehydrate RunTests
+      inputs:
+        filename: artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/rehydrate.cmd
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+    - task: PowerShell@2
+      displayName: Run Unit Tests
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps -planPath "$(Build.SourcesDirectory)\artifacts\partitionPlan\partitionPlan.json"
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml'
+        mergeTestResults: true
+        testRunTitle: '${{ parameters.testRunName }} Slice $(System.JobPositionInPhase) of $(System.TotalJobsInPhase)'
+      condition: always()
+
+    - template: publish-logs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+        jobName: ${{ parameters.jobName }}
+        artifactNameSuffix: ' Slice $(System.JobPositionInPhase)'
