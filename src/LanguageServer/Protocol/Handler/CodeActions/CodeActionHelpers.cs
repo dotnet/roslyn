@@ -44,6 +44,7 @@ internal static class CodeActionHelpers
         if (actionSets.IsDefaultOrEmpty)
             return [];
 
+        var services = document.Project.Solution.Services;
         using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var codeActions);
         // VS-LSP support nested code action, but standard LSP doesn't.
         if (hasVsLspCapability)
@@ -58,7 +59,7 @@ internal static class CodeActionHelpers
                 var currentSetNumber = ++currentHighestSetNumber;
                 foreach (var suggestedAction in set.Actions)
                 {
-                    if (!IsCodeActionNotSupportedByLSP(suggestedAction))
+                    if (!IsCodeActionNotSupportedByLSP(suggestedAction, services))
                     {
                         codeActions.Add(GenerateVSCodeAction(
                             request, documentText,
@@ -79,7 +80,7 @@ internal static class CodeActionHelpers
             {
                 foreach (var suggestedAction in set.Actions)
                 {
-                    if (!IsCodeActionNotSupportedByLSP(suggestedAction))
+                    if (!IsCodeActionNotSupportedByLSP(suggestedAction, services))
                     {
                         codeActions.AddRange(GenerateCodeActions(
                             request,
@@ -317,12 +318,13 @@ internal static class CodeActionHelpers
         if (actionSets.IsDefaultOrEmpty)
             return [];
 
+        var services = document.Project.Solution.Services;
         var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
         foreach (var set in actionSets)
         {
             foreach (var suggestedAction in set.Actions)
             {
-                if (IsCodeActionNotSupportedByLSP(suggestedAction))
+                if (IsCodeActionNotSupportedByLSP(suggestedAction, services))
                 {
                     continue;
                 }
