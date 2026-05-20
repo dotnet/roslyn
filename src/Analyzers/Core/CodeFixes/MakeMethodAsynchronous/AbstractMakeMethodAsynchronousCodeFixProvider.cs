@@ -2,13 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -65,15 +68,21 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         // Heuristic to recognize the common case for entry point method
         var isEntryPoint = methodSymbol.IsStatic && IsLikelyEntryPointName(methodSymbol.Name, document);
+        var isEventHandlerMethod = methodSymbol.ReturnsVoid &&
+            methodSymbol.IsOrdinaryMethodOrLocalFunction() &&
+            await IsReferencedAsEventHandlerAsync(document, methodSymbol, cancellationToken).ConfigureAwait(false);
 
-        // Offer to convert to a Task return type.
-        var taskTitle = GetMakeAsyncTaskFunctionResource();
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                taskTitle,
-                cancellationToken => FixNodeAsync(document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken),
-                taskTitle),
-            context.Diagnostics);
+        if (!isEventHandlerMethod)
+        {
+            // Offer to convert to a Task return type.
+            var taskTitle = GetMakeAsyncTaskFunctionResource();
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    taskTitle,
+                    cancellationToken => FixNodeAsync(document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken),
+                    taskTitle),
+                context.Diagnostics);
+        }
 
         // If it's a void returning method (and not an entry point), also offer to keep the void return type
         if (methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint)
@@ -86,6 +95,37 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                     asyncVoidTitle),
                 context.Diagnostics);
         }
+    }
+
+    private static async Task<bool> IsReferencedAsEventHandlerAsync(Document document, IMethodSymbol methodSymbol, CancellationToken cancellationToken)
+    {
+        var projectDocuments = ImmutableHashSet.CreateRange(document.Project.Documents);
+        var references = await SymbolFinder.FindReferencesAsync(
+            methodSymbol,
+            document.Project.Solution,
+            documents: projectDocuments,
+            cancellationToken).ConfigureAwait(false);
+
+        foreach (var referencedSymbol in references)
+        {
+            foreach (var location in referencedSymbol.Locations)
+            {
+                if (location.IsImplicit)
+                    continue;
+
+                var syntaxRoot = await location.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
+                var semanticModel = await location.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var operation = semanticModel.GetOperation(syntaxNode, cancellationToken);
+                for (var current = operation; current != null; current = current.Parent)
+                {
+                    if (current is IEventAssignmentOperation)
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static IMethodSymbol? GetMethodSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
