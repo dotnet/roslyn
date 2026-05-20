@@ -54,9 +54,9 @@ steps:
   # Install an SDK that can run the roslyn-tools tool.
   - task: UseDotNet@2
     inputs:
-      version: 8.0.x
+      version: 10.0.x
 
-  - script: dotnet tool install Microsoft.RoslynTools --tool-path "$(Build.SourcesDirectory)\.tools" --prerelease --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
+  - script: dotnet tool install Microsoft.RoslynTools --tool-path "$(Build.SourcesDirectory)\.tools" --prerelease --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
     displayName: 'Install roslyn-tools'
 
   - powershell: |
