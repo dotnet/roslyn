@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -42,7 +43,7 @@ public class DocumentFormattingBenchmark
     private const string DocumentRelativePath = "DocumentFormattingBenchmark.cshtml";
     private const string RootNamespace = "Benchmark";
 
-    private static readonly Uri s_documentUri = new(DocumentFilePath);
+    private static readonly DocumentUri s_documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(DocumentFilePath);
     private static readonly AnalyzerFileReference s_razorSourceGeneratorReference = new(
         typeof(RazorSourceGenerator).Assembly.Location,
         AnalyzerAssemblyLoader.Instance);

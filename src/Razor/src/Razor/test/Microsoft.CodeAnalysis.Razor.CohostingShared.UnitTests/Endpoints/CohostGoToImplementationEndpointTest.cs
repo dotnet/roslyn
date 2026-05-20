@@ -1,13 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
@@ -103,9 +101,10 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
 
+        var uri = new DocumentUri($"{document.GetURI()}{document.Name}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
         var htmlResponse = new LspLocation
         {
-            DocumentUri = new(new Uri(document.CreateSystemUri(), document.Name + LanguageServerConstants.HtmlVirtualDocumentSuffix)),
+            DocumentUri = uri,
             Range = inputText.GetRange(input.Span),
         };
 
@@ -140,7 +139,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         var locations = result.Value.First;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
