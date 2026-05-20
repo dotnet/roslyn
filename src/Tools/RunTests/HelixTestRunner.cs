@@ -36,8 +36,8 @@ public sealed class HelixWorkItem(
 
 internal sealed partial class HelixTestRunner
 {
-    [GeneratedRegex(@"Waiting for completion of job ([0-9a-fA-F-]+) on ")]
-    private static partial Regex HelixJobIdRegex();
+    [GeneratedRegex(@"HelixJobId=(\S+) HelixJobCancellationToken=(\S+)")]
+    private static partial Regex HelixJobInfoRegex();
 
     internal enum TestOS
     {
@@ -46,21 +46,107 @@ internal sealed partial class HelixTestRunner
         Mac,
     }
 
-    internal static async Task<int> RunAsync(Options options, ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
+    internal static async Task<int> RunAsync(Options options, ImmutableArray<AssemblyInfo> assemblies)
     {
-        var helixProjectFilePath = await CreateHelixArtifactsAsync(options, assemblies, cancellationToken).ConfigureAwait(false);
-        var (process, helixJobId) = await StartHelixJobAsync(options, helixProjectFilePath, cancellationToken).ConfigureAwait(false);
+        var cts = new CancellationTokenSource();
+        Console.CancelKeyPress += delegate
+        {
+            cts.Cancel();
+        };
 
+        var helixProjectFilePath = await CreateHelixArtifactsAsync(options, assemblies, cts.Token).ConfigureAwait(false);
+        var (process, helixJobInfoTask) = StartHelixJob(options, helixProjectFilePath);
+        var processWaitTask = process.WaitForExitAsync();
+
+        var task = await Task.WhenAny(processWaitTask, helixJobInfoTask);
+        if (cts.IsCancellationRequested)
+        {
+            process.Kill(entireProcessTree: true);
+            return -1;
+        }
+
+        if (!helixJobInfoTask.IsCompletedSuccessfully)
+        {
+            ConsoleUtil.Error($"Helix completed without specifying a job id in the output. This breaks our tooling");
+            return -1;
+        }
+
+        var (helixJobId, helixJobCancellationToken) = await helixJobInfoTask;
         try
         {
-            var processResult = await process.Result.ConfigureAwait(false);
-            return processResult.ExitCode;
+            return await WaitForHelixJobCompletionAsync(process, helixJobId, options.HelixApiAccessToken, cts.Token);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        finally
         {
-            var jobDescription = helixJobId ?? "unknown helix job";
-            ConsoleUtil.Error($"(NETCORE_ENGINEERING_TELEMETRY=Test) Helix job timed out: {jobDescription}");
-            throw;
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+            }
+        }
+    }
+
+    private static async Task<int> WaitForHelixJobCompletionAsync(Process process, string helixJobId, string? helixApiAccessToken, CancellationToken cancellationToken)
+    {
+        ConsoleUtil.WriteLine($"Waiting for Helix job {helixJobId} to complete...");
+        using var helixApi = new HelixApi(helixApiAccessToken);
+        var workItemNameList = (await helixApi.GetWorkItemsAsync(helixJobId, cancellationToken))
+            .Select(w => w.Name)
+            .ToList();
+
+        var helixTimeout = TimeSpan.FromMinutes(30);
+
+        do
+        {
+            await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+
+            if (process.HasExited)
+            {
+                Console.WriteLine($"Helix process completed with exit code {process.ExitCode}");
+                return process.ExitCode;
+            }
+
+            try
+            {
+                var index = 0;
+                while (index < workItemNameList.Count)
+                {
+                    var name = workItemNameList[index];
+                    var details = await helixApi.GetWorkItemDetailsAsync(helixJobId, name, cancellationToken);
+                    if (details.Finished is not null)
+                    {
+                        ConsoleUtil.WriteLine($"Helix Job {helixJobId} Work item {name} finished with state {details.State}");
+                        workItemNameList.RemoveAt(index);
+                        continue;
+                    }
+
+                    if (HasTimedOut(details))
+                    {
+                        ConsoleUtil.Error($"Helix Job {helixJobId} Work item {name} has been in state {details.State} for more than {helixTimeout}. Timing out the job.");
+                        return -1;
+                    }
+
+                    index++;
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                ConsoleUtil.Error($"Error while polling Helix API for job status: {ex.Message}");
+            }
+        } while (workItemNameList.Count > 0);
+
+        await process.WaitForExitAsync(cancellationToken);
+        return process.ExitCode;
+
+        bool HasTimedOut(HelixWorkItemDetails details)
+        {
+            // If a work item has been in the same state for more than 30 minutes, consider it timed out.
+            if (details.Started is null)
+            {
+                return false;
+            }
+
+            var started = DateTimeOffset.Parse(details.Started);
+            return DateTimeOffset.UtcNow - started > helixTimeout;
         }
     }
 
@@ -121,11 +207,10 @@ internal sealed partial class HelixTestRunner
     }
 
     /// <summary>
-    /// Constructs the dotnet build arguments, launches the process, and returns the process info
-    /// along with the helix job id once it is parsed from the process output. The job id will be
-    /// <see langword="null"/> if the process exits before emitting a job id (e.g. build failure).
+    /// Constructs the dotnet build arguments, launches the process, and returns the process
+    /// along with a task that completes with the helix job id once it is parsed from process output.
     /// </summary>
-    internal static async Task<(ProcessInfo ProcessInfo, string? HelixJobId)> StartHelixJobAsync(Options options, string helixProjectFilePath, CancellationToken cancellationToken)
+    internal static (Process Process, Task<(string HelixJobId, string HelixJobCancellationToken)> HelixJobInfo) StartHelixJob(Options options, string helixProjectFilePath)
     {
         var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
         var arguments = $"build -bl:{Path.Combine(logsDir, "helix.binlog")} {helixProjectFilePath}";
@@ -142,34 +227,51 @@ internal sealed partial class HelixTestRunner
             arguments += $" -p:Creator=\"{queuedBy}\"";
         }
 
-        var helixJobIdSource = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var helixJobInfoSource = new TaskCompletionSource<(string HelixJobId, string HelixJobCancellationToken)>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        var process = ProcessRunner.CreateProcess(
-            executable: options.DotnetFilePath,
-            arguments: arguments,
-            captureOutput: true,
-            onOutputDataReceived: (e) =>
+        var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
             {
-                Debug.Assert(e.Data is not null);
-                ConsoleUtil.WriteLine(e.Data);
-
-                if (!helixJobIdSource.Task.IsCompleted)
-                {
-                    var match = HelixJobIdRegex().Match(e.Data);
-                    if (match.Success)
-                    {
-                        helixJobIdSource.TrySetResult(match.Groups[1].Value);
-                    }
-                }
+                FileName = options.DotnetFilePath,
+                Arguments = arguments,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
             },
-            cancellationToken: cancellationToken);
+            EnableRaisingEvents = true
+        };
 
-        // Wait for either the job id to be parsed from output, or for the process to exit
-        // (whichever comes first). If the process exits before we see a job id, return null.
-        await Task.WhenAny(helixJobIdSource.Task, process.Result).ConfigureAwait(false);
-        var helixJobId = helixJobIdSource.Task.IsCompletedSuccessfully ? helixJobIdSource.Task.Result : null;
+        process.OutputDataReceived += (_, e) =>
+        {
+            if (e.Data is null)
+                return;
 
-        return (process, helixJobId);
+            ConsoleUtil.WriteLine(e.Data);
+
+            if (!helixJobInfoSource.Task.IsCompleted)
+            {
+                var match = HelixJobInfoRegex().Match(e.Data);
+                if (match.Success)
+                {
+                    helixJobInfoSource.TrySetResult((match.Groups[1].Value, match.Groups[2].Value));
+                }
+            }
+        };
+
+        process.ErrorDataReceived += (_, e) =>
+        {
+            if (e.Data is not null)
+            {
+                ConsoleUtil.Error(e.Data);
+            }
+        };
+
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+
+        return (process, helixJobInfoSource.Task);
     }
 
     /// <summary>
@@ -232,6 +334,16 @@ internal sealed partial class HelixTestRunner
 
         builder.AppendLine("""
               </ItemGroup>
+
+              <!-- 
+                This target runs after the tests have executed but before the project finishes. 
+                It's used to print out the HelixJobId and HelixJobCancellationToken properties to the console
+                so we can grab them in the process output and setup our helix watching.
+              -->
+              <Target Name="PrintHelixInfo" AfterTargets="CoreTest">                                                                                       
+                <Message Text="HelixJobId=$(HelixJobId) HelixJobCancellationToken=$(HelixJobCancellationToken)" Importance="high" />                                                
+              </Target>        
+
             </Project>
             """);
 
