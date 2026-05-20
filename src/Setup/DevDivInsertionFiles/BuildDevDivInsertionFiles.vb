@@ -72,7 +72,6 @@ Public Class BuildDevDivInsertionFiles
         "SQLitePCLRaw.batteries_v2.dll",
         "SQLitePCLRaw.core.dll",
         "SQLitePCLRaw.provider.e_sqlite3.dll",
-        "e_sqlite3.dll",
         "Newtonsoft.Json.dll",
         "StreamJsonRpc.dll",
         "StreamJsonRpc.resources.dll",
