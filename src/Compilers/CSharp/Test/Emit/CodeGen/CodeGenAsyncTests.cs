@@ -2701,7 +2701,7 @@ class Test
                 IsCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2747,7 +2747,7 @@ class Test
                 IsCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2793,7 +2793,7 @@ class Test
                 OnCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2840,7 +2840,7 @@ class Test
                 OnCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2900,7 +2900,7 @@ class Test
                 A3.IsCompleted
                 A3.GetResult
                 3
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2949,7 +2949,7 @@ class Test
                 GetAwaiter
                 IsCompleted
                 InvalidCastException
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2958,7 +2958,6 @@ class Test
             var source = """
                 using System;
                 using System.Runtime.CompilerServices;
-                using System.Threading;
                 using System.Threading.Tasks;
 
                 class Awaitable
@@ -2997,7 +2996,7 @@ class Test
                 UnsafeOnCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3006,7 +3005,6 @@ class Test
             var source = """
                 using System;
                 using System.Runtime.CompilerServices;
-                using System.Threading;
                 using System.Threading.Tasks;
 
                 class Awaitable
@@ -3046,7 +3044,7 @@ class Test
                 UnsafeOnCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3094,7 +3092,7 @@ class Test
                 OnCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3135,7 +3133,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
                 Property
                 RuntimeBinderException: GetAwaiter
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3186,7 +3184,7 @@ class Test
                 GetAwaiter
                 IsCompleted
                 RuntimeBinderException: GetResult
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3236,7 +3234,7 @@ class Test
                 Property
                 GetAwaiter
                 RuntimeBinderException: IsCompleted
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3288,7 +3286,7 @@ class Test
                 GetAwaiter
                 IsCompleted
                 RuntimeBinderException: string -> bool
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3322,6 +3320,7 @@ class Test
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException: GetAwaiter"), verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.F", """
                 {
                   // Code size      328 (0x148)
@@ -3474,7 +3473,7 @@ class Test
                 GetAwaiter
                 IsCompleted
                 RuntimeBinderException: GetResult
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3524,7 +3523,7 @@ class Test
                 GetAwaiter
                 IsCompleted
                 RuntimeBinderException: string -> bool
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3570,6 +3569,7 @@ class Test
                 GetResult
                 42
                 """), verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.F", """
                 {
                   // Code size      471 (0x1d7)
@@ -3765,6 +3765,7 @@ class Test
                 GetResult
                 42
                 """), verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.F", """
                 {
                   // Code size      410 (0x19a)
@@ -3938,7 +3939,7 @@ class Test
                 OnCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3985,7 +3986,7 @@ class Test
                 OnCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4045,7 +4046,7 @@ class Test
                 A3.IsCompleted
                 A3.GetResult
                 3
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4094,7 +4095,7 @@ class Test
                 GetAwaiter
                 IsCompleted
                 InvalidCastException
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4103,7 +4104,6 @@ class Test
             var source = """
                 using System;
                 using System.Runtime.CompilerServices;
-                using System.Threading;
                 using System.Threading.Tasks;
 
                 class Awaitable
@@ -4142,7 +4142,7 @@ class Test
                 UnsafeOnCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4151,7 +4151,6 @@ class Test
             var source = """
                 using System;
                 using System.Runtime.CompilerServices;
-                using System.Threading;
                 using System.Threading.Tasks;
 
                 class Awaitable
@@ -4191,7 +4190,7 @@ class Test
                 UnsafeOnCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4239,7 +4238,7 @@ class Test
                 OnCompleted
                 GetResult
                 42
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4280,7 +4279,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
                 Method
                 RuntimeBinderException: GetAwaiter
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4331,7 +4330,7 @@ class Test
                 GetAwaiter
                 IsCompleted
                 RuntimeBinderException: GetResult
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4381,7 +4380,7 @@ class Test
                 Method
                 GetAwaiter
                 RuntimeBinderException: IsCompleted
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4433,7 +4432,7 @@ class Test
                 GetAwaiter
                 IsCompleted
                 RuntimeBinderException: string -> bool
-                """), verify: Verification.Fails);
+                """), verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4585,7 +4584,7 @@ class Test
                 """), verify: Verification.Fails, symbolValidator: module =>
             {
                 AssertEx.SequenceEqual(["Test.<>o__0", "Test.<>o__<Main>g__L1|0_0|", "Test.<>o__<Main>g__L2|0_1|"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
-            });
+            }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4648,7 +4647,7 @@ class Test
                 AssertEx.SequenceEqual(
                     ["Test.<>o__1", "Test.<>o__2", "Test.<>o__<F>g__L1|1_0|", "Test.<>o__<F>g__L1|2_0|"],
                     module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
-            });
+            }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4703,7 +4702,7 @@ class Test
                 // which uses the current function's name as the container suffix, producing
                 // <>o__<Main>g__L1|0_0| for L1.
                 AssertEx.SequenceEqual(["Test.<>o__0", "Test.<>o__<Main>g__L1|0_0|"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
-            });
+            }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4760,7 +4759,7 @@ class Test
                 // function's synthesized name. Both containers are generic in T because they inherit
                 // L1's type parameters.
                 AssertEx.SequenceEqual(["Test.<>o__0|0<T>", "Test.<>o__<Main>g__L1|0_0|<T>"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
-            });
+            }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4815,7 +4814,7 @@ class Test
                 // (suffix = local function ordinal) plus its own RuntimeAsyncRewriter container for the
                 // await machinery (suffix = synthesized local function name).
                 AssertEx.SequenceEqual(["Test.<>o__0|0<T>", "Test.<>o__1|0<T>", "Test.<>o__<Main>g__L1|0_0|<T>", "Test.<>o__<Main>g__L2|0_1|<T>"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
-            });
+            }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4871,7 +4870,7 @@ class Test
                 """), verify: Verification.Fails, symbolValidator: module =>
             {
                 AssertEx.SequenceEqual(["Test.<>o__0", "Test.<>o__IFoo-M|0"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
-            });
+            }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4932,7 +4931,7 @@ class Test
                 AssertEx.SequenceEqual(
                     ["Test.<>o__0", "Test.<>o__1", "Test.<>o__F|0", "Test.<>o__F|1"],
                     module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
-            });
+            }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -12387,7 +12386,7 @@ static class Test1
             // Runtime async not turned on, so we shouldn't care about the missing member
             comp = CreateCompilation(code, options: TestOptions.ReleaseDll);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
-            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [Fact]
