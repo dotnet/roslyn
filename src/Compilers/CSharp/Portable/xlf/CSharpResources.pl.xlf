@@ -529,22 +529,22 @@
       </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
-        <target state="new">'{0}': cannot use a closed type '{1}' from another assembly as a base type.</target>
+        <target state="translated">„{0}”: nie można użyć typu zamkniętego „{1}” z innego zestawu jako typu podstawowego.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedExplicitlyAbstract">
         <source>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</source>
-        <target state="new">'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</target>
+        <target state="translated">„{0}”: typ zamknięty nie może być oznaczony jako abstrakcyjny, ponieważ jest zawsze niejawnie abstrakcyjny.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedSealedStatic">
         <source>'{0}': a closed type cannot be sealed or static</source>
-        <target state="new">'{0}': a closed type cannot be sealed or static</target>
+        <target state="translated">„{0}”: typ zamknięty nie może być zapieczętowany ani statyczny</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedTypeNameDisallowed">
         <source>Types and aliases cannot be named 'closed'.</source>
-        <target state="new">Types and aliases cannot be named 'closed'.</target>
+        <target state="translated">Typy i aliasy nie mogą mieć nazwy „zamknięte”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
@@ -2709,7 +2709,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedClosedSubtype">
         <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
-        <target state="new">'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</target>
+        <target state="translated">„{0}”: Parametr typu „{1}” musi być przywoływany w typie podstawowym „{2}”, ponieważ typ podstawowy jest zamknięty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
@@ -2934,7 +2934,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureClosedClasses">
         <source>closed classes</source>
-        <target state="new">closed classes</target>
+        <target state="translated">zamknięte klasy</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">

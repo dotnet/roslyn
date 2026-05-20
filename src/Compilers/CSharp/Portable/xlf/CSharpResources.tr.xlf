@@ -529,22 +529,22 @@
       </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
-        <target state="new">'{0}': cannot use a closed type '{1}' from another assembly as a base type.</target>
+        <target state="translated">'{0}': başka bir derlemedeki '{1}' kapalı türü temel tür olarak kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedExplicitlyAbstract">
         <source>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</source>
-        <target state="new">'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</target>
+        <target state="translated">'{0}': kapalı tür her zaman örtük olarak soyut oluğundan, soyut olarak işaretlenemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedSealedStatic">
         <source>'{0}': a closed type cannot be sealed or static</source>
-        <target state="new">'{0}': a closed type cannot be sealed or static</target>
+        <target state="translated">'{0}': kapalı tür mühürlü veya statik olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedTypeNameDisallowed">
         <source>Types and aliases cannot be named 'closed'.</source>
-        <target state="new">Types and aliases cannot be named 'closed'.</target>
+        <target state="translated">Türler ve diğer adlar 'closed' olarak adlandırılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
@@ -2709,7 +2709,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedClosedSubtype">
         <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
-        <target state="new">'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</target>
+        <target state="translated">'{0}': Temel tür kapalı olduğundan, '{2}' temel türünde '{1}' tür parametresine başvurulmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
@@ -2934,7 +2934,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureClosedClasses">
         <source>closed classes</source>
-        <target state="new">closed classes</target>
+        <target state="translated">kapalı sınıflar</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
