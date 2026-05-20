@@ -67,6 +67,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
             {
                 await BeginLoadingProjectAsync(path, guid);
             }
+            
             await WaitForProjectsToFinishLoadingAsync();
             await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
         }
@@ -89,6 +90,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
             {
                 await BeginLoadingProjectAsync(path, projectGuid: null);
             }
+
             await WaitForProjectsToFinishLoadingAsync();
             await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
         }
