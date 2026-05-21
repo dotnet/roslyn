@@ -3,12 +3,12 @@
 
 #if !NET8_0_OR_GREATER
 using System.Runtime.InteropServices;
+using SR = Microsoft.AspNetCore.Razor.SharedUtilities.Resources.CollectionUtilitiesSR;
 #endif
 
 #if !NET9_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #endif
-using SR = Microsoft.AspNetCore.Razor.SharedUtilities.Resources.CollectionUtilitiesSR;
 
 namespace System;
 
