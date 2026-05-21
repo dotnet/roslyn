@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 /// </summary>
 internal sealed partial class InlineHintsDataTaggerProvider<TAdditionalInformation>(
     TaggerHost taggerHost,
-    IInlineHintKeyProcessor inlineHintKeyProcessor)
+    IInlineHintKeyProcessor? inlineHintKeyProcessor)
     : AsynchronousViewportTaggerProvider<InlineHintDataTag<TAdditionalInformation>>(taggerHost, FeatureAttribute.InlineHints)
     where TAdditionalInformation : class
 {
-    private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor = inlineHintKeyProcessor;
+    private readonly IInlineHintKeyProcessor? _inlineHintKeyProcessor = inlineHintKeyProcessor;
 
     protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
