@@ -49,12 +49,12 @@ internal sealed partial class HelixTestRunner
     /// <summary>
     /// This is the amount of time we will wait for a helix work item to complete before we time out the entire job.
     /// </summary>
-    internal static TimeSpan WorkItemExecutionTimeout { get; } = WorkItemScheduleTime * 2.5;
+    internal static TimeSpan WorkItemExecutionTimeout { get; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
     /// This is the amount of time we will wait between polling the Helix service for updates.
     /// </summary>
-    private static TimeSpan HelixPollTime { get; } = TimeSpan.FromMinutes(5);
+    private static TimeSpan HelixPollTime { get; } = TimeSpan.FromMinutes(1);
 
     [GeneratedRegex(@"HelixJobId=(\S+) HelixJobCancellationToken=(\S+)")]
     private static partial Regex HelixJobInfoRegex();
