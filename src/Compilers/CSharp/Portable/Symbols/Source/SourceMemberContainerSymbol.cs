@@ -2077,7 +2077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsUnionType)
             {
-                if (UnionCaseTypes.IsEmpty)
+                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null) is null)
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
                 }
