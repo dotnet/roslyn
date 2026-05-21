@@ -1503,8 +1503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
-        <source>A 'union' declaration cannot use union member provider interface.</source>
-        <target state="new">A 'union' declaration cannot use union member provider interface.</target>
+        <source>A 'union' declaration cannot use a union member provider interface.</source>
+        <target state="new">A 'union' declaration cannot use a union member provider interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
