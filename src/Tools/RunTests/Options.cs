@@ -185,7 +185,7 @@ namespace RunTests
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", s => dotnetFilePath = s },
-                { "configuration=", "Configuration to test: Debug or Release", s => configuration = s },
+                { "testConfiguration=", "Configuration to test: Debug or Release", s => configuration = s },
                 { "runtime=", "The runtime to test: both, core or framework", (TestRuntime t) => testRuntime = t},
                 { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", s => includeFilter.Add(s) },
                 { "exclude=", "Expression for excluding unit test dlls: default is empty", s => excludeFilter.Add(s) },
