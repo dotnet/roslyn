@@ -342,6 +342,64 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
             """,
             parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80766")]
+    [InlineData(nameof(PreferDiscard), "_ = (c?.M2())")]
+    [InlineData(nameof(PreferUnusedLocal), "var unused = c?.M2()")]
+    public Task ExpressionStatement_NullConditionalInvocation(string optionName, string fixedStatement)
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(C c)
+                {
+                    [|c?.M2()|];
+                }
+
+                int M2() => 0;
+            }
+            """,
+            $$"""
+            class C
+            {
+                void M(C c)
+                {
+                    {{fixedStatement}};
+                }
+
+                int M2() => 0;
+            }
+            """, optionName);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80766")]
+    [InlineData(nameof(PreferDiscard), "_ = (c?.Inner?.M2())")]
+    [InlineData(nameof(PreferUnusedLocal), "var unused = c?.Inner?.M2()")]
+    public Task ExpressionStatement_NestedNullConditionalInvocation(string optionName, string fixedStatement)
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(C c)
+                {
+                    [|c?.Inner?.M2()|];
+                }
+
+                public C Inner { get; set; }
+                int M2() => 0;
+            }
+            """,
+            $$"""
+            class C
+            {
+                void M(C c)
+                {
+                    {{fixedStatement}};
+                }
+
+                public C Inner { get; set; }
+                int M2() => 0;
+            }
+            """, optionName);
+
     [Theory]
     [InlineData("x++")]
     [InlineData("x--")]
