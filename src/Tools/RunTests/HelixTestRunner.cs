@@ -37,19 +37,25 @@ public sealed class HelixWorkItem(
 internal sealed partial class HelixTestRunner
 {
     /// <summary>
-    /// We attempt to partition our tests into work items that execute in under 2 minutes 30s.  This is a derived limit based on a goal of running all tests
-    /// in under 5 minutes.  However because of overhead in setting up the test run, e.g.
-    ///   1.  Test discovery.
-    ///   2.  Downloading assets to the helix machine.
+    /// The amount of time we will allocate for each helix work item. When changing this value, consider that test execution time is only part of the 
+    /// total time in a work item:
+    ///   1.  Downloading assets to the helix machine.
+    ///   2.  Test discovery.
     ///   3.  Setting up the test host for each assembly.
-    ///   
     /// </summary>
     internal static TimeSpan WorkItemScheduleTime { get; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// This is the amount of time we will wait for a helix work item to complete before we time out the entire job.
+    /// This is the amount of time that we pass to vstest as the blame hang timeout.
     /// </summary>
-    internal static TimeSpan WorkItemExecutionTimeout { get; } = WorkItemScheduleTime * 2.5;
+    internal static TimeSpan WorkItemExecutionTimeout { get; } = WorkItemScheduleTime * 2;
+
+    /// <summary>
+    /// This is the amount of time we will wait for a helix work item to complete before we consider it a severe error
+    /// and cancel the helix job entirely. Example: if our code somehow hangs without triggering the blame hang
+    /// functionality in vstest.
+    /// </summary>
+    internal static TimeSpan JobExecutionTimeout { get; } = WorkItemScheduleTime * 2;
 
     /// <summary>
     /// This is the amount of time we will wait between polling the Helix service for updates.
@@ -204,7 +210,7 @@ internal sealed partial class HelixTestRunner
 
                         if (HasTimedOut(details))
                         {
-                            ConsoleUtil.Error($"Helix Job {helixJobId} Work item {workItem.Name} has been in state {details.State} for more than {WorkItemExecutionTimeout}. Timing out the job.");
+                            ConsoleUtil.Error($"Helix Job {helixJobId} Work item {workItem.Name} has been in state {details.State} for more than {JobExecutionTimeout}. Timing out the job.");
                             timedOutWorkItems.Add(workItem.Name);
                         }
                     }
@@ -231,7 +237,7 @@ internal sealed partial class HelixTestRunner
             }
 
             var started = DateTimeOffset.Parse(details.Started);
-            return DateTimeOffset.UtcNow - started > WorkItemExecutionTimeout;
+            return DateTimeOffset.UtcNow - started > JobExecutionTimeout;
         }
 
         static void WriteSyntheticTimeoutResults(string testResultsDirectory, string helixJobId, List<string> timedOutWorkItems)
@@ -252,10 +258,11 @@ internal sealed partial class HelixTestRunner
                         <assemblies>
                           <assembly name="{escapedWorkItemName}" total="1" passed="0" failed="1" skipped="0">
                             <collection name="Helix Timeout Detection" total="1" passed="0" failed="1" skipped="0">
-                              <test name="[TIMEOUT] {escapedWorkItemName}" type="RunTests.TimeoutDetection" method="{escapedWorkItemName}" time="0" result="Fail">
+                              <test name="{escapedWorkItemName}" type="RunTests.TimeoutDetection" method="{escapedWorkItemName}" time="0" result="Fail">
                                 <failure exception-type="WorkItemTimeoutException">
-                                  <message>Helix work item '{escapedWorkItemName}' in job '{escapedJobId}' exceeded the maximum execution time of {WorkItemExecutionTimeout}.
-                        https://helix.dot.net/api/jobs/{helixJobId}/workitems/{workItemName}</message>
+                                  <message>Helix work item '{escapedWorkItemName}' in job '{escapedJobId}' exceeded the maximum execution time of {JobExecutionTimeout}.
+                        Work Item: https://helix.dot.net/api/jobs/{helixJobId}/workitems/{workItemName}
+                        Console: https://helix.dot.net/api/jobs/{helixJobId}/workitems/{workItemName}/console</message>
                                   <stack-trace>The work item was still in the Running state when the timeout was detected.
                         See https://helix.dot.net/api/jobs/{helixJobId}/workitems/{workItemName} for more details.</stack-trace>
                                 </failure>
@@ -745,7 +752,7 @@ internal sealed partial class HelixTestRunner
         builder.AppendLine($"/ResultsDirectory:.");
 
         var blameOption = "CollectDump;CollectHangDump";
-        builder.AppendLine($"/Blame:{blameOption};TestTimeout=15minutes;DumpType=full");
+        builder.AppendLine($"/Blame:{blameOption};TestTimeout={(int)WorkItemExecutionTimeout.TotalMinutes}minutes;DumpType=full");
 
         // Build the filter string
         if (testMethodNames.Any())
