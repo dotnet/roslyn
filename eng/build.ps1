@@ -484,7 +484,7 @@ function TestUsingRunTests() {
   if ($helix) {
     $args += " --helix"
   }
-  else {
+  elseif ($timeout -gt 0) {
     $args += " --timeout $timeout"
   }
 
