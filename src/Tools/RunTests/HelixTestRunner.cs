@@ -51,6 +51,11 @@ internal sealed partial class HelixTestRunner
     /// </summary>
     internal static TimeSpan WorkItemExecutionTimeout { get; } = WorkItemScheduleTime * 2.5;
 
+    /// <summary>
+    /// This is the amount of time we will wait between polling the Helix service for updates.
+    /// </summary>
+    private static TimeSpan HelixPollTime { get; } = TimeSpan.FromMinutes(5);
+
     [GeneratedRegex(@"HelixJobId=(\S+) HelixJobCancellationToken=(\S+)")]
     private static partial Regex HelixJobInfoRegex();
 
@@ -133,7 +138,7 @@ internal sealed partial class HelixTestRunner
             Console.WriteLine($"Waiting for all work items in Helix job {helixJobId} to start running...");
             do
             {
-                var delayTask = Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
+                var delayTask = Task.Delay(HelixPollTime, cancellationToken);
                 var completedTask = await Task.WhenAny(processWaitTask, delayTask);
                 if (completedTask == processWaitTask)
                 {
@@ -172,7 +177,7 @@ internal sealed partial class HelixTestRunner
         {
             do
             {
-                var delayTask = Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
+                var delayTask = Task.Delay(HelixPollTime, cancellationToken);
                 await Task.WhenAny(processWaitTask, delayTask);
 
                 if (processWaitTask.IsCompleted)
