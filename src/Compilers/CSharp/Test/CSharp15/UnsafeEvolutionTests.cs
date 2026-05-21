@@ -4029,15 +4029,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void Member_LangVersion()
+    public void Member_UnsafeDeclarations()
     {
-        CSharpTestSource source =
-        [
-            """
+        var declarationsSource = """
             #pragma warning disable CS8321 // unused local function
-            unsafe void F() { }
             class C
             {
+                void M0() { unsafe void F() { } }
                 unsafe void M() { }
                 unsafe int P { get; set; }
 
@@ -4051,7 +4049,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             unsafe class U;
             unsafe delegate void D();
-            """,
+            """;
+        CSharpTestSource source =
+        [
+            declarationsSource,
             CompilerFeatureRequiredAttribute,
             """
             namespace System.Diagnostics.CodeAnalysis
@@ -4064,7 +4065,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         string[] safeSymbols = ["C", "U", "D"];
         string[] unsafeSymbols =
         [
-            "Program.<<Main>$>g__F|0_0",
+            "C.<M0>g__F|0_0",
             "C.M",
             "C.P", "C.get_P", "C.set_P",
             "C.E", "C.add_E", "C.remove_E",
@@ -4079,7 +4080,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         {
             CompileAndVerify(source,
                 parseOptions: parseOptions,
-                options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: m =>
                 {
                     VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false);
@@ -4097,7 +4098,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         {
             CompileAndVerify(source,
                 parseOptions: parseOptions,
-                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+                options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: m =>
                 {
                     VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
@@ -4119,10 +4120,72 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
+            // (16,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe class U;
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(16, 14),
+            // (17,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe delegate void D();
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(17, 22));
+
+        source =
+        [
+            declarationsSource,
+            CompilerFeatureRequiredAttribute,
+            MemorySafetyRulesAttributeDefinition,
+        ];
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (4,17): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     void M0() { unsafe void F() { } }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(4, 17),
+            // (5,5): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe void M() { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(5, 5),
+            // (6,5): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(6, 5),
+            // (6,20): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "get").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(6, 20),
+            // (6,25): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(6, 25),
+            // (8,5): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(8, 5),
+            // (8,36): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "add").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(8, 36),
+            // (8,44): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "remove").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(8, 44),
+            // (9,5): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe int this[int i] { get => i; set { } }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(9, 5),
+            // (9,30): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe int this[int i] { get => i; set { } }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "get").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(9, 30),
+            // (9,40): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe int this[int i] { get => i; set { } }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(9, 40),
+            // (10,5): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe C() { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(10, 5),
+            // (11,5): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe public static C operator +(C c1, C c2) => c1;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(11, 5),
+            // (12,5): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe public void operator +=(C c) { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(12, 5),
+            // (14,5): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe int F;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(14, 5),
             // (16,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe class U;
             Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(16, 14),

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics, ErrorLocation, modifyCompilation: true);
+                DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics, ModifiersTokenList.GetUnsafeOrExternLocation(ErrorLocation), modifyCompilation: true);
             }
 
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
