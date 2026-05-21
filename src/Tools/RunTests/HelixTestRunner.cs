@@ -133,7 +133,7 @@ internal sealed partial class HelixTestRunner
             Console.WriteLine($"Waiting for all work items in Helix job {helixJobId} to start running...");
             do
             {
-                var delayTask = Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+                var delayTask = Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
                 var completedTask = await Task.WhenAny(processWaitTask, delayTask);
                 if (completedTask == processWaitTask)
                 {
@@ -149,6 +149,7 @@ internal sealed partial class HelixTestRunner
                     if (workItems.Unscheduled != 0 && workItems.Waiting != 0)
                     {
                         Console.WriteLine($"All work items are running");
+                        return;
                     }
 
                     var elapsed = DateTime.UtcNow - startTime;
@@ -171,7 +172,7 @@ internal sealed partial class HelixTestRunner
         {
             do
             {
-                var delayTask = Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+                var delayTask = Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
                 await Task.WhenAny(processWaitTask, delayTask);
 
                 if (processWaitTask.IsCompleted)
