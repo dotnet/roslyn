@@ -8756,6 +8756,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
     }
 
+    /// <summary>
+    /// The compiler does not actually use the inline array's field, hence there is no diagnostic.
+    /// </summary>
     [Fact]
     public void Member_Field_InlineArray()
     {
