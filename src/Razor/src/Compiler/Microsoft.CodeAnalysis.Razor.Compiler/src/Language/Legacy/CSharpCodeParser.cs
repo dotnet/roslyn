@@ -129,8 +129,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
         ArgHelper.ThrowIfNull(context);
 
-        // Keep this fully qualified, since importing Microsoft.CodeAnalysis here collides with Razor syntax types.
-        directives = Microsoft.CodeAnalysis.ImmutableArrayExtensions.NullToEmpty(directives);
+        directives = directives.NullToEmpty();
 
 #if NET
         // We know that we're going to add the keywords specified in SetupKeywordParsers()
