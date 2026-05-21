@@ -202,12 +202,10 @@ namespace Microsoft.DiaSymReader
             _length = (int)libNewSize;
         }
 
-        void IUnsafeComStream.Stat(out STATSTG pstatstg, int grfStatFlag)
+        void IUnsafeComStream.Stat(ref NativeSTATSTG pstatstg, int grfStatFlag)
         {
-            pstatstg = new STATSTG()
-            {
-                cbSize = _length
-            };
+            pstatstg = default;
+            pstatstg.cbSize = _length;
         }
 
         unsafe void IUnsafeComStream.Write(byte* pv, int cb, int* pcbWritten)

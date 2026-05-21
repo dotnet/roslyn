@@ -31,17 +31,17 @@ namespace Microsoft.DiaSymReader
         void Revert();
         void LockRegion(long libOffset, long cb, int dwLockType);
         void UnlockRegion(long libOffset, long cb, int dwLockType);
-        void Stat(out STATSTG pstatstg, int grfStatFlag);
+        void Stat(ref NativeSTATSTG pstatstg, int grfStatFlag);
         void Clone(out IntPtr ppstm);
     }
 
     /// <summary>
-    /// Blittable replacement for <see cref="System.Runtime.InteropServices.ComTypes.STATSTG"/>
-    /// that works with both built-in COM interop and GeneratedComInterface.
-    /// Uses <see cref="IntPtr"/> for <c>pwcsName</c> instead of <see cref="string"/>
-    /// to avoid needing a custom marshaller.
+    /// Native definition of `STATSTG`. Needed because the implementation of <see cref="IUnsafeComStream.Stat" /> in mscordbi
+    /// (see https://github.com/dotnet/runtime/blob/87523393fdb14746ceb529ab308f11047819fd01/src/coreclr/inc/memorystreams.h#L115) doesn't
+    /// zero-initialize the structure, so normal marshaling would corrupt the heap trying to process unitialized memory for (e.g. <see cref="NativeSTATSTG.pwcsName"/>).
     /// </summary>
-    internal struct STATSTG
+    [StructLayout(LayoutKind.Sequential, Pack = 8)]
+    internal struct NativeSTATSTG
     {
         public IntPtr pwcsName;
         public int type;
