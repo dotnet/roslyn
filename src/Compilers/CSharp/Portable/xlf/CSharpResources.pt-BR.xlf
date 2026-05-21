@@ -1508,8 +1508,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
-        <source>A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="new">A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</target>
+        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
+        <target state="new">A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">

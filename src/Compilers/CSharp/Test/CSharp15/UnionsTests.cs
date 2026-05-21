@@ -125,15 +125,16 @@ public struct S1
             Assert.True(comp1.GetTypeByMetadataName("S1").IsUnionType);
 
             var src2 = @"
+#pragma warning disable CS0436 // The type 'UnionAttribute' in '' conflicts with the imported type 'UnionAttribute' ...
 [System.Runtime.CompilerServices.Union]
 struct S2
 {
-    public S1(int x) {}
+    public S2(int x) {}
     public object Value => null;
 }
 ";
             var comp2 = CreateCompilation([src2, UnionAttributeSource], references: [comp1.EmitToImageReference()]);
-            comp1.VerifyEmitDiagnostics();
+            comp2.VerifyEmitDiagnostics();
 
             Assert.True(comp2.GetTypeByMetadataName("S1").IsUnionType);
             Assert.True(comp2.GetTypeByMetadataName("S2").IsUnionType);
@@ -41354,7 +41355,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (3,7): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // class S1<T>
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 7),
                 // (15,21): error CS0656: Missing compiler required member 'S1<T>.Value'
@@ -41696,7 +41697,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (9,7): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (9,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // class S1<T> : S0<T>
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(9, 7),
                 // (19,21): error CS0656: Missing compiler required member 'S1<T>.Value'
@@ -42118,7 +42119,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (3,7): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // class S1
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 7),
                 // (14,21): error CS0656: Missing compiler required member 'S1.Value'
@@ -42168,10 +42169,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,7): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // class S1
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 7),
-                // (11,7): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (11,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // class S2 : S2.IUnionMembers
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S2").WithLocation(11, 7),
                 // (27,21): error CS0656: Missing compiler required member 'S1.Value'
@@ -42221,10 +42222,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,7): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // class S1
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 7),
-                // (11,7): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (11,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // class S2 : S2.IUnionMembers
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S2").WithLocation(11, 7),
                 // (25,21): error CS0656: Missing compiler required member 'S1.Value'
@@ -42276,10 +42277,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (3,7): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // class S1
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 7),
-                // (11,7): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (11,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // class S2 : S2.IUnionMembers
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S2").WithLocation(11, 7),
                 // (27,21): error CS0656: Missing compiler required member 'S1.Value'
@@ -42390,7 +42391,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // struct S1
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.Value'
@@ -46608,7 +46609,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // struct S1 : S1.IUnionMembers
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
@@ -46907,7 +46908,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // struct S1 : S1.IUnionMembers
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
@@ -46949,7 +46950,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // struct S1<T> : S1<T>.IUnionMembers
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (25,21): error CS0656: Missing compiler required member 'S1<T>.IUnionMembers.Value'
@@ -46992,7 +46993,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // struct S1 : S1.IUnionMembers
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
@@ -47032,7 +47033,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // struct S1 : S1.IUnionMembers
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
@@ -47138,7 +47139,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9386: A union type must have a 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
                 // struct S1 : S1.IUnionMembers
                 Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
